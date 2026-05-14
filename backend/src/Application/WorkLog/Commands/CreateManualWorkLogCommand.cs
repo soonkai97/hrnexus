@@ -13,9 +13,9 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
     public async Task<Guid> Handle(CreateManualWorkLogCommand req, CancellationToken ct)
     {
         // Validate HH:mm format
-        if (!TimeOnly.TryParse(req.StartTime, out _))
+        if (!TimeOnly.TryParseExact(req.StartTime, "HH:mm", null, System.Globalization.DateTimeStyles.None, out _))
             throw new ArgumentException("StartTime must be in HH:mm format.");
-        if (!TimeOnly.TryParse(req.EndTime, out _))
+        if (!TimeOnly.TryParseExact(req.EndTime, "HH:mm", null, System.Globalization.DateTimeStyles.None, out _))
             throw new ArgumentException("EndTime must be in HH:mm format.");
 
         // Validate time range: supports overnight shifts, but rejects identical or >24h spans
@@ -32,11 +32,12 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
             ?? throw new KeyNotFoundException($"Role {req.RoleName} not found.");
 
         // Check for approved leave covering this date
+        var workDateUtc = DateTime.SpecifyKind(req.WorkDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
         var onLeave = await db.LeaveRequests.AnyAsync(
             l => l.EmployeeId == req.EmployeeId
               && l.Status == "approved"
-              && l.StartDate <= req.WorkDate.ToDateTime(TimeOnly.MinValue)
-              && l.EndDate   >= req.WorkDate.ToDateTime(TimeOnly.MinValue), ct);
+              && l.StartDate <= workDateUtc
+              && l.EndDate   >= workDateUtc, ct);
         if (onLeave)
             throw new InvalidOperationException("Cannot start a shift while on approved leave.");
 

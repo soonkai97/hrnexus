@@ -194,9 +194,12 @@
             [placeholder]="'staff.minChars' | translate"
             autocomplete="new-password"
           />
-          <button type="button" class="eye-btn" (click)="showNewPassword = !showNewPassword">
+          <span class="eye-btn" role="button" tabindex="0"
+                (click)="showNewPassword = !showNewPassword"
+                (keydown.enter)="showNewPassword = !showNewPassword"
+                (keydown.space)="showNewPassword = !showNewPassword">
             {{ showNewPassword ? '🙈' : '👁' }}
-          </button>
+          </span>
         </div>
         <button type="button" class="btn-ghost gen-btn" (click)="generatePassword()">
           {{ 'staff.generatePassword' | translate }}

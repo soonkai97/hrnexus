@@ -1,12 +1,12 @@
 import { Component, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, PayrollSummaryResponse, PayrollStaffRow } from 'shared-lib';
 
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [DecimalPipe, FormsModule],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })

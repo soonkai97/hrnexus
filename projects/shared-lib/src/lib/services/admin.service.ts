@@ -24,7 +24,7 @@ export interface RecentEventDto {
   role:         string;
   locationName: string;
   timestamp:    string;
-  eventType:    'clock-in' | 'clock-out';
+  eventType:    'shift-started' | 'shift-ended';
 }
 
 export interface DashboardResponse {

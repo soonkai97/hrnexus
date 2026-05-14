@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FeatureFlagService, FeatureKey, ToastService } from 'shared-lib';
 
@@ -14,7 +13,7 @@ interface FeatureDef {
 @Component({
   selector: 'app-feature-flags',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [TranslatePipe],
   templateUrl: './feature-flags.component.html',
   styleUrl: './feature-flags.component.scss',
 })

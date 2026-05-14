@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, StaffService, StaffDetail, ToastService, PushService, LangService } from 'shared-lib';
@@ -7,7 +7,7 @@ import { AuthService, StaffService, StaffDetail, ToastService, PushService, Lang
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, TitleCasePipe, RouterLink, TranslatePipe],
+  imports: [TitleCasePipe, RouterLink, TranslatePipe],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })

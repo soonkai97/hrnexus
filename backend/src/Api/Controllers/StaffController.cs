@@ -182,7 +182,6 @@ public class StaffController(IMediator mediator) : ControllerBase
     // --- Role management ---
 
     [HttpGet("roles")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetRoles(CancellationToken ct)
     {
         var result = await mediator.Send(new GetRolesQuery(), ct);

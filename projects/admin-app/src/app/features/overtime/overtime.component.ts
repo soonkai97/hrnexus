@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AdminService, OvertimeRuleDto, ToastService, ConfirmService, StaffStore, TooltipDirective } from 'shared-lib';
@@ -7,7 +7,7 @@ import { AdminService, OvertimeRuleDto, ToastService, ConfirmService, StaffStore
 @Component({
   selector: 'app-overtime',
   standalone: true,
-  imports: [CommonModule, FormsModule, TitleCasePipe, TranslatePipe, TooltipDirective],
+  imports: [TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective],
   templateUrl: './overtime.component.html',
   styleUrl: './overtime.component.scss',
 })

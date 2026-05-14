@@ -1,6 +1,5 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService } from 'shared-lib';
@@ -11,7 +10,6 @@ interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: 
   selector: 'app-shell',
   standalone: true,
   imports: [
-    CommonModule,
     RouterOutlet, RouterLink, RouterLinkActive,
     ToastComponent, ConfirmDialogComponent,
     NotificationBellComponent, ThemeToggleComponent,

@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
@@ -11,7 +11,7 @@ import {
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, TooltipDirective, PickerOnlyDirective],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective, PickerOnlyDirective],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })

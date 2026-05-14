@@ -1,5 +1,4 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TooltipDirective } from 'shared-lib';
@@ -7,7 +6,7 @@ import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmServic
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, TooltipDirective],
+  imports: [FormsModule, TranslatePipe, TooltipDirective],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })

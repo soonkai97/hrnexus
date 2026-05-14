@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, PickerOnlyDirective } from 'shared-lib';
@@ -7,7 +7,7 @@ import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, Toast
 @Component({
   selector: 'app-tips',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, DecimalPipe, TranslatePipe, PickerOnlyDirective],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, PickerOnlyDirective],
   templateUrl: './tips.component.html',
   styleUrl: './tips.component.scss',
 })

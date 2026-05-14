@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PayrollService, PaySummary } from 'shared-lib';
@@ -7,7 +7,7 @@ import { PayrollService, PaySummary } from 'shared-lib';
 @Component({
   selector: 'app-tips-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [DecimalPipe, FormsModule, TranslatePipe],
   templateUrl: './tips-history.component.html',
   styleUrl: './tips-history.component.scss',
 })

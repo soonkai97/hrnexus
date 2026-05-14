@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, HostListener, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -9,7 +9,7 @@ import { AuthService, StaffStore, RegisterStaffRequest,
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslatePipe, TooltipDirective, PickerOnlyDirective],
+  imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe, TooltipDirective, PickerOnlyDirective],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })

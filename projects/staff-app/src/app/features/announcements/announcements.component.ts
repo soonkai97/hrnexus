@@ -1,12 +1,12 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AnnouncementService, AnnouncementDto, ToastService } from 'shared-lib';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [CommonModule, DatePipe, TranslatePipe],
+  imports: [DatePipe, TranslatePipe],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })

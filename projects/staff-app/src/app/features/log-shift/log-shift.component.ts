@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
+import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { WorkLogService, WorkLogDto, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PickerOnlyDirective, PagedResult } from 'shared-lib';
@@ -18,7 +18,7 @@ function todayISO(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe, TranslatePipe, AmPmPipe, PickerOnlyDirective],
+  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })

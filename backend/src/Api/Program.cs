@@ -88,7 +88,9 @@ app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseHangfireDashboard("/hangfire");
+// Hangfire dashboard — development only; not exposed in production builds
+if (app.Environment.IsDevelopment())
+    app.UseHangfireDashboard("/hangfire");
 app.MapControllers();
 app.MapHub<ShiftHub>("/hubs/shift");
 

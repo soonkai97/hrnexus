@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService, TooltipDirective, PickerOnlyDirective } from 'shared-lib';
@@ -7,7 +7,7 @@ import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, TranslatePipe, TooltipDirective, PickerOnlyDirective],
+  imports: [DatePipe, FormsModule, TranslatePipe, TooltipDirective, PickerOnlyDirective],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })

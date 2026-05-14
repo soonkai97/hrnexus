@@ -1,14 +1,13 @@
 import { Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FeaturePinService } from '../feature-pin.service';
 
 @Component({
   selector: 'app-feature-pin-entry',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './feature-pin-entry.component.html',
   styleUrl:    './feature-pin-entry.component.scss',
 })

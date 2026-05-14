@@ -31,7 +31,7 @@
         <label>{{ 'auth.password' | translate }}</label>
         <div class="pwd-wrap">
           <input [type]="showPwd() ? 'text' : 'password'" formControlName="password"
-                 placeholder="••••••••" readonly autocomplete="off"
+                 placeholder="••••••••" readonly autocomplete="new-password"
                  (mousedown)="removeReadonly($event)"
                  (touchstart)="removeReadonly($event)"
                  (keydown)="removeReadonly($event)"

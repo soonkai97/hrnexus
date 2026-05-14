@@ -28,8 +28,13 @@ const UNSTAMPED  = 'input:not([data-naf]),select:not([data-naf]),textarea:not([d
 const TEMP_RO    = 'data-naf-ro';
 
 function stamp(el: HTMLElement): void {
-  // Standard: all browsers use this as the first signal.
-  el.setAttribute('autocomplete', 'off');
+  // For password inputs, "new-password" is more effective than "off":
+  // Chrome 40+ ignores autocomplete="off" for saved-credential fields, but
+  // "new-password" explicitly signals "do not offer stored passwords here"
+  // (the browser may still suggest generating a new one — suppressed via CSS).
+  // For every other field type, fall back to "off".
+  const isPassword = (el as HTMLInputElement).type === 'password';
+  el.setAttribute('autocomplete', isPassword ? 'new-password' : 'off');
   // Edge / Microsoft Autofill: respects this attribute to skip a field.
   el.setAttribute('data-form-type', 'other');
   // LastPass, Bitwarden, Dashlane and similar browser extensions.

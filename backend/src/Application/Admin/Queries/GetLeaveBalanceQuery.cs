@@ -16,12 +16,12 @@ public record LeaveBalanceDto(
     double SickRemaining,
     double UnpaidUsed);
 
-public class GetLeaveBalanceQueryHandler(IAppDbContext db)
+public class GetLeaveBalanceQueryHandler(IAppDbContext db, IDateTimeProvider dt)
     : IRequestHandler<GetLeaveBalanceQuery, LeaveBalanceDto>
 {
     public async Task<LeaveBalanceDto> Handle(GetLeaveBalanceQuery req, CancellationToken ct)
     {
-        var year = req.Year ?? DateTime.UtcNow.Year;
+        var year = req.Year ?? dt.LocalNow.Year;
 
         // Get or return defaults
         var ent = await db.LeaveEntitlements

@@ -94,6 +94,6 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 app.MapHub<ShiftHub>("/hubs/shift");
 
-DependencyInjection.RegisterHangfireJobs();
+DependencyInjection.RegisterHangfireJobs(app.Services);
 
 app.Run();

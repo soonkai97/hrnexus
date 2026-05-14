@@ -186,6 +186,12 @@
   width: 100%; max-width: 440px;
   border-radius: $radius-xl; padding: 1.75rem;
   animation: fade-up 0.2s ease both;
+  // nc-card's $grad-card is nearly transparent — override with a solid dark
+  // glass card that matches the login-card visual weight
+  background: rgba(19,19,31,0.96) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(168,85,247,0.18);
 }
 
 .modal-header {
@@ -213,6 +219,9 @@
 .eye-btn {
   position: absolute; right: 0.75rem;
   cursor: pointer; font-size: 1rem; line-height: 1; user-select: none;
+  color: $text-muted;
+  background: transparent;
+  z-index: 2;
 }
 
 .gen-btn {

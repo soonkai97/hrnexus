@@ -71,9 +71,14 @@ input, select, textarea {
   }
 }
 
-// Suppress browser native password-reveal button (Edge/IE/Chrome)
+// Suppress ALL browser-native password / autofill UI chrome
 input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear { display: none; }
+input[type="password"]::-ms-clear                { display: none !important; }
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-strong-password-auto-fill-button  { display: none !important; visibility: hidden !important; }
+
+// Prevent Edge from painting a dark-mode eye-icon tray inside password inputs
+input[type="password"] { color-scheme: normal; }
 
 // Suppress browser autofill background (yellow/blue overlay)
 input:-webkit-autofill,

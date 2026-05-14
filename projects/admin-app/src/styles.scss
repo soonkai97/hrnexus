@@ -65,9 +65,20 @@ input, select, textarea {
   color-scheme: dark;
 }
 
-// Suppress browser native password-reveal button (Edge/IE/Chrome)
+// Suppress ALL browser-native password / autofill UI chrome
+// ::-ms-reveal / ::-ms-clear  → Edge Legacy & Edge Chromium reveal toggle
+// ::-webkit-credentials-auto-fill-button → Chromium autofill key icon
+// ::-webkit-strong-password-auto-fill-button → Safari strong-password chip
 input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear { display: none; }
+input[type="password"]::-ms-clear                { display: none !important; }
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-strong-password-auto-fill-button  { display: none !important; visibility: hidden !important; }
+
+// Prevent the browser from painting its own dark-mode chrome inside password
+// inputs (Edge renders a dark eye-icon tray when color-scheme: dark is set).
+// Our explicit background/color overrides still apply; this only suppresses
+// the native decoration layer.
+input[type="password"] { color-scheme: normal; }
 
 // Suppress browser autofill background (yellow/blue overlay)
 input:-webkit-autofill,
@@ -296,11 +307,12 @@ table { min-width: 480px; }
     color: var(--nc-text-primary);
   }
 
-  .nc-card, .stat-card, .table-card {
+  .nc-card, .stat-card, .table-card, .modal-card {
     background: var(--nc-bg-surface) !important;
     border-color: var(--nc-border-subtle) !important;
-    backdrop-filter: none;
-    box-shadow: 0 2px 12px rgba(100,60,200,0.08);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 2px 12px rgba(100,60,200,0.08) !important;
   }
 
   // Feature-flags page cards

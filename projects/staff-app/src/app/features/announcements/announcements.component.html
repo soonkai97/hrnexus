@@ -1,0 +1,56 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">📢 {{ 'nav.announcements' | translate }}</h1>
+      <p class="page-sub">{{ 'announcements.subtitle' | translate }}</p>
+    </div>
+    @if (hasUnread()) {
+      <button class="btn-secondary" (click)="markAllRead()">
+        ✓ {{ 'announcements.markAllRead' | translate }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading-wrap"><span class="nc-spinner"></span></div>
+  } @else if (items().length === 0) {
+    <div class="empty-state-card">
+      <div class="empty-icon">📭</div>
+      <p>{{ 'announcements.noAnnouncements' | translate }}</p>
+    </div>
+  } @else {
+
+    @if (hasUnread()) {
+      <div class="unread-bar">
+        <span class="unread-dot"></span>
+        {{ unreadCount() }} {{ 'announcements.unread' | translate }}
+      </div>
+    }
+
+    <div class="announcements-list">
+      @for (item of items(); track item.id) {
+        <div class="announcement-card" [class.unread]="!item.isRead" (click)="markRead(item)">
+          <div class="card-left-accent"></div>
+          <div class="card-body">
+            <div class="card-header-row">
+              <div class="card-title-wrap">
+                @if (!item.isRead) {
+                  <span class="new-badge">NEW</span>
+                }
+                <h3 class="card-title">{{ item.title }}</h3>
+              </div>
+              <time class="card-date">{{ item.createdAt | date:'d MMM yyyy' }}</time>
+            </div>
+            <p class="card-text">{{ item.body }}</p>
+            <div class="card-footer">
+              <span class="card-author">{{ 'announcements.postedBy' | translate }} {{ item.createdByName }}</span>
+              @if (!item.isRead) {
+                <span class="mark-read-hint">{{ 'announcements.clickToRead' | translate }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

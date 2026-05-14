@@ -1,0 +1,176 @@
+@use 'styles/theme' as *;
+
+// ── Period picker ─────────────────────────────────────────────────────────────
+
+.period-picker { padding: 1rem; margin-bottom: 1rem; }
+.picker-row    { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
+.period-label  { font-size: 0.78rem; color: $text-muted; margin-top: 0.6rem; }
+.sm { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
+
+// ── Print button ──────────────────────────────────────────────────────────────
+
+.print-btn {
+  background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
+  color: $neon-purple; border-radius: $radius-sm; padding: 0.3rem 0.75rem;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: background $transition-fast;
+  &:hover { background: rgba(168,85,247,0.2); }
+}
+
+@media print {
+  nc-notification-bell, app-shell > nav, app-shell > header, .print-btn { display: none !important; }
+  .page-content { padding: 0; }
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+
+  .page-title {
+    font-size: 1.3rem;
+    background: linear-gradient(90deg, $neon-purple, $neon-pink);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .page-period {
+    font-size: 0.75rem;
+    color: $text-muted;
+  }
+}
+
+.loading-wrap {
+  text-align: center;
+  padding: 3rem 1rem;
+  p { color: $text-muted; font-size: 0.9rem; margin-top: 1rem; }
+}
+
+// ── Hero card ─────────────────────────────────────────────────────────────────
+
+.hero-card {
+  background: $grad-hero;
+  border-radius: $radius-xl;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(131,24,67,0.35);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(255,255,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-label {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-amount {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .hero-hours {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.5);
+  }
+}
+
+// ── Section label ─────────────────────────────────────────────────────────────
+
+.section-label {
+  font-size: 0.7rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+// ── Breakdown ─────────────────────────────────────────────────────────────────
+
+.breakdown-card {
+  padding: 0.5rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+
+  .brow-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+
+    .brow-title { font-size: 0.9rem; color: $text-primary; font-weight: 500; }
+    .brow-sub   { font-size: 0.72rem; color: $text-muted; }
+  }
+
+  .brow-amount {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $text-primary;
+
+    &.accent-amber { color: $neon-amber; text-shadow: 0 0 10px rgba(251,191,36,0.4); }
+    &.accent-pink  { color: $neon-pink;  text-shadow: 0 0 10px rgba(236,72,153,0.4); }
+  }
+}
+
+.divider {
+  height: 1px;
+  background: $border-subtle;
+  margin: 0 1.25rem;
+}
+
+// ── Shifts list ───────────────────────────────────────────────────────────────
+
+.shifts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.shift-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+
+  .shift-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+
+    .shift-date { font-size: 0.875rem; font-weight: 500; color: $text-primary; }
+    .shift-loc  { font-size: 0.75rem; color: $text-muted; }
+  }
+
+  .shift-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+
+    .shift-hours { font-size: 0.75rem; color: $text-muted; }
+    .shift-pay   { font-size: 0.95rem; font-weight: 700; color: $neon-green; text-shadow: 0 0 8px rgba(74,222,128,0.4); }
+  }
+}

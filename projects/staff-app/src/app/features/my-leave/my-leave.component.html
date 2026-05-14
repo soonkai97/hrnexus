@@ -1,0 +1,132 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
+  </div>
+
+  <!-- ── Balance cards (always visible) ───────────────────────────────────── -->
+  @if (balance()) {
+    @let b = balance()!;
+    <div class="balance-grid">
+      <div class="bal-card annual">
+        <div class="bal-label">{{ 'leave.annual' | translate }}</div>
+        <div class="bal-nums">
+          <span class="bal-remaining">{{ b.annualRemaining }}</span>
+          <span class="bal-sep">/</span>
+          <span class="bal-total">{{ b.annualEntitlement }}{{ 'leave.days' | translate }}</span>
+        </div>
+        <div class="bal-bar"><div class="bal-fill annual-fill" [style.width.%]="barPct(b.annualRemaining, b.annualEntitlement)"></div></div>
+        <div class="bal-used">{{ b.annualUsed }} used</div>
+      </div>
+      <div class="bal-card sick">
+        <div class="bal-label">{{ 'leave.sick' | translate }}</div>
+        <div class="bal-nums">
+          <span class="bal-remaining">{{ b.sickRemaining }}</span>
+          <span class="bal-sep">/</span>
+          <span class="bal-total">{{ b.sickEntitlement }}{{ 'leave.days' | translate }}</span>
+        </div>
+        <div class="bal-bar"><div class="bal-fill sick-fill" [style.width.%]="barPct(b.sickRemaining, b.sickEntitlement)"></div></div>
+        <div class="bal-used">{{ b.sickUsed }} used</div>
+      </div>
+      <div class="bal-card unpaid">
+        <div class="bal-label">{{ 'leave.type.unpaid' | translate }}</div>
+        <div class="bal-nums">
+          <span class="bal-remaining">{{ b.unpaidUsed }}</span>
+        </div>
+        <div class="bal-used">{{ 'leave.days' | translate }} taken this year</div>
+      </div>
+    </div>
+  }
+
+  <!-- ── View tabs ─────────────────────────────────────────────────────────── -->
+  <div class="view-tabs">
+    <button [class.active]="view() === 'apply'" (click)="view.set('apply')">
+      {{ 'leave.applyLeave' | translate }}
+    </button>
+    <button [class.active]="view() === 'history'" (click)="view.set('history')">
+      {{ 'leave.history' | translate }}
+      @if (records().length > 0) {
+        <span class="tab-count">{{ records().length }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════ APPLY VIEW ══════════════════════════════════ -->
+  @if (view() === 'apply') {
+
+    <!-- Apply form -->
+    <div #formAnchor class="nc-card form-card">
+      <h3 class="form-title">{{ 'leave.applyLeave' | translate }}</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
+          <select [(ngModel)]="form.leaveType">
+            @for (t of leaveTypes; track t) {
+              <option [value]="t">{{ ('leave.type.' + t) | translate }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
+          <input type="date" [(ngModel)]="form.startDate" />
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
+          <input type="date" [(ngModel)]="form.endDate" />
+        </div>
+
+        <div class="field full-span">
+          <label>{{ 'leave.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
+          <input type="text" [(ngModel)]="form.notes" [placeholder]="'leave.notesLabel' | translate" />
+        </div>
+      </div>
+
+      @if (formError()) {
+        <div class="err-box"><span>⚠</span> {{ formError() }}</div>
+      }
+      <div class="form-actions">
+        <button class="btn-primary" style="width:auto" (click)="submit()" [disabled]="saving()">
+          @if (saving()) { <span class="nc-spinner sm"></span> }
+          {{ saving() ? ('common.saving' | translate) + '…' : ('leave.applyLeave' | translate) }}
+        </button>
+      </div>
+    </div>
+
+  }
+
+  <!-- ═══════════════════════════ HISTORY VIEW ════════════════════════════════ -->
+  @if (view() === 'history') {
+
+    @if (loading()) {
+      <div class="center-spinner"><span class="nc-spinner"></span></div>
+    } @else if (records().length === 0) {
+      <div class="nc-card empty-state">
+        <span>🌴</span>
+        <p>{{ 'leave.noLeave' | translate }}</p>
+      </div>
+    } @else {
+      <div class="leave-list">
+        @for (r of records(); track r.id) {
+          <div class="leave-card nc-card">
+            <div class="leave-top">
+              <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ ('leave.type.' + r.leaveType) | translate }}</span>
+              <span class="leave-status" [attr.data-status]="r.status">{{ ('leave.status.' + r.status) | translate }}</span>
+            </div>
+            <div class="leave-dates">
+              {{ r.startDate }}{{ r.startDate !== r.endDate ? ' → ' + r.endDate : '' }}
+
+              <span class="leave-days">{{ r.days }}{{ 'leave.days' | translate }}</span>
+            </div>
+            @if (r.notes) {
+              <div class="leave-notes">{{ r.notes }}</div>
+            }
+            <div class="leave-meta">{{ 'leave.submittedOn' | translate }} {{ r.createdAt }}</div>
+            @if ((r.status === 'pending' || r.status === 'approved') && r.endDate >= todayLocal) {
+              <button class="btn-danger-xs" (click)="cancel(r)">{{ 'leave.cancel' | translate }}</button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  }
+</div>

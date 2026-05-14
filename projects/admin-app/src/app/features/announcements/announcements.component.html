@@ -1,0 +1,107 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">📢 {{ 'announcements.title' | translate }}</h1>
+    <button class="btn-primary" (click)="openAdd()">{{ 'announcements.newAnnouncement' | translate }}</button>
+  </div>
+
+  @if (showForm()) {
+    <div #formAnchor class="nc-card form-card">
+      <div class="form-header">
+        <h3>{{ editing() ? ('announcements.editForm' | translate) : ('announcements.newForm' | translate) }}</h3>
+        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" (click)="cancel()">✕</button>
+      </div>
+      <div class="field">
+        <label><span class="req">*</span> {{ 'announcements.titleLabel' | translate }}</label>
+        <input [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" />
+      </div>
+      <div class="field">
+        <label><span class="req">*</span> {{ 'announcements.bodyLabel' | translate }}</label>
+        <textarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate"></textarea>
+      </div>
+      <div class="field">
+        <label>{{ 'announcements.targetRoles' | translate }}</label>
+        <input [(ngModel)]="form.targetRoles" [placeholder]="'announcements.targetRolesPlaceholder' | translate" />
+      </div>
+      <div class="field">
+        <label>{{ 'announcements.expiresAt' | translate }} <span class="field-hint">{{ 'announcements.expiresAtHint' | translate }}</span></label>
+        <input type="date" [(ngModel)]="form.expiresAt" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving()">
+          @if (saving()) { <span class="nc-spinner sm"></span> }
+          {{ saving() ? ('common.saving' | translate) : ('common.save' | translate) }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-wrap"><span class="nc-spinner"></span></div>
+  } @else if (items().length === 0) {
+    <p class="empty-state">{{ 'announcements.noAnnouncements' | translate }}</p>
+  } @else {
+    <div class="nc-card table-wrap">
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ 'announcements.titleCol' | translate }}</th>
+              <th>{{ 'announcements.targetRolesCol' | translate }}</th>
+              <th>{{ 'announcements.readsCol' | translate }}</th>
+              <th>{{ 'announcements.createdByCol' | translate }}</th>
+              <th>{{ 'announcements.expiresCol' | translate }}</th>
+              <th>{{ 'announcements.activeCol' | translate }}</th>
+              <th class="td-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of pagedItems(); track item.id) {
+              <tr>
+                <td class="col-title">{{ item.title }}</td>
+                <td><span class="badge">{{ item.targetRoles }}</span></td>
+                <td class="col-muted">{{ item.readCount }}</td>
+                <td class="col-muted">{{ item.createdByName }}</td>
+                <td class="col-muted">{{ item.expiresAt ? (item.expiresAt | date:'mediumDate') : '—' }}</td>
+                <td>
+                  <span class="badge" [class.badge-active]="item.isActive" [class.badge-closed]="!item.isActive">
+                    {{ item.isActive ? ('common.active' | translate) : ('announcements.expired' | translate) }}
+                  </span>
+                </td>
+                <td class="td-actions">
+                  <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
+                  <button class="btn-menu-trigger" [ncTooltip]="'Actions'"
+                          (click)="toggleMenu(item.id, $event); $event.stopPropagation()">⋯</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination-bar">
+          <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
+          <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ items().length }})</span></span>
+          <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(currentPage() + 1)">›</button>
+        </div>
+      }
+    </div>
+
+    <!-- ── Action dropdown — outside .nc-card so backdrop-filter doesn't clip it ── -->
+    @if (menuTarget() && menuPos()) {
+      <div class="action-backdrop" (click)="closeMenu()"></div>
+      <div class="action-dropdown"
+           [style.top.px]="menuPos()!.top"
+           [style.right.px]="menuPos()!.right">
+        <button class="action-item" (click)="startEdit(menuTarget()!); closeMenu()">
+          ✏ {{ 'common.edit' | translate }}
+        </button>
+        <div class="action-divider"></div>
+        <button class="action-item action-item-danger" (click)="remove(menuTarget()!.id); closeMenu()">
+          🗑 {{ 'common.delete' | translate }}
+        </button>
+      </div>
+    }
+  }
+</div>

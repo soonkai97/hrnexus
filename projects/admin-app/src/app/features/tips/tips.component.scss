@@ -1,0 +1,44 @@
+.form-card {
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  animation: fade-up 0.2s ease both;
+}
+
+.preview-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(168, 85, 247, 0.15);
+}
+
+.exclusion-warning {
+  display: flex;
+  gap: 0.75rem;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: #fcd34d;
+
+  strong { display: block; margin-bottom: 0.35rem; color: #fbbf24; }
+}
+
+.exclusion-icon { font-size: 1.1rem; flex-shrink: 0; line-height: 1.5; }
+
+.exclusion-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  li { margin-bottom: 0.2rem; }
+}
+
+.exclusion-reason { color: rgba(252,211,77,0.65); font-size: 0.8rem; }
+
+@media (max-width: 768px) {
+  .form-card { padding: 1rem; }
+  .preview-section table { min-width: 320px; }
+}
+
+@media (max-width: 480px) {
+  .form-card { padding: 0.75rem; }
+}

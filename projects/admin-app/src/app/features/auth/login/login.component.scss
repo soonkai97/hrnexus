@@ -1,0 +1,148 @@
+@use 'styles/theme' as *;
+
+// ── Full-viewport container — no scroll ───────────────────────────────────────
+
+.login-page {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: $bg-void;
+  position: relative;
+  overflow: hidden;
+}
+
+// ── Ambient blobs ─────────────────────────────────────────────────────────────
+
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+}
+.blob-1 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+  top: -120px; left: -80px;
+}
+.blob-2 {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(236,72,153,0.1) 0%, transparent 70%);
+  bottom: -80px; right: -60px;
+}
+
+// ── Top-right controls (theme toggle + lang) ──────────────────────────────────
+
+.login-controls {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-lang-btn {
+  height: 34px;
+  padding: 0 0.75rem;
+  border-radius: 17px;
+  border: 1px solid rgba(168,85,247,0.35);
+  background: rgba(13,13,22,0.8);
+  color: $text-primary;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: background $transition-fast, border-color $transition-fast;
+
+  &:hover {
+    background: rgba(168,85,247,0.2);
+    border-color: rgba(168,85,247,0.6);
+  }
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+.login-card {
+  @include glass(16px, rgba(13,13,22,0.88));
+  border: 1px solid $border-subtle;
+  border-radius: $radius-xl;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+}
+
+// ── Brand ─────────────────────────────────────────────────────────────────────
+
+.brand {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  .brand-icon {
+    display: block;
+    font-size: 2.5rem;
+    color: $neon-purple;
+    text-shadow: 0 0 20px rgba(168,85,247,0.9), 0 0 50px rgba(168,85,247,0.4);
+    animation: neon-flicker 5s ease-in-out infinite;
+    margin-bottom: 0.5rem;
+  }
+
+  .brand-name {
+    font-size: 1.75rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    background: linear-gradient(90deg, $neon-purple, $neon-pink);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .brand-sub {
+    font-size: 0.75rem;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-top: 0.25rem;
+  }
+}
+
+// ── Form elements ─────────────────────────────────────────────────────────────
+
+.btn-primary { width: 100%; margin-top: 0.5rem; }
+
+.forgot-link {
+  color: $text-muted;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: color $transition-fast;
+  &:hover { color: $neon-purple; }
+}
+
+.pwd-wrap { position: relative; display: flex; align-items: center; }
+.pwd-wrap input { flex: 1; padding-right: 2.5rem !important; }
+.eye-btn {
+  position: absolute; right: 0.75rem; background: transparent !important; border: none;
+  cursor: pointer; font-size: 1rem; padding: 0; line-height: 1;
+}
+
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: $radius-sm;
+  color: #f87171;
+  font-size: 0.85rem;
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 1rem;
+  animation: fade-up 0.2s ease both;
+}

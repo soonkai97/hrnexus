@@ -1,0 +1,57 @@
+<div class="page-content">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'nav.tipsHistory' | translate }}</h1>
+  </div>
+
+  <div class="nc-card period-picker">
+    <div class="picker-row">
+      <div class="field">
+        <label>{{ 'pay.year' | translate }}</label>
+        <input type="number" [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)" min="2020" max="2099" />
+      </div>
+      <div class="field">
+        <label>{{ 'pay.month' | translate }}</label>
+        <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event)">
+          @for (m of months; track $index) {
+            <option [value]="$index + 1">{{ m }}</option>
+          }
+        </select>
+      </div>
+      <button class="btn-primary sm" (click)="load()" [disabled]="loading()">
+        @if (loading()) { <span class="nc-spinner sm"></span> } {{ 'pay.view' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><span class="nc-spinner"></span></div>
+  } @else if (summary()) {
+    <div class="nc-card tips-card">
+      <div class="tips-hero">
+        <div class="tips-label">{{ 'tipsHistory.earned' | translate }}</div>
+        <div class="tips-amount">RM {{ summary()!.tipsAllocated | number:'1.2-2' }}</div>
+        <div class="tips-period">{{ months[selectedMonth() - 1] }} {{ selectedYear() }}</div>
+      </div>
+      <div class="pay-breakdown">
+        <div class="breakdown-row">
+          <span>{{ 'pay.regularHours' | translate }}</span>
+          <span>RM {{ summary()!.regularPay | number:'1.2-2' }}</span>
+        </div>
+        <div class="breakdown-row">
+          <span>{{ 'pay.overtimeHours' | translate }}</span>
+          <span>RM {{ summary()!.overtimePay | number:'1.2-2' }}</span>
+        </div>
+        <div class="breakdown-row highlight">
+          <span>{{ 'pay.tips' | translate }}</span>
+          <span>RM {{ summary()!.tipsAllocated | number:'1.2-2' }}</span>
+        </div>
+        <div class="breakdown-row total">
+          <span>{{ 'pay.grossPay' | translate }}</span>
+          <span>RM {{ summary()!.grossPay | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="empty-state"><div class="empty-icon">💵</div><p>{{ 'tipsHistory.noData' | translate }}</p></div>
+  }
+</div>

@@ -1,0 +1,75 @@
+<div class="shell" [class.collapsed]="collapsed()">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        @if (!collapsed()) {
+          <span class="logo-text">NightCrew</span>
+        }
+      </div>
+      <button class="collapse-btn" (click)="toggleSidebar()" [attr.aria-label]="collapsed() ? 'Expand' : 'Collapse'">
+        {{ collapsed() ? '›' : '‹' }}
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of navItems(); track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">{{ item.icon }}</span>
+          @if (!collapsed()) {
+            <span class="nav-label">{{ item.labelKey | translate }}</span>
+          }
+          @if (item.path === '/announcements' && unreadAnnouncements() > 0) {
+            <span class="nav-badge">{{ unreadAnnouncements() }}</span>
+          }
+          <span class="nav-indicator"></span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      @if (user()) {
+        <div class="user-row">
+          <div class="user-avatar">{{ initials() }}</div>
+          @if (!collapsed()) {
+            <div class="user-info">
+              <span class="user-name">{{ user()!.fullName.split(' ')[0] }}</span>
+              <span class="user-role">{{ userRoleLabel() }}</span>
+            </div>
+            <button class="logout-btn" (click)="logout()" [title]="'topbar.signOut' | translate">⏻</button>
+          }
+        </div>
+      }
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" (click)="toggleSidebar()">☰</button>
+      </div>
+      <div class="topbar-right">
+        @if (user()) {
+          <nc-notification-bell />
+          <span class="topbar-user">{{ user()!.fullName }}</span>
+          <nc-theme-toggle />
+          <!-- Language switcher -->
+          <button class="lang-btn" (click)="lang.toggle()" [title]="'profile.language' | translate">
+            {{ lang.current() === 'en' ? '中文' : 'EN' }}
+          </button>
+          <button class="btn-ghost" (click)="logout()">{{ 'topbar.signOut' | translate }}</button>
+        }
+      </div>
+    </header>
+    <div class="content">
+      <router-outlet />
+    </div>
+  </div>
+
+</div>
+
+<nc-toast />
+<nc-confirm-dialog />

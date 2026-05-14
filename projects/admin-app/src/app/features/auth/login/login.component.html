@@ -1,0 +1,45 @@
+<div class="login-page">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="login-controls">
+    <nc-theme-toggle />
+    <button class="login-lang-btn" (click)="lang.toggle()">
+      {{ lang.current() === 'en' ? '中文' : 'EN' }}
+    </button>
+  </div>
+
+  <div class="login-card">
+    <div class="brand">
+      <span class="brand-icon">◈</span>
+      <h1 class="brand-name">NightCrew</h1>
+      <p class="brand-sub">{{ 'auth.managementPortal' | translate }}</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label>{{ 'auth.staffId' | translate }}</label>
+        <input type="text" formControlName="staffId" placeholder="NC1001" style="text-transform:uppercase" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>{{ 'auth.password' | translate }}</label>
+        <div class="pwd-wrap">
+          <input [type]="showPwd() ? 'text' : 'password'" formControlName="password" placeholder="••••••••" autocomplete="new-password" />
+          <button type="button" class="eye-btn" (click)="showPwd.set(!showPwd())">
+            {{ showPwd() ? '🙈' : '👁' }}
+          </button>
+        </div>
+      </div>
+      @if (error()) {
+        <div class="login-error"><span>⚠</span> {{ error() }}</div>
+      }
+      <button type="submit" class="btn-primary" [disabled]="loading()">
+        @if (loading()) { <span class="nc-spinner sm"></span> }
+        {{ loading() ? ('auth.signingIn' | translate) : ('auth.signIn' | translate) }}
+      </button>
+      <div style="text-align:center;margin-top:1rem">
+        <a routerLink="/auth/forgot-password" class="forgot-link">{{ 'auth.forgotPassword' | translate }}</a>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+@use 'styles/theme' as *;
+
+.pin-wrap {
+  min-height: 100vh; display: flex;
+  align-items: center; justify-content: center;
+  padding: 2rem;
+}
+
+.pin-card {
+  width: 100%; max-width: 400px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+
+.pin-icon  { font-size: 2.5rem; }
+.pin-title { font-size: 1.3rem; font-weight: 700; color: $text-primary; margin: 0; }
+.pin-sub   { font-size: 0.85rem; color: $text-muted; margin: 0; line-height: 1.5; }
+
+.pin-field {
+  position: relative;
+  display: flex; align-items: center;
+}
+
+.pin-input {
+  width: 100%; padding: 0.75rem 3rem 0.75rem 1rem;
+  font-size: 1rem; letter-spacing: 0.15em;
+  text-align: center;
+}
+
+.pin-eye {
+  position: absolute; right: 0.75rem;
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; color: $text-muted; padding: 0.25rem;
+  &:hover { color: $text-primary; }
+}
+
+.pin-error {
+  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
+  color: #f87171; border-radius: $radius-sm;
+  font-size: 0.83rem; padding: 0.6rem 0.9rem;
+}
+
+.pin-submit { width: 100%; justify-content: center; }
+
+.pin-hint {
+  font-size: 0.72rem; color: $text-muted; margin: 0;
+}

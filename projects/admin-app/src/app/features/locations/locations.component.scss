@@ -1,0 +1,80 @@
+@use 'styles/theme' as *;
+
+.form-card {
+  max-width: 420px;
+  margin-bottom: 1.5rem;
+}
+
+.error-msg {
+  color: #f87171;
+  margin-bottom: 1rem;
+}
+
+.loading-card {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+// ── Location grid ─────────────────────────────────────────────────────────────
+.loc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.loc-card {
+  overflow: hidden;
+}
+
+// Image area
+.loc-image {
+  position: relative;
+  height: 140px;
+  background: #1e1e2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.loc-placeholder {
+  font-size: 2.5rem;
+  opacity: 0.3;
+}
+
+.loc-upload-label {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  cursor: pointer;
+
+  .btn-ghost { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+
+  input[type="file"] { display: none; }
+}
+
+// Card body
+.loc-body {
+  padding: 1rem;
+}
+
+.loc-name {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.loc-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-danger-ghost {
+  color: #f87171;
+  &:hover { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); }
+}

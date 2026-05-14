@@ -1,0 +1,143 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">⏱ {{ 'overtime.title' | translate }}</h1>
+    <button class="btn-primary" (click)="openAdd()">{{ 'overtime.addRule' | translate }}</button>
+  </div>
+
+  @if (showForm()) {
+    <div #formAnchor class="nc-card form-card">
+      <!-- backdrop inside card so it doesn't bleed over table below -->
+      @if (showRoleDropdown()) {
+        <div class="role-backdrop" (click)="closeRoleDropdown()"></div>
+      }
+      <div class="form-header">
+        <h3>{{ editingId() ? ('overtime.editRule' | translate) : ('overtime.newOvertimeRule' | translate) }}</h3>
+        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" (click)="closeForm()">✕</button>
+      </div>
+      <div class="form-grid">
+
+        <!-- Role multi-select -->
+        <div class="field">
+          <label><span class="req">*</span> {{ 'overtime.roleLabel' | translate }}</label>
+          <div class="role-select">
+            <button type="button" class="role-trigger" (click)="showRoleDropdown.update(v => !v)">
+              <span class="role-trigger-label">{{ roleLabel() }}</span>
+              <span class="role-chevron" [class.open]="showRoleDropdown()">▾</span>
+            </button>
+            @if (showRoleDropdown()) {
+              <div class="role-dropdown">
+                <label class="role-option">
+                  <input type="checkbox" [checked]="isRoleSelected('*')" (change)="toggleRole('*')" />
+                  <span>✱ {{ 'overtime.allRoles' | translate }}</span>
+                </label>
+                <div class="role-divider"></div>
+                @for (r of staffStore.roles(); track r.name) {
+                  <label class="role-option">
+                    <input type="checkbox" [checked]="isRoleSelected(r.name)" (change)="toggleRole(r.name)" />
+                    <span>{{ r.name | titlecase }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label><span class="req">*</span> {{ 'overtime.thresholdHours' | translate }}</label>
+          <input type="number" [(ngModel)]="form.thresholdHours" min="0" step="0.5" />
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> {{ 'overtime.multiplier' | translate }}</label>
+          <input type="number" [(ngModel)]="form.multiplier" min="1" step="0.1" />
+        </div>
+        @if (editingId()) {
+          <div class="field" style="display:flex;align-items:center;gap:.75rem;padding-top:1.5rem">
+            <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:.5rem">
+              <input type="checkbox" [(ngModel)]="form.isActive" />
+              {{ 'overtime.activeCol' | translate }}
+            </label>
+          </div>
+        }
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" (click)="closeForm()">{{ 'common.cancel' | translate }}</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving()">
+          @if (saving()) { <span class="nc-spinner sm"></span> }
+          {{ saving() ? ('common.saving' | translate) : ('common.save' | translate) }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-wrap"><span class="nc-spinner"></span></div>
+  }
+
+  <div class="nc-card">
+    @if (rules().length === 0 && !loading()) {
+      <div class="empty-state">{{ 'overtime.noRulesConfigured' | translate }}</div>
+    } @else {
+      <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'overtime.roleCol' | translate }}</th>
+            <th>{{ 'overtime.afterHoursCol' | translate }}</th>
+            <th>{{ 'overtime.multiplierCol' | translate }}</th>
+            <th>{{ 'overtime.activeCol' | translate }}</th>
+            <th class="td-actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (rule of rules(); track rule.id) {
+            <tr>
+              <td>
+                @if (rule.role === '*') {
+                  {{ 'overtime.allRoles' | translate }}
+                } @else {
+                  {{ rule.role.split(',').join(', ') | titlecase }}
+                }
+              </td>
+              <td>{{ rule.thresholdHours }}h</td>
+              <td>{{ rule.multiplier }}×</td>
+              <td>
+                @if (rule.isActive) {
+                  <span class="badge badge-success">{{ 'common.active' | translate }}</span>
+                } @else {
+                  <span class="badge badge-muted">{{ 'common.inactive' | translate }}</span>
+                }
+              </td>
+              <td class="td-actions">
+                <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
+                <button class="btn-menu-trigger" [ncTooltip]="'Actions'"
+                        (click)="toggleMenu(rule.id, $event); $event.stopPropagation()">⋯</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      </div>
+    }
+  </div>
+
+  <!-- ── Action dropdown — outside .nc-card so backdrop-filter doesn't clip it ── -->
+  @if (menuTarget() && menuPos()) {
+    <div class="action-backdrop" (click)="closeMenu()"></div>
+    <div class="action-dropdown"
+         [style.top.px]="menuPos()!.top"
+         [style.right.px]="menuPos()!.right">
+      <button class="action-item" (click)="openEdit(menuTarget()!); closeMenu()">
+        ✏ {{ 'common.edit' | translate }}
+      </button>
+      <div class="action-divider"></div>
+      <button class="action-item action-item-danger" (click)="delete(menuTarget()!.id); closeMenu()">
+        🗑 {{ 'common.delete' | translate }}
+      </button>
+    </div>
+  }
+
+  <div class="info-note">
+    <span>ℹ</span>
+    {{ 'overtime.infoNote' | translate }}
+  </div>
+</div>

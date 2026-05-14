@@ -1,0 +1,55 @@
+<div class="page-content">
+  <div class="page-header">
+    <h1 class="page-title">💬 Messages</h1>
+    <button class="btn-primary sm" (click)="showCompose.set(!showCompose())">
+      {{ showCompose() ? 'Cancel' : '✉ New Message' }}
+    </button>
+  </div>
+
+  @if (showCompose()) {
+    <div class="nc-card compose-card">
+      <div class="compose-to">To: <strong>Management</strong></div>
+      <textarea [(ngModel)]="replyContent" rows="4" placeholder="Type your message to management…" maxlength="2000"></textarea>
+      <div class="char-count">{{ replyContent.length }}/2000</div>
+      <button class="btn-primary" (click)="send()" [disabled]="sending() || !replyContent.trim()">
+        @if (sending()) { <span class="nc-spinner sm"></span> } Send
+      </button>
+    </div>
+  }
+
+  <div class="tab-nav">
+    <button class="tab-btn" [class.active]="tab() === 'inbox'" (click)="tab.set('inbox')">
+      Inbox @if (unread() > 0) { <span class="unread-badge">{{ unread() }}</span> }
+    </button>
+    <button class="tab-btn" [class.active]="tab() === 'sent'" (click)="tab.set('sent')">Sent</button>
+  </div>
+
+  @if (loading()) { <div class="loading-state"><span class="nc-spinner"></span></div> }
+
+  @if (tab() === 'inbox') {
+    @if (inbox().length === 0 && !loading()) {
+      <div class="empty-state"><div class="empty-icon">📭</div><p>No messages yet.</p></div>
+    }
+    @for (msg of inbox(); track msg.id) {
+      <div class="nc-card msg-card" [class.unread]="!msg.readAt" (click)="markRead(msg)">
+        <div class="msg-from">From: {{ msg.senderName }}</div>
+        <div class="msg-body">{{ msg.content }}</div>
+        <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
+        @if (!msg.readAt) { <span class="unread-dot"></span> }
+      </div>
+    }
+  }
+
+  @if (tab() === 'sent') {
+    @if (sent().length === 0) {
+      <div class="empty-state"><div class="empty-icon">📤</div><p>No sent messages.</p></div>
+    }
+    @for (msg of sent(); track msg.id) {
+      <div class="nc-card msg-card">
+        <div class="msg-from">To: Management</div>
+        <div class="msg-body">{{ msg.content }}</div>
+        <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
+      </div>
+    }
+  }
+</div>

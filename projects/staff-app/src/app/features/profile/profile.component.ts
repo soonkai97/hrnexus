@@ -2,8 +2,7 @@ import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, StaffService, StaffDetail, ToastService, PushService } from 'shared-lib';
-import { LangService } from '../../core/lang.service';
+import { AuthService, StaffService, StaffDetail, ToastService, PushService, LangService } from 'shared-lib';
 
 @Component({
   selector: 'app-profile',

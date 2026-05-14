@@ -38,26 +38,7 @@
     "requestSent":    "Your request has been sent to your manager.",
     "requestSentHint":"They will contact you with a new password. Please wait for them to reach out."
   },
-  "clockIn": {
-    "shiftActive":    "Shift Active",
-    "started":        "Started",
-    "clockOut":       "Clock Out",
-    "readyToWork":    "Ready to work?",
-    "scanPrompt":     "Scan the QR code at your station to clock in and start your shift.",
-    "scanQr":         "Scan QR Code",
-    "pointCamera":    "Point camera at the location QR code",
-    "cancel":         "Cancel",
-    "validating":     "Validating…",
-    "checkingQr":     "Checking QR token with the server.",
-    "clockedIn":      "Clocked In!",
-    "clockedOut":     "Clocked Out!",
-    "success":        "Have a great shift.",
-    "shiftEnded":     "Your shift has been recorded.",
-    "done":           "Done",
-    "noQr":           "No QR code found.",
-    "tryAgain":       "Scan Again"
-  },
-  "pay": {
+"pay": {
     "title":         "Pay Summary",
     "regularHours":  "Regular Hours",
     "overtimeHours": "Overtime Hours",

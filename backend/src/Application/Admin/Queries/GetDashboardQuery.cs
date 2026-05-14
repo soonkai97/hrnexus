@@ -43,15 +43,22 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var today     = DateOnly.FromDateTime(localNow);  // "today" in venue local time
         var utcNow    = dt.UtcNow;
 
-        // Load today's work logs (by venue-local date) with employee info
+        // All currently-open shifts (EndTime is null), any date.
+        // A nightclub shift can start before midnight and still be running the next day,
+        // so we must not filter by WorkDate here.
+        var activeShifts = await db.WorkLogs
+            .Include(w => w.Employee)
+            .Where(w => w.EndTime == null)
+            .OrderBy(w => w.StartTime)
+            .ToListAsync(ct);
+
+        // Load today's work logs (by venue-local date) for the activity feed and
+        // tonight's hours / cost totals (separate from the live "who is on shift" list).
         var todayLogs = await db.WorkLogs
             .Include(w => w.Employee)
             .Where(w => w.WorkDate == today)
             .OrderByDescending(w => w.StartTime)
             .ToListAsync(ct);
-
-        // Active shifts: EndTime is null
-        var activeShifts = todayLogs.Where(w => w.EndTime == null).ToList();
 
         // Helper: convert WorkDate + HH:mm local string → UTC DateTime
         DateTime LocalShiftToUtc(DateOnly workDate, string hhMm)
@@ -78,15 +85,16 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
 
         var totalStaff = await db.Staff.CountAsync(e => e.IsActive, ct);
 
-        // Open shifts across all time
-        var openShiftsCount = await db.WorkLogs.CountAsync(w => w.EndTime == null, ct);
+        // "Stale" open shifts: still clocked in but WorkDate is NOT today.
+        // These are almost certainly staff who forgot to clock out from a previous day.
+        var openShiftsCount = activeShifts.Count(w => w.WorkDate != today);
 
         var stats = new DashboardStats(
-            activeShifts.Count,
+            activeShifts.Count,   // everyone currently clocked in, any date
             totalStaff,
             Math.Round(tonightHours, 1),
             Math.Round(tonightCost, 2),
-            openShiftsCount);
+            openShiftsCount);     // only stale (forgot-to-clock-out) entries
 
         var onShift = activeShifts
             .Where(w => w.Employee != null)

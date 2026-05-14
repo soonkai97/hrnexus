@@ -97,15 +97,22 @@ public static class DependencyInjection
         return services;
     }
 
-    public static void RegisterHangfireJobs()
+    /// <summary>
+    /// Registers recurring Hangfire jobs via the DI-based <see cref="IRecurringJobManager"/>
+    /// so that the correct (PostgreSQL) storage is used regardless of static API state.
+    /// Must be called after <c>WebApplication.Build()</c>.
+    /// </summary>
+    public static void RegisterHangfireJobs(IServiceProvider services)
     {
-        RecurringJob.AddOrUpdate<ShiftJobs>("remind-long-running-worklogs",
+        var jobs = services.GetRequiredService<IRecurringJobManager>();
+
+        jobs.AddOrUpdate<ShiftJobs>("remind-long-running-worklogs",
             j => j.RemindLongRunningWorkLogsAsync(), "*/15 * * * *");
 
-        RecurringJob.AddOrUpdate<ShiftJobs>("reset-leave-entitlements",
+        jobs.AddOrUpdate<ShiftJobs>("reset-leave-entitlements",
             j => j.ResetLeaveEntitlementsAsync(), "0 1 1 1 *"); // 01:00 UTC on Jan 1
 
-        RecurringJob.AddOrUpdate<ShiftJobs>("auto-reject-overdue-leave",
+        jobs.AddOrUpdate<ShiftJobs>("auto-reject-overdue-leave",
             j => j.AutoRejectOverdueLeaveAsync(), "0 2 * * *"); // 02:00 UTC daily
     }
 }

@@ -1,0 +1,92 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using NightclubWorkforce.Application.Common;
+using NightclubWorkforce.Application.Common.Interfaces;
+
+namespace NightclubWorkforce.Application.WorkLog.Queries;
+
+public record GetPaySummaryQuery(Guid EmployeeId, DateOnly PeriodStart, DateOnly PeriodEnd) : IRequest<PaySummaryDto>;
+
+public record PaySummaryDto(
+    Guid     EmployeeId,
+    string   PeriodStart,
+    string   PeriodEnd,
+    decimal  TotalHours,
+    decimal  RegularHours,
+    decimal  OvertimeHours,
+    decimal  RegularPay,
+    decimal  OvertimePay,
+    decimal  TipsAllocated,
+    decimal  GrossPay,
+    List<PayShiftLineDto> Shifts);
+
+public record PayShiftLineDto(
+    Guid    ShiftId,
+    string  Date,
+    string  LocationName,
+    decimal Hours,
+    decimal Pay);
+
+public class GetPaySummaryQueryHandler(IAppDbContext db)
+    : IRequestHandler<GetPaySummaryQuery, PaySummaryDto>
+{
+    public async Task<PaySummaryDto> Handle(GetPaySummaryQuery req, CancellationToken ct)
+    {
+        var logs = await db.WorkLogs
+            .Where(w => w.EmployeeId == req.EmployeeId
+                     && w.WorkDate >= req.PeriodStart
+                     && w.WorkDate <= req.PeriodEnd
+                     && w.EndTime != null)
+            .OrderBy(w => w.WorkDate)
+            .ThenBy(w => w.StartTime)
+            .ToListAsync(ct);
+
+        var allOtRules = await db.OvertimeRules
+            .Where(r => r.IsActive)
+            .OrderBy(r => r.ThresholdHours)
+            .ToListAsync(ct);
+
+        var emp = await db.Staff.FindAsync([req.EmployeeId], ct);
+        var applicableRules = OvertimeCalculator.ResolveRules(allOtRules, emp?.Roles ?? []);
+        var otThreshold     = OvertimeCalculator.GetThreshold(applicableRules);
+
+        decimal totalRegHours = 0, totalOtHours = 0, totalRegPay = 0, totalOtPay = 0;
+        var shifts = new List<PayShiftLineDto>();
+
+        foreach (var w in logs)
+        {
+            var h = OvertimeCalculator.CalcHours(w.StartTime, w.EndTime!);
+
+            var gross  = OvertimeCalculator.Calculate(h, w.HourlyRateSnapshot, applicableRules);
+            var reg    = Math.Min(h, otThreshold);
+            var ot     = Math.Max(0m, h - otThreshold);
+            var regPay = reg * w.HourlyRateSnapshot;
+            var otPay  = gross - regPay;
+
+            totalRegHours += reg;
+            totalOtHours  += ot;
+            totalRegPay   += regPay;
+            totalOtPay    += otPay;
+
+            shifts.Add(new PayShiftLineDto(
+                w.Id,
+                w.WorkDate.ToString("yyyy-MM-dd"),
+                w.LocationName,
+                Math.Round(h,     2),
+                Math.Round(gross, 2)));
+        }
+
+        return new PaySummaryDto(
+            req.EmployeeId,
+            req.PeriodStart.ToString("yyyy-MM-dd"),
+            req.PeriodEnd.ToString("yyyy-MM-dd"),
+            Math.Round(totalRegHours + totalOtHours, 2),
+            Math.Round(totalRegHours, 2),
+            Math.Round(totalOtHours,  2),
+            Math.Round(totalRegPay,   2),
+            Math.Round(totalOtPay,    2),
+            0m,  // Tips — extend later when tips are linked to shifts
+            Math.Round(totalRegPay + totalOtPay, 2),
+            shifts);
+    }
+}

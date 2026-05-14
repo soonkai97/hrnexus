@@ -1,0 +1,37 @@
+<div class="pin-wrap">
+  <div class="pin-card nc-card">
+
+    <div class="pin-icon">🔐</div>
+    <h2 class="pin-title">Feature Management</h2>
+    <p class="pin-sub">Enter your access PIN to continue. This area controls which features are available to this client.</p>
+
+    <div class="pin-field">
+      <input
+        [type]="showPin() ? 'text' : 'password'"
+        [(ngModel)]="pin"
+        placeholder="Enter PIN"
+        class="pin-input"
+        [disabled]="loading() || isLockedOut"
+        (keydown.enter)="submit()"
+        autocomplete="off"
+        autofocus />
+      <button class="pin-eye" (click)="showPin.update(v => !v)" type="button">
+        {{ showPin() ? '🙈' : '👁' }}
+      </button>
+    </div>
+
+    @if (error()) {
+      <div class="pin-error">
+        {{ isLockedOut ? '🔒' : '⚠' }} {{ error() }}
+      </div>
+    }
+
+    <button class="btn-primary pin-submit" (click)="submit()" [disabled]="!pin || loading() || isLockedOut">
+      @if (loading()) { <span class="nc-spinner sm"></span> }
+      {{ loading() ? 'Verifying…' : 'Unlock' }}
+    </button>
+
+    <p class="pin-hint">5 incorrect attempts triggers a 15-minute lockout.</p>
+
+  </div>
+</div>

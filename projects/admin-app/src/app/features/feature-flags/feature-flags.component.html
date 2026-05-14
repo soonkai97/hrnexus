@@ -1,0 +1,36 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'features.title' | translate }}</h1>
+      <p style="font-size:0.85rem;color:var(--text-muted,#4e4a65);margin-top:0.25rem">{{ 'features.subtitle' | translate }}</p>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn-ghost" (click)="disableAll()">{{ 'features.disableAll' | translate }}</button>
+      <button class="btn-primary" (click)="enableAll()">{{ 'features.enableAll' | translate }}</button>
+    </div>
+  </div>
+
+  @for (phase of phases; track phase) {
+    <div class="phase-section">
+      <div class="phase-header">
+        <span class="phase-badge">{{ 'features.phase' | translate }} {{ phase }}</span>
+        <span class="phase-label">{{ phaseLabel(phase) | translate }}</span>
+      </div>
+      <div class="features-grid">
+        @for (feat of featuresForPhase(phase); track feat.key) {
+          <div class="feature-card" [class.enabled]="isEnabled(feat.key)">
+            <div class="feature-icon">{{ feat.icon }}</div>
+            <div class="feature-body">
+              <div class="feature-name">{{ feat.label | translate }}</div>
+              <div class="feature-desc">{{ feat.description | translate }}</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="isEnabled(feat.key)" (change)="toggle(feat.key)" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

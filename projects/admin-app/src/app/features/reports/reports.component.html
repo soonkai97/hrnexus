@@ -1,0 +1,369 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'reports.title' | translate }}</h1>
+  </div>
+
+  <!-- Top-level page tabs -->
+  <div class="page-tab-bar">
+    <button class="page-tab" [class.active]="pageTab() === 'report'"  (click)="pageTab.set('report')">
+      {{ 'reports.workforceReport' | translate }}
+    </button>
+    <button class="page-tab" [class.active]="pageTab() === 'payroll'" (click)="pageTab.set('payroll')">
+      {{ 'reports.payrollExport' | translate }}
+    </button>
+  </div>
+
+  <!-- ── TAB: Workforce Report ───────────────────────────────────────────── -->
+  @if (pageTab() === 'report') {
+
+    <!-- Filters -->
+    <div class="filter-bar nc-card">
+      <div class="preset-row">
+        <button class="preset-btn" (click)="setPreset('today')">{{ 'reports.today' | translate }}</button>
+        <button class="preset-btn" (click)="setPreset('yesterday')">{{ 'reports.yesterday' | translate }}</button>
+        <button class="preset-btn" (click)="setPreset('week')">{{ 'reports.thisWeek' | translate }}</button>
+        <button class="preset-btn" (click)="setPreset('month')">{{ 'reports.thisMonth' | translate }}</button>
+        <button class="preset-btn" (click)="setPreset('last-month')">{{ 'reports.lastMonth' | translate }}</button>
+      </div>
+      <div class="filter-row">
+        <div class="field">
+          <label>{{ 'reports.from' | translate }}</label>
+          <input type="date" [(ngModel)]="dateFrom" />
+        </div>
+        <div class="field">
+          <label>{{ 'reports.to' | translate }}</label>
+          <input type="date" [(ngModel)]="dateTo" />
+        </div>
+
+        <!-- Staff multi-select -->
+        <div class="field">
+          <label>{{ 'reports.staff' | translate }}</label>
+          <div class="ms-wrap">
+            <button type="button" class="ms-trigger" [class.has-selection]="staffIds.length > 0"
+                    (click)="$event.stopPropagation(); empOpen.set(!empOpen()); locOpen.set(false); roleOpen.set(false)">
+              <span>{{ empLabel() }}</span>
+              <span class="ms-arrow" [class.open]="empOpen()">▾</span>
+            </button>
+            @if (empOpen()) {
+              <div class="ms-panel">
+                @if (staffIds.length > 0) {
+                  <button type="button" class="ms-clear" (click)="clearStaff()">✕ {{ 'common.clear' | translate }}</button>
+                }
+                @for (s of staff(); track s.id) {
+                  <label class="ms-option" (click)="$event.stopPropagation()">
+                    <input type="checkbox" [checked]="staffIds.includes(s.id)" (change)="toggleStaff(s.id)" />
+                    <span>{{ s.fullName }}</span>
+                    <span class="ms-sub">{{ s.staffId }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Location multi-select -->
+        <div class="field">
+          <label>{{ 'reports.location' | translate }}</label>
+          <div class="ms-wrap">
+            <button type="button" class="ms-trigger" [class.has-selection]="locationNames.length > 0"
+                    (click)="$event.stopPropagation(); locOpen.set(!locOpen()); empOpen.set(false); roleOpen.set(false)">
+              <span>{{ locLabel() }}</span>
+              <span class="ms-arrow" [class.open]="locOpen()">▾</span>
+            </button>
+            @if (locOpen()) {
+              <div class="ms-panel">
+                @if (locationNames.length > 0) {
+                  <button type="button" class="ms-clear" (click)="clearLocations()">✕ {{ 'common.clear' | translate }}</button>
+                }
+                @for (l of locations(); track l) {
+                  <label class="ms-option" (click)="$event.stopPropagation()">
+                    <input type="checkbox" [checked]="locationNames.includes(l)" (change)="toggleLocation(l)" />
+                    <span>{{ l }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Role multi-select -->
+        <div class="field">
+          <label>{{ 'reports.role' | translate }}</label>
+          <div class="ms-wrap">
+            <button type="button" class="ms-trigger" [class.has-selection]="roles.length > 0"
+                    (click)="$event.stopPropagation(); roleOpen.set(!roleOpen()); empOpen.set(false); locOpen.set(false)">
+              <span>{{ roleLabel() }}</span>
+              <span class="ms-arrow" [class.open]="roleOpen()">▾</span>
+            </button>
+            @if (roleOpen()) {
+              <div class="ms-panel">
+                @if (roles.length > 0) {
+                  <button type="button" class="ms-clear" (click)="clearRoles()">✕ {{ 'common.clear' | translate }}</button>
+                }
+                @for (r of staffRoles(); track r.name) {
+                  <label class="ms-option" (click)="$event.stopPropagation()">
+                    <input type="checkbox" [checked]="roles.includes(r.name)" (change)="toggleRole(r.name)" />
+                    <span>{{ r.name | titlecase }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="field field-btn">
+          <label class="field-btn-label">&nbsp;</label>
+          <button class="btn-primary" (click)="runReport()" [disabled]="loading()">
+            @if (loading()) { <span class="nc-spinner sm"></span> }
+            {{ loading() ? ('reports.loading' | translate) : ('reports.runReport' | translate) }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div style="color:#f87171;margin:1rem 0">⚠ {{ error() }}</div>
+    }
+
+    @if (report(); as r) {
+
+      <!-- Summary cards -->
+      <div class="stat-grid report-stat-grid">
+        <div class="stat-card accent-purple">
+          <span class="stat-label">{{ 'reports.totalShifts' | translate }}</span>
+          <span class="stat-value">{{ r.summary.totalShifts }}</span>
+          <span class="stat-sub">{{ 'reports.inSelectedPeriod' | translate }}</span>
+        </div>
+        <div class="stat-card accent-pink">
+          <span class="stat-label">{{ 'reports.totalHours' | translate }}</span>
+          <span class="stat-value">{{ r.summary.totalHours }}h</span>
+          <span class="stat-sub">{{ 'reports.avgPerShift' | translate }} {{ r.summary.avgHoursPerShift }}h {{ 'reports.perShift' | translate }}</span>
+        </div>
+        <div class="stat-card accent-amber">
+          <span class="stat-label">{{ 'reports.labourCost' | translate }}</span>
+          <span class="stat-value">RM {{ r.summary.totalCost | number:'1.2-2' }}</span>
+          <span class="stat-sub">{{ 'reports.grossPayTotal' | translate }}</span>
+        </div>
+        <div class="stat-card accent-green">
+          <span class="stat-label">{{ 'reports.uniqueStaff' | translate }}</span>
+          <span class="stat-value">{{ r.summary.uniqueStaff }}</span>
+          <span class="stat-sub">{{ 'reports.across' | translate }} {{ r.summary.uniqueLocations }} {{ 'reports.locations' | translate }}</span>
+        </div>
+      </div>
+
+      <!-- Result tabs -->
+      <div class="tab-nav">
+        <div class="tab-btn-group">
+          <button [class.active]="activeTab() === 'employee'"  (click)="activeTab.set('employee')">{{ 'reports.byEmployee' | translate }}</button>
+          <button [class.active]="activeTab() === 'location'"  (click)="activeTab.set('location')">{{ 'reports.byLocation' | translate }}</button>
+          <button [class.active]="activeTab() === 'role'"      (click)="activeTab.set('role')">{{ 'reports.byRole' | translate }}</button>
+          <button [class.active]="activeTab() === 'date'"      (click)="activeTab.set('date')">{{ 'reports.byDate' | translate }}</button>
+          <button [class.active]="activeTab() === 'shifts'"    (click)="activeTab.set('shifts')">{{ 'reports.allShifts' | translate }}</button>
+        </div>
+        <button class="tab-csv-btn btn-primary" (click)="downloadReportCsv()" [disabled]="reportExporting()">
+          @if (reportExporting()) { <span class="nc-spinner sm"></span> }
+          @else { ⬇ }
+          {{ reportExporting() ? ('reports.exporting' | translate) : ('reports.downloadCsv' | translate) }}
+        </button>
+      </div>
+
+      <!-- By Employee -->
+      @if (activeTab() === 'employee') {
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ 'reports.staffId' | translate }}</th>
+                <th>{{ 'reports.name' | translate }}</th>
+                <th>{{ 'dashboard.role' | translate }}</th>
+                <th>{{ 'reports.shifts' | translate }}</th>
+                <th>{{ 'reports.hours' | translate }}</th>
+                <th>{{ 'reports.avgHShift' | translate }}</th>
+                <th>{{ 'reports.grossPay' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of r.byStaff; track e.staffId) {
+                <tr>
+                  <td class="td-muted mono">{{ e.staffId }}</td>
+                  <td class="td-name">{{ e.name }}</td>
+                  <td><span class="badge badge-role">{{ e.role | titlecase }}</span></td>
+                  <td class="td-muted">{{ e.shifts }}</td>
+                  <td class="td-muted">{{ e.hours }}h</td>
+                  <td class="td-muted">{{ e.avgHoursPerShift }}h</td>
+                  <td class="td-pay">RM {{ e.cost | number:'1.2-2' }}</td>
+                </tr>
+              }
+              @empty {
+                <tr><td colspan="7" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- By Location -->
+      @if (activeTab() === 'location') {
+        <div class="location-breakdown" style="margin-top:0.75rem">
+          @for (loc of r.byLocation; track loc.locationName) {
+            <div class="loc-row nc-card">
+              <div class="loc-left">
+                <span class="loc-name">{{ loc.locationName }}</span>
+                <span class="loc-meta">{{ loc.shifts }} shifts · {{ loc.hours }}h</span>
+              </div>
+              <div class="loc-bar-wrap">
+                <div class="loc-bar"
+                  [style.width.%]="maxLocationCost() > 0 ? (loc.cost / maxLocationCost()) * 100 : 0">
+                </div>
+              </div>
+              <span class="loc-cost">RM {{ loc.cost | number:'1.2-2' }}</span>
+            </div>
+          }
+          @if (r.byLocation.length === 0) {
+            <div class="td-empty" style="padding:2rem">{{ 'common.noData' | translate }}</div>
+          }
+        </div>
+      }
+
+      <!-- By Role -->
+      @if (activeTab() === 'role') {
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ 'dashboard.role' | translate }}</th>
+                <th>{{ 'reports.staffCount' | translate }}</th>
+                <th>{{ 'reports.shifts' | translate }}</th>
+                <th>{{ 'reports.hours' | translate }}</th>
+                <th>{{ 'reports.labourCostCol' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ro of r.byRole; track ro.role) {
+                <tr>
+                  <td><span class="badge badge-role">{{ ro.role | titlecase }}</span></td>
+                  <td class="td-muted">{{ ro.staffCount }}</td>
+                  <td class="td-muted">{{ ro.shifts }}</td>
+                  <td class="td-muted">{{ ro.hours }}h</td>
+                  <td class="td-pay">RM {{ ro.cost | number:'1.2-2' }}</td>
+                </tr>
+              }
+              @empty {
+                <tr><td colspan="5" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- By Date -->
+      @if (activeTab() === 'date') {
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ 'common.date' | translate }}</th>
+                <th>{{ 'reports.shifts' | translate }}</th>
+                <th>{{ 'reports.hours' | translate }}</th>
+                <th>{{ 'reports.labourCostCol' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of r.byDate; track d.date) {
+                <tr>
+                  <td class="td-name">{{ d.date }}</td>
+                  <td class="td-muted">{{ d.shifts }}</td>
+                  <td class="td-muted">{{ d.hours }}h</td>
+                  <td class="td-pay">RM {{ d.cost | number:'1.2-2' }}</td>
+                </tr>
+              }
+              @empty {
+                <tr><td colspan="4" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- All Shifts -->
+      @if (activeTab() === 'shifts') {
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ 'reports.staffId' | translate }}</th>
+                <th>{{ 'reports.name' | translate }}</th>
+                <th>{{ 'dashboard.role' | translate }}</th>
+                <th>{{ 'dashboard.location' | translate }}</th>
+                <th>{{ 'reports.clockedIn' | translate }}</th>
+                <th>{{ 'reports.clockedOut' | translate }}</th>
+                <th>{{ 'reports.hours' | translate }}</th>
+                <th>{{ 'reports.cost' | translate }}</th>
+                <th>{{ 'reports.status' | translate }}</th>
+                <th>{{ 'reports.flag' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of r.shifts; track s.staffId + s.clockedIn) {
+                <tr>
+                  <td class="td-muted mono">{{ s.staffId }}</td>
+                  <td class="td-name">{{ s.staffName }}</td>
+                  <td><span class="badge badge-role">{{ s.role | titlecase }}</span></td>
+                  <td class="td-muted">{{ s.locationName }}</td>
+                  <td class="td-muted">{{ s.clockedIn | date:'dd/MM h:mm a' }}</td>
+                  <td class="td-muted">{{ s.clockedOut ? (s.clockedOut | date:'dd/MM h:mm a') : '—' }}</td>
+                  <td [class.td-ot]="s.isOvertime">{{ s.hours }}h</td>
+                  <td class="td-pay">RM {{ s.cost | number:'1.2-2' }}</td>
+                  <td>
+                    <span class="badge"
+                      [class.badge-active]="s.status === 'Active'"
+                      [class.badge-closed]="s.status === 'Complete'">
+                      {{ s.status }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (s.isOvertime) {
+                      <span class="badge badge-warning badge-ot" [ncTooltip]="'Shift exceeds 8 hours'">⚠ OT</span>
+                    }
+                  </td>
+                </tr>
+              }
+              @empty {
+                <tr><td colspan="9" class="td-empty">{{ 'reports.noShiftsInPeriod' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+    }
+  }
+
+  <!-- ── TAB: Payroll Export ─────────────────────────────────────────────── -->
+  @if (pageTab() === 'payroll') {
+    <div class="nc-card payroll-card">
+      <div class="payroll-title">{{ 'reports.payrollTitle' | translate }}</div>
+      <p class="payroll-sub">{{ 'reports.payrollDesc' | translate }}</p>
+      <div class="payroll-controls">
+        <div class="field payroll-field">
+          <label>{{ 'reports.yearLabel' | translate }}</label>
+          <input type="number" [(ngModel)]="payrollYear" min="2020" [max]="payrollYear + 1" />
+        </div>
+        <div class="field payroll-field">
+          <label>{{ 'reports.monthLabel' | translate }}</label>
+          <select [(ngModel)]="payrollMonth">
+            @for (m of [1,2,3,4,5,6,7,8,9,10,11,12]; track m) {
+              <option [value]="m">{{ monthName(m) }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn-primary payroll-export-btn" (click)="exportPayrollCsv()" [disabled]="payrollExporting()">
+          @if (payrollExporting()) { <span class="nc-spinner sm"></span> }
+          @else { ⬇ }
+          {{ payrollExporting() ? ('reports.exporting' | translate) : ('reports.downloadPayroll' | translate) }}
+        </button>
+      </div>
+    </div>
+  }
+
+</div>

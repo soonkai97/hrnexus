@@ -1,0 +1,77 @@
+@use 'styles/theme' as *;
+
+// ── Add-role form card ────────────────────────────────────────────────────────
+.add-card {
+  max-width: 520px;
+  margin-bottom: 1.5rem;
+
+  h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+  }
+}
+
+.add-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 130px auto;
+  gap: 0.75rem;
+  align-items: end;
+
+  .field { margin: 0; }
+
+  .btn-add {
+    height: 42px;
+  }
+}
+
+.rate-field {
+  margin: 0;
+  width: 130px;
+}
+
+.error-msg {
+  color: #f87171;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+// ── Inline rate editor ────────────────────────────────────────────────────────
+.rate-editor {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.rate-input {
+  width: 90px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid $border-glow;
+  background: $bg-raised;
+  color: $text-primary;
+  font-size: 0.9rem;
+  outline: none;
+  &:focus { box-shadow: $glow-sm; }
+}
+
+.rate-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// ── Custom badge variant ──────────────────────────────────────────────────────
+.badge-custom {
+  background: rgba(255,255,255,0.06);
+  color: #94a3b8;
+}
+
+// ── Delete button (danger ghost) ──────────────────────────────────────────────
+.btn-danger-ghost {
+  color: #f87171;
+  &:hover { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); }
+}
+
+@media (max-width: 640px) {
+  .add-form-grid { grid-template-columns: 1fr; }
+}

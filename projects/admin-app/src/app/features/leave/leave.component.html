@@ -1,0 +1,391 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
+    <button class="btn-primary" (click)="openAdd(); tab.set('records')">{{ 'leave.recordLeave' | translate }}</button>
+  </div>
+
+  <!-- ── Filter bar (always visible) ───────────────────────────────────────── -->
+  <div class="filter-bar nc-card">
+    <div class="filter-row">
+      <div class="field filter-staff">
+        <label>{{ 'leave.staffLabel' | translate }}</label>
+        <select [(ngModel)]="filterEmployeeId" (ngModelChange)="load(1)">
+          <option value="">{{ 'leave.allStaff' | translate }}</option>
+          @for (s of staffStore.staff(); track s.id) {
+            <option [value]="s.id">{{ s.fullName }} ({{ s.staffId }})</option>
+          }
+        </select>
+      </div>
+      <div class="field filter-date">
+        <label>{{ 'leave.fromLabel' | translate }}</label>
+        <input type="date" [(ngModel)]="filterFrom" (change)="load(1)" />
+      </div>
+      <div class="field filter-date">
+        <label>{{ 'leave.toLabel' | translate }}</label>
+        <input type="date" [(ngModel)]="filterTo" (change)="load(1)" />
+      </div>
+      <div class="field filter-status">
+        <label>{{ 'leave.statusLabel' | translate }}</label>
+        <select [(ngModel)]="filterStatus" (ngModelChange)="load(1)">
+          <option value="">{{ 'leave.allStatus' | translate }}</option>
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ s | titlecase }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="preset-row">
+      @for (p of presets; track p.value) {
+        <button class="preset-btn" (click)="setPreset(p.value)">{{ p.labelKey | translate }}</button>
+      }
+      @for (t of leaveTypes; track t) {
+        <span class="summary-pill" [attr.data-type]="t">
+          {{ t | titlecase }}: <strong>{{ countByType(t) }}d</strong>
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- ── Page tabs ─────────────────────────────────────────────────────────── -->
+  <div class="page-tabs">
+    <button [class.active]="tab() === 'records'" (click)="tab.set('records')">
+      {{ 'leave.recordsTab' | translate }}
+      @if (totalPendingCount() > 0) {
+        <span class="tab-badge">{{ totalPendingCount() }} pending</span>
+      }
+    </button>
+    <button [class.active]="tab() === 'balances'" (click)="tab.set('balances')">
+      {{ 'leave.balancesTab' | translate }}
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════ RECORDS TAB ═════════════════════════════════ -->
+  @if (tab() === 'records') {
+
+    <!-- Overdue pending banner -->
+    @if (overdueLeaves().length > 0) {
+      <div class="overdue-banner">
+        <div class="overdue-banner-header" (click)="overdueExpanded.update(v => !v)">
+          <span class="overdue-banner-title">
+            ⚠ {{ overdueLeaves().length }} {{ 'leave.overdueSection' | translate }}
+          </span>
+          <span class="overdue-banner-desc">{{ 'leave.overdueDesc' | translate }}</span>
+          <span class="overdue-chevron">{{ overdueExpanded() ? '▲' : '▼' }}</span>
+        </div>
+        @if (overdueExpanded()) {
+          <div class="overdue-list">
+            @for (r of overdueLeaves(); track r.id) {
+              <div class="overdue-row">
+                <div class="overdue-row-info">
+                  <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
+                  <span class="overdue-staff">{{ r.staffName }}</span>
+                  <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' → ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
+                </div>
+                <div class="overdue-row-actions">
+                  <button class="btn-approve overdue-action-btn" (click)="quickStatus(r.id, 'approved')">✓ {{ 'common.approved' | translate }}</button>
+                  <button class="btn-reject  overdue-action-btn" (click)="quickStatus(r.id, 'rejected')">✕ {{ 'common.rejected' | translate }}</button>
+                  <button class="overdue-noshow-btn" (click)="markNoShow(r)">⚠ {{ 'leave.markNoShow' | translate }}</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Add / Edit form -->
+    @if (showForm()) {
+      <div #formAnchor class="nc-card form-card">
+        <div class="form-header">
+          <h3>{{ editing() ? ('leave.editLeave' | translate) : ('leave.recordLeaveForm' | translate) }}</h3>
+          <button class="btn-ghost icon-btn" (click)="cancelForm()">✕</button>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label><span class="req">*</span> {{ 'leave.staffMember' | translate }}</label>
+            <select [(ngModel)]="form.employeeId" [disabled]="!!editing()">
+              <option value="">{{ 'leave.selectOption' | translate }}</option>
+              @for (s of staffStore.staff(); track s.id) {
+                <option [value]="s.id">{{ s.fullName }} ({{ s.staffId }})</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
+            <select [(ngModel)]="form.leaveType">
+              @for (t of leaveTypes; track t) { <option [value]="t">{{ t | titlecase }}</option> }
+            </select>
+          </div>
+          <div class="field">
+            <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
+            <input type="date" [(ngModel)]="form.startDate" />
+          </div>
+          <div class="field">
+            <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
+            <input type="date" [(ngModel)]="form.endDate" />
+          </div>
+
+          <div class="field">
+            <label>{{ 'leave.statusLabel' | translate }}</label>
+            <select [(ngModel)]="form.status">
+              @for (s of statuses; track s) { <option [value]="s">{{ s | titlecase }}</option> }
+            </select>
+          </div>
+          <div class="field">
+            <label>{{ 'leave.notesLabel' | translate }}</label>
+            <input type="text" [(ngModel)]="form.notes" placeholder="e.g. Doctor's note provided" />
+          </div>
+        </div>
+        @if (formError()) { <div class="form-error"><span>⚠</span> {{ formError() }}</div> }
+        <div class="form-actions">
+          <button class="btn-ghost" (click)="cancelForm()">{{ 'common.cancel' | translate }}</button>
+          <button class="btn-primary" (click)="save()" [disabled]="saving()">
+            @if (saving()) { <span class="nc-spinner sm"></span> }
+            {{ saving() ? ('common.saving' | translate) : ('common.save' | translate) }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- View toggle -->
+    <div class="view-toggle-row">
+      <button class="view-toggle-btn" [class.active]="viewMode() === 'table'"    (click)="switchView('table')">{{ 'leave.tableView' | translate }}</button>
+      <button class="view-toggle-btn" [class.active]="viewMode() === 'calendar'" (click)="switchView('calendar')">{{ 'leave.calendarView' | translate }}</button>
+    </div>
+
+    <!-- Calendar view -->
+    @if (viewMode() === 'calendar') {
+      <div class="nc-card" style="padding:1.25rem">
+        <div class="cal-nav">
+          <button class="btn-ghost cal-nav-btn" (click)="prevCalMonth()">‹</button>
+          <span class="cal-month-name">{{ calMonthName() }}</span>
+          <button class="btn-ghost cal-nav-btn" (click)="nextCalMonth()">›</button>
+        </div>
+        @if (loading()) {
+          <div style="text-align:center;padding:2rem"><span class="nc-spinner sm"></span></div>
+        } @else {
+          <div class="cal-grid">
+            @for (d of calDayKeys; track d) { <div class="cal-dow">{{ d | translate }}</div> }
+            @for (_ of calDays().length > 0 ? leadingBlanks() : []; track $index) { <div class="cal-cell cal-blank"></div> }
+            @for (day of calDays(); track day.iso) {
+              <div class="cal-cell"
+                   [class.cal-weekend]="day.isWeekend"
+                   [class.cal-today]="day.iso === todayIso"
+                   [class.cal-selected]="day.iso === selectedCalDay()"
+                   (click)="selectCalDay(day.iso)"
+                   style="cursor:pointer">
+                <span class="cal-day-num">{{ day.day }}</span>
+                @if (day.leaves.length > 0) {
+                  <div class="cal-leaves">
+                    @for (r of day.leaves.slice(0, 2); track r.id) {
+                      <div class="cal-leave-chip" [class]="'cal-leave-' + r.leaveType"
+                           [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
+                           [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' ⚠ Overdue' : '')"
+                           (click)="openCalLeave(r, $event)">
+                        {{ r.staffName.split(' ')[0] }}
+                      </div>
+                    }
+                    @if (day.leaves.length > 2) { <div class="cal-leave-more">+{{ day.leaves.length - 2 }}</div> }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <div class="cal-legend">
+            @for (t of leaveTypes; track t) {
+              <span class="cal-legend-item"><span class="cal-legend-dot" [class]="'cal-leave-' + t"></span>{{ t | titlecase }}</span>
+            }
+          </div>
+
+          <!-- Day detail panel -->
+          @if (selectedCalDay()) {
+            <div class="cal-day-panel">
+              <div class="cal-day-panel-header">
+                <span class="cal-day-panel-title">{{ selectedCalDay() | date:'EEEE, MMMM d, yyyy' }}</span>
+                <button class="btn-ghost icon-btn" (click)="selectedCalDay.set(null)">✕</button>
+              </div>
+              @if (selectedCalDayLeaves().length === 0) {
+                <p class="cal-day-empty">{{ 'leave.noDayLeaves' | translate }}</p>
+              } @else {
+                <div class="cal-day-list">
+                  @for (r of selectedCalDayLeaves(); track r.id) {
+                    <div class="cal-day-row"
+                         [class.cal-day-row-locked]="r.status !== 'pending'"
+                         (click)="r.status === 'pending' ? startEdit(r) : null">
+                      <div class="cal-day-row-left">
+                        <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
+                        @if (r.status === 'pending' && r.endDate < todayIso) {
+                          <span class="overdue-badge">⚠ {{ 'leave.overdue' | translate }}</span>
+                        }
+                        <span class="cal-day-staff-name">{{ r.staffName }}</span>
+                        <span class="cal-day-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' → ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
+                      </div>
+                      <div class="cal-day-row-right">
+                        <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
+                        @if (r.status === 'pending') {
+                          <button class="btn-approve cal-approve-btn" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')">✓</button>
+                          <button class="btn-reject  cal-approve-btn" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')">✕</button>
+                          <span class="cal-day-edit-hint">✏</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- Table / card list view -->
+    @if (viewMode() === 'table') {
+      @if (loading()) {
+        <div style="text-align:center;padding:3rem"><span class="nc-spinner"></span></div>
+      } @else if (records().length === 0) {
+        <div class="nc-card empty-state">
+          <span>🌴</span>
+          <p>{{ 'leave.noRecordsFound' | translate }}</p>
+        </div>
+      } @else {
+        <div class="leave-list">
+          @for (r of records(); track r.id) {
+            <div class="leave-card nc-card" [class.leave-card-overdue]="r.status === 'pending' && r.endDate < todayIso">
+              <div class="leave-top">
+                <div class="leave-top-left">
+                  <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
+                  @if (r.status === 'pending' && r.endDate < todayIso) {
+                    <span class="overdue-badge">⚠ {{ 'leave.overdue' | translate }}</span>
+                  }
+                </div>
+                <div class="leave-top-right">
+                  <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
+                  @if (r.status === 'pending') {
+                    <button class="lc-icon-btn" (click)="startEdit(r)" [ncTooltip]="'common.edit' | translate">✏</button>
+                  }
+                  <button class="lc-icon-btn lc-icon-danger" (click)="remove(r.id)" [ncTooltip]="'common.delete' | translate">🗑</button>
+                </div>
+              </div>
+              <div class="leave-staff">
+                <span class="leave-staff-name">{{ r.staffName }}</span>
+                <span class="leave-staff-id">{{ r.staffId }}</span>
+              </div>
+              <div class="leave-dates">
+                <span class="leave-dates-text">{{ r.startDate }}{{ r.startDate !== r.endDate ? ' → ' + r.endDate : '' }}</span>
+
+                <span class="leave-days-pill">{{ r.days }}d</span>
+              </div>
+              @if (r.notes) { <div class="leave-notes">{{ r.notes }}</div> }
+              @if (r.status === 'pending') {
+                <div class="leave-actions">
+                  <button class="btn-approve" (click)="quickStatus(r.id, 'approved')">✓ {{ 'common.approved' | translate }}</button>
+                  <button class="btn-reject"  (click)="quickStatus(r.id, 'rejected')">✕ {{ 'common.rejected' | translate }}</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (totalPages() > 1) {
+          <div class="pagination-bar">
+            <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="load(currentPage() - 1)">‹</button>
+            <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalRecords() }} records)</span></span>
+            <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="load(currentPage() + 1)">›</button>
+          </div>
+        }
+      }
+    }
+
+  }
+
+  <!-- ═══════════════════════════ BALANCES TAB ════════════════════════════════ -->
+  @if (tab() === 'balances') {
+
+    <!-- Individual staff balance (when filtered) -->
+    @if (filterEmployeeId && staffBalance()) {
+      @let b = staffBalance()!;
+      <div class="nc-card balance-card">
+        <div class="balance-card-header">
+          <span class="balance-card-title">{{ 'leave.leaveBalance' | translate }} — {{ b.year }}</span>
+          <button class="btn-ghost" style="font-size:0.8rem" (click)="toggleEntitlementEdit()">
+            {{ editingEntitlement() ? ('leave.cancelEntitlement' | translate) : ('leave.editEntitlement' | translate) }}
+          </button>
+        </div>
+        <div class="balance-bars">
+          <div class="bal-row">
+            <span class="bal-row-label">{{ 'leave.annualLeave' | translate }}</span>
+            <div class="bal-row-bar">
+              <div class="bal-row-fill annual-fill" [style.width.%]="(b.annualUsed / b.annualEntitlement) * 100 | number:'1.0-0'"></div>
+            </div>
+            <span class="bal-row-nums"><strong>{{ b.annualRemaining }}</strong>/{{ b.annualEntitlement }}d</span>
+          </div>
+          <div class="bal-row">
+            <span class="bal-row-label">{{ 'leave.sickLeave' | translate }}</span>
+            <div class="bal-row-bar">
+              <div class="bal-row-fill sick-fill" [style.width.%]="(b.sickUsed / b.sickEntitlement) * 100 | number:'1.0-0'"></div>
+            </div>
+            <span class="bal-row-nums"><strong>{{ b.sickRemaining }}</strong>/{{ b.sickEntitlement }}d</span>
+          </div>
+          <div class="bal-row">
+            <span class="bal-row-label">{{ 'leave.unpaidLeave' | translate }}</span>
+            <div class="bal-row-bar"></div>
+            <span class="bal-row-nums">{{ b.unpaidUsed }}d {{ 'leave.used' | translate }}</span>
+          </div>
+        </div>
+        @if (editingEntitlement()) {
+          <div class="entitlement-form">
+            <div class="field" style="margin:0">
+              <label>{{ 'leave.annualDays' | translate }}</label>
+              <input type="number" [(ngModel)]="entitlementForm.annualDays" min="0" max="60" />
+            </div>
+            <div class="field" style="margin:0">
+              <label>{{ 'leave.sickDays' | translate }}</label>
+              <input type="number" [(ngModel)]="entitlementForm.sickDays" min="0" max="60" />
+            </div>
+            <div class="field" style="margin:0">
+              <label>{{ 'common.year' | translate }}</label>
+              <input type="number" [(ngModel)]="entitlementForm.year" />
+            </div>
+            <button class="btn-primary ent-save-btn" (click)="saveEntitlement()" [disabled]="savingEntitlement()">
+              @if (savingEntitlement()) { <span class="nc-spinner sm"></span> }
+              {{ savingEntitlement() ? ('common.saving' | translate) : ('leave.saveEntitlement' | translate) }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- All-staff balance overview -->
+    <div class="nc-card" style="padding:1.25rem">
+      <div class="section-title">{{ 'leave.balanceOverview' | translate }} — {{ currentYear }}</div>
+      @if (allBalancesLoading()) {
+        <div style="text-align:center;padding:1.5rem"><span class="nc-spinner sm"></span></div>
+      } @else if (allBalances().length === 0) {
+        <p style="text-align:center;color:var(--text-muted);padding:1rem 0">{{ 'leave.noActiveStaff' | translate }}</p>
+      } @else {
+        <div class="staff-balance-list">
+          @for (b of allBalances(); track b.employeeId) {
+            <div class="staff-bal-row" (click)="filterEmployeeId = b.employeeId; load()">
+              <div class="staff-bal-name">
+                <span class="staff-bal-fullname">{{ b.fullName }}</span>
+                <span class="staff-bal-id">{{ b.staffId }}</span>
+              </div>
+              <div class="staff-bal-chips">
+                <span class="bal-chip" [class.bal-chip-warn]="b.annualRemaining <= 3" [class.bal-chip-ok]="b.annualRemaining > 3">
+                  🌿 {{ b.annualRemaining }}d
+                </span>
+                <span class="bal-chip" [class.bal-chip-warn]="b.sickRemaining <= 3" [class.bal-chip-ok]="b.sickRemaining > 3">
+                  🏥 {{ b.sickRemaining }}d
+                </span>
+                @if (b.unpaidUsed > 0) {
+                  <span class="bal-chip bal-chip-unpaid">⚠ {{ b.unpaidUsed }}d</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  }
+</div>

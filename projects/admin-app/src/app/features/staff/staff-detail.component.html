@@ -1,0 +1,162 @@
+<div class="page-wrap">
+  <div class="page-header" style="display:flex;align-items:center;gap:1rem">
+    <a routerLink="/staff" class="btn-ghost" style="font-size:1.2rem">←</a>
+    <div>
+      <h1 class="page-title">{{ staff()?.fullName ?? '…' }}</h1>
+      <span class="page-sub">{{ staff()?.staffId }}</span>
+    </div>
+    @if (!editMode()) {
+      <button class="btn-primary" style="margin-left:auto" (click)="startEdit()">{{ 'staffDetail.editBtn' | translate }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="nc-spinner"></div>
+  } @else if (staff(); as s) {
+
+    <!-- ── Profile card ─────────────────────────────────────────────── -->
+    <div class="nc-card" style="padding:1.5rem;margin-bottom:1.5rem">
+      @if (!editMode()) {
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem">
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.fullName' | translate }}</label><div>{{ s.fullName }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.staffId' | translate }}</label><div>{{ s.staffId }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.email' | translate }}</label><div>{{ s.email }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.phone' | translate }}</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.icNo' | translate }}</label><div>{{ s.icNo ?? '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.passport' | translate }}</label><div>{{ s.passportNo ?? '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'mediumDate') : '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.status' | translate }}</label>
+            <div>
+              @if (s.isActive) { <span class="badge badge-active">{{ 'common.active' | translate }}</span> }
+              @else            { <span class="badge badge-inactive">{{ 'common.inactive' | translate }}</span> }
+            </div>
+          </div>
+          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.roles' | translate }}</label>
+            <div style="display:flex;flex-wrap:wrap;gap:.3rem">
+              @for (r of s.roles; track r) { <span class="badge badge-role">{{ r | titlecase }}</span> }
+            </div>
+          </div>
+        </div>
+      } @else {
+        <!-- Edit form -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="field">
+            <label>{{ 'staffDetail.staffId' | translate }}</label>
+            <input type="text" [(ngModel)]="editForm.staffId" />
+          </div>
+          <div class="field">
+            <label>{{ 'staffDetail.email' | translate }}</label>
+            <input type="email" [(ngModel)]="editForm.email" />
+          </div>
+          <div class="field">
+            <label>{{ 'staffDetail.firstName' | translate }}</label>
+            <input type="text" [(ngModel)]="editForm.firstName" />
+          </div>
+          <div class="field">
+            <label>{{ 'staffDetail.lastName' | translate }}</label>
+            <input type="text" [(ngModel)]="editForm.lastName" />
+          </div>
+          <div class="field">
+            <label>{{ 'staffDetail.phone' | translate }}</label>
+            <input type="text" [(ngModel)]="editForm.phoneNumber" />
+          </div>
+          <div class="field">
+            <label>{{ 'staffDetail.dateOfBirth' | translate }}</label>
+            <input type="date" [(ngModel)]="editForm.dateOfBirth" />
+          </div>
+          <div class="field">
+            <label>{{ 'staffDetail.icNoOptional' | translate }}</label>
+            <input type="text" [(ngModel)]="editForm.icNo" />
+          </div>
+          <div class="field">
+            <label>{{ 'staffDetail.passportNoOptional' | translate }}</label>
+            <input type="text" [(ngModel)]="editForm.passportNo" />
+          </div>
+          <!-- Roles -->
+          <div class="field" style="grid-column:1/-1">
+            <label>{{ 'staffDetail.roles' | translate }}</label>
+            <div class="role-multiselect" (click)="roleDropdownOpen.update(v => !v)">
+              <div class="role-selected">
+                @if (editForm.roles.length === 0) { <span style="color:var(--text-muted)">{{ 'staffDetail.selectRoles' | translate }}</span> }
+                @for (r of editForm.roles; track r) { <span class="badge badge-role">{{ r | titlecase }}</span> }
+                <span style="margin-left:auto">▾</span>
+              </div>
+              @if (roleDropdownOpen()) {
+                <div class="role-dropdown">
+                  @for (role of staffStore.roles(); track role.name) {
+                    @if (role.name !== 'admin') {
+                      <label class="role-option">
+                        <input type="checkbox" [checked]="editForm.roles.includes(role.name)" (change)="toggleDetailRole(role.name)" />
+                        {{ role.name | titlecase }}
+                      </label>
+                    }
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:.75rem;margin-top:1.5rem">
+          <button class="btn-primary" (click)="saveEdit()" [disabled]="saving()">
+            @if (saving()) { <span class="nc-spinner sm"></span> } @else { {{ 'common.save' | translate }} }
+          </button>
+          <button class="btn-ghost" (click)="cancelEdit()">{{ 'common.cancel' | translate }}</button>
+        </div>
+      }
+    </div>
+
+    <!-- ── Work Logs ─────────────────────────────────────────────────── -->
+    <div class="nc-card" style="padding:1.5rem">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+        <h3 style="margin:0">{{ 'staffDetail.workLogHistory' | translate }}</h3>
+        @if (totalLogs() > 0) {
+          <span style="color:var(--text-muted);font-size:.85rem">{{ totalLogs() }} {{ 'common.of' | translate }} {{ totalLogs() }}</span>
+        }
+      </div>
+      @if (workLogsLoading()) {
+        <div class="nc-spinner sm"></div>
+      } @else if (workLogs().length === 0) {
+        <p style="color:var(--text-muted);text-align:center;padding:2rem">{{ 'staffDetail.noWorkLogs' | translate }}</p>
+      } @else {
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>{{ 'staffDetail.dateCol' | translate }}</th>
+                <th>{{ 'staffDetail.roleCol' | translate }}</th>
+                <th>{{ 'staffDetail.locationCol' | translate }}</th>
+                <th>{{ 'staffDetail.startCol' | translate }}</th>
+                <th>{{ 'staffDetail.endCol' | translate }}</th>
+                <th>{{ 'staffDetail.hoursCol' | translate }}</th>
+                <th>{{ 'staffDetail.status' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (wl of workLogs(); track wl.id) {
+                <tr>
+                  <td>{{ wl.workDate }}</td>
+                  <td>{{ wl.roleName | titlecase }}</td>
+                  <td>{{ wl.locationName }}</td>
+                  <td>{{ wl.startTime | amPm }}</td>
+                  <td>{{ wl.endTime | amPm }}</td>
+                  <td>{{ wl.hours | number:'1.1-1' }}h</td>
+                  <td>
+                    @if (wl.isActive) { <span class="badge badge-active">{{ 'common.active' | translate }}</span> }
+                    @else             { <span class="badge">{{ 'staffDetail.done' | translate }}</span> }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (totalPages() > 1) {
+          <div class="pagination-bar">
+            <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="loadWorkLogs(currentPage() - 1)">‹</button>
+            <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalLogs() }})</span></span>
+            <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="loadWorkLogs(currentPage() + 1)">›</button>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

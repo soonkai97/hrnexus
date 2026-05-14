@@ -1,0 +1,133 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">💰 {{ 'tips.title' | translate }}</h1>
+    <button class="btn-primary" (click)="openForm()">{{ 'tips.distributeTips' | translate }}</button>
+  </div>
+
+  @if (showForm()) {
+    <div class="nc-card form-card">
+      <h3 style="font-size:1rem;margin-bottom:1rem">{{ 'tips.newDistribution' | translate }}</h3>
+
+      <div class="field">
+        <label>{{ 'tips.locationLabel' | translate }}</label>
+        <select [(ngModel)]="form.locationId" (ngModelChange)="onLocationChange()">
+          <option value="">{{ 'tips.selectLocation' | translate }}</option>
+          @for (loc of locationStore.locations(); track loc.id) {
+            <option [value]="loc.id">{{ loc.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label>{{ 'tips.shiftDate' | translate }}</label>
+        <input type="date" [(ngModel)]="form.shiftDate" />
+      </div>
+
+      <div class="field">
+        <label>{{ 'tips.totalAmount' | translate }}</label>
+        <input type="number" [(ngModel)]="form.totalAmount" min="0" step="0.01" />
+      </div>
+
+      <div class="field">
+        <label>{{ 'tips.splitMethod' | translate }}</label>
+        <select [(ngModel)]="form.splitMethod">
+          <option value="equal">{{ 'tips.equalSplit' | translate }}</option>
+          <option value="by_hours">{{ 'tips.byHoursWorked' | translate }}</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
+        <button class="btn-primary" (click)="distribute()" [disabled]="distributing()">
+          @if (distributing()) { <span class="nc-spinner sm"></span> } @else { {{ 'tips.previewDistribution' | translate }} }
+        </button>
+        <button class="btn-ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+      </div>
+
+      @if (preview(); as p) {
+        <div class="preview-section">
+          <h4 style="font-size:0.9rem;margin-bottom:0.25rem">{{ 'tips.previewTitle' | translate }} — {{ p.staffCount }} staff receiving tips</h4>
+          @if (previewTime()) {
+            <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem">⏱ Snapshot generated at {{ previewTime() }} — confirm promptly to avoid stale data.</p>
+          }
+
+          @if (p.excludedStaff && p.excludedStaff.length > 0) {
+            <div class="exclusion-warning">
+              <span class="exclusion-icon">⚠</span>
+              <div>
+                <strong>{{ p.excludedStaff.length }} staff clocked out and will NOT receive tips:</strong>
+                <ul class="exclusion-list">
+                  @for (ex of p.excludedStaff; track ex.employeeId) {
+                    <li>{{ ex.fullName }} — <span class="exclusion-reason">{{ ex.reason }}</span></li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
+
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>{{ 'tips.staffCol' | translate }}</th>
+                  <th>{{ 'tips.hoursCol' | translate }}</th>
+                  <th>{{ 'tips.amountCol' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (a of p.allocations; track a.employeeId) {
+                  <tr>
+                    <td>{{ a.fullName }}</td>
+                    <td>{{ a.hoursWorked > 0 ? (a.hoursWorked + 'h') : '—' }}</td>
+                    <td style="color:#4ade80;font-weight:600">RM {{ a.amount | number:'1.2-2' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <button class="btn-primary" style="margin-top:1rem" (click)="confirm()">{{ 'tips.confirmDistribution' | translate }}</button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- History -->
+  <div class="nc-card" style="padding:1.5rem;margin-top:1rem">
+    <h3 style="font-size:1rem;margin-bottom:1rem">{{ 'tips.distributionHistory' | translate }}</h3>
+    @if (pools().length === 0) {
+      <p style="color:var(--text-muted);text-align:center;padding:1.5rem">{{ 'tips.noDistributions' | translate }}</p>
+    } @else {
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'tips.locationCol' | translate }}</th>
+              <th>{{ 'tips.shiftDateCol' | translate }}</th>
+              <th>{{ 'tips.totalCol' | translate }}</th>
+              <th>{{ 'tips.methodCol' | translate }}</th>
+              <th>{{ 'tips.staffCountCol' | translate }}</th>
+              <th>{{ 'tips.statusCol' | translate }}</th>
+              <th>{{ 'tips.createdCol' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of pools(); track p.id) {
+              <tr>
+                <td>{{ p.locationName }}</td>
+                <td style="color:var(--text-muted)">{{ p.shiftDate | date:'mediumDate' }}</td>
+                <td style="color:#4ade80;font-weight:600">{{ p.totalAmount | number:'1.2-2' }}</td>
+                <td>{{ p.splitMethod }}</td>
+                <td>{{ p.staffCount }}</td>
+                <td>
+                  <span class="badge" [class.badge-active]="p.isDistributed" [class.badge-closed]="!p.isDistributed">
+                    {{ p.isDistributed ? ('tips.distributed' | translate) : ('common.pending' | translate) }}
+                  </span>
+                </td>
+                <td style="color:var(--text-muted)">{{ p.createdAt | date:'mediumDate' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

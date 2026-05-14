@@ -1,0 +1,76 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">💬 Messaging</h1>
+    <button class="btn-primary" (click)="showCompose.set(!showCompose())">
+      {{ showCompose() ? 'Cancel' : '✉ Compose' }}
+    </button>
+  </div>
+
+  @if (showCompose()) {
+    <div class="nc-card compose-card">
+      <h3 class="compose-title">New Message</h3>
+      <div class="field">
+        <label>To (leave empty to send to all staff as broadcast)</label>
+        <select [(ngModel)]="compose.recipientId">
+          <option value="">— All Staff (Broadcast) —</option>
+          @for (s of staff(); track s.id) {
+            <option [value]="s.id">{{ s.fullName }} ({{ s.staffId }})</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label>Message *</label>
+        <textarea [(ngModel)]="compose.content" rows="4" placeholder="Type your message…" maxlength="2000"></textarea>
+        <div class="char-count">{{ compose.content.length }}/2000</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" (click)="send()" [disabled]="sending() || !compose.content.trim()">
+          @if (sending()) { <span class="nc-spinner sm"></span> }
+          {{ sending() ? 'Sending…' : 'Send Message' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="tab-nav">
+    <button class="tab-btn" [class.active]="tab() === 'inbox'" (click)="tab.set('inbox')">
+      Inbox @if (unread() > 0) { <span class="unread-badge">{{ unread() }}</span> }
+    </button>
+    <button class="tab-btn" [class.active]="tab() === 'sent'" (click)="tab.set('sent')">Sent</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><span class="nc-spinner"></span> Loading…</div>
+  }
+
+  @if (tab() === 'inbox') {
+    @if (inbox().length === 0 && !loading()) {
+      <div class="empty-state"><div class="empty-icon">📭</div><p>No messages in inbox.</p></div>
+    }
+    <div class="msg-list">
+      @for (msg of inbox(); track msg.id) {
+        <div class="nc-card msg-card" [class.unread]="!msg.readAt" (click)="markRead(msg)">
+          <div class="msg-from">{{ msg.senderName }}</div>
+          <div class="msg-content">{{ msg.content }}</div>
+          <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
+          @if (!msg.readAt) { <span class="unread-dot"></span> }
+        </div>
+      }
+    </div>
+  }
+
+  @if (tab() === 'sent') {
+    @if (sent().length === 0) {
+      <div class="empty-state"><div class="empty-icon">📤</div><p>No sent messages.</p></div>
+    }
+    <div class="msg-list">
+      @for (msg of sent(); track msg.id) {
+        <div class="nc-card msg-card">
+          <div class="msg-from">To: {{ msg.recipientName ?? 'All Staff' }}</div>
+          <div class="msg-content">{{ msg.content }}</div>
+          <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,47 @@
+using System.Security.Claims;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NightclubWorkforce.Application.Messaging.Commands;
+using NightclubWorkforce.Application.Messaging.Queries;
+
+namespace NightclubWorkforce.Api.Controllers;
+
+[ApiController]
+[Route("api/messages")]
+[Authorize]
+public class MessagingController(IMediator mediator) : ControllerBase
+{
+    private Guid   CurrentUserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private string CurrentName   => User.FindFirstValue(ClaimTypes.Name)
+        ?? User.FindFirstValue("FullName")
+        ?? User.FindFirstValue(ClaimTypes.Email) ?? "Staff";
+    private bool   IsAdmin => User.IsInRole("Admin") || User.IsInRole("Manager");
+
+    [HttpGet("inbox")]
+    public async Task<IActionResult> Inbox(CancellationToken ct) =>
+        Ok(await mediator.Send(new GetInboxQuery(CurrentUserId, IsAdmin), ct));
+
+    [HttpGet("sent")]
+    public async Task<IActionResult> Sent(CancellationToken ct) =>
+        Ok(await mediator.Send(new GetSentQuery(CurrentUserId), ct));
+
+    [HttpPost]
+    public async Task<IActionResult> Send([FromBody] SendMessageBody body, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(body.Content) || body.Content.Length > 2000)
+            return BadRequest(new { error = "Content must be 1–2000 characters." });
+        var id = await mediator.Send(new SendMessageCommand(CurrentUserId, CurrentName, IsAdmin,
+            body.RecipientId, body.RecipientName, body.Content), ct);
+        return Ok(new { id });
+    }
+
+    [HttpPatch("{id:guid}/read")]
+    public async Task<IActionResult> MarkRead(Guid id, CancellationToken ct)
+    {
+        await mediator.Send(new MarkMessageReadCommand(id, CurrentUserId), ct);
+        return NoContent();
+    }
+}
+
+public record SendMessageBody(Guid? RecipientId, string? RecipientName, string Content);

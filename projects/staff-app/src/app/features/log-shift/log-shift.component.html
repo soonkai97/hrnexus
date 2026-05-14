@@ -1,0 +1,193 @@
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'nav.logShift' | translate }}</h1>
+      <p class="page-sub">{{ 'logShift.subtitle' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- ── Top-level view tabs ───────────────────────────────────────────────── -->
+  <div class="view-tabs">
+    <button [class.active]="view() === 'log'" (click)="view.set('log')">
+      Log Shift
+    </button>
+    <button [class.active]="view() === 'history'" (click)="view.set('history')">
+      {{ 'logShift.history' | translate }}
+      @if (totalHistory() > 0) {
+        <span class="tab-count">{{ totalHistory() }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════ LOG VIEW ════════════════════════════════════ -->
+  @if (view() === 'log') {
+
+    <!-- Active shift -->
+    @if (activeLog(); as a) {
+      <div class="active-card nc-card">
+        <div class="active-badge">{{ 'logShift.live' | translate }}</div>
+        <div class="active-info">
+          <div class="active-role">{{ a.roleName | uppercase }}</div>
+          <div class="active-location">📍 {{ a.locationName }}</div>
+          <div class="active-time">{{ 'logShift.startedAt' | translate }} {{ a.startTime | amPm }}</div>
+        </div>
+        @if (endingId() === a.id) {
+          <div class="end-panel">
+            <label class="field-label">{{ 'logShift.endTime' | translate }}</label>
+            <input type="time" [(ngModel)]="endTime" class="time-input" />
+            <div style="display:flex;gap:.5rem;margin-top:.75rem">
+              <button class="btn-primary" (click)="confirmEnd()" [disabled]="submitting()">
+                @if (submitting()) { <span class="nc-spinner sm"></span> } @else { {{ 'logShift.endShift' | translate }} }
+              </button>
+              <button class="btn-ghost" (click)="cancelEnd()">{{ 'common.cancel' | translate }}</button>
+            </div>
+          </div>
+        } @else {
+          <button class="btn-end" (click)="openEndShift(a.id)">{{ 'logShift.endShift' | translate }}</button>
+        }
+      </div>
+    }
+
+    <!-- Mode toggle (only when no active shift) -->
+    @if (!activeLog()) {
+      <div class="mode-tabs">
+        <button [class.active]="mode() === 'live'"   (click)="setMode('live')">{{ 'logShift.startNow' | translate }}</button>
+        <button [class.active]="mode() === 'manual'" (click)="setMode('manual')">{{ 'logShift.manualEntry' | translate }}</button>
+      </div>
+
+      <!-- LIVE form -->
+      @if (mode() === 'live') {
+        <div class="nc-card form-card">
+          <div class="field">
+            <label>{{ 'logShift.role' | translate }}</label>
+            <select [(ngModel)]="liveForm.roleName">
+              <option value="">{{ 'logShift.selectRole' | translate }}</option>
+              @for (r of myRoles(); track r) {
+                <option [value]="r">{{ r | uppercase }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>{{ 'logShift.location' | translate }}</label>
+            <select [(ngModel)]="liveForm.locationId">
+              <option value="">{{ 'logShift.selectLocation' | translate }}</option>
+              @for (l of locations(); track l.id) {
+                <option [value]="l.id">{{ l.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>{{ 'logShift.startTime' | translate }}</label>
+            <input type="time" [(ngModel)]="liveForm.startTime" />
+          </div>
+          <div class="field">
+            <label>{{ 'logShift.notesLabel' | translate }}</label>
+            <input type="text" [(ngModel)]="liveForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
+          </div>
+          @if (formError()) {
+            <div class="form-error">⚠ {{ formError() }}</div>
+          }
+          <button class="btn-primary btn-full" (click)="startShift()" [disabled]="submitting()">
+            @if (submitting()) { <span class="nc-spinner sm"></span> } @else { ▶ {{ 'logShift.startShiftBtn' | translate }} }
+          </button>
+        </div>
+      }
+
+      <!-- MANUAL form -->
+      @if (mode() === 'manual') {
+        <div class="nc-card form-card">
+          <div class="field">
+            <label>{{ 'logShift.date' | translate }}</label>
+            <input type="date" [(ngModel)]="manualForm.workDate" />
+          </div>
+          <div class="field">
+            <label>{{ 'logShift.role' | translate }}</label>
+            <select [(ngModel)]="manualForm.roleName">
+              <option value="">{{ 'logShift.selectRole' | translate }}</option>
+              @for (r of myRoles(); track r) {
+                <option [value]="r">{{ r | uppercase }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>{{ 'logShift.location' | translate }}</label>
+            <select [(ngModel)]="manualForm.locationId">
+              <option value="">{{ 'logShift.selectLocation' | translate }}</option>
+              @for (l of locations(); track l.id) {
+                <option [value]="l.id">{{ l.name }}</option>
+              }
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+            <div class="field">
+              <label>{{ 'logShift.startTime' | translate }}</label>
+              <input type="time" [(ngModel)]="manualForm.startTime" />
+            </div>
+            <div class="field">
+              <label>{{ 'logShift.endTime' | translate }}</label>
+              <input type="time" [(ngModel)]="manualForm.endTime" />
+            </div>
+          </div>
+          <div class="field">
+            <label>{{ 'logShift.notesLabel' | translate }}</label>
+            <input type="text" [(ngModel)]="manualForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
+          </div>
+          @if (formError()) {
+            <div class="form-error">⚠ {{ formError() }}</div>
+          }
+          <button class="btn-primary btn-full" (click)="submitManual()" [disabled]="submitting()">
+            @if (submitting()) { <span class="nc-spinner sm"></span> } @else { {{ 'logShift.logShiftBtn' | translate }} }
+          </button>
+        </div>
+      }
+    }
+
+  }
+
+  <!-- ═══════════════════════════ HISTORY VIEW ════════════════════════════════ -->
+  @if (view() === 'history') {
+
+    @if (loading()) {
+      <div style="display:flex;justify-content:center;padding:3rem">
+        <span class="nc-spinner"></span>
+      </div>
+    } @else if (history().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>{{ 'logShift.noHistory' | translate }}</p>
+      </div>
+    } @else {
+      <div class="history-list">
+        @for (wl of history(); track wl.id) {
+          <div class="history-card nc-card">
+            <div class="history-top">
+              <span class="h-role">{{ wl.roleName | uppercase }}</span>
+              <span class="h-date">{{ wl.workDate }}</span>
+            </div>
+            <div class="history-mid">
+              <span>📍 {{ wl.locationName }}</span>
+              <span>🕐 {{ wl.startTime | amPm }} – {{ wl.endTime | amPm }}</span>
+              <span class="h-hours">⏱ {{ wl.hours | number:'1.1-1' }}h</span>
+              @if (wl.isManualEntry) { <span class="badge-manual">{{ 'logShift.manual' | translate }}</span> }
+            </div>
+            @if (wl.notes) {
+              <div class="h-notes">📝 {{ wl.notes }}</div>
+            }
+            <button class="btn-ghost delete-btn" (click)="deleteLog(wl.id)">{{ 'logShift.delete' | translate }}</button>
+          </div>
+        }
+      </div>
+
+      @if (totalHistoryPages() > 1) {
+        <div class="pagination-bar">
+          <button class="btn-ghost" [disabled]="historyPage() === 1" (click)="loadHistory(historyPage() - 1)">‹</button>
+          <span>{{ historyPage() }} / {{ totalHistoryPages() }} <span class="pag-total">({{ totalHistory() }})</span></span>
+          <button class="btn-ghost" [disabled]="historyPage() === totalHistoryPages()" (click)="loadHistory(historyPage() + 1)">›</button>
+        </div>
+      }
+    }
+
+  }
+
+</div>

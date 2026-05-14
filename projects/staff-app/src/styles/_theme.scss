@@ -1,0 +1,103 @@
+// ── Nightclub Design Tokens ──────────────────────────────────────────────────
+// Theme-sensitive variables are backed by CSS custom properties so that the
+// [data-theme="light"] override in styles.scss propagates into every
+// component's encapsulated SCSS automatically (CSS vars pierce view encapsulation).
+
+// Backgrounds
+$bg-void:    var(--nc-bg-void);
+$bg-base:    var(--nc-bg-base);
+$bg-surface: var(--nc-bg-surface);
+$bg-raised:  var(--nc-bg-raised);
+$bg-overlay: rgba(19, 19, 31, 0.85); // overlay only — not theme-sensitive
+
+// Neon accents — same in both themes, kept as plain values
+$neon-purple: #a855f7;
+$neon-pink:   #ec4899;
+$neon-blue:   #38bdf8;
+$neon-green:  #4ade80;
+$neon-amber:  #fbbf24;
+
+// Gradients
+$grad-primary: linear-gradient(135deg, #7c3aed, #a855f7);
+$grad-hero:    linear-gradient(135deg, #4c1d95 0%, #831843 100%);
+$grad-card:    linear-gradient(145deg, rgba(168,85,247,0.08) 0%, rgba(236,72,153,0.04) 100%);
+
+// Text
+$text-primary:   var(--nc-text-primary);
+$text-secondary: var(--nc-text-secondary);
+$text-muted:     var(--nc-text-muted);
+
+// Borders
+$border-subtle: var(--nc-border-subtle);
+$border-glow:   var(--nc-border-glow);
+$border-pink:   rgba(236, 72, 153, 0.3); // accent only — not theme-sensitive
+
+// Glows — accent only, same in both themes
+$glow-purple: 0 0 20px rgba(168, 85, 247, 0.35), 0 0 60px rgba(168, 85, 247, 0.1);
+$glow-pink:   0 0 20px rgba(236, 72, 153, 0.35), 0 0 60px rgba(236, 72, 153, 0.1);
+$glow-green:  0 0 16px rgba(74, 222, 128, 0.4);
+$glow-sm:     0 0 10px rgba(168, 85, 247, 0.25);
+
+// Radius
+$radius-sm:  8px;
+$radius-md:  12px;
+$radius-lg:  18px;
+$radius-xl:  24px;
+$radius-pill: 999px;
+
+// Layout
+$nav-height:        72px;
+$sidebar-width:     240px;
+$sidebar-collapsed: 64px;
+$topbar-height:     56px;
+
+// Transitions
+$transition-fast: 0.15s ease;
+$transition-base: 0.25s ease;
+
+// ── Z-index scale ─────────────────────────────────────────────────────────────
+$z-bg:       0;
+$z-content:  1;
+$z-topbar:   10;
+$z-dropdown: 200;
+$z-modal:    900;
+$z-overlay:  40;
+$z-sidebar:  50;
+$z-dialog:   9000;
+$z-toast:    9999;
+
+// ── Mixins ───────────────────────────────────────────────────────────────────
+
+@mixin glass($blur: 12px, $bg: rgba(19, 19, 31, 0.7)) {
+  background: $bg;
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+@mixin neon-border($color: $neon-purple) {
+  border: 1px solid rgba($color, 0.35);
+  box-shadow: inset 0 0 0 1px rgba($color, 0.08);
+}
+
+@mixin glow-text($color: $neon-purple) {
+  color: $color;
+  text-shadow: 0 0 12px rgba($color, 0.7), 0 0 30px rgba($color, 0.3);
+}
+
+@mixin nc-card {
+  @include glass;
+  @include neon-border;
+  border-radius: $radius-lg;
+  padding: 1.25rem;
+  background: $grad-card;
+  animation: fade-up 0.25s ease both;
+}
+
+@mixin pulse-dot($color: $neon-green) {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $color;
+  box-shadow: 0 0 8px $color;
+  animation: pulse-glow 1.8s ease-in-out infinite;
+}

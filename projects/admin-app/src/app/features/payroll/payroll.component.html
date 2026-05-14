@@ -1,0 +1,89 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">💰 Payroll</h1>
+  </div>
+
+  <div class="nc-card filter-card">
+    <div class="filter-row">
+      <div class="field">
+        <label>Year</label>
+        <input type="number" [ngModel]="year()" (ngModelChange)="year.set($event)" min="2020" max="2099" />
+      </div>
+      <div class="field">
+        <label>Month</label>
+        <select [ngModel]="month()" (ngModelChange)="month.set($event)">
+          @for (m of months; track $index) {
+            <option [value]="$index + 1">{{ m }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn-primary" style="width:100%" (click)="load()" [disabled]="loading()">
+          @if (loading()) { <span class="nc-spinner sm"></span> } View
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (data()) {
+    <div class="summary-bar">
+      <span class="summary-label">Total Gross Payroll</span>
+      <span class="summary-amount">RM {{ data()!.totalGross | number:'1.2-2' }}</span>
+      <button class="btn-ghost export-btn" (click)="exportCsv()" [disabled]="exporting()">
+        @if (exporting()) { <span class="nc-spinner sm"></span> }
+        ⬇ Export CSV
+      </button>
+    </div>
+
+    <div class="nc-card table-card">
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Staff ID</th>
+              <th>Name</th>
+              <th>Regular Hrs</th>
+              <th>OT Hrs</th>
+              <th>Work Pay (RM)</th>
+              <th>Paid Leave Days</th>
+              <th>Leave Pay (RM)</th>
+              <th>Grand Total (RM)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data()!.staff; track row.staffId) {
+              <tr>
+                <td class="td-muted mono">{{ row.staffId }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.regularHours | number:'1.1-1' }}</td>
+                <td>{{ row.overtimeHours | number:'1.1-1' }}</td>
+                <td>{{ row.totalPay | number:'1.2-2' }}</td>
+                <td class="td-center">
+                  @if (row.paidLeaveDays > 0) {
+                    <span class="leave-badge">{{ row.paidLeaveDays }}d</span>
+                  } @else {
+                    <span class="td-muted">—</span>
+                  }
+                </td>
+                <td>
+                  @if (row.paidLeavePay > 0) {
+                    {{ row.paidLeavePay | number:'1.2-2' }}
+                  } @else {
+                    <span class="td-muted">—</span>
+                  }
+                </td>
+                <td class="td-bold">{{ row.grandTotal | number:'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="payroll-note">
+        💡 Leave Pay = paid annual &amp; sick leave days × 8h × hourly rate. Unpaid leave is excluded.
+      </p>
+    </div>
+  } @else if (!loading()) {
+    <div class="empty-state"><div class="empty-icon">💰</div><p>Select a year and month, then click View to load payroll data.</p></div>
+  }
+</div>

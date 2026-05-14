@@ -1,0 +1,67 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'locations.title' | translate }}</h1>
+    <button class="btn-primary" (click)="openAdd()">{{ 'locations.addLocation' | translate }}</button>
+  </div>
+
+  @if (error()) {
+    <div class="error-msg">⚠ {{ error() }}</div>
+  }
+
+  <!-- Form -->
+  @if (showForm()) {
+    <div #formAnchor class="nc-card form-card">
+      <div class="form-header">
+        <h3>{{ editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate) }}</h3>
+        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" (click)="cancel()">✕</button>
+      </div>
+      <div class="field">
+        <label><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
+        <input type="text" [(ngModel)]="form.name" [placeholder]="'locations.namePlaceholder' | translate" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving() || !form.name">
+          @if (saving()) { <span class="nc-spinner sm"></span> }
+          {{ saving() ? ('common.saving' | translate) : (editing() ? ('common.update' | translate) : ('common.create' | translate)) }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="nc-card loading-card">{{ 'locations.loading' | translate }}</div>
+  }
+
+  <!-- Grid -->
+  <div class="loc-grid">
+    @for (loc of locations(); track loc.id) {
+      <div class="nc-card loc-card">
+        <!-- Image area -->
+        <div class="loc-image">
+          @if (loc.imagePath) {
+            <img [src]="'/' + loc.imagePath" [alt]="loc.name" />
+          } @else {
+            <span class="loc-placeholder">📍</span>
+          }
+          <!-- Upload overlay -->
+          <label class="loc-upload-label">
+            <span class="btn-ghost">
+              📷 {{ loc.imagePath ? ('locations.changePhoto' | translate) : ('locations.addPhoto' | translate) }}
+            </span>
+            <input type="file" accept="image/*" (change)="uploadImage(loc, $event)" />
+          </label>
+        </div>
+        <!-- Card body -->
+        <div class="loc-body">
+          <div class="loc-name">{{ loc.name }}</div>
+          <div class="loc-actions">
+            <button class="btn-ghost" style="font-size:.8rem" (click)="openEdit(loc)">{{ 'locations.editBtn' | translate }}</button>
+            <button class="btn-ghost btn-danger-ghost" style="font-size:.8rem" (click)="remove(loc.id)">{{ 'locations.deleteBtn' | translate }}</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

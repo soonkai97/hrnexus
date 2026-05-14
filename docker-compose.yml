@@ -1,0 +1,83 @@
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nightclub_workforce
+      POSTGRES_USER: ncuser
+      POSTGRES_PASSWORD: ncpassword
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ncuser -d nightclub_workforce"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── .NET 10 API ─────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      Jwt__Key: "${JWT_SECRET:-NightclubWorkforce_Dev_Secret_Change_In_Production_Min32Chars}"
+      Jwt__Issuer: nightclub-workforce
+      Jwt__Audience: nightclub-workforce-clients
+      Cors__AllowedOrigins__0: "http://admin.${DOMAIN}"
+      Cors__AllowedOrigins__1: "http://staff.${DOMAIN}"
+      Cors__AllowedOrigins__2: "https://admin.${DOMAIN}"
+      Cors__AllowedOrigins__3: "https://staff.${DOMAIN}"
+      # Override connection string so the API reaches postgres by service name
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=nightclub_workforce;Username=ncuser;Password=ncpassword"
+      # Feature management PIN (bcrypt hash — $$ in YAML = literal $ in container)
+      FeatureMgmt__PinHash: "$$2a$$12$$MG7x0Vdz6AoOTmDVOG7.2e.haGjX1uVUmH5n75ctE6x4hUGUa2i4."
+      FeatureMgmt__TokenSecret: "m3h6qVMkYrcStQEtJk7uUpw8T0uOPMmS0h4ltRkWRLa5NUSWJxphFVHIvM2b80uW"
+    volumes:
+      - uploads:/app/wwwroot/uploads       # location images
+      - logs:/app/logs                     # Serilog files
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── nginx + Angular apps ─────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "8081:8081"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certs:/etc/letsencrypt:ro          # SSL certs (optional, see README)
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - internal
+
+volumes:
+  pg_data:
+  uploads:
+  logs:
+  certs:
+
+networks:
+  internal:

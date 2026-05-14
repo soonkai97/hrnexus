@@ -1,0 +1,29 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'account.title' | translate }}</h1>
+  </div>
+  <div class="account-layout">
+    <div class="nc-card profile-card">
+      <h3 class="section-heading">{{ 'account.profileSection' | translate }}</h3>
+      <div class="field">
+        <label>{{ 'account.phoneNumber' | translate }}</label>
+        <input type="text" [(ngModel)]="phoneNumber" placeholder="+60 12-345 6789" />
+      </div>
+      @if (profileError()) {
+        <div class="login-error" style="margin-bottom:0.75rem"><span>⚠</span> {{ profileError() }}</div>
+      }
+      <button class="btn-primary" (click)="saveProfile()" [disabled]="savingProfile()">
+        @if (savingProfile()) { <span class="nc-spinner sm"></span> }
+        {{ savingProfile() ? ('common.saving' | translate) : ('account.saveProfile' | translate) }}
+      </button>
+    </div>
+
+    <div class="nc-card password-card">
+      <div class="password-card-info">
+        <div class="password-card-label">{{ 'account.passwordSection' | translate }}</div>
+        <div class="password-card-sub">{{ 'account.passwordDesc' | translate }}</div>
+      </div>
+      <a routerLink="/account/change-password" class="btn-ghost">{{ 'account.changePassword' | translate }}</a>
+    </div>
+  </div>
+</div>

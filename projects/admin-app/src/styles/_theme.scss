@@ -1,0 +1,78 @@
+// ── Nightclub Admin Design Tokens ────────────────────────────────────────────
+// Theme-sensitive variables are backed by CSS custom properties so that the
+// [data-theme="light"] override in styles.scss propagates into every
+// component's encapsulated SCSS automatically (CSS vars pierce view encapsulation).
+
+$bg-void:    var(--nc-bg-void);
+$bg-base:    var(--nc-bg-base);
+$bg-surface: var(--nc-bg-surface);
+$bg-raised:  var(--nc-bg-raised);
+
+// Neon accents — same in both themes, kept as plain values
+$neon-purple: #a855f7;
+$neon-pink:   #ec4899;
+$neon-blue:   #38bdf8;
+$neon-green:  #4ade80;
+$neon-amber:  #fbbf24;
+
+$grad-primary: linear-gradient(135deg, #7c3aed, #a855f7);
+$grad-hero:    linear-gradient(135deg, #4c1d95 0%, #831843 100%);
+$grad-card:    linear-gradient(145deg, rgba(168,85,247,0.06) 0%, rgba(236,72,153,0.03) 100%);
+
+$text-primary:   var(--nc-text-primary);
+$text-secondary: var(--nc-text-secondary);
+$text-muted:     var(--nc-text-muted);
+
+$border-subtle: var(--nc-border-subtle);
+$border-glow:   var(--nc-border-glow);
+
+// Glows — accent only, same in both themes
+$glow-purple: 0 0 20px rgba(168,85,247,0.35), 0 0 60px rgba(168,85,247,0.1);
+$glow-sm:     0 0 10px rgba(168,85,247,0.25);
+
+$radius-sm: 8px;  $radius-md: 12px;  $radius-lg: 18px;  $radius-xl: 24px;  $radius-pill: 999px;
+
+$sidebar-width:         220px;
+$sidebar-collapsed:     64px;
+$topbar-height:         60px;
+$transition-fast:       0.15s ease;
+$transition-base:       0.25s ease;
+
+// ── Z-index scale ─────────────────────────────────────────────────────────────
+$z-bg:       0;
+$z-content:  1;
+$z-topbar:   30;
+$z-overlay:  40;
+$z-sidebar:  50;
+$z-dropdown: 200;
+$z-modal:    900;
+$z-dialog:   9000;
+$z-toast:    9999;
+
+// ── Mixins ────────────────────────────────────────────────────────────────────
+@mixin glass($blur: 12px, $bg: rgba(19,19,31,0.8)) {
+  background: $bg;
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+@mixin neon-border($color: $neon-purple) {
+  border: 1px solid rgba($color, 0.25);
+}
+
+@mixin pulse-dot($color: $neon-green) {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: $color;
+  box-shadow: 0 0 8px $color;
+  animation: pulse-glow 1.8s ease-in-out infinite;
+}
+
+@mixin nc-card {
+  @include glass;
+  @include neon-border;
+  border-radius: $radius-lg;
+  padding: 1.25rem;
+  background: $grad-card;
+  animation: fade-up 0.25s ease both;
+}

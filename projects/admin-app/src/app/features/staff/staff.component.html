@@ -1,0 +1,216 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'staff.title' | translate }}</h1>
+    <button class="btn-primary" (click)="showForm() ? closeForm() : openAdd()">
+      {{ showForm() ? ('common.cancel' | translate) : ('staff.addStaff' | translate) }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div style="color:#f87171;margin-bottom:1rem">⚠ {{ error() }}</div>
+  }
+
+  <!-- Add staff form -->
+  @if (showForm()) {
+    <div #formAnchor class="form-card nc-card">
+      <div class="form-header">
+        <h3>{{ 'staff.newStaffMember' | translate }}</h3>
+        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" (click)="closeForm()">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>{{ 'staff.staffId' | translate }}</label>
+          <input type="text" [(ngModel)]="newStaff.staffId" placeholder="e.g. NC1001" maxlength="20" style="text-transform:uppercase" />
+        </div>
+        <div class="field">
+          <label>{{ 'staff.firstName' | translate }}</label>
+          <input type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" />
+        </div>
+        <div class="field">
+          <label>{{ 'staff.lastName' | translate }}</label>
+          <input type="text" [(ngModel)]="newStaff.lastName" placeholder="e.g. Torres" />
+        </div>
+        <div class="field">
+          <label>{{ 'staff.email' | translate }}</label>
+          <input type="text" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" />
+        </div>
+        <div class="field">
+          <label>{{ 'staff.roles' | translate }} <span style="color:var(--text-muted,#4e4a65);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
+          <div class="role-multiselect" #roleDropdownEl>
+            <button type="button" class="role-ms-trigger" (click)="roleDropdownOpen.set(!roleDropdownOpen())">
+              @if (newStaff.roles.length === 0) {
+                <span class="role-ms-placeholder">{{ 'staff.selectRoles' | translate }}</span>
+              } @else {
+                <span class="role-ms-tags">
+                  @for (r of newStaff.roles; track r) {
+                    <span class="role-ms-tag">{{ r | titlecase }}</span>
+                  }
+                </span>
+              }
+              <span class="role-ms-arrow">{{ roleDropdownOpen() ? '▲' : '▼' }}</span>
+            </button>
+            @if (roleDropdownOpen()) {
+              <div class="role-ms-panel">
+                @for (r of availableRoles(); track r.name) {
+                  <label class="role-ms-option" (click)="$event.preventDefault(); $event.stopPropagation(); toggleRole(r.name)">
+                    <input type="checkbox" [checked]="hasRole(r.name)" readonly />
+                    {{ r.name | titlecase }}
+                    @if (r.isSystem) { <span class="role-ms-sys">{{ 'staff.system' | translate }}</span> }
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        </div>
+        <div class="field">
+          <label>{{ 'staff.phoneNumber' | translate }}</label>
+          <input type="text" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" />
+        </div>
+        <div class="field">
+          <label>{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
+          <input type="text" [(ngModel)]="newStaff.icNo" placeholder="e.g. 990101-01-1234" />
+        </div>
+        <div class="field">
+          <label>{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
+          <input type="text" [(ngModel)]="newStaff.passportNo" placeholder="e.g. A12345678" />
+        </div>
+        <div class="field">
+          <label>{{ 'staff.dateOfBirth' | translate }}</label>
+          <input type="date" [(ngModel)]="newStaff.dateOfBirth" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" (click)="closeForm()">{{ 'common.cancel' | translate }}</button>
+        <button class="btn-primary" (click)="saveStaff()" [disabled]="saving()">
+          @if (saving()) { <span class="nc-spinner sm"></span> }
+          {{ saving() ? ('common.saving' | translate) : ('staff.saveStaff' | translate) }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <input type="text" [placeholder]="'staff.searchPlaceholder' | translate"
+           [value]="search()" (input)="search.set($any($event.target).value); currentPage.set(1)" />
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'staff.staffId' | translate }}</th>
+          <th>{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</th>
+          <th>{{ 'staff.roleCol' | translate }}</th>
+          <th>{{ 'staff.phone' | translate }}</th>
+          <th>{{ 'staff.statusCol' | translate }}</th>
+          <th class="td-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of pagedFiltered(); track s.id) {
+          <tr>
+            <td class="td-muted mono">{{ s.staffId }}</td>
+            <td>
+              <a [routerLink]="['/staff', s.id]" class="staff-name-link">{{ s.fullName }}</a>
+              <div class="staff-email">{{ s.email }}</div>
+            </td>
+            <td>
+              @for (r of s.roles; track r) {
+                <span class="badge badge-role" style="margin-right:0.25rem">{{ r | titlecase }}</span>
+              }
+            </td>
+            <td class="td-muted td-masked">{{ maskPhone(s.phoneNumber) }}</td>
+            <td>
+              <span class="badge" [class.badge-active]="s.isActive" [class.badge-closed]="!s.isActive">
+                {{ s.isActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
+              </span>
+            </td>
+            <td class="td-actions">
+              <!-- trigger only — dropdown rendered at page-wrap level to escape backdrop-filter -->
+              <button class="btn-menu-trigger" [ncTooltip]="'Actions'"
+                      (click)="toggleMenu(s.id, $event); $event.stopPropagation()">⋯</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  @if (totalPages() > 1) {
+    <div class="pagination-bar">
+      <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
+      <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ filtered().length }})</span></span>
+      <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(currentPage() + 1)">›</button>
+    </div>
+  }
+
+  <!-- ── Action dropdown — outside .table-card so backdrop-filter doesn't clip it ── -->
+  @if (menuTarget() && menuPos()) {
+    <div class="action-backdrop" (click)="closeMenu()"></div>
+    <div class="action-dropdown"
+         [style.top.px]="menuPos()!.top"
+         [style.right.px]="menuPos()!.right">
+      <a [routerLink]="['/staff', menuTarget()!.id]" class="action-item" (click)="closeMenu()">
+        {{ 'staff.editStaff' | translate }}
+      </a>
+      <button class="action-item" (click)="openResetPassword(menuTarget()!); closeMenu()">
+        {{ 'staff.resetPassword' | translate }}
+      </button>
+      <button class="action-item" (click)="toggleActive(menuTarget()!.id, menuTarget()!.isActive); closeMenu()">
+        {{ menuTarget()!.isActive ? ('staff.deactivate' | translate) : ('staff.activate' | translate) }}
+      </button>
+      <div class="action-divider"></div>
+      <button class="action-item action-item-danger" (click)="deleteStaff(menuTarget()!); closeMenu()">
+        {{ 'staff.delete' | translate }}
+      </button>
+    </div>
+  }
+</div>
+
+<!-- ── Reset Password Modal ───────────────────────────────────────────────── -->
+@if (resetPassTarget()) {
+  <div class="modal-backdrop" (click)="closeResetPassword()">
+    <div class="modal-card nc-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">{{ 'staff.resetPasswordTitle' | translate }}</h3>
+        <button class="modal-close" (click)="closeResetPassword()">✕</button>
+      </div>
+
+      <p class="modal-desc">
+        Set a new password for <strong>{{ resetPassTarget()!.name }}</strong>.
+        After saving, inform them of the new password verbally — they will be
+        prompted to change it on next login.
+      </p>
+
+      <div class="field">
+        <label>{{ 'staff.newPassword' | translate }}</label>
+        <div class="pwd-wrap">
+          <input
+            [type]="showNewPassword ? 'text' : 'password'"
+            [(ngModel)]="newPassword"
+            [placeholder]="'staff.minChars' | translate"
+            autocomplete="new-password"
+          />
+          <button type="button" class="eye-btn" (click)="showNewPassword = !showNewPassword">
+            {{ showNewPassword ? '🙈' : '👁' }}
+          </button>
+        </div>
+        <button type="button" class="btn-ghost gen-btn" (click)="generatePassword()">
+          {{ 'staff.generatePassword' | translate }}
+        </button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" (click)="closeResetPassword()">{{ 'common.cancel' | translate }}</button>
+        <button class="btn-primary" (click)="saveResetPassword()"
+                [disabled]="savingReset() || newPassword.length < 8">
+          @if (savingReset()) { <span class="nc-spinner sm"></span> }
+          {{ savingReset() ? ('common.saving' | translate) : ('staff.saveReset' | translate) }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

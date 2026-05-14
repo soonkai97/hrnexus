@@ -1,0 +1,98 @@
+<div class="page-content">
+
+  <div class="page-header">
+    <h2 class="page-title">{{ 'pay.title' | translate }}</h2>
+    @if (summary() && !loading()) {
+      <button class="print-btn" (click)="printPaySlip()" title="Print / Save as PDF">🖨 Print</button>
+    }
+  </div>
+
+  <!-- Period picker -->
+  <div class="nc-card period-picker">
+    <div class="picker-row">
+      <div class="field">
+        <label>{{ 'pay.year' | translate }}</label>
+        <input type="number" [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)" min="2020" max="2099" />
+      </div>
+      <div class="field">
+        <label>{{ 'pay.month' | translate }}</label>
+        <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event)">
+          @for (m of months; track $index) {
+            <option [value]="$index + 1">{{ m }}</option>
+          }
+        </select>
+      </div>
+      <button class="btn-primary sm" (click)="load()" [disabled]="loading()">
+        @if (loading()) { <span class="nc-spinner sm"></span> } {{ 'pay.view' | translate }}
+      </button>
+    </div>
+    <div class="period-label">{{ months[selectedMonth() - 1] }} {{ selectedYear() }}</div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-wrap">
+      <div class="nc-spinner"></div>
+    </div>
+  }
+
+  @if (!loading() && summary()) {
+    <!-- Gross hero card -->
+    <div class="hero-card">
+      <div class="hero-label">{{ 'pay.grossPay' | translate }}</div>
+      <div class="hero-amount">RM {{ summary()!.grossPay | number:'1.2-2' }}</div>
+      <div class="hero-hours">{{ summary()!.totalHours }}h total</div>
+    </div>
+
+    <!-- Breakdown -->
+    <div class="section-label">{{ 'pay.breakdown' | translate }}</div>
+    <div class="breakdown-card nc-card">
+      <div class="breakdown-row">
+        <div class="brow-left">
+          <span class="brow-title">{{ 'pay.regularHours' | translate }}</span>
+          <span class="brow-sub">{{ summary()!.regularHours }}h × {{ 'pay.rate' | translate }}</span>
+        </div>
+        <span class="brow-amount">RM {{ summary()!.regularPay | number:'1.2-2' }}</span>
+      </div>
+      <div class="divider"></div>
+      <div class="breakdown-row">
+        <div class="brow-left">
+          <span class="brow-title">{{ 'pay.overtimeHours' | translate }}</span>
+          <span class="brow-sub">{{ summary()!.overtimeHours }}h × 1.5×</span>
+        </div>
+        <span class="brow-amount accent-amber">RM {{ summary()!.overtimePay | number:'1.2-2' }}</span>
+      </div>
+      <div class="divider"></div>
+      <div class="breakdown-row">
+        <div class="brow-left">
+          <span class="brow-title">{{ 'pay.tips' | translate }}</span>
+          <span class="brow-sub">{{ 'pay.poolDist' | translate }}</span>
+        </div>
+        <span class="brow-amount accent-pink">RM {{ summary()!.tipsAllocated | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- Shifts -->
+    @if ((summary()!.shifts?.length ?? 0) > 0) {
+      <div class="section-label">{{ 'pay.shifts' | translate }}</div>
+      <div class="shifts-list">
+        @for (shift of summary()!.shifts; track shift.shiftId) {
+          <div class="shift-card nc-card">
+            <div class="shift-left">
+              <span class="shift-date">{{ shift.date | date:'EEE, MMM d' }}</span>
+              <span class="shift-loc">{{ shift.locationName }}</span>
+            </div>
+            <div class="shift-right">
+              <span class="shift-hours">{{ shift.hours }}h</span>
+              <span class="shift-pay">RM {{ shift.pay | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  @if (!loading() && !summary()) {
+    <div class="empty-state nc-card">{{ 'pay.noData' | translate }}</div>
+  }
+
+</div>

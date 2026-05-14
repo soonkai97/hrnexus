@@ -1,0 +1,115 @@
+<div class="page-wrap">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'dashboard.title' | translate }}</h1>
+    @if (hubConnected()) {
+      <span class="badge badge-active"><span class="pulse-dot"></span> {{ 'dashboard.live' | translate }}</span>
+    } @else {
+      <span class="badge badge-closed">{{ 'dashboard.connecting' | translate }}</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">{{ 'dashboard.loadingDashboard' | translate }}</div>
+  } @else if (stats(); as s) {
+
+    <div class="stat-grid">
+      <div class="stat-card accent-green">
+        <span class="stat-label">{{ 'dashboard.onShiftNow' | translate }}</span>
+        <span class="stat-value">{{ s.onShiftCount }}</span>
+        <span class="stat-sub">{{ 'dashboard.staffClockedIn' | translate }}</span>
+      </div>
+      <div class="stat-card accent-purple">
+        <span class="stat-label">{{ 'dashboard.totalStaff' | translate }}</span>
+        <span class="stat-value">{{ s.totalStaff }}</span>
+        <span class="stat-sub">{{ 'dashboard.activeStaffMembers' | translate }}</span>
+      </div>
+      <div class="stat-card accent-pink">
+        <span class="stat-label">{{ 'dashboard.tonightHours' | translate }}</span>
+        <span class="stat-value">{{ s.tonightHours }}h</span>
+        <span class="stat-sub">{{ 'dashboard.loggedSoFar' | translate }}</span>
+      </div>
+      <div class="stat-card accent-amber">
+        <span class="stat-label">{{ 'dashboard.estLabourCost' | translate }}</span>
+        <span class="stat-value">RM {{ s.tonightCost | number:'1.2-2' }}</span>
+        <span class="stat-sub">{{ 'dashboard.thisShift' | translate }}</span>
+      </div>
+      @if (s.openShiftsCount) {
+        <div class="stat-card warn-card">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-body">
+            <div class="stat-value">{{ s.openShiftsCount }}</div>
+            <div class="stat-label">{{ 'dashboard.openShifts' | translate }}</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Currently On Shift -->
+    @if (onShift().length > 0) {
+      <div class="section-label" style="margin-top:1.5rem">{{ 'dashboard.currentlyOnShift' | translate }}</div>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'dashboard.staffId' | translate }}</th>
+              <th>{{ 'dashboard.staffName' | translate }}</th>
+              <th>{{ 'dashboard.role' | translate }}</th>
+              <th>{{ 'dashboard.location' | translate }}</th>
+              <th>{{ 'dashboard.clockedIn' | translate }}</th>
+              <th>{{ 'dashboard.duration' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of onShift(); track s.staffId) {
+              <tr>
+                <td class="td-muted mono">{{ s.staffId }}</td>
+                <td class="td-name">{{ s.name }}</td>
+                <td><span class="badge badge-role">{{ s.role | titlecase }}</span></td>
+                <td class="td-muted">{{ s.locationName }}</td>
+                <td class="td-muted">{{ s.clockedInAt | date:'h:mm a' }}</td>
+                <td class="td-muted">{{ formatMinutes(s.minutesOnShift) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Recent Activity -->
+    <div class="section-label" style="margin-top:1.5rem">{{ 'dashboard.recentClockActivity' | translate }}</div>
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ 'dashboard.staff' | translate }}</th>
+            <th>{{ 'dashboard.role' | translate }}</th>
+            <th>{{ 'dashboard.location' | translate }}</th>
+            <th>{{ 'dashboard.time' | translate }}</th>
+            <th>{{ 'dashboard.event' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of activity(); track a.staffName + a.timestamp) {
+            <tr [class.row-new]="a.isNew">
+              <td class="td-name">{{ a.staffName }}</td>
+              <td><span class="badge badge-role">{{ a.role | titlecase }}</span></td>
+              <td class="td-muted">{{ a.locationName }}</td>
+              <td class="td-muted">{{ a.timestamp | date:'h:mm a' }}</td>
+              <td>
+                <span class="badge"
+                  [class.badge-active]="a.eventType === 'clock-in'"
+                  [class.badge-closed]="a.eventType === 'clock-out'">
+                  {{ a.eventType === 'clock-in' ? '▲ In' : '▼ Out' }}
+                </span>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr><td colspan="5" class="td-muted" style="text-align:center;padding:2rem">{{ 'dashboard.noActivityToday' | translate }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  }
+</div>

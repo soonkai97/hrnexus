@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, ThemeToggleComponent } from 'shared-lib';
+import { LangService } from '../../../core/lang.service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -14,6 +15,7 @@ import { AuthService, ThemeToggleComponent } from 'shared-lib';
 })
 export class ForgotPasswordComponent {
   private readonly auth = inject(AuthService);
+  readonly lang         = inject(LangService);
 
   staffId = '';
   loading = signal(false);

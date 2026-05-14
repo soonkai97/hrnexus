@@ -31,7 +31,9 @@ export class PaySummaryComponent implements OnInit {
 
   periodEnd = computed(() => {
     const y = this.selectedYear(), m = this.selectedMonth();
-    return new Date(y, m, 0).toISOString().split('T')[0]; // last day of month
+    // Use local date components — toISOString() would shift to previous UTC day during 00:00–08:00 KL
+    const last = new Date(y, m, 0);
+    return `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}`;
   });
 
   constructor(private payroll: PayrollService) {}

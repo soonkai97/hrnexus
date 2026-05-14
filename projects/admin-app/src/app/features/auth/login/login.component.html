@@ -16,17 +16,23 @@
       <p class="brand-sub">{{ 'auth.managementPortal' | translate }}</p>
     </div>
 
-    <!-- autocomplete="off" on form + hidden honeypot stops Edge saved-password popup -->
     <form [formGroup]="form" (ngSubmit)="submit()" autocomplete="off">
-      <input type="password" style="display:none" tabindex="-1" autocomplete="new-password" />
       <div class="field">
         <label>{{ 'auth.staffId' | translate }}</label>
-        <input type="text" formControlName="staffId" placeholder="NC1001" style="text-transform:uppercase" autocomplete="off" />
+        <input type="text" formControlName="staffId" placeholder="NC1001"
+               readonly autocomplete="off" style="text-transform:uppercase"
+               (mousedown)="removeReadonly($event)"
+               (touchstart)="removeReadonly($event)"
+               (focus)="removeReadonly($event)" />
       </div>
       <div class="field">
         <label>{{ 'auth.password' | translate }}</label>
         <div class="pwd-wrap">
-          <input [type]="showPwd() ? 'text' : 'password'" formControlName="password" placeholder="••••••••" autocomplete="new-password" />
+          <input [type]="showPwd() ? 'text' : 'password'" formControlName="password"
+                 placeholder="••••••••" readonly autocomplete="new-password"
+                 (mousedown)="removeReadonly($event)"
+                 (touchstart)="removeReadonly($event)"
+                 (focus)="removeReadonly($event)" />
           <span class="eye-btn" role="button" tabindex="0"
                 (click)="showPwd.set(!showPwd())"
                 (keydown.enter)="showPwd.set(!showPwd())"

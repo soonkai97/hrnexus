@@ -31,6 +31,11 @@ export class AdminLoginComponent {
     });
   }
 
+  /** Removes the readonly guard that prevents browser autofill from populating the field. */
+  removeReadonly(e: Event): void {
+    (e.target as HTMLInputElement).removeAttribute('readonly');
+  }
+
   submit(): void {
     if (this.form.invalid || this.loading()) return;
     this.loading.set(true);

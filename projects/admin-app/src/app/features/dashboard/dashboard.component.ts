@@ -34,7 +34,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadDashboard();
-    this.signalR.startConnection();
 
     // When live stats arrive, patch numbers and also refresh the lists so the
     // "currently on shift" table and activity feed stay in sync.
@@ -55,7 +54,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.signalR.stopConnection();
+    // Connection is managed by ShellComponent — do not stop it here
   }
 
   private loadDashboard(showLoader = true): void {

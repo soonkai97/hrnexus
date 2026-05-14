@@ -2,7 +2,7 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, LangService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, LangService, SignalRService } from 'shared-lib';
 
 interface NavItem {
   path: string;
@@ -20,10 +20,11 @@ interface NavItem {
   styleUrl: './shell.component.scss',
 })
 export class ShellComponent {
-  private readonly auth    = inject(AuthService);
-  private readonly router  = inject(Router);
-  readonly lang            = inject(LangService);
-  readonly featureSvc      = inject(FeatureFlagService);
+  private readonly auth      = inject(AuthService);
+  private readonly router    = inject(Router);
+  private readonly signalR   = inject(SignalRService);
+  readonly lang              = inject(LangService);
+  readonly featureSvc        = inject(FeatureFlagService);
 
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
@@ -31,6 +32,9 @@ export class ShellComponent {
     // Load feature flags and sync language preference from backend
     this.featureSvc.load().subscribe();
     this.lang.syncFromApi();
+
+    // Start SignalR once here so the connection persists across all navigation
+    this.signalR.startConnection();
 
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
       if (typeof window !== 'undefined' && window.innerWidth < 769) {
@@ -84,5 +88,5 @@ export class ShellComponent {
   });
 
   toggleSidebar(): void { this.collapsed.update(v => !v); }
-  logout(): void { this.auth.logout(); }
+  logout(): void { this.signalR.stopConnection(); this.auth.logout(); }
 }

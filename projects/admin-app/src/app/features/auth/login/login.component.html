@@ -16,23 +16,26 @@
       <p class="brand-sub">{{ 'auth.managementPortal' | translate }}</p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" autocomplete="off">
+    <!-- Use div instead of form so browsers never detect a login-form pattern
+         and therefore never offer to fill/save passwords. -->
+    <div [formGroup]="form">
       <div class="field">
         <label>{{ 'auth.staffId' | translate }}</label>
         <input type="text" formControlName="staffId" placeholder="NC1001"
                readonly autocomplete="off" style="text-transform:uppercase"
                (mousedown)="removeReadonly($event)"
                (touchstart)="removeReadonly($event)"
-               (focus)="removeReadonly($event)" />
+               (keydown)="removeReadonly($event)" />
       </div>
       <div class="field">
         <label>{{ 'auth.password' | translate }}</label>
         <div class="pwd-wrap">
           <input [type]="showPwd() ? 'text' : 'password'" formControlName="password"
-                 placeholder="••••••••" readonly autocomplete="new-password"
+                 placeholder="••••••••" readonly autocomplete="off"
                  (mousedown)="removeReadonly($event)"
                  (touchstart)="removeReadonly($event)"
-                 (focus)="removeReadonly($event)" />
+                 (keydown)="removeReadonly($event)"
+                 (keydown.enter)="submit()" />
           <span class="eye-btn" role="button" tabindex="0"
                 (click)="showPwd.set(!showPwd())"
                 (keydown.enter)="showPwd.set(!showPwd())"
@@ -44,13 +47,13 @@
       @if (error()) {
         <div class="login-error"><span>⚠</span> {{ error() }}</div>
       }
-      <button type="submit" class="btn-primary" [disabled]="loading()">
+      <button type="button" class="btn-primary" [disabled]="loading()" (click)="submit()">
         @if (loading()) { <span class="nc-spinner sm"></span> }
         {{ loading() ? ('auth.signingIn' | translate) : ('auth.signIn' | translate) }}
       </button>
       <div style="text-align:center;margin-top:1rem">
         <a routerLink="/auth/forgot-password" class="forgot-link">{{ 'auth.forgotPassword' | translate }}</a>
       </div>
-    </form>
+    </div>
   </div>
 </div>

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NightclubWorkforce.Application.Common.Interfaces;
 using NightclubWorkforce.Application.WorkLog.Commands;
 using NightclubWorkforce.Application.WorkLog.Queries;
 using System.Security.Claims;
@@ -10,7 +11,7 @@ namespace NightclubWorkforce.Api.Controllers;
 [ApiController]
 [Route("api/worklogs")]
 [Authorize]
-public class WorkLogController(IMediator mediator) : ControllerBase
+public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : ControllerBase
 {
     private Guid CallerId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -88,7 +89,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
         [FromQuery] DateOnly? end,
         CancellationToken ct)
     {
-        var today       = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today       = DateOnly.FromDateTime(dt.LocalNow);
         var periodStart = start ?? new DateOnly(today.Year, today.Month, 1);
         var periodEnd   = end   ?? today;
         var result = await mediator.Send(new GetPaySummaryQuery(CallerId, periodStart, periodEnd), ct);

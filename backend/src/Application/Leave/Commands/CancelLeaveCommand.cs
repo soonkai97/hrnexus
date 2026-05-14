@@ -7,7 +7,7 @@ namespace NightclubWorkforce.Application.Leave.Commands;
 
 public record CancelLeaveCommand(Guid LeaveId, Guid EmployeeId) : IRequest;
 
-public class CancelLeaveCommandHandler(IAppDbContext db) : IRequestHandler<CancelLeaveCommand>
+public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt) : IRequestHandler<CancelLeaveCommand>
 {
     public async Task Handle(CancelLeaveCommand req, CancellationToken ct)
     {
@@ -16,7 +16,7 @@ public class CancelLeaveCommandHandler(IAppDbContext db) : IRequestHandler<Cance
             ?? throw new KeyNotFoundException("Leave request not found.");
         if (leave.Status != "pending" && leave.Status != "approved")
             throw new InvalidOperationException("Only pending or approved leaves can be cancelled.");
-        if (leave.EndDate.Date < DateTime.UtcNow.Date)
+        if (leave.EndDate.Date < dt.LocalNow.Date)
             throw new InvalidOperationException("Cannot cancel a leave that has already ended.");
 
         // Look up employee name for audit

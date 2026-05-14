@@ -19,12 +19,12 @@ public record StaffLeaveBalanceDto(
     double SickRemaining,
     double UnpaidUsed);
 
-public class GetAllLeaveBalancesQueryHandler(IAppDbContext db)
+public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider dt)
     : IRequestHandler<GetAllLeaveBalancesQuery, List<StaffLeaveBalanceDto>>
 {
     public async Task<List<StaffLeaveBalanceDto>> Handle(GetAllLeaveBalancesQuery req, CancellationToken ct)
     {
-        var year        = req.Year ?? DateTime.UtcNow.Year;
+        var year        = req.Year ?? dt.LocalNow.Year;
         var startOfYear = new DateTime(year,     1, 1, 0, 0, 0, DateTimeKind.Utc);
         var endOfYear   = new DateTime(year + 1, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(-1);
 

@@ -112,7 +112,7 @@ public class ShiftJobs(
     [AutomaticRetry(Attempts = 2)]
     public async Task AutoRejectOverdueLeaveAsync()
     {
-        var today = dateTime.UtcNow.Date;
+        var today = dateTime.LocalNow.Date;
 
         var overdue = await db.LeaveRequests
             .Include(l => l.Employee)

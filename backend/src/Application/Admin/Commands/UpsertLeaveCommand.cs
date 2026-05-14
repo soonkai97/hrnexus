@@ -15,7 +15,7 @@ public record UpsertLeaveCommand(
     string   Status) : IRequest<Guid>;
 
 public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifHub,
-    IPushNotificationService pushSvc, IAuditService audit)
+    IPushNotificationService pushSvc, IAuditService audit, IDateTimeProvider dt)
     : IRequestHandler<UpsertLeaveCommand, Guid>
 {
     public async Task<Guid> Handle(UpsertLeaveCommand req, CancellationToken ct)
@@ -31,7 +31,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         if (durationDays > 60)
             throw new ArgumentException("Leave duration cannot exceed 60 days in a single request.");
 
-        if (req.StartDate.Date > DateTime.UtcNow.Date.AddYears(1))
+        if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
 
         // Balance enforcement for annual/sick leave (skip when rejecting or cancelling)

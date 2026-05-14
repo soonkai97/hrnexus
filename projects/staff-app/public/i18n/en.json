@@ -24,7 +24,19 @@
     "password":       "Password",
     "signIn":         "Sign In",
     "signingIn":      "Signing in…",
-    "forgotPassword": "Forgot password?"
+    "forgotPassword": "Forgot password?",
+    "resetPassword":  "Reset Password",
+    "setNewPassword": "Set New Password",
+    "newPassword":    "New Password",
+    "confirmPassword":"Confirm Password",
+    "setPassword":    "Set Password",
+    "backToSignIn":   "← Back to Sign In",
+    "notifyManager":  "Notify Manager",
+    "notifying":      "Sending…",
+    "tempPasswordInfo":"You're using a temporary password. Please set a new password to continue.",
+    "forgotDesc":     "Enter your Staff ID and your manager will be notified to reset your password.",
+    "requestSent":    "Your request has been sent to your manager.",
+    "requestSentHint":"They will contact you with a new password. Please wait for them to reach out."
   },
   "clockIn": {
     "shiftActive":    "Shift Active",

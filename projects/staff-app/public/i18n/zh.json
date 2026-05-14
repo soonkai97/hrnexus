@@ -24,7 +24,19 @@
     "password":       "密码",
     "signIn":         "登录",
     "signingIn":      "登录中…",
-    "forgotPassword": "忘记密码？"
+    "forgotPassword": "忘记密码？",
+    "resetPassword":  "重置密码",
+    "setNewPassword": "设置新密码",
+    "newPassword":    "新密码",
+    "confirmPassword":"确认密码",
+    "setPassword":    "设置密码",
+    "backToSignIn":   "← 返回登录",
+    "notifyManager":  "通知经理",
+    "notifying":      "发送中…",
+    "tempPasswordInfo":"您正在使用临时密码，请设置新密码以继续。",
+    "forgotDesc":     "请输入您的员工编号，系统将通知经理为您重置密码。",
+    "requestSent":    "您的申请已发送给经理。",
+    "requestSentHint":"他们将联系您并提供新密码，请等待他们与您联系。"
   },
   "clockIn": {
     "shiftActive":    "班次进行中",

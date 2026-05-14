@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance, LeaveService, StaffStore, ToastService, ConfirmService, TooltipDirective, toLocalDateString } from 'shared-lib';
@@ -10,7 +10,7 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
 @Component({
   selector: 'app-leave',
   standalone: true,
-  imports: [CommonModule, FormsModule, TitleCasePipe, TranslatePipe, TooltipDirective],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })

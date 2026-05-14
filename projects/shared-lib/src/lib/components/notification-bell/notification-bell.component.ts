@@ -1,5 +1,4 @@
 import { Component, OnInit, inject, signal, ViewChild, ElementRef, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 import { SignalRService } from '../../services/signalr.service';
@@ -8,7 +7,7 @@ import { AppNotification } from '../../models';
 @Component({
   selector: 'nc-notification-bell',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './notification-bell.component.html',
   styleUrl:    './notification-bell.component.scss',
 })
@@ -88,8 +87,8 @@ export class NotificationBellComponent implements OnInit {
       case 'leave_approved':
       case 'leave_rejected':  return '/my-leave';
       case 'leave_pending':   return '/leave';
-      case 'roster_assigned': return '/my-schedule';
-      case 'missed_clockin':  return '/clock-in';
+      case 'roster_assigned': return '/log-shift';
+      case 'missed_clockin':  return '/log-shift';
       case 'password_reset':  return '/staff';
       default:                return null;
     }

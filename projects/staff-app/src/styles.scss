@@ -459,9 +459,9 @@ input[type="time"] {
 .nc-tooltip {
   position: fixed;
   z-index: 99999;
-  background: #1a1a2a;
+  background: $bg-raised;
   border: 1px solid rgba(168, 85, 247, 0.3);
-  color: #f0eeff;
+  color: $text-primary;
   font-size: 0.74rem;
   font-weight: 500;
   padding: 0.3rem 0.65rem;

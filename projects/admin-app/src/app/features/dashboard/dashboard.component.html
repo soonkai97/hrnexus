@@ -97,9 +97,9 @@
               <td class="td-muted">{{ a.timestamp | date:'h:mm a' }}</td>
               <td>
                 <span class="badge"
-                  [class.badge-active]="a.eventType === 'clock-in'"
-                  [class.badge-closed]="a.eventType === 'clock-out'">
-                  {{ a.eventType === 'clock-in' ? '▲ In' : '▼ Out' }}
+                  [class.badge-active]="a.eventType === 'shift-started'"
+                  [class.badge-closed]="a.eventType === 'shift-ended'">
+                  {{ a.eventType === 'shift-started' ? '▲ In' : '▼ Out' }}
                 </span>
               </td>
             </tr>

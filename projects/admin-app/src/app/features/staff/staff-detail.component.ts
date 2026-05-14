@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, HostListener, ElementRef } from '@angular/core';
-import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -8,7 +8,7 @@ import { StaffDetail, UpdateStaffRequest, StaffStore, StaffService, ToastService
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DatePipe, TitleCasePipe, TranslatePipe, AmPmPipe, PickerOnlyDirective],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, PickerOnlyDirective],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })

@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { StaffStore, ConfirmService, ToastService, TooltipDirective } from 'shared-lib';
@@ -7,7 +7,7 @@ import { StaffStore, ConfirmService, ToastService, TooltipDirective } from 'shar
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, TooltipDirective],
+  imports: [DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })

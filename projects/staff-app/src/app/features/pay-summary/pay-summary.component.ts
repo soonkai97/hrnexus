@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PayrollService, PaySummary } from 'shared-lib';
@@ -7,7 +7,7 @@ import { PayrollService, PaySummary } from 'shared-lib';
 @Component({
   selector: 'app-pay-summary',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe],
   templateUrl: './pay-summary.component.html',
   styleUrl: './pay-summary.component.scss',
 })

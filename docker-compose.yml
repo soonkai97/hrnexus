@@ -39,6 +39,11 @@ services:
       # Feature management PIN (bcrypt hash — $$ in YAML = literal $ in container)
       FeatureMgmt__PinHash: "$$2a$$12$$MG7x0Vdz6AoOTmDVOG7.2e.haGjX1uVUmH5n75ctE6x4hUGUa2i4."
       FeatureMgmt__TokenSecret: "m3h6qVMkYrcStQEtJk7uUpw8T0uOPMmS0h4ltRkWRLa5NUSWJxphFVHIvM2b80uW"
+      # Web Push (VAPID) — generate keys with: npx web-push generate-vapid-keys
+      # Leave empty to disable push notifications without breaking anything
+      WebPush__Subject: "${VAPID_SUBJECT:-mailto:admin@nightcrew.app}"
+      WebPush__PublicKey: "${VAPID_PUBLIC_KEY:-}"
+      WebPush__PrivateKey: "${VAPID_PRIVATE_KEY:-}"
     volumes:
       - uploads:/app/wwwroot/uploads       # location images
       - logs:/app/logs                     # Serilog files

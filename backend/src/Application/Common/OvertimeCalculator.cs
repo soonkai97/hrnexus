@@ -10,8 +10,10 @@ public static class OvertimeCalculator
     /// </summary>
     public static decimal CalcHours(string startTime, string endTime)
     {
-        var s    = TimeSpan.Parse(startTime);
-        var e    = TimeSpan.Parse(endTime);
+        var s = TimeSpan.Parse(startTime);
+        var e = TimeSpan.Parse(endTime);
+        // Identical times → 0 duration (avoid the misleading 24h midnight-wrap result)
+        if (s == e) return 0m;
         var diff = e > s ? e - s : e + TimeSpan.FromHours(24) - s;
         return (decimal)diff.TotalHours;
     }

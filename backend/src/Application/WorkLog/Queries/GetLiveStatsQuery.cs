@@ -29,10 +29,12 @@ public class GetLiveStatsQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var tonightCost  = 0m;
         foreach (var w in todayLogs)
         {
+            // Skip any record with a malformed time string (defensive guard against bad DB data)
+            if (!TimeSpan.TryParse(w.StartTime, out var s)) continue;
             var endHhMm = w.EndTime ?? $"{localNow.Hour:D2}:{localNow.Minute:D2}";
-            var s    = TimeSpan.Parse(w.StartTime);
-            var e    = TimeSpan.Parse(endHhMm);
-            var diff = e > s ? e - s : e + TimeSpan.FromHours(24) - s;
+            if (!TimeSpan.TryParse(endHhMm, out var e)) continue;
+            // Identical times → 0 hours (same guard as CalcHours)
+            var diff = s == e ? TimeSpan.Zero : (e > s ? e - s : e + TimeSpan.FromHours(24) - s);
             var h    = (decimal)diff.TotalHours;
             tonightHours += h;
             tonightCost  += h * w.HourlyRateSnapshot;

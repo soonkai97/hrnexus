@@ -72,6 +72,37 @@ public class ShiftJobs(
                 "Sent long-running work log reminder to employee {EmployeeId} for log {WorkLogId}",
                 wl.EmployeeId, wl.Id);
         }
+
+        // Notify all active managers and admins so they can follow up.
+        if (stale.Count > 0)
+        {
+            var supervisorIds = await db.Staff
+                .Where(s => s.IsActive &&
+                            s.RoleEntries.Any(r => r.Role == "manager" || r.Role == "admin"))
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            if (supervisorIds.Count > 0)
+            {
+                var body = stale.Count == 1
+                    ? $"{stale[0].Employee?.FullName ?? "A staff member"} has been on shift for over 12 hours without clocking out."
+                    : $"{stale.Count} staff members have been on shift for 12+ hours without clocking out.";
+
+                try
+                {
+                    await pushSvc.SendToManyAsync(
+                        supervisorIds,
+                        "⚠️ Staff haven't clocked out",
+                        body,
+                        "/");   // admin portal dashboard
+                }
+                catch { /* non-critical */ }
+
+                logger.LogInformation(
+                    "Sent stale-shift alert to {Count} supervisor(s) for {StaleCount} open log(s)",
+                    supervisorIds.Count, stale.Count);
+            }
+        }
     }
 
     /// <summary>

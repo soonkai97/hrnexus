@@ -12,6 +12,12 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
 {
     public async Task<Guid> Handle(CreateManualWorkLogCommand req, CancellationToken ct)
     {
+        // Validate HH:mm format
+        if (!TimeOnly.TryParse(req.StartTime, out _))
+            throw new ArgumentException("StartTime must be in HH:mm format.");
+        if (!TimeOnly.TryParse(req.EndTime, out _))
+            throw new ArgumentException("EndTime must be in HH:mm format.");
+
         // Validate time range: supports overnight shifts, but rejects identical or >24h spans
         var hours = OvertimeCalculator.CalcHours(req.StartTime, req.EndTime);
         if (hours <= 0)
@@ -24,6 +30,15 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
 
         var role = await db.Roles.FindAsync([req.RoleName.ToLowerInvariant()], ct)
             ?? throw new KeyNotFoundException($"Role {req.RoleName} not found.");
+
+        // Check for approved leave covering this date
+        var onLeave = await db.LeaveRequests.AnyAsync(
+            l => l.EmployeeId == req.EmployeeId
+              && l.Status == "approved"
+              && l.StartDate <= req.WorkDate.ToDateTime(TimeOnly.MinValue)
+              && l.EndDate   >= req.WorkDate.ToDateTime(TimeOnly.MinValue), ct);
+        if (onLeave)
+            throw new InvalidOperationException("Cannot start a shift while on approved leave.");
 
         // Reject if the employee already has any worklog on the same date
         var hasOverlap = await db.WorkLogs

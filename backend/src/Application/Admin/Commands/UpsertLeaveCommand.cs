@@ -20,15 +20,51 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 {
     public async Task<Guid> Handle(UpsertLeaveCommand req, CancellationToken ct)
     {
+        var validTypes = new[] { "sick", "annual", "unpaid", "no-show" };
+        if (!validTypes.Contains(req.LeaveType, StringComparer.OrdinalIgnoreCase))
+            throw new ArgumentException($"Invalid leave type '{req.LeaveType}'.");
+
         if (req.StartDate > req.EndDate)
             throw new ArgumentException("StartDate must be on or before EndDate.");
 
-        var durationDays = (req.EndDate.Date - req.StartDate.Date).TotalDays + 1;
+        var durationDays = (int)((req.EndDate.Date - req.StartDate.Date).TotalDays + 1);
         if (durationDays > 60)
             throw new ArgumentException("Leave duration cannot exceed 60 days in a single request.");
 
         if (req.StartDate.Date > DateTime.UtcNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
+
+        // Balance enforcement for annual/sick leave (skip when rejecting or cancelling)
+        var isRejectedOrCancelled = req.Status.Equals("rejected", StringComparison.OrdinalIgnoreCase)
+                                 || req.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase);
+        if (!isRejectedOrCancelled &&
+            (req.LeaveType.Equals("annual", StringComparison.OrdinalIgnoreCase) ||
+             req.LeaveType.Equals("sick",   StringComparison.OrdinalIgnoreCase)))
+        {
+            var year = req.StartDate.Year;
+            var leaveTypeLower = req.LeaveType.ToLowerInvariant();
+
+            var entitlement = await db.LeaveEntitlements
+                .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
+
+            int entitlementDays = leaveTypeLower == "annual"
+                ? (entitlement?.AnnualDays ?? 14)
+                : (entitlement?.SickDays   ?? 14);
+
+            var usedDays = await db.LeaveRequests
+                .Where(l => l.EmployeeId == req.EmployeeId
+                         && l.LeaveType  == leaveTypeLower
+                         && l.StartDate.Year == year
+                         && l.Status != "rejected"
+                         && l.Status != "cancelled"
+                         && l.Id != (req.Id ?? Guid.Empty))
+                .SumAsync(l => (int)((l.EndDate.Date - l.StartDate.Date).TotalDays + 1), ct);
+
+            var remaining = entitlementDays - usedDays;
+            if (usedDays + durationDays > entitlementDays)
+                throw new InvalidOperationException(
+                    $"Insufficient {leaveTypeLower} leave balance. {remaining} day(s) remaining.");
+        }
 
         var start = DateTime.SpecifyKind(req.StartDate.Date, DateTimeKind.Utc);
         var end   = DateTime.SpecifyKind(req.EndDate.Date,   DateTimeKind.Utc);

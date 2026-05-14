@@ -18,6 +18,7 @@ public record PaySummaryDto(
     decimal  OvertimePay,
     decimal  TipsAllocated,
     decimal  GrossPay,
+    decimal  OtMultiplier,
     List<PayShiftLineDto> Shifts);
 
 public record PayShiftLineDto(
@@ -76,6 +77,12 @@ public class GetPaySummaryQueryHandler(IAppDbContext db)
                 Math.Round(gross, 2)));
         }
 
+        var otMultiplier = totalOtHours > 0
+            ? (applicableRules.Count > 0
+                ? applicableRules.OrderByDescending(r => r.Multiplier).First().Multiplier
+                : 1.5m)
+            : 1.0m;
+
         return new PaySummaryDto(
             req.EmployeeId,
             req.PeriodStart.ToString("yyyy-MM-dd"),
@@ -87,6 +94,7 @@ public class GetPaySummaryQueryHandler(IAppDbContext db)
             Math.Round(totalOtPay,    2),
             0m,  // Tips — extend later when tips are linked to shifts
             Math.Round(totalRegPay + totalOtPay, 2),
+            otMultiplier,
             shifts);
     }
 }

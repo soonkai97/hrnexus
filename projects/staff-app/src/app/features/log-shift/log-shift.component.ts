@@ -92,8 +92,9 @@ export class LogShiftComponent implements OnInit {
     this.historyPage.set(page);
     this.workLogSvc.getMy(page, this.historyPageSize).subscribe({
       next: r => {
-        this.history.set(r.items.filter(l => !l.isActive));
-        this.totalHistory.set(r.total);
+        const activeCount = r.items.filter((l: any) => l.isActive).length;
+        this.history.set(r.items.filter((l: any) => !l.isActive));
+        this.totalHistory.set(r.total - activeCount);
         this.loading.set(false);
       },
       error: () => { this.loading.set(false); },

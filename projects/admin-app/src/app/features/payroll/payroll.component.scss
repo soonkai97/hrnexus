@@ -26,6 +26,19 @@
   font-weight: 600;
 }
 
+.warn-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: $radius-md;
+  color: #fbbf24;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
 .payroll-note {
   font-size: 0.75rem;
   color: $text-muted;

@@ -36,7 +36,7 @@ public class CancelLeaveCommandHandler(IAppDbContext db) : IRequestHandler<Cance
             performedByName: employee?.FullName ?? "Unknown",
             changes:         changes));
 
-        db.LeaveRequests.Remove(leave);
+        leave.Cancel();
         await db.SaveChangesAsync(ct);
     }
 }

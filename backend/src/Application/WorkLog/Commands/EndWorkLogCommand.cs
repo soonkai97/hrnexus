@@ -11,6 +11,9 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
 {
     public async Task Handle(EndWorkLogCommand req, CancellationToken ct)
     {
+        if (!TimeOnly.TryParse(req.EndTime, out _))
+            throw new ArgumentException("EndTime must be in HH:mm format.");
+
         var log = await db.WorkLogs.FindAsync([req.Id], ct)
             ?? throw new KeyNotFoundException("Work log not found.");
         if (log.EmployeeId != req.EmployeeId) throw new UnauthorizedAccessException("Not your shift.");

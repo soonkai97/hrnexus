@@ -75,6 +75,7 @@ export interface DateReportRow {
 }
 
 export interface ShiftDetailRow {
+  id:           string;
   staffId:      string;
   staffName:    string;
   role:         string;
@@ -85,6 +86,7 @@ export interface ShiftDetailRow {
   cost:         number;
   status:       string;
   isOvertime:   boolean;
+  otThreshold:  number;
 }
 
 export interface ReportResponse {

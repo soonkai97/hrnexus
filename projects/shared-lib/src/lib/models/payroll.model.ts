@@ -8,6 +8,7 @@ export interface PaySummary {
   regularPay: number;
   overtimePay: number;
   tipsAllocated: number;
+  otMultiplier: number;
   grossPay: number;
   shifts: PayShiftLine[];
 }

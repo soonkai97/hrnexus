@@ -14,6 +14,7 @@ public class DeleteWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Del
         var log = await db.WorkLogs.FindAsync([req.Id], ct)
             ?? throw new KeyNotFoundException("Work log not found.");
         if (log.EmployeeId != req.EmployeeId) throw new UnauthorizedAccessException("Not your shift.");
+        if (log.EndTime == null) throw new InvalidOperationException("Cannot delete an active shift. End it first.");
 
         // Look up the employee name for the audit trail
         var employee = await db.Staff

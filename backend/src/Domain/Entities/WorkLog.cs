@@ -18,14 +18,15 @@ public class WorkLog
 
     private WorkLog() { }
 
-    public static WorkLog StartLive(Guid employeeId, string roleName, string locationId, string locationName, string startTime, decimal rateSnapshot, string? notes = null) => new()
+    public static WorkLog StartLive(Guid employeeId, string roleName, string locationId, string locationName,
+        DateOnly workDate, string startTime, decimal rateSnapshot, string? notes = null) => new()
     {
         Id                 = Guid.NewGuid(),
         EmployeeId         = employeeId,
         RoleName           = roleName.ToLowerInvariant(),
         LocationId         = locationId,
         LocationName       = locationName,
-        WorkDate           = DateOnly.FromDateTime(DateTime.UtcNow),
+        WorkDate           = workDate,
         StartTime          = startTime,
         EndTime            = null,
         IsManualEntry      = false,

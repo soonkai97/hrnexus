@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, PayrollSummaryResponse, PayrollStaffRow } from 'shared-lib';
@@ -20,6 +20,14 @@ export class PayrollComponent {
   data      = signal<PayrollSummaryResponse | null>(null);
 
   readonly months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  readonly now = new Date();
+  isCurrentOrFutureMonth = computed(() => {
+    const y = this.year();
+    const m = this.month();
+    return y > this.now.getFullYear() ||
+      (y === this.now.getFullYear() && m >= this.now.getMonth() + 1);
+  });
 
   load() {
     this.loading.set(true);

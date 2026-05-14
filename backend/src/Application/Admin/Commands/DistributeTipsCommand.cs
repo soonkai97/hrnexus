@@ -94,7 +94,9 @@ public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime)
         }
         else // by_hours — split proportional to elapsed time since StartTime
         {
-            var now = dateTime.UtcNow;
+            // Use LocalNow so both sides of the subtraction are in the same wall-clock frame
+            // (WorkDate.ToDateTime produces Kind=Unspecified; mixing with UtcNow causes an 8-hour error)
+            var now = dateTime.LocalNow;
 
             var hoursMap = activeWorkLogs.Select(wl =>
             {

@@ -22,7 +22,11 @@ export class TipsComponent implements OnInit {
   preview      = signal<TipsDistributionResult | null>(null);
   previewTime  = signal<string | null>(null);
 
-  readonly today = new Date().toISOString().slice(0, 10);
+  /** Today's date as "YYYY-MM-DD" in local (venue) time, not UTC. */
+  readonly today = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
 
   form = {
     locationId:   '',

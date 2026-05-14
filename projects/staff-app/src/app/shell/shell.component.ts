@@ -2,7 +2,7 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService } from 'shared-lib';
 
 interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: FeatureKey; }
 
@@ -21,6 +21,7 @@ interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: 
 export class ShellComponent {
   private readonly auth            = inject(AuthService);
   private readonly router          = inject(Router);
+  private readonly signalR         = inject(SignalRService);
   readonly lang                    = inject(LangService);
   readonly featureSvc              = inject(FeatureFlagService);
   private readonly announcementSvc = inject(AnnouncementService);
@@ -37,6 +38,9 @@ export class ShellComponent {
       this.refreshUnread();
     });
     this.lang.syncFromApi();
+
+    // Start SignalR once here so the connection persists across all navigation
+    this.signalR.startConnection();
 
     // Refresh badge and collapse sidebar on every navigation
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
@@ -88,5 +92,5 @@ export class ShellComponent {
   });
 
   toggleSidebar(): void { this.collapsed.update(v => !v); }
-  logout(): void { this.auth.logout(); }
+  logout(): void { this.signalR.stopConnection(); this.auth.logout(); }
 }

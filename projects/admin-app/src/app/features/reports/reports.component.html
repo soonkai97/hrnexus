@@ -304,7 +304,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (s of r.shifts; track s.staffId + s.clockedIn) {
+              @for (s of r.shifts; track s.id) {
                 <tr>
                   <td class="td-muted mono">{{ s.staffId }}</td>
                   <td class="td-name">{{ s.staffName }}</td>
@@ -323,7 +323,7 @@
                   </td>
                   <td>
                     @if (s.isOvertime) {
-                      <span class="badge badge-warning badge-ot" [ncTooltip]="'Shift exceeds 8 hours'">⚠ OT</span>
+                      <span class="badge badge-warning badge-ot" [ncTooltip]="'Shift exceeds ' + s.otThreshold + 'h (configured OT threshold)'">⚠ OT</span>
                     }
                   </td>
                 </tr>

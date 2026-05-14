@@ -64,6 +64,7 @@ public record DateReportRow(
 );
 
 public record ShiftDetailRow(
+    Guid     Id,
     string   StaffId,
     string   StaffName,
     string   Role,
@@ -73,7 +74,8 @@ public record ShiftDetailRow(
     decimal  Hours,
     decimal  Cost,
     string   Status,
-    bool     IsOvertime
+    bool     IsOvertime,
+    decimal  OtThreshold
 );
 
 public class GetReportQueryHandler(IAppDbContext db)
@@ -119,9 +121,11 @@ public class GetReportQueryHandler(IAppDbContext db)
             // Handle midnight crossover (e.g. 22:00 → 02:00)
             if (endDt.HasValue && endDt.Value < startDt) endDt = endDt.Value.AddDays(1);
             return new ShiftDetailRow(
+                w.Id,
                 w.Employee?.StaffId ?? "", w.Employee?.FullName ?? "Unknown",
                 w.RoleName, w.LocationName,
-                startDt, endDt, hours, cost, "Complete", hours > otThreshold);
+                startDt, endDt, hours, cost, "Complete", hours > otThreshold,
+                otThreshold);
         }).ToList();
 
         var summary = new ReportSummary(shifts.Count, Math.Round(shifts.Sum(s => s.Hours), 1), Math.Round(shifts.Sum(s => s.Cost), 2), shifts.Select(s => s.StaffId).Distinct().Count(), shifts.Select(s => s.LocationName).Distinct().Count(), shifts.Count > 0 ? Math.Round(shifts.Average(s => s.Hours), 2) : 0m);

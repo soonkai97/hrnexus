@@ -16,6 +16,7 @@ public class AdminResetPasswordCommandHandler(IAppDbContext db, IPasswordHasher 
 
         emp.SetPasswordHash(hasher.Hash(req.NewPassword));
         emp.SetMustChangePassword(); // Force employee to change on next login
+        emp.ClearRefreshToken();
         await db.SaveChangesAsync(ct);
     }
 }

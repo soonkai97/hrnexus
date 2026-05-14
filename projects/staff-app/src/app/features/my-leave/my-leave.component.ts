@@ -121,7 +121,14 @@ export class MyLeaveComponent implements OnInit {
       if (!confirmed) return;
       this.leaveSvc.cancel(r.id).subscribe({
         next:  () => { this.load(); this.toast.success('Leave request withdrawn.'); },
-        error: (err) => this.toast.error(err?.error?.error ?? 'Cancel failed.'),
+        error: (e: any) => {
+          const msg: string = e?.error?.error ?? e?.error?.message ?? '';
+          this.toast.error(
+            msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('cancel')
+              ? 'This leave has already ended and cannot be cancelled. Contact your manager.'
+              : 'Failed to cancel leave.'
+          );
+        },
       });
     });
   }

@@ -12,7 +12,7 @@ public record GetAllWorkLogsQuery(
     int       Page     = 1,
     int       PageSize = 10) : IRequest<PagedResult<WorkLogDto>>;
 
-public class GetAllWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetAllWorkLogsQuery, PagedResult<WorkLogDto>>
+public class GetAllWorkLogsQueryHandler(IAppDbContext db, IDateTimeProvider dt) : IRequestHandler<GetAllWorkLogsQuery, PagedResult<WorkLogDto>>
 {
     public async Task<PagedResult<WorkLogDto>> Handle(GetAllWorkLogsQuery req, CancellationToken ct)
     {
@@ -38,7 +38,8 @@ public class GetAllWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetA
         var items = logs.Select(w =>
         {
             var isActive = w.EndTime == null;
-            var hours    = isActive ? 0m : CalcHours(w.StartTime, w.EndTime!);
+            var endHhMm  = w.EndTime ?? $"{dt.LocalNow.Hour:D2}:{dt.LocalNow.Minute:D2}";
+            var hours    = CalcHours(w.StartTime, endHhMm);
             return new WorkLogDto(w.Id, w.RoleName, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"),
                 w.StartTime, w.EndTime, Math.Round(hours, 2),
                 Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.Notes);

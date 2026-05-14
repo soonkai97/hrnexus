@@ -7,14 +7,29 @@ namespace NightclubWorkforce.Application.WorkLog.Commands;
 
 public record StartWorkLogCommand(Guid EmployeeId, string RoleName, string LocationId, string StartTime, string? Notes) : IRequest<Guid>;
 
-public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub)
+public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub, IDateTimeProvider dt)
     : IRequestHandler<StartWorkLogCommand, Guid>
 {
     public async Task<Guid> Handle(StartWorkLogCommand req, CancellationToken ct)
     {
+        // Validate HH:mm format
+        if (!TimeOnly.TryParse(req.StartTime, out _))
+            throw new ArgumentException("StartTime must be in HH:mm format.");
+
         // Prevent duplicate active shifts
         var active = await db.WorkLogs.AnyAsync(w => w.EmployeeId == req.EmployeeId && w.EndTime == null, ct);
         if (active) throw new InvalidOperationException("You already have an active shift. Please end it first.");
+
+        var workDate = DateOnly.FromDateTime(dt.LocalNow);
+
+        // Check for approved leave covering this date
+        var onLeave = await db.LeaveRequests.AnyAsync(
+            l => l.EmployeeId == req.EmployeeId
+              && l.Status == "approved"
+              && l.StartDate <= workDate.ToDateTime(TimeOnly.MinValue)
+              && l.EndDate   >= workDate.ToDateTime(TimeOnly.MinValue), ct);
+        if (onLeave)
+            throw new InvalidOperationException("Cannot start a shift while on approved leave.");
 
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location {req.LocationId} not found.");
@@ -28,7 +43,7 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         if (!isAssigned)
             throw new InvalidOperationException($"You are not assigned the role '{req.RoleName}'.");
 
-        var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, req.StartTime, role.HourlyRate, req.Notes);
+        var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync(ct);
 

@@ -36,6 +36,12 @@
       </button>
     </div>
 
+    @if (isCurrentOrFutureMonth()) {
+      <div class="warn-banner">
+        ⚠️ This period hasn't ended yet — data is incomplete. Active shifts are excluded from payroll.
+      </div>
+    }
+
     <div class="nc-card table-card">
       <div style="overflow-x:auto">
         <table>

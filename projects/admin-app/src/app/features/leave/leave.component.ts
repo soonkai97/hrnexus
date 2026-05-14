@@ -319,6 +319,10 @@ export class LeaveComponent implements OnInit {
     if (!this.form.employeeId || !this.form.startDate || !this.form.endDate) {
       this.formError.set('Please fill in all required fields.'); return;
     }
+    if (this.form.startDate > this.form.endDate) {
+      this.formError.set('End date must be on or after start date.');
+      return;
+    }
     this.saving.set(true);
     const id   = this.editing();
     const fail = (e: any) => { this.formError.set(e?.error?.error ?? 'Save failed.'); this.saving.set(false); };

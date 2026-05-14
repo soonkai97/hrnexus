@@ -54,6 +54,7 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
             PhoneNormalizer.Normalize(req.PhoneNumber),
             req.IcNo, req.PassportNo, req.DateOfBirth);
 
+        employee.SetMustChangePassword();
         db.Staff.Add(employee);
         await db.SaveChangesAsync(ct);
         await audit.LogAsync("Staff", employee.Id.ToString(), "Created",

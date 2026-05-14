@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, ThemeToggleComponent } from 'shared-lib';
-import { LangService } from '../../../core/lang.service';
+import { AuthService, ThemeToggleComponent, LangService } from 'shared-lib';
 
 @Component({
   selector: 'app-login',

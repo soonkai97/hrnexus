@@ -38,26 +38,7 @@
     "requestSent":    "您的申请已发送给经理。",
     "requestSentHint":"他们将联系您并提供新密码，请等待他们与您联系。"
   },
-  "clockIn": {
-    "shiftActive":    "班次进行中",
-    "started":        "开始时间",
-    "clockOut":       "下班打卡",
-    "readyToWork":    "准备上班？",
-    "scanPrompt":     "请扫描工位上的二维码以打卡上班。",
-    "scanQr":         "扫描二维码",
-    "pointCamera":    "请将摄像头对准二维码",
-    "cancel":         "取消",
-    "validating":     "验证中…",
-    "checkingQr":     "正在向服务器验证二维码。",
-    "clockedIn":      "打卡成功！",
-    "clockedOut":     "下班打卡成功！",
-    "success":        "祝您工作愉快。",
-    "shiftEnded":     "您的班次已记录。",
-    "done":           "完成",
-    "noQr":           "未检测到二维码。",
-    "tryAgain":       "重新扫描"
-  },
-  "pay": {
+"pay": {
     "title":         "薪资概览",
     "regularHours":  "正常工时",
     "overtimeHours": "加班工时",

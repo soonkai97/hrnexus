@@ -26,7 +26,7 @@ public static class PhoneNormalizer
         // Validate: digits only (excluding the leading '+') must be at least 7 characters
         var digits = new string(clean.Where(char.IsDigit).ToArray());
         if (digits.Length < 7)
-            throw new ArgumentException($"'{raw}' is not a valid phone number.");
+            return null; // too short to be a real number — treat phone as absent
 
         if (clean.StartsWith('+'))
             return clean; // already E.164

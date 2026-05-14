@@ -3,8 +3,7 @@ import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } fro
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService } from 'shared-lib';
-import { LangService } from '../core/lang.service';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService } from 'shared-lib';
 
 interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: FeatureKey; }
 

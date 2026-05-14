@@ -120,9 +120,13 @@ public class AdminController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> SetLeaveBalance(Guid employeeId,
         [FromBody] LeaveEntitlementBody body, CancellationToken ct)
     {
-        await mediator.Send(new UpsertLeaveEntitlementCommand(
-            employeeId, body.Year, body.AnnualDays, body.SickDays), ct);
-        return NoContent();
+        try
+        {
+            await mediator.Send(new UpsertLeaveEntitlementCommand(
+                employeeId, body.Year, body.AnnualDays, body.SickDays), ct);
+            return NoContent();
+        }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
     // ── Overtime Rules ────────────────────────────────────────────────────────
@@ -164,6 +168,8 @@ public class AdminController(IMediator mediator) : ControllerBase
         [FromQuery] int month,
         CancellationToken ct)
     {
+        if (month < 1 || month > 12) return BadRequest(new { error = "Month must be between 1 and 12." });
+        if (year  < 2000 || year > DateTime.UtcNow.Year + 1) return BadRequest(new { error = "Year is out of valid range." });
         var result = await mediator.Send(new GetPayrollExportQuery(year, month), ct);
         var staff = result.Rows.Select(r => new
         {
@@ -191,6 +197,8 @@ public class AdminController(IMediator mediator) : ControllerBase
         [FromQuery] int month,
         CancellationToken ct)
     {
+        if (month < 1 || month > 12) return BadRequest(new { error = "Month must be between 1 and 12." });
+        if (year  < 2000 || year > DateTime.UtcNow.Year + 1) return BadRequest(new { error = "Year is out of valid range." });
         var result = await mediator.Send(new GetPayrollExportQuery(year, month), ct);
 
         var sb = new System.Text.StringBuilder();

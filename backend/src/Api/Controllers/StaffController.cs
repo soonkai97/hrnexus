@@ -197,6 +197,7 @@ public class StaffController(IMediator mediator) : ControllerBase
             await mediator.Send(new CreateRoleCommand(body.Name, body.HourlyRate), ct);
             return NoContent();
         }
+        catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
         catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
     }
 
@@ -205,6 +206,8 @@ public class StaffController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> UpdateRoleRate(string name, [FromBody] UpdateRoleRateBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
+        if (body.HourlyRate < 0)
+            return BadRequest(new { error = "Hourly rate cannot be negative." });
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == name.ToLower(), ct);
         if (role is null) return NotFound(new { error = "Role not found." });
         role.SetRate(body.HourlyRate);

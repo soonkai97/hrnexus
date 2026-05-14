@@ -13,7 +13,7 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
     public async Task<Guid> Handle(StartWorkLogCommand req, CancellationToken ct)
     {
         // Validate HH:mm format
-        if (!TimeOnly.TryParse(req.StartTime, out _))
+        if (!TimeOnly.TryParseExact(req.StartTime, "HH:mm", null, System.Globalization.DateTimeStyles.None, out _))
             throw new ArgumentException("StartTime must be in HH:mm format.");
 
         // Prevent duplicate active shifts
@@ -23,11 +23,12 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         var workDate = DateOnly.FromDateTime(dt.LocalNow);
 
         // Check for approved leave covering this date
+        var workDateUtc = DateTime.SpecifyKind(workDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
         var onLeave = await db.LeaveRequests.AnyAsync(
             l => l.EmployeeId == req.EmployeeId
               && l.Status == "approved"
-              && l.StartDate <= workDate.ToDateTime(TimeOnly.MinValue)
-              && l.EndDate   >= workDate.ToDateTime(TimeOnly.MinValue), ct);
+              && l.StartDate <= workDateUtc
+              && l.EndDate   >= workDateUtc, ct);
         if (onLeave)
             throw new InvalidOperationException("Cannot start a shift while on approved leave.");
 

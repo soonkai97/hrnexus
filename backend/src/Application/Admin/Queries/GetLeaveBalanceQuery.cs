@@ -30,13 +30,15 @@ public class GetLeaveBalanceQueryHandler(IAppDbContext db)
         var annualEnt = ent?.AnnualDays ?? 14;
         var sickEnt   = ent?.SickDays   ?? 14;
 
-        // Fetch approved leave records for this year
+        // Count pending + approved leaves (same logic as balance enforcement in UpsertLeaveCommand)
+        // so the displayed balance matches what the system will enforce.
         var startOfYear = new DateTime(year,     1, 1, 0, 0, 0, DateTimeKind.Utc);
         var endOfYear   = new DateTime(year + 1, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(-1);
 
-        var approvedLeaves = await db.LeaveRequests
+        var countedLeaves = await db.LeaveRequests
             .Where(l => l.EmployeeId == req.EmployeeId
-                     && l.Status == "approved"
+                     && l.Status != "rejected"
+                     && l.Status != "cancelled"
                      && l.StartDate >= startOfYear
                      && l.StartDate <= endOfYear)
             .Select(l => new { l.LeaveType, l.StartDate, l.EndDate })
@@ -45,9 +47,9 @@ public class GetLeaveBalanceQueryHandler(IAppDbContext db)
         static double CalcDays(DateTime start, DateTime end) =>
             (end.Date - start.Date).TotalDays + 1;
 
-        var annualUsed = approvedLeaves.Where(l => l.LeaveType == "annual").Sum(l => CalcDays(l.StartDate, l.EndDate));
-        var sickUsed   = approvedLeaves.Where(l => l.LeaveType == "sick"  ).Sum(l => CalcDays(l.StartDate, l.EndDate));
-        var unpaidUsed = approvedLeaves.Where(l => l.LeaveType == "unpaid" ).Sum(l => CalcDays(l.StartDate, l.EndDate));
+        var annualUsed = countedLeaves.Where(l => l.LeaveType == "annual").Sum(l => CalcDays(l.StartDate, l.EndDate));
+        var sickUsed   = countedLeaves.Where(l => l.LeaveType == "sick"  ).Sum(l => CalcDays(l.StartDate, l.EndDate));
+        var unpaidUsed = countedLeaves.Where(l => l.LeaveType == "unpaid" ).Sum(l => CalcDays(l.StartDate, l.EndDate));
 
         return new LeaveBalanceDto(
             year,

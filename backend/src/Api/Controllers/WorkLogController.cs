@@ -36,6 +36,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
             var id = await mediator.Send(new StartWorkLogCommand(CallerId, req.RoleName, req.LocationId, req.StartTime, req.Notes), ct);
             return Ok(new { id });
         }
+        catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
         catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
         catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }
     }
@@ -75,8 +76,9 @@ public class WorkLogController(IMediator mediator) : ControllerBase
             await mediator.Send(new DeleteWorkLogCommand(id, CallerId), ct);
             return NoContent();
         }
-        catch (KeyNotFoundException ex)     { return NotFound(new { error = ex.Message }); }
-        catch (UnauthorizedAccessException) { return Forbid(); }
+        catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+        catch (UnauthorizedAccessException)  { return Forbid(); }
     }
 
     /// <summary>Returns a pay summary (hours, pay breakdown, per-shift lines) for the current employee.</summary>

@@ -44,10 +44,12 @@ public class GetAllLeaveBalancesQueryHandler(IAppDbContext db)
             .Where(e => staffIds.Contains(e.EmployeeId) && e.Year == year)
             .ToDictionaryAsync(e => e.EmployeeId, ct);
 
-        // All approved leave for this year across all staff
+        // All pending + approved leave for this year across all staff
+        // (same logic as balance enforcement so display matches enforcement)
         var leaves = await db.LeaveRequests
             .Where(l => staffIds.Contains(l.EmployeeId)
-                     && l.Status == "approved"
+                     && l.Status != "rejected"
+                     && l.Status != "cancelled"
                      && l.StartDate >= startOfYear
                      && l.StartDate <= endOfYear)
             .Select(l => new { l.EmployeeId, l.LeaveType, l.StartDate, l.EndDate })

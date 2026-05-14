@@ -119,11 +119,22 @@ export class StaffComponent implements OnInit {
   }
 
   saveStaff(): void {
-    if (!this.newStaff.staffId || !this.newStaff.firstName || !this.newStaff.lastName || !this.newStaff.email) return;
+    if (!this.newStaff.staffId || !this.newStaff.firstName || !this.newStaff.lastName || !this.newStaff.email) {
+      this.error.set('Please fill in Staff ID, First Name, Last Name and Email.');
+      return;
+    }
     const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(this.newStaff.email)) {
       this.error.set('Please enter a valid email address.');
       this.toast.error('Please enter a valid email address.');
+      return;
+    }
+    if (!this.newStaff.icNo && !this.newStaff.passportNo) {
+      this.error.set('Please enter an IC number or Passport number.');
+      return;
+    }
+    if (!this.newStaff.dateOfBirth) {
+      this.error.set('Date of birth is required.');
       return;
     }
     if (!this.newStaff.roles.length) this.newStaff.roles = [this.availableRoles()[0]?.name ?? ''];

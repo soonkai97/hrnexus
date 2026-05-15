@@ -87,6 +87,18 @@ export class AuthService {
     return localStorage.getItem(ACCESS_TOKEN_KEY);
   }
 
+  /** Returns false if the stored access token is missing or its `exp` claim has passed. */
+  hasValidToken(): boolean {
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return (payload.exp ?? 0) > Date.now() / 1000;
+    } catch {
+      return false;
+    }
+  }
+
   hasRole(...checkRoles: UserRole[]): boolean {
     const permissionLevel = this.userRole();
     return permissionLevel ? checkRoles.includes(permissionLevel) : false;

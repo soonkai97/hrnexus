@@ -118,6 +118,7 @@
     "icNoHint":           "(Malaysian)",
     "passportNo":         "Passport No",
     "passportNoHint":     "(Overseas)",
+    "idRequiredNote":     "At least one of IC No or Passport No is required.",
     "dateOfBirth":        "Date of Birth",
     "saveStaff":          "Save Staff",
     "searchPlaceholder":  "Search by name, role or staff ID…",

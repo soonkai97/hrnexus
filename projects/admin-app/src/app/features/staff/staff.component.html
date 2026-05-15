@@ -67,13 +67,14 @@
           <input type="tel" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" maxlength="20" />
         </div>
         <div class="field">
-          <label><span class="req">*</span> {{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
+          <label>{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
           <input type="text" [(ngModel)]="newStaff.icNo" placeholder="e.g. 990101-01-1234" />
         </div>
         <div class="field">
-          <label><span class="req">*</span> {{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
+          <label>{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
           <input type="text" [(ngModel)]="newStaff.passportNo" placeholder="e.g. A12345678" />
         </div>
+        <p class="id-required-note"><span class="req">*</span> {{ 'staff.idRequiredNote' | translate }}</p>
         <div class="field">
           <label><span class="req">*</span> {{ 'staff.dateOfBirth' | translate }}</label>
           <input type="date" [(ngModel)]="newStaff.dateOfBirth" [max]="today" />

@@ -9,6 +9,14 @@
 }
 .form-actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
 
+// Note shown below the IC / Passport pair to clarify "at least one required"
+.id-required-note {
+  grid-column: 1 / -1;      // span all columns so it sits below both fields
+  margin: -0.25rem 0 0.25rem;
+  font-size: 0.75rem;
+  color: $text-muted;
+}
+
 .search-wrap { margin-bottom: 1rem;
   input { max-width: 320px; }
 }

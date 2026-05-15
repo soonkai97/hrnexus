@@ -45,7 +45,7 @@
 .btn-end {
   background: rgba(239,68,68,0.15);
   border: 1px solid rgba(239,68,68,0.4);
-  color: #f87171;
+  color: $danger;
   border-radius: $radius-sm;
   padding: 0.6rem 1.25rem;
   font-weight: 600;
@@ -64,7 +64,7 @@
   background: rgba(239,68,68,0.1);
   border: 1px solid rgba(239,68,68,0.25);
   border-radius: $radius-sm;
-  color: #f87171;
+  color: $danger;
   font-size: 0.85rem;
   padding: 0.6rem 0.9rem;
   margin-bottom: 1rem;
@@ -132,7 +132,7 @@
 
 .delete-btn {
   margin-top: 0.5rem;
-  color: #f87171 !important;
+  color: $danger !important;
   font-size: 0.8rem;
   padding: 0.2rem 0;
 }

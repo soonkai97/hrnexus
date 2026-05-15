@@ -128,7 +128,7 @@
     </p-card>
 
     @if (error()) {
-      <div style="color:#f87171;margin:1rem 0"><i class="pi pi-exclamation-triangle"></i> {{ error() }}</div>
+      <p-message severity="error" [text]="error()" styleClass="w-full" />
     }
 
     @if (report(); as r) {

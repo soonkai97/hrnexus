@@ -50,7 +50,7 @@ export class StaffDetailComponent implements OnInit {
 
   editForm: UpdateStaffRequest = {
     staffId: '', firstName: '', lastName: '', email: '', roles: [],
-    phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: null,
+    phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: '',
   };
 
   private staffId = '';
@@ -88,7 +88,7 @@ export class StaffDetailComponent implements OnInit {
     this.editForm = {
       staffId: s.staffId, firstName: s.firstName, lastName: s.lastName, email: s.email,
       roles: [...s.roles], phoneNumber: s.phoneNumber,
-      icNo: s.icNo ?? null, passportNo: s.passportNo ?? null, dateOfBirth: s.dateOfBirth ?? null,
+      icNo: s.icNo ?? null, passportNo: s.passportNo ?? null, dateOfBirth: s.dateOfBirth ?? '',
     };
     this.editMode.set(true);
   }
@@ -104,13 +104,14 @@ export class StaffDetailComponent implements OnInit {
     return !!this.editForm.staffId?.trim() &&
       !!this.editForm.firstName?.trim() &&
       !!this.editForm.lastName?.trim() &&
-      !!this.editForm.email?.trim();
+      !!this.editForm.email?.trim() &&
+      !!this.editForm.dateOfBirth;
   }
 
   cancelEdit(): void { this.editMode.set(false); this.roleDropdownOpen.set(false); }
 
   saveEdit(): void {
-    this.editForm.dateOfBirth = this.editForm.dateOfBirth || null;
+    this.editForm.dateOfBirth = this.editForm.dateOfBirth || '';
     this.saving.set(true);
     this.staffStore.update(this.staffId, this.editForm).subscribe({
       next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success('Profile updated.'); },

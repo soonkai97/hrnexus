@@ -90,16 +90,6 @@
   padding: 0.1rem 0.45rem;
 }
 
-.editing-row td { background: rgba(168,85,247,0.04); }
-
-.inline-input {
-  width: 100%; padding: 0.35rem 0.6rem;
-  background: $bg-raised; border: 1px solid $border-glow;
-  border-radius: $radius-sm; color: $text-primary; font-size: 0.82rem;
-  outline: none;
-  &:focus { box-shadow: $glow-sm; }
-}
-
 // Masked phone cell
 .td-masked { letter-spacing: 0.03em; }
 
@@ -172,7 +162,7 @@
   }
 
   &.action-item-danger {
-    color: #f87171;
+    color: $danger;
     &:hover { background: rgba(239, 68, 68, 0.1); }
   }
 }
@@ -181,44 +171,6 @@
   height: 1px;
   background: $border-subtle;
   margin: 0.25rem 0;
-}
-
-// ── Reset Password Modal ──────────────────────────────────────────────────────
-.modal-backdrop {
-  position: fixed; inset: 0; z-index: 900;
-  background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center; padding: 1rem;
-}
-
-.modal-card {
-  width: 100%; max-width: 440px;
-  border-radius: $radius-xl; padding: 1.75rem;
-  animation: fade-up 0.2s ease both;
-  // nc-card's $grad-card is nearly transparent — override with a solid dark
-  // glass card that matches the login-card visual weight
-  background: rgba(19,19,31,0.96) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(168,85,247,0.18);
-}
-
-.modal-header {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;
-}
-.modal-title  { font-size: 1.05rem; font-weight: 700; color: $text-primary; }
-.modal-close  {
-  background: none; border: none; cursor: pointer;
-  color: $text-muted; font-size: 1rem; padding: 0.25rem; border-radius: $radius-sm;
-  &:hover { color: $text-primary; }
-}
-
-.modal-desc {
-  font-size: 0.85rem; color: $text-secondary; line-height: 1.5; margin-bottom: 1.25rem;
-  strong { color: $text-primary; }
-}
-
-.modal-actions {
-  display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;
 }
 
 // Password input with reveal toggle

@@ -198,3 +198,19 @@
 .recent-role { font-weight: 600; }
 .recent-loc  { color: $text-muted; font-size: 0.8rem; }
 .recent-hrs  { color: $neon-green; font-weight: 600; white-space: nowrap; }
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-row {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+
+    .recent-date { grid-column: 1; grid-row: 2; font-size: 0.75rem; }
+    .recent-role { grid-column: 1; grid-row: 1; }
+    .recent-loc  { display: none; }
+    .recent-hrs  { grid-column: 2; grid-row: 1; }
+  }
+}

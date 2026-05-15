@@ -4,7 +4,9 @@ export type NotificationType =
   | 'leave_pending'
   | 'missed_clockin'
   | 'roster_assigned'
-  | 'password_reset';
+  | 'password_reset'
+  | 'message'
+  | 'announcement';
 
 export interface AppNotification {
   id: string;

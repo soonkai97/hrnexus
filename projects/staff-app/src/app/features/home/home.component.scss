@@ -64,12 +64,15 @@
 
 // ── Active / Quick-log ───────────────────────────────────────────────────────
 .active-banner {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
   border-color: rgba(168,85,247,0.4);
+}
+
+.active-inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -107,13 +110,16 @@
 }
 
 .quick-log {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 0.875rem 1.25rem;
   margin-bottom: 1rem;
   color: $text-muted;
   font-size: 0.875rem;
+}
+
+.quick-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.82rem; }
@@ -126,11 +132,12 @@
   margin-bottom: 1.25rem;
 }
 
-.stat-card {
+.stat-card { padding: 1rem 1.1rem; }
+
+.stat-inner {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 1rem 1.1rem;
 }
 
 .stat-icon { font-size: 1.4rem; flex-shrink: 0; }

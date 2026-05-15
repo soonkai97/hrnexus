@@ -105,8 +105,9 @@
             </td>
             <td class="td-actions">
               <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
-              <button class="btn-menu-trigger" pTooltip="Actions"
-                      (click)="toggleMenu(rule.id, $event); $event.stopPropagation()"><i class="pi pi-ellipsis-v"></i></button>
+              <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small"
+                        pTooltip="Actions"
+                        (click)="toggleMenu(rule.id, $event); $event.stopPropagation()" />
             </td>
           </tr>
         </ng-template>

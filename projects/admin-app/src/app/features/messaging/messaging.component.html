@@ -26,11 +26,11 @@
     </p-card>
   }
 
-  <div class="tab-nav">
-    <button class="tab-btn" [class.active]="tab() === 'inbox'" (click)="tab.set('inbox')">
+  <div class="view-tabs">
+    <button [class.active]="tab() === 'inbox'" (click)="tab.set('inbox')">
       Inbox @if (unread() > 0) { <span class="unread-badge">{{ unread() }}</span> }
     </button>
-    <button class="tab-btn" [class.active]="tab() === 'sent'" (click)="tab.set('sent')">Sent</button>
+    <button [class.active]="tab() === 'sent'" (click)="tab.set('sent')">Sent</button>
   </div>
 
   @if (loading()) {

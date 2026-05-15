@@ -1,21 +1,17 @@
-.theme-toggle-btn {
+::ng-deep .theme-toggle-btn.p-button {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1px solid rgba(168,85,247,0.25);
-  background: rgba(13,13,22,0.7);
-  color: #f0eeff;
+  border: 1px solid rgba(168,85,247,0.25) !important;
+  background: rgba(13,13,22,0.7) !important;
+  color: #f0eeff !important;
   font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
   transition: background 0.2s, border-color 0.2s, transform 0.15s;
 
   &:hover {
-    background: rgba(168,85,247,0.2);
-    border-color: rgba(168,85,247,0.5);
+    background: rgba(168,85,247,0.2) !important;
+    border-color: rgba(168,85,247,0.5) !important;
     transform: scale(1.1);
   }
 }

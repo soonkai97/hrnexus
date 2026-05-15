@@ -26,18 +26,22 @@
     <!-- Active shift banner -->
     @if (activeShift(); as shift) {
       <p-card styleClass="active-banner">
-        <span class="live-badge">{{ 'logShift.live' | translate }}</span>
-        <div class="active-details">
-          <span class="active-role">{{ shift.roleName | uppercase }}</span>
-          <span class="active-loc"><i class="pi pi-map-marker"></i> {{ shift.locationName }}</span>
-          <span class="active-time"><i class="pi pi-clock"></i> {{ shift.startTime | amPm }}</span>
+        <div class="active-inner">
+          <span class="live-badge">{{ 'logShift.live' | translate }}</span>
+          <div class="active-details">
+            <span class="active-role">{{ shift.roleName | uppercase }}</span>
+            <span class="active-loc"><i class="pi pi-map-marker"></i> {{ shift.locationName }}</span>
+            <span class="active-time"><i class="pi pi-clock"></i> {{ shift.startTime | amPm }}</span>
+          </div>
+          <a routerLink="/log-shift" class="btn-end-link">{{ 'home.manageShift' | translate }} <i class="pi pi-arrow-right"></i></a>
         </div>
-        <a routerLink="/log-shift" class="btn-end-link">{{ 'home.manageShift' | translate }} <i class="pi pi-arrow-right"></i></a>
       </p-card>
     } @else {
       <p-card styleClass="quick-log">
-        <span>{{ 'home.notClockedIn' | translate }}</span>
-        <p-button [label]="'home.logShift' | translate" severity="primary" size="small" routerLink="/log-shift" />
+        <div class="quick-row">
+          <span>{{ 'home.notClockedIn' | translate }}</span>
+          <p-button [label]="'home.logShift' | translate" severity="primary" size="small" routerLink="/log-shift" />
+        </div>
       </p-card>
     }
 
@@ -47,35 +51,43 @@
       <!-- Leave balance -->
       @if (leave(); as lb) {
         <p-card styleClass="stat-card">
-          <div class="stat-icon"><i class="pi pi-sun"></i></div>
-          <div class="stat-body">
-            <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
-            <div class="stat-value">{{ lb.annualRemaining }}<span class="stat-unit"> {{ 'home.days' | translate }}</span></div>
-            <div class="stat-sub">{{ lb.annualUsed }} / {{ lb.annualEntitlement }} {{ 'home.used' | translate }}</div>
+          <div class="stat-inner">
+            <div class="stat-icon"><i class="pi pi-sun"></i></div>
+            <div class="stat-body">
+              <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
+              <div class="stat-value">{{ lb.annualRemaining }}<span class="stat-unit"> {{ 'home.days' | translate }}</span></div>
+              <div class="stat-sub">{{ lb.annualUsed }} / {{ lb.annualEntitlement }} {{ 'home.used' | translate }}</div>
+            </div>
           </div>
         </p-card>
         <p-card styleClass="stat-card">
-          <div class="stat-icon"><i class="pi pi-heart"></i></div>
-          <div class="stat-body">
-            <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
-            <div class="stat-value">{{ lb.sickRemaining }}<span class="stat-unit"> {{ 'home.days' | translate }}</span></div>
-            <div class="stat-sub">{{ lb.sickUsed }} / {{ lb.sickEntitlement }} {{ 'home.used' | translate }}</div>
+          <div class="stat-inner">
+            <div class="stat-icon"><i class="pi pi-heart"></i></div>
+            <div class="stat-body">
+              <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
+              <div class="stat-value">{{ lb.sickRemaining }}<span class="stat-unit"> {{ 'home.days' | translate }}</span></div>
+              <div class="stat-sub">{{ lb.sickUsed }} / {{ lb.sickEntitlement }} {{ 'home.used' | translate }}</div>
+            </div>
           </div>
         </p-card>
       } @else {
         <!-- Leave API unavailable — show placeholder cards so the grid stays balanced -->
         <p-card styleClass="stat-card stat-card-muted">
-          <div class="stat-icon"><i class="pi pi-sun"></i></div>
-          <div class="stat-body">
-            <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
-            <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+          <div class="stat-inner">
+            <div class="stat-icon"><i class="pi pi-sun"></i></div>
+            <div class="stat-body">
+              <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
+              <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+            </div>
           </div>
         </p-card>
         <p-card styleClass="stat-card stat-card-muted">
-          <div class="stat-icon"><i class="pi pi-heart"></i></div>
-          <div class="stat-body">
-            <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
-            <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+          <div class="stat-inner">
+            <div class="stat-icon"><i class="pi pi-heart"></i></div>
+            <div class="stat-body">
+              <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
+              <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+            </div>
           </div>
         </p-card>
       }
@@ -84,35 +96,43 @@
       @if (showPay()) {
         @if (pay(); as p) {
           <p-card styleClass="stat-card">
-            <div class="stat-icon"><i class="pi pi-wallet"></i></div>
-            <div class="stat-body">
-              <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
-              <div class="stat-value">RM {{ p.grossPay | number:'1.2-2' }}</div>
-              <div class="stat-sub">{{ 'home.thisMonth' | translate }}</div>
+            <div class="stat-inner">
+              <div class="stat-icon"><i class="pi pi-wallet"></i></div>
+              <div class="stat-body">
+                <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
+                <div class="stat-value">RM {{ p.grossPay | number:'1.2-2' }}</div>
+                <div class="stat-sub">{{ 'home.thisMonth' | translate }}</div>
+              </div>
             </div>
           </p-card>
           <p-card styleClass="stat-card">
-            <div class="stat-icon"><i class="pi pi-stopwatch"></i></div>
-            <div class="stat-body">
-              <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
-              <div class="stat-value">{{ p.totalHours | number:'1.1-1' }}<span class="stat-unit">h</span></div>
-              <div class="stat-sub">{{ p.overtimeHours | number:'1.1-1' }}h {{ 'home.overtime' | translate }}</div>
+            <div class="stat-inner">
+              <div class="stat-icon"><i class="pi pi-stopwatch"></i></div>
+              <div class="stat-body">
+                <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
+                <div class="stat-value">{{ p.totalHours | number:'1.1-1' }}<span class="stat-unit">h</span></div>
+                <div class="stat-sub">{{ p.overtimeHours | number:'1.1-1' }}h {{ 'home.overtime' | translate }}</div>
+              </div>
             </div>
           </p-card>
         } @else {
           <!-- Pay API unavailable -->
           <p-card styleClass="stat-card stat-card-muted">
-            <div class="stat-icon"><i class="pi pi-wallet"></i></div>
-            <div class="stat-body">
-              <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
-              <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+            <div class="stat-inner">
+              <div class="stat-icon"><i class="pi pi-wallet"></i></div>
+              <div class="stat-body">
+                <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
+                <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+              </div>
             </div>
           </p-card>
           <p-card styleClass="stat-card stat-card-muted">
-            <div class="stat-icon"><i class="pi pi-stopwatch"></i></div>
-            <div class="stat-body">
-              <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
-              <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+            <div class="stat-inner">
+              <div class="stat-icon"><i class="pi pi-stopwatch"></i></div>
+              <div class="stat-body">
+                <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
+                <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+              </div>
             </div>
           </p-card>
         }

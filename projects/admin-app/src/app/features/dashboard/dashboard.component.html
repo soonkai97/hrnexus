@@ -35,10 +35,12 @@
       </p-card>
       @if (s.openShiftsCount) {
         <p-card styleClass="stat-card warn-card">
-          <div class="stat-icon"><i class="pi pi-exclamation-triangle"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">{{ s.openShiftsCount }}</div>
-            <div class="stat-label">{{ 'dashboard.openShifts' | translate }}</div>
+          <div class="warn-inner">
+            <div class="stat-icon"><i class="pi pi-exclamation-triangle"></i></div>
+            <div class="stat-body">
+              <div class="stat-value">{{ s.openShiftsCount }}</div>
+              <div class="stat-label">{{ 'dashboard.openShifts' | translate }}</div>
+            </div>
           </div>
         </p-card>
       }

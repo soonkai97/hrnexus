@@ -447,16 +447,14 @@
 }
 
 .btn-approve {
-  flex: 1; min-width: 0;
-  padding: 0.45rem 0.75rem; font-size: 0.82rem; font-weight: 600;
+  padding: 0.35rem 0.85rem; font-size: 0.82rem; font-weight: 600;
   background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3);
   color: #4ade80; border-radius: $radius-sm; cursor: pointer;
   transition: background $transition-fast;
   &:hover { background: rgba(74,222,128,0.22); }
 }
 .btn-reject {
-  flex: 1; min-width: 0;
-  padding: 0.45rem 0.75rem; font-size: 0.82rem; font-weight: 600;
+  padding: 0.35rem 0.85rem; font-size: 0.82rem; font-weight: 600;
   background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
   color: #f87171; border-radius: $radius-sm; cursor: pointer;
   transition: background $transition-fast;

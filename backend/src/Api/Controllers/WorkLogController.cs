@@ -101,7 +101,8 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GetAll([FromQuery] GetAllWorkLogsParams p, CancellationToken ct)
     {
-        var result = await mediator.Send(new GetAllWorkLogsQuery(p.From, p.To, p.EmployeeId, p.Page, p.PageSize), ct);
+        var pageSize = Math.Min(p.PageSize, 100);
+        var result = await mediator.Send(new GetAllWorkLogsQuery(p.From, p.To, p.EmployeeId, p.Page, pageSize), ct);
         return Ok(result);
     }
 }

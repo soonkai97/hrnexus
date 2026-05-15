@@ -168,8 +168,8 @@ public class StaffController(IMediator mediator) : ControllerBase
         if (IsManagerCaller && await IsAdminAsync(id, db, ct))
             return Forbid();
 
-        if (string.IsNullOrWhiteSpace(body.NewPassword) || body.NewPassword.Length < 6)
-            return BadRequest(new { error = "Password must be at least 6 characters." });
+        if (string.IsNullOrWhiteSpace(body.NewPassword) || body.NewPassword.Length < 8)
+            return BadRequest(new { error = "Password must be at least 8 characters." });
 
         try
         {

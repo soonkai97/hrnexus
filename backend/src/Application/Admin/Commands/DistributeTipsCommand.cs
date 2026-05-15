@@ -10,7 +10,9 @@ public record DistributeTipsCommand(
     string   LocationName,
     DateTime ShiftDate,
     decimal  TotalAmount,
-    string   SplitMethod
+    string   SplitMethod,
+    Guid     AdminId,
+    string   AdminName
 ) : IRequest<TipsDistributionResult>;
 
 public record TipsDistributionResult(
@@ -23,7 +25,7 @@ public record TipsAllocation(Guid EmployeeId, string FullName, decimal Amount, d
 /// <summary>Staff who worked this shift but were already clocked out when distribution ran.</summary>
 public record TipsExcludedStaff(Guid EmployeeId, string FullName, string Reason);
 
-public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime)
+public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime, IAuditService audit)
     : IRequestHandler<DistributeTipsCommand, TipsDistributionResult>
 {
     public async Task<TipsDistributionResult> Handle(DistributeTipsCommand req, CancellationToken ct)
@@ -138,6 +140,12 @@ public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime)
                 pool.Id, alloc.EmployeeId, alloc.FullName, alloc.Amount, alloc.HoursWorked));
         }
         await db.SaveChangesAsync(ct);
+
+        await audit.LogAsync(
+            "TipsPool", pool.Id.ToString(), "Distributed",
+            req.AdminId, req.AdminName,
+            $"Location={req.LocationName}, Date={workDate}, Amount={req.TotalAmount}, Method={req.SplitMethod}, Staff={activeWorkLogs.Count}",
+            ct);
 
         return new TipsDistributionResult(activeWorkLogs.Count, allocations, excludedStaff);
     }

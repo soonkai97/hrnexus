@@ -1,8 +1,8 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { PayrollService, PaySummary } from 'shared-lib';
+import { PayrollService, PaySummary, ToastService } from 'shared-lib';
 
 @Component({
   selector: 'app-pay-summary',
@@ -36,6 +36,8 @@ export class PaySummaryComponent implements OnInit {
     return `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}`;
   });
 
+  private readonly toast = inject(ToastService);
+
   constructor(private payroll: PayrollService) {}
 
   ngOnInit(): void { this.load(); }
@@ -44,7 +46,7 @@ export class PaySummaryComponent implements OnInit {
     this.loading.set(true);
     this.payroll.getMySummary(this.periodStart(), this.periodEnd()).subscribe({
       next: s => { this.summary.set(s); this.loading.set(false); },
-      error: () => { this.summary.set(null); this.loading.set(false); },
+      error: () => { this.summary.set(null); this.loading.set(false); this.toast.error('Failed to load pay summary.'); },
     });
   }
 

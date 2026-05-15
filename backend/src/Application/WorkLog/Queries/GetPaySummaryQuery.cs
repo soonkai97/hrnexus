@@ -83,6 +83,20 @@ public class GetPaySummaryQueryHandler(IAppDbContext db)
                 : 1.5m)
             : 1.0m;
 
+        // Sum tips allocations for the employee within the period.
+        // TipsPool.ShiftDate is stored as UTC midnight; convert DateOnly period bounds accordingly.
+        var startDt = DateTime.SpecifyKind(req.PeriodStart.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var endDt   = DateTime.SpecifyKind(req.PeriodEnd.ToDateTime(TimeOnly.MinValue),   DateTimeKind.Utc).AddDays(1);
+
+        var tipsAllocated = await db.TipsAllocations
+            .Where(a => a.EmployeeId == req.EmployeeId)
+            .Join(db.TipsPools,
+                a => a.PoolId,
+                p => p.Id,
+                (a, p) => new { a.Amount, p.ShiftDate })
+            .Where(x => x.ShiftDate >= startDt && x.ShiftDate < endDt)
+            .SumAsync(x => x.Amount, ct);
+
         return new PaySummaryDto(
             req.EmployeeId,
             req.PeriodStart.ToString("yyyy-MM-dd"),
@@ -92,8 +106,8 @@ public class GetPaySummaryQueryHandler(IAppDbContext db)
             Math.Round(totalOtHours,  2),
             Math.Round(totalRegPay,   2),
             Math.Round(totalOtPay,    2),
-            0m,  // Tips — extend later when tips are linked to shifts
-            Math.Round(totalRegPay + totalOtPay, 2),
+            Math.Round(tipsAllocated, 2),
+            Math.Round(totalRegPay + totalOtPay + tipsAllocated, 2),
             otMultiplier,
             shifts);
     }

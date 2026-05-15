@@ -16,5 +16,7 @@ public class TipsPoolConfiguration : IEntityTypeConfiguration<TipsPool>
         b.Property(t => t.IsDistributed).HasDefaultValue(false);
         b.HasIndex(t => t.ShiftDate);
         b.HasIndex(t => t.LocationId);
+        // Prevent double-distribution for the same location on the same date
+        b.HasIndex(t => new { t.LocationId, t.ShiftDate }).IsUnique();
     }
 }

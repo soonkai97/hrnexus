@@ -587,6 +587,9 @@ namespace NightclubWorkforce.Infrastructure.Migrations
 
                     b.HasIndex("ShiftDate");
 
+                    b.HasIndex("LocationId", "ShiftDate")
+                        .IsUnique();
+
                     b.ToTable("TipsPools", (string)null);
                 });
 

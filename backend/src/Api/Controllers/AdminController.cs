@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NightclubWorkforce.Application.Admin.Commands;
 using NightclubWorkforce.Application.Admin.Queries;
 using NightclubWorkforce.Application.Common;
+using System.Security.Claims;
 
 namespace NightclubWorkforce.Api.Controllers;
 
@@ -12,6 +13,8 @@ namespace NightclubWorkforce.Api.Controllers;
 [Authorize(Roles = "Manager,Admin")]
 public class AdminController(IMediator mediator) : ControllerBase
 {
+    private Guid   CallerId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private string CallerName => User.FindFirstValue(ClaimTypes.Name) ?? "Unknown";
     // ── Dashboard ─────────────────────────────────────────────────────────────
 
     [HttpGet("dashboard")]
@@ -51,6 +54,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         [FromQuery] int       pageSize   = 10,
         CancellationToken ct = default)
     {
+        if (pageSize > 100) pageSize = 100;
         var result = await mediator.Send(
             new GetLeaveQuery(employeeId, dateFrom, dateTo, status, page, pageSize), ct);
         return Ok(result);
@@ -246,7 +250,8 @@ public class AdminController(IMediator mediator) : ControllerBase
         {
             var result = await mediator.Send(new DistributeTipsCommand(
                 body.LocationId, body.LocationName, body.ShiftDate,
-                body.TotalAmount, body.SplitMethod ?? "equal"), ct);
+                body.TotalAmount, body.SplitMethod ?? "equal",
+                CallerId, CallerName), ct);
             return Ok(result);
         }
         catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }

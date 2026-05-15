@@ -6,7 +6,11 @@ import { UserRole } from '../models';
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (auth.isAuthenticated()) return true;
+  // Check both that the user object exists AND the JWT hasn't expired.
+  // Without the expiry check, an expired token passes the guard, the page
+  // renders, fires every API call, and they all 401-storm before the
+  // interceptor can redirect — noisy and confusing.
+  if (auth.isAuthenticated() && auth.hasValidToken()) return true;
   return router.createUrlTree(['/auth/login']);
 };
 

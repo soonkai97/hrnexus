@@ -2,19 +2,13 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { WorkLogService, WorkLogDto, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PickerOnlyDirective, PagedResult } from 'shared-lib';
+import { WorkLogService, WorkLogDto, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PickerOnlyDirective, PagedResult, todayLocalString } from 'shared-lib';
 
 type Mode = 'live' | 'manual';
 
 function nowHHmm(): string {
   const d = new Date();
   return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-}
-
-/** Returns today's date as "YYYY-MM-DD" in local (venue) time, not UTC. */
-function todayISO(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 @Component({
@@ -67,7 +61,7 @@ export class LogShiftComponent implements OnInit {
   manualForm = {
     roleName:   '',
     locationId: '',
-    workDate:   todayISO(),
+    workDate:   todayLocalString(),
     startTime:  '',
     endTime:    '',
     notes:      '',
@@ -194,7 +188,7 @@ export class LogShiftComponent implements OnInit {
       next: () => {
         this.submitting.set(false);
         this.toast.success('Shift logged!');
-        this.manualForm = { roleName: '', locationId: '', workDate: todayISO(), startTime: '', endTime: '', notes: '' };
+        this.manualForm = { roleName: '', locationId: '', workDate: todayLocalString(), startTime: '', endTime: '', notes: '' };
         this.loadHistory();
       },
       error: (e) => {

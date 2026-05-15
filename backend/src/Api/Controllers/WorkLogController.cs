@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NightclubWorkforce.Application.Common.Interfaces;
 using NightclubWorkforce.Application.WorkLog.Commands;
 using NightclubWorkforce.Application.WorkLog.Queries;
+using NightclubWorkforce.Domain.Constants;
 using System.Security.Claims;
 
 namespace NightclubWorkforce.Api.Controllers;
@@ -101,7 +102,7 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> GetAll([FromQuery] GetAllWorkLogsParams p, CancellationToken ct)
     {
-        var pageSize = Math.Min(p.PageSize, 100);
+        var pageSize = Math.Min(p.PageSize, AppConstants.Limits.MaxPageSize);
         var result = await mediator.Send(new GetAllWorkLogsQuery(p.From, p.To, p.EmployeeId, p.Page, pageSize), ct);
         return Ok(result);
     }

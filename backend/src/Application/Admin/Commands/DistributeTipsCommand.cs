@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 using NightclubWorkforce.Domain.Entities;
 
 namespace NightclubWorkforce.Application.Admin.Commands;
@@ -36,8 +37,8 @@ public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime,
         // ── 0. Input sanity checks ────────────────────────────────────────────
         if (req.TotalAmount <= 0)
             throw new ArgumentException("Total tips amount must be greater than zero.");
-        if (req.TotalAmount > 50_000)
-            throw new ArgumentException("Total tips amount cannot exceed 50,000. Please verify the amount before distributing.");
+        if (req.TotalAmount > AppConstants.Limits.TipsMaxAmount)
+            throw new ArgumentException($"Total tips amount cannot exceed {AppConstants.Limits.TipsMaxAmount:N0}. Please verify the amount before distributing.");
 
         // ── 1. Duplicate prevention ───────────────────────────────────────────
         var alreadyDistributed = await db.TipsPools
@@ -79,7 +80,7 @@ public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime,
         // ── 4. Calculate allocations ──────────────────────────────────────────
         var allocations = new List<TipsAllocation>();
 
-        if (req.SplitMethod.Equals("equal", StringComparison.OrdinalIgnoreCase))
+        if (req.SplitMethod.Equals(AppConstants.TipsSplitMethod.Equal, StringComparison.OrdinalIgnoreCase))
         {
             var perPerson    = Math.Round(req.TotalAmount / activeWorkLogs.Count, 2);
             decimal distributed = 0m;

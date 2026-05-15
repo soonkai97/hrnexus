@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, PickerOnlyDirective } from 'shared-lib';
+import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, PickerOnlyDirective, todayLocalString } from 'shared-lib';
 
 @Component({
   selector: 'app-tips',
@@ -23,10 +23,7 @@ export class TipsComponent implements OnInit {
   previewTime  = signal<string | null>(null);
 
   /** Today's date as "YYYY-MM-DD" in local (venue) time, not UTC. */
-  readonly today = (() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  })();
+  readonly today = todayLocalString();
 
   form = {
     locationId:   '',

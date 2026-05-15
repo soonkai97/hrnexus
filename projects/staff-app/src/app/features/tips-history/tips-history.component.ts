@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { PayrollService, PaySummary } from 'shared-lib';
+import { PayrollService, PaySummary, MONTH_NAMES } from 'shared-lib';
 
 @Component({
   selector: 'app-tips-history',
@@ -19,10 +19,7 @@ export class TipsHistoryComponent implements OnInit {
   loading       = signal(false);
   summary       = signal<PaySummary | null>(null);
 
-  readonly months = [
-    'January','February','March','April','May','June',
-    'July','August','September','October','November','December',
-  ];
+  readonly months = MONTH_NAMES;
 
   ngOnInit() { this.load(); }
 

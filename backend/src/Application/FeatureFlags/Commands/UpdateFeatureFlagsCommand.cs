@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 using NightclubWorkforce.Domain.Entities;
 
 namespace NightclubWorkforce.Application.FeatureFlags.Commands;
@@ -13,8 +14,14 @@ public class UpdateFeatureFlagsHandler(IAppDbContext db)
     /// <summary>All valid feature flag keys. Reject any unknown key to prevent DB pollution.</summary>
     private static readonly HashSet<string> KnownKeys = new(StringComparer.OrdinalIgnoreCase)
     {
-        "tips", "tipsHistory", "payroll", "paySummary",
-        "otRules", "announcements", "messagingAdmin", "messagingStaff",
+        AppConstants.FeatureFlags.Tips,
+        AppConstants.FeatureFlags.TipsHistory,
+        AppConstants.FeatureFlags.Payroll,
+        AppConstants.FeatureFlags.PaySummary,
+        AppConstants.FeatureFlags.OtRules,
+        AppConstants.FeatureFlags.Announcements,
+        AppConstants.FeatureFlags.MessagingAdmin,
+        AppConstants.FeatureFlags.MessagingStaff,
     };
 
     public async Task Handle(UpdateFeatureFlagsCommand request, CancellationToken ct)

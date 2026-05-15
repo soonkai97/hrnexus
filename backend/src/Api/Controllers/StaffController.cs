@@ -7,6 +7,7 @@ using NightclubWorkforce.Application.Staff.Commands;
 using NightclubWorkforce.Application.Auth.Commands;
 using NightclubWorkforce.Application.Staff.Queries;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 
 namespace NightclubWorkforce.Api.Controllers;
 
@@ -168,8 +169,8 @@ public class StaffController(IMediator mediator) : ControllerBase
         if (IsManagerCaller && await IsAdminAsync(id, db, ct))
             return Forbid();
 
-        if (string.IsNullOrWhiteSpace(body.NewPassword) || body.NewPassword.Length < 8)
-            return BadRequest(new { error = "Password must be at least 8 characters." });
+        if (string.IsNullOrWhiteSpace(body.NewPassword) || body.NewPassword.Length < AppConstants.Limits.PasswordMinLength)
+            return BadRequest(new { error = $"Password must be at least {AppConstants.Limits.PasswordMinLength} characters." });
 
         try
         {

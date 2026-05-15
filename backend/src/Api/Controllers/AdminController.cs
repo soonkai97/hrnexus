@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NightclubWorkforce.Application.Admin.Commands;
 using NightclubWorkforce.Application.Admin.Queries;
 using NightclubWorkforce.Application.Common;
+using NightclubWorkforce.Domain.Constants;
 using System.Security.Claims;
 
 namespace NightclubWorkforce.Api.Controllers;
@@ -54,7 +55,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         [FromQuery] int       pageSize   = 10,
         CancellationToken ct = default)
     {
-        if (pageSize > 100) pageSize = 100;
+        if (pageSize > AppConstants.Limits.MaxPageSize) pageSize = AppConstants.Limits.MaxPageSize;
         var result = await mediator.Send(
             new GetLeaveQuery(employeeId, dateFrom, dateTo, status, page, pageSize), ct);
         return Ok(result);
@@ -250,7 +251,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         {
             var result = await mediator.Send(new DistributeTipsCommand(
                 body.LocationId, body.LocationName, body.ShiftDate,
-                body.TotalAmount, body.SplitMethod ?? "equal",
+                body.TotalAmount, body.SplitMethod ?? AppConstants.TipsSplitMethod.Equal,
                 CallerId, CallerName), ct);
             return Ok(result);
         }

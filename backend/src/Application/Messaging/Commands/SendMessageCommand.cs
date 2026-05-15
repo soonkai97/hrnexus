@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 using NightclubWorkforce.Domain.Entities;
 
 namespace NightclubWorkforce.Application.Messaging.Commands;
@@ -13,8 +14,8 @@ public class SendMessageHandler(IAppDbContext db, INotificationHub notifHub) : I
         // Content validation
         if (string.IsNullOrWhiteSpace(req.Content))
             throw new ArgumentException("Message cannot be empty.");
-        if (req.Content.Length > 2000)
-            throw new ArgumentException("Message cannot exceed 2000 characters.");
+        if (req.Content.Length > AppConstants.Limits.MessageMaxLength)
+            throw new ArgumentException($"Message cannot exceed {AppConstants.Limits.MessageMaxLength} characters.");
 
         // Prevent self-messaging
         if (req.RecipientId.HasValue && req.RecipientId.Value == req.SenderId)
@@ -38,7 +39,9 @@ public class SendMessageHandler(IAppDbContext db, INotificationHub notifHub) : I
         {
             var notif = Notification.Create(req.RecipientId.Value,
                 $"New message from {req.SenderName}",
-                req.Content.Length > 80 ? req.Content[..80] + "…" : req.Content,
+                req.Content.Length > AppConstants.Limits.NotificationSnippetLength
+                    ? req.Content[..AppConstants.Limits.NotificationSnippetLength] + "…"
+                    : req.Content,
                 "message", msg.Id.ToString());
             db.Notifications.Add(notif);
             await db.SaveChangesAsync(ct);

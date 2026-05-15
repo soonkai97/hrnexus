@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, StaffStore, RegisterStaffRequest,
-         Staff, ToastService, ConfirmService, TooltipDirective, PickerOnlyDirective } from 'shared-lib';
+         Staff, ToastService, ConfirmService, TooltipDirective, PickerOnlyDirective, todayLocalString } from 'shared-lib';
 
 @Component({
   selector: 'app-staff',
@@ -25,6 +25,9 @@ export class StaffComponent implements OnInit {
   readonly staff   = this.staffStore.staff;
   readonly roles   = this.staffStore.roles;
   readonly loading = this.staffStore.loading;
+
+  /** Used as [max] on the date-of-birth input to prevent future dates. */
+  readonly today   = todayLocalString();
 
   search           = signal('');
   readonly pageSize = 10;

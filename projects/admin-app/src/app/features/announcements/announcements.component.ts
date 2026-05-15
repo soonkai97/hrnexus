@@ -3,11 +3,18 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService, TooltipDirective, PickerOnlyDirective } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Textarea } from 'primeng/textarea';
+import { TableModule } from 'primeng/table';
+import { Tag } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslatePipe, TooltipDirective, PickerOnlyDirective],
+  imports: [DatePipe, FormsModule, TranslatePipe, TooltipDirective, PickerOnlyDirective,
+    Button, InputText, Textarea, TableModule, Tag, TooltipModule],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })

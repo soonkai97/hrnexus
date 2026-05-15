@@ -3,11 +3,14 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PayrollService, PaySummary, MONTH_NAMES } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { Select } from 'primeng/select';
+import { InputNumber } from 'primeng/inputnumber';
 
 @Component({
   selector: 'app-tips-history',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe],
+  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, Select, InputNumber],
   templateUrl: './tips-history.component.html',
   styleUrl: './tips-history.component.scss',
 })
@@ -20,6 +23,7 @@ export class TipsHistoryComponent implements OnInit {
   summary       = signal<PaySummary | null>(null);
 
   readonly months = MONTH_NAMES;
+  readonly monthOptions = MONTH_NAMES.map((m, i) => ({ label: m, value: i + 1 }));
 
   ngOnInit() { this.load(); }
 

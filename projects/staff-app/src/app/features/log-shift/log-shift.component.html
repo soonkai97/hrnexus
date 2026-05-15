@@ -37,14 +37,12 @@
             <label class="field-label">{{ 'logShift.endTime' | translate }}</label>
             <input type="time" [(ngModel)]="endTime" class="time-input" />
             <div style="display:flex;gap:.5rem;margin-top:.75rem">
-              <button class="btn-primary" (click)="confirmEnd()" [disabled]="submitting()">
-                @if (submitting()) { <span class="nc-spinner sm"></span> } @else { {{ 'logShift.endShift' | translate }} }
-              </button>
-              <button class="btn-ghost" (click)="cancelEnd()">{{ 'common.cancel' | translate }}</button>
+              <p-button [label]="'logShift.endShift' | translate" severity="primary" [loading]="submitting()" (click)="confirmEnd()" />
+              <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEnd()" />
             </div>
           </div>
         } @else {
-          <button class="btn-end" (click)="openEndShift(a.id)">{{ 'logShift.endShift' | translate }}</button>
+          <p-button [label]="'logShift.endShift' | translate" severity="danger" (click)="openEndShift(a.id)" />
         }
       </div>
     }
@@ -61,21 +59,23 @@
         <div class="nc-card form-card">
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
-            <select [(ngModel)]="liveForm.roleName">
-              <option value="">{{ 'logShift.selectRole' | translate }}</option>
-              @for (r of myRoles(); track r) {
-                <option [value]="r">{{ r | uppercase }}</option>
-              }
-            </select>
+            <p-select
+              [options]="myRoleOptions()"
+              [(ngModel)]="liveForm.roleName"
+              optionLabel="label"
+              optionValue="value"
+              [placeholder]="'logShift.selectRole' | translate"
+              styleClass="w-full" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
-            <select [(ngModel)]="liveForm.locationId">
-              <option value="">{{ 'logShift.selectLocation' | translate }}</option>
-              @for (l of locations(); track l.id) {
-                <option [value]="l.id">{{ l.name }}</option>
-              }
-            </select>
+            <p-select
+              [options]="locationOptions()"
+              [(ngModel)]="liveForm.locationId"
+              optionLabel="label"
+              optionValue="value"
+              [placeholder]="'logShift.selectLocation' | translate"
+              styleClass="w-full" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
@@ -83,14 +83,12 @@
           </div>
           <div class="field">
             <label>{{ 'logShift.notesLabel' | translate }}</label>
-            <input type="text" [(ngModel)]="liveForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
+            <input pInputText type="text" [(ngModel)]="liveForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
           </div>
           @if (formError()) {
-            <div class="form-error">⚠ {{ formError() }}</div>
+            <p-message severity="error" [text]="formError()" />
           }
-          <button class="btn-primary btn-full" (click)="startShift()" [disabled]="submitting()">
-            @if (submitting()) { <span class="nc-spinner sm"></span> } @else { {{ 'logShift.startShiftBtn' | translate }} }
-          </button>
+          <p-button [label]="'logShift.startShiftBtn' | translate" severity="primary" styleClass="w-full" [loading]="submitting()" (click)="startShift()" />
         </div>
       }
 
@@ -103,21 +101,23 @@
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
-            <select [(ngModel)]="manualForm.roleName">
-              <option value="">{{ 'logShift.selectRole' | translate }}</option>
-              @for (r of myRoles(); track r) {
-                <option [value]="r">{{ r | uppercase }}</option>
-              }
-            </select>
+            <p-select
+              [options]="myRoleOptions()"
+              [(ngModel)]="manualForm.roleName"
+              optionLabel="label"
+              optionValue="value"
+              [placeholder]="'logShift.selectRole' | translate"
+              styleClass="w-full" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
-            <select [(ngModel)]="manualForm.locationId">
-              <option value="">{{ 'logShift.selectLocation' | translate }}</option>
-              @for (l of locations(); track l.id) {
-                <option [value]="l.id">{{ l.name }}</option>
-              }
-            </select>
+            <p-select
+              [options]="locationOptions()"
+              [(ngModel)]="manualForm.locationId"
+              optionLabel="label"
+              optionValue="value"
+              [placeholder]="'logShift.selectLocation' | translate"
+              styleClass="w-full" />
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
             <div class="field">
@@ -131,14 +131,12 @@
           </div>
           <div class="field">
             <label>{{ 'logShift.notesLabel' | translate }}</label>
-            <input type="text" [(ngModel)]="manualForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
+            <input pInputText type="text" [(ngModel)]="manualForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
           </div>
           @if (formError()) {
-            <div class="form-error">⚠ {{ formError() }}</div>
+            <p-message severity="error" [text]="formError()" />
           }
-          <button class="btn-primary btn-full" (click)="submitManual()" [disabled]="submitting()">
-            @if (submitting()) { <span class="nc-spinner sm"></span> } @else { {{ 'logShift.logShiftBtn' | translate }} }
-          </button>
+          <p-button [label]="'logShift.logShiftBtn' | translate" severity="primary" styleClass="w-full" [loading]="submitting()" (click)="submitManual()" />
         </div>
       }
     }
@@ -174,16 +172,16 @@
             @if (wl.notes) {
               <div class="h-notes">📝 {{ wl.notes }}</div>
             }
-            <button class="btn-ghost delete-btn" (click)="deleteLog(wl.id)">{{ 'logShift.delete' | translate }}</button>
+            <p-button [label]="'logShift.delete' | translate" [text]="true" severity="danger" size="small" (click)="deleteLog(wl.id)" />
           </div>
         }
       </div>
 
       @if (totalHistoryPages() > 1) {
         <div class="pagination-bar">
-          <button class="btn-ghost" [disabled]="historyPage() === 1" (click)="loadHistory(historyPage() - 1)">‹</button>
+          <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="historyPage() === 1" (click)="loadHistory(historyPage() - 1)" />
           <span>{{ historyPage() }} / {{ totalHistoryPages() }} <span class="pag-total">({{ totalHistory() }})</span></span>
-          <button class="btn-ghost" [disabled]="historyPage() === totalHistoryPages()" (click)="loadHistory(historyPage() + 1)">›</button>
+          <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="historyPage() === totalHistoryPages()" (click)="loadHistory(historyPage() + 1)" />
         </div>
       }
     }

@@ -2,11 +2,12 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NotificationService, AppNotification } from 'shared-lib';
+import { Button } from 'primeng/button';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Button],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss',
 })

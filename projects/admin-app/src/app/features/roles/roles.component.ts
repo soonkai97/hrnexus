@@ -3,11 +3,19 @@ import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { StaffStore, ConfirmService, ToastService, TooltipDirective } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { InputNumber } from 'primeng/inputnumber';
+import { TableModule } from 'primeng/table';
+import { Tag } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { Message } from 'primeng/message';
 
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective],
+  imports: [DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective,
+    Button, InputText, InputNumber, TableModule, Tag, TooltipModule, Message],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })

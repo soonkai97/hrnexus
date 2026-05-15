@@ -1,9 +1,8 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">💬 Messaging</h1>
-    <button class="btn-primary" (click)="showCompose() ? showCompose.set(false) : openCompose()">
-      {{ showCompose() ? 'Cancel' : '✉ Compose' }}
-    </button>
+    <p-button [label]="showCompose() ? 'Cancel' : '✉ Compose'" [text]="showCompose()" [severity]="showCompose() ? 'secondary' : 'primary'"
+              (click)="showCompose() ? showCompose.set(false) : openCompose()" />
   </div>
 
   @if (showCompose()) {
@@ -20,14 +19,12 @@
       </div>
       <div class="field">
         <label>Message *</label>
-        <textarea [(ngModel)]="compose.content" rows="4" placeholder="Type your message…" maxlength="2000"></textarea>
+        <textarea pTextarea [(ngModel)]="compose.content" rows="4" placeholder="Type your message…" maxlength="2000"></textarea>
         <div class="char-count">{{ compose.content.length }}/2000</div>
       </div>
       <div class="form-actions">
-        <button class="btn-primary" (click)="send()" [disabled]="sending() || !compose.content.trim()">
-          @if (sending()) { <span class="nc-spinner sm"></span> }
-          {{ sending() ? 'Sending…' : 'Send Message' }}
-        </button>
+        <p-button [label]="sending() ? 'Sending…' : 'Send Message'" severity="primary"
+                  (click)="send()" [disabled]="sending() || !compose.content.trim()" [loading]="sending()" />
       </div>
     </div>
   }
@@ -54,7 +51,8 @@
           <div class="msg-content">{{ msg.content }}</div>
           <div class="msg-footer">
             <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
-            <button class="btn-ghost btn-xs" (click)="reply(msg); $event.stopPropagation()">↩ Reply</button>
+            <p-button label="↩ Reply" [text]="true" severity="secondary" styleClass="btn-xs"
+                      (click)="reply(msg); $event.stopPropagation()" />
           </div>
           @if (!msg.readAt) { <span class="unread-dot"></span> }
         </div>

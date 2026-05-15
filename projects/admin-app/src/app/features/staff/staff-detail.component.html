@@ -6,7 +6,7 @@
       <span class="page-sub">{{ staff()?.staffId }}</span>
     </div>
     @if (!editMode()) {
-      <button class="btn-primary" style="margin-left:auto" (click)="startEdit()">{{ 'staffDetail.editBtn' | translate }}</button>
+      <p-button [label]="'staffDetail.editBtn' | translate" severity="primary" styleClass="ml-auto" (click)="startEdit()" />
     }
   </div>
 
@@ -42,23 +42,23 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
           <div class="field">
             <label><span class="req">*</span> {{ 'staffDetail.staffId' | translate }}</label>
-            <input type="text" [(ngModel)]="editForm.staffId" />
+            <input pInputText type="text" [(ngModel)]="editForm.staffId" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'staffDetail.email' | translate }}</label>
-            <input type="email" [(ngModel)]="editForm.email" />
+            <input pInputText type="email" [(ngModel)]="editForm.email" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'staffDetail.firstName' | translate }}</label>
-            <input type="text" [(ngModel)]="editForm.firstName" />
+            <input pInputText type="text" [(ngModel)]="editForm.firstName" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'staffDetail.lastName' | translate }}</label>
-            <input type="text" [(ngModel)]="editForm.lastName" />
+            <input pInputText type="text" [(ngModel)]="editForm.lastName" />
           </div>
           <div class="field">
             <label>{{ 'staffDetail.phone' | translate }}</label>
-            <input type="tel" [(ngModel)]="editForm.phoneNumber" />
+            <input pInputText type="tel" [(ngModel)]="editForm.phoneNumber" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'staffDetail.dateOfBirth' | translate }}</label>
@@ -66,11 +66,11 @@
           </div>
           <div class="field">
             <label>{{ 'staffDetail.icNoOptional' | translate }}</label>
-            <input type="text" [(ngModel)]="editForm.icNo" />
+            <input pInputText type="text" [(ngModel)]="editForm.icNo" />
           </div>
           <div class="field">
             <label>{{ 'staffDetail.passportNoOptional' | translate }}</label>
-            <input type="text" [(ngModel)]="editForm.passportNo" />
+            <input pInputText type="text" [(ngModel)]="editForm.passportNo" />
           </div>
           <!-- Roles -->
           <div class="field" style="grid-column:1/-1">
@@ -97,10 +97,9 @@
           </div>
         </div>
         <div style="display:flex;gap:.75rem;margin-top:1.5rem">
-          <button class="btn-primary" (click)="saveEdit()" [disabled]="saving() || !isEditFormValid">
-            @if (saving()) { <span class="nc-spinner sm"></span> } @else { {{ 'common.save' | translate }} }
-          </button>
-          <button class="btn-ghost" (click)="cancelEdit()">{{ 'common.cancel' | translate }}</button>
+          <p-button [label]="'common.save' | translate" severity="primary"
+                    (click)="saveEdit()" [disabled]="saving() || !isEditFormValid" [loading]="saving()" />
+          <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEdit()" />
         </div>
       }
     </div>
@@ -119,8 +118,8 @@
         <p style="color:var(--text-muted);text-align:center;padding:2rem">{{ 'staffDetail.noWorkLogs' | translate }}</p>
       } @else {
         <div class="table-card">
-          <table>
-            <thead>
+          <p-table [value]="workLogs()" [tableStyle]="{'min-width':'100%'}">
+            <ng-template pTemplate="header">
               <tr>
                 <th>{{ 'staffDetail.dateCol' | translate }}</th>
                 <th>{{ 'staffDetail.roleCol' | translate }}</th>
@@ -130,30 +129,28 @@
                 <th>{{ 'staffDetail.hoursCol' | translate }}</th>
                 <th>{{ 'staffDetail.status' | translate }}</th>
               </tr>
-            </thead>
-            <tbody>
-              @for (wl of workLogs(); track wl.id) {
-                <tr>
-                  <td>{{ wl.workDate }}</td>
-                  <td>{{ wl.roleName | titlecase }}</td>
-                  <td>{{ wl.locationName }}</td>
-                  <td>{{ wl.startTime | amPm }}</td>
-                  <td>{{ wl.endTime | amPm }}</td>
-                  <td>{{ wl.hours | number:'1.1-1' }}h</td>
-                  <td>
-                    @if (wl.isActive) { <span class="badge badge-active">{{ 'common.active' | translate }}</span> }
-                    @else             { <span class="badge">{{ 'staffDetail.done' | translate }}</span> }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+            </ng-template>
+            <ng-template pTemplate="body" let-wl>
+              <tr>
+                <td>{{ wl.workDate }}</td>
+                <td>{{ wl.roleName | titlecase }}</td>
+                <td>{{ wl.locationName }}</td>
+                <td>{{ wl.startTime | amPm }}</td>
+                <td>{{ wl.endTime | amPm }}</td>
+                <td>{{ wl.hours | number:'1.1-1' }}h</td>
+                <td>
+                  @if (wl.isActive) { <span class="badge badge-active">{{ 'common.active' | translate }}</span> }
+                  @else             { <span class="badge">{{ 'staffDetail.done' | translate }}</span> }
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
         </div>
         @if (totalPages() > 1) {
           <div class="pagination-bar">
-            <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="loadWorkLogs(currentPage() - 1)">‹</button>
+            <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadWorkLogs(currentPage() - 1)" />
             <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalLogs() }})</span></span>
-            <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="loadWorkLogs(currentPage() + 1)">›</button>
+            <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadWorkLogs(currentPage() + 1)" />
           </div>
         }
       }

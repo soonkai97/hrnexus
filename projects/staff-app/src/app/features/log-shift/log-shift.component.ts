@@ -3,6 +3,11 @@ import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { WorkLogService, WorkLogDto, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PickerOnlyDirective, PagedResult, todayLocalString } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { Message } from 'primeng/message';
+import { Tag } from 'primeng/tag';
 
 type Mode = 'live' | 'manual';
 
@@ -14,7 +19,7 @@ function nowHHmm(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective],
+  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, InputText, Select, Message, Tag],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })
@@ -43,6 +48,15 @@ export class LogShiftComponent implements OnInit {
     const assigned = this.auth.user()?.roles ?? [];
     return assigned.filter(r => r !== 'admin' && r !== 'manager');
   });
+
+  readonly myRoleOptions = computed(() =>
+    this.myRoles().map(r => ({ label: r.toUpperCase(), value: r }))
+  );
+
+  readonly locationOptions = computed(() =>
+    this.locationStore.locations().map(l => ({ label: l.name, value: l.id }))
+  );
+
   readonly locations = this.locationStore.locations;
 
   // Live form

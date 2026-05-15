@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { MessagingService, MessageDto, StaffStore, ToastService, SignalRService } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { Textarea } from 'primeng/textarea';
 
 @Component({
   selector: 'app-messaging',
   standalone: true,
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, Button, Textarea],
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss',
 })

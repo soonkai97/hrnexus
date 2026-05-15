@@ -1,19 +1,19 @@
 <div class="page-content">
   <div class="page-header">
     <h1 class="page-title">💬 Messages</h1>
-    <button class="btn-primary sm" (click)="showCompose.set(!showCompose())">
-      {{ showCompose() ? 'Cancel' : '✉ New Message' }}
-    </button>
+    <p-button
+      [label]="showCompose() ? 'Cancel' : '✉ New Message'"
+      [severity]="showCompose() ? 'secondary' : 'primary'"
+      size="small"
+      (click)="showCompose.set(!showCompose())" />
   </div>
 
   @if (showCompose()) {
     <div class="nc-card compose-card">
       <div class="compose-to">To: <strong>Management</strong></div>
-      <textarea [(ngModel)]="replyContent" rows="4" placeholder="Type your message to management…" maxlength="2000"></textarea>
+      <textarea pTextarea [(ngModel)]="replyContent" rows="4" placeholder="Type your message to management…" maxlength="2000"></textarea>
       <div class="char-count">{{ replyContent.length }}/2000</div>
-      <button class="btn-primary" (click)="send()" [disabled]="sending() || !replyContent.trim()">
-        @if (sending()) { <span class="nc-spinner sm"></span> } Send
-      </button>
+      <p-button label="Send" severity="primary" [loading]="sending()" [disabled]="!replyContent.trim()" (click)="send()" />
     </div>
   }
 

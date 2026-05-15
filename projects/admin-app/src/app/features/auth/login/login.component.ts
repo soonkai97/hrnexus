@@ -2,12 +2,15 @@ import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
 import { AuthService, ThemeToggleComponent, LangService } from 'shared-lib';
 
 @Component({
   selector: 'app-admin-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -29,7 +32,6 @@ export class AdminLoginComponent {
     });
   }
 
-  /** Removes the readonly guard that prevents browser autofill from populating the field. */
   removeReadonly(e: Event): void {
     (e.target as HTMLInputElement).removeAttribute('readonly');
   }

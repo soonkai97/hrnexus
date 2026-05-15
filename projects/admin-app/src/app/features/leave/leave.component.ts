@@ -3,6 +3,13 @@ import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance, LeaveService, StaffStore, ToastService, ConfirmService, TooltipDirective, toLocalDateString } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { DatePicker } from 'primeng/datepicker';
+import { InputNumber } from 'primeng/inputnumber';
+import { TooltipModule } from 'primeng/tooltip';
+import { Message } from 'primeng/message';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show'] as const;
 const STATUSES    = ['approved', 'pending', 'rejected'] as const;
@@ -10,7 +17,8 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
 @Component({
   selector: 'app-leave',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective,
+    Button, InputText, Select, DatePicker, InputNumber, TooltipModule, Message],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })

@@ -1,10 +1,14 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
 import { AuthService } from '../../auth/auth.service';
+
 @Component({
   selector: 'lib-change-password',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Button, InputText, Message],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.scss',
 })

@@ -1,5 +1,7 @@
 import { Component, OnInit, inject, signal, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
+import { Button } from 'primeng/button';
+import { BadgeModule } from 'primeng/badge';
 import { NotificationService } from '../../services/notification.service';
 import { SignalRService } from '../../services/signalr.service';
 import { AppNotification } from '../../models';
@@ -7,7 +9,7 @@ import { AppNotification } from '../../models';
 @Component({
   selector: 'nc-notification-bell',
   standalone: true,
-  imports: [],
+  imports: [Button, BadgeModule],
   templateUrl: './notification-bell.component.html',
   styleUrl:    './notification-bell.component.scss',
 })
@@ -28,11 +30,6 @@ export class NotificationBellComponent implements OnInit {
     this.signalr.notifications$.subscribe(n => this.svc.push(n));
   }
 
-  /**
-   * Close the panel when clicking anywhere outside this component.
-   * Uses ElementRef.contains() — works regardless of CSS backdrop-filter
-   * or any other stacking context on ancestor elements.
-   */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (this.open() && !this.el.nativeElement.contains(event.target as Node)) {
@@ -51,7 +48,6 @@ export class NotificationBellComponent implements OnInit {
 
   close(): void { this.open.set(false); }
 
-  /** Anchor the panel just below the bell button, clamped to stay on-screen. */
   private updatePanelPosition(): void {
     const rect       = this.bellBtn.nativeElement.getBoundingClientRect();
     const panelWidth = Math.min(340, window.innerWidth - 16);
@@ -59,7 +55,6 @@ export class NotificationBellComponent implements OnInit {
 
     this.panelTop = rect.bottom + 8;
 
-    // Right-align panel to the bell button, but ensure it doesn't overflow left
     let right = window.innerWidth - rect.right;
     const leftEdge = window.innerWidth - right - panelWidth;
     if (leftEdge < margin) {

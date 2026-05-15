@@ -3,7 +3,7 @@
   <div class="page-header">
     <h2 class="page-title">{{ 'pay.title' | translate }}</h2>
     @if (summary() && !loading()) {
-      <button class="print-btn" (click)="printPaySlip()" title="Print / Save as PDF">🖨 Print</button>
+      <p-button label="🖨 Print" severity="secondary" (click)="printPaySlip()" pTooltip="Print / Save as PDF" />
     }
   </div>
 
@@ -12,19 +12,23 @@
     <div class="picker-row">
       <div class="field">
         <label>{{ 'pay.year' | translate }}</label>
-        <input type="number" [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)" min="2020" max="2099" />
+        <p-inputnumber
+          [ngModel]="selectedYear()"
+          (ngModelChange)="selectedYear.set($event)"
+          [min]="2020"
+          [max]="2099"
+          [useGrouping]="false" />
       </div>
       <div class="field">
         <label>{{ 'pay.month' | translate }}</label>
-        <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event)">
-          @for (m of months; track $index) {
-            <option [value]="$index + 1">{{ m }}</option>
-          }
-        </select>
+        <p-select
+          [options]="monthOptions"
+          [ngModel]="selectedMonth()"
+          (ngModelChange)="selectedMonth.set($event)"
+          optionLabel="label"
+          optionValue="value" />
       </div>
-      <button class="btn-primary sm" (click)="load()" [disabled]="loading()">
-        @if (loading()) { <span class="nc-spinner sm"></span> } {{ 'pay.view' | translate }}
-      </button>
+      <p-button [label]="'pay.view' | translate" severity="primary" size="small" [loading]="loading()" (click)="load()" />
     </div>
     <div class="period-label">{{ months[selectedMonth() - 1] }} {{ selectedYear() }}</div>
   </div>

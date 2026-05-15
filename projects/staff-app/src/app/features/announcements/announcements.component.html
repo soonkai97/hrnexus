@@ -5,9 +5,10 @@
       <p class="page-sub">{{ 'announcements.subtitle' | translate }}</p>
     </div>
     @if (hasUnread()) {
-      <button class="btn-secondary" (click)="markAllRead()">
-        ✓ {{ 'announcements.markAllRead' | translate }}
-      </button>
+      <p-button
+        [label]="'✓ ' + ('announcements.markAllRead' | translate)"
+        severity="secondary"
+        (click)="markAllRead()" />
     }
   </div>
 
@@ -35,7 +36,7 @@
             <div class="card-header-row">
               <div class="card-title-wrap">
                 @if (!item.isRead) {
-                  <span class="new-badge">NEW</span>
+                  <p-tag value="NEW" severity="danger" />
                 }
                 <h3 class="card-title">{{ item.title }}</h3>
               </div>

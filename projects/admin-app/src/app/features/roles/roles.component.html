@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">{{ 'roles.title' | translate }}</h1>
-    <button class="btn-primary" (click)="openAdd()">{{ 'roles.addNewRole' | translate }}</button>
+    <p-button [label]="'roles.addNewRole' | translate" severity="primary" (click)="openAdd()" />
   </div>
 
   <!-- Add new role form -->
@@ -9,81 +9,76 @@
     <div #formAnchor class="nc-card add-card">
       <div class="form-header">
         <h3>{{ 'roles.addNewRole' | translate }}</h3>
-        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" aria-label="Close form" (click)="cancel()">✕</button>
+        <p-button icon="pi pi-times" [text]="true" severity="secondary" aria-label="Close form" (click)="cancel()" />
       </div>
       <div class="add-form-grid">
         <div class="field">
           <label><span class="req">*</span> {{ 'roles.rolePlaceholder' | translate }}</label>
-          <input type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
+          <input pInputText type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
                  [placeholder]="'roles.rolePlaceholder' | translate" maxlength="50" (keydown.enter)="addRole()" />
         </div>
         <div class="field rate-field">
           <label><span class="req">*</span> Rate (RM/hr)</label>
-          <input type="number" [(ngModel)]="newRoleRate" min="0" step="0.50" placeholder="0.00" />
+          <p-inputnumber [(ngModel)]="newRoleRate" [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2" />
         </div>
-        <button class="btn-primary btn-add" (click)="addRole()" [disabled]="saving() || !newRoleName.trim()">
-          @if (saving()) { <span class="nc-spinner sm"></span> } @else { {{ 'roles.addBtn' | translate }} }
-        </button>
+        <p-button [label]="'roles.addBtn' | translate" severity="primary" styleClass="btn-add"
+                  (click)="addRole()" [disabled]="saving() || !newRoleName.trim()" [loading]="saving()" />
       </div>
       @if (error()) {
-        <div class="error-msg">⚠ {{ error() }}</div>
+        <p-message severity="error" [text]="error()" />
       }
     </div>
   }
 
   <!-- Roles list -->
   <div class="table-card">
-    <table>
-      <thead>
+    <p-table [value]="roles()" [tableStyle]="{'min-width':'100%'}">
+      <ng-template pTemplate="header">
         <tr>
           <th scope="col">{{ 'roles.roleNameCol' | translate }}</th>
           <th scope="col">Hourly Rate (RM)</th>
           <th scope="col">{{ 'roles.typeCol' | translate }}</th>
           <th scope="col">{{ 'roles.actionsCol' | translate }}</th>
         </tr>
-      </thead>
-      <tbody>
-        @for (role of roles(); track role.name) {
-          <tr>
-            <td>
-              <span class="badge badge-role">{{ role.name | titlecase }}</span>
-            </td>
-            <td>
-              @if (editingRateName() === role.name) {
-                <!-- Inline rate editor -->
-                <div class="rate-editor">
-                  <input type="number" [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
-                         min="0" step="0.50" class="rate-input"
-                         (keydown.enter)="saveRate()" (keydown.escape)="cancelEditRate()" />
-                  <button class="btn-primary btn-sm" (click)="saveRate()" [disabled]="savingRate()">
-                    @if (savingRate()) { <span class="nc-spinner sm"></span> } @else { ✓ }
-                  </button>
-                  <button class="btn-ghost btn-sm" [ncTooltip]="'Cancel'" (click)="cancelEditRate()">✕</button>
-                </div>
-              } @else {
-                <span class="rate-display">
-                  {{ role.hourlyRate | number:'1.2-2' }}
-                  <button class="btn-ghost btn-sm" style="font-size:.75rem;padding:.15rem .4rem"
-                          (click)="startEditRate(role.name, role.hourlyRate)" [ncTooltip]="'Edit rate'">✎</button>
-                </span>
-              }
-            </td>
-            <td>
-              @if (role.isSystem) {
-                <span class="badge badge-active">{{ 'roles.system' | translate }}</span>
-              } @else {
-                <span class="badge badge-custom">{{ 'roles.custom' | translate }}</span>
-              }
-            </td>
-            <td>
-              @if (!role.isSystem) {
-                <button class="btn-ghost btn-danger-ghost"
-                        (click)="deleteRole(role.name)">{{ 'roles.deleteRole' | translate }}</button>
-              }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+      </ng-template>
+      <ng-template pTemplate="body" let-role>
+        <tr>
+          <td>
+            <span class="badge badge-role">{{ role.name | titlecase }}</span>
+          </td>
+          <td>
+            @if (editingRateName() === role.name) {
+              <!-- Inline rate editor -->
+              <div class="rate-editor">
+                <p-inputnumber [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
+                               [min]="0" [step]="0.50" styleClass="rate-input"
+                               (keydown.enter)="saveRate()" (keydown.escape)="cancelEditRate()" />
+                <p-button icon="pi pi-check" severity="primary" styleClass="btn-sm" (click)="saveRate()" [disabled]="savingRate()" [loading]="savingRate()" />
+                <p-button icon="pi pi-times" [text]="true" severity="secondary" styleClass="btn-sm" pTooltip="Cancel" (click)="cancelEditRate()" />
+              </div>
+            } @else {
+              <span class="rate-display">
+                {{ role.hourlyRate | number:'1.2-2' }}
+                <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="btn-sm"
+                          (click)="startEditRate(role.name, role.hourlyRate)" pTooltip="Edit rate" />
+              </span>
+            }
+          </td>
+          <td>
+            @if (role.isSystem) {
+              <span class="badge badge-active">{{ 'roles.system' | translate }}</span>
+            } @else {
+              <span class="badge badge-custom">{{ 'roles.custom' | translate }}</span>
+            }
+          </td>
+          <td>
+            @if (!role.isSystem) {
+              <p-button [label]="'roles.deleteRole' | translate" [text]="true" severity="danger"
+                        (click)="deleteRole(role.name)" />
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
 </div>

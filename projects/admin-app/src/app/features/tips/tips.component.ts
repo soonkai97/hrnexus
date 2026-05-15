@@ -3,11 +3,17 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, PickerOnlyDirective, todayLocalString } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { Select } from 'primeng/select';
+import { InputNumber } from 'primeng/inputnumber';
+import { TableModule } from 'primeng/table';
+import { Tag } from 'primeng/tag';
 
 @Component({
   selector: 'app-tips',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, PickerOnlyDirective],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, PickerOnlyDirective,
+    Button, Select, InputNumber, TableModule, Tag],
   templateUrl: './tips.component.html',
   styleUrl: './tips.component.scss',
 })

@@ -48,8 +48,8 @@
     @if (onShift().length > 0) {
       <div class="section-label" style="margin-top:1.5rem">{{ 'dashboard.currentlyOnShift' | translate }}</div>
       <div class="table-card">
-        <table>
-          <thead>
+        <p-table [value]="onShift()" [tableStyle]="{'min-width':'100%'}">
+          <ng-template pTemplate="header">
             <tr>
               <th>{{ 'dashboard.staffId' | translate }}</th>
               <th>{{ 'dashboard.staffName' | translate }}</th>
@@ -58,28 +58,26 @@
               <th>{{ 'dashboard.clockedIn' | translate }}</th>
               <th>{{ 'dashboard.duration' | translate }}</th>
             </tr>
-          </thead>
-          <tbody>
-            @for (s of onShift(); track s.staffId) {
-              <tr>
-                <td class="td-muted mono">{{ s.staffId }}</td>
-                <td class="td-name">{{ s.name }}</td>
-                <td><span class="badge badge-role">{{ s.role | titlecase }}</span></td>
-                <td class="td-muted">{{ s.locationName }}</td>
-                <td class="td-muted">{{ s.clockedInAt | date:'h:mm a' }}</td>
-                <td class="td-muted">{{ formatMinutes(s.minutesOnShift) }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
+          </ng-template>
+          <ng-template pTemplate="body" let-s>
+            <tr>
+              <td class="td-muted mono">{{ s.staffId }}</td>
+              <td class="td-name">{{ s.name }}</td>
+              <td><span class="badge badge-role">{{ s.role | titlecase }}</span></td>
+              <td class="td-muted">{{ s.locationName }}</td>
+              <td class="td-muted">{{ s.clockedInAt | date:'h:mm a' }}</td>
+              <td class="td-muted">{{ formatMinutes(s.minutesOnShift) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
     }
 
     <!-- Recent Activity -->
     <div class="section-label" style="margin-top:1.5rem">{{ 'dashboard.recentClockActivity' | translate }}</div>
     <div class="table-card">
-      <table>
-        <thead>
+      <p-table [value]="activity()" [tableStyle]="{'min-width':'100%'}">
+        <ng-template pTemplate="header">
           <tr>
             <th>{{ 'dashboard.staff' | translate }}</th>
             <th>{{ 'dashboard.role' | translate }}</th>
@@ -87,28 +85,26 @@
             <th>{{ 'dashboard.time' | translate }}</th>
             <th>{{ 'dashboard.event' | translate }}</th>
           </tr>
-        </thead>
-        <tbody>
-          @for (a of activity(); track a.staffName + a.timestamp) {
-            <tr [class.row-new]="a.isNew">
-              <td class="td-name">{{ a.staffName }}</td>
-              <td><span class="badge badge-role">{{ a.role | titlecase }}</span></td>
-              <td class="td-muted">{{ a.locationName }}</td>
-              <td class="td-muted">{{ a.timestamp | date:'h:mm a' }}</td>
-              <td>
-                <span class="badge"
-                  [class.badge-active]="a.eventType === 'shift-started'"
-                  [class.badge-closed]="a.eventType === 'shift-ended'">
-                  {{ a.eventType === 'shift-started' ? '▲ In' : '▼ Out' }}
-                </span>
-              </td>
-            </tr>
-          }
-          @empty {
-            <tr><td colspan="5" class="td-muted" style="text-align:center;padding:2rem">{{ 'dashboard.noActivityToday' | translate }}</td></tr>
-          }
-        </tbody>
-      </table>
+        </ng-template>
+        <ng-template pTemplate="body" let-a>
+          <tr [class.row-new]="a.isNew">
+            <td class="td-name">{{ a.staffName }}</td>
+            <td><span class="badge badge-role">{{ a.role | titlecase }}</span></td>
+            <td class="td-muted">{{ a.locationName }}</td>
+            <td class="td-muted">{{ a.timestamp | date:'h:mm a' }}</td>
+            <td>
+              <span class="badge"
+                [class.badge-active]="a.eventType === 'shift-started'"
+                [class.badge-closed]="a.eventType === 'shift-ended'">
+                {{ a.eventType === 'shift-started' ? '▲ In' : '▼ Out' }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="5" class="td-muted" style="text-align:center;padding:2rem">{{ 'dashboard.noActivityToday' | translate }}</td></tr>
+        </ng-template>
+      </p-table>
     </div>
 
   }

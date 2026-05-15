@@ -8,13 +8,10 @@
   </div>
 
   <!-- ── Top-level view tabs ───────────────────────────────────────────────── -->
-  <p-selectbutton
-    [ngModel]="view()"
-    (ngModelChange)="view.set($event)"
-    [options]="viewOptions"
-    optionLabel="label"
-    optionValue="value"
-    styleClass="mb-5" />
+  <div class="view-tabs">
+    <button [class.active]="view() === 'log'" (click)="view.set('log')">{{ 'nav.logShift' | translate }}</button>
+    <button [class.active]="view() === 'history'" (click)="view.set('history')">{{ 'logShift.history' | translate }}</button>
+  </div>
 
   <!-- ═══════════════════════════ LOG VIEW ════════════════════════════════════ -->
   @if (view() === 'log') {
@@ -45,13 +42,10 @@
 
     <!-- Mode toggle (only when no active shift) -->
     @if (!activeLog()) {
-      <p-selectbutton
-        [ngModel]="mode()"
-        (ngModelChange)="setMode($event)"
-        [options]="modeOptions"
-        optionLabel="label"
-        optionValue="value"
-        styleClass="mb-4" />
+      <div class="view-tabs">
+        <button [class.active]="mode() === 'live'" (click)="setMode('live')">{{ 'logShift.startNow' | translate }}</button>
+        <button [class.active]="mode() === 'manual'" (click)="setMode('manual')">{{ 'logShift.manualEntry' | translate }}</button>
+      </div>
 
       <!-- LIVE form -->
       @if (mode() === 'live') {

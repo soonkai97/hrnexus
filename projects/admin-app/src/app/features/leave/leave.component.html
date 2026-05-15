@@ -51,19 +51,17 @@
   </p-card>
 
   <!-- ── Page tabs ─────────────────────────────────────────────────────────── -->
-  <p-selectbutton
-    [ngModel]="tab()"
-    (ngModelChange)="tab.set($event)"
-    [options]="tabOptions"
-    optionValue="value"
-    styleClass="mb-5">
-    <ng-template pTemplate="item" let-opt>
-      {{ opt.labelKey | translate }}
-      @if (opt.value === 'records' && totalPendingCount() > 0) {
+  <div class="view-tabs">
+    <button [class.active]="tab() === 'records'" (click)="tab.set('records')">
+      {{ 'leave.recordsTab' | translate }}
+      @if (totalPendingCount() > 0) {
         <span class="tab-badge">{{ totalPendingCount() }}</span>
       }
-    </ng-template>
-  </p-selectbutton>
+    </button>
+    <button [class.active]="tab() === 'balances'" (click)="tab.set('balances')">
+      {{ 'leave.balancesTab' | translate }}
+    </button>
+  </div>
 
   <!-- ═══════════════════════════ RECORDS TAB ═════════════════════════════════ -->
   @if (tab() === 'records') {
@@ -154,13 +152,10 @@
     }
 
     <!-- View toggle -->
-    <p-selectbutton
-      [ngModel]="viewMode()"
-      (ngModelChange)="switchView($event)"
-      [options]="viewModeOptions"
-      optionLabel="label"
-      optionValue="value"
-      styleClass="mb-4" />
+    <div class="view-tabs">
+      <button [class.active]="viewMode() === 'table'" (click)="switchView('table')">Table</button>
+      <button [class.active]="viewMode() === 'calendar'" (click)="switchView('calendar')">Calendar</button>
+    </div>
 
     <!-- Calendar view -->
     @if (viewMode() === 'calendar') {

@@ -58,6 +58,16 @@ export class StaffComponent implements OnInit {
   showNewPassword = false;
   savingReset     = signal(false);
 
+  /** Mirrors the required-field checks in saveStaff() so Save can be disabled upfront. */
+  get isFormValid(): boolean {
+    return !!this.newStaff.staffId?.trim() &&
+      !!this.newStaff.firstName?.trim() &&
+      !!this.newStaff.lastName?.trim() &&
+      !!this.newStaff.email?.trim() &&
+      !!(this.newStaff.icNo?.trim() || this.newStaff.passportNo?.trim()) &&
+      !!this.newStaff.dateOfBirth;
+  }
+
   filtered = computed(() => {
     const q = this.search().toLowerCase();
     return q

@@ -62,7 +62,7 @@ export class StaffComponent implements OnInit {
 
   newStaff: RegisterStaffRequest = {
     staffId: '', firstName: '', lastName: '', email: '', password: 'password123', roles: [],
-    phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
+    phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: '',
   };
 
   // Reset password modal state
@@ -129,6 +129,8 @@ export class StaffComponent implements OnInit {
     this.showForm.set(false);
     this.roleDropdownOpen.set(false);
     this.error.set('');
+    this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: 'password123',
+      roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: '' };
   }
 
   /** Mask a phone number: +601X•••••89 */
@@ -162,14 +164,18 @@ export class StaffComponent implements OnInit {
       this.error.set('Date of birth is required.');
       return;
     }
-    if (!this.newStaff.roles.length) this.newStaff.roles = [this.availableRoles()[0]?.name ?? ''];
+    if (!this.newStaff.roles.length) {
+      const defaultRole = this.availableRoles()[0]?.name;
+      if (!defaultRole) { this.error.set('Please select at least one role.'); return; }
+      this.newStaff.roles = [defaultRole];
+    }
     this.saving.set(true);
     this.error.set('');
     this.staffStore.register(this.newStaff).subscribe({
       next: () => {
         this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: 'password123',
           roles: [], phoneNumber: '',
-          icNo: null, passportNo: null, dateOfBirth: null };
+          icNo: null, passportNo: null, dateOfBirth: '' };
         this.saving.set(false);
         this.showForm.set(false);
         this.roleDropdownOpen.set(false);

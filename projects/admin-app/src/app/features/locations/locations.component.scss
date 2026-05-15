@@ -6,7 +6,7 @@
 }
 
 .error-msg {
-  color: #f87171;
+  color: var(--p-red-400);
   margin-bottom: 1rem;
 }
 
@@ -80,7 +80,3 @@
   gap: 0.5rem;
 }
 
-.btn-danger-ghost {
-  color: #f87171;
-  &:hover { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); }
-}

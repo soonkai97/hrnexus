@@ -112,7 +112,7 @@
   transition: background $transition-fast, color $transition-fast;
   white-space: nowrap;
   &:hover { background: rgba(168,85,247,0.08); color: $text-primary; }
-  &.action-item-danger { color: #f87171; &:hover { background: rgba(239,68,68,0.1); } }
+  &.action-item-danger { color: $danger; &:hover { background: rgba(239,68,68,0.1); } }
 }
 
 .action-divider { height: 1px; background: $border-subtle; margin: 0.25rem 0; }

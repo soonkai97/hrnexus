@@ -25,7 +25,7 @@
 }
 
 .error-msg {
-  color: #f87171;
+  color: $danger;
   margin-top: 0.5rem;
   font-size: 0.85rem;
 }
@@ -63,7 +63,7 @@
 
 // ── Delete button (danger ghost) ──────────────────────────────────────────────
 .btn-danger-ghost {
-  color: #f87171;
+  color: $danger;
   &:hover { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); }
 }
 

@@ -299,7 +299,7 @@ input[type="time"] {
 }
 
 // ── Required field asterisk ────────────────────────────────────────────────────
-.req { color: #f87171; margin-right: 0.15em; font-weight: 700; }
+.req { color: $danger; margin-right: 0.15em; font-weight: 700; }
 
 // ── Shared inline-form standards ──────────────────────────────────────────────
 .form-header {

@@ -46,8 +46,8 @@
   background: $bg-raised; border: 1px solid $border-subtle;
   border-radius: $radius-pill; padding: 0.2rem 0.6rem;
   strong { color: $text-primary; }
-  &[data-type="sick"]    strong { color: #f87171; }
-  &[data-type="annual"]  strong { color: #4ade80; }
+  &[data-type="sick"]    strong { color: $danger; }
+  &[data-type="annual"]  strong { color: $neon-green; }
   &[data-type="no-show"] strong { color: #fbbf24; }
 }
 
@@ -108,7 +108,7 @@
 
 .form-error {
   background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
-  border-radius: $radius-sm; color: #f87171; font-size: 0.85rem;
+  border-radius: $radius-sm; color: $danger; font-size: 0.85rem;
   padding: 0.65rem 0.9rem; display: flex; align-items: center; gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -144,8 +144,8 @@
 }
 
 .cert-btns { display: flex; gap: 0.5rem; }
-.cert-err  { color: #f87171; font-size: 0.83rem; margin-top: 0.5rem; }
-.cert-ok   { color: #4ade80; font-size: 0.83rem; margin-top: 0.5rem; }
+.cert-err  { color: $danger; font-size: 0.83rem; margin-top: 0.5rem; }
+.cert-ok   { color: $neon-green; font-size: 0.83rem; margin-top: 0.5rem; }
 
 // ── Individual balance card ────────────────────────────────────────────────────
 .balance-card        { padding: 1.25rem; margin-bottom: 1.25rem; }
@@ -167,8 +167,8 @@
   height: 6px; background: $border-subtle; border-radius: 3px; overflow: hidden;
 }
 .bal-row-fill  { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-.annual-fill   { background: #4ade80; }
-.sick-fill     { background: #f87171; }
+.annual-fill   { background: $neon-green; }
+.sick-fill     { background: $danger; }
 .bal-row-nums  { font-size: 0.8rem; color: $text-secondary; text-align: right; strong { color: $text-primary; } }
 
 .entitlement-form {
@@ -202,8 +202,8 @@
 .bal-chip {
   display: inline-block; border-radius: 99px; font-size: 0.75rem; font-weight: 600;
   padding: 0.2rem 0.6rem; white-space: nowrap;
-  &.bal-chip-ok     { background: rgba(74,222,128,0.1);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
-  &.bal-chip-warn   { background: rgba(239,68,68,0.08);  color: #f87171; border: 1px solid rgba(239,68,68,0.22); }
+  &.bal-chip-ok     { background: rgba(74,222,128,0.1);  color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
+  &.bal-chip-warn   { background: rgba(239,68,68,0.08);  color: $danger; border: 1px solid rgba(239,68,68,0.22); }
   &.bal-chip-unpaid { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
 }
 
@@ -243,8 +243,8 @@
   font-size: 0.58rem; font-weight: 600; border-radius: 3px;
   padding: 1px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.cal-leave-annual  { background: rgba(74,222,128,0.18);  color: #4ade80; }
-.cal-leave-sick    { background: rgba(239,68,68,0.15);   color: #f87171; }
+.cal-leave-annual  { background: rgba(74,222,128,0.18);  color: $neon-green; }
+.cal-leave-sick    { background: rgba(239,68,68,0.15);   color: $danger; }
 .cal-leave-unpaid  { background: rgba(168,85,247,0.15);  color: $neon-purple; }
 .cal-leave-no-show { background: rgba(251,191,36,0.15);  color: $neon-amber; }
 .cal-leave-overdue { outline: 1px solid rgba(251,191,36,0.7); animation: overdue-pulse 2.5s ease-in-out infinite; }
@@ -330,8 +330,8 @@
 .leave-type-badge {
   font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
   border-radius: $radius-pill; padding: 0.2rem 0.7rem;
-  &[data-type="sick"]    { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
-  &[data-type="annual"]  { background: rgba(74,222,128,0.1);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+  &[data-type="sick"]    { background: rgba(239,68,68,0.12);  color: $danger; border: 1px solid rgba(239,68,68,0.25); }
+  &[data-type="annual"]  { background: rgba(74,222,128,0.1);  color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
   &[data-type="unpaid"]  { background: rgba(168,85,247,0.1);  color: $neon-purple; border: 1px solid rgba(168,85,247,0.25); }
   &[data-type="no-show"] { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
 }
@@ -340,8 +340,8 @@
   font-size: 0.72rem; font-weight: 600; text-transform: capitalize;
   border-radius: $radius-pill; padding: 0.2rem 0.65rem;
   &[data-status="pending"]  { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-  &[data-status="approved"] { background: rgba(74,222,128,0.1);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
-  &[data-status="rejected"] { background: rgba(239,68,68,0.08);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  &[data-status="approved"] { background: rgba(74,222,128,0.1);  color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
+  &[data-status="rejected"] { background: rgba(239,68,68,0.08);  color: $danger; border: 1px solid rgba(239,68,68,0.25); }
 }
 
 .leave-staff {
@@ -388,7 +388,7 @@
   border-radius: 6px; font-size: 0.9rem; color: $text-muted; line-height: 1;
   transition: background $transition-fast, color $transition-fast;
   &:hover { background: rgba(168,85,247,0.1); color: $text-primary; }
-  &.lc-icon-danger:hover { background: rgba(239,68,68,0.12); color: #f87171; }
+  &.lc-icon-danger:hover { background: rgba(239,68,68,0.12); color: $danger; }
   &.lc-reopen-btn { color: #fbbf24;
     &:hover { background: rgba(251,191,36,0.12); color: #fbbf24; }
   }
@@ -403,14 +403,14 @@
 .btn-approve {
   padding: 0.35rem 0.85rem; font-size: 0.82rem; font-weight: 600;
   background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3);
-  color: #4ade80; border-radius: $radius-sm; cursor: pointer;
+  color: $neon-green; border-radius: $radius-sm; cursor: pointer;
   transition: background $transition-fast;
   &:hover { background: rgba(74,222,128,0.22); }
 }
 .btn-reject {
   padding: 0.35rem 0.85rem; font-size: 0.82rem; font-weight: 600;
   background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
-  color: #f87171; border-radius: $radius-sm; cursor: pointer;
+  color: $danger; border-radius: $radius-sm; cursor: pointer;
   transition: background $transition-fast;
   &:hover { background: rgba(239,68,68,0.2); }
 }

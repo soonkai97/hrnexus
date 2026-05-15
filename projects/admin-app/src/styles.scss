@@ -323,7 +323,7 @@ table { min-width: 480px; }
 }
 
 // ── Required field asterisk ────────────────────────────────────────────────────
-.req { color: #f87171; margin-right: 0.15em; font-weight: 700; }
+.req { color: $danger; margin-right: 0.15em; font-weight: 700; }
 
 // ── Shared inline-form standards ──────────────────────────────────────────────
 // Used by every page that has an inline add/edit form card.

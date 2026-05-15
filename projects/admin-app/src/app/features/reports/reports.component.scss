@@ -149,7 +149,7 @@
   color: $text-muted; font-size: 0.75rem; padding: 0.3rem 0.75rem;
   text-align: left; cursor: pointer; display: block;
   border-bottom: 1px solid $border-subtle; margin-bottom: 0.25rem;
-  &:hover { color: #f87171; }
+  &:hover { color: $danger; }
 }
 
 .ms-option {

@@ -74,7 +74,7 @@
               <tr>
                 <td>{{ a.fullName }}</td>
                 <td>{{ a.hoursWorked > 0 ? (a.hoursWorked + 'h') : '—' }}</td>
-                <td style="color:#4ade80;font-weight:600">RM {{ a.amount | number:'1.2-2' }}</td>
+                <td style="color:var(--p-green-400);font-weight:600">RM {{ a.amount | number:'1.2-2' }}</td>
               </tr>
             </ng-template>
           </p-table>
@@ -106,7 +106,7 @@
           <tr>
             <td>{{ p.locationName }}</td>
             <td style="color:var(--p-text-muted-color)">{{ p.shiftDate | date:'mediumDate' }}</td>
-            <td style="color:#4ade80;font-weight:600">{{ p.totalAmount | number:'1.2-2' }}</td>
+            <td style="color:var(--p-green-400);font-weight:600">{{ p.totalAmount | number:'1.2-2' }}</td>
             <td>{{ p.splitMethod }}</td>
             <td>{{ p.staffCount }}</td>
             <td>

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 using NightclubWorkforce.Domain.Entities;
 
 namespace NightclubWorkforce.Application.Admin.Commands;
@@ -20,7 +21,11 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 {
     public async Task<Guid> Handle(UpsertLeaveCommand req, CancellationToken ct)
     {
-        var validTypes = new[] { "sick", "annual", "unpaid", "no-show" };
+        var validTypes = new[]
+        {
+            AppConstants.Leave.Sick, AppConstants.Leave.Annual,
+            AppConstants.Leave.Unpaid, AppConstants.Leave.NoShow,
+        };
         if (!validTypes.Contains(req.LeaveType, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException($"Invalid leave type '{req.LeaveType}'.");
 
@@ -35,11 +40,11 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
 
         // Balance enforcement for annual/sick leave (skip when rejecting or cancelling)
-        var isRejectedOrCancelled = req.Status.Equals("rejected", StringComparison.OrdinalIgnoreCase)
-                                 || req.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase);
+        var isRejectedOrCancelled = req.Status.Equals(AppConstants.Leave.Rejected,  StringComparison.OrdinalIgnoreCase)
+                                 || req.Status.Equals(AppConstants.Leave.Cancelled, StringComparison.OrdinalIgnoreCase);
         if (!isRejectedOrCancelled &&
-            (req.LeaveType.Equals("annual", StringComparison.OrdinalIgnoreCase) ||
-             req.LeaveType.Equals("sick",   StringComparison.OrdinalIgnoreCase)))
+            (req.LeaveType.Equals(AppConstants.Leave.Annual, StringComparison.OrdinalIgnoreCase) ||
+             req.LeaveType.Equals(AppConstants.Leave.Sick,   StringComparison.OrdinalIgnoreCase)))
         {
             var year = req.StartDate.Year;
             var leaveTypeLower = req.LeaveType.ToLowerInvariant();
@@ -47,7 +52,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             var entitlement = await db.LeaveEntitlements
                 .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
 
-            int entitlementDays = leaveTypeLower == "annual"
+            int entitlementDays = leaveTypeLower == AppConstants.Leave.Annual
                 ? (entitlement?.AnnualDays ?? 14)
                 : (entitlement?.SickDays   ?? 14);
 
@@ -55,8 +60,8 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 .Where(l => l.EmployeeId == req.EmployeeId
                          && l.LeaveType  == leaveTypeLower
                          && l.StartDate.Year == year
-                         && l.Status != "rejected"
-                         && l.Status != "cancelled"
+                         && l.Status != AppConstants.Leave.Rejected
+                         && l.Status != AppConstants.Leave.Cancelled
                          && l.Id != (req.Id ?? Guid.Empty))
                 .SumAsync(l => (int)((l.EndDate.Date - l.StartDate.Date).TotalDays + 1), ct);
 
@@ -73,7 +78,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         var hasOverlap = await db.LeaveRequests
             .AnyAsync(l => l.EmployeeId == req.EmployeeId
                         && l.Id != (req.Id ?? Guid.Empty)
-                        && l.Status != "rejected"
+                        && l.Status != AppConstants.Leave.Rejected
                         && l.StartDate <= end
                         && l.EndDate   >= start, ct);
 
@@ -93,8 +98,8 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 
             // Notify employee when status transitions to approved / rejected
             if (!prevStatus.Equals(req.Status, StringComparison.OrdinalIgnoreCase)
-                && (req.Status.Equals("approved", StringComparison.OrdinalIgnoreCase)
-                    || req.Status.Equals("rejected", StringComparison.OrdinalIgnoreCase)))
+                && (req.Status.Equals(AppConstants.Leave.Approved, StringComparison.OrdinalIgnoreCase)
+                    || req.Status.Equals(AppConstants.Leave.Rejected, StringComparison.OrdinalIgnoreCase)))
             {
                 await CreateAndSendNotification(existing.EmployeeId, existing.Id,
                     req.Status.ToLower(), req.LeaveType, req.StartDate, req.EndDate, ct);
@@ -110,7 +115,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             var leave = LeaveRequest.Create(req.EmployeeId, req.LeaveType,
                 req.StartDate, req.EndDate, req.Notes);
             // Apply status immediately if not default
-            if (!req.Status.Equals("pending", StringComparison.OrdinalIgnoreCase))
+            if (!req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
                 leave.Update(req.LeaveType, req.StartDate, req.EndDate,
                     req.Notes, req.Status);
             db.LeaveRequests.Add(leave);
@@ -120,12 +125,12 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 req.EmployeeId, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd}", ct);
 
             // Notify managers of new pending leave
-            if (req.Status.Equals("pending", StringComparison.OrdinalIgnoreCase))
+            if (req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
             {
                 var managers = await db.Staff
                     .Where(e => e.IsActive &&
-                        (e.RoleEntries.Any(r => r.Role == "manager") ||
-                         e.RoleEntries.Any(r => r.Role == "admin")))
+                        (e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager) ||
+                         e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Admin)))
                     .ToListAsync(ct);
 
                 var emp = await db.Staff.FindAsync([req.EmployeeId], ct);
@@ -135,7 +140,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                         "New Leave Request",
                         $"{emp?.FullName ?? "An employee"} applied for {req.LeaveType} leave " +
                         $"({req.StartDate:MMM d} – {req.EndDate:MMM d}).",
-                        "leave_pending", leave.Id.ToString());
+                        AppConstants.NotificationType.LeavePending, leave.Id.ToString());
                     db.Notifications.Add(notif);
                     await notifHub.SendToUserAsync(mgr.Id, ToPayload(notif), ct);
                 }
@@ -154,7 +159,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             employeeId,
             approved ? "Leave Approved ✓" : "Leave Rejected",
             $"Your {leaveType} leave ({start:MMM d} – {end:MMM d}) has been {status}.",
-            approved ? "leave_approved" : "leave_rejected",
+            approved ? AppConstants.NotificationType.LeaveApproved : AppConstants.NotificationType.LeaveRejected,
             leaveId.ToString());
 
         db.Notifications.Add(notif);

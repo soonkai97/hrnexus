@@ -28,7 +28,7 @@
       </div>
       <div class="form-actions">
         <button class="btn-ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
-        <button class="btn-primary" (click)="save()" [disabled]="saving()">
+        <button class="btn-primary" (click)="save()" [disabled]="saving() || !isFormValid">
           @if (saving()) { <span class="nc-spinner sm"></span> }
           {{ saving() ? ('common.saving' | translate) : ('common.save' | translate) }}
         </button>

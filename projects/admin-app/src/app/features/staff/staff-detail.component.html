@@ -1,6 +1,6 @@
 <div class="page-wrap">
   <div class="page-header" style="display:flex;align-items:center;gap:1rem">
-    <a routerLink="/staff" class="btn-ghost" style="font-size:1.2rem">←</a>
+    <a routerLink="/staff" class="btn-ghost">← Back</a>
     <div>
       <h1 class="page-title">{{ staff()?.fullName ?? '…' }}</h1>
       <span class="page-sub">{{ staff()?.staffId }}</span>
@@ -97,7 +97,7 @@
           </div>
         </div>
         <div style="display:flex;gap:.75rem;margin-top:1.5rem">
-          <button class="btn-primary" (click)="saveEdit()" [disabled]="saving()">
+          <button class="btn-primary" (click)="saveEdit()" [disabled]="saving() || !isEditFormValid">
             @if (saving()) { <span class="nc-spinner sm"></span> } @else { {{ 'common.save' | translate }} }
           </button>
           <button class="btn-ghost" (click)="cancelEdit()">{{ 'common.cancel' | translate }}</button>

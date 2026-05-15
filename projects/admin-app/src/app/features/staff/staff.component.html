@@ -1,9 +1,9 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">{{ 'staff.title' | translate }}</h1>
-    <button class="btn-primary" (click)="showForm() ? closeForm() : openAdd()">
-      {{ showForm() ? ('common.cancel' | translate) : ('staff.addStaff' | translate) }}
-    </button>
+    @if (!showForm()) {
+      <button class="btn-primary" (click)="openAdd()">{{ 'staff.addStaff' | translate }}</button>
+    }
   </div>
 
   @if (error()) {
@@ -19,19 +19,19 @@
       </div>
       <div class="form-grid">
         <div class="field">
-          <label>{{ 'staff.staffId' | translate }}</label>
+          <label><span class="req">*</span> {{ 'staff.staffId' | translate }}</label>
           <input type="text" [(ngModel)]="newStaff.staffId" placeholder="e.g. NC1001" maxlength="20" style="text-transform:uppercase" />
         </div>
         <div class="field">
-          <label>{{ 'staff.firstName' | translate }}</label>
+          <label><span class="req">*</span> {{ 'staff.firstName' | translate }}</label>
           <input type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" maxlength="100" />
         </div>
         <div class="field">
-          <label>{{ 'staff.lastName' | translate }}</label>
+          <label><span class="req">*</span> {{ 'staff.lastName' | translate }}</label>
           <input type="text" [(ngModel)]="newStaff.lastName" placeholder="e.g. Torres" maxlength="100" />
         </div>
         <div class="field">
-          <label>{{ 'staff.email' | translate }}</label>
+          <label><span class="req">*</span> {{ 'staff.email' | translate }}</label>
           <input type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off" />
         </div>
         <div class="field">
@@ -67,21 +67,21 @@
           <input type="tel" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" maxlength="20" />
         </div>
         <div class="field">
-          <label>{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
+          <label><span class="req">*</span> {{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
           <input type="text" [(ngModel)]="newStaff.icNo" placeholder="e.g. 990101-01-1234" />
         </div>
         <div class="field">
-          <label>{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
+          <label><span class="req">*</span> {{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
           <input type="text" [(ngModel)]="newStaff.passportNo" placeholder="e.g. A12345678" />
         </div>
         <div class="field">
-          <label>{{ 'staff.dateOfBirth' | translate }}</label>
+          <label><span class="req">*</span> {{ 'staff.dateOfBirth' | translate }}</label>
           <input type="date" [(ngModel)]="newStaff.dateOfBirth" [max]="today" />
         </div>
       </div>
       <div class="form-actions">
         <button class="btn-ghost" (click)="closeForm()">{{ 'common.cancel' | translate }}</button>
-        <button class="btn-primary" (click)="saveStaff()" [disabled]="saving()">
+        <button class="btn-primary" (click)="saveStaff()" [disabled]="saving() || !isFormValid">
           @if (saving()) { <span class="nc-spinner sm"></span> }
           {{ saving() ? ('common.saving' | translate) : ('staff.saveStaff' | translate) }}
         </button>

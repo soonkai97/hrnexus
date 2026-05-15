@@ -58,25 +58,6 @@
 // ── Ellipsis action menu ──────────────────────────────────────────────────────
 .td-actions { width: 48px; text-align: center; }
 
-.action-menu-wrap {
-  position: relative;
-  display: inline-block;
-}
-
-.btn-menu-trigger {
-  background: none;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
-  color: $text-muted;
-  font-size: 1.1rem;
-  font-weight: 700;
-  padding: 0.15rem 0.55rem;
-  cursor: pointer;
-  line-height: 1;
-  letter-spacing: 0.15em;
-  transition: background $transition-fast, color $transition-fast, border-color $transition-fast;
-  &:hover { background: $bg-raised; color: $text-primary; border-color: rgba(168,85,247,0.35); }
-}
 
 .action-backdrop {
   position: fixed;

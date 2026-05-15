@@ -27,12 +27,15 @@
 }
 
 .warn-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
   background: rgba(245, 158, 11, 0.1);
   border: 1px solid rgba(245, 158, 11, 0.35);
   border-radius: 10px;
+}
+
+.warn-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 
   .stat-icon { font-size: 1.5rem; }
 

@@ -9,12 +9,13 @@ import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
+import { ProgressSpinner } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, PickerOnlyDirective,
-    Button, InputText, TableModule, Tag, Card],
+    Button, InputText, TableModule, Tag, Card, ProgressSpinner],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })

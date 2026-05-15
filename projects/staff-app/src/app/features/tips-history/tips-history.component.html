@@ -28,7 +28,7 @@
   </p-card>
 
   @if (loading()) {
-    <div class="loading-state"><span class="nc-spinner"></span></div>
+    <div class="loading-state"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
   } @else if (summary()) {
     <p-card styleClass="tips-card">
       <div class="tips-hero">

@@ -17,9 +17,9 @@
   gap: .5rem;
   padding: .55rem .75rem;
   background: var(--surface-2, #1a1630);
-  border: 1px solid var(--border, rgba(255,255,255,.1));
+  border: 1px solid var(--p-surface-border);
   border-radius: 8px;
-  color: var(--text-primary, #f0eeff);
+  color: var(--p-text-color);
   font-size: .9rem;
   cursor: pointer;
   text-align: left;
@@ -54,7 +54,7 @@
   right: 0;
   z-index: 50;
   background: var(--surface-2, #1a1630);
-  border: 1px solid var(--border, rgba(255,255,255,.1));
+  border: 1px solid var(--p-surface-border);
   border-radius: 8px;
   padding: .4rem 0;
   box-shadow: 0 8px 24px rgba(0,0,0,.5);
@@ -69,7 +69,7 @@
   padding: .45rem .85rem;
   cursor: pointer;
   font-size: .875rem;
-  color: var(--text-primary, #f0eeff);
+  color: var(--p-text-color);
   transition: background .1s;
 
   &:hover { background: rgba(168,85,247,.1); }
@@ -85,7 +85,7 @@
 
 .role-divider {
   height: 1px;
-  background: var(--border, rgba(255,255,255,.07));
+  background: var(--p-surface-border);
   margin: .3rem .85rem;
 }
 

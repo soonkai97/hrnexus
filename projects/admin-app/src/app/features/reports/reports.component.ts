@@ -13,12 +13,13 @@ import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
+import { Select } from 'primeng/select';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, PickerOnlyDirective,
-    Button, InputNumber, TableModule, Tag, Card, TooltipModule],
+    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Select],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -203,6 +204,10 @@ export class ReportsComponent implements OnInit {
   // ── Payroll export ──────────────────────────────────────────────────────────
   payrollYear  = new Date().getFullYear();
   payrollMonth = new Date().getMonth() + 1;
+  readonly payrollMonthOptions = Array.from({ length: 12 }, (_, i) => ({
+    label: new Date(2000, i, 1).toLocaleDateString('en-US', { month: 'long' }),
+    value: i + 1,
+  }));
   payrollExporting = signal(false);
 
   exportPayrollCsv(): void {

@@ -35,7 +35,7 @@
           <input pInputText type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off" />
         </div>
         <div class="field">
-          <label>{{ 'staff.roles' | translate }} <span style="color:var(--text-muted,#4e4a65);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
+          <label>{{ 'staff.roles' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
           <div class="role-multiselect" #roleDropdownEl>
             <button type="button" class="role-ms-trigger" (click)="roleDropdownOpen.set(!roleDropdownOpen())">
               @if (newStaff.roles.length === 0) {

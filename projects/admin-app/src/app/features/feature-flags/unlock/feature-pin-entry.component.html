@@ -15,9 +15,7 @@
         (keydown.enter)="submit()"
         autocomplete="off"
         autofocus />
-      <button class="pin-eye" (click)="showPin.update(v => !v)" type="button">
-        {{ showPin() ? '🙈' : '👁' }}
-      </button>
+      <p-button styleClass="pin-eye" [text]="true" severity="secondary" [label]="showPin() ? '🙈' : '👁'" (onClick)="showPin.update(v => !v)" />
     </div>
 
     @if (error()) {

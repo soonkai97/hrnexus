@@ -23,7 +23,7 @@
   </div>
 
   @if (loading()) {
-    <div class="loading-wrap"><span class="nc-spinner"></span></div>
+    <div class="loading-wrap"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
   } @else if (filtered().length === 0) {
     <div class="empty-state">
       <p>{{ filter() === 'unread' ? ('notifications.noUnread' | translate) : ('notifications.noNotifications' | translate) }}</p>

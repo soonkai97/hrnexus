@@ -8,6 +8,7 @@ import { Card } from 'primeng/card';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Message } from 'primeng/message';
+import { ProgressSpinner } from 'primeng/progressspinner';
 
 type Mode = 'live' | 'manual';
 
@@ -19,7 +20,7 @@ function nowHHmm(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, InputText, Select, Message],
+  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, InputText, Select, Message, ProgressSpinner],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })

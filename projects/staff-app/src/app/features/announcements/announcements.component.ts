@@ -4,11 +4,12 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AnnouncementService, AnnouncementDto, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
+import { ProgressSpinner } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [DatePipe, TranslatePipe, Button, Tag],
+  imports: [DatePipe, TranslatePipe, Button, Tag, ProgressSpinner],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })

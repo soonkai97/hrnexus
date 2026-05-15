@@ -9,6 +9,8 @@ import { InputNumber } from 'primeng/inputnumber';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
+import { Select } from 'primeng/select';
+import { ProgressSpinner } from 'primeng/progressspinner';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show'] as const;
 const STATUSES    = ['approved', 'pending', 'rejected'] as const;
@@ -17,7 +19,7 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
   selector: 'app-leave',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputText, InputNumber, Card, TooltipModule, Message],
+    Button, InputText, InputNumber, Card, TooltipModule, Message, Select, ProgressSpinner],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
@@ -63,7 +65,7 @@ export class LeaveComponent implements OnInit {
   entitlementForm    = { year: new Date().getFullYear(), annualDays: 14, sickDays: 14 };
 
   readonly currentYear = new Date().getFullYear();
-  readonly leaveTypes  = LEAVE_TYPES;
+  readonly leaveTypes: string[] = [...LEAVE_TYPES];
   readonly calDayKeys  = ['leave.calDayMon','leave.calDayTue','leave.calDayWed','leave.calDayThu','leave.calDayFri','leave.calDaySat','leave.calDaySun'];
 
   // ── Calendar view ────────────────────────────────────────────────────────
@@ -152,7 +154,7 @@ export class LeaveComponent implements OnInit {
     this.viewMode.set(mode);
     if (mode === 'calendar') this.loadCalRecords();
   }
-  readonly statuses   = STATUSES;
+  readonly statuses: string[] = [...STATUSES];
   readonly presets    = [
     { labelKey: 'common.today',     value: 'today'  as const },
     { labelKey: 'common.thisWeek',  value: 'week'   as const },

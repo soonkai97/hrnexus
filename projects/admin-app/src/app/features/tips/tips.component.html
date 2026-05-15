@@ -10,12 +10,9 @@
 
       <div class="field">
         <label>{{ 'tips.locationLabel' | translate }}</label>
-        <select [(ngModel)]="form.locationId" (ngModelChange)="onLocationChange()">
-          <option value="">{{ 'tips.selectLocation' | translate }}</option>
-          @for (loc of locationStore.locations(); track loc.id) {
-            <option [value]="loc.id">{{ loc.name }}</option>
-          }
-        </select>
+        <p-select [(ngModel)]="form.locationId" (onChange)="onLocationChange()"
+          [options]="locationStore.locations()" optionLabel="name" optionValue="id"
+          [placeholder]="'tips.selectLocation' | translate" styleClass="w-full" />
       </div>
 
       <div class="field">
@@ -30,10 +27,8 @@
 
       <div class="field">
         <label>{{ 'tips.splitMethod' | translate }}</label>
-        <select [(ngModel)]="form.splitMethod">
-          <option value="equal">{{ 'tips.equalSplit' | translate }}</option>
-          <option value="by_hours">{{ 'tips.byHoursWorked' | translate }}</option>
-        </select>
+        <p-select [(ngModel)]="form.splitMethod"
+          [options]="splitMethodOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
       </div>
 
       <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
@@ -46,7 +41,7 @@
         <div class="preview-section">
           <h4 style="font-size:0.9rem;margin-bottom:0.25rem">{{ 'tips.previewTitle' | translate }} — {{ p.staffCount }} staff receiving tips</h4>
           @if (previewTime()) {
-            <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem">⏱ Snapshot generated at {{ previewTime() }} — confirm promptly to avoid stale data.</p>
+            <p style="font-size:0.75rem;color:var(--p-text-muted-color);margin-bottom:0.75rem">⏱ Snapshot generated at {{ previewTime() }} — confirm promptly to avoid stale data.</p>
           }
 
           @if (p.excludedStaff && p.excludedStaff.length > 0) {
@@ -89,7 +84,7 @@
   <p-card styleClass="nc-card" [style]="{'margin-top': '1rem'}">
     <h3 style="font-size:1rem;margin-bottom:1rem">{{ 'tips.distributionHistory' | translate }}</h3>
     @if (pools().length === 0) {
-      <p style="color:var(--text-muted);text-align:center;padding:1.5rem">{{ 'tips.noDistributions' | translate }}</p>
+      <p style="color:var(--p-text-muted-color);text-align:center;padding:1.5rem">{{ 'tips.noDistributions' | translate }}</p>
     } @else {
       <p-table [value]="pools()" [tableStyle]="{'min-width':'100%'}">
         <ng-template pTemplate="header">
@@ -106,7 +101,7 @@
         <ng-template pTemplate="body" let-p>
           <tr>
             <td>{{ p.locationName }}</td>
-            <td style="color:var(--text-muted)">{{ p.shiftDate | date:'mediumDate' }}</td>
+            <td style="color:var(--p-text-muted-color)">{{ p.shiftDate | date:'mediumDate' }}</td>
             <td style="color:#4ade80;font-weight:600">{{ p.totalAmount | number:'1.2-2' }}</td>
             <td>{{ p.splitMethod }}</td>
             <td>{{ p.staffCount }}</td>
@@ -114,7 +109,7 @@
               <p-tag [value]="p.isDistributed ? ('tips.distributed' | translate) : ('common.pending' | translate)"
                      [severity]="p.isDistributed ? 'success' : 'secondary'" />
             </td>
-            <td style="color:var(--text-muted)">{{ p.createdAt | date:'mediumDate' }}</td>
+            <td style="color:var(--p-text-muted-color)">{{ p.createdAt | date:'mediumDate' }}</td>
           </tr>
         </ng-template>
       </p-table>

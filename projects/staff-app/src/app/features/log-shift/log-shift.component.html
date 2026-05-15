@@ -60,7 +60,7 @@
       @if (mode() === 'live') {
         <div class="nc-card form-card">
           <div class="field">
-            <label>{{ 'logShift.role' | translate }}</label>
+            <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
             <select [(ngModel)]="liveForm.roleName">
               <option value="">{{ 'logShift.selectRole' | translate }}</option>
               @for (r of myRoles(); track r) {
@@ -69,7 +69,7 @@
             </select>
           </div>
           <div class="field">
-            <label>{{ 'logShift.location' | translate }}</label>
+            <label><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
             <select [(ngModel)]="liveForm.locationId">
               <option value="">{{ 'logShift.selectLocation' | translate }}</option>
               @for (l of locations(); track l.id) {
@@ -78,11 +78,11 @@
             </select>
           </div>
           <div class="field">
-            <label>{{ 'logShift.startTime' | translate }}</label>
+            <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
             <input type="time" [(ngModel)]="liveForm.startTime" />
           </div>
           <div class="field">
-            <label>{{ 'logShift.notesLabel' | translate }}</label>
+            <label>{{ 'logShift.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
             <input type="text" [(ngModel)]="liveForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
           </div>
           @if (formError()) {
@@ -98,11 +98,11 @@
       @if (mode() === 'manual') {
         <div class="nc-card form-card">
           <div class="field">
-            <label>{{ 'logShift.date' | translate }}</label>
+            <label><span class="req">*</span> {{ 'logShift.date' | translate }}</label>
             <input type="date" [(ngModel)]="manualForm.workDate" />
           </div>
           <div class="field">
-            <label>{{ 'logShift.role' | translate }}</label>
+            <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
             <select [(ngModel)]="manualForm.roleName">
               <option value="">{{ 'logShift.selectRole' | translate }}</option>
               @for (r of myRoles(); track r) {
@@ -111,7 +111,7 @@
             </select>
           </div>
           <div class="field">
-            <label>{{ 'logShift.location' | translate }}</label>
+            <label><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
             <select [(ngModel)]="manualForm.locationId">
               <option value="">{{ 'logShift.selectLocation' | translate }}</option>
               @for (l of locations(); track l.id) {
@@ -121,16 +121,16 @@
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
             <div class="field">
-              <label>{{ 'logShift.startTime' | translate }}</label>
+              <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
               <input type="time" [(ngModel)]="manualForm.startTime" />
             </div>
             <div class="field">
-              <label>{{ 'logShift.endTime' | translate }}</label>
+              <label><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
               <input type="time" [(ngModel)]="manualForm.endTime" />
             </div>
           </div>
           <div class="field">
-            <label>{{ 'logShift.notesLabel' | translate }}</label>
+            <label>{{ 'logShift.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
             <input type="text" [(ngModel)]="manualForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
           </div>
           @if (formError()) {

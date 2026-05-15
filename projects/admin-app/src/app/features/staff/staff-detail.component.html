@@ -41,27 +41,27 @@
         <!-- Edit form -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
           <div class="field">
-            <label>{{ 'staffDetail.staffId' | translate }}</label>
+            <label><span class="req">*</span> {{ 'staffDetail.staffId' | translate }}</label>
             <input type="text" [(ngModel)]="editForm.staffId" />
           </div>
           <div class="field">
-            <label>{{ 'staffDetail.email' | translate }}</label>
+            <label><span class="req">*</span> {{ 'staffDetail.email' | translate }}</label>
             <input type="email" [(ngModel)]="editForm.email" />
           </div>
           <div class="field">
-            <label>{{ 'staffDetail.firstName' | translate }}</label>
+            <label><span class="req">*</span> {{ 'staffDetail.firstName' | translate }}</label>
             <input type="text" [(ngModel)]="editForm.firstName" />
           </div>
           <div class="field">
-            <label>{{ 'staffDetail.lastName' | translate }}</label>
+            <label><span class="req">*</span> {{ 'staffDetail.lastName' | translate }}</label>
             <input type="text" [(ngModel)]="editForm.lastName" />
           </div>
           <div class="field">
             <label>{{ 'staffDetail.phone' | translate }}</label>
-            <input type="text" [(ngModel)]="editForm.phoneNumber" />
+            <input type="tel" [(ngModel)]="editForm.phoneNumber" />
           </div>
           <div class="field">
-            <label>{{ 'staffDetail.dateOfBirth' | translate }}</label>
+            <label><span class="req">*</span> {{ 'staffDetail.dateOfBirth' | translate }}</label>
             <input type="date" [(ngModel)]="editForm.dateOfBirth" />
           </div>
           <div class="field">

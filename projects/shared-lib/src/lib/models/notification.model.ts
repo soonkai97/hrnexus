@@ -6,7 +6,9 @@ export type NotificationType =
   | 'roster_assigned'
   | 'password_reset'
   | 'message'
-  | 'announcement';
+  | 'announcement'
+  | 'stale_shift'
+  | 'stale_shift_admin';
 
 export interface AppNotification {
   id: string;

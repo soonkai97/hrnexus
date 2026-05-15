@@ -116,7 +116,7 @@
               <span class="leave-status" [attr.data-status]="r.status">{{ ('leave.status.' + r.status) | translate }}</span>
             </div>
             <div class="leave-dates">
-              {{ r.startDate }}{{ r.startDate !== r.endDate ? ' → ' + r.endDate : '' }}
+              {{ r.startDate }}{{ r.startDate !== r.endDate ? ' to ' + r.endDate : '' }}
 
               <span class="leave-days">{{ r.days }}{{ 'leave.days' | translate }}</span>
             </div>

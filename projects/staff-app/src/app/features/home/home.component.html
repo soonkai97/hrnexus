@@ -3,7 +3,7 @@
   <!-- Greeting -->
   <div class="greeting">
     <div>
-      <h1 class="greeting-text">{{ greeting() | translate }}, {{ firstName() }} 👋</h1>
+      <h1 class="greeting-text">{{ greeting() | translate }}, {{ firstName() }}</h1>
       @if (user()?.roles?.length) {
         <p class="greeting-role">{{ user()!.roles[0] | uppercase }}</p>
       }
@@ -32,7 +32,7 @@
           <span class="active-loc"><i class="pi pi-map-marker"></i> {{ shift.locationName }}</span>
           <span class="active-time"><i class="pi pi-clock"></i> {{ shift.startTime | amPm }}</span>
         </div>
-        <a routerLink="/log-shift" class="btn-end-link">{{ 'home.manageShift' | translate }} →</a>
+        <a routerLink="/log-shift" class="btn-end-link">{{ 'home.manageShift' | translate }} <i class="pi pi-arrow-right"></i></a>
       </p-card>
     } @else {
       <p-card styleClass="quick-log">
@@ -134,7 +134,7 @@
         }
       </p-card>
       <div style="text-align:right;margin-top:.5rem">
-        <p-button [label]="('home.viewAllShifts' | translate) + ' →'" [text]="true" severity="secondary" size="small" routerLink="/log-shift" />
+        <p-button [label]="'home.viewAllShifts' | translate" icon="pi pi-arrow-right" iconPos="right" [text]="true" severity="secondary" size="small" routerLink="/log-shift" />
       </div>
     } @else {
       <p class="no-shifts-hint">{{ 'home.noRecentShifts' | translate }}</p>

@@ -73,7 +73,7 @@
                 <div class="overdue-row-info">
                   <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
                   <span class="overdue-staff">{{ r.staffName }}</span>
-                  <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' → ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
+                  <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                 </div>
                 <div class="overdue-row-actions">
                   <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
@@ -204,7 +204,7 @@
                           <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
                         <span class="cal-day-staff-name">{{ r.staffName }}</span>
-                        <span class="cal-day-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' → ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
+                        <span class="cal-day-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                       </div>
                       <div class="cal-day-row-right">
                         <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
@@ -257,7 +257,7 @@
                 <span class="leave-staff-id">{{ r.staffId }}</span>
               </div>
               <div class="leave-dates">
-                <span class="leave-dates-text">{{ r.startDate }}{{ r.startDate !== r.endDate ? ' → ' + r.endDate : '' }}</span>
+                <span class="leave-dates-text">{{ r.startDate }}{{ r.startDate !== r.endDate ? ' to ' + r.endDate : '' }}</span>
 
                 <span class="leave-days-pill">{{ r.days }}d</span>
               </div>

@@ -53,7 +53,7 @@
       <div class="breakdown-row">
         <div class="brow-left">
           <span class="brow-title">{{ 'pay.regularHours' | translate }}</span>
-          <span class="brow-sub">{{ summary()!.regularHours }}h × {{ 'pay.rate' | translate }}</span>
+          <span class="brow-sub">{{ summary()!.regularHours }}h <i class="pi pi-times"></i> {{ 'pay.rate' | translate }}</span>
         </div>
         <span class="brow-amount">RM {{ summary()!.regularPay | number:'1.2-2' }}</span>
       </div>
@@ -61,7 +61,7 @@
       <div class="breakdown-row">
         <div class="brow-left">
           <span class="brow-title">{{ 'pay.overtimeHours' | translate }}</span>
-          <span class="brow-sub">{{ summary()!.overtimeHours }}h × {{ summary()!.otMultiplier }}×</span>
+          <span class="brow-sub">{{ summary()!.overtimeHours }}h <i class="pi pi-times"></i> {{ summary()!.otMultiplier }}x</span>
         </div>
         <span class="brow-amount accent-amber">RM {{ summary()!.overtimePay | number:'1.2-2' }}</span>
       </div>

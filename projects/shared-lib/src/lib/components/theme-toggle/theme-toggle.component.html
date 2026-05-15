@@ -3,5 +3,5 @@
   (click)="themeSvc.toggle()"
   [title]="themeSvc.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
   aria-label="Toggle colour theme">
-  {{ themeSvc.theme() === 'dark' ? '🌙' : '☀️' }}
+  <i [class]="themeSvc.theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'"></i>
 </button>

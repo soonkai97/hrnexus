@@ -46,7 +46,7 @@
           <!-- Upload overlay -->
           <label class="loc-upload-label">
             <span class="upload-btn">
-              📷 {{ loc.imagePath ? ('locations.changePhoto' | translate) : ('locations.addPhoto' | translate) }}
+              <i class="pi pi-camera"></i> {{ loc.imagePath ? ('locations.changePhoto' | translate) : ('locations.addPhoto' | translate) }}
             </span>
             <input type="file" accept="image/*" (change)="uploadImage(loc, $event)" />
           </label>

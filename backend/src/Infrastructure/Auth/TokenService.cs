@@ -23,11 +23,12 @@ public class TokenService(IConfiguration config) : ITokenService
             new Claim("fullName",                    employee.FullName),
             new Claim("staffId",                     employee.StaffId),
         };
+        var days  = int.TryParse(config["Jwt:AccessTokenDays"], out var d) ? d : 30;
         var token = new JwtSecurityToken(
             issuer:   config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
             claims:   claims,
-            expires:  DateTime.UtcNow.AddHours(1),
+            expires:  DateTime.UtcNow.AddDays(days),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

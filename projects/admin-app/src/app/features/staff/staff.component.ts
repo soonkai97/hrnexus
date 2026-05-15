@@ -37,7 +37,7 @@ export class StaffComponent implements OnInit {
   error            = signal('');
   roleDropdownOpen = signal(false);
   openMenuId  = signal<string | null>(null);
-  menuPos     = signal<{ top: number; right: number } | null>(null);
+  menuPos     = signal<{ top?: number; bottom?: number; right: number } | null>(null);
   menuTarget  = computed(() => this.staff().find(s => s.id === this.openMenuId()) ?? null);
 
   @HostListener('document:click', ['$event'])
@@ -92,7 +92,13 @@ export class StaffComponent implements OnInit {
     // right = distance from viewport right to button's right edge
     // → dropdown right edge lines up exactly with the ⋯ button right edge
     const right = window.innerWidth - rect.right;
-    this.menuPos.set({ top: rect.bottom + 4, right });
+    // Flip upward when there isn't enough room below (4 items + divider ≈ 175 px)
+    const spaceBelow = window.innerHeight - rect.bottom;
+    if (spaceBelow >= 175) {
+      this.menuPos.set({ top: rect.bottom + 4, right });
+    } else {
+      this.menuPos.set({ bottom: window.innerHeight - rect.top + 4, right });
+    }
     this.openMenuId.set(id);
   }
 

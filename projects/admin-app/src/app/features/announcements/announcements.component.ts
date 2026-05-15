@@ -34,14 +34,20 @@ export class AnnouncementsComponent implements OnInit {
 
   // ── Action menu ────────────────────────────────────────────────────────────
   openMenuId  = signal<string | null>(null);
-  menuPos     = signal<{ top: number; right: number } | null>(null);
+  menuPos     = signal<{ top?: number; bottom?: number; right: number } | null>(null);
   menuTarget  = computed(() => this.items().find(i => i.id === this.openMenuId()) ?? null);
 
   toggleMenu(id: string, event: MouseEvent): void {
     if (this.openMenuId() === id) { this.closeMenu(); return; }
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const right = window.innerWidth - rect.right;
-    this.menuPos.set({ top: rect.bottom + 4, right });
+    // Flip upward when there isn't enough room below (2 items + divider ≈ 120 px)
+    const spaceBelow = window.innerHeight - rect.bottom;
+    if (spaceBelow >= 120) {
+      this.menuPos.set({ top: rect.bottom + 4, right });
+    } else {
+      this.menuPos.set({ bottom: window.innerHeight - rect.top + 4, right });
+    }
     this.openMenuId.set(id);
   }
 

@@ -12,7 +12,8 @@
     "roles":         "Roles",
     "payroll":       "Payroll",
     "messaging":     "Messages",
-    "features":      "Feature Management"
+    "features":      "Feature Management",
+    "account":       "My Account"
   },
   "notifications": {
     "title":           "Notifications",

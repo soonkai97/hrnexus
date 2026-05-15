@@ -1,8 +1,8 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, ToastService } from 'shared-lib';
+import { AuthService, ToastService, StaffService } from 'shared-lib';
 
 @Component({
   selector: 'app-account',
@@ -11,13 +11,20 @@ import { AuthService, ToastService } from 'shared-lib';
   templateUrl: './account.component.html',
   styleUrl:    './account.component.scss',
 })
-export class AccountComponent {
-  private readonly auth  = inject(AuthService);
-  private readonly toast = inject(ToastService);
+export class AccountComponent implements OnInit {
+  private readonly auth      = inject(AuthService);
+  private readonly toast     = inject(ToastService);
+  private readonly staffSvc  = inject(StaffService);
 
   phoneNumber   = '';
   savingProfile = signal(false);
   profileError  = signal('');
+
+  ngOnInit(): void {
+    this.staffSvc.getMyProfile().subscribe({
+      next: profile => { this.phoneNumber = profile.phoneNumber ?? ''; },
+    });
+  }
 
   saveProfile(): void {
     this.savingProfile.set(true);

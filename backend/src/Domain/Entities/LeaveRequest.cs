@@ -41,8 +41,6 @@ public class LeaveRequest
         Status    = status.ToLower();
     }
 
-    public void SetStatus(string status) => Status = status.ToLower();
-
     public void Cancel() => Status = AppConstants.Leave.Cancelled;
 
     /// <summary>Auto-reject this leave and stamp a system note onto it.</summary>

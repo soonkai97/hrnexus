@@ -52,13 +52,14 @@ export class NotificationsComponent implements OnInit {
     switch (n.type) {
       case 'leave_pending':
       case 'leave_approved':
-      case 'leave_rejected':  return '/leave';
+      case 'leave_rejected':   return '/leave';
+      case 'stale_shift_admin':
       case 'roster_assigned':
-      case 'missed_clockin':  return '/dashboard';
-      case 'password_reset':  return '/staff';
-      case 'announcement':    return '/announcements';
-      case 'message':         return '/messaging';
-      default:                return null;
+      case 'missed_clockin':   return '/dashboard';
+      case 'password_reset':   return '/staff';
+      case 'announcement':     return '/announcements';
+      case 'message':          return '/messaging';
+      default:                 return null;
     }
   }
 

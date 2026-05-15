@@ -52,5 +52,4 @@ public class WorkLog
     };
 
     public void End(string endTime) => EndTime = endTime;
-    public void UpdateNotes(string? notes) => Notes = notes;
 }

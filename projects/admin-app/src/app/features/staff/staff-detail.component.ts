@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -11,12 +11,13 @@ import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { DatePicker } from 'primeng/datepicker';
+import { MultiSelect } from 'primeng/multiselect';
 
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe,
-    Button, InputText, TableModule, Tag, Card, ProgressSpinner, DatePicker],
+    Button, InputText, TableModule, Tag, Card, ProgressSpinner, DatePicker, MultiSelect],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
@@ -25,14 +26,14 @@ export class StaffDetailComponent implements OnInit {
   private readonly staffSvc   = inject(StaffService);
   private readonly toast      = inject(ToastService);
   private readonly route      = inject(ActivatedRoute);
-  private readonly el         = inject(ElementRef);
   private readonly workLogSvc = inject(WorkLogService);
 
   staff            = signal<StaffDetail | null>(null);
   loading          = signal(true);
   editMode         = signal(false);
   saving           = signal(false);
-  roleDropdownOpen = signal(false);
+
+  availableRoles = computed(() => this.staffStore.roles().filter(r => r.name !== 'admin'));
 
   workLogs        = signal<WorkLogDto[]>([]);
   workLogsLoading = signal(false);
@@ -40,13 +41,6 @@ export class StaffDetailComponent implements OnInit {
   currentPage     = signal(1);
   readonly pageSize = 10;
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalLogs() / this.pageSize)));
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(e: MouseEvent): void {
-    if (!this.el.nativeElement.querySelector('.role-multiselect')?.contains(e.target)) {
-      this.roleDropdownOpen.set(false);
-    }
-  }
 
   editForm: UpdateStaffRequest = {
     staffId: '', firstName: '', lastName: '', email: '', roles: [],
@@ -93,12 +87,6 @@ export class StaffDetailComponent implements OnInit {
     this.editMode.set(true);
   }
 
-  toggleDetailRole(roleName: string): void {
-    const idx = this.editForm.roles.indexOf(roleName);
-    if (idx === -1) this.editForm = { ...this.editForm, roles: [...this.editForm.roles, roleName] };
-    else            this.editForm = { ...this.editForm, roles: this.editForm.roles.filter(r => r !== roleName) };
-  }
-
   /** Gates the Save button — mirrors the backend required-field checks. */
   get isEditFormValid(): boolean {
     return !!this.editForm.staffId?.trim() &&
@@ -108,7 +96,7 @@ export class StaffDetailComponent implements OnInit {
       !!this.editForm.dateOfBirth;
   }
 
-  cancelEdit(): void { this.editMode.set(false); this.roleDropdownOpen.set(false); }
+  cancelEdit(): void { this.editMode.set(false); }
 
   saveEdit(): void {
     this.editForm.dateOfBirth = this.editForm.dateOfBirth || '';

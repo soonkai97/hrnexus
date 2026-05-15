@@ -78,7 +78,7 @@
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
-            <input type="time" [(ngModel)]="liveForm.startTime" />
+            <input pInputText type="time" [(ngModel)]="liveForm.startTime" class="w-full" />
           </div>
           <div class="field">
             <label>{{ 'logShift.notesLabel' | translate }}</label>
@@ -125,11 +125,11 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
             <div class="field">
               <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
-              <input type="time" [(ngModel)]="manualForm.startTime" />
+              <input pInputText type="time" [(ngModel)]="manualForm.startTime" class="w-full" />
             </div>
             <div class="field">
               <label><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
-              <input type="time" [(ngModel)]="manualForm.endTime" />
+              <input pInputText type="time" [(ngModel)]="manualForm.endTime" class="w-full" />
             </div>
           </div>
           <div class="field">

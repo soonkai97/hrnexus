@@ -99,26 +99,19 @@
     <!-- Language -->
     <p-card [style]="{'margin-top':'1rem'}">
       <h3 style="font-size:0.9rem;margin-bottom:0.75rem"><i class="pi pi-globe"></i> {{ 'profile.language' | translate }}</h3>
-      <div style="display:flex;gap:0.5rem">
-        <p-button
-          label="English"
-          [severity]="lang.current() === 'en' ? 'primary' : 'secondary'"
-          [text]="lang.current() !== 'en'"
-          (click)="lang.set('en')" />
-        <p-button
-          label="中文"
-          [severity]="lang.current() === 'zh' ? 'primary' : 'secondary'"
-          [text]="lang.current() !== 'zh'"
-          (click)="lang.set('zh')" />
+      <div class="view-tabs">
+        <button [class.active]="lang.current() === 'en'" (click)="lang.set('en')">English</button>
+        <button [class.active]="lang.current() === 'zh'" (click)="lang.set('zh')">中文</button>
       </div>
     </p-card>
 
     <!-- Sign out -->
-    <p-button
-      [label]="'profile.signOut' | translate"
-      severity="danger"
-      styleClass="sign-out"
-      (click)="logout()" />
+    <div class="sign-out-wrap">
+      <p-button
+        [label]="'profile.signOut' | translate"
+        severity="danger"
+        (click)="logout()" />
+    </div>
   }
 
 </div>

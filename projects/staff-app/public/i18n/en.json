@@ -104,6 +104,7 @@
     "endDate":    "End Date",
     "notesLabel": "Notes",
     "optional":   "optional",
+    "used":       "used",
     "submittedOn":"Submitted",
     "status": {
       "pending":   "Pending",

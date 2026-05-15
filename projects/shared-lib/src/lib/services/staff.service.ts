@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Staff, RegisterStaffRequest, StaffDetail, UpdateStaffRequest, StaffRole } from '../models';
+import { PagedResult } from './work-log.service';
 
 export interface VenueLocation { id: string; name: string; }
 
@@ -9,9 +10,12 @@ export interface VenueLocation { id: string; name: string; }
 export class StaffService {
   constructor(private http: HttpClient) {}
 
-  getAll(search?: string): Observable<Staff[]> {
-    const params = search ? `?search=${encodeURIComponent(search)}` : '';
-    return this.http.get<Staff[]>(`/api/staff${params}`);
+  getAll(search?: string, page = 1, pageSize = 10): Observable<PagedResult<Staff>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+    if (search) params = params.set('search', search);
+    return this.http.get<PagedResult<Staff>>('/api/staff', { params });
   }
 
   getById(id: string): Observable<StaffDetail> {

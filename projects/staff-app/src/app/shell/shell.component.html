@@ -24,6 +24,9 @@
           @if (item.path === '/announcements' && unreadAnnouncements() > 0) {
             <span class="nav-badge">{{ unreadAnnouncements() }}</span>
           }
+          @if (item.path === '/notifications' && unreadNotifications() > 0) {
+            <span class="nav-badge">{{ unreadNotifications() > 9 ? '9+' : unreadNotifications() }}</span>
+          }
           <span class="nav-indicator"></span>
         </a>
       }

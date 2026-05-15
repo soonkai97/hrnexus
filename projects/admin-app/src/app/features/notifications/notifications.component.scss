@@ -1,0 +1,120 @@
+@use 'styles/theme' as *;
+
+.page-wrap { padding: 1.5rem 2rem; max-width: 760px; }
+
+.filter-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  max-width: 320px;
+
+  button {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: none;
+    background: $bg-surface;
+    color: $text-muted;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all $transition-fast;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+
+    & + button { border-left: 1px solid $border-subtle; }
+
+    &.active {
+      background: rgba(168,85,247,0.15);
+      color: $neon-purple;
+    }
+
+    &:hover:not(.active) { background: rgba(168,85,247,0.06); color: $text-primary; }
+  }
+}
+
+.tab-count {
+  background: rgba(168,85,247,0.2);
+  color: $neon-purple;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  min-width: 1.2rem;
+  text-align: center;
+
+  &.unread {
+    background: rgba(239,68,68,0.2);
+    color: #f87171;
+  }
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: $text-muted;
+  padding: 3rem 2rem;
+  font-size: 0.9rem;
+}
+
+.notif-list { overflow: hidden; }
+
+.notif-item {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid $border-subtle;
+  transition: background $transition-fast;
+
+  &:last-child { border-bottom: none; }
+  &.clickable  { cursor: pointer; }
+  &:hover      { background: rgba(168,85,247,0.06); }
+  &.unread     { background: rgba(168,85,247,0.04); }
+}
+
+.notif-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notif-body { flex: 1; min-width: 0; }
+
+.notif-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: 0.2rem;
+}
+
+.notif-msg {
+  font-size: 0.8rem;
+  color: $text-muted;
+  line-height: 1.5;
+}
+
+.notif-time {
+  font-size: 0.72rem;
+  color: $text-muted;
+  margin-top: 0.3rem;
+  opacity: 0.75;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $neon-purple;
+  flex-shrink: 0;
+  margin-top: 6px;
+}

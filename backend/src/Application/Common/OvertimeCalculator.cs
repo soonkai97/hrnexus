@@ -12,8 +12,7 @@ public static class OvertimeCalculator
     {
         var s = TimeSpan.Parse(startTime);
         var e = TimeSpan.Parse(endTime);
-        // Identical times → 0 duration (avoid the misleading 24h midnight-wrap result)
-        if (s == e) return 0m;
+        // Identical times → full 24-hour shift (midnight-wrap formula handles this correctly)
         var diff = e > s ? e - s : e + TimeSpan.FromHours(24) - s;
         return (decimal)diff.TotalHours;
     }

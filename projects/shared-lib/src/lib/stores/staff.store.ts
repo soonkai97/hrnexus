@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { tap } from 'rxjs';
 import { StaffService } from '../services/staff.service';
 import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole } from '../models';
@@ -7,22 +7,30 @@ import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole } from '../m
 export class StaffStore {
   private readonly svc = inject(StaffService);
 
-  readonly #staff   = signal<Staff[]>([]);
-  readonly #roles   = signal<StaffRole[]>([]);
-  readonly #loading = signal(false);
-  readonly #error   = signal('');
+  readonly #staff      = signal<Staff[]>([]);
+  readonly #roles      = signal<StaffRole[]>([]);
+  readonly #loading    = signal(false);
+  readonly #error      = signal('');
+  readonly #totalCount = signal(0);
 
   readonly staff      = this.#staff.asReadonly();
   readonly roles      = this.#roles.asReadonly();
   readonly loading    = this.#loading.asReadonly();
   readonly error      = this.#error.asReadonly();
-  readonly staffCount = computed(() => this.#staff().length);
+  readonly totalCount = this.#totalCount.asReadonly();
 
-  loadStaff(search?: string): void {
+  loadStaff(search?: string, page = 1, pageSize = 10): void {
     this.#loading.set(true);
-    this.svc.getAll(search).subscribe({
-      next: list => { this.#staff.set(list); this.#loading.set(false); },
-      error: ()   => { this.#error.set('Failed to load staff.'); this.#loading.set(false); },
+    this.svc.getAll(search, page, pageSize).subscribe({
+      next: result => {
+        this.#staff.set(result.items);
+        this.#totalCount.set(result.total);
+        this.#loading.set(false);
+      },
+      error: () => {
+        this.#error.set('Failed to load staff.');
+        this.#loading.set(false);
+      },
     });
   }
 
@@ -34,7 +42,7 @@ export class StaffStore {
   }
 
   register(req: RegisterStaffRequest) {
-    return this.svc.register(req).pipe(tap(() => this.loadStaff()));
+    return this.svc.register(req);
   }
 
   update(id: string, req: UpdateStaffRequest) {
@@ -76,8 +84,6 @@ export class StaffStore {
   }
 
   deleteStaff(id: string) {
-    return this.svc.delete(id).pipe(
-      tap(() => this.#staff.update(list => list.filter(s => s.id !== id)))
-    );
+    return this.svc.delete(id);
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { PagedResult } from './work-log.service';
 
 export interface AnnouncementDto {
   id: string; title: string; body: string; createdByName: string;
@@ -20,7 +21,10 @@ export class AnnouncementService {
   constructor(private http: HttpClient) {}
   getMine(): Observable<AnnouncementDto[]> { return this.http.get<AnnouncementDto[]>('/api/announcements'); }
   markRead(id: string): Observable<void> { return this.http.post<void>(`/api/announcements/${id}/read`, {}); }
-  getAll(): Observable<AdminAnnouncementDto[]> { return this.http.get<AdminAnnouncementDto[]>('/api/announcements/all'); }
+  getAll(page = 1, pageSize = 10): Observable<PagedResult<AdminAnnouncementDto>> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http.get<PagedResult<AdminAnnouncementDto>>('/api/announcements/all', { params });
+  }
   create(dto: UpsertAnnouncementDto): Observable<{ id: string }> { return this.http.post<{ id: string }>('/api/announcements', dto); }
   update(id: string, dto: UpsertAnnouncementDto): Observable<void> { return this.http.put<void>(`/api/announcements/${id}`, dto); }
   delete(id: string): Observable<void> { return this.http.delete<void>(`/api/announcements/${id}`); }

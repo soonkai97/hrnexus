@@ -22,9 +22,10 @@ export class StaffComponent implements OnInit {
 
   @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
 
-  readonly staff   = this.staffStore.staff;
-  readonly roles   = this.staffStore.roles;
-  readonly loading = this.staffStore.loading;
+  readonly staff      = this.staffStore.staff;
+  readonly roles      = this.staffStore.roles;
+  readonly loading    = this.staffStore.loading;
+  readonly totalCount = this.staffStore.totalCount;
 
   /** Used as [max] on the date-of-birth input to prevent future dates. */
   readonly today   = todayLocalString();
@@ -32,6 +33,7 @@ export class StaffComponent implements OnInit {
   search           = signal('');
   readonly pageSize = 10;
   currentPage      = signal(1);
+  totalPages       = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
   showForm         = signal(false);
   saving           = signal(false);
   error            = signal('');
@@ -68,32 +70,25 @@ export class StaffComponent implements OnInit {
       !!this.newStaff.dateOfBirth;
   }
 
-  filtered = computed(() => {
-    const q = this.search().toLowerCase();
-    return q
-      ? this.staff().filter(s =>
-          s.fullName.toLowerCase().includes(q) ||
-          s.firstName.toLowerCase().includes(q) ||
-          s.lastName.toLowerCase().includes(q) ||
-          s.roles.some(r => r.toLowerCase().includes(q)) ||
-          s.staffId.toLowerCase().includes(q))
-      : this.staff();
-  });
-
-  totalPages   = computed(() => Math.max(1, Math.ceil(this.filtered().length / this.pageSize)));
-  pagedFiltered = computed(() => {
-    const page = Math.min(this.currentPage(), this.totalPages());
-    return this.filtered().slice((page - 1) * this.pageSize, page * this.pageSize);
-  });
-
   availableRoles = computed(() => {
     const all = this.roles().filter(r => r.name !== 'admin');
     return this.auth.hasRole('admin') ? all : all.filter(r => !r.isSystem);
   });
 
   ngOnInit(): void {
-    this.staffStore.loadStaff();
+    this.staffStore.loadStaff('', 1, this.pageSize);
     this.staffStore.loadRoles();
+  }
+
+  loadPage(page: number): void {
+    this.currentPage.set(page);
+    this.staffStore.loadStaff(this.search(), page, this.pageSize);
+  }
+
+  onSearch(value: string): void {
+    this.search.set(value);
+    this.currentPage.set(1);
+    this.staffStore.loadStaff(value, 1, this.pageSize);
   }
 
   toggleMenu(id: string, event: MouseEvent): void {
@@ -168,6 +163,8 @@ export class StaffComponent implements OnInit {
         this.showForm.set(false);
         this.roleDropdownOpen.set(false);
         this.toast.success('Staff registered.');
+        this.search.set('');
+        this.loadPage(1);
       },
       error: (e) => {
         const msg = e?.error?.error ?? 'Failed to register staff.';
@@ -214,7 +211,10 @@ export class StaffComponent implements OnInit {
     }).subscribe(confirmed => {
       if (!confirmed) return;
       this.staffStore.deleteStaff(s.id).subscribe({
-        next: () => this.toast.success(`${s.fullName} deleted.`),
+        next: () => {
+          this.toast.success(`${s.fullName} deleted.`);
+          this.loadPage(this.currentPage());
+        },
         error: (e) => this.toast.error(e?.error?.error ?? 'Failed to delete staff.'),
       });
     });

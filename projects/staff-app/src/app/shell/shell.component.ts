@@ -2,7 +2,7 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService } from 'shared-lib';
 
 interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: FeatureKey; }
 
@@ -25,12 +25,16 @@ export class ShellComponent {
   readonly lang                    = inject(LangService);
   readonly featureSvc              = inject(FeatureFlagService);
   private readonly announcementSvc = inject(AnnouncementService);
+  readonly notifSvc                = inject(NotificationService);
 
   // Start collapsed on mobile
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
   /** Unread announcement count — refreshed on every navigation so it stays current */
   unreadAnnouncements = signal(0);
+
+  /** Unread notification count — derived from the NotificationService signal */
+  unreadNotifications = computed(() => this.notifSvc.unreadCount());
 
   constructor() {
     // Load feature flags, then load initial unread count
@@ -76,11 +80,13 @@ export class ShellComponent {
   });
 
   private readonly allNavItems: NavItem[] = [
+    { path: '/home',            labelKey: 'nav.home',           icon: '◈'  },
     { path: '/log-shift',       labelKey: 'nav.logShift',       icon: '⏱'  },
     { path: '/pay-summary',     labelKey: 'nav.pay',            icon: '💵', featureFlag: 'paySummary'     },
     { path: '/tips-history',    labelKey: 'nav.tipsHistory',    icon: '💵', featureFlag: 'tipsHistory'    },
     { path: '/my-leave',        labelKey: 'nav.leave',          icon: '🌴'  },
     { path: '/announcements',   labelKey: 'nav.announcements',  icon: '📢', featureFlag: 'announcements' },
+    { path: '/notifications',   labelKey: 'nav.notifications',  icon: '🔔'  },
     { path: '/messaging',       labelKey: 'nav.messaging',      icon: '💬', featureFlag: 'messagingStaff' },
     { path: '/profile',         labelKey: 'nav.profile',        icon: '👤'  },
   ];

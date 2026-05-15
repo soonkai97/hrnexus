@@ -1,13 +1,43 @@
 {
   "nav": {
-    "clockIn":       "Clock In",
-    "logShift":      "Log Shift",
-    "pay":           "Pay",
-    "leave":         "Leave",
-    "profile":       "Profile",
-    "messaging":     "Messages",
-    "tipsHistory":   "Tips History",
-    "announcements": "Announcements"
+    "clockIn":         "Clock In",
+    "home":            "Home",
+    "logShift":        "Log Shift",
+    "pay":             "Pay",
+    "leave":           "Leave",
+    "profile":         "Profile",
+    "messaging":       "Messages",
+    "tipsHistory":     "Tips History",
+    "announcements":   "Announcements",
+    "notifications":   "Notifications"
+  },
+  "home": {
+    "goodMorning":          "Good morning",
+    "goodAfternoon":        "Good afternoon",
+    "goodEvening":          "Good evening",
+    "unreadAnnouncements":  "unread",
+    "manageShift":          "Manage Shift",
+    "notClockedIn":         "You're not clocked in.",
+    "logShift":             "Log Shift",
+    "annualLeave":          "Annual Leave",
+    "sickLeave":            "Sick Leave",
+    "days":                 "days",
+    "used":                 "used",
+    "grossPay":             "Gross Pay",
+    "thisMonth":            "This Month",
+    "totalHours":           "Total Hours",
+    "overtime":             "overtime",
+    "recentShifts":         "Recent Shifts",
+    "viewAllShifts":        "View All Shifts"
+  },
+  "notifications": {
+    "title":             "Notifications",
+    "subtitle":          "Your alerts and updates",
+    "all":               "All",
+    "unread":            "Unread",
+    "markAllRead":       "Mark all read",
+    "noNotifications":   "No notifications yet.",
+    "noUnread":          "You're all caught up!"
   },
   "announcements": {
     "subtitle":       "Stay up to date with venue notices",

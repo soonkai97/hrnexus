@@ -1,19 +1,24 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using NightclubWorkforce.Application.Common;
 using NightclubWorkforce.Application.Common.Interfaces;
 
 namespace NightclubWorkforce.Application.Staff.Queries;
 
-public record GetStaffListQuery(string? Search = null, bool ExcludeAdmins = false) : IRequest<List<StaffDto>>;
+public record GetStaffListQuery(
+    string? Search       = null,
+    bool    ExcludeAdmins = false,
+    int     Page         = 1,
+    int     PageSize     = 10) : IRequest<PagedResult<StaffDto>>;
 
 public record StaffDto(Guid Id, string StaffId, string FirstName, string LastName, string FullName, string Email, List<string> Roles,
     bool IsActive, string? PhoneNumber,
     string? IcNo, string? PassportNo, string? DateOfBirth, int? Age);
 
 public class GetStaffListQueryHandler(IAppDbContext db)
-    : IRequestHandler<GetStaffListQuery, List<StaffDto>>
+    : IRequestHandler<GetStaffListQuery, PagedResult<StaffDto>>
 {
-    public async Task<List<StaffDto>> Handle(GetStaffListQuery req, CancellationToken ct)
+    public async Task<PagedResult<StaffDto>> Handle(GetStaffListQuery req, CancellationToken ct)
     {
         var query = db.Staff.AsQueryable();
 
@@ -29,17 +34,24 @@ public class GetStaffListQueryHandler(IAppDbContext db)
                                   || e.RoleEntries.Any(r => r.Role.Contains(s)));
         }
 
+        var total = await query.CountAsync(ct);
+
+        var page     = Math.Max(1, req.Page);
+        var pageSize = Math.Clamp(req.PageSize, 1, 100);
+
         var employees = await query
             .OrderBy(e => e.StaffId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(ct);
 
-        var result = employees.Select(e => new StaffDto(
+        var items = employees.Select(e => new StaffDto(
             e.Id, e.StaffId, e.FirstName, e.LastName, e.FullName, e.Email,
             e.Roles.Select(r => r.ToLower()).ToList(),
             e.IsActive, e.PhoneNumber,
             e.IcNo, e.PassportNo,
             e.DateOfBirth?.ToString("yyyy-MM-dd"), e.Age)).ToList();
 
-        return result;
+        return new PagedResult<StaffDto>(items, total);
     }
 }

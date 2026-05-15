@@ -38,9 +38,14 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> List([FromQuery] string? search, CancellationToken ct)
+    public async Task<IActionResult> List(
+        [FromQuery] string? search,
+        [FromQuery] int     page     = 1,
+        [FromQuery] int     pageSize = 10,
+        CancellationToken   ct       = default)
     {
-        var result = await mediator.Send(new GetStaffListQuery(search, ExcludeAdmins: IsManagerCaller), ct);
+        var result = await mediator.Send(
+            new GetStaffListQuery(search, ExcludeAdmins: IsManagerCaller, Page: page, PageSize: pageSize), ct);
         return Ok(result);
     }
 

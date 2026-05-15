@@ -33,7 +33,7 @@ public class SendMessageHandler(IAppDbContext db, INotificationHub notifHub) : I
         db.StaffMessages.Add(msg);
         await db.SaveChangesAsync(ct);
 
-        // Push real-time notification to recipient
+        // Push real-time notification to recipient (non-critical — message is already saved)
         if (req.RecipientId.HasValue)
         {
             var notif = Notification.Create(req.RecipientId.Value,
@@ -42,8 +42,12 @@ public class SendMessageHandler(IAppDbContext db, INotificationHub notifHub) : I
                 "message", msg.Id.ToString());
             db.Notifications.Add(notif);
             await db.SaveChangesAsync(ct);
-            await notifHub.SendToUserAsync(req.RecipientId.Value,
-                new NotificationPayload(notif.Id.ToString(), notif.Title, notif.Message, notif.Type, notif.RelatedId, notif.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
+            try
+            {
+                await notifHub.SendToUserAsync(req.RecipientId.Value,
+                    new NotificationPayload(notif.Id.ToString(), notif.Title, notif.Message, notif.Type, notif.RelatedId, notif.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
+            }
+            catch { /* SignalR delivery is best-effort; message is already persisted */ }
         }
 
         return msg.Id;

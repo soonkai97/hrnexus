@@ -91,8 +91,8 @@ export class AnnouncementsComponent implements OnInit {
       this.toast.error('Title cannot exceed 200 characters.');
       return;
     }
-    if (this.form.body.trim().length > 4000) {
-      this.toast.error('Body cannot exceed 4000 characters.');
+    if (this.form.body.trim().length > 5000) {
+      this.toast.error('Body cannot exceed 5000 characters.');
       return;
     }
     if (this.form.expiresAt) {

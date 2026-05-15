@@ -33,14 +33,28 @@ export class AnnouncementsComponent implements OnInit {
 
   markRead(a: AnnouncementDto): void {
     if (a.isRead) return;
-    this.announcementSvc.markRead(a.id).subscribe();
+    // Optimistic UI — update signal immediately; silently retry on next page load if it fails
     this.items.update(list => list.map(x => x.id === a.id ? { ...x, isRead: true } : x));
+    this.announcementSvc.markRead(a.id).subscribe({
+      error: () => {
+        // Revert the optimistic update so the user can try again
+        this.items.update(list => list.map(x => x.id === a.id ? { ...x, isRead: false } : x));
+        this.toast.error('Failed to mark as read.');
+      },
+    });
   }
 
   markAllRead(): void {
     const unread = this.items().filter(a => !a.isRead);
-    unread.forEach(a => this.announcementSvc.markRead(a.id).subscribe());
     this.items.update(list => list.map(x => ({ ...x, isRead: true })));
     this.toast.success(this.translate.instant('announcements.markAllRead'));
+    unread.forEach(a =>
+      this.announcementSvc.markRead(a.id).subscribe({
+        error: () => {
+          // Revert individual item if its call fails
+          this.items.update(list => list.map(x => x.id === a.id ? { ...x, isRead: false } : x));
+        },
+      })
+    );
   }
 }

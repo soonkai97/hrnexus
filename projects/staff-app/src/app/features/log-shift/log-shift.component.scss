@@ -2,6 +2,36 @@
 
 .page-wrap { padding: 1.5rem; max-width: 640px; margin: 0 auto; }
 
+// ── View tabs ────────────────────────────────────────────────────────────────
+.view-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.25rem;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-sm;
+  overflow: hidden;
+
+  button {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border: none;
+    background: $bg-surface;
+    color: $text-muted;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all $transition-fast;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+
+    & + button { border-left: 1px solid $border-subtle; }
+    &.active { background: rgba(168,85,247,0.15); color: $neon-purple; }
+    &:hover:not(.active) { background: rgba(168,85,247,0.06); color: $text-primary; }
+  }
+}
+
 // Announcements
 .announcement-banner {
   display: flex;

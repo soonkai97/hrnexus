@@ -298,6 +298,19 @@ input[type="time"] {
   }
 }
 
+// ── PrimeNG p-select internal button reset ────────────────────────────────────
+// The clear (×) and dropdown chevron are <button> elements. PrimeNG does not
+// reset browser-default button chrome on them, so they render as detached gray
+// boxes. Target them here to make them invisible inside the select container.
+.p-select-clear-icon,
+.p-select-dropdown {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 // ── Required field asterisk ────────────────────────────────────────────────────
 .req { color: $danger; margin-right: 0.15em; font-weight: 700; }
 

@@ -17,6 +17,9 @@ public static class AppConstants
         /// <summary>JWT claim value for the highest-privilege tier.</summary>
         public const string AdminClaim   = "Admin";
         public const string ManagerClaim = "Manager";
+
+        /// <summary>Comma-separated claim string for use in [Authorize(Roles = ...)] attributes.</summary>
+        public const string ManagerOrAdminClaim = ManagerClaim + "," + AdminClaim;
     }
 
     // ── Leave ──────────────────────────────────────────────────────────────────

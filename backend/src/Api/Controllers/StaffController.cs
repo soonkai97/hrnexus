@@ -13,27 +13,28 @@ namespace NightclubWorkforce.Api.Controllers;
 
 [ApiController]
 [Route("api/staff")]
-[Authorize(Roles = "Manager,Admin")]
+[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
 public class StaffController(IMediator mediator) : ControllerBase
 {
     private string CallerRole => User.FindFirstValue(ClaimTypes.Role) ?? "";
     private Guid   CallerId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     /// <summary>True when the caller is a Manager but NOT an Admin.</summary>
-    private bool IsManagerCaller => User.IsInRole("Manager") && !User.IsInRole("Admin");
+    private bool IsManagerCaller =>
+        User.IsInRole(AppConstants.Roles.ManagerClaim) && !User.IsInRole(AppConstants.Roles.AdminClaim);
 
     private static bool HasElevatedRole(IEnumerable<string> roles) =>
-        roles.Any(r => r.Equals("manager", StringComparison.OrdinalIgnoreCase) ||
-                       r.Equals("admin",   StringComparison.OrdinalIgnoreCase));
+        roles.Any(r => r.Equals(AppConstants.Roles.Manager, StringComparison.OrdinalIgnoreCase) ||
+                       r.Equals(AppConstants.Roles.Admin,   StringComparison.OrdinalIgnoreCase));
 
     private static bool HasAdminRole(IEnumerable<string> roles) =>
-        roles.Any(r => r.Equals("admin", StringComparison.OrdinalIgnoreCase));
+        roles.Any(r => r.Equals(AppConstants.Roles.Admin, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Returns true if the staff member with the given ID has the admin role.</summary>
     private static async Task<bool> IsAdminAsync(Guid id, IAppDbContext db, CancellationToken ct)
     {
         return await db.StaffRoles
-            .AnyAsync(r => r.EmployeeId == id && r.Role == "admin", ct);
+            .AnyAsync(r => r.EmployeeId == id && r.Role == AppConstants.Roles.Admin, ct);
     }
 
     [HttpGet]
@@ -63,7 +64,7 @@ public class StaffController(IMediator mediator) : ControllerBase
         if (HasAdminRole(cmd.Roles))
             return Forbid();
 
-        if (CallerRole == "Manager" && HasElevatedRole(cmd.Roles))
+        if (CallerRole == AppConstants.Roles.ManagerClaim && HasElevatedRole(cmd.Roles))
             return Forbid();
 
         try
@@ -145,7 +146,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> Delete(Guid id,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -190,7 +191,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("roles")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AppConstants.Roles.AdminClaim)]
     public async Task<IActionResult> CreateRole([FromBody] CreateRoleBody body, CancellationToken ct)
     {
         try
@@ -203,7 +204,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("roles/{name}/rate")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AppConstants.Roles.AdminClaim)]
     public async Task<IActionResult> UpdateRoleRate(string name, [FromBody] UpdateRoleRateBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -217,7 +218,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("roles/{name}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AppConstants.Roles.AdminClaim)]
     public async Task<IActionResult> DeleteRole(string name, CancellationToken ct)
     {
         try

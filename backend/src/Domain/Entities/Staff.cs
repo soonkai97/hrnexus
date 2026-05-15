@@ -1,3 +1,5 @@
+using NightclubWorkforce.Domain.Constants;
+
 namespace NightclubWorkforce.Domain.Entities;
 
 public class Staff
@@ -67,8 +69,8 @@ public class Staff
     {
         get
         {
-            if (Roles.Any(r => r.Equals("admin",   StringComparison.OrdinalIgnoreCase))) return "Admin";
-            if (Roles.Any(r => r.Equals("manager", StringComparison.OrdinalIgnoreCase))) return "Manager";
+            if (Roles.Any(r => r.Equals(AppConstants.Roles.Admin,   StringComparison.OrdinalIgnoreCase))) return AppConstants.Roles.AdminClaim;
+            if (Roles.Any(r => r.Equals(AppConstants.Roles.Manager, StringComparison.OrdinalIgnoreCase))) return AppConstants.Roles.ManagerClaim;
             return "Employee";
         }
     }

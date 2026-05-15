@@ -2,6 +2,7 @@ using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 using NightclubWorkforce.Domain.Entities;
 
 namespace NightclubWorkforce.Infrastructure.Jobs;
@@ -78,7 +79,7 @@ public class ShiftJobs(
         {
             var supervisorIds = await db.Staff
                 .Where(s => s.IsActive &&
-                            s.RoleEntries.Any(r => r.Role == "manager" || r.Role == "admin"))
+                            s.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager || r.Role == AppConstants.Roles.Admin))
                 .Select(s => s.Id)
                 .ToListAsync();
 

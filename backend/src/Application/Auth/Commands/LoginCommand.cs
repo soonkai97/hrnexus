@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 
 namespace NightclubWorkforce.Application.Auth.Commands;
 
@@ -28,8 +29,8 @@ public class LoginCommandHandler(IAppDbContext db, IPasswordHasher hasher, IToke
             throw new UnauthorizedAccessException("Invalid credentials.");
 
         // Portal access control
-        var isAdmin   = employee.Roles.Any(r => r.Equals("admin",   StringComparison.OrdinalIgnoreCase));
-        var isElevated = isAdmin || employee.Roles.Any(r => r.Equals("manager", StringComparison.OrdinalIgnoreCase));
+        var isAdmin    = employee.Roles.Any(r => r.Equals(AppConstants.Roles.Admin,   StringComparison.OrdinalIgnoreCase));
+        var isElevated = isAdmin || employee.Roles.Any(r => r.Equals(AppConstants.Roles.Manager, StringComparison.OrdinalIgnoreCase));
 
         if (req.Portal == "staff" && isAdmin)
             throw new UnauthorizedAccessException("Admin accounts cannot access the staff portal.");

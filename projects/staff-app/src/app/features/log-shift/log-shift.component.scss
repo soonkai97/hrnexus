@@ -131,6 +131,8 @@
 // Form
 .form-card { padding: 1.5rem; margin-bottom: 1.5rem; }
 
+.opt { font-size: 0.72rem; color: $text-muted; font-weight: 400; }
+
 .form-error {
   background: rgba(239,68,68,0.1);
   border: 1px solid rgba(239,68,68,0.25);

@@ -35,12 +35,12 @@
     <div class="sidebar-footer">
       @if (user()) {
         <div class="user-row">
-          <div class="user-avatar">{{ initials() }}</div>
+          <a routerLink="/profile" class="user-avatar" [title]="'nav.profile' | translate">{{ initials() }}</a>
           @if (!collapsed()) {
-            <div class="user-info">
+            <a routerLink="/profile" class="user-info">
               <span class="user-name">{{ user()!.fullName.split(' ')[0] }}</span>
               <span class="user-role">{{ userRoleLabel() }}</span>
-            </div>
+            </a>
             <button class="logout-btn" (click)="logout()" [title]="'topbar.signOut' | translate">⏻</button>
           }
         </div>

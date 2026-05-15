@@ -15,7 +15,7 @@
     <div #formAnchor class="form-card nc-card">
       <div class="form-header">
         <h3>{{ 'staff.newStaffMember' | translate }}</h3>
-        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" (click)="closeForm()">✕</button>
+        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" aria-label="Close form" (click)="closeForm()">✕</button>
       </div>
       <div class="form-grid">
         <div class="field">
@@ -24,15 +24,15 @@
         </div>
         <div class="field">
           <label>{{ 'staff.firstName' | translate }}</label>
-          <input type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" />
+          <input type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" maxlength="100" />
         </div>
         <div class="field">
           <label>{{ 'staff.lastName' | translate }}</label>
-          <input type="text" [(ngModel)]="newStaff.lastName" placeholder="e.g. Torres" />
+          <input type="text" [(ngModel)]="newStaff.lastName" placeholder="e.g. Torres" maxlength="100" />
         </div>
         <div class="field">
           <label>{{ 'staff.email' | translate }}</label>
-          <input type="text" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" />
+          <input type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off" />
         </div>
         <div class="field">
           <label>{{ 'staff.roles' | translate }} <span style="color:var(--text-muted,#4e4a65);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
@@ -53,7 +53,7 @@
               <div class="role-ms-panel">
                 @for (r of availableRoles(); track r.name) {
                   <label class="role-ms-option" (click)="$event.preventDefault(); $event.stopPropagation(); toggleRole(r.name)">
-                    <input type="checkbox" [checked]="hasRole(r.name)" readonly />
+                    <input type="checkbox" [checked]="hasRole(r.name)" (click)="$event.stopPropagation()" />
                     {{ r.name | titlecase }}
                     @if (r.isSystem) { <span class="role-ms-sys">{{ 'staff.system' | translate }}</span> }
                   </label>
@@ -64,7 +64,7 @@
         </div>
         <div class="field">
           <label>{{ 'staff.phoneNumber' | translate }}</label>
-          <input type="text" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" />
+          <input type="tel" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" maxlength="20" />
         </div>
         <div class="field">
           <label>{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
@@ -76,7 +76,7 @@
         </div>
         <div class="field">
           <label>{{ 'staff.dateOfBirth' | translate }}</label>
-          <input type="date" [(ngModel)]="newStaff.dateOfBirth" />
+          <input type="date" [(ngModel)]="newStaff.dateOfBirth" [max]="today" />
         </div>
       </div>
       <div class="form-actions">
@@ -100,12 +100,12 @@
     <table>
       <thead>
         <tr>
-          <th>{{ 'staff.staffId' | translate }}</th>
-          <th>{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</th>
-          <th>{{ 'staff.roleCol' | translate }}</th>
-          <th>{{ 'staff.phone' | translate }}</th>
-          <th>{{ 'staff.statusCol' | translate }}</th>
-          <th class="td-actions"></th>
+          <th scope="col">{{ 'staff.staffId' | translate }}</th>
+          <th scope="col">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</th>
+          <th scope="col">{{ 'staff.roleCol' | translate }}</th>
+          <th scope="col">{{ 'staff.phone' | translate }}</th>
+          <th scope="col">{{ 'staff.statusCol' | translate }}</th>
+          <th scope="col" class="td-actions"></th>
         </tr>
       </thead>
       <tbody>
@@ -130,6 +130,7 @@
             <td class="td-actions">
               <!-- trigger only — dropdown rendered at page-wrap level to escape backdrop-filter -->
               <button class="btn-menu-trigger" [ncTooltip]="'Actions'"
+                      [attr.aria-label]="'Actions for ' + s.fullName"
                       (click)="toggleMenu(s.id, $event); $event.stopPropagation()">⋯</button>
             </td>
           </tr>
@@ -176,7 +177,7 @@
     <div class="modal-card nc-card" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3 class="modal-title">{{ 'staff.resetPasswordTitle' | translate }}</h3>
-        <button class="modal-close" (click)="closeResetPassword()">✕</button>
+        <button class="modal-close" aria-label="Close dialog" (click)="closeResetPassword()">✕</button>
       </div>
 
       <p class="modal-desc">

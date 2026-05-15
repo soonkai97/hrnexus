@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { PayrollService, PaySummary, ToastService } from 'shared-lib';
+import { PayrollService, PaySummary, ToastService, MONTH_NAMES } from 'shared-lib';
 
 @Component({
   selector: 'app-pay-summary',
@@ -18,10 +18,7 @@ export class PaySummaryComponent implements OnInit {
   selectedYear  = signal(new Date().getFullYear());
   selectedMonth = signal(new Date().getMonth() + 1); // 1-based
 
-  readonly months = [
-    'January','February','March','April','May','June',
-    'July','August','September','October','November','December',
-  ];
+  readonly months = MONTH_NAMES;
 
   /** First and last day of the selected month */
   periodStart = computed(() => {

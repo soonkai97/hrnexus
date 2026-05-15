@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 using NightclubWorkforce.Domain.Entities;
 
 namespace NightclubWorkforce.Api.Controllers;
@@ -48,7 +49,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
         var loc = await db.Locations.FindAsync([id], ct);
         if (loc is null) return NotFound();
         if (file.Length == 0) return BadRequest(new { error = "Empty file." });
-        if (file.Length > 5_242_880) return BadRequest(new { error = "Image must be smaller than 5 MB." });
+        if (file.Length > AppConstants.Limits.ImageMaxBytes) return BadRequest(new { error = "Image must be smaller than 5 MB." });
 
         var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();

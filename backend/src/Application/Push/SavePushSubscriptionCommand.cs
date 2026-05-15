@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 using NightclubWorkforce.Domain.Entities;
 
 namespace NightclubWorkforce.Application.Push;
@@ -22,10 +23,10 @@ public class SavePushSubscriptionCommandHandler(IAppDbContext db)
 
         if (exists) return;
 
-        // Cap at 5 subscriptions per employee (one per browser/device)
+        // Cap subscriptions per employee (one per browser/device)
         var count = await db.PushSubscriptions
             .CountAsync(s => s.EmployeeId == req.EmployeeId, ct);
-        if (count >= 5) return;
+        if (count >= AppConstants.Limits.PushSubscriptionsCap) return;
 
         var sub = PushSubscription.Create(req.EmployeeId, req.Endpoint, req.P256dh, req.Auth);
         db.PushSubscriptions.Add(sub);

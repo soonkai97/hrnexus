@@ -8,15 +8,15 @@
     <div #formAnchor class="nc-card form-card">
       <div class="form-header">
         <h3>{{ editing() ? ('announcements.editForm' | translate) : ('announcements.newForm' | translate) }}</h3>
-        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" (click)="cancel()">✕</button>
+        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" aria-label="Close form" (click)="cancel()">✕</button>
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'announcements.titleLabel' | translate }}</label>
-        <input [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" />
+        <input [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" maxlength="200" />
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'announcements.bodyLabel' | translate }}</label>
-        <textarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate"></textarea>
+        <textarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate" maxlength="5000"></textarea>
       </div>
       <div class="field">
         <label>{{ 'announcements.targetRoles' | translate }}</label>
@@ -46,13 +46,13 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>{{ 'announcements.titleCol' | translate }}</th>
-              <th>{{ 'announcements.targetRolesCol' | translate }}</th>
-              <th>{{ 'announcements.readsCol' | translate }}</th>
-              <th>{{ 'announcements.createdByCol' | translate }}</th>
-              <th>{{ 'announcements.expiresCol' | translate }}</th>
-              <th>{{ 'announcements.activeCol' | translate }}</th>
-              <th class="td-actions"></th>
+              <th scope="col">{{ 'announcements.titleCol' | translate }}</th>
+              <th scope="col">{{ 'announcements.targetRolesCol' | translate }}</th>
+              <th scope="col">{{ 'announcements.readsCol' | translate }}</th>
+              <th scope="col">{{ 'announcements.createdByCol' | translate }}</th>
+              <th scope="col">{{ 'announcements.expiresCol' | translate }}</th>
+              <th scope="col">{{ 'announcements.activeCol' | translate }}</th>
+              <th scope="col" class="td-actions"></th>
             </tr>
           </thead>
           <tbody>
@@ -71,6 +71,7 @@
                 <td class="td-actions">
                   <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
                   <button class="btn-menu-trigger" [ncTooltip]="'Actions'"
+                          [attr.aria-label]="'Actions for ' + item.title"
                           (click)="toggleMenu(item.id, $event); $event.stopPropagation()">⋯</button>
                 </td>
               </tr>

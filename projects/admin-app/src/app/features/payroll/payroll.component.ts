@@ -1,7 +1,7 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminService, PayrollSummaryResponse, PayrollStaffRow } from 'shared-lib';
+import { AdminService, PayrollSummaryResponse, PayrollStaffRow, MONTH_NAMES } from 'shared-lib';
 
 @Component({
   selector: 'app-payroll',
@@ -19,7 +19,7 @@ export class PayrollComponent {
   exporting = signal(false);
   data      = signal<PayrollSummaryResponse | null>(null);
 
-  readonly months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  readonly months = MONTH_NAMES;
 
   readonly now = new Date();
   isCurrentOrFutureMonth = computed(() => {

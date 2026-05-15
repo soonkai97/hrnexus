@@ -2,18 +2,19 @@ import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } fr
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AdminService, OvertimeRuleDto, ToastService, ConfirmService, StaffStore, TooltipDirective } from 'shared-lib';
+import { AdminService, OvertimeRuleDto, ToastService, ConfirmService, StaffStore } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
+import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-overtime',
   standalone: true,
-  imports: [TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective,
-    Button, InputNumber, TableModule, Tag, TooltipModule],
+  imports: [TitleCasePipe, FormsModule, TranslatePipe,
+    Button, InputNumber, TableModule, Tag, Card, TooltipModule],
   templateUrl: './overtime.component.html',
   styleUrl: './overtime.component.scss',
 })
@@ -23,7 +24,7 @@ export class OvertimeComponent implements OnInit {
   private confirmSvc = inject(ConfirmService);
   readonly staffStore = inject(StaffStore);
 
-  @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
   rules     = signal<OvertimeRuleDto[]>([]);
   loading   = signal(false);

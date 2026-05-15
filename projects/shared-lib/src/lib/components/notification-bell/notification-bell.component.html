@@ -1,21 +1,24 @@
-<!-- Bell button -->
-<button #bellBtn class="bell-btn" [class.has-unread]="svc.unreadCount() > 0"
-        type="button" aria-label="Notifications" (click)="toggle()">
-  🔔
+<!-- Bell button with unread badge -->
+<div class="bell-wrap">
+  <p-button
+    icon="pi pi-bell"
+    [text]="true"
+    severity="secondary"
+    [class.has-unread]="svc.unreadCount() > 0"
+    aria-label="Notifications"
+    (onClick)="toggle($event)" />
   @if (svc.unreadCount() > 0) {
-    <span class="badge" pBadge>{{ svc.unreadCount() > 9 ? '9+' : svc.unreadCount() }}</span>
+    <span class="bell-badge">{{ svc.unreadCount() > 9 ? '9+' : svc.unreadCount() }}</span>
   }
-</button>
+</div>
 
-@if (open()) {
-  <div class="notif-panel"
-       [style.top.px]="panelTop"
-       [style.right.px]="panelRight">
-
+<!-- Popover panel -->
+<p-popover #notifPanel styleClass="notif-popover">
+  <div class="notif-panel">
     <div class="panel-header">
       <span class="panel-title">Notifications</span>
       @if (svc.unreadCount() > 0) {
-        <button class="mark-all" (click)="markAll()">Mark all read</button>
+        <p-button label="Mark all read" [text]="true" size="small" severity="secondary" (onClick)="markAll()" />
       }
     </div>
 
@@ -39,4 +42,4 @@
       }
     </div>
   </div>
-}
+</p-popover>

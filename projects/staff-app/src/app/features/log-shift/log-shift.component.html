@@ -25,7 +25,7 @@
 
     <!-- Active shift -->
     @if (activeLog(); as a) {
-      <div class="active-card nc-card">
+      <p-card styleClass="active-card">
         <div class="active-badge">{{ 'logShift.live' | translate }}</div>
         <div class="active-info">
           <div class="active-role">{{ a.roleName | uppercase }}</div>
@@ -44,7 +44,7 @@
         } @else {
           <p-button [label]="'logShift.endShift' | translate" severity="danger" (click)="openEndShift(a.id)" />
         }
-      </div>
+      </p-card>
     }
 
     <!-- Mode toggle (only when no active shift) -->
@@ -56,7 +56,7 @@
 
       <!-- LIVE form -->
       @if (mode() === 'live') {
-        <div class="nc-card form-card">
+        <p-card styleClass="form-card">
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
             <p-select
@@ -89,12 +89,12 @@
             <p-message severity="error" [text]="formError()" />
           }
           <p-button [label]="'logShift.startShiftBtn' | translate" severity="primary" styleClass="w-full" [loading]="submitting()" (click)="startShift()" />
-        </div>
+        </p-card>
       }
 
       <!-- MANUAL form -->
       @if (mode() === 'manual') {
-        <div class="nc-card form-card">
+        <p-card styleClass="form-card">
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.date' | translate }}</label>
             <input type="date" [(ngModel)]="manualForm.workDate" />
@@ -137,7 +137,7 @@
             <p-message severity="error" [text]="formError()" />
           }
           <p-button [label]="'logShift.logShiftBtn' | translate" severity="primary" styleClass="w-full" [loading]="submitting()" (click)="submitManual()" />
-        </div>
+        </p-card>
       }
     }
 
@@ -158,7 +158,7 @@
     } @else {
       <div class="history-list">
         @for (wl of history(); track wl.id) {
-          <div class="history-card nc-card">
+          <p-card styleClass="history-card">
             <div class="history-top">
               <span class="h-role">{{ wl.roleName | uppercase }}</span>
               <span class="h-date">{{ wl.workDate }}</span>
@@ -173,14 +173,14 @@
               <div class="h-notes">📝 {{ wl.notes }}</div>
             }
             <p-button [label]="'logShift.delete' | translate" [text]="true" severity="danger" size="small" (click)="deleteLog(wl.id)" />
-          </div>
+          </p-card>
         }
       </div>
 
       @if (totalHistoryPages() > 1) {
-        <div class="pagination-bar">
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
           <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="historyPage() === 1" (click)="loadHistory(historyPage() - 1)" />
-          <span>{{ historyPage() }} / {{ totalHistoryPages() }} <span class="pag-total">({{ totalHistory() }})</span></span>
+          <span>{{ historyPage() }} / {{ totalHistoryPages() }} ({{ totalHistory() }})</span>
           <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="historyPage() === totalHistoryPages()" (click)="loadHistory(historyPage() + 1)" />
         </div>
       }

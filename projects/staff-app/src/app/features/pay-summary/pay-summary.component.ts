@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PayrollService, PaySummary, ToastService, MONTH_NAMES } from 'shared-lib';
 import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { InputNumber } from 'primeng/inputnumber';
 
 @Component({
   selector: 'app-pay-summary',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, Button, Select, InputNumber],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, InputNumber],
   templateUrl: './pay-summary.component.html',
   styleUrl: './pay-summary.component.scss',
 })

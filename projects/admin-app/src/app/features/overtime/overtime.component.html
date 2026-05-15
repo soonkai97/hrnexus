@@ -5,7 +5,7 @@
   </div>
 
   @if (showForm()) {
-    <div #formAnchor class="nc-card form-card">
+    <p-card #formAnchor styleClass="form-card">
       <!-- backdrop inside card so it doesn't bleed over table below -->
       @if (showRoleDropdown()) {
         <div class="role-backdrop" (click)="closeRoleDropdown()"></div>
@@ -64,14 +64,14 @@
         <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"
                   severity="primary" (click)="save()" [disabled]="saving()" [loading]="saving()" />
       </div>
-    </div>
+    </p-card>
   }
 
   @if (loading()) {
     <div class="loading-wrap"><span class="nc-spinner"></span></div>
   }
 
-  <div class="nc-card">
+  <p-card styleClass="nc-card">
     @if (rules().length === 0 && !loading()) {
       <div class="empty-state">{{ 'overtime.noRulesConfigured' | translate }}</div>
     } @else {
@@ -98,9 +98,9 @@
             <td>{{ rule.multiplier }}×</td>
             <td>
               @if (rule.isActive) {
-                <span class="badge badge-success">{{ 'common.active' | translate }}</span>
+                <p-tag [value]="'common.active' | translate" severity="success" />
               } @else {
-                <span class="badge badge-muted">{{ 'common.inactive' | translate }}</span>
+                <p-tag [value]="'common.inactive' | translate" severity="secondary" />
               }
             </td>
             <td class="td-actions">
@@ -112,7 +112,7 @@
         </ng-template>
       </p-table>
     }
-  </div>
+  </p-card>
 
   <!-- ── Action dropdown — outside .nc-card so backdrop-filter doesn't clip it ── -->
   @if (menuTarget() && menuPos()) {

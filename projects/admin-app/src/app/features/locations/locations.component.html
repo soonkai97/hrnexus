@@ -10,7 +10,7 @@
 
   <!-- Form -->
   @if (showForm()) {
-    <div #formAnchor class="nc-card form-card">
+    <p-card #formAnchor styleClass="form-card">
       <div class="form-header">
         <h3>{{ editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate) }}</h3>
         <p-button icon="pi pi-times" [text]="true" severity="secondary" pTooltip="Close" (click)="cancel()" />
@@ -24,18 +24,18 @@
         <p-button [label]="saving() ? ('common.saving' | translate) : (editing() ? ('common.update' | translate) : ('common.create' | translate))"
                   severity="primary" (click)="save()" [disabled]="saving() || !form.name" [loading]="saving()" />
       </div>
-    </div>
+    </p-card>
   }
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="nc-card loading-card">{{ 'locations.loading' | translate }}</div>
+    <p-card styleClass="loading-card">{{ 'locations.loading' | translate }}</p-card>
   }
 
   <!-- Grid -->
   <div class="loc-grid">
     @for (loc of locations(); track loc.id) {
-      <div class="nc-card loc-card">
+      <p-card styleClass="loc-card">
         <!-- Image area -->
         <div class="loc-image">
           @if (loc.imagePath) {
@@ -45,7 +45,7 @@
           }
           <!-- Upload overlay -->
           <label class="loc-upload-label">
-            <span class="btn-ghost">
+            <span class="upload-btn">
               📷 {{ loc.imagePath ? ('locations.changePhoto' | translate) : ('locations.addPhoto' | translate) }}
             </span>
             <input type="file" accept="image/*" (change)="uploadImage(loc, $event)" />
@@ -59,7 +59,7 @@
             <p-button [label]="'locations.deleteBtn' | translate" [text]="true" severity="danger" (click)="remove(loc.id)" />
           </div>
         </div>
-      </div>
+      </p-card>
     }
   </div>
 </div>

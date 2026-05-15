@@ -113,93 +113,7 @@ input[type="time"] {
   }
 }
 
-// ── Buttons ──────────────────────────────────────────────────────────────────
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.9rem 1.5rem;
-  background: $grad-primary;
-  color: #fff;
-  border: none;
-  border-radius: $radius-md;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity $transition-fast, box-shadow $transition-fast;
-  box-shadow: 0 4px 20px rgba(168,85,247,0.3);
-
-  &:hover:not(:disabled) { opacity: 0.9; box-shadow: $glow-purple; }
-  &:active:not(:disabled){ opacity: 0.8; }
-  &:disabled { opacity: 0.4; cursor: not-allowed; }
-}
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.8rem 1.5rem;
-  background: transparent;
-  color: $neon-purple;
-  border: 1px solid $border-glow;
-  border-radius: $radius-md;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background $transition-fast, box-shadow $transition-fast;
-
-  &:hover { background: rgba(168,85,247,0.08); box-shadow: $glow-sm; }
-}
-
-.btn-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.7rem 1.25rem;
-  background: rgba(239,68,68,0.15);
-  color: #f87171;
-  border: 1px solid rgba(239,68,68,0.3);
-  border-radius: $radius-md;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background $transition-fast;
-
-  &:hover { background: rgba(239,68,68,0.25); }
-}
-
-.btn-ghost {
-  background: none;
-  border: none;
-  color: $text-secondary;
-  cursor: pointer;
-  font-size: 0.875rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: $radius-sm;
-  transition: color $transition-fast, background $transition-fast;
-
-  &:hover { color: $text-primary; background: $bg-raised; }
-}
-
-// Makes any button stretch to full container width
-.btn-block {
-  width: 100%;
-  display: block;
-}
-
 // ── Cards ────────────────────────────────────────────────────────────────────
-
-.nc-card {
-  @include glass;
-  @include neon-border;
-  border-radius: $radius-lg;
-  padding: 1.5rem;
-  background: $grad-card;
-  animation: fade-up 0.3s ease both;
-}
 
 // ── Page header (global — so no component needs to redefine these) ────────────
 
@@ -256,30 +170,6 @@ input[type="time"] {
   margin: 0 auto 1.5rem;
 
   &.sm { width: 24px; height: 24px; border-width: 2px; margin: 0; }
-}
-
-// ── Badge ────────────────────────────────────────────────────────────────────
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: $radius-pill;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  &.badge-active  { background: rgba(74,222,128,0.12); color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
-  &.badge-closed  { background: $bg-raised; color: $text-muted; border: 1px solid $border-subtle; }
-  &.badge-warning { background: rgba(251,191,36,0.12); color: $neon-amber; border: 1px solid rgba(251,191,36,0.25); }
-  &.badge-error   { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
-}
-
-.pulse-dot {
-  @include pulse-dot;
-  display: inline-block;
 }
 
 // ── Scrollbar ────────────────────────────────────────────────────────────────
@@ -342,13 +232,6 @@ input[type="time"] {
     color: var(--nc-text-primary);
   }
 
-  .nc-card, .stat-card {
-    background: var(--nc-bg-surface) !important;
-    border-color: var(--nc-border-subtle) !important;
-    backdrop-filter: none;
-    box-shadow: 0 2px 12px rgba(100,60,200,0.08);
-  }
-
   input, select, textarea {
     background-color: var(--nc-bg-raised); // longhand — does NOT reset background-image/repeat/position
     border-color: var(--nc-border-subtle);
@@ -373,8 +256,6 @@ input[type="time"] {
   }
 
   .field label { color: var(--nc-text-muted) !important; }
-  .btn-ghost { color: var(--nc-text-secondary); &:hover { background: var(--nc-bg-raised); color: var(--nc-text-primary); } }
-  .btn-secondary { color: #7c3aed; border-color: rgba(124,58,237,0.3); &:hover { background: rgba(124,58,237,0.06); } }
   .divider { background: var(--nc-border-subtle); }
 
   ::-webkit-scrollbar-thumb { background: var(--nc-border-glow); }
@@ -393,7 +274,6 @@ input[type="time"] {
   app-shell .nav-icon { filter: none !important; }
   app-shell .user-info .user-name { color: var(--nc-text-primary) !important; }
   app-shell .user-info .user-role { color: var(--nc-text-muted) !important; }
-  app-shell .logout-btn    { color: var(--nc-text-muted) !important; }
   app-shell .collapse-btn  { color: var(--nc-text-muted) !important; border-color: var(--nc-border-subtle) !important; }
   app-shell .mobile-menu-btn { color: var(--nc-text-secondary) !important; }
   app-shell .topbar {
@@ -401,16 +281,6 @@ input[type="time"] {
     border-color: var(--nc-border-subtle) !important;
   }
   app-shell .topbar-user { color: var(--nc-text-secondary) !important; }
-  app-shell .lang-btn {
-    color: var(--nc-text-secondary) !important;
-    border-color: var(--nc-border-subtle) !important;
-    background: transparent !important;
-    &:hover {
-      color: #7c3aed !important;
-      border-color: var(--nc-border-glow) !important;
-      background: rgba(120,60,200,0.06) !important;
-    }
-  }
   app-shell .shell::before { opacity: 0.04; }
 
   // Login page

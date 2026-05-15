@@ -9,12 +9,12 @@
   </div>
 
   @if (showCompose()) {
-    <div class="nc-card compose-card">
+    <p-card styleClass="compose-card">
       <div class="compose-to">To: <strong>Management</strong></div>
       <textarea pTextarea [(ngModel)]="replyContent" rows="4" placeholder="Type your message to management…" maxlength="2000"></textarea>
       <div class="char-count">{{ replyContent.length }}/2000</div>
       <p-button label="Send" severity="primary" [loading]="sending()" [disabled]="!replyContent.trim()" (click)="send()" />
-    </div>
+    </p-card>
   }
 
   <div class="tab-nav">
@@ -31,12 +31,12 @@
       <div class="empty-state"><div class="empty-icon">📭</div><p>No messages yet.</p></div>
     }
     @for (msg of inbox(); track msg.id) {
-      <div class="nc-card msg-card" [class.unread]="!msg.readAt" (click)="markRead(msg)">
+      <p-card [styleClass]="'msg-card' + (!msg.readAt ? ' unread' : '')" (click)="markRead(msg)">
         <div class="msg-from">From: {{ msg.senderName }}</div>
         <div class="msg-body">{{ msg.content }}</div>
         <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
         @if (!msg.readAt) { <span class="unread-dot"></span> }
-      </div>
+      </p-card>
     }
   }
 
@@ -45,11 +45,11 @@
       <div class="empty-state"><div class="empty-icon">📤</div><p>No sent messages.</p></div>
     }
     @for (msg of sent(); track msg.id) {
-      <div class="nc-card msg-card">
+      <p-card styleClass="msg-card">
         <div class="msg-from">To: Management</div>
         <div class="msg-body">{{ msg.content }}</div>
         <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
-      </div>
+      </p-card>
     }
   }
 </div>

@@ -2,6 +2,8 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
+import { Button } from 'primeng/button';
+import { BadgeModule } from 'primeng/badge';
 import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService } from 'shared-lib';
 
 interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: FeatureKey; }
@@ -13,7 +15,7 @@ interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: 
     RouterOutlet, RouterLink, RouterLinkActive,
     ToastComponent, ConfirmDialogComponent,
     NotificationBellComponent, ThemeToggleComponent,
-    TranslatePipe,
+    TranslatePipe, Button, BadgeModule,
   ],
   templateUrl: './shell.component.html',
   styleUrl:    './shell.component.scss',
@@ -27,31 +29,20 @@ export class ShellComponent {
   private readonly announcementSvc = inject(AnnouncementService);
   readonly notifSvc                = inject(NotificationService);
 
-  // Start collapsed on mobile
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
-  /** Unread announcement count — refreshed on every navigation so it stays current */
   unreadAnnouncements = signal(0);
-
-  /** Unread notification count — derived from the NotificationService signal */
   unreadNotifications = computed(() => this.notifSvc.unreadCount());
 
   constructor() {
-    // Load feature flags, then load initial unread count
-    this.featureSvc.load().subscribe(() => {
-      this.refreshUnread();
-    });
+    this.featureSvc.load().subscribe(() => { this.refreshUnread(); });
     this.lang.syncFromApi();
-
-    // Start SignalR once here so the connection persists across all navigation
     this.signalR.startConnection();
 
-    // Refresh badge and collapse sidebar on every navigation
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
       if (typeof window !== 'undefined' && window.innerWidth < 769) {
         this.collapsed.set(true);
       }
-      // Refresh unread count so badge reflects any reads done on the announcements page
       this.refreshUnread();
     });
   }
@@ -70,7 +61,6 @@ export class ShellComponent {
     return n.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   });
 
-  /** Human-readable role label shown in sidebar footer */
   userRoleLabel = computed(() => {
     const roles = this.auth.user()?.roles ?? [];
     if (roles.includes('manager')) return 'Manager';
@@ -91,7 +81,6 @@ export class ShellComponent {
     { path: '/profile',         labelKey: 'nav.profile',        icon: '👤'  },
   ];
 
-  /** Reactive nav — re-computed whenever feature flags change */
   navItems = computed(() => {
     const flags = this.featureSvc.flags();
     return this.allNavItems.filter(item => !item.featureFlag || flags[item.featureFlag]);

@@ -5,12 +5,13 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, ToastService, StaffService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { Card } from 'primeng/card';
 import { Message } from 'primeng/message';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe, Button, InputText, Message],
+  imports: [FormsModule, RouterLink, TranslatePipe, Button, InputText, Card, Message],
   templateUrl: './account.component.html',
   styleUrl:    './account.component.scss',
 })

@@ -3,7 +3,7 @@
     <h1 class="page-title">{{ 'nav.tipsHistory' | translate }}</h1>
   </div>
 
-  <div class="nc-card period-picker">
+  <p-card styleClass="period-picker">
     <div class="picker-row">
       <div class="field">
         <label>{{ 'pay.year' | translate }}</label>
@@ -25,12 +25,12 @@
       </div>
       <p-button [label]="'pay.view' | translate" severity="primary" size="small" [loading]="loading()" (click)="load()" />
     </div>
-  </div>
+  </p-card>
 
   @if (loading()) {
     <div class="loading-state"><span class="nc-spinner"></span></div>
   } @else if (summary()) {
-    <div class="nc-card tips-card">
+    <p-card styleClass="tips-card">
       <div class="tips-hero">
         <div class="tips-label">{{ 'tipsHistory.earned' | translate }}</div>
         <div class="tips-amount">RM {{ summary()!.tipsAllocated | number:'1.2-2' }}</div>
@@ -54,7 +54,7 @@
           <span>RM {{ summary()!.grossPay | number:'1.2-2' }}</span>
         </div>
       </div>
-    </div>
+    </p-card>
   } @else {
     <div class="empty-state"><div class="empty-icon">💵</div><p>{{ 'tipsHistory.noData' | translate }}</p></div>
   }

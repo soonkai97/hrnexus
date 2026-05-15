@@ -1,12 +1,15 @@
 :host { position: relative; display: inline-flex; }
 
-.bell-btn {
-  background: none; border: none; cursor: pointer;
-  font-size: 1.25rem; padding: 0.25rem; border-radius: 50%;
-  position: relative; transition: background 0.15s;
-  &:hover { background: rgba(168,85,247,0.1); }
-  &.has-unread { animation: ring 1.5s ease infinite; }
+.bell-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  .has-unread :global(.p-button-icon) {
+    animation: ring 1.5s ease infinite;
+  }
 }
+
 @keyframes ring {
   0%,100% { transform: rotate(0); }
   10%,30%  { transform: rotate(-12deg); }
@@ -14,58 +17,49 @@
   50%      { transform: rotate(0); }
 }
 
-.badge {
-  position: absolute; top: -2px; right: -4px;
+.bell-badge {
+  position: absolute; top: 0; right: 0;
   background: #ef4444; color: #fff;
   font-size: 0.6rem; font-weight: 700;
   border-radius: 999px; padding: 1px 4px;
   min-width: 16px; text-align: center;
+  pointer-events: none;
 }
 
-/* position:fixed escapes backdrop-filter stacking contexts on ancestor elements */
+/* Notification panel inside the popover */
 .notif-panel {
-  position: fixed;
-  z-index: 9999;
   width: 340px;
-  max-width: calc(100vw - 16px); /* never wider than the screen */
+  max-width: calc(100vw - 32px);
   max-height: 480px;
-  background: var(--nc-bg-surface, #13111e);
-  border: 1px solid var(--nc-border-subtle, rgba(168,85,247,0.25));
-  border-radius: 14px;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.4);
-  overflow: hidden; display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .panel-header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--nc-border-subtle, rgba(168,85,247,0.12));
+  padding: 0.75rem 1rem 0.5rem;
+  border-bottom: 1px solid var(--p-surface-border, rgba(168,85,247,0.12));
   flex-shrink: 0;
-  background: var(--nc-bg-raised, rgba(20,18,35,0.95));
 }
-.panel-title { font-weight: 700; font-size: 0.9rem; color: var(--nc-text-primary, #f0eeff); }
-.mark-all {
-  font-size: 0.75rem; color: #a855f7; background: none; border: none;
-  cursor: pointer; text-decoration: underline;
-  &:hover { color: #c084fc; }
-}
+.panel-title { font-weight: 700; font-size: 0.9rem; }
 
-.panel-list  { overflow-y: auto; flex: 1; background: var(--nc-bg-surface, #13111e); }
-.empty-notif { padding: 2rem; text-align: center; color: var(--nc-text-muted, #4e4a65); font-size: 0.85rem; }
+.panel-list  { overflow-y: auto; flex: 1; }
+.empty-notif { padding: 2rem; text-align: center; color: var(--p-text-muted-color); font-size: 0.85rem; }
 
 .notif-item {
   display: flex; gap: 0.75rem; align-items: flex-start;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--nc-border-subtle, rgba(168,85,247,0.08));
+  border-bottom: 1px solid var(--p-surface-border, rgba(168,85,247,0.08));
   transition: background 0.15s;
   &.clickable { cursor: pointer; }
   &:not(.clickable) { cursor: default; }
-  &:hover { background: rgba(168,85,247,0.07); }
+  &:hover { background: var(--p-surface-hover); }
   &.unread { background: rgba(168,85,247,0.05); }
 }
 .notif-icon  { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
 .notif-body  { flex: 1; min-width: 0; }
-.notif-title { font-size: 0.82rem; font-weight: 600; color: var(--nc-text-primary, #f0eeff); margin-bottom: 0.2rem; }
-.notif-msg   { font-size: 0.78rem; color: var(--nc-text-secondary, #a09ab8); line-height: 1.4; white-space: normal; word-break: break-word; }
-.notif-time  { font-size: 0.68rem; color: var(--nc-text-muted, #4e4a65); margin-top: 0.3rem; }
-.unread-dot  { width: 7px; height: 7px; border-radius: 50%; background: #a855f7; flex-shrink: 0; margin-top: 6px; }
+.notif-title { font-size: 0.82rem; font-weight: 600; margin-bottom: 0.2rem; }
+.notif-msg   { font-size: 0.78rem; color: var(--p-text-muted-color); line-height: 1.4; white-space: normal; word-break: break-word; }
+.notif-time  { font-size: 0.68rem; color: var(--p-text-muted-color); margin-top: 0.3rem; }
+.unread-dot  { width: 7px; height: 7px; border-radius: 50%; background: var(--p-primary-color); flex-shrink: 0; margin-top: 6px; }

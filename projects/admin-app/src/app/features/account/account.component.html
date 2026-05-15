@@ -3,7 +3,7 @@
     <h1 class="page-title">{{ 'account.title' | translate }}</h1>
   </div>
   <div class="account-layout">
-    <div class="nc-card profile-card">
+    <p-card styleClass="profile-card">
       <h3 class="section-heading">{{ 'account.profileSection' | translate }}</h3>
       <div class="field">
         <label>{{ 'account.phoneNumber' | translate }}</label>
@@ -14,14 +14,14 @@
       }
       <p-button [label]="savingProfile() ? ('common.saving' | translate) : ('account.saveProfile' | translate)"
                 severity="primary" (click)="saveProfile()" [disabled]="savingProfile()" [loading]="savingProfile()" />
-    </div>
+    </p-card>
 
-    <div class="nc-card password-card">
+    <p-card styleClass="password-card">
       <div class="password-card-info">
         <div class="password-card-label">{{ 'account.passwordSection' | translate }}</div>
         <div class="password-card-sub">{{ 'account.passwordDesc' | translate }}</div>
       </div>
-      <a routerLink="/account/change-password" class="btn-ghost">{{ 'account.changePassword' | translate }}</a>
-    </div>
+      <p-button [label]="'account.changePassword' | translate" [text]="true" severity="secondary" routerLink="/account/change-password" />
+    </p-card>
   </div>
 </div>

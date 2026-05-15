@@ -25,7 +25,7 @@
 
     <!-- Active shift banner -->
     @if (activeShift(); as shift) {
-      <div class="active-banner nc-card">
+      <p-card styleClass="active-banner">
         <span class="live-badge">{{ 'logShift.live' | translate }}</span>
         <div class="active-details">
           <span class="active-role">{{ shift.roleName | uppercase }}</span>
@@ -33,12 +33,12 @@
           <span class="active-time">🕐 {{ shift.startTime | amPm }}</span>
         </div>
         <a routerLink="/log-shift" class="btn-end-link">{{ 'home.manageShift' | translate }} →</a>
-      </div>
+      </p-card>
     } @else {
-      <div class="quick-log nc-card">
+      <p-card styleClass="quick-log">
         <span>{{ 'home.notClockedIn' | translate }}</span>
         <p-button [label]="'home.logShift' | translate" severity="primary" size="small" routerLink="/log-shift" />
-      </div>
+      </p-card>
     }
 
     <!-- Stats grid -->
@@ -46,75 +46,75 @@
 
       <!-- Leave balance -->
       @if (leave(); as lb) {
-        <div class="stat-card nc-card">
+        <p-card styleClass="stat-card">
           <div class="stat-icon">🌴</div>
           <div class="stat-body">
             <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
             <div class="stat-value">{{ lb.annualRemaining }}<span class="stat-unit"> {{ 'home.days' | translate }}</span></div>
             <div class="stat-sub">{{ lb.annualUsed }} / {{ lb.annualEntitlement }} {{ 'home.used' | translate }}</div>
           </div>
-        </div>
-        <div class="stat-card nc-card">
+        </p-card>
+        <p-card styleClass="stat-card">
           <div class="stat-icon">🤒</div>
           <div class="stat-body">
             <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
             <div class="stat-value">{{ lb.sickRemaining }}<span class="stat-unit"> {{ 'home.days' | translate }}</span></div>
             <div class="stat-sub">{{ lb.sickUsed }} / {{ lb.sickEntitlement }} {{ 'home.used' | translate }}</div>
           </div>
-        </div>
+        </p-card>
       } @else {
         <!-- Leave API unavailable — show placeholder cards so the grid stays balanced -->
-        <div class="stat-card nc-card stat-card-muted">
+        <p-card styleClass="stat-card stat-card-muted">
           <div class="stat-icon">🌴</div>
           <div class="stat-body">
             <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
             <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
           </div>
-        </div>
-        <div class="stat-card nc-card stat-card-muted">
+        </p-card>
+        <p-card styleClass="stat-card stat-card-muted">
           <div class="stat-icon">🤒</div>
           <div class="stat-body">
             <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
             <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
           </div>
-        </div>
+        </p-card>
       }
 
       <!-- Pay summary (feature flagged) -->
       @if (showPay()) {
         @if (pay(); as p) {
-          <div class="stat-card nc-card">
+          <p-card styleClass="stat-card">
             <div class="stat-icon">💰</div>
             <div class="stat-body">
               <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
               <div class="stat-value">RM {{ p.grossPay | number:'1.2-2' }}</div>
               <div class="stat-sub">{{ 'home.thisMonth' | translate }}</div>
             </div>
-          </div>
-          <div class="stat-card nc-card">
+          </p-card>
+          <p-card styleClass="stat-card">
             <div class="stat-icon">⏱</div>
             <div class="stat-body">
               <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
               <div class="stat-value">{{ p.totalHours | number:'1.1-1' }}<span class="stat-unit">h</span></div>
               <div class="stat-sub">{{ p.overtimeHours | number:'1.1-1' }}h {{ 'home.overtime' | translate }}</div>
             </div>
-          </div>
+          </p-card>
         } @else {
           <!-- Pay API unavailable -->
-          <div class="stat-card nc-card stat-card-muted">
+          <p-card styleClass="stat-card stat-card-muted">
             <div class="stat-icon">💰</div>
             <div class="stat-body">
               <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
               <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
             </div>
-          </div>
-          <div class="stat-card nc-card stat-card-muted">
+          </p-card>
+          <p-card styleClass="stat-card stat-card-muted">
             <div class="stat-icon">⏱</div>
             <div class="stat-body">
               <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
               <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
             </div>
-          </div>
+          </p-card>
         }
       }
 
@@ -123,7 +123,7 @@
     <!-- Recent shifts -->
     <div class="section-title">{{ 'home.recentShifts' | translate }}</div>
     @if (recentShifts().length > 0) {
-      <div class="nc-card recent-list">
+      <p-card styleClass="recent-list">
         @for (s of recentShifts(); track s.id) {
           <div class="recent-row">
             <div class="recent-date">{{ s.workDate | date:'EEE, d MMM' }}</div>
@@ -132,7 +132,7 @@
             <div class="recent-hrs">{{ s.hours | number:'1.1-1' }}h</div>
           </div>
         }
-      </div>
+      </p-card>
       <div style="text-align:right;margin-top:.5rem">
         <p-button [label]="('home.viewAllShifts' | translate) + ' →'" [text]="true" severity="secondary" size="small" routerLink="/log-shift" />
       </div>

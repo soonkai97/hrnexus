@@ -5,7 +5,7 @@
   </div>
 
   @if (showForm()) {
-    <div #formAnchor class="nc-card form-card">
+    <p-card #formAnchor styleClass="form-card">
       <div class="form-header">
         <h3>{{ editing() ? ('announcements.editForm' | translate) : ('announcements.newForm' | translate) }}</h3>
         <p-button icon="pi pi-times" [text]="true" severity="secondary" pTooltip="Close" aria-label="Close form" (click)="cancel()" />
@@ -31,7 +31,7 @@
         <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"
                   severity="primary" (click)="save()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
       </div>
-    </div>
+    </p-card>
   }
 
   @if (loading()) {
@@ -39,7 +39,7 @@
   } @else if (items().length === 0) {
     <p class="empty-state">{{ 'announcements.noAnnouncements' | translate }}</p>
   } @else {
-    <div class="nc-card table-wrap">
+    <p-card styleClass="table-wrap">
       <p-table [value]="pagedItems()" [tableStyle]="{'min-width':'100%'}">
         <ng-template pTemplate="header">
           <tr>
@@ -55,14 +55,13 @@
         <ng-template pTemplate="body" let-item>
           <tr>
             <td class="col-title">{{ item.title }}</td>
-            <td><span class="badge">{{ item.targetRoles }}</span></td>
+            <td><p-tag [value]="item.targetRoles" severity="info" /></td>
             <td class="col-muted">{{ item.readCount }}</td>
             <td class="col-muted">{{ item.createdByName }}</td>
             <td class="col-muted">{{ item.expiresAt ? (item.expiresAt | date:'mediumDate') : '—' }}</td>
             <td>
-              <span class="badge" [class.badge-active]="item.isActive" [class.badge-closed]="!item.isActive">
-                {{ item.isActive ? ('common.active' | translate) : ('announcements.expired' | translate) }}
-              </span>
+              <p-tag [value]="item.isActive ? ('common.active' | translate) : ('announcements.expired' | translate)"
+                     [severity]="item.isActive ? 'success' : 'secondary'" />
             </td>
             <td class="td-actions">
               <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
@@ -75,13 +74,13 @@
       </p-table>
 
       @if (totalPages() > 1) {
-        <div class="pagination-bar">
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
           <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)" />
-          <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalCount() }})</span></span>
+          <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalCount() }})</span>
           <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)" />
         </div>
       }
-    </div>
+    </p-card>
 
     <!-- ── Action dropdown — outside .nc-card so backdrop-filter doesn't clip it ── -->
     @if (menuTarget() && menuPos()) {

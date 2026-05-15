@@ -9,9 +9,14 @@
           <span class="logo-text">NightCrew</span>
         }
       </div>
-      <button class="collapse-btn" (click)="toggleSidebar()" [attr.aria-label]="collapsed() ? 'Expand' : 'Collapse'">
-        {{ collapsed() ? '›' : '‹' }}
-      </button>
+      <p-button
+        class="collapse-btn"
+        [icon]="collapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'"
+        [text]="true"
+        severity="secondary"
+        size="small"
+        [attr.aria-label]="collapsed() ? 'Expand' : 'Collapse'"
+        (onClick)="toggleSidebar()" />
     </div>
 
     <nav class="sidebar-nav">
@@ -41,7 +46,13 @@
               <span class="user-name">{{ user()!.fullName.split(' ')[0] }}</span>
               <span class="user-role">{{ userRoleLabel() }}</span>
             </a>
-            <button class="logout-btn" (click)="logout()" [title]="'topbar.signOut' | translate">⏻</button>
+            <p-button
+              icon="pi pi-power-off"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              [title]="'topbar.signOut' | translate"
+              (onClick)="logout()" />
           }
         </div>
       }
@@ -52,18 +63,31 @@
   <div class="main">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="mobile-menu-btn" (click)="toggleSidebar()">☰</button>
+        <p-button
+          icon="pi pi-bars"
+          [text]="true"
+          severity="secondary"
+          class="mobile-menu-btn"
+          aria-label="Menu"
+          (onClick)="toggleSidebar()" />
       </div>
       <div class="topbar-right">
         @if (user()) {
           <nc-notification-bell />
           <span class="topbar-user">{{ user()!.fullName }}</span>
           <nc-theme-toggle />
-          <!-- Language switcher -->
-          <button class="lang-btn" (click)="lang.toggle()" [title]="'profile.language' | translate">
-            {{ lang.current() === 'en' ? '中文' : 'EN' }}
-          </button>
-          <button class="btn-ghost" (click)="logout()">{{ 'topbar.signOut' | translate }}</button>
+          <p-button
+            [label]="lang.current() === 'en' ? '中文' : 'EN'"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            [title]="'profile.language' | translate"
+            (onClick)="lang.toggle()" />
+          <p-button
+            [label]="'topbar.signOut' | translate"
+            [text]="true"
+            severity="secondary"
+            (onClick)="logout()" />
         }
       </div>
     </header>

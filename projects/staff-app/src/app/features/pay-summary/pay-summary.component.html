@@ -57,7 +57,7 @@
       <div class="breakdown-row">
         <div class="brow-left">
           <span class="brow-title">{{ 'pay.overtimeHours' | translate }}</span>
-          <span class="brow-sub">{{ summary()!.overtimeHours }}h × {{ summary()!.otMultiplier ?? 1.5 }}×</span>
+          <span class="brow-sub">{{ summary()!.overtimeHours }}h × {{ summary()!.otMultiplier }}×</span>
         </div>
         <span class="brow-amount accent-amber">RM {{ summary()!.overtimePay | number:'1.2-2' }}</span>
       </div>
@@ -67,7 +67,7 @@
           <span class="brow-title">{{ 'pay.tips' | translate }}</span>
           <span class="brow-sub">{{ 'pay.poolDist' | translate }}</span>
         </div>
-        @if ((summary()!.tipsAllocated ?? 0) > 0) {
+        @if (summary()!.tipsAllocated > 0) {
           <span class="brow-amount accent-pink">RM {{ summary()!.tipsAllocated | number:'1.2-2' }}</span>
         } @else {
           <span class="td-muted">—</span>
@@ -76,7 +76,7 @@
     </div>
 
     <!-- Shifts -->
-    @if ((summary()!.shifts?.length ?? 0) > 0) {
+    @if (summary()!.shifts.length > 0) {
       <div class="section-label">{{ 'pay.shifts' | translate }}</div>
       <div class="shifts-list">
         @for (shift of summary()!.shifts; track shift.shiftId) {

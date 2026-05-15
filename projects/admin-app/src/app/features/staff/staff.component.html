@@ -93,7 +93,7 @@
   <!-- Search -->
   <div class="search-wrap">
     <input type="text" [placeholder]="'staff.searchPlaceholder' | translate"
-           [value]="search()" (input)="search.set($any($event.target).value); currentPage.set(1)" />
+           [value]="search()" (input)="onSearch($any($event.target).value)" />
   </div>
 
   <!-- Table -->
@@ -110,7 +110,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (s of pagedFiltered(); track s.id) {
+        @for (s of staff(); track s.id) {
           <tr>
             <td class="td-muted mono">{{ s.staffId }}</td>
             <td>
@@ -143,9 +143,9 @@
   <!-- Pagination -->
   @if (totalPages() > 1) {
     <div class="pagination-bar">
-      <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
-      <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ filtered().length }})</span></span>
-      <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(currentPage() + 1)">›</button>
+      <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)">‹</button>
+      <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalCount() }})</span></span>
+      <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)">›</button>
     </div>
   }
 

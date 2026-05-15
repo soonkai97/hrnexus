@@ -1,0 +1,189 @@
+@use 'styles/theme' as *;
+
+.page-wrap { padding: 1.5rem; max-width: 640px; margin: 0 auto; }
+
+// ── Greeting ────────────────────────────────────────────────────────────────
+.greeting {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.greeting-text {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin: 0;
+}
+
+.greeting-role {
+  font-size: 0.8rem;
+  color: $neon-purple;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  margin: 0.25rem 0 0;
+}
+
+.notice-chip {
+  background: rgba(168,85,247,0.12);
+  border: 1px solid rgba(168,85,247,0.3);
+  color: $neon-purple;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background $transition-fast;
+  &:hover { background: rgba(168,85,247,0.2); }
+}
+
+// ── Skeletons ────────────────────────────────────────────────────────────────
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.skeleton-card {
+  height: 96px;
+  border-radius: $radius-md;
+  background: linear-gradient(90deg, $bg-surface 25%, rgba(168,85,247,0.06) 50%, $bg-surface 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+// ── Active / Quick-log ───────────────────────────────────────────────────────
+.active-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border-color: rgba(168,85,247,0.4);
+  flex-wrap: wrap;
+}
+
+.live-badge {
+  background: rgba(168,85,247,0.2);
+  color: $neon-purple;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  animation: neon-flicker 3s ease-in-out infinite;
+}
+
+.active-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.active-role { font-weight: 700; font-size: 0.9rem; }
+.active-loc,
+.active-time { color: $text-muted; font-size: 0.85rem; }
+
+.btn-end-link {
+  color: $neon-purple;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  &:hover { text-decoration: underline; }
+}
+
+.quick-log {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  margin-bottom: 1rem;
+  color: $text-muted;
+  font-size: 0.875rem;
+}
+
+.btn-sm { padding: 0.4rem 0.9rem; font-size: 0.82rem; }
+
+// ── Stats grid ───────────────────────────────────────────────────────────────
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+}
+
+.stat-icon { font-size: 1.4rem; flex-shrink: 0; }
+
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.2rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text-primary;
+  line-height: 1;
+}
+
+.stat-unit { font-size: 0.9rem; font-weight: 500; color: $text-muted; }
+
+.stat-sub {
+  font-size: 0.72rem;
+  color: $text-muted;
+  margin-top: 0.3rem;
+}
+
+// ── Recent shifts ────────────────────────────────────────────────────────────
+.section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $text-muted;
+  margin-bottom: 0.6rem;
+}
+
+.recent-list { overflow: hidden; }
+
+.recent-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  padding: 0.65rem 1.1rem;
+  border-bottom: 1px solid $border-subtle;
+  font-size: 0.85rem;
+
+  &:last-child { border-bottom: none; }
+}
+
+.recent-date { color: $text-muted; white-space: nowrap; }
+.recent-role { font-weight: 600; }
+.recent-loc  { color: $text-muted; font-size: 0.8rem; }
+.recent-hrs  { color: $neon-green; font-weight: 600; white-space: nowrap; }

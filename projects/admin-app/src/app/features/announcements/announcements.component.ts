@@ -18,19 +18,22 @@ export class AnnouncementsComponent implements OnInit {
 
   @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
 
-  items    = signal<AdminAnnouncementDto[]>([]);
-  showForm = signal(false);
-  editing  = signal<string | null>(null);
-  saving   = signal(false);
-  loading  = signal(false);
+  items      = signal<AdminAnnouncementDto[]>([]);
+  showForm   = signal(false);
+  editing    = signal<string | null>(null);
+  saving     = signal(false);
+  loading    = signal(false);
+  totalCount = signal(0);
 
   readonly pageSize = 10;
   currentPage  = signal(1);
-  totalPages   = computed(() => Math.max(1, Math.ceil(this.items().length / this.pageSize)));
-  pagedItems   = computed(() => {
-    const page = Math.min(this.currentPage(), this.totalPages());
-    return this.items().slice((page - 1) * this.pageSize, page * this.pageSize);
-  });
+  totalPages   = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
+  pagedItems   = this.items.asReadonly();
+
+  loadPage(page: number): void {
+    this.currentPage.set(page);
+    this.load(page);
+  }
 
   // ── Action menu ────────────────────────────────────────────────────────────
   openMenuId  = signal<string | null>(null);
@@ -55,13 +58,13 @@ export class AnnouncementsComponent implements OnInit {
 
   form = { title: '', body: '', targetRoles: '*', expiresAt: '' };
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void { this.load(1); }
 
-  load(): void {
+  load(page = this.currentPage()): void {
     this.loading.set(true);
-    this.announcementSvc.getAll().subscribe({
-      next:  list => { this.items.set(list); this.loading.set(false); },
-      error: ()   => { this.toast.error('Failed to load announcements.'); this.loading.set(false); },
+    this.announcementSvc.getAll(page, this.pageSize).subscribe({
+      next:  result => { this.items.set(result.items); this.totalCount.set(result.total); this.loading.set(false); },
+      error: ()     => { this.toast.error('Failed to load announcements.'); this.loading.set(false); },
     });
   }
 

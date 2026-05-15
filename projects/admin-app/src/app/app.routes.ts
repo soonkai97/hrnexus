@@ -27,6 +27,7 @@ export const routes: Routes = [
       { path: 'tips',          loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },
 
       { path: 'payroll',      loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
+      { path: 'notifications', loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent) },
       { path: 'messaging',    loadComponent: () => import('./features/messaging/messaging.component').then(m => m.MessagingComponent) },
       {
         path: 'features',

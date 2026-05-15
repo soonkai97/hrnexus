@@ -1,0 +1,109 @@
+<div class="page-wrap">
+
+  <!-- Greeting -->
+  <div class="greeting">
+    <div>
+      <h1 class="greeting-text">{{ greeting() | translate }}, {{ firstName() }} 👋</h1>
+      @if (user()?.roles?.length) {
+        <p class="greeting-role">{{ user()!.roles[0] | uppercase }}</p>
+      }
+    </div>
+    @if (unreadNotices() > 0) {
+      <a routerLink="/announcements" class="notice-chip">
+        📢 {{ unreadNotices() }} {{ 'home.unreadAnnouncements' | translate }}
+      </a>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="skeleton-grid">
+      @for (n of [1,2,3,4]; track n) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
+  } @else {
+
+    <!-- Active shift banner -->
+    @if (activeShift(); as shift) {
+      <div class="active-banner nc-card">
+        <span class="live-badge">{{ 'logShift.live' | translate }}</span>
+        <div class="active-details">
+          <span class="active-role">{{ shift.roleName | uppercase }}</span>
+          <span class="active-loc">📍 {{ shift.locationName }}</span>
+          <span class="active-time">🕐 {{ shift.startTime | amPm }}</span>
+        </div>
+        <a routerLink="/log-shift" class="btn-end-link">{{ 'home.manageShift' | translate }} →</a>
+      </div>
+    } @else {
+      <div class="quick-log nc-card">
+        <span>{{ 'home.notClockedIn' | translate }}</span>
+        <a routerLink="/log-shift" class="btn-primary btn-sm">{{ 'home.logShift' | translate }}</a>
+      </div>
+    }
+
+    <!-- Stats grid -->
+    <div class="stats-grid">
+
+      <!-- Leave balance -->
+      @if (leave(); as lb) {
+        <div class="stat-card nc-card">
+          <div class="stat-icon">🌴</div>
+          <div class="stat-body">
+            <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
+            <div class="stat-value">{{ lb.annualRemaining }}<span class="stat-unit"> {{ 'home.days' | translate }}</span></div>
+            <div class="stat-sub">{{ lb.annualUsed }} / {{ lb.annualEntitlement }} {{ 'home.used' | translate }}</div>
+          </div>
+        </div>
+        <div class="stat-card nc-card">
+          <div class="stat-icon">🤒</div>
+          <div class="stat-body">
+            <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
+            <div class="stat-value">{{ lb.sickRemaining }}<span class="stat-unit"> {{ 'home.days' | translate }}</span></div>
+            <div class="stat-sub">{{ lb.sickUsed }} / {{ lb.sickEntitlement }} {{ 'home.used' | translate }}</div>
+          </div>
+        </div>
+      }
+
+      <!-- Pay summary (feature flagged) -->
+      @if (showPay() && pay(); as p) {
+        <div class="stat-card nc-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-body">
+            <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
+            <div class="stat-value">RM {{ p.grossPay | number:'1.2-2' }}</div>
+            <div class="stat-sub">{{ 'home.thisMonth' | translate }}</div>
+          </div>
+        </div>
+        <div class="stat-card nc-card">
+          <div class="stat-icon">⏱</div>
+          <div class="stat-body">
+            <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
+            <div class="stat-value">{{ p.totalHours | number:'1.1-1' }}<span class="stat-unit">h</span></div>
+            <div class="stat-sub">{{ p.overtimeHours | number:'1.1-1' }}h {{ 'home.overtime' | translate }}</div>
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <!-- Recent shifts -->
+    @if (recentShifts().length > 0) {
+      <div class="section-title">{{ 'home.recentShifts' | translate }}</div>
+      <div class="nc-card recent-list">
+        @for (s of recentShifts(); track s.id) {
+          <div class="recent-row">
+            <div class="recent-date">{{ s.workDate | date:'EEE, d MMM' }}</div>
+            <div class="recent-role">{{ s.roleName | uppercase }}</div>
+            <div class="recent-loc">📍 {{ s.locationName }}</div>
+            <div class="recent-hrs">{{ s.hours | number:'1.1-1' }}h</div>
+          </div>
+        }
+      </div>
+      <div style="text-align:right;margin-top:.5rem">
+        <a routerLink="/log-shift" class="btn-ghost btn-sm">{{ 'home.viewAllShifts' | translate }} →</a>
+      </div>
+    }
+
+  }
+
+</div>

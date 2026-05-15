@@ -82,9 +82,9 @@
 
       @if (totalPages() > 1) {
         <div class="pagination-bar">
-          <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
-          <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ items().length }})</span></span>
-          <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="currentPage.set(currentPage() + 1)">›</button>
+          <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)">‹</button>
+          <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalCount() }})</span></span>
+          <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)">›</button>
         </div>
       }
     </div>

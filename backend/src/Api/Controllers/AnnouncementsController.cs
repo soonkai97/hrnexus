@@ -42,9 +42,12 @@ public class AnnouncementsController(IMediator mediator, IAppDbContext db) : Con
     /// <summary>Get all announcements with read-receipt counts (admin view).</summary>
     [HttpGet("all")]
     [Authorize(Roles = "Manager,Admin")]
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct     = default)
     {
-        var result = await mediator.Send(new GetAllAnnouncementsQuery(), ct);
+        var result = await mediator.Send(new GetAllAnnouncementsQuery(page, pageSize), ct);
         return Ok(result);
     }
 

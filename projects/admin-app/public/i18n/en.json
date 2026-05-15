@@ -3,6 +3,7 @@
     "dashboard":     "Dashboard",
     "leave":         "Leave",
     "announcements": "Announcements",
+    "notifications": "Notifications",
     "staff":         "Staff",
     "reports":       "Reports",
     "tips":          "Tips",
@@ -12,6 +13,14 @@
     "payroll":       "Payroll",
     "messaging":     "Messages",
     "features":      "Feature Management"
+  },
+  "notifications": {
+    "title":           "Notifications",
+    "all":             "All",
+    "unread":          "Unread",
+    "markAllRead":     "Mark all read",
+    "noNotifications": "No notifications yet.",
+    "noUnread":        "You're all caught up!"
   },
   "shell": {
     "signOut": "Sign out"

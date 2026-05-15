@@ -82,14 +82,14 @@
             <input type="time" [(ngModel)]="liveForm.startTime" />
           </div>
           <div class="field">
-            <label>{{ 'logShift.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
+            <label>{{ 'logShift.notesLabel' | translate }}</label>
             <input type="text" [(ngModel)]="liveForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
           </div>
           @if (formError()) {
             <div class="form-error">⚠ {{ formError() }}</div>
           }
           <button class="btn-primary btn-full" (click)="startShift()" [disabled]="submitting()">
-            @if (submitting()) { <span class="nc-spinner sm"></span> } @else { ▶ {{ 'logShift.startShiftBtn' | translate }} }
+            @if (submitting()) { <span class="nc-spinner sm"></span> } @else { {{ 'logShift.startShiftBtn' | translate }} }
           </button>
         </div>
       }
@@ -130,7 +130,7 @@
             </div>
           </div>
           <div class="field">
-            <label>{{ 'logShift.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
+            <label>{{ 'logShift.notesLabel' | translate }}</label>
             <input type="text" [(ngModel)]="manualForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
           </div>
           @if (formError()) {

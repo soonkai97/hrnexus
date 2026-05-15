@@ -6,6 +6,7 @@ using NightclubWorkforce.Application.Admin.Queries;
 using NightclubWorkforce.Application.Common;
 using NightclubWorkforce.Domain.Constants;
 using System.Security.Claims;
+using NightclubWorkforce.Api.Filters;
 
 namespace NightclubWorkforce.Api.Controllers;
 
@@ -137,10 +138,12 @@ public class AdminController(IMediator mediator) : ControllerBase
     // ── Overtime Rules ────────────────────────────────────────────────────────
 
     [HttpGet("overtime-rules")]
+    [FeatureRequired("otRules")]
     public async Task<IActionResult> GetOvertimeRules(CancellationToken ct) =>
         Ok(await mediator.Send(new GetOvertimeRulesQuery(), ct));
 
     [HttpPost("overtime-rules")]
+    [FeatureRequired("otRules")]
     public async Task<IActionResult> UpsertOvertimeRule(
         [FromBody] UpsertOvertimeRuleBody body, CancellationToken ct)
     {
@@ -155,6 +158,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("overtime-rules/{id:guid}")]
+    [FeatureRequired("otRules")]
     public async Task<IActionResult> DeleteOvertimeRule(Guid id, CancellationToken ct)
     {
         try
@@ -168,6 +172,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     // ── Payroll ───────────────────────────────────────────────────────────────
 
     [HttpGet("payroll/summary")]
+    [FeatureRequired("payroll")]
     public async Task<IActionResult> PayrollSummary(
         [FromQuery] int year,
         [FromQuery] int month,
@@ -197,6 +202,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("payroll/export")]
+    [FeatureRequired("payroll")]
     public async Task<IActionResult> ExportPayroll(
         [FromQuery] int year,
         [FromQuery] int month,
@@ -237,6 +243,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     // ── Tips Pools ────────────────────────────────────────────────────────────
 
     [HttpGet("tips-pools")]
+    [FeatureRequired("tips")]
     public async Task<IActionResult> GetTipsPools(
         [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo   = null,
@@ -244,6 +251,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         Ok(await mediator.Send(new GetTipsPoolsQuery(dateFrom, dateTo), ct));
 
     [HttpPost("tips-pools/distribute")]
+    [FeatureRequired("tips")]
     public async Task<IActionResult> DistributeTips(
         [FromBody] DistributeTipsBody body, CancellationToken ct)
     {

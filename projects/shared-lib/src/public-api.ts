@@ -9,6 +9,7 @@ export * from './lib/auth/forgot-password.base';
 export * from './lib/auth/set-password.base';
 export * from './lib/services/lang.service';
 export * from './lib/guards/auth.guard';
+export * from './lib/guards/feature-flag.guard';
 export * from './lib/services/admin.service';
 export * from './lib/services/work-log.service';  // also exports PagedResult<T>
 export * from './lib/services/payroll.service';

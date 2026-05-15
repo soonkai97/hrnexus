@@ -6,6 +6,7 @@ using NightclubWorkforce.Application.WorkLog.Commands;
 using NightclubWorkforce.Application.WorkLog.Queries;
 using NightclubWorkforce.Domain.Constants;
 using System.Security.Claims;
+using NightclubWorkforce.Api.Filters;
 
 namespace NightclubWorkforce.Api.Controllers;
 
@@ -85,6 +86,7 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
 
     /// <summary>Returns a pay summary (hours, pay breakdown, per-shift lines) for the current employee.</summary>
     [HttpGet("pay-summary")]
+    [FeatureRequired("paySummary")]
     public async Task<IActionResult> GetPaySummary(
         [FromQuery] DateOnly? start,
         [FromQuery] DateOnly? end,

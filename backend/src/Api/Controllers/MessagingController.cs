@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NightclubWorkforce.Application.Messaging.Commands;
 using NightclubWorkforce.Application.Messaging.Queries;
+using NightclubWorkforce.Api.Filters;
 
 namespace NightclubWorkforce.Api.Controllers;
 
 [ApiController]
 [Route("api/messages")]
 [Authorize]
+[FeatureRequired("messagingAdmin", "messagingStaff")]
 public class MessagingController(IMediator mediator) : ControllerBase
 {
     private Guid   CurrentUserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

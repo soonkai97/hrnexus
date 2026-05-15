@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using NightclubWorkforce.Api.Converters;
+using NightclubWorkforce.Api.Filters;
 using NightclubWorkforce.Api.Middleware;
 using NightclubWorkforce.Api.ModelBinders;
 using NightclubWorkforce.Application.Auth.Commands;
@@ -25,9 +26,11 @@ builder.Host.UseSerilog();
 // ── Services ──────────────────────────────────────────────────────────────────
 // Force all incoming DateTime (query params + JSON body) to Kind=Utc.
 // Prevents "Cannot write DateTime with Kind=Unspecified" on PostgreSQL timestamptz columns.
+builder.Services.AddScoped<FeatureFlagFilter>();
 builder.Services.AddControllers(o =>
 {
     o.ModelBinderProviders.Insert(0, new UtcDateTimeModelBinderProvider());
+    o.Filters.AddService<FeatureFlagFilter>();
 })
 .AddJsonOptions(o =>
 {

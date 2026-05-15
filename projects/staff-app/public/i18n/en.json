@@ -28,7 +28,9 @@
     "totalHours":           "Total Hours",
     "overtime":             "overtime",
     "recentShifts":         "Recent Shifts",
-    "viewAllShifts":        "View All Shifts"
+    "viewAllShifts":        "View All Shifts",
+    "noRecentShifts":       "No shifts logged yet. Tap Log Shift to get started.",
+    "dataUnavailable":      "Unavailable"
   },
   "notifications": {
     "title":             "Notifications",

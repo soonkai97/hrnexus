@@ -35,7 +35,8 @@ export class HomeComponent implements OnInit {
   unreadNotices = signal(0);
 
   // Feature flags
-  showPay = computed(() => this.featureSvc.isEnabled('paySummary'));
+  showPay           = computed(() => this.featureSvc.isEnabled('paySummary'));
+  showAnnouncements = computed(() => this.featureSvc.isEnabled('announcements'));
 
   // Greeting
   user      = computed(() => this.auth.user());
@@ -67,7 +68,9 @@ export class HomeComponent implements OnInit {
       leave:       this.leaveSvc.getMyBalance().pipe(catchError(() => of(null))),
       active:      this.workLogSvc.getActive().pipe(catchError(() => of(null))),
       recent:      this.workLogSvc.getMy(1, 5).pipe(catchError(() => of(null))),
-      notices:     this.announcementSvc.getMine().pipe(catchError(() => of([]))),
+      notices:     this.showAnnouncements()
+                     ? this.announcementSvc.getMine().pipe(catchError(() => of([])))
+                     : of([]),
     }).subscribe(res => {
       this.pay.set(res.pay);
       this.leave.set(res.leave);

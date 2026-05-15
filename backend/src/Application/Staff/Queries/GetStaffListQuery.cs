@@ -28,7 +28,8 @@ public class GetStaffListQueryHandler(IAppDbContext db)
         if (!string.IsNullOrWhiteSpace(req.Search))
         {
             var s = req.Search.ToLower();
-            query = query.Where(e => e.FullName.ToLower().Contains(s)
+            // FullName is an ignored computed property — query on stored columns instead.
+            query = query.Where(e => (e.FirstName + " " + e.LastName).ToLower().Contains(s)
                                   || e.Email.Contains(s)
                                   || e.StaffId.ToLower().Contains(s)
                                   || e.RoleEntries.Any(r => r.Role.Contains(s)));

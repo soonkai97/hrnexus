@@ -159,6 +159,17 @@
   margin-top: 0.3rem;
 }
 
+// ── Unavailable state ────────────────────────────────────────────────────────
+.stat-card-muted { opacity: 0.55; }
+
+.no-shifts-hint {
+  text-align: center;
+  color: $text-muted;
+  font-size: 0.85rem;
+  padding: 1.5rem 0;
+  margin: 0;
+}
+
 // ── Recent shifts ────────────────────────────────────────────────────────────
 .section-title {
   font-size: 0.78rem;

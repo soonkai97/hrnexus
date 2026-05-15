@@ -8,7 +8,7 @@
         <p class="greeting-role">{{ user()!.roles[0] | uppercase }}</p>
       }
     </div>
-    @if (unreadNotices() > 0) {
+    @if (showAnnouncements() && unreadNotices() > 0) {
       <a routerLink="/announcements" class="notice-chip">
         📢 {{ unreadNotices() }} {{ 'home.unreadAnnouncements' | translate }}
       </a>
@@ -62,33 +62,67 @@
             <div class="stat-sub">{{ lb.sickUsed }} / {{ lb.sickEntitlement }} {{ 'home.used' | translate }}</div>
           </div>
         </div>
+      } @else {
+        <!-- Leave API unavailable — show placeholder cards so the grid stays balanced -->
+        <div class="stat-card nc-card stat-card-muted">
+          <div class="stat-icon">🌴</div>
+          <div class="stat-body">
+            <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
+            <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+          </div>
+        </div>
+        <div class="stat-card nc-card stat-card-muted">
+          <div class="stat-icon">🤒</div>
+          <div class="stat-body">
+            <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
+            <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+          </div>
+        </div>
       }
 
       <!-- Pay summary (feature flagged) -->
-      @if (showPay() && pay(); as p) {
-        <div class="stat-card nc-card">
-          <div class="stat-icon">💰</div>
-          <div class="stat-body">
-            <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
-            <div class="stat-value">RM {{ p.grossPay | number:'1.2-2' }}</div>
-            <div class="stat-sub">{{ 'home.thisMonth' | translate }}</div>
+      @if (showPay()) {
+        @if (pay(); as p) {
+          <div class="stat-card nc-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-body">
+              <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
+              <div class="stat-value">RM {{ p.grossPay | number:'1.2-2' }}</div>
+              <div class="stat-sub">{{ 'home.thisMonth' | translate }}</div>
+            </div>
           </div>
-        </div>
-        <div class="stat-card nc-card">
-          <div class="stat-icon">⏱</div>
-          <div class="stat-body">
-            <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
-            <div class="stat-value">{{ p.totalHours | number:'1.1-1' }}<span class="stat-unit">h</span></div>
-            <div class="stat-sub">{{ p.overtimeHours | number:'1.1-1' }}h {{ 'home.overtime' | translate }}</div>
+          <div class="stat-card nc-card">
+            <div class="stat-icon">⏱</div>
+            <div class="stat-body">
+              <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
+              <div class="stat-value">{{ p.totalHours | number:'1.1-1' }}<span class="stat-unit">h</span></div>
+              <div class="stat-sub">{{ p.overtimeHours | number:'1.1-1' }}h {{ 'home.overtime' | translate }}</div>
+            </div>
           </div>
-        </div>
+        } @else {
+          <!-- Pay API unavailable -->
+          <div class="stat-card nc-card stat-card-muted">
+            <div class="stat-icon">💰</div>
+            <div class="stat-body">
+              <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
+              <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+            </div>
+          </div>
+          <div class="stat-card nc-card stat-card-muted">
+            <div class="stat-icon">⏱</div>
+            <div class="stat-body">
+              <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
+              <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+            </div>
+          </div>
+        }
       }
 
     </div>
 
     <!-- Recent shifts -->
+    <div class="section-title">{{ 'home.recentShifts' | translate }}</div>
     @if (recentShifts().length > 0) {
-      <div class="section-title">{{ 'home.recentShifts' | translate }}</div>
       <div class="nc-card recent-list">
         @for (s of recentShifts(); track s.id) {
           <div class="recent-row">
@@ -102,6 +136,8 @@
       <div style="text-align:right;margin-top:.5rem">
         <a routerLink="/log-shift" class="btn-ghost btn-sm">{{ 'home.viewAllShifts' | translate }} →</a>
       </div>
+    } @else {
+      <p class="no-shifts-hint">{{ 'home.noRecentShifts' | translate }}</p>
     }
 
   }

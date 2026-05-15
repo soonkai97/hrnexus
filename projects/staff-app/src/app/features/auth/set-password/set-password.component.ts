@@ -10,5 +10,5 @@ import { ThemeToggleComponent, SetPasswordBase } from 'shared-lib';
   styleUrl:    './set-password.component.scss',
 })
 export class SetPasswordComponent extends SetPasswordBase {
-  protected override readonly redirectPath = '/log-shift';
+  protected override readonly redirectPath = '/home';
 }

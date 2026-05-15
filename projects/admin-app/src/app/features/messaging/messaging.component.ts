@@ -1,7 +1,9 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MessagingService, MessageDto, StaffStore, ToastService } from 'shared-lib';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { MessagingService, MessageDto, StaffStore, ToastService, SignalRService } from 'shared-lib';
 
 @Component({
   selector: 'app-messaging',
@@ -10,9 +12,10 @@ import { MessagingService, MessageDto, StaffStore, ToastService } from 'shared-l
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss',
 })
-export class MessagingComponent implements OnInit {
+export class MessagingComponent implements OnInit, OnDestroy {
   private readonly msgSvc     = inject(MessagingService);
   private readonly staffStore = inject(StaffStore);
+  private readonly signalR    = inject(SignalRService);
   private readonly toast      = inject(ToastService);
 
   readonly staff = this.staffStore.staff;
@@ -27,11 +30,19 @@ export class MessagingComponent implements OnInit {
 
   unread = computed(() => this.inbox().filter(m => !m.readAt).length);
 
+  private msgSub?: Subscription;
+
   ngOnInit() {
     this.staffStore.loadStaff();
     this.loadInbox();
     this.loadSent();
+    // Reload inbox in real time whenever a new message arrives via SignalR
+    this.msgSub = this.signalR.notifications$
+      .pipe(filter(n => n.type === 'message'))
+      .subscribe(() => this.loadInbox());
   }
+
+  ngOnDestroy() { this.msgSub?.unsubscribe(); }
 
   loadInbox() {
     this.loading.set(true);
@@ -47,11 +58,25 @@ export class MessagingComponent implements OnInit {
     this.msgSvc.markRead(msg.id).subscribe({ next: () => this.loadInbox() });
   }
 
+  openCompose(): void {
+    this.compose = { recipientId: '', recipientName: '', content: '' };
+    this.showCompose.set(true);
+  }
+
+  reply(msg: MessageDto): void {
+    this.compose = { recipientId: msg.senderId, recipientName: msg.senderName, content: '' };
+    this.showCompose.set(true);
+  }
+
   send() {
     if (!this.compose.content.trim()) return;
     this.sending.set(true);
     const s = this.staff().find(s => s.id === this.compose.recipientId);
-    this.msgSvc.send({ recipientId: this.compose.recipientId || null, recipientName: s?.fullName ?? null, content: this.compose.content }).subscribe({
+    this.msgSvc.send({
+      recipientId:   this.compose.recipientId || null,
+      recipientName: (s?.fullName ?? this.compose.recipientName) || null,
+      content:       this.compose.content,
+    }).subscribe({
       next: () => { this.sending.set(false); this.showCompose.set(false); this.compose = { recipientId: '', recipientName: '', content: '' }; this.loadSent(); this.toast.success('Message sent.'); },
       error: () => { this.toast.error('Failed to send message.'); this.sending.set(false); },
     });

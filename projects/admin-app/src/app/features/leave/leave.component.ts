@@ -2,12 +2,11 @@ import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } fr
 import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance, LeaveService, StaffStore, ToastService, ConfirmService, TooltipDirective, toLocalDateString } from 'shared-lib';
+import { LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
-import { DatePicker } from 'primeng/datepicker';
 import { InputNumber } from 'primeng/inputnumber';
+import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 
@@ -17,8 +16,8 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
 @Component({
   selector: 'app-leave',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective,
-    Button, InputText, Select, DatePicker, InputNumber, TooltipModule, Message],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
+    Button, InputText, InputNumber, Card, TooltipModule, Message],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
@@ -28,7 +27,7 @@ export class LeaveComponent implements OnInit {
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
 
-  @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
   records  = signal<LeaveRecord[]>([]);
   loading  = signal(false);

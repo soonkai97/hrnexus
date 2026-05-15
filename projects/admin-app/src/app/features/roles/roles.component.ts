@@ -2,20 +2,21 @@ import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angul
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { StaffStore, ConfirmService, ToastService, TooltipDirective } from 'shared-lib';
+import { StaffStore, ConfirmService, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
+import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective,
-    Button, InputText, InputNumber, TableModule, Tag, TooltipModule, Message],
+  imports: [DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
+    Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Message],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })
@@ -24,7 +25,7 @@ export class RolesComponent implements OnInit {
   private readonly confirmSvc = inject(ConfirmService);
   private readonly toast      = inject(ToastService);
 
-  @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
   readonly roles   = this.store.roles;
   readonly loading = this.store.loading;

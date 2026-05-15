@@ -2,19 +2,20 @@ import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } fr
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService, TooltipDirective, PickerOnlyDirective } from 'shared-lib';
+import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService, PickerOnlyDirective } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
+import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslatePipe, TooltipDirective, PickerOnlyDirective,
-    Button, InputText, Textarea, TableModule, Tag, TooltipModule],
+  imports: [DatePipe, FormsModule, TranslatePipe, PickerOnlyDirective,
+    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })
@@ -23,7 +24,7 @@ export class AnnouncementsComponent implements OnInit {
   private readonly confirmSvc      = inject(ConfirmService);
   private readonly toast           = inject(ToastService);
 
-  @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
   items      = signal<AdminAnnouncementDto[]>([]);
   showForm   = signal(false);

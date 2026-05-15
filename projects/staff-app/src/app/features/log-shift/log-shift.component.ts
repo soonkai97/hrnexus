@@ -4,10 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { WorkLogService, WorkLogDto, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PickerOnlyDirective, PagedResult, todayLocalString } from 'shared-lib';
 import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Message } from 'primeng/message';
-import { Tag } from 'primeng/tag';
 
 type Mode = 'live' | 'manual';
 
@@ -19,7 +19,7 @@ function nowHHmm(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, InputText, Select, Message, Tag],
+  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, InputText, Select, Message],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })

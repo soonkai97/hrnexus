@@ -10,13 +10,12 @@ import {
   PaySummary, LeaveBalance, WorkLogDto, toLocalDateString,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
-import { Tag } from 'primeng/tag';
-import { ProgressBar } from 'primeng/progressbar';
+import { Card } from 'primeng/card';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, DatePipe, UpperCasePipe, TranslatePipe, AmPmPipe, Button, Tag, ProgressBar],
+  imports: [RouterLink, DecimalPipe, DatePipe, UpperCasePipe, TranslatePipe, AmPmPipe, Button, Card],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

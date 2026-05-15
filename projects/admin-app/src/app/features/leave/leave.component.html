@@ -5,7 +5,7 @@
   </div>
 
   <!-- ── Filter bar (always visible) ───────────────────────────────────────── -->
-  <div class="filter-bar nc-card">
+  <p-card styleClass="filter-bar">
     <div class="filter-row">
       <div class="field filter-staff">
         <label>{{ 'leave.staffLabel' | translate }}</label>
@@ -44,7 +44,7 @@
         </span>
       }
     </div>
-  </div>
+  </p-card>
 
   <!-- ── Page tabs ─────────────────────────────────────────────────────────── -->
   <div class="page-tabs">
@@ -95,7 +95,7 @@
 
     <!-- Add / Edit form -->
     @if (showForm()) {
-      <div #formAnchor class="nc-card form-card">
+      <p-card #formAnchor styleClass="form-card">
         <div class="form-header">
           <h3>{{ editing() ? ('leave.editLeave' | translate) : ('leave.recordLeaveForm' | translate) }}</h3>
           <p-button icon="pi pi-times" [text]="true" severity="secondary" (click)="cancelForm()" />
@@ -142,7 +142,7 @@
           <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"
                     severity="primary" (click)="save()" [disabled]="saving()" [loading]="saving()" />
         </div>
-      </div>
+      </p-card>
     }
 
     <!-- View toggle -->
@@ -153,7 +153,7 @@
 
     <!-- Calendar view -->
     @if (viewMode() === 'calendar') {
-      <div class="nc-card" style="padding:1.25rem">
+      <p-card styleClass="nc-card">
         <div class="cal-nav">
           <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="prevCalMonth()" />
           <span class="cal-month-name">{{ calMonthName() }}</span>
@@ -233,7 +233,7 @@
             </div>
           }
         }
-      </div>
+      </p-card>
     }
 
     <!-- Table / card list view -->
@@ -241,14 +241,14 @@
       @if (loading()) {
         <div style="text-align:center;padding:3rem"><span class="nc-spinner"></span></div>
       } @else if (records().length === 0) {
-        <div class="nc-card empty-state">
+        <p-card styleClass="empty-state">
           <span>🌴</span>
           <p>{{ 'leave.noRecordsFound' | translate }}</p>
-        </div>
+        </p-card>
       } @else {
         <div class="leave-list">
           @for (r of records(); track r.id) {
-            <div class="leave-card nc-card" [class.leave-card-overdue]="r.status === 'pending' && r.endDate < todayIso">
+            <p-card styleClass="leave-card" [class.leave-card-overdue]="r.status === 'pending' && r.endDate < todayIso">
               <div class="leave-top">
                 <div class="leave-top-left">
                   <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
@@ -280,14 +280,14 @@
                   <p-button [label]="'✕ ' + ('common.rejected' | translate)" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
                 </div>
               }
-            </div>
+            </p-card>
           }
         </div>
 
         @if (totalPages() > 1) {
-          <div class="pagination-bar">
+          <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
             <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="load(currentPage() - 1)" />
-            <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalRecords() }} records)</span></span>
+            <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalRecords() }} records)</span>
             <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="load(currentPage() + 1)" />
           </div>
         }
@@ -302,7 +302,7 @@
     <!-- Individual staff balance (when filtered) -->
     @if (filterEmployeeId && staffBalance()) {
       @let b = staffBalance()!;
-      <div class="nc-card balance-card">
+      <p-card styleClass="balance-card">
         <div class="balance-card-header">
           <span class="balance-card-title">{{ 'leave.leaveBalance' | translate }} — {{ b.year }}</span>
           <p-button [label]="editingEntitlement() ? ('leave.cancelEntitlement' | translate) : ('leave.editEntitlement' | translate)"
@@ -348,11 +348,11 @@
                       [disabled]="savingEntitlement()" [loading]="savingEntitlement()" />
           </div>
         }
-      </div>
+      </p-card>
     }
 
     <!-- All-staff balance overview -->
-    <div class="nc-card" style="padding:1.25rem">
+    <p-card styleClass="nc-card">
       <div class="section-title">{{ 'leave.balanceOverview' | translate }} — {{ currentYear }}</div>
       @if (allBalancesLoading()) {
         <div style="text-align:center;padding:1.5rem"><span class="nc-spinner sm"></span></div>
@@ -381,7 +381,7 @@
           }
         </div>
       }
-    </div>
+    </p-card>
 
   }
 </div>

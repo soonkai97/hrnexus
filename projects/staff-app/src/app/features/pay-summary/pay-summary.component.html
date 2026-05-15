@@ -8,7 +8,7 @@
   </div>
 
   <!-- Period picker -->
-  <div class="nc-card period-picker">
+  <p-card styleClass="period-picker">
     <div class="picker-row">
       <div class="field">
         <label>{{ 'pay.year' | translate }}</label>
@@ -31,7 +31,7 @@
       <p-button [label]="'pay.view' | translate" severity="primary" size="small" [loading]="loading()" (click)="load()" />
     </div>
     <div class="period-label">{{ months[selectedMonth() - 1] }} {{ selectedYear() }}</div>
-  </div>
+  </p-card>
 
   @if (loading()) {
     <div class="loading-wrap">
@@ -49,7 +49,7 @@
 
     <!-- Breakdown -->
     <div class="section-label">{{ 'pay.breakdown' | translate }}</div>
-    <div class="breakdown-card nc-card">
+    <p-card styleClass="breakdown-card">
       <div class="breakdown-row">
         <div class="brow-left">
           <span class="brow-title">{{ 'pay.regularHours' | translate }}</span>
@@ -77,14 +77,14 @@
           <span class="td-muted">—</span>
         }
       </div>
-    </div>
+    </p-card>
 
     <!-- Shifts -->
     @if (summary()!.shifts.length > 0) {
       <div class="section-label">{{ 'pay.shifts' | translate }}</div>
       <div class="shifts-list">
         @for (shift of summary()!.shifts; track shift.shiftId) {
-          <div class="shift-card nc-card">
+          <p-card styleClass="shift-card">
             <div class="shift-left">
               <span class="shift-date">{{ shift.date | date:'EEE, MMM d' }}</span>
               <span class="shift-loc">{{ shift.locationName }}</span>
@@ -93,14 +93,14 @@
               <span class="shift-hours">{{ shift.hours }}h</span>
               <span class="shift-pay">RM {{ shift.pay | number:'1.2-2' }}</span>
             </div>
-          </div>
+          </p-card>
         }
       </div>
     }
   }
 
   @if (!loading() && !summary()) {
-    <div class="empty-state nc-card">{{ 'pay.noData' | translate }}</div>
+    <p-card styleClass="empty-state">{{ 'pay.noData' | translate }}</p-card>
   }
 
 </div>

@@ -17,7 +17,7 @@
   @if (pageTab() === 'report') {
 
     <!-- Filters -->
-    <div class="filter-bar nc-card">
+    <p-card styleClass="filter-bar">
       <div class="preset-row">
         <p-button [label]="'reports.today' | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset('today')" />
         <p-button [label]="'reports.yesterday' | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset('yesterday')" />
@@ -117,7 +117,7 @@
                     severity="primary" (click)="runReport()" [disabled]="loading()" [loading]="loading()" />
         </div>
       </div>
-    </div>
+    </p-card>
 
     @if (error()) {
       <div style="color:#f87171;margin:1rem 0">⚠ {{ error() }}</div>
@@ -127,26 +127,26 @@
 
       <!-- Summary cards -->
       <div class="stat-grid report-stat-grid">
-        <div class="stat-card accent-purple">
+        <p-card styleClass="stat-card accent-purple">
           <span class="stat-label">{{ 'reports.totalShifts' | translate }}</span>
           <span class="stat-value">{{ r.summary.totalShifts }}</span>
           <span class="stat-sub">{{ 'reports.inSelectedPeriod' | translate }}</span>
-        </div>
-        <div class="stat-card accent-pink">
+        </p-card>
+        <p-card styleClass="stat-card accent-pink">
           <span class="stat-label">{{ 'reports.totalHours' | translate }}</span>
           <span class="stat-value">{{ r.summary.totalHours }}h</span>
           <span class="stat-sub">{{ 'reports.avgPerShift' | translate }} {{ r.summary.avgHoursPerShift }}h {{ 'reports.perShift' | translate }}</span>
-        </div>
-        <div class="stat-card accent-amber">
+        </p-card>
+        <p-card styleClass="stat-card accent-amber">
           <span class="stat-label">{{ 'reports.labourCost' | translate }}</span>
           <span class="stat-value">RM {{ r.summary.totalCost | number:'1.2-2' }}</span>
           <span class="stat-sub">{{ 'reports.grossPayTotal' | translate }}</span>
-        </div>
-        <div class="stat-card accent-green">
+        </p-card>
+        <p-card styleClass="stat-card accent-green">
           <span class="stat-label">{{ 'reports.uniqueStaff' | translate }}</span>
           <span class="stat-value">{{ r.summary.uniqueStaff }}</span>
           <span class="stat-sub">{{ 'reports.across' | translate }} {{ r.summary.uniqueLocations }} {{ 'reports.locations' | translate }}</span>
-        </div>
+        </p-card>
       </div>
 
       <!-- Result tabs -->
@@ -165,7 +165,7 @@
 
       <!-- By Employee -->
       @if (activeTab() === 'employee') {
-        <div class="table-card">
+        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
           <p-table [value]="r.byStaff" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>
@@ -182,7 +182,7 @@
               <tr>
                 <td class="td-muted mono">{{ e.staffId }}</td>
                 <td class="td-name">{{ e.name }}</td>
-                <td><span class="badge badge-role">{{ e.role | titlecase }}</span></td>
+                <td><p-tag [value]="e.role | titlecase" severity="info" /></td>
                 <td class="td-muted">{{ e.shifts }}</td>
                 <td class="td-muted">{{ e.hours }}h</td>
                 <td class="td-muted">{{ e.avgHoursPerShift }}h</td>
@@ -193,14 +193,14 @@
               <tr><td colspan="7" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
             </ng-template>
           </p-table>
-        </div>
+        </p-card>
       }
 
       <!-- By Location -->
       @if (activeTab() === 'location') {
         <div class="location-breakdown" style="margin-top:0.75rem">
           @for (loc of r.byLocation; track loc.locationName) {
-            <div class="loc-row nc-card">
+            <p-card styleClass="loc-row">
               <div class="loc-left">
                 <span class="loc-name">{{ loc.locationName }}</span>
                 <span class="loc-meta">{{ loc.shifts }} shifts · {{ loc.hours }}h</span>
@@ -211,7 +211,7 @@
                 </div>
               </div>
               <span class="loc-cost">RM {{ loc.cost | number:'1.2-2' }}</span>
-            </div>
+            </p-card>
           }
           @if (r.byLocation.length === 0) {
             <div class="td-empty" style="padding:2rem">{{ 'common.noData' | translate }}</div>
@@ -221,7 +221,7 @@
 
       <!-- By Role -->
       @if (activeTab() === 'role') {
-        <div class="table-card">
+        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
           <p-table [value]="r.byRole" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>
@@ -234,7 +234,7 @@
             </ng-template>
             <ng-template pTemplate="body" let-ro>
               <tr>
-                <td><span class="badge badge-role">{{ ro.role | titlecase }}</span></td>
+                <td><p-tag [value]="ro.role | titlecase" severity="info" /></td>
                 <td class="td-muted">{{ ro.staffCount }}</td>
                 <td class="td-muted">{{ ro.shifts }}</td>
                 <td class="td-muted">{{ ro.hours }}h</td>
@@ -245,12 +245,12 @@
               <tr><td colspan="5" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
             </ng-template>
           </p-table>
-        </div>
+        </p-card>
       }
 
       <!-- By Date -->
       @if (activeTab() === 'date') {
-        <div class="table-card">
+        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
           <p-table [value]="r.byDate" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>
@@ -272,12 +272,12 @@
               <tr><td colspan="4" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
             </ng-template>
           </p-table>
-        </div>
+        </p-card>
       }
 
       <!-- All Shifts -->
       @if (activeTab() === 'shifts') {
-        <div class="table-card">
+        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
           <p-table [value]="r.shifts" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>
@@ -297,22 +297,19 @@
               <tr>
                 <td class="td-muted mono">{{ s.staffId }}</td>
                 <td class="td-name">{{ s.staffName }}</td>
-                <td><span class="badge badge-role">{{ s.role | titlecase }}</span></td>
+                <td><p-tag [value]="s.role | titlecase" severity="info" /></td>
                 <td class="td-muted">{{ s.locationName }}</td>
                 <td class="td-muted">{{ s.clockedIn | date:'dd/MM h:mm a' }}</td>
                 <td class="td-muted">{{ s.clockedOut ? (s.clockedOut | date:'dd/MM h:mm a') : '—' }}</td>
                 <td [class.td-ot]="s.isOvertime">{{ s.hours }}h</td>
                 <td class="td-pay">RM {{ s.cost | number:'1.2-2' }}</td>
                 <td>
-                  <span class="badge"
-                    [class.badge-active]="s.status === 'Active'"
-                    [class.badge-closed]="s.status === 'Complete'">
-                    {{ s.status }}
-                  </span>
+                  <p-tag [value]="s.status"
+                         [severity]="s.status === 'Active' ? 'success' : 'secondary'" />
                 </td>
                 <td>
                   @if (s.isOvertime) {
-                    <span class="badge badge-warning badge-ot" [pTooltip]="'Shift exceeds ' + s.otThreshold + 'h (configured OT threshold)'">⚠ OT</span>
+                    <p-tag value="⚠ OT" severity="warn" [pTooltip]="'Shift exceeds ' + s.otThreshold + 'h (configured OT threshold)'" styleClass="badge-ot" />
                   }
                 </td>
               </tr>
@@ -321,7 +318,7 @@
               <tr><td colspan="10" class="td-empty">{{ 'reports.noShiftsInPeriod' | translate }}</td></tr>
             </ng-template>
           </p-table>
-        </div>
+        </p-card>
       }
 
     }
@@ -329,7 +326,7 @@
 
   <!-- ── TAB: Payroll Export ─────────────────────────────────────────────── -->
   @if (pageTab() === 'payroll') {
-    <div class="nc-card payroll-card">
+    <p-card styleClass="payroll-card">
       <div class="payroll-title">{{ 'reports.payrollTitle' | translate }}</div>
       <p class="payroll-sub">{{ 'reports.payrollDesc' | translate }}</p>
       <div class="payroll-controls">
@@ -349,7 +346,7 @@
                   icon="pi pi-download" severity="primary" styleClass="payroll-export-btn"
                   (click)="exportPayrollCsv()" [disabled]="payrollExporting()" [loading]="payrollExporting()" />
       </div>
-    </div>
+    </p-card>
   }
 
 </div>

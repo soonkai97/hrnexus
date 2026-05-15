@@ -53,7 +53,13 @@
   right: 0.5rem;
   cursor: pointer;
 
-  .btn-ghost { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+  .upload-btn {
+    display: inline-block;
+    background: none; border: none; color: var(--nc-text-secondary);
+    font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px;
+    transition: color 0.15s, background 0.15s; cursor: pointer;
+    &:hover { color: var(--nc-text-primary); background: var(--nc-bg-raised); }
+  }
 
   input[type="file"] { display: none; }
 }

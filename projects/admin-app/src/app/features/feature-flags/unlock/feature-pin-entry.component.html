@@ -1,5 +1,5 @@
 <div class="pin-wrap">
-  <div class="pin-card nc-card">
+  <p-card styleClass="pin-card">
 
     <div class="pin-icon">🔐</div>
     <h2 class="pin-title">Feature Management</h2>
@@ -26,12 +26,11 @@
       </div>
     }
 
-    <button class="btn-primary pin-submit" (click)="submit()" [disabled]="!pin || loading() || isLockedOut">
-      @if (loading()) { <span class="nc-spinner sm"></span> }
-      {{ loading() ? 'Verifying…' : 'Unlock' }}
-    </button>
+    <p-button styleClass="pin-submit" [label]="loading() ? 'Verifying…' : 'Unlock'"
+              [loading]="loading()" [disabled]="!pin || loading() || isLockedOut"
+              (click)="submit()" />
 
     <p class="pin-hint">5 incorrect attempts triggers a 15-minute lockout.</p>
 
-  </div>
+  </p-card>
 </div>

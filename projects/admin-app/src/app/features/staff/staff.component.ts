@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, StaffStore, RegisterStaffRequest,
-         Staff, ToastService, ConfirmService, TooltipDirective, PickerOnlyDirective, todayLocalString } from 'shared-lib';
+         Staff, ToastService, ConfirmService, PickerOnlyDirective, todayLocalString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
+import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
@@ -17,8 +18,8 @@ import { Message } from 'primeng/message';
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe, TooltipDirective, PickerOnlyDirective,
-    Button, InputText, Password, TableModule, Tag, Dialog, TooltipModule, Message],
+  imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe, PickerOnlyDirective,
+    Button, InputText, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })
@@ -29,7 +30,7 @@ export class StaffComponent implements OnInit {
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly el          = inject(ElementRef);
 
-  @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
   readonly staff      = this.staffStore.staff;
   readonly roles      = this.staffStore.roles;

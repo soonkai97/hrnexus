@@ -5,12 +5,12 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { SignalRService, AdminService, ActiveStaffDto, RecentEventDto, DashboardStats, ToastService } from 'shared-lib';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
-import { Skeleton } from 'primeng/skeleton';
+import { Card } from 'primeng/card';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, TranslatePipe, TableModule, Tag, Skeleton],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, TranslatePipe, TableModule, Tag, Card],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })

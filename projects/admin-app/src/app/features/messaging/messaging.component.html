@@ -6,7 +6,7 @@
   </div>
 
   @if (showCompose()) {
-    <div class="nc-card compose-card">
+    <p-card styleClass="compose-card">
       <h3 class="compose-title">New Message</h3>
       <div class="field">
         <label>To (leave empty to send to all staff as broadcast)</label>
@@ -26,7 +26,7 @@
         <p-button [label]="sending() ? 'Sending…' : 'Send Message'" severity="primary"
                   (click)="send()" [disabled]="sending() || !compose.content.trim()" [loading]="sending()" />
       </div>
-    </div>
+    </p-card>
   }
 
   <div class="tab-nav">
@@ -46,7 +46,7 @@
     }
     <div class="msg-list">
       @for (msg of inbox(); track msg.id) {
-        <div class="nc-card msg-card" [class.unread]="!msg.readAt" (click)="markRead(msg)">
+        <p-card styleClass="msg-card" [class.unread]="!msg.readAt" (click)="markRead(msg)">
           <div class="msg-from">{{ msg.senderName }}</div>
           <div class="msg-content">{{ msg.content }}</div>
           <div class="msg-footer">
@@ -55,7 +55,7 @@
                       (click)="reply(msg); $event.stopPropagation()" />
           </div>
           @if (!msg.readAt) { <span class="unread-dot"></span> }
-        </div>
+        </p-card>
       }
     </div>
   }
@@ -66,11 +66,11 @@
     }
     <div class="msg-list">
       @for (msg of sent(); track msg.id) {
-        <div class="nc-card msg-card">
+        <p-card styleClass="msg-card">
           <div class="msg-from">To: {{ msg.recipientName ?? 'All Staff' }}</div>
           <div class="msg-content">{{ msg.content }}</div>
           <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
-        </div>
+        </p-card>
       }
     </div>
   }

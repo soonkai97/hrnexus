@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, signal, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from 'primeng/button';
+import { Popover } from 'primeng/popover';
 import { BadgeModule } from 'primeng/badge';
 import { NotificationService } from '../../services/notification.service';
 import { SignalRService } from '../../services/signalr.service';
@@ -9,7 +10,7 @@ import { AppNotification } from '../../models';
 @Component({
   selector: 'nc-notification-bell',
   standalone: true,
-  imports: [Button, BadgeModule],
+  imports: [Button, Popover, BadgeModule],
   templateUrl: './notification-bell.component.html',
   styleUrl:    './notification-bell.component.scss',
 })
@@ -17,50 +18,16 @@ export class NotificationBellComponent implements OnInit {
   readonly svc             = inject(NotificationService);
   private readonly signalr = inject(SignalRService);
   private readonly router  = inject(Router);
-  private readonly el      = inject(ElementRef);
 
-  @ViewChild('bellBtn') bellBtn!: ElementRef<HTMLButtonElement>;
-
-  open       = signal(false);
-  panelTop   = 0;
-  panelRight = 0;
+  @ViewChild('notifPanel') notifPanel!: Popover;
 
   ngOnInit(): void {
     this.svc.load().subscribe();
     this.signalr.notifications$.subscribe(n => this.svc.push(n));
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (this.open() && !this.el.nativeElement.contains(event.target as Node)) {
-      this.close();
-    }
-  }
-
-  toggle(): void {
-    if (this.open()) {
-      this.close();
-    } else {
-      this.updatePanelPosition();
-      this.open.set(true);
-    }
-  }
-
-  close(): void { this.open.set(false); }
-
-  private updatePanelPosition(): void {
-    const rect       = this.bellBtn.nativeElement.getBoundingClientRect();
-    const panelWidth = Math.min(340, window.innerWidth - 16);
-    const margin     = 8;
-
-    this.panelTop = rect.bottom + 8;
-
-    let right = window.innerWidth - rect.right;
-    const leftEdge = window.innerWidth - right - panelWidth;
-    if (leftEdge < margin) {
-      right = window.innerWidth - panelWidth - margin;
-    }
-    this.panelRight = Math.max(margin, right);
+  toggle(event: Event): void {
+    this.notifPanel.toggle(event);
   }
 
   onNotifClick(n: AppNotification): void {
@@ -70,7 +37,7 @@ export class NotificationBellComponent implements OnInit {
     }
     const route = this.routeFor(n);
     if (route) this.router.navigate([route]);
-    this.close();
+    this.notifPanel.hide();
   }
 
   markAll(): void {

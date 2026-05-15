@@ -2,20 +2,22 @@ import { Component, signal, computed, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
+import { Button } from 'primeng/button';
+import { BadgeModule } from 'primeng/badge';
 import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, LangService, SignalRService, NotificationService } from 'shared-lib';
 
 interface NavItem {
   path: string;
   labelKey: string;
   icon: string;
-  featureFlag?: FeatureKey; // hidden until the flag is enabled
-  adminOnly?: boolean;       // hidden for managers; only admins see it
+  featureFlag?: FeatureKey;
+  adminOnly?: boolean;
 }
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, TranslatePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, TranslatePipe, Button, BadgeModule],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
@@ -32,11 +34,8 @@ export class ShellComponent {
   readonly unreadNotifications = computed(() => this.notifSvc.unreadCount());
 
   constructor() {
-    // Load feature flags and sync language preference from backend
     this.featureSvc.load().subscribe();
     this.lang.syncFromApi();
-
-    // Start SignalR once here so the connection persists across all navigation
     this.signalR.startConnection();
 
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
@@ -61,23 +60,18 @@ export class ShellComponent {
   });
 
   private readonly allNavItems: NavItem[] = [
-    // ── Daily operations ─────────────────────────────
     { path: '/dashboard',     labelKey: 'nav.dashboard',     icon: '◈'  },
     { path: '/leave',         labelKey: 'nav.leave',         icon: '📅'  },
     { path: '/announcements',  labelKey: 'nav.announcements',  icon: '📢', featureFlag: 'announcements'  },
     { path: '/notifications',  labelKey: 'nav.notifications',  icon: '🔔'                               },
     { path: '/messaging',      labelKey: 'nav.messaging',      icon: '💬', featureFlag: 'messagingAdmin' },
-    // ── People & payroll ─────────────────────────────
     { path: '/staff',         labelKey: 'nav.staff',         icon: '👥'  },
     { path: '/reports',       labelKey: 'nav.reports',       icon: '📊'  },
     { path: '/tips',          labelKey: 'nav.tips',          icon: '💰', featureFlag: 'tips'           },
     { path: '/payroll',       labelKey: 'nav.payroll',       icon: '💰', featureFlag: 'payroll'        },
-    // ── Setup & config ───────────────────────────────
     { path: '/locations',     labelKey: 'nav.locations',     icon: '📍'  },
     { path: '/overtime',      labelKey: 'nav.otRules',       icon: '⏱',  featureFlag: 'otRules'        },
     { path: '/roles',         labelKey: 'nav.roles',         icon: '🏷'  },
-    // ── Admin only ────────────────────────────────────
-    // /features intentionally omitted from nav — PIN-protected, direct URL only
   ];
 
   navItems = computed(() => {

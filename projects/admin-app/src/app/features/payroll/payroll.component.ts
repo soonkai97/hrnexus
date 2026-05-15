@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { AdminService, PayrollSummaryResponse, PayrollStaffRow, MONTH_NAMES } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
-import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
+import { Card } from 'primeng/card';
 
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, Button, InputNumber, Select, TableModule],
+  imports: [DecimalPipe, FormsModule, Button, InputNumber, TableModule, Card],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })

@@ -5,13 +5,13 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { MessagingService, MessageDto, ToastService, SignalRService } from 'shared-lib';
 import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
 import { Textarea } from 'primeng/textarea';
-import { Tag } from 'primeng/tag';
 
 @Component({
   selector: 'app-messaging',
   standalone: true,
-  imports: [DatePipe, FormsModule, Button, Textarea, Tag],
+  imports: [DatePipe, FormsModule, Button, Card, Textarea],
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss',
 })

@@ -54,7 +54,8 @@
   @if (view() === 'apply') {
 
     <!-- Apply form -->
-    <div #formAnchor class="nc-card form-card">
+    <div #formAnchor>
+    <p-card styleClass="form-card">
       <h3 class="form-title">{{ 'leave.applyLeave' | translate }}</h3>
       <div class="form-grid">
         <div class="field">
@@ -91,6 +92,7 @@
           [loading]="saving()"
           (click)="submit()" />
       </div>
+    </p-card>
     </div>
 
   }
@@ -101,14 +103,14 @@
     @if (loading()) {
       <div class="center-spinner"><span class="nc-spinner"></span></div>
     } @else if (records().length === 0) {
-      <div class="nc-card empty-state">
+      <p-card styleClass="empty-state">
         <span>🌴</span>
         <p>{{ 'leave.noLeave' | translate }}</p>
-      </div>
+      </p-card>
     } @else {
       <div class="leave-list">
         @for (r of records(); track r.id) {
-          <div class="leave-card nc-card">
+          <p-card styleClass="leave-card">
             <div class="leave-top">
               <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ ('leave.type.' + r.leaveType) | translate }}</span>
               <span class="leave-status" [attr.data-status]="r.status">{{ ('leave.status.' + r.status) | translate }}</span>
@@ -125,7 +127,7 @@
             @if ((r.status === 'pending' || r.status === 'approved') && r.endDate >= todayLocal) {
               <p-button [label]="'leave.cancel' | translate" severity="danger" size="small" [text]="true" (click)="cancel(r)" />
             }
-          </div>
+          </p-card>
         }
       </div>
     }

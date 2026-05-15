@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PayrollService, PaySummary, MONTH_NAMES } from 'shared-lib';
 import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { InputNumber } from 'primeng/inputnumber';
 
 @Component({
   selector: 'app-tips-history',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, Select, InputNumber],
+  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, InputNumber],
   templateUrl: './tips-history.component.html',
   styleUrl: './tips-history.component.scss',
 })

@@ -12,7 +12,7 @@
 
   <!-- Add staff form -->
   @if (showForm()) {
-    <div #formAnchor class="form-card nc-card">
+    <p-card #formAnchor styleClass="form-card">
       <div class="form-header">
         <h3>{{ 'staff.newStaffMember' | translate }}</h3>
         <p-button icon="pi pi-times" [text]="true" severity="secondary" pTooltip="Close" aria-label="Close form" (click)="closeForm()" />
@@ -85,7 +85,7 @@
         <p-button [label]="saving() ? ('common.saving' | translate) : ('staff.saveStaff' | translate)"
                   severity="primary" (click)="saveStaff()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
       </div>
-    </div>
+    </p-card>
   }
 
   <!-- Search -->
@@ -95,7 +95,7 @@
   </div>
 
   <!-- Table -->
-  <div class="table-card">
+  <p-card styleClass="table-card p-0" [style]="{'padding':0}">
     <p-table [value]="staff()" [tableStyle]="{'min-width':'100%'}">
       <ng-template pTemplate="header">
         <tr>
@@ -116,14 +116,13 @@
           </td>
           <td>
             @for (r of s.roles; track r) {
-              <span class="badge badge-role" style="margin-right:0.25rem">{{ r | titlecase }}</span>
+              <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" />
             }
           </td>
           <td class="td-muted td-masked">{{ maskPhone(s.phoneNumber) }}</td>
           <td>
-            <span class="badge" [class.badge-active]="s.isActive" [class.badge-closed]="!s.isActive">
-              {{ s.isActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
-            </span>
+            <p-tag [value]="s.isActive ? ('common.active' | translate) : ('common.inactive' | translate)"
+                   [severity]="s.isActive ? 'success' : 'secondary'" />
           </td>
           <td class="td-actions">
             <!-- trigger only — dropdown rendered at page-wrap level to escape backdrop-filter -->
@@ -134,13 +133,13 @@
         </tr>
       </ng-template>
     </p-table>
-  </div>
+  </p-card>
 
   <!-- Pagination -->
   @if (totalPages() > 1) {
-    <div class="pagination-bar">
+    <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
       <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)" />
-      <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalCount() }})</span></span>
+      <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalCount() }})</span>
       <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)" />
     </div>
   }

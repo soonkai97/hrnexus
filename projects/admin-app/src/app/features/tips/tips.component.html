@@ -5,7 +5,7 @@
   </div>
 
   @if (showForm()) {
-    <div class="nc-card form-card">
+    <p-card styleClass="form-card">
       <h3 style="font-size:1rem;margin-bottom:1rem">{{ 'tips.newDistribution' | translate }}</h3>
 
       <div class="field">
@@ -82,11 +82,11 @@
           <p-button [label]="'tips.confirmDistribution' | translate" severity="primary" styleClass="mt-3" (click)="confirm()" />
         </div>
       }
-    </div>
+    </p-card>
   }
 
   <!-- History -->
-  <div class="nc-card" style="padding:1.5rem;margin-top:1rem">
+  <p-card styleClass="nc-card" [style]="{'margin-top': '1rem'}">
     <h3 style="font-size:1rem;margin-bottom:1rem">{{ 'tips.distributionHistory' | translate }}</h3>
     @if (pools().length === 0) {
       <p style="color:var(--text-muted);text-align:center;padding:1.5rem">{{ 'tips.noDistributions' | translate }}</p>
@@ -111,14 +111,13 @@
             <td>{{ p.splitMethod }}</td>
             <td>{{ p.staffCount }}</td>
             <td>
-              <span class="badge" [class.badge-active]="p.isDistributed" [class.badge-closed]="!p.isDistributed">
-                {{ p.isDistributed ? ('tips.distributed' | translate) : ('common.pending' | translate) }}
-              </span>
+              <p-tag [value]="p.isDistributed ? ('tips.distributed' | translate) : ('common.pending' | translate)"
+                     [severity]="p.isDistributed ? 'success' : 'secondary'" />
             </td>
             <td style="color:var(--text-muted)">{{ p.createdAt | date:'mediumDate' }}</td>
           </tr>
         </ng-template>
       </p-table>
     }
-  </div>
+  </p-card>
 </div>

@@ -6,11 +6,12 @@ import { filter } from 'rxjs/operators';
 import { MessagingService, MessageDto, StaffStore, ToastService, SignalRService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Textarea } from 'primeng/textarea';
+import { Card } from 'primeng/card';
 
 @Component({
   selector: 'app-messaging',
   standalone: true,
-  imports: [DatePipe, FormsModule, Button, Textarea],
+  imports: [DatePipe, FormsModule, Button, Textarea, Card],
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss',
 })

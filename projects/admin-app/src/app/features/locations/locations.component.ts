@@ -1,16 +1,17 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TooltipDirective } from 'shared-lib';
+import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, TooltipDirective, Button, InputText, TooltipModule, Message],
+  imports: [FormsModule, TranslatePipe, Button, InputText, Card, TooltipModule, Message],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })
@@ -22,7 +23,7 @@ export class LocationsComponent implements OnInit {
   readonly locations = this.store.locations;
   readonly loading   = this.store.loading;
 
-  @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
   showForm  = signal(false);
   editing   = signal<Location | null>(null);

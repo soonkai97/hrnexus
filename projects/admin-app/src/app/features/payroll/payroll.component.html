@@ -3,7 +3,7 @@
     <h1 class="page-title">💰 Payroll</h1>
   </div>
 
-  <div class="nc-card filter-card">
+  <p-card styleClass="filter-card">
     <div class="filter-row">
       <div class="field">
         <label>Year</label>
@@ -22,7 +22,7 @@
         <p-button label="View" severity="primary" styleClass="w-full" (click)="load()" [disabled]="loading()" [loading]="loading()" />
       </div>
     </div>
-  </div>
+  </p-card>
 
   @if (data()) {
     <div class="summary-bar">
@@ -38,7 +38,7 @@
       </div>
     }
 
-    <div class="nc-card table-card">
+    <p-card styleClass="table-card p-0" [style]="{'padding':0}">
       <p-table [value]="data()!.staff" [tableStyle]="{'min-width':'100%'}">
         <ng-template pTemplate="header">
           <tr>
@@ -80,7 +80,7 @@
       <p class="payroll-note">
         💡 Leave Pay = paid annual &amp; sick leave days × 8h × hourly rate. Unpaid leave is excluded.
       </p>
-    </div>
+    </p-card>
   } @else if (!loading()) {
     <div class="empty-state"><div class="empty-icon">💰</div><p>Select a year and month, then click View to load payroll data.</p></div>
   }

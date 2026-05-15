@@ -6,7 +6,7 @@
 
   <!-- Add new role form -->
   @if (showForm()) {
-    <div #formAnchor class="nc-card add-card">
+    <p-card #formAnchor styleClass="add-card">
       <div class="form-header">
         <h3>{{ 'roles.addNewRole' | translate }}</h3>
         <p-button icon="pi pi-times" [text]="true" severity="secondary" aria-label="Close form" (click)="cancel()" />
@@ -27,11 +27,11 @@
       @if (error()) {
         <p-message severity="error" [text]="error()" />
       }
-    </div>
+    </p-card>
   }
 
   <!-- Roles list -->
-  <div class="table-card">
+  <p-card styleClass="table-card p-0" [style]="{'padding':0}">
     <p-table [value]="roles()" [tableStyle]="{'min-width':'100%'}">
       <ng-template pTemplate="header">
         <tr>
@@ -44,7 +44,7 @@
       <ng-template pTemplate="body" let-role>
         <tr>
           <td>
-            <span class="badge badge-role">{{ role.name | titlecase }}</span>
+            <p-tag [value]="role.name | titlecase" severity="info" />
           </td>
           <td>
             @if (editingRateName() === role.name) {
@@ -66,9 +66,9 @@
           </td>
           <td>
             @if (role.isSystem) {
-              <span class="badge badge-active">{{ 'roles.system' | translate }}</span>
+              <p-tag [value]="'roles.system' | translate" severity="success" />
             } @else {
-              <span class="badge badge-custom">{{ 'roles.custom' | translate }}</span>
+              <p-tag [value]="'roles.custom' | translate" severity="info" />
             }
           </td>
           <td>
@@ -80,5 +80,5 @@
         </tr>
       </ng-template>
     </p-table>
-  </div>
+  </p-card>
 </div>

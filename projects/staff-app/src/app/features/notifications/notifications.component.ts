@@ -3,12 +3,12 @@ import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { NotificationService, AppNotification } from 'shared-lib';
 import { Button } from 'primeng/button';
-import { Tag } from 'primeng/tag';
+import { Card } from 'primeng/card';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [TranslatePipe, Button, Tag],
+  imports: [TranslatePipe, Button, Card],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss',
 })

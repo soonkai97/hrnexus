@@ -1,8 +1,9 @@
 <div class="page-content">
   <div class="page-header">
-    <h1 class="page-title">💬 Messages</h1>
+    <h1 class="page-title"><i class="pi pi-comments"></i> Messages</h1>
     <p-button
-      [label]="showCompose() ? 'Cancel' : '✉ New Message'"
+      [icon]="showCompose() ? '' : 'pi pi-envelope'"
+      [label]="showCompose() ? 'Cancel' : 'New Message'"
       [severity]="showCompose() ? 'secondary' : 'primary'"
       size="small"
       (click)="showCompose.set(!showCompose())" />
@@ -28,7 +29,7 @@
 
   @if (tab() === 'inbox') {
     @if (inbox().length === 0 && !loading()) {
-      <div class="empty-state"><div class="empty-icon">📭</div><p>No messages yet.</p></div>
+      <div class="empty-state"><div class="empty-icon"><i class="pi pi-inbox"></i></div><p>No messages yet.</p></div>
     }
     @for (msg of inbox(); track msg.id) {
       <p-card [styleClass]="'msg-card' + (!msg.readAt ? ' unread' : '')" (click)="markRead(msg)">
@@ -42,7 +43,7 @@
 
   @if (tab() === 'sent') {
     @if (sent().length === 0) {
-      <div class="empty-state"><div class="empty-icon">📤</div><p>No sent messages.</p></div>
+      <div class="empty-state"><div class="empty-icon"><i class="pi pi-send"></i></div><p>No sent messages.</p></div>
     }
     @for (msg of sent(); track msg.id) {
       <p-card styleClass="msg-card">

@@ -1,7 +1,7 @@
 <div class="page-wrap">
 
   <div class="page-header">
-    <h1 class="page-title">🔔 {{ 'notifications.title' | translate }}</h1>
+    <h1 class="page-title"><i class="pi pi-bell"></i> {{ 'notifications.title' | translate }}</h1>
     @if (unreadCount() > 0) {
       <p-button [label]="'notifications.markAllRead' | translate" [text]="true" severity="secondary"
                 (click)="markAll()" [disabled]="markingAll()" [loading]="markingAll()" />

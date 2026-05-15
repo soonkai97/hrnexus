@@ -41,7 +41,7 @@
           @if (loc.imagePath) {
             <img [src]="'/' + loc.imagePath" [alt]="loc.name" />
           } @else {
-            <span class="loc-placeholder">📍</span>
+            <span class="loc-placeholder"><i class="pi pi-map-marker"></i></span>
           }
           <!-- Upload overlay -->
           <label class="loc-upload-label">

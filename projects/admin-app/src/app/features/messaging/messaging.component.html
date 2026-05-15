@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
-    <h1 class="page-title">💬 Messaging</h1>
-    <p-button [label]="showCompose() ? 'Cancel' : '✉ Compose'" [text]="showCompose()" [severity]="showCompose() ? 'secondary' : 'primary'"
+    <h1 class="page-title"><i class="pi pi-comments"></i> Messaging</h1>
+    <p-button [label]="showCompose() ? 'Cancel' : 'Compose'" [icon]="showCompose() ? '' : 'pi pi-envelope'" [text]="showCompose()" [severity]="showCompose() ? 'secondary' : 'primary'"
               (click)="showCompose() ? showCompose.set(false) : openCompose()" />
   </div>
 
@@ -39,7 +39,7 @@
 
   @if (tab() === 'inbox') {
     @if (inbox().length === 0 && !loading()) {
-      <div class="empty-state"><div class="empty-icon">📭</div><p>No messages in inbox.</p></div>
+      <div class="empty-state"><div class="empty-icon"><i class="pi pi-inbox"></i></div><p>No messages in inbox.</p></div>
     }
     <div class="msg-list">
       @for (msg of inbox(); track msg.id) {
@@ -48,7 +48,7 @@
           <div class="msg-content">{{ msg.content }}</div>
           <div class="msg-footer">
             <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
-            <p-button label="↩ Reply" [text]="true" severity="secondary" styleClass="btn-xs"
+            <p-button icon="pi pi-reply" label="Reply" [text]="true" severity="secondary" styleClass="btn-xs"
                       (click)="reply(msg); $event.stopPropagation()" />
           </div>
           @if (!msg.readAt) { <span class="unread-dot"></span> }
@@ -59,7 +59,7 @@
 
   @if (tab() === 'sent') {
     @if (sent().length === 0) {
-      <div class="empty-state"><div class="empty-icon">📤</div><p>No sent messages.</p></div>
+      <div class="empty-state"><div class="empty-icon"><i class="pi pi-send"></i></div><p>No sent messages.</p></div>
     }
     <div class="msg-list">
       @for (msg of sent(); track msg.id) {

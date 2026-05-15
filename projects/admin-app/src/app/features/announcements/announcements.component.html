@@ -1,6 +1,6 @@
 <div class="page-wrap">
   <div class="page-header">
-    <h1 class="page-title">📢 {{ 'announcements.title' | translate }}</h1>
+    <h1 class="page-title"><i class="pi pi-megaphone"></i> {{ 'announcements.title' | translate }}</h1>
     <p-button [label]="'announcements.newAnnouncement' | translate" severity="primary" (click)="openAdd()" />
   </div>
 
@@ -67,7 +67,7 @@
               <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
               <button class="btn-menu-trigger" pTooltip="Actions"
                       [attr.aria-label]="'Actions for ' + item.title"
-                      (click)="toggleMenu(item.id, $event); $event.stopPropagation()">⋯</button>
+                      (click)="toggleMenu(item.id, $event); $event.stopPropagation()"><i class="pi pi-ellipsis-v"></i></button>
             </td>
           </tr>
         </ng-template>
@@ -90,11 +90,11 @@
            [style.bottom.px]="menuPos()!.bottom"
            [style.right.px]="menuPos()!.right">
         <button class="action-item" (click)="startEdit(menuTarget()!); closeMenu()">
-          ✏ {{ 'common.edit' | translate }}
+          <i class="pi pi-pencil"></i> {{ 'common.edit' | translate }}
         </button>
         <div class="action-divider"></div>
         <button class="action-item action-item-danger" (click)="remove(menuTarget()!.id); closeMenu()">
-          🗑 {{ 'common.delete' | translate }}
+          <i class="pi pi-trash"></i> {{ 'common.delete' | translate }}
         </button>
       </div>
     }

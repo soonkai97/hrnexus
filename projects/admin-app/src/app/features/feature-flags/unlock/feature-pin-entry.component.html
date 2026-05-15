@@ -1,7 +1,7 @@
 <div class="pin-wrap">
   <p-card styleClass="pin-card">
 
-    <div class="pin-icon">🔐</div>
+    <div class="pin-icon"><i class="pi pi-lock"></i></div>
     <h2 class="pin-title">Feature Management</h2>
     <p class="pin-sub">Enter your access PIN to continue. This area controls which features are available to this client.</p>
 
@@ -15,12 +15,12 @@
         (keydown.enter)="submit()"
         autocomplete="off"
         autofocus />
-      <p-button styleClass="pin-eye" [text]="true" severity="secondary" [label]="showPin() ? '🙈' : '👁'" (onClick)="showPin.update(v => !v)" />
+      <p-button styleClass="pin-eye" [text]="true" severity="secondary" [icon]="showPin() ? 'pi pi-eye-slash' : 'pi pi-eye'" (onClick)="showPin.update(v => !v)" />
     </div>
 
     @if (error()) {
       <div class="pin-error">
-        {{ isLockedOut ? '🔒' : '⚠' }} {{ error() }}
+        <i [class]="isLockedOut ? 'pi pi-lock' : 'pi pi-exclamation-triangle'"></i> {{ error() }}
       </div>
     }
 

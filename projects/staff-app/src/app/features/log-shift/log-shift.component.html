@@ -29,7 +29,7 @@
         <div class="active-badge">{{ 'logShift.live' | translate }}</div>
         <div class="active-info">
           <div class="active-role">{{ a.roleName | uppercase }}</div>
-          <div class="active-location">📍 {{ a.locationName }}</div>
+          <div class="active-location"><i class="pi pi-map-marker"></i> {{ a.locationName }}</div>
           <div class="active-time">{{ 'logShift.startedAt' | translate }} {{ a.startTime | amPm }}</div>
         </div>
         @if (endingId() === a.id) {
@@ -152,7 +152,7 @@
       </div>
     } @else if (history().length === 0) {
       <div class="empty-state">
-        <div class="empty-icon">📋</div>
+        <div class="empty-icon"><i class="pi pi-list"></i></div>
         <p>{{ 'logShift.noHistory' | translate }}</p>
       </div>
     } @else {
@@ -164,13 +164,13 @@
               <span class="h-date">{{ wl.workDate }}</span>
             </div>
             <div class="history-mid">
-              <span>📍 {{ wl.locationName }}</span>
-              <span>🕐 {{ wl.startTime | amPm }} – {{ wl.endTime | amPm }}</span>
-              <span class="h-hours">⏱ {{ wl.hours | number:'1.1-1' }}h</span>
+              <span><i class="pi pi-map-marker"></i> {{ wl.locationName }}</span>
+              <span><i class="pi pi-clock"></i> {{ wl.startTime | amPm }} – {{ wl.endTime | amPm }}</span>
+              <span class="h-hours"><i class="pi pi-stopwatch"></i> {{ wl.hours | number:'1.1-1' }}h</span>
               @if (wl.isManualEntry) { <span class="badge-manual">{{ 'logShift.manual' | translate }}</span> }
             </div>
             @if (wl.notes) {
-              <div class="h-notes">📝 {{ wl.notes }}</div>
+              <div class="h-notes"><i class="pi pi-pencil"></i> {{ wl.notes }}</div>
             }
             <p-button [label]="'logShift.delete' | translate" [text]="true" severity="danger" size="small" (click)="deleteLog(wl.id)" />
           </p-card>

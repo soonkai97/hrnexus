@@ -61,10 +61,10 @@
       <div class="overdue-banner">
         <div class="overdue-banner-header" (click)="overdueExpanded.update(v => !v)">
           <span class="overdue-banner-title">
-            ⚠ {{ overdueLeaves().length }} {{ 'leave.overdueSection' | translate }}
+            <i class="pi pi-exclamation-triangle"></i> {{ overdueLeaves().length }} {{ 'leave.overdueSection' | translate }}
           </span>
           <span class="overdue-banner-desc">{{ 'leave.overdueDesc' | translate }}</span>
-          <span class="overdue-chevron">{{ overdueExpanded() ? '▲' : '▼' }}</span>
+          <span class="overdue-chevron"><i [class]="overdueExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i></span>
         </div>
         @if (overdueExpanded()) {
           <div class="overdue-list">
@@ -76,9 +76,9 @@
                   <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' → ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                 </div>
                 <div class="overdue-row-actions">
-                  <p-button [label]="'✓ ' + ('common.approved' | translate)" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                  <p-button [label]="'✕ ' + ('common.rejected' | translate)" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
-                  <p-button [label]="'⚠ ' + ('leave.markNoShow' | translate)" styleClass="overdue-noshow-btn" [text]="true" severity="secondary" (click)="markNoShow(r)" />
+                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                  <p-button icon="pi pi-exclamation-triangle" [label]="'leave.markNoShow' | translate" styleClass="overdue-noshow-btn" [text]="true" severity="secondary" (click)="markNoShow(r)" />
                 </div>
               </div>
             }
@@ -166,7 +166,7 @@
                     @for (r of day.leaves.slice(0, 2); track r.id) {
                       <div class="cal-leave-chip" [class]="'cal-leave-' + r.leaveType"
                            [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
-                           [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' ⚠ Overdue' : '')"
+                           [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — Overdue' : '')"
                            (click)="openCalLeave(r, $event)">
                         {{ r.staffName.split(' ')[0] }}
                       </div>
@@ -201,7 +201,7 @@
                       <div class="cal-day-row-left">
                         <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
                         @if (r.status === 'pending' && r.endDate < todayIso) {
-                          <span class="overdue-badge">⚠ {{ 'leave.overdue' | translate }}</span>
+                          <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
                         <span class="cal-day-staff-name">{{ r.staffName }}</span>
                         <span class="cal-day-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' → ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
@@ -211,7 +211,7 @@
                         @if (r.status === 'pending') {
                           <p-button icon="pi pi-check" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
                           <p-button icon="pi pi-times" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
-                          <span class="cal-day-edit-hint">✏</span>
+                          <span class="cal-day-edit-hint"><i class="pi pi-pencil"></i></span>
                         }
                       </div>
                     </div>
@@ -230,7 +230,7 @@
         <div style="text-align:center;padding:3rem"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
       } @else if (records().length === 0) {
         <p-card styleClass="empty-state">
-          <span>🌴</span>
+          <span><i class="pi pi-sun"></i></span>
           <p>{{ 'leave.noRecordsFound' | translate }}</p>
         </p-card>
       } @else {
@@ -241,7 +241,7 @@
                 <div class="leave-top-left">
                   <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
                   @if (r.status === 'pending' && r.endDate < todayIso) {
-                    <span class="overdue-badge">⚠ {{ 'leave.overdue' | translate }}</span>
+                    <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                   }
                 </div>
                 <div class="leave-top-right">
@@ -264,8 +264,8 @@
               @if (r.notes) { <div class="leave-notes">{{ r.notes }}</div> }
               @if (r.status === 'pending') {
                 <div class="leave-actions">
-                  <p-button [label]="'✓ ' + ('common.approved' | translate)" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                  <p-button [label]="'✕ ' + ('common.rejected' | translate)" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
                 </div>
               }
             </p-card>
@@ -356,13 +356,13 @@
               </div>
               <div class="staff-bal-chips">
                 <span class="bal-chip" [class.bal-chip-warn]="b.annualRemaining <= 3" [class.bal-chip-ok]="b.annualRemaining > 3">
-                  🌿 {{ b.annualRemaining }}d
+                  <i class="pi pi-sun"></i> {{ b.annualRemaining }}d
                 </span>
                 <span class="bal-chip" [class.bal-chip-warn]="b.sickRemaining <= 3" [class.bal-chip-ok]="b.sickRemaining > 3">
-                  🏥 {{ b.sickRemaining }}d
+                  <i class="pi pi-heart"></i> {{ b.sickRemaining }}d
                 </span>
                 @if (b.unpaidUsed > 0) {
-                  <span class="bal-chip bal-chip-unpaid">⚠ {{ b.unpaidUsed }}d</span>
+                  <span class="bal-chip bal-chip-unpaid"><i class="pi pi-exclamation-triangle"></i> {{ b.unpaidUsed }}d</span>
                 }
               </div>
             </div>

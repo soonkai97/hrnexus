@@ -1,6 +1,6 @@
 <div class="page-wrap">
   <div class="page-header">
-    <h1 class="page-title">⏱ {{ 'overtime.title' | translate }}</h1>
+    <h1 class="page-title"><i class="pi pi-stopwatch"></i> {{ 'overtime.title' | translate }}</h1>
     <p-button [label]="'overtime.addRule' | translate" severity="primary" (click)="openAdd()" />
   </div>
 
@@ -22,13 +22,13 @@
           <div class="role-select">
             <button type="button" class="role-trigger" (click)="showRoleDropdown.update(v => !v)">
               <span class="role-trigger-label">{{ roleLabel() }}</span>
-              <span class="role-chevron" [class.open]="showRoleDropdown()">▾</span>
+              <span class="role-chevron" [class.open]="showRoleDropdown()"><i class="pi pi-chevron-down"></i></span>
             </button>
             @if (showRoleDropdown()) {
               <div class="role-dropdown">
                 <label class="role-option">
                   <input type="checkbox" [checked]="isRoleSelected('*')" (change)="toggleRole('*')" />
-                  <span>✱ {{ 'overtime.allRoles' | translate }}</span>
+                  <span><i class="pi pi-asterisk"></i> {{ 'overtime.allRoles' | translate }}</span>
                 </label>
                 <div class="role-divider"></div>
                 @for (r of staffStore.roles(); track r.name) {
@@ -106,7 +106,7 @@
             <td class="td-actions">
               <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
               <button class="btn-menu-trigger" pTooltip="Actions"
-                      (click)="toggleMenu(rule.id, $event); $event.stopPropagation()">⋯</button>
+                      (click)="toggleMenu(rule.id, $event); $event.stopPropagation()"><i class="pi pi-ellipsis-v"></i></button>
             </td>
           </tr>
         </ng-template>
@@ -122,17 +122,17 @@
          [style.bottom.px]="menuPos()!.bottom"
          [style.right.px]="menuPos()!.right">
       <button class="action-item" (click)="openEdit(menuTarget()!); closeMenu()">
-        ✏ {{ 'common.edit' | translate }}
+        <i class="pi pi-pencil"></i> {{ 'common.edit' | translate }}
       </button>
       <div class="action-divider"></div>
       <button class="action-item action-item-danger" (click)="delete(menuTarget()!.id); closeMenu()">
-        🗑 {{ 'common.delete' | translate }}
+        <i class="pi pi-trash"></i> {{ 'common.delete' | translate }}
       </button>
     </div>
   }
 
   <div class="info-note">
-    <span>ℹ</span>
+    <span><i class="pi pi-info-circle"></i></span>
     {{ 'overtime.infoNote' | translate }}
   </div>
 </div>

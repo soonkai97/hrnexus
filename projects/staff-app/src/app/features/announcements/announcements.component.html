@@ -1,12 +1,13 @@
 <div class="page-wrap">
   <div class="page-header">
     <div>
-      <h1 class="page-title">📢 {{ 'nav.announcements' | translate }}</h1>
+      <h1 class="page-title"><i class="pi pi-megaphone"></i> {{ 'nav.announcements' | translate }}</h1>
       <p class="page-sub">{{ 'announcements.subtitle' | translate }}</p>
     </div>
     @if (hasUnread()) {
       <p-button
-        [label]="'✓ ' + ('announcements.markAllRead' | translate)"
+        icon="pi pi-check"
+        [label]="'announcements.markAllRead' | translate"
         severity="secondary"
         (click)="markAllRead()" />
     }
@@ -16,7 +17,7 @@
     <div class="loading-wrap"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
   } @else if (items().length === 0) {
     <div class="empty-state-card">
-      <div class="empty-icon">📭</div>
+      <div class="empty-icon"><i class="pi pi-inbox"></i></div>
       <p>{{ 'announcements.noAnnouncements' | translate }}</p>
     </div>
   } @else {

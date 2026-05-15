@@ -81,27 +81,63 @@
   margin: 0 1.25rem;
 }
 
+// ── Change-password action card ───────────────────────────────────────────────
 .action-card {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1rem 1.25rem; margin-bottom: 0.75rem; margin-top: 0;
-  text-decoration: none; cursor: pointer;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
   transition: background $transition-fast;
   &:hover { background: $bg-raised; }
 }
 
-.action-card-label {
-  display: flex; flex-direction: column;
-  font-size: 0.9rem; font-weight: 600; color: $text-primary;
+// The <a> inside the action card must be a flex row so the chevron stays inline
+.action-card-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: $text-primary;
+  gap: 0.75rem;
 }
 
-.action-card-arrow { font-size: 1.4rem; color: $text-muted; }
-
-.sign-out {
-  width: auto;
-  margin-top: 0.5rem;
-  padding: 0.7rem 1.5rem;
+.action-card-label {
+  display: flex;
+  flex-direction: column;
   font-size: 0.9rem;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.action-card-arrow { font-size: 1.1rem; color: $text-muted; }
+
+// ── Language / view tabs ──────────────────────────────────────────────────────
+.view-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-sm;
+  overflow: hidden;
+
+  button {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: none;
+    background: $bg-surface;
+    color: $text-muted;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    & + button { border-left: 1px solid $border-subtle; }
+    &.active { background: rgba(168,85,247,0.15); color: $neon-purple; }
+    &:hover:not(.active) { background: rgba(168,85,247,0.06); color: $text-primary; }
+  }
+}
+
+// ── Sign out ──────────────────────────────────────────────────────────────────
+.sign-out-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-bottom: 1rem;
 }

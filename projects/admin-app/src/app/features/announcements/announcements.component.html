@@ -94,6 +94,7 @@
       <div class="action-backdrop" (click)="closeMenu()"></div>
       <div class="action-dropdown"
            [style.top.px]="menuPos()!.top"
+           [style.bottom.px]="menuPos()!.bottom"
            [style.right.px]="menuPos()!.right">
         <button class="action-item" (click)="startEdit(menuTarget()!); closeMenu()">
           ✏ {{ 'common.edit' | translate }}

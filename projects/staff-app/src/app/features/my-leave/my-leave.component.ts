@@ -1,13 +1,13 @@
-import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
+import { SelectButton } from 'primeng/selectbutton';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { ProgressBar } from 'primeng/progressbar';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { DatePicker } from 'primeng/datepicker';
 
@@ -17,7 +17,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 @Component({
   selector: 'app-my-leave',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, Button, Card, Select, InputText, Message, ProgressBar, ProgressSpinner, DatePicker],
+  imports: [FormsModule, TranslatePipe, Button, Card, Select, SelectButton, InputText, Message, ProgressSpinner, DatePicker],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })
@@ -30,13 +30,15 @@ export class MyLeaveComponent implements OnInit {
   readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({ label: t, value: t }));
   readonly todayLocal = toLocalDateString(new Date());
 
-  @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
+  readonly viewOptions = [
+    { labelKey: 'leave.applyLeave', value: 'apply'   },
+    { labelKey: 'leave.history',    value: 'history'  },
+  ];
 
   records     = signal<LeaveRecord[]>([]);
   balance     = signal<LeaveBalance | null>(null);
   loading     = signal(false);
   saving      = signal(false);
-  showForm    = signal(false);
   formError   = signal('');
   view        = signal<'apply' | 'history'>('apply');
 
@@ -56,21 +58,6 @@ export class MyLeaveComponent implements OnInit {
       error: () => { this.toast.error('Failed to load leave records.'); this.loading.set(false); },
     });
   }
-
-  barPct(remaining: number, entitlement: number): number {
-    if (entitlement <= 0) return 0;
-    return Math.max(0, Math.min(100, (remaining / entitlement) * 100));
-  }
-
-  openApply(): void {
-    const today = toLocalDateString(new Date());
-    this.form = { leaveType: 'annual', startDate: today, endDate: today, notes: '' };
-    this.formError.set('');
-    this.showForm.set(true);
-    setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  }
-
-  cancelForm(): void { this.showForm.set(false); this.formError.set(''); }
 
   submit(): void {
     this.formError.set('');
@@ -103,9 +90,10 @@ export class MyLeaveComponent implements OnInit {
       notes:     this.form.notes || null,
     };
     this.leaveSvc.apply(req).subscribe({
-      next: (res) => {
+      next: () => {
         this.saving.set(false);
-        this.cancelForm();
+        this.formError.set('');
+        this.form = { leaveType: 'annual', startDate: '', endDate: '', notes: '' };
         this.load();
         this.toast.success('Leave request submitted.');
         this.view.set('history');

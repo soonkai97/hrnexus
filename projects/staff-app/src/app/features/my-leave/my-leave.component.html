@@ -14,8 +14,7 @@
           <span class="bal-sep">/</span>
           <span class="bal-total">{{ b.annualEntitlement }}{{ 'leave.days' | translate }}</span>
         </div>
-        <p-progressbar [value]="barPct(b.annualRemaining, b.annualEntitlement)" styleClass="bal-progress" />
-        <div class="bal-used">{{ b.annualUsed }} used</div>
+        <div class="bal-used">{{ b.annualUsed }} {{ 'leave.used' | translate }}</div>
       </div>
       <div class="bal-card sick">
         <div class="bal-label">{{ 'leave.sick' | translate }}</div>
@@ -24,8 +23,7 @@
           <span class="bal-sep">/</span>
           <span class="bal-total">{{ b.sickEntitlement }}{{ 'leave.days' | translate }}</span>
         </div>
-        <p-progressbar [value]="barPct(b.sickRemaining, b.sickEntitlement)" styleClass="bal-progress" />
-        <div class="bal-used">{{ b.sickUsed }} used</div>
+        <div class="bal-used">{{ b.sickUsed }} {{ 'leave.used' | translate }}</div>
       </div>
       <div class="bal-card unpaid">
         <div class="bal-label">{{ 'leave.type.unpaid' | translate }}</div>
@@ -38,17 +36,19 @@
   }
 
   <!-- ── View tabs ─────────────────────────────────────────────────────────── -->
-  <div class="view-tabs">
-    <button [class.active]="view() === 'apply'" (click)="view.set('apply')">
-      {{ 'leave.applyLeave' | translate }}
-    </button>
-    <button [class.active]="view() === 'history'" (click)="view.set('history')">
-      {{ 'leave.history' | translate }}
-      @if (records().length > 0) {
+  <p-selectButton
+    [options]="viewOptions"
+    [ngModel]="view()"
+    (ngModelChange)="view.set($event)"
+    optionValue="value"
+    styleClass="w-full mb-4">
+    <ng-template pTemplate="item" let-opt>
+      {{ opt.labelKey | translate }}
+      @if (opt.value === 'history' && records().length > 0) {
         <span class="tab-count">{{ records().length }}</span>
       }
-    </button>
-  </div>
+    </ng-template>
+  </p-selectButton>
 
   <!-- ═══════════════════════════ APPLY VIEW ══════════════════════════════════ -->
   @if (view() === 'apply') {

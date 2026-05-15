@@ -42,12 +42,12 @@
             <button type="button" class="ms-trigger" [class.has-selection]="staffIds.length > 0"
                     (click)="$event.stopPropagation(); empOpen.set(!empOpen()); locOpen.set(false); roleOpen.set(false)">
               <span>{{ empLabel() }}</span>
-              <span class="ms-arrow" [class.open]="empOpen()">▾</span>
+              <span class="ms-arrow" [class.open]="empOpen()"><i class="pi pi-chevron-down"></i></span>
             </button>
             @if (empOpen()) {
               <div class="ms-panel">
                 @if (staffIds.length > 0) {
-                  <button type="button" class="ms-clear" (click)="clearStaff()">✕ {{ 'common.clear' | translate }}</button>
+                  <button type="button" class="ms-clear" (click)="clearStaff()"><i class="pi pi-times"></i> {{ 'common.clear' | translate }}</button>
                 }
                 @for (s of staff(); track s.id) {
                   <label class="ms-option" (click)="$event.stopPropagation()">
@@ -68,12 +68,12 @@
             <button type="button" class="ms-trigger" [class.has-selection]="locationNames.length > 0"
                     (click)="$event.stopPropagation(); locOpen.set(!locOpen()); empOpen.set(false); roleOpen.set(false)">
               <span>{{ locLabel() }}</span>
-              <span class="ms-arrow" [class.open]="locOpen()">▾</span>
+              <span class="ms-arrow" [class.open]="locOpen()"><i class="pi pi-chevron-down"></i></span>
             </button>
             @if (locOpen()) {
               <div class="ms-panel">
                 @if (locationNames.length > 0) {
-                  <button type="button" class="ms-clear" (click)="clearLocations()">✕ {{ 'common.clear' | translate }}</button>
+                  <button type="button" class="ms-clear" (click)="clearLocations()"><i class="pi pi-times"></i> {{ 'common.clear' | translate }}</button>
                 }
                 @for (l of locations(); track l) {
                   <label class="ms-option" (click)="$event.stopPropagation()">
@@ -93,12 +93,12 @@
             <button type="button" class="ms-trigger" [class.has-selection]="roles.length > 0"
                     (click)="$event.stopPropagation(); roleOpen.set(!roleOpen()); empOpen.set(false); locOpen.set(false)">
               <span>{{ roleLabel() }}</span>
-              <span class="ms-arrow" [class.open]="roleOpen()">▾</span>
+              <span class="ms-arrow" [class.open]="roleOpen()"><i class="pi pi-chevron-down"></i></span>
             </button>
             @if (roleOpen()) {
               <div class="ms-panel">
                 @if (roles.length > 0) {
-                  <button type="button" class="ms-clear" (click)="clearRoles()">✕ {{ 'common.clear' | translate }}</button>
+                  <button type="button" class="ms-clear" (click)="clearRoles()"><i class="pi pi-times"></i> {{ 'common.clear' | translate }}</button>
                 }
                 @for (r of staffRoles(); track r.name) {
                   <label class="ms-option" (click)="$event.stopPropagation()">
@@ -120,7 +120,7 @@
     </p-card>
 
     @if (error()) {
-      <div style="color:#f87171;margin:1rem 0">⚠ {{ error() }}</div>
+      <div style="color:#f87171;margin:1rem 0"><i class="pi pi-exclamation-triangle"></i> {{ error() }}</div>
     }
 
     @if (report(); as r) {
@@ -309,7 +309,7 @@
                 </td>
                 <td>
                   @if (s.isOvertime) {
-                    <p-tag value="⚠ OT" severity="warn" [pTooltip]="'Shift exceeds ' + s.otThreshold + 'h (configured OT threshold)'" styleClass="badge-ot" />
+                    <p-tag value="OT" severity="warn" [pTooltip]="'Shift exceeds ' + s.otThreshold + 'h (configured OT threshold)'" styleClass="badge-ot" />
                   }
                 </td>
               </tr>

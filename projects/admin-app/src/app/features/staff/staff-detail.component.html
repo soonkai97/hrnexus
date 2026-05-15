@@ -79,7 +79,7 @@
               <div class="role-selected">
                 @if (editForm.roles.length === 0) { <span style="color:var(--p-text-muted-color)">{{ 'staffDetail.selectRoles' | translate }}</span> }
                 @for (r of editForm.roles; track r) { <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" /> }
-                <span style="margin-left:auto">▾</span>
+                <span style="margin-left:auto"><i class="pi pi-chevron-down"></i></span>
               </div>
               @if (roleDropdownOpen()) {
                 <div class="role-dropdown">

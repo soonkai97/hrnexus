@@ -76,7 +76,7 @@
     <p-card styleClass="action-card">
       <a routerLink="/profile/change-password" class="action-card-link">
         <div class="action-card-label">
-          <span>🔑 {{ 'profile.changePassword' | translate }}</span>
+          <span><i class="pi pi-key"></i> {{ 'profile.changePassword' | translate }}</span>
           <span style="font-size:0.78rem;color:var(--p-text-muted-color);margin-top:2px">{{ 'profile.updatePwdDesc' | translate }}</span>
         </div>
         <span class="action-card-arrow">›</span>
@@ -85,7 +85,7 @@
 
     <!-- Push Notifications -->
     <p-card [style]="{'margin-top':'1rem'}">
-      <h3 style="font-size:0.9rem;margin-bottom:0.75rem">🔔 {{ 'profile.pushTitle' | translate }}</h3>
+      <h3 style="font-size:0.9rem;margin-bottom:0.75rem"><i class="pi pi-bell"></i> {{ 'profile.pushTitle' | translate }}</h3>
       <p style="font-size:0.82rem;color:var(--p-text-muted-color);margin-bottom:0.75rem">
         {{ 'profile.pushDesc' | translate }}
       </p>
@@ -98,7 +98,7 @@
 
     <!-- Language -->
     <p-card [style]="{'margin-top':'1rem'}">
-      <h3 style="font-size:0.9rem;margin-bottom:0.75rem">🌐 {{ 'profile.language' | translate }}</h3>
+      <h3 style="font-size:0.9rem;margin-bottom:0.75rem"><i class="pi pi-globe"></i> {{ 'profile.language' | translate }}</h3>
       <div style="display:flex;gap:0.5rem">
         <p-button
           label="English"

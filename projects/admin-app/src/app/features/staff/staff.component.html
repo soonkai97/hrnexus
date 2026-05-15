@@ -47,7 +47,7 @@
                   }
                 </span>
               }
-              <span class="role-ms-arrow">{{ roleDropdownOpen() ? '▲' : '▼' }}</span>
+              <span class="role-ms-arrow"><i [class]="roleDropdownOpen() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i></span>
             </button>
             @if (roleDropdownOpen()) {
               <div class="role-ms-panel">
@@ -128,7 +128,7 @@
             <!-- trigger only — dropdown rendered at page-wrap level to escape backdrop-filter -->
             <button class="btn-menu-trigger" pTooltip="Actions"
                     [attr.aria-label]="'Actions for ' + s.fullName"
-                    (click)="toggleMenu(s.id, $event); $event.stopPropagation()">⋯</button>
+                    (click)="toggleMenu(s.id, $event); $event.stopPropagation()"><i class="pi pi-ellipsis-v"></i></button>
           </td>
         </tr>
       </ng-template>

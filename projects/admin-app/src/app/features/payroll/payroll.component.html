@@ -1,6 +1,6 @@
 <div class="page-wrap">
   <div class="page-header">
-    <h1 class="page-title">💰 Payroll</h1>
+    <h1 class="page-title"><i class="pi pi-wallet"></i> Payroll</h1>
   </div>
 
   <p-card styleClass="filter-card">
@@ -25,13 +25,13 @@
     <div class="summary-bar">
       <span class="summary-label">Total Gross Payroll</span>
       <span class="summary-amount">RM {{ data()!.totalGross | number:'1.2-2' }}</span>
-      <p-button label="⬇ Export CSV" [text]="true" severity="secondary" styleClass="export-btn"
+      <p-button icon="pi pi-download" label="Export CSV" [text]="true" severity="secondary" styleClass="export-btn"
                 (click)="exportCsv()" [disabled]="exporting()" [loading]="exporting()" />
     </div>
 
     @if (isCurrentOrFutureMonth()) {
       <div class="warn-banner">
-        ⚠️ This period hasn't ended yet — data is incomplete. Active shifts are excluded from payroll.
+        <i class="pi pi-exclamation-triangle"></i> This period hasn't ended yet — data is incomplete. Active shifts are excluded from payroll.
       </div>
     }
 
@@ -75,10 +75,10 @@
         </ng-template>
       </p-table>
       <p class="payroll-note">
-        💡 Leave Pay = paid annual &amp; sick leave days × 8h × hourly rate. Unpaid leave is excluded.
+        <i class="pi pi-lightbulb"></i> Leave Pay = paid annual &amp; sick leave days × 8h × hourly rate. Unpaid leave is excluded.
       </p>
     </p-card>
   } @else if (!loading()) {
-    <div class="empty-state"><div class="empty-icon">💰</div><p>Select a year and month, then click View to load payroll data.</p></div>
+    <div class="empty-state"><div class="empty-icon"><i class="pi pi-wallet"></i></div><p>Select a year and month, then click View to load payroll data.</p></div>
   }
 </div>

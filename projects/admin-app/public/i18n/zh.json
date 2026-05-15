@@ -11,7 +11,8 @@
     "roles":         "职位",
     "payroll":       "薪资报表",
     "messaging":     "消息",
-    "features":      "功能管理"
+    "features":      "功能管理",
+    "account":       "我的账户"
   },
   "shell": {
     "signOut": "退出登录"

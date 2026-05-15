@@ -51,9 +51,11 @@ export class NotificationsComponent implements OnInit {
   routeFor(n: AppNotification): string | null {
     switch (n.type) {
       case 'leave_approved':
-      case 'leave_rejected':  return '/my-leave';
+      case 'leave_rejected':
+      case 'leave_pending':   return '/my-leave';
       case 'roster_assigned':
-      case 'missed_clockin':  return '/log-shift';
+      case 'missed_clockin':
+      case 'stale_shift':     return '/log-shift';
       case 'password_reset':  return '/profile';
       case 'announcement':    return '/announcements';
       case 'message':         return '/messaging';

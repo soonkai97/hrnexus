@@ -167,7 +167,7 @@
           <button [class.active]="activeTab() === 'shifts'"    (click)="activeTab.set('shifts')">{{ 'reports.allShifts' | translate }}</button>
         </div>
         <p-button [label]="reportExporting() ? ('reports.exporting' | translate) : ('reports.downloadCsv' | translate)"
-                  icon="pi pi-download" severity="primary" styleClass="tab-csv-btn"
+                  severity="primary" styleClass="tab-csv-btn"
                   (click)="downloadReportCsv()" [disabled]="reportExporting()" [loading]="reportExporting()" />
       </div>
 
@@ -348,7 +348,7 @@
             [options]="payrollMonthOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
         </div>
         <p-button [label]="payrollExporting() ? ('reports.exporting' | translate) : ('reports.downloadPayroll' | translate)"
-                  icon="pi pi-download" severity="primary" styleClass="payroll-export-btn"
+                  severity="primary" styleClass="payroll-export-btn"
                   (click)="exportPayrollCsv()" [disabled]="payrollExporting()" [loading]="payrollExporting()" />
       </div>
     </p-card>

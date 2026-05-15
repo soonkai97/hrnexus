@@ -49,7 +49,9 @@ p, span, li, td, th, div, h1, h2, h3, h4 { cursor: default; }
 // Re-allow text select on actual content the user might want to copy
 pre, code, .copyable { cursor: text; user-select: text; }
 
-input, select, textarea {
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="submit"]):not([type="button"]),
+select,
+textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   background: $bg-raised;
@@ -253,7 +255,9 @@ table { min-width: 480px; }
     }
   }
 
-  input, select, textarea {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="submit"]):not([type="button"]),
+  select,
+  textarea {
     background-color: var(--nc-bg-raised); // longhand — does NOT reset background-image/repeat/position
     border-color: var(--nc-border-subtle);
     color: var(--nc-text-primary);

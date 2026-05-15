@@ -1,6 +1,6 @@
 <div class="page-wrap">
   <div class="page-header">
-    <h1 class="page-title"><i class="pi pi-wallet"></i> Payroll</h1>
+    <h1 class="page-title">Payroll</h1>
   </div>
 
   <p-card styleClass="filter-card">
@@ -25,7 +25,7 @@
     <div class="summary-bar">
       <span class="summary-label">Total Gross Payroll</span>
       <span class="summary-amount">RM {{ data()!.totalGross | number:'1.2-2' }}</span>
-      <p-button icon="pi pi-download" label="Export CSV" [text]="true" severity="secondary" styleClass="export-btn"
+      <p-button label="Export CSV" [text]="true" severity="secondary" styleClass="export-btn"
                 (click)="exportCsv()" [disabled]="exporting()" [loading]="exporting()" />
     </div>
 

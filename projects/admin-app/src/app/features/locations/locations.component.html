@@ -13,7 +13,7 @@
     <p-card #formAnchor styleClass="form-card">
       <div class="form-header">
         <h3>{{ editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate) }}</h3>
-        <p-button icon="pi pi-times" [text]="true" severity="secondary" pTooltip="Close" (click)="cancel()" />
+        <p-button label="Close" [text]="true" severity="secondary" (click)="cancel()" />
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
@@ -46,7 +46,7 @@
           <!-- Upload overlay -->
           <label class="loc-upload-label">
             <span class="upload-btn">
-              <i class="pi pi-camera"></i> {{ loc.imagePath ? ('locations.changePhoto' | translate) : ('locations.addPhoto' | translate) }}
+              {{ loc.imagePath ? ('locations.changePhoto' | translate) : ('locations.addPhoto' | translate) }}
             </span>
             <input type="file" accept="image/*" (change)="uploadImage(loc, $event)" />
           </label>

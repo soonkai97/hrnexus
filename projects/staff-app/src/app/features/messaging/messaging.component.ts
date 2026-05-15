@@ -7,11 +7,12 @@ import { MessagingService, MessageDto, ToastService, SignalRService } from 'shar
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Textarea } from 'primeng/textarea';
+import { ProgressSpinner } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-messaging',
   standalone: true,
-  imports: [DatePipe, FormsModule, Button, Card, Textarea],
+  imports: [DatePipe, FormsModule, Button, Card, Textarea, ProgressSpinner],
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss',
 })

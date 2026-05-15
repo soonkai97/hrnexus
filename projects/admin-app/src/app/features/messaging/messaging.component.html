@@ -10,12 +10,9 @@
       <h3 class="compose-title">New Message</h3>
       <div class="field">
         <label>To (leave empty to send to all staff as broadcast)</label>
-        <select [(ngModel)]="compose.recipientId">
-          <option value="">— All Staff (Broadcast) —</option>
-          @for (s of staff(); track s.id) {
-            <option [value]="s.id">{{ s.fullName }} ({{ s.staffId }})</option>
-          }
-        </select>
+        <p-select [(ngModel)]="compose.recipientId"
+          [options]="staff()" optionLabel="fullName" optionValue="id"
+          placeholder="— All Staff (Broadcast) —" [showClear]="true" styleClass="w-full" />
       </div>
       <div class="field">
         <label>Message *</label>
@@ -37,7 +34,7 @@
   </div>
 
   @if (loading()) {
-    <div class="loading-state"><span class="nc-spinner"></span> Loading…</div>
+    <div class="loading-state"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /> Loading…</div>
   }
 
   @if (tab() === 'inbox') {

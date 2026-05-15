@@ -55,10 +55,10 @@
 
   .upload-btn {
     display: inline-block;
-    background: none; border: none; color: var(--nc-text-secondary);
+    background: none; border: none; color: var(--p-text-muted-color);
     font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px;
     transition: color 0.15s, background 0.15s; cursor: pointer;
-    &:hover { color: var(--nc-text-primary); background: var(--nc-bg-raised); }
+    &:hover { color: var(--p-text-color); background: var(--p-surface-section); }
   }
 
   input[type="file"] { display: none; }

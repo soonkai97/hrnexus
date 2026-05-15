@@ -8,12 +8,13 @@ import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
+import { Select } from 'primeng/select';
 
 @Component({
   selector: 'app-tips',
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, PickerOnlyDirective,
-    Button, InputNumber, TableModule, Tag, Card],
+    Button, InputNumber, TableModule, Tag, Card, Select],
   templateUrl: './tips.component.html',
   styleUrl: './tips.component.scss',
 })
@@ -30,6 +31,11 @@ export class TipsComponent implements OnInit {
 
   /** Today's date as "YYYY-MM-DD" in local (venue) time, not UTC. */
   readonly today = todayLocalString();
+
+  readonly splitMethodOptions = [
+    { label: 'Equal Split', value: 'equal' },
+    { label: 'By Hours Worked', value: 'by_hours' },
+  ];
 
   form = {
     locationId:   '',

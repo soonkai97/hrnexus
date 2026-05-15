@@ -11,11 +11,8 @@
       </div>
       <div class="field">
         <label>Month</label>
-        <select [ngModel]="month()" (ngModelChange)="month.set($event)">
-          @for (m of months; track $index) {
-            <option [value]="$index + 1">{{ m }}</option>
-          }
-        </select>
+        <p-select [ngModel]="month()" (onChange)="month.set($event.value)"
+          [options]="monthOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
       </div>
       <div class="field">
         <label>&nbsp;</label>

@@ -11,27 +11,27 @@
   </div>
 
   @if (loading()) {
-    <div class="nc-spinner"></div>
+    <p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" />
   } @else if (staff(); as s) {
 
     <!-- ── Profile card ─────────────────────────────────────────────── -->
     <p-card styleClass="nc-card" [style]="{'margin-bottom': '1.5rem'}">
       @if (!editMode()) {
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem">
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.fullName' | translate }}</label><div>{{ s.fullName }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.staffId' | translate }}</label><div>{{ s.staffId }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.email' | translate }}</label><div>{{ s.email }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.phone' | translate }}</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.icNo' | translate }}</label><div>{{ s.icNo ?? '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.passport' | translate }}</label><div>{{ s.passportNo ?? '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'mediumDate') : '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.status' | translate }}</label>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.fullName' | translate }}</label><div>{{ s.fullName }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.staffId' | translate }}</label><div>{{ s.staffId }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.email' | translate }}</label><div>{{ s.email }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.phone' | translate }}</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.icNo' | translate }}</label><div>{{ s.icNo ?? '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.passport' | translate }}</label><div>{{ s.passportNo ?? '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'mediumDate') : '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.status' | translate }}</label>
             <div>
               @if (s.isActive) { <p-tag [value]="'common.active' | translate" severity="success" /> }
               @else            { <p-tag [value]="'common.inactive' | translate" severity="secondary" /> }
             </div>
           </div>
-          <div><label style="font-size:.75rem;color:var(--text-muted)">{{ 'staffDetail.roles' | translate }}</label>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.roles' | translate }}</label>
             <div style="display:flex;flex-wrap:wrap;gap:.3rem">
               @for (r of s.roles; track r) { <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" /> }
             </div>
@@ -77,7 +77,7 @@
             <label>{{ 'staffDetail.roles' | translate }}</label>
             <div class="role-multiselect" (click)="roleDropdownOpen.update(v => !v)">
               <div class="role-selected">
-                @if (editForm.roles.length === 0) { <span style="color:var(--text-muted)">{{ 'staffDetail.selectRoles' | translate }}</span> }
+                @if (editForm.roles.length === 0) { <span style="color:var(--p-text-muted-color)">{{ 'staffDetail.selectRoles' | translate }}</span> }
                 @for (r of editForm.roles; track r) { <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" /> }
                 <span style="margin-left:auto">▾</span>
               </div>
@@ -109,13 +109,13 @@
       <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
         <h3 style="margin:0">{{ 'staffDetail.workLogHistory' | translate }}</h3>
         @if (totalLogs() > 0) {
-          <span style="color:var(--text-muted);font-size:.85rem">{{ totalLogs() }} {{ 'common.of' | translate }} {{ totalLogs() }}</span>
+          <span style="color:var(--p-text-muted-color);font-size:.85rem">{{ totalLogs() }} {{ 'common.of' | translate }} {{ totalLogs() }}</span>
         }
       </div>
       @if (workLogsLoading()) {
-        <div class="nc-spinner sm"></div>
+        <p-progressspinner styleClass="nc-spin" [style]="{'width':'18px','height':'18px'}" strokeWidth="4" />
       } @else if (workLogs().length === 0) {
-        <p style="color:var(--text-muted);text-align:center;padding:2rem">{{ 'staffDetail.noWorkLogs' | translate }}</p>
+        <p style="color:var(--p-text-muted-color);text-align:center;padding:2rem">{{ 'staffDetail.noWorkLogs' | translate }}</p>
       } @else {
         <p-card styleClass="table-card p-0" [style]="{'padding':0}">
           <p-table [value]="workLogs()" [tableStyle]="{'min-width':'100%'}">

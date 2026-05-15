@@ -6,11 +6,12 @@ import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Card } from 'primeng/card';
+import { Select } from 'primeng/select';
 
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, Button, InputNumber, TableModule, Card],
+  imports: [DecimalPipe, FormsModule, Button, InputNumber, TableModule, Card, Select],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })
@@ -24,6 +25,7 @@ export class PayrollComponent {
   data      = signal<PayrollSummaryResponse | null>(null);
 
   readonly months = MONTH_NAMES;
+  readonly monthOptions = MONTH_NAMES.map((label, i) => ({ label, value: i + 1 }));
 
   readonly now = new Date();
   isCurrentOrFutureMonth = computed(() => {

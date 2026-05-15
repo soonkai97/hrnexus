@@ -7,11 +7,12 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { InputNumber } from 'primeng/inputnumber';
+import { ProgressSpinner } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-pay-summary',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, InputNumber],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, InputNumber, ProgressSpinner],
   templateUrl: './pay-summary.component.html',
   styleUrl: './pay-summary.component.scss',
 })

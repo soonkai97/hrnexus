@@ -10,12 +10,13 @@ import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
+import { ProgressSpinner } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe, PickerOnlyDirective,
-    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule],
+    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, ProgressSpinner],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })

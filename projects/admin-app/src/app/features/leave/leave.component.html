@@ -86,9 +86,9 @@
                   <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                 </div>
                 <div class="overdue-row-actions">
-                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
-                  <p-button icon="pi pi-exclamation-triangle" [label]="'leave.markNoShow' | translate" styleClass="overdue-noshow-btn" [text]="true" severity="secondary" (click)="markNoShow(r)" />
+                  <p-button [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                  <p-button [label]="'common.rejected' | translate" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                  <p-button [label]="'leave.markNoShow' | translate" styleClass="overdue-noshow-btn" [text]="true" severity="secondary" (click)="markNoShow(r)" />
                 </div>
               </div>
             }
@@ -102,7 +102,7 @@
       <p-card #formAnchor styleClass="form-card">
         <div class="form-header">
           <h3>{{ editing() ? ('leave.editLeave' | translate) : ('leave.recordLeaveForm' | translate) }}</h3>
-          <p-button icon="pi pi-times" [text]="true" severity="secondary" (click)="cancelForm()" />
+          <p-button label="Close" [text]="true" severity="secondary" (click)="cancelForm()" />
         </div>
         <div class="form-grid">
           <div class="field">
@@ -161,9 +161,9 @@
     @if (viewMode() === 'calendar') {
       <p-card styleClass="nc-card">
         <div class="cal-nav">
-          <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="prevCalMonth()" />
+          <p-button label="Prev" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="prevCalMonth()" />
           <span class="cal-month-name">{{ calMonthName() }}</span>
-          <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="nextCalMonth()" />
+          <p-button label="Next" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="nextCalMonth()" />
         </div>
         @if (loading()) {
           <div style="text-align:center;padding:2rem"><p-progressspinner styleClass="nc-spin" [style]="{'width':'18px','height':'18px'}" strokeWidth="4" /></div>
@@ -206,7 +206,7 @@
             <div class="cal-day-panel">
               <div class="cal-day-panel-header">
                 <span class="cal-day-panel-title">{{ selectedCalDay() | date:'EEEE, MMMM d, yyyy' }}</span>
-                <p-button icon="pi pi-times" [text]="true" severity="secondary" (click)="selectedCalDay.set(null)" />
+                <p-button label="Close" [text]="true" severity="secondary" (click)="selectedCalDay.set(null)" />
               </div>
               @if (selectedCalDayLeaves().length === 0) {
                 <p class="cal-day-empty">{{ 'leave.noDayLeaves' | translate }}</p>
@@ -227,8 +227,8 @@
                       <div class="cal-day-row-right">
                         <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
                         @if (r.status === 'pending') {
-                          <p-button icon="pi pi-check" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
-                          <p-button icon="pi pi-times" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
+                          <p-button label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
+                          <p-button label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
                           <span class="cal-day-edit-hint"><i class="pi pi-pencil"></i></span>
                         }
                       </div>
@@ -267,9 +267,9 @@
                 <div class="leave-top-right">
                   <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
                   @if (r.status === 'pending') {
-                    <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="lc-icon-btn" (click)="startEdit(r)" pTooltip="Edit" />
+                    <p-button label="Edit" [text]="true" severity="secondary" styleClass="lc-icon-btn" (click)="startEdit(r)" />
                   }
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger" styleClass="lc-icon-btn lc-icon-danger" (click)="remove(r.id)" pTooltip="Delete" />
+                  <p-button label="Delete" [text]="true" severity="danger" styleClass="lc-icon-btn lc-icon-danger" (click)="remove(r.id)" />
                 </div>
               </div>
               <div class="leave-staff">
@@ -284,8 +284,8 @@
               @if (r.notes) { <div class="leave-notes">{{ r.notes }}</div> }
               @if (r.status === 'pending') {
                 <div class="leave-actions">
-                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                  <p-button [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                  <p-button [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
                 </div>
               }
             </p-card>
@@ -294,9 +294,9 @@
 
         @if (totalPages() > 1) {
           <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
-            <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="load(currentPage() - 1)" />
+            <p-button label="Prev" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="load(currentPage() - 1)" />
             <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalRecords() }} records)</span>
-            <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="load(currentPage() + 1)" />
+            <p-button label="Next" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="load(currentPage() + 1)" />
           </div>
         }
       }

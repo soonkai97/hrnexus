@@ -9,7 +9,7 @@
     <p-card #formAnchor styleClass="add-card">
       <div class="form-header">
         <h3>{{ 'roles.addNewRole' | translate }}</h3>
-        <p-button icon="pi pi-times" [text]="true" severity="secondary" aria-label="Close form" (click)="cancel()" />
+        <p-button label="Close" [text]="true" severity="secondary" aria-label="Close form" (click)="cancel()" />
       </div>
       <div class="add-form-grid">
         <div class="field">
@@ -53,14 +53,14 @@
                 <p-inputnumber [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
                                [min]="0" [step]="0.50" styleClass="rate-input"
                                (keydown.enter)="saveRate()" (keydown.escape)="cancelEditRate()" />
-                <p-button icon="pi pi-check" severity="primary" styleClass="btn-sm" (click)="saveRate()" [disabled]="savingRate()" [loading]="savingRate()" />
-                <p-button icon="pi pi-times" [text]="true" severity="secondary" styleClass="btn-sm" pTooltip="Cancel" (click)="cancelEditRate()" />
+                <p-button label="Save" severity="primary" styleClass="btn-sm" (click)="saveRate()" [disabled]="savingRate()" [loading]="savingRate()" />
+                <p-button label="Cancel" [text]="true" severity="secondary" styleClass="btn-sm" (click)="cancelEditRate()" />
               </div>
             } @else {
               <span class="rate-display">
                 {{ role.hourlyRate | number:'1.2-2' }}
-                <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="btn-sm"
-                          (click)="startEditRate(role.name, role.hourlyRate)" pTooltip="Edit rate" />
+                <p-button label="Edit" [text]="true" severity="secondary" styleClass="btn-sm"
+                          (click)="startEditRate(role.name, role.hourlyRate)" />
               </span>
             }
           </td>

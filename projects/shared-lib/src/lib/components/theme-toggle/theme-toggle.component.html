@@ -1,8 +1,7 @@
 <p-button
   styleClass="theme-toggle-btn"
-  [icon]="themeSvc.theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'"
+  [label]="themeSvc.theme() === 'dark' ? 'Dark' : 'Light'"
   [text]="true"
-  [rounded]="true"
   [title]="themeSvc.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
   aria-label="Toggle colour theme"
   (click)="themeSvc.toggle()" />

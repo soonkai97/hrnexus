@@ -176,9 +176,9 @@
 
       @if (totalHistoryPages() > 1) {
         <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
-          <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="historyPage() === 1" (click)="loadHistory(historyPage() - 1)" />
+          <p-button label="Prev" [text]="true" severity="secondary" [disabled]="historyPage() === 1" (click)="loadHistory(historyPage() - 1)" />
           <span>{{ historyPage() }} / {{ totalHistoryPages() }} ({{ totalHistory() }})</span>
-          <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="historyPage() === totalHistoryPages()" (click)="loadHistory(historyPage() + 1)" />
+          <p-button label="Next" [text]="true" severity="secondary" [disabled]="historyPage() === totalHistoryPages()" (click)="loadHistory(historyPage() + 1)" />
         </div>
       }
     }

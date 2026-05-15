@@ -51,7 +51,9 @@ pre, code, .copyable { cursor: text; user-select: text; }
 
 // ── Global inputs ────────────────────────────────────────────────────────────
 
-input, select, textarea {
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="submit"]):not([type="button"]),
+select,
+textarea {
   width: 100%;
   padding: 0.8rem 1rem;
   background: $bg-raised;
@@ -232,7 +234,9 @@ input[type="time"] {
     color: var(--nc-text-primary);
   }
 
-  input, select, textarea {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="submit"]):not([type="button"]),
+  select,
+  textarea {
     background-color: var(--nc-bg-raised); // longhand — does NOT reset background-image/repeat/position
     border-color: var(--nc-border-subtle);
     color: var(--nc-text-primary);

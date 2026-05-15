@@ -11,7 +11,7 @@
       </div>
       <p-button
         class="collapse-btn"
-        [icon]="collapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'"
+        [label]="collapsed() ? 'Expand' : 'Collapse'"
         [text]="true"
         severity="secondary"
         size="small"
@@ -44,7 +44,7 @@
               <span class="user-role">{{ userRoleLabel() }}</span>
             </a>
             <p-button
-              icon="pi pi-power-off"
+              [label]="'shell.signOut' | translate"
               [text]="true"
               severity="secondary"
               size="small"
@@ -61,7 +61,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <p-button
-          icon="pi pi-bars"
+          label="Menu"
           [text]="true"
           severity="secondary"
           class="mobile-menu-btn"

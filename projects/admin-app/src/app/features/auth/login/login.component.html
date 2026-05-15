@@ -36,7 +36,7 @@
                 (click)="showPwd.set(!showPwd())"
                 (keydown.enter)="showPwd.set(!showPwd())"
                 (keydown.space)="showPwd.set(!showPwd())">
-            <i [class]="showPwd() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+            {{ showPwd() ? 'Hide' : 'Show' }}
           </span>
         </div>
       </div>

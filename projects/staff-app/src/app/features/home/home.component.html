@@ -154,7 +154,7 @@
         }
       </p-card>
       <div style="text-align:right;margin-top:.5rem">
-        <p-button [label]="'home.viewAllShifts' | translate" icon="pi pi-arrow-right" iconPos="right" [text]="true" severity="secondary" size="small" routerLink="/log-shift" />
+        <p-button [label]="'home.viewAllShifts' | translate" [text]="true" severity="secondary" size="small" routerLink="/log-shift" />
       </div>
     } @else {
       <p class="no-shifts-hint">{{ 'home.noRecentShifts' | translate }}</p>

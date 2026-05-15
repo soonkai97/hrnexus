@@ -15,7 +15,7 @@
     <p-card #formAnchor styleClass="form-card">
       <div class="form-header">
         <h3>{{ 'staff.newStaffMember' | translate }}</h3>
-        <p-button icon="pi pi-times" [text]="true" severity="secondary" pTooltip="Close" aria-label="Close form" (click)="closeForm()" />
+        <p-button label="Close" [text]="true" severity="secondary" aria-label="Close form" (click)="closeForm()" />
       </div>
       <div class="form-grid">
         <div class="field">
@@ -121,7 +121,7 @@
                    [severity]="s.isActive ? 'success' : 'secondary'" />
           </td>
           <td class="td-actions">
-            <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small"
+            <p-button label="Actions" [text]="true" severity="secondary" size="small"
                       [attr.aria-label]="'Actions for ' + s.fullName"
                       (click)="openStaffMenu(s, $event)" />
           </td>
@@ -134,9 +134,9 @@
   <!-- Pagination -->
   @if (totalPages() > 1) {
     <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
-      <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)" />
+      <p-button label="Prev" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)" />
       <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalCount() }})</span>
-      <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)" />
+      <p-button label="Next" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)" />
     </div>
   }
 

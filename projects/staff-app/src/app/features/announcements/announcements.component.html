@@ -1,12 +1,11 @@
 <div class="page-wrap">
   <div class="page-header">
     <div>
-      <h1 class="page-title"><i class="pi pi-megaphone"></i> {{ 'nav.announcements' | translate }}</h1>
+      <h1 class="page-title">{{ 'nav.announcements' | translate }}</h1>
       <p class="page-sub">{{ 'announcements.subtitle' | translate }}</p>
     </div>
     @if (hasUnread()) {
       <p-button
-        icon="pi pi-check"
         [label]="'announcements.markAllRead' | translate"
         severity="secondary"
         (click)="markAllRead()" />

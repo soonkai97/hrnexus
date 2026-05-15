@@ -1,40 +1,45 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">{{ 'roles.title' | translate }}</h1>
-    <span class="page-sub">{{ 'roles.subtitle' | translate }}</span>
+    <button class="btn-primary" (click)="openAdd()">{{ 'roles.addNewRole' | translate }}</button>
   </div>
 
-  <!-- Add new role -->
-  <div class="nc-card add-card">
-    <h3>{{ 'roles.addNewRole' | translate }}</h3>
-    <div class="add-form-grid">
-      <div class="field">
-        <label><span class="req">*</span> {{ 'roles.rolePlaceholder' | translate }}</label>
-        <input type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
-               [placeholder]="'roles.rolePlaceholder' | translate" (keydown.enter)="addRole()" />
+  <!-- Add new role form -->
+  @if (showForm()) {
+    <div #formAnchor class="nc-card add-card">
+      <div class="form-header">
+        <h3>{{ 'roles.addNewRole' | translate }}</h3>
+        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" aria-label="Close form" (click)="cancel()">✕</button>
       </div>
-      <div class="field rate-field">
-        <label><span class="req">*</span> Rate (RM/hr)</label>
-        <input type="number" [(ngModel)]="newRoleRate" min="0" step="0.50" placeholder="0.00" />
+      <div class="add-form-grid">
+        <div class="field">
+          <label><span class="req">*</span> {{ 'roles.rolePlaceholder' | translate }}</label>
+          <input type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
+                 [placeholder]="'roles.rolePlaceholder' | translate" maxlength="50" (keydown.enter)="addRole()" />
+        </div>
+        <div class="field rate-field">
+          <label><span class="req">*</span> Rate (RM/hr)</label>
+          <input type="number" [(ngModel)]="newRoleRate" min="0" step="0.50" placeholder="0.00" />
+        </div>
+        <button class="btn-primary btn-add" (click)="addRole()" [disabled]="saving() || !newRoleName.trim()">
+          @if (saving()) { <span class="nc-spinner sm"></span> } @else { {{ 'roles.addBtn' | translate }} }
+        </button>
       </div>
-      <button class="btn-primary btn-add" (click)="addRole()" [disabled]="saving() || !newRoleName.trim()">
-        @if (saving()) { <span class="nc-spinner sm"></span> } @else { {{ 'roles.addBtn' | translate }} }
-      </button>
+      @if (error()) {
+        <div class="error-msg">⚠ {{ error() }}</div>
+      }
     </div>
-    @if (error()) {
-      <div class="error-msg">⚠ {{ error() }}</div>
-    }
-  </div>
+  }
 
   <!-- Roles list -->
   <div class="table-card">
     <table>
       <thead>
         <tr>
-          <th>{{ 'roles.roleNameCol' | translate }}</th>
-          <th>Hourly Rate (RM)</th>
-          <th>{{ 'roles.typeCol' | translate }}</th>
-          <th>{{ 'roles.actionsCol' | translate }}</th>
+          <th scope="col">{{ 'roles.roleNameCol' | translate }}</th>
+          <th scope="col">Hourly Rate (RM)</th>
+          <th scope="col">{{ 'roles.typeCol' | translate }}</th>
+          <th scope="col">{{ 'roles.actionsCol' | translate }}</th>
         </tr>
       </thead>
       <tbody>

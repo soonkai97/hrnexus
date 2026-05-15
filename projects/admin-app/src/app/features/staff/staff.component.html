@@ -85,8 +85,10 @@
   <!-- Table -->
   @if (staff().length === 0 && !loading()) {
     <p-card styleClass="empty-state">
-      <span><i class="pi pi-users"></i></span>
-      <p>{{ 'staff.noStaffFound' | translate }}</p>
+      <div class="empty-inner">
+        <span><i class="pi pi-users"></i></span>
+        <p>{{ 'staff.noStaffFound' | translate }}</p>
+      </div>
     </p-card>
   } @else {
   <p-card styleClass="table-card p-0" [style]="{'padding':0}">

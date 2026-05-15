@@ -106,8 +106,8 @@
 .cert-filename { font-size: 0.82rem; color: $neon-purple; font-weight: 500; }
 
 .center-spinner { text-align: center; padding: 3rem; }
-.empty-state {
-  padding: 3rem; text-align: center; color: $text-muted;
+.empty-state { padding: 3rem; text-align: center; color: $text-muted; }
+.empty-inner {
   display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
   span { font-size: 2.5rem; }
   p { font-size: 0.9rem; }

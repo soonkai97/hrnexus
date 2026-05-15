@@ -110,8 +110,10 @@
       <div class="center-spinner"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
     } @else if (records().length === 0) {
       <p-card styleClass="empty-state">
-        <span><i class="pi pi-sun"></i></span>
-        <p>{{ 'leave.noLeave' | translate }}</p>
+        <div class="empty-inner">
+          <span><i class="pi pi-sun"></i></span>
+          <p>{{ 'leave.noLeave' | translate }}</p>
+        </div>
       </p-card>
     } @else {
       <div class="leave-list">

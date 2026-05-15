@@ -78,7 +78,6 @@ export class ShellComponent {
     { path: '/roles',         labelKey: 'nav.roles',         icon: '🏷'  },
     // ── Admin only ────────────────────────────────────
     // /features intentionally omitted from nav — PIN-protected, direct URL only
-    { path: '/account',       labelKey: 'nav.account',       icon: '👤'  },
   ];
 
   navItems = computed(() => {

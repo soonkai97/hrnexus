@@ -11,6 +11,7 @@ public class ShiftJobs(
     IAppDbContext            db,
     IDateTimeProvider        dateTime,
     IPushNotificationService pushSvc,
+    INotificationHub         notifHub,
     ILogger<ShiftJobs>       logger)
 {
     /// <summary>
@@ -44,8 +45,10 @@ public class ShiftJobs(
     }
 
     /// <summary>
-    /// Send push reminders to staff with active (open) work logs that have been
-    /// running for more than 12 hours, as a safety net.
+    /// Remind staff with shifts running over 12 hours to clock out.
+    /// Sends a browser push (best-effort, every run) and one in-app notification
+    /// per stale work log (deduped by RelatedId so the bell doesn't spam).
+    /// Runs every 15 minutes via Hangfire.
     /// </summary>
     [AutomaticRetry(Attempts = 1)]
     public async Task RemindLongRunningWorkLogsAsync()
@@ -57,6 +60,9 @@ public class ShiftJobs(
             .Where(w => w.EndTime == null && w.CreatedAt <= cutoff)
             .ToListAsync();
 
+        if (stale.Count == 0) return;
+
+        // ── Browser push (best-effort, fires every run) ────────────────────────
         foreach (var wl in stale)
         {
             try
@@ -68,42 +74,90 @@ public class ShiftJobs(
                     "/log-shift");
             }
             catch { /* non-critical */ }
-
-            logger.LogInformation(
-                "Sent long-running work log reminder to employee {EmployeeId} for log {WorkLogId}",
-                wl.EmployeeId, wl.Id);
         }
 
-        // Notify all active managers and admins so they can follow up.
-        if (stale.Count > 0)
+        // ── In-app notifications (once per stale work log) ────────────────────
+        // Check which logs have already had a notification created so we don't
+        // add a new bell entry on every 15-minute tick.
+        var staleIds = stale.Select(w => w.Id.ToString()).ToList();
+        var alreadyNotifiedIds = await db.Notifications
+            .Where(n => n.Type == "stale_shift" && staleIds.Contains(n.RelatedId!))
+            .Select(n => n.RelatedId!)
+            .ToListAsync();
+
+        var newlyStale = stale
+            .Where(w => !alreadyNotifiedIds.Contains(w.Id.ToString()))
+            .ToList();
+
+        if (newlyStale.Count == 0) return;
+
+        // Create employee notifications
+        var employeeNotifs = newlyStale.Select(wl => (
+            wl.EmployeeId,
+            Notif: Notification.Create(
+                wl.EmployeeId,
+                "⏰ Shift still active",
+                $"Your shift at {wl.LocationName} has been running for over 12 hours. Please end it if you're done.",
+                "stale_shift",
+                wl.Id.ToString())
+        )).ToList();
+
+        foreach (var (_, notif) in employeeNotifs)
+            db.Notifications.Add(notif);
+
+        // Create supervisor notifications
+        var supervisorIds = await db.Staff
+            .Where(s => s.IsActive &&
+                        s.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager || r.Role == AppConstants.Roles.Admin))
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        var supervisorBody = newlyStale.Count == 1
+            ? $"{newlyStale[0].Employee?.FullName ?? "A staff member"} has been on shift for over 12 hours without clocking out."
+            : $"{newlyStale.Count} staff members have been on shift for 12+ hours without clocking out.";
+
+        var supervisorNotifs = supervisorIds.Select(supId => (
+            supId,
+            Notif: Notification.Create(supId,
+                "⚠️ Open shift — no clock-out",
+                supervisorBody,
+                "stale_shift_admin")
+        )).ToList();
+
+        foreach (var (_, notif) in supervisorNotifs)
+            db.Notifications.Add(notif);
+
+        await db.SaveChangesAsync();
+
+        // ── Real-time push via SignalR (after save so IDs are stable) ─────────
+        foreach (var (employeeId, notif) in employeeNotifs)
         {
-            var supervisorIds = await db.Staff
-                .Where(s => s.IsActive &&
-                            s.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager || r.Role == AppConstants.Roles.Admin))
-                .Select(s => s.Id)
-                .ToListAsync();
-
-            if (supervisorIds.Count > 0)
+            try
             {
-                var body = stale.Count == 1
-                    ? $"{stale[0].Employee?.FullName ?? "A staff member"} has been on shift for over 12 hours without clocking out."
-                    : $"{stale.Count} staff members have been on shift for 12+ hours without clocking out.";
-
-                try
-                {
-                    await pushSvc.SendToManyAsync(
-                        supervisorIds,
-                        "⚠️ Staff haven't clocked out",
-                        body,
-                        "/");   // admin portal dashboard
-                }
-                catch { /* non-critical */ }
-
-                logger.LogInformation(
-                    "Sent stale-shift alert to {Count} supervisor(s) for {StaleCount} open log(s)",
-                    supervisorIds.Count, stale.Count);
+                await notifHub.SendToUserAsync(employeeId, new NotificationPayload(
+                    notif.Id.ToString(), notif.Title, notif.Message,
+                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("O")));
             }
+            catch { /* non-critical */ }
         }
+
+        foreach (var (supId, notif) in supervisorNotifs)
+        {
+            try
+            {
+                await notifHub.SendToUserAsync(supId, new NotificationPayload(
+                    notif.Id.ToString(), notif.Title, notif.Message,
+                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("O")));
+            }
+            catch { /* non-critical */ }
+        }
+
+        try { await pushSvc.SendToManyAsync(supervisorIds, "⚠️ Staff haven't clocked out", supervisorBody, "/"); }
+        catch { /* non-critical */ }
+
+        logger.LogInformation(
+            "Stale-shift: created in-app notifications for {EmpCount} employee(s), alerted {SupCount} supervisor(s)",
+            newlyStale.Count, supervisorIds.Count);
     }
 
     /// <summary>

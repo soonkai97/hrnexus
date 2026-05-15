@@ -1,24 +1,29 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Subject } from 'rxjs';
+import { ConfirmationService } from 'primeng/api';
 
-export interface ConfirmOptions { title?: string; message: string; confirmLabel?: string; danger?: boolean; }
+export interface ConfirmOptions {
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  danger?: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ConfirmService {
-  readonly visible   = signal(false);
-  readonly options   = signal<ConfirmOptions>({ message: '' });
-  private _result$   = new Subject<boolean>();
+  private readonly primeSvc = inject(ConfirmationService);
 
   confirm(opts: ConfirmOptions) {
-    this.options.set(opts);
-    this.visible.set(true);
-    this._result$ = new Subject<boolean>(); // fresh subject per call — no stale subscribers
-    return this._result$.asObservable();
-  }
-
-  resolve(result: boolean): void {
-    this.visible.set(false);
-    this._result$.next(result);
-    this._result$.complete(); // auto-unsubscribes all listeners
+    const result$ = new Subject<boolean>();
+    this.primeSvc.confirm({
+      header:         opts.title ?? 'Confirm',
+      message:        opts.message,
+      acceptLabel:    opts.confirmLabel ?? 'Confirm',
+      rejectLabel:    'Cancel',
+      acceptButtonProps: { severity: opts.danger ? 'danger' : 'primary' },
+      accept:  () => { result$.next(true);  result$.complete(); },
+      reject:  () => { result$.next(false); result$.complete(); },
+    });
+    return result$.asObservable();
   }
 }

@@ -30,7 +30,7 @@
                 "input": "projects/staff-app/public"
               }
             ],
-            "styles": ["projects/staff-app/src/styles.scss"],
+            "styles": ["primeicons/primeicons.css", "projects/staff-app/src/styles.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["projects/staff-app/src"]
             }
@@ -40,8 +40,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -101,7 +101,7 @@
                 "input": "projects/admin-app/public"
               }
             ],
-            "styles": ["projects/admin-app/src/styles.scss"],
+            "styles": ["primeicons/primeicons.css", "projects/admin-app/src/styles.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["projects/admin-app/src"]
             }
@@ -111,8 +111,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",

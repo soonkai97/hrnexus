@@ -2,11 +2,15 @@ import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angul
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TooltipDirective } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
+import { Message } from 'primeng/message';
 
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, TooltipDirective],
+  imports: [FormsModule, TranslatePipe, TooltipDirective, Button, InputText, TooltipModule, Message],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })

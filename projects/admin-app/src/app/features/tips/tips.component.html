@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">💰 {{ 'tips.title' | translate }}</h1>
-    <button class="btn-primary" (click)="openForm()">{{ 'tips.distributeTips' | translate }}</button>
+    <p-button [label]="'tips.distributeTips' | translate" severity="primary" (click)="openForm()" />
   </div>
 
   @if (showForm()) {
@@ -25,7 +25,7 @@
 
       <div class="field">
         <label>{{ 'tips.totalAmount' | translate }}</label>
-        <input type="number" [(ngModel)]="form.totalAmount" min="0" step="0.01" />
+        <p-inputnumber [(ngModel)]="form.totalAmount" [min]="0" [step]="0.01" mode="decimal" [minFractionDigits]="2" />
       </div>
 
       <div class="field">
@@ -37,10 +37,9 @@
       </div>
 
       <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
-        <button class="btn-primary" (click)="distribute()" [disabled]="distributing()">
-          @if (distributing()) { <span class="nc-spinner sm"></span> } @else { {{ 'tips.previewDistribution' | translate }} }
-        </button>
-        <button class="btn-ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+        <p-button [label]="'tips.previewDistribution' | translate" severity="primary"
+                  (click)="distribute()" [disabled]="distributing()" [loading]="distributing()" />
+        <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
       </div>
 
       @if (preview(); as p) {
@@ -64,27 +63,23 @@
             </div>
           }
 
-          <div style="overflow-x:auto">
-            <table>
-              <thead>
-                <tr>
-                  <th>{{ 'tips.staffCol' | translate }}</th>
-                  <th>{{ 'tips.hoursCol' | translate }}</th>
-                  <th>{{ 'tips.amountCol' | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (a of p.allocations; track a.employeeId) {
-                  <tr>
-                    <td>{{ a.fullName }}</td>
-                    <td>{{ a.hoursWorked > 0 ? (a.hoursWorked + 'h') : '—' }}</td>
-                    <td style="color:#4ade80;font-weight:600">RM {{ a.amount | number:'1.2-2' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-          <button class="btn-primary" style="margin-top:1rem" (click)="confirm()">{{ 'tips.confirmDistribution' | translate }}</button>
+          <p-table [value]="p.allocations" [tableStyle]="{'min-width':'100%'}">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>{{ 'tips.staffCol' | translate }}</th>
+                <th>{{ 'tips.hoursCol' | translate }}</th>
+                <th>{{ 'tips.amountCol' | translate }}</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-a>
+              <tr>
+                <td>{{ a.fullName }}</td>
+                <td>{{ a.hoursWorked > 0 ? (a.hoursWorked + 'h') : '—' }}</td>
+                <td style="color:#4ade80;font-weight:600">RM {{ a.amount | number:'1.2-2' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+          <p-button [label]="'tips.confirmDistribution' | translate" severity="primary" styleClass="mt-3" (click)="confirm()" />
         </div>
       }
     </div>
@@ -96,38 +91,34 @@
     @if (pools().length === 0) {
       <p style="color:var(--text-muted);text-align:center;padding:1.5rem">{{ 'tips.noDistributions' | translate }}</p>
     } @else {
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>{{ 'tips.locationCol' | translate }}</th>
-              <th>{{ 'tips.shiftDateCol' | translate }}</th>
-              <th>{{ 'tips.totalCol' | translate }}</th>
-              <th>{{ 'tips.methodCol' | translate }}</th>
-              <th>{{ 'tips.staffCountCol' | translate }}</th>
-              <th>{{ 'tips.statusCol' | translate }}</th>
-              <th>{{ 'tips.createdCol' | translate }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (p of pools(); track p.id) {
-              <tr>
-                <td>{{ p.locationName }}</td>
-                <td style="color:var(--text-muted)">{{ p.shiftDate | date:'mediumDate' }}</td>
-                <td style="color:#4ade80;font-weight:600">{{ p.totalAmount | number:'1.2-2' }}</td>
-                <td>{{ p.splitMethod }}</td>
-                <td>{{ p.staffCount }}</td>
-                <td>
-                  <span class="badge" [class.badge-active]="p.isDistributed" [class.badge-closed]="!p.isDistributed">
-                    {{ p.isDistributed ? ('tips.distributed' | translate) : ('common.pending' | translate) }}
-                  </span>
-                </td>
-                <td style="color:var(--text-muted)">{{ p.createdAt | date:'mediumDate' }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+      <p-table [value]="pools()" [tableStyle]="{'min-width':'100%'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>{{ 'tips.locationCol' | translate }}</th>
+            <th>{{ 'tips.shiftDateCol' | translate }}</th>
+            <th>{{ 'tips.totalCol' | translate }}</th>
+            <th>{{ 'tips.methodCol' | translate }}</th>
+            <th>{{ 'tips.staffCountCol' | translate }}</th>
+            <th>{{ 'tips.statusCol' | translate }}</th>
+            <th>{{ 'tips.createdCol' | translate }}</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-p>
+          <tr>
+            <td>{{ p.locationName }}</td>
+            <td style="color:var(--text-muted)">{{ p.shiftDate | date:'mediumDate' }}</td>
+            <td style="color:#4ade80;font-weight:600">{{ p.totalAmount | number:'1.2-2' }}</td>
+            <td>{{ p.splitMethod }}</td>
+            <td>{{ p.staffCount }}</td>
+            <td>
+              <span class="badge" [class.badge-active]="p.isDistributed" [class.badge-closed]="!p.isDistributed">
+                {{ p.isDistributed ? ('tips.distributed' | translate) : ('common.pending' | translate) }}
+              </span>
+            </td>
+            <td style="color:var(--text-muted)">{{ p.createdAt | date:'mediumDate' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
     }
   </div>
 </div>

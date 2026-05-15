@@ -1,13 +1,10 @@
-import { Component, inject } from '@angular/core';
-import { ConfirmService } from '../../services/confirm.service';
+import { Component } from '@angular/core';
+import { ConfirmDialog } from 'primeng/confirmdialog';
 
 @Component({
   selector: 'nc-confirm-dialog',
   standalone: true,
-  imports: [],
-  templateUrl: './confirm-dialog.component.html',
-  styleUrl:    './confirm-dialog.component.scss',
+  imports: [ConfirmDialog],
+  template: `<p-confirmDialog />`,
 })
-export class ConfirmDialogComponent {
-  readonly svc = inject(ConfirmService);
-}
+export class ConfirmDialogComponent {}

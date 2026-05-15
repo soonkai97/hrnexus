@@ -5,8 +5,8 @@
       <p style="font-size:0.85rem;color:var(--text-muted,#4e4a65);margin-top:0.25rem">{{ 'features.subtitle' | translate }}</p>
     </div>
     <div style="display:flex;gap:0.75rem">
-      <button class="btn-ghost" (click)="disableAll()">{{ 'features.disableAll' | translate }}</button>
-      <button class="btn-primary" (click)="enableAll()">{{ 'features.enableAll' | translate }}</button>
+      <p-button [label]="'features.disableAll' | translate" [text]="true" severity="secondary" (click)="disableAll()" />
+      <p-button [label]="'features.enableAll' | translate" severity="primary" (click)="enableAll()" />
     </div>
   </div>
 

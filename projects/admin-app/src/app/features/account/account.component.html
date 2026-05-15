@@ -7,15 +7,13 @@
       <h3 class="section-heading">{{ 'account.profileSection' | translate }}</h3>
       <div class="field">
         <label>{{ 'account.phoneNumber' | translate }}</label>
-        <input type="text" [(ngModel)]="phoneNumber" placeholder="+60 12-345 6789" />
+        <input pInputText type="text" [(ngModel)]="phoneNumber" placeholder="+60 12-345 6789" />
       </div>
       @if (profileError()) {
-        <div class="login-error" style="margin-bottom:0.75rem"><span>⚠</span> {{ profileError() }}</div>
+        <p-message severity="error" [text]="profileError()" styleClass="mb-3 w-full" />
       }
-      <button class="btn-primary" (click)="saveProfile()" [disabled]="savingProfile()">
-        @if (savingProfile()) { <span class="nc-spinner sm"></span> }
-        {{ savingProfile() ? ('common.saving' | translate) : ('account.saveProfile' | translate) }}
-      </button>
+      <p-button [label]="savingProfile() ? ('common.saving' | translate) : ('account.saveProfile' | translate)"
+                severity="primary" (click)="saveProfile()" [disabled]="savingProfile()" [loading]="savingProfile()" />
     </div>
 
     <div class="nc-card password-card">

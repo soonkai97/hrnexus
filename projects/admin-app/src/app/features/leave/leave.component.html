@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
-    <button class="btn-primary" (click)="openAdd(); tab.set('records')">{{ 'leave.recordLeave' | translate }}</button>
+    <p-button [label]="'leave.recordLeave' | translate" severity="primary" (click)="openAdd(); tab.set('records')" />
   </div>
 
   <!-- ── Filter bar (always visible) ───────────────────────────────────────── -->
@@ -36,7 +36,7 @@
     </div>
     <div class="preset-row">
       @for (p of presets; track p.value) {
-        <button class="preset-btn" (click)="setPreset(p.value)">{{ p.labelKey | translate }}</button>
+        <p-button [label]="p.labelKey | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset(p.value)" />
       }
       @for (t of leaveTypes; track t) {
         <span class="summary-pill" [attr.data-type]="t">
@@ -82,9 +82,9 @@
                   <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' → ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                 </div>
                 <div class="overdue-row-actions">
-                  <button class="btn-approve overdue-action-btn" (click)="quickStatus(r.id, 'approved')">✓ {{ 'common.approved' | translate }}</button>
-                  <button class="btn-reject  overdue-action-btn" (click)="quickStatus(r.id, 'rejected')">✕ {{ 'common.rejected' | translate }}</button>
-                  <button class="overdue-noshow-btn" (click)="markNoShow(r)">⚠ {{ 'leave.markNoShow' | translate }}</button>
+                  <p-button [label]="'✓ ' + ('common.approved' | translate)" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                  <p-button [label]="'✕ ' + ('common.rejected' | translate)" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                  <p-button [label]="'⚠ ' + ('leave.markNoShow' | translate)" styleClass="overdue-noshow-btn" [text]="true" severity="secondary" (click)="markNoShow(r)" />
                 </div>
               </div>
             }
@@ -98,7 +98,7 @@
       <div #formAnchor class="nc-card form-card">
         <div class="form-header">
           <h3>{{ editing() ? ('leave.editLeave' | translate) : ('leave.recordLeaveForm' | translate) }}</h3>
-          <button class="btn-ghost icon-btn" (click)="cancelForm()">✕</button>
+          <p-button icon="pi pi-times" [text]="true" severity="secondary" (click)="cancelForm()" />
         </div>
         <div class="form-grid">
           <div class="field">
@@ -133,16 +133,14 @@
           </div>
           <div class="field">
             <label>{{ 'leave.notesLabel' | translate }}</label>
-            <input type="text" [(ngModel)]="form.notes" placeholder="e.g. Doctor's note provided" />
+            <input pInputText type="text" [(ngModel)]="form.notes" placeholder="e.g. Doctor's note provided" />
           </div>
         </div>
-        @if (formError()) { <div class="form-error"><span>⚠</span> {{ formError() }}</div> }
+        @if (formError()) { <p-message severity="error" [text]="formError()" /> }
         <div class="form-actions">
-          <button class="btn-ghost" (click)="cancelForm()">{{ 'common.cancel' | translate }}</button>
-          <button class="btn-primary" (click)="save()" [disabled]="saving()">
-            @if (saving()) { <span class="nc-spinner sm"></span> }
-            {{ saving() ? ('common.saving' | translate) : ('common.save' | translate) }}
-          </button>
+          <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelForm()" />
+          <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"
+                    severity="primary" (click)="save()" [disabled]="saving()" [loading]="saving()" />
         </div>
       </div>
     }
@@ -157,9 +155,9 @@
     @if (viewMode() === 'calendar') {
       <div class="nc-card" style="padding:1.25rem">
         <div class="cal-nav">
-          <button class="btn-ghost cal-nav-btn" (click)="prevCalMonth()">‹</button>
+          <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="prevCalMonth()" />
           <span class="cal-month-name">{{ calMonthName() }}</span>
-          <button class="btn-ghost cal-nav-btn" (click)="nextCalMonth()">›</button>
+          <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="nextCalMonth()" />
         </div>
         @if (loading()) {
           <div style="text-align:center;padding:2rem"><span class="nc-spinner sm"></span></div>
@@ -202,7 +200,7 @@
             <div class="cal-day-panel">
               <div class="cal-day-panel-header">
                 <span class="cal-day-panel-title">{{ selectedCalDay() | date:'EEEE, MMMM d, yyyy' }}</span>
-                <button class="btn-ghost icon-btn" (click)="selectedCalDay.set(null)">✕</button>
+                <p-button icon="pi pi-times" [text]="true" severity="secondary" (click)="selectedCalDay.set(null)" />
               </div>
               @if (selectedCalDayLeaves().length === 0) {
                 <p class="cal-day-empty">{{ 'leave.noDayLeaves' | translate }}</p>
@@ -223,8 +221,8 @@
                       <div class="cal-day-row-right">
                         <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
                         @if (r.status === 'pending') {
-                          <button class="btn-approve cal-approve-btn" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')">✓</button>
-                          <button class="btn-reject  cal-approve-btn" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')">✕</button>
+                          <p-button icon="pi pi-check" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
+                          <p-button icon="pi pi-times" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
                           <span class="cal-day-edit-hint">✏</span>
                         }
                       </div>
@@ -261,9 +259,9 @@
                 <div class="leave-top-right">
                   <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
                   @if (r.status === 'pending') {
-                    <button class="lc-icon-btn" (click)="startEdit(r)" [ncTooltip]="'common.edit' | translate">✏</button>
+                    <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="lc-icon-btn" (click)="startEdit(r)" pTooltip="Edit" />
                   }
-                  <button class="lc-icon-btn lc-icon-danger" (click)="remove(r.id)" [ncTooltip]="'common.delete' | translate">🗑</button>
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" styleClass="lc-icon-btn lc-icon-danger" (click)="remove(r.id)" pTooltip="Delete" />
                 </div>
               </div>
               <div class="leave-staff">
@@ -278,8 +276,8 @@
               @if (r.notes) { <div class="leave-notes">{{ r.notes }}</div> }
               @if (r.status === 'pending') {
                 <div class="leave-actions">
-                  <button class="btn-approve" (click)="quickStatus(r.id, 'approved')">✓ {{ 'common.approved' | translate }}</button>
-                  <button class="btn-reject"  (click)="quickStatus(r.id, 'rejected')">✕ {{ 'common.rejected' | translate }}</button>
+                  <p-button [label]="'✓ ' + ('common.approved' | translate)" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                  <p-button [label]="'✕ ' + ('common.rejected' | translate)" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
                 </div>
               }
             </div>
@@ -288,9 +286,9 @@
 
         @if (totalPages() > 1) {
           <div class="pagination-bar">
-            <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="load(currentPage() - 1)">‹</button>
+            <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="load(currentPage() - 1)" />
             <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalRecords() }} records)</span></span>
-            <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="load(currentPage() + 1)">›</button>
+            <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="load(currentPage() + 1)" />
           </div>
         }
       }
@@ -307,9 +305,8 @@
       <div class="nc-card balance-card">
         <div class="balance-card-header">
           <span class="balance-card-title">{{ 'leave.leaveBalance' | translate }} — {{ b.year }}</span>
-          <button class="btn-ghost" style="font-size:0.8rem" (click)="toggleEntitlementEdit()">
-            {{ editingEntitlement() ? ('leave.cancelEntitlement' | translate) : ('leave.editEntitlement' | translate) }}
-          </button>
+          <p-button [label]="editingEntitlement() ? ('leave.cancelEntitlement' | translate) : ('leave.editEntitlement' | translate)"
+                    [text]="true" severity="secondary" (click)="toggleEntitlementEdit()" />
         </div>
         <div class="balance-bars">
           <div class="bal-row">
@@ -336,20 +333,19 @@
           <div class="entitlement-form">
             <div class="field" style="margin:0">
               <label>{{ 'leave.annualDays' | translate }}</label>
-              <input type="number" [(ngModel)]="entitlementForm.annualDays" min="0" max="60" />
+              <p-inputnumber [(ngModel)]="entitlementForm.annualDays" [min]="0" [max]="60" />
             </div>
             <div class="field" style="margin:0">
               <label>{{ 'leave.sickDays' | translate }}</label>
-              <input type="number" [(ngModel)]="entitlementForm.sickDays" min="0" max="60" />
+              <p-inputnumber [(ngModel)]="entitlementForm.sickDays" [min]="0" [max]="60" />
             </div>
             <div class="field" style="margin:0">
               <label>{{ 'common.year' | translate }}</label>
-              <input type="number" [(ngModel)]="entitlementForm.year" />
+              <p-inputnumber [(ngModel)]="entitlementForm.year" />
             </div>
-            <button class="btn-primary ent-save-btn" (click)="saveEntitlement()" [disabled]="savingEntitlement()">
-              @if (savingEntitlement()) { <span class="nc-spinner sm"></span> }
-              {{ savingEntitlement() ? ('common.saving' | translate) : ('leave.saveEntitlement' | translate) }}
-            </button>
+            <p-button [label]="savingEntitlement() ? ('common.saving' | translate) : ('leave.saveEntitlement' | translate)"
+                      severity="primary" styleClass="ent-save-btn" (click)="saveEntitlement()"
+                      [disabled]="savingEntitlement()" [loading]="savingEntitlement()" />
           </div>
         }
       </div>

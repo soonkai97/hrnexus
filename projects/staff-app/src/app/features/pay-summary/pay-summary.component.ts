@@ -3,11 +3,14 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PayrollService, PaySummary, ToastService, MONTH_NAMES } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { Select } from 'primeng/select';
+import { InputNumber } from 'primeng/inputnumber';
 
 @Component({
   selector: 'app-pay-summary',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, Button, Select, InputNumber],
   templateUrl: './pay-summary.component.html',
   styleUrl: './pay-summary.component.scss',
 })
@@ -19,6 +22,8 @@ export class PaySummaryComponent implements OnInit {
   selectedMonth = signal(new Date().getMonth() + 1); // 1-based
 
   readonly months = MONTH_NAMES;
+
+  readonly monthOptions = MONTH_NAMES.map((m, i) => ({ label: m, value: i + 1 }));
 
   /** First and last day of the selected month */
   periodStart = computed(() => {

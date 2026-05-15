@@ -37,7 +37,7 @@
     } @else {
       <div class="quick-log nc-card">
         <span>{{ 'home.notClockedIn' | translate }}</span>
-        <a routerLink="/log-shift" class="btn-primary btn-sm">{{ 'home.logShift' | translate }}</a>
+        <p-button [label]="'home.logShift' | translate" severity="primary" size="small" routerLink="/log-shift" />
       </div>
     }
 
@@ -134,7 +134,7 @@
         }
       </div>
       <div style="text-align:right;margin-top:.5rem">
-        <a routerLink="/log-shift" class="btn-ghost btn-sm">{{ 'home.viewAllShifts' | translate }} →</a>
+        <p-button [label]="('home.viewAllShifts' | translate) + ' →'" [text]="true" severity="secondary" size="small" routerLink="/log-shift" />
       </div>
     } @else {
       <p class="no-shifts-hint">{{ 'home.noRecentShifts' | translate }}</p>

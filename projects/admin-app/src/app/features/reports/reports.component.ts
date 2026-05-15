@@ -7,11 +7,19 @@ import {
   LocationReportRow, StaffStore, StaffService, ToastService, TooltipDirective, PickerOnlyDirective,
   toLocalDateString,
 } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { InputNumber } from 'primeng/inputnumber';
+import { Select } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { Tag } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective, PickerOnlyDirective],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective, PickerOnlyDirective,
+    Button, InputText, InputNumber, Select, TableModule, Tag, TooltipModule],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })

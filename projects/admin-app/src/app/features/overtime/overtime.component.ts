@@ -3,11 +3,17 @@ import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AdminService, OvertimeRuleDto, ToastService, ConfirmService, StaffStore, TooltipDirective } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { InputNumber } from 'primeng/inputnumber';
+import { TableModule } from 'primeng/table';
+import { Tag } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-overtime',
   standalone: true,
-  imports: [TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective],
+  imports: [TitleCasePipe, FormsModule, TranslatePipe, TooltipDirective,
+    Button, InputNumber, TableModule, Tag, TooltipModule],
   templateUrl: './overtime.component.html',
   styleUrl: './overtime.component.scss',
 })

@@ -2,11 +2,13 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AnnouncementService, AnnouncementDto, ToastService } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { Tag } from 'primeng/tag';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [DatePipe, TranslatePipe],
+  imports: [DatePipe, TranslatePipe, Button, Tag],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })

@@ -5,11 +5,20 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, StaffStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TooltipDirective, PickerOnlyDirective, todayLocalString } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { Password } from 'primeng/password';
+import { TableModule } from 'primeng/table';
+import { Tag } from 'primeng/tag';
+import { Dialog } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { Message } from 'primeng/message';
 
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe, TooltipDirective, PickerOnlyDirective],
+  imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe, TooltipDirective, PickerOnlyDirective,
+    Button, InputText, Password, TableModule, Tag, Dialog, TooltipModule, Message],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })

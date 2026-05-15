@@ -3,11 +3,14 @@ import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { SignalRService, AdminService, ActiveStaffDto, RecentEventDto, DashboardStats, ToastService } from 'shared-lib';
+import { TableModule } from 'primeng/table';
+import { Tag } from 'primeng/tag';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, TranslatePipe],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, TranslatePipe, TableModule, Tag, Skeleton],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })

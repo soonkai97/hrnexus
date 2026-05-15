@@ -3,11 +3,13 @@ import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, StaffService, StaffDetail, ToastService, PushService, LangService } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { Tag } from 'primeng/tag';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [TitleCasePipe, RouterLink, TranslatePipe],
+  imports: [TitleCasePipe, RouterLink, TranslatePipe, Button, Tag],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })

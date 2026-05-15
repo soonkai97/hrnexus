@@ -1,37 +1,35 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">📢 {{ 'announcements.title' | translate }}</h1>
-    <button class="btn-primary" (click)="openAdd()">{{ 'announcements.newAnnouncement' | translate }}</button>
+    <p-button [label]="'announcements.newAnnouncement' | translate" severity="primary" (click)="openAdd()" />
   </div>
 
   @if (showForm()) {
     <div #formAnchor class="nc-card form-card">
       <div class="form-header">
         <h3>{{ editing() ? ('announcements.editForm' | translate) : ('announcements.newForm' | translate) }}</h3>
-        <button class="btn-ghost icon-btn" [ncTooltip]="'Close'" aria-label="Close form" (click)="cancel()">✕</button>
+        <p-button icon="pi pi-times" [text]="true" severity="secondary" pTooltip="Close" aria-label="Close form" (click)="cancel()" />
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'announcements.titleLabel' | translate }}</label>
-        <input [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" maxlength="200" />
+        <input pInputText [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" maxlength="200" />
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'announcements.bodyLabel' | translate }}</label>
-        <textarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate" maxlength="5000"></textarea>
+        <textarea pTextarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate" maxlength="5000"></textarea>
       </div>
       <div class="field">
         <label>{{ 'announcements.targetRoles' | translate }}</label>
-        <input [(ngModel)]="form.targetRoles" [placeholder]="'announcements.targetRolesPlaceholder' | translate" />
+        <input pInputText [(ngModel)]="form.targetRoles" [placeholder]="'announcements.targetRolesPlaceholder' | translate" />
       </div>
       <div class="field">
         <label>{{ 'announcements.expiresAt' | translate }} <span class="field-hint">{{ 'announcements.expiresAtHint' | translate }}</span></label>
         <input type="date" [(ngModel)]="form.expiresAt" />
       </div>
       <div class="form-actions">
-        <button class="btn-ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
-        <button class="btn-primary" (click)="save()" [disabled]="saving() || !isFormValid">
-          @if (saving()) { <span class="nc-spinner sm"></span> }
-          {{ saving() ? ('common.saving' | translate) : ('common.save' | translate) }}
-        </button>
+        <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
+        <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"
+                  severity="primary" (click)="save()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
       </div>
     </div>
   }
@@ -42,49 +40,45 @@
     <p class="empty-state">{{ 'announcements.noAnnouncements' | translate }}</p>
   } @else {
     <div class="nc-card table-wrap">
-      <div style="overflow-x:auto">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th scope="col">{{ 'announcements.titleCol' | translate }}</th>
-              <th scope="col">{{ 'announcements.targetRolesCol' | translate }}</th>
-              <th scope="col">{{ 'announcements.readsCol' | translate }}</th>
-              <th scope="col">{{ 'announcements.createdByCol' | translate }}</th>
-              <th scope="col">{{ 'announcements.expiresCol' | translate }}</th>
-              <th scope="col">{{ 'announcements.activeCol' | translate }}</th>
-              <th scope="col" class="td-actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of pagedItems(); track item.id) {
-              <tr>
-                <td class="col-title">{{ item.title }}</td>
-                <td><span class="badge">{{ item.targetRoles }}</span></td>
-                <td class="col-muted">{{ item.readCount }}</td>
-                <td class="col-muted">{{ item.createdByName }}</td>
-                <td class="col-muted">{{ item.expiresAt ? (item.expiresAt | date:'mediumDate') : '—' }}</td>
-                <td>
-                  <span class="badge" [class.badge-active]="item.isActive" [class.badge-closed]="!item.isActive">
-                    {{ item.isActive ? ('common.active' | translate) : ('announcements.expired' | translate) }}
-                  </span>
-                </td>
-                <td class="td-actions">
-                  <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
-                  <button class="btn-menu-trigger" [ncTooltip]="'Actions'"
-                          [attr.aria-label]="'Actions for ' + item.title"
-                          (click)="toggleMenu(item.id, $event); $event.stopPropagation()">⋯</button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+      <p-table [value]="pagedItems()" [tableStyle]="{'min-width':'100%'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th scope="col">{{ 'announcements.titleCol' | translate }}</th>
+            <th scope="col">{{ 'announcements.targetRolesCol' | translate }}</th>
+            <th scope="col">{{ 'announcements.readsCol' | translate }}</th>
+            <th scope="col">{{ 'announcements.createdByCol' | translate }}</th>
+            <th scope="col">{{ 'announcements.expiresCol' | translate }}</th>
+            <th scope="col">{{ 'announcements.activeCol' | translate }}</th>
+            <th scope="col" class="td-actions"></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td class="col-title">{{ item.title }}</td>
+            <td><span class="badge">{{ item.targetRoles }}</span></td>
+            <td class="col-muted">{{ item.readCount }}</td>
+            <td class="col-muted">{{ item.createdByName }}</td>
+            <td class="col-muted">{{ item.expiresAt ? (item.expiresAt | date:'mediumDate') : '—' }}</td>
+            <td>
+              <span class="badge" [class.badge-active]="item.isActive" [class.badge-closed]="!item.isActive">
+                {{ item.isActive ? ('common.active' | translate) : ('announcements.expired' | translate) }}
+              </span>
+            </td>
+            <td class="td-actions">
+              <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
+              <button class="btn-menu-trigger" pTooltip="Actions"
+                      [attr.aria-label]="'Actions for ' + item.title"
+                      (click)="toggleMenu(item.id, $event); $event.stopPropagation()">⋯</button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
 
       @if (totalPages() > 1) {
         <div class="pagination-bar">
-          <button class="btn-ghost" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)">‹</button>
+          <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)" />
           <span>{{ currentPage() }} / {{ totalPages() }} <span class="pag-total">({{ totalCount() }})</span></span>
-          <button class="btn-ghost" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)">›</button>
+          <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)" />
         </div>
       }
     </div>

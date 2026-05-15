@@ -2,6 +2,12 @@ import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angul
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { Select } from 'primeng/select';
+import { InputText } from 'primeng/inputtext';
+import { Message } from 'primeng/message';
+import { Tag } from 'primeng/tag';
+import { ProgressBar } from 'primeng/progressbar';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid'] as const;
 type StaffLeaveType = typeof LEAVE_TYPES[number];
@@ -9,7 +15,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 @Component({
   selector: 'app-my-leave',
   standalone: true,
-  imports: [FormsModule, TranslatePipe],
+  imports: [FormsModule, TranslatePipe, Button, Select, InputText, Message, Tag, ProgressBar],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })
@@ -19,6 +25,7 @@ export class MyLeaveComponent implements OnInit {
   private readonly confirm  = inject(ConfirmService);
 
   readonly leaveTypes = LEAVE_TYPES;
+  readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({ label: t, value: t }));
   readonly todayLocal = toLocalDateString(new Date());
 
   @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;

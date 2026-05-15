@@ -14,7 +14,7 @@
           <span class="bal-sep">/</span>
           <span class="bal-total">{{ b.annualEntitlement }}{{ 'leave.days' | translate }}</span>
         </div>
-        <div class="bal-bar"><div class="bal-fill annual-fill" [style.width.%]="barPct(b.annualRemaining, b.annualEntitlement)"></div></div>
+        <p-progressbar [value]="barPct(b.annualRemaining, b.annualEntitlement)" styleClass="bal-progress" />
         <div class="bal-used">{{ b.annualUsed }} used</div>
       </div>
       <div class="bal-card sick">
@@ -24,7 +24,7 @@
           <span class="bal-sep">/</span>
           <span class="bal-total">{{ b.sickEntitlement }}{{ 'leave.days' | translate }}</span>
         </div>
-        <div class="bal-bar"><div class="bal-fill sick-fill" [style.width.%]="barPct(b.sickRemaining, b.sickEntitlement)"></div></div>
+        <p-progressbar [value]="barPct(b.sickRemaining, b.sickEntitlement)" styleClass="bal-progress" />
         <div class="bal-used">{{ b.sickUsed }} used</div>
       </div>
       <div class="bal-card unpaid">
@@ -59,11 +59,12 @@
       <div class="form-grid">
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
-          <select [(ngModel)]="form.leaveType">
-            @for (t of leaveTypes; track t) {
-              <option [value]="t">{{ ('leave.type.' + t) | translate }}</option>
-            }
-          </select>
+          <p-select
+            [options]="leaveTypeOptions"
+            [(ngModel)]="form.leaveType"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full" />
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
@@ -76,18 +77,19 @@
 
         <div class="field full-span">
           <label>{{ 'leave.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
-          <input type="text" [(ngModel)]="form.notes" [placeholder]="'leave.notesLabel' | translate" />
+          <input pInputText type="text" [(ngModel)]="form.notes" [placeholder]="'leave.notesLabel' | translate" />
         </div>
       </div>
 
       @if (formError()) {
-        <div class="err-box"><span>⚠</span> {{ formError() }}</div>
+        <p-message severity="error" [text]="formError()" />
       }
       <div class="form-actions">
-        <button class="btn-primary" style="width:auto" (click)="submit()" [disabled]="saving()">
-          @if (saving()) { <span class="nc-spinner sm"></span> }
-          {{ saving() ? ('common.saving' | translate) + '…' : ('leave.applyLeave' | translate) }}
-        </button>
+        <p-button
+          [label]="saving() ? (('common.saving' | translate) + '…') : ('leave.applyLeave' | translate)"
+          severity="primary"
+          [loading]="saving()"
+          (click)="submit()" />
       </div>
     </div>
 
@@ -121,7 +123,7 @@
             }
             <div class="leave-meta">{{ 'leave.submittedOn' | translate }} {{ r.createdAt }}</div>
             @if ((r.status === 'pending' || r.status === 'approved') && r.endDate >= todayLocal) {
-              <button class="btn-danger-xs" (click)="cancel(r)">{{ 'leave.cancel' | translate }}</button>
+              <p-button [label]="'leave.cancel' | translate" severity="danger" size="small" [text]="true" (click)="cancel(r)" />
             }
           </div>
         }

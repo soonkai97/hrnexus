@@ -1,17 +1,10 @@
-import { Component, inject } from '@angular/core';
-import { ToastService, Toast } from '../../services/toast.service';
+import { Component } from '@angular/core';
+import { Toast } from 'primeng/toast';
 
 @Component({
   selector: 'nc-toast',
   standalone: true,
-  imports: [],
-  templateUrl: './toast.component.html',
-  styleUrl:    './toast.component.scss',
+  imports: [Toast],
+  template: `<p-toast position="top-right" />`,
 })
-export class ToastComponent {
-  readonly svc = inject(ToastService);
-
-  icon(type: Toast['type']): string {
-    return { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' }[type];
-  }
-}
+export class ToastComponent {}

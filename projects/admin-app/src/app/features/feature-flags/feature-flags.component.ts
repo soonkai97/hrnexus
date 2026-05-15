@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FeatureFlagService, FeatureKey, ToastService } from 'shared-lib';
+import { Button } from 'primeng/button';
 
 interface FeatureDef {
   key: FeatureKey;
@@ -13,7 +14,7 @@ interface FeatureDef {
 @Component({
   selector: 'app-feature-flags',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Button],
   templateUrl: './feature-flags.component.html',
   styleUrl: './feature-flags.component.scss',
 })

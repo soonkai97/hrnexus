@@ -9,11 +9,14 @@ import {
   FeatureFlagService, AnnouncementService, AmPmPipe,
   PaySummary, LeaveBalance, WorkLogDto, toLocalDateString,
 } from 'shared-lib';
+import { Button } from 'primeng/button';
+import { Tag } from 'primeng/tag';
+import { ProgressBar } from 'primeng/progressbar';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, DatePipe, UpperCasePipe, TranslatePipe, AmPmPipe],
+  imports: [RouterLink, DecimalPipe, DatePipe, UpperCasePipe, TranslatePipe, AmPmPipe, Button, Tag, ProgressBar],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

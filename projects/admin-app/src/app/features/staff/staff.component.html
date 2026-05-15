@@ -36,31 +36,14 @@
         </div>
         <div class="field">
           <label>{{ 'staff.roles' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
-          <div class="role-multiselect" #roleDropdownEl>
-            <button type="button" class="role-ms-trigger" (click)="roleDropdownOpen.set(!roleDropdownOpen())">
-              @if (newStaff.roles.length === 0) {
-                <span class="role-ms-placeholder">{{ 'staff.selectRoles' | translate }}</span>
-              } @else {
-                <span class="role-ms-tags">
-                  @for (r of newStaff.roles; track r) {
-                    <span class="role-ms-tag">{{ r | titlecase }}</span>
-                  }
-                </span>
-              }
-              <span class="role-ms-arrow"><i [class]="roleDropdownOpen() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i></span>
-            </button>
-            @if (roleDropdownOpen()) {
-              <div class="role-ms-panel">
-                @for (r of availableRoles(); track r.name) {
-                  <label class="role-ms-option" (click)="$event.preventDefault(); $event.stopPropagation(); toggleRole(r.name)">
-                    <input type="checkbox" [checked]="hasRole(r.name)" (click)="$event.stopPropagation()" />
-                    {{ r.name | titlecase }}
-                    @if (r.isSystem) { <span class="role-ms-sys">{{ 'staff.system' | translate }}</span> }
-                  </label>
-                }
-              </div>
-            }
-          </div>
+          <p-multiselect
+            [(ngModel)]="newStaff.roles"
+            [options]="availableRoles()"
+            optionLabel="name"
+            optionValue="name"
+            [placeholder]="'staff.selectRoles' | translate"
+            display="chip"
+            styleClass="w-full" />
         </div>
         <div class="field">
           <label>{{ 'staff.phoneNumber' | translate }}</label>
@@ -136,10 +119,9 @@
                    [severity]="s.isActive ? 'success' : 'secondary'" />
           </td>
           <td class="td-actions">
-            <!-- trigger only — dropdown rendered at page-wrap level to escape backdrop-filter -->
-            <button class="btn-menu-trigger" pTooltip="Actions"
-                    [attr.aria-label]="'Actions for ' + s.fullName"
-                    (click)="toggleMenu(s.id, $event); $event.stopPropagation()"><i class="pi pi-ellipsis-v"></i></button>
+            <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small"
+                      [attr.aria-label]="'Actions for ' + s.fullName"
+                      (click)="openStaffMenu(s, $event)" />
           </td>
         </tr>
       </ng-template>
@@ -156,28 +138,7 @@
     </div>
   }
 
-  <!-- ── Action dropdown — outside .table-card so backdrop-filter doesn't clip it ── -->
-  @if (menuTarget() && menuPos()) {
-    <div class="action-backdrop" (click)="closeMenu()"></div>
-    <div class="action-dropdown"
-         [style.top.px]="menuPos()!.top"
-         [style.bottom.px]="menuPos()!.bottom"
-         [style.right.px]="menuPos()!.right">
-      <a [routerLink]="['/staff', menuTarget()!.id]" class="action-item" (click)="closeMenu()">
-        {{ 'staff.editStaff' | translate }}
-      </a>
-      <button class="action-item" (click)="openResetPassword(menuTarget()!); closeMenu()">
-        {{ 'staff.resetPassword' | translate }}
-      </button>
-      <button class="action-item" (click)="toggleActive(menuTarget()!.id, menuTarget()!.isActive); closeMenu()">
-        {{ menuTarget()!.isActive ? ('staff.deactivate' | translate) : ('staff.activate' | translate) }}
-      </button>
-      <div class="action-divider"></div>
-      <button class="action-item action-item-danger" (click)="deleteStaff(menuTarget()!); closeMenu()">
-        {{ 'staff.delete' | translate }}
-      </button>
-    </div>
-  }
+  <p-menu #staffMenu [popup]="true" [model]="staffMenuItems()" [appendTo]="'body'" />
 </div>
 
 <!-- ── Reset Password Dialog ───────────────────────────────────────────────── -->

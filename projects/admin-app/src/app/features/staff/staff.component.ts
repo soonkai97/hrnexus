@@ -1,8 +1,8 @@
-import { Component, OnInit, signal, computed, inject, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ElementRef, ViewChild } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService, StaffStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -15,12 +15,16 @@ import { Dialog } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 import { DatePicker } from 'primeng/datepicker';
+import { MultiSelect } from 'primeng/multiselect';
+import { Menu } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-staff',
   standalone: true,
   imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe,
-    Button, InputText, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker],
+    Button, InputText, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
+    MultiSelect, Menu],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })
@@ -29,9 +33,10 @@ export class StaffComponent implements OnInit {
   private readonly staffStore  = inject(StaffStore);
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);
-  private readonly el          = inject(ElementRef);
+  private readonly translate   = inject(TranslateService);
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('staffMenu') staffMenu!: Menu;
 
   readonly staff      = this.staffStore.staff;
   readonly roles      = this.staffStore.roles;
@@ -48,17 +53,7 @@ export class StaffComponent implements OnInit {
   showForm         = signal(false);
   saving           = signal(false);
   error            = signal('');
-  roleDropdownOpen = signal(false);
-  openMenuId  = signal<string | null>(null);
-  menuPos     = signal<{ top?: number; bottom?: number; right: number } | null>(null);
-  menuTarget  = computed(() => this.staff().find(s => s.id === this.openMenuId()) ?? null);
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(e: MouseEvent): void {
-    if (!this.el.nativeElement.querySelector('.role-multiselect')?.contains(e.target)) {
-      this.roleDropdownOpen.set(false);
-    }
-  }
+  staffMenuItems   = signal<MenuItem[]>([]);
 
   newStaff: RegisterStaffRequest = {
     staffId: '', firstName: '', lastName: '', email: '', password: 'password123', roles: [],
@@ -102,23 +97,35 @@ export class StaffComponent implements OnInit {
     this.staffStore.loadStaff(value, 1, this.pageSize);
   }
 
-  toggleMenu(id: string, event: MouseEvent): void {
-    if (this.openMenuId() === id) { this.closeMenu(); return; }
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    // right = distance from viewport right to button's right edge
-    // → dropdown right edge lines up exactly with the ⋯ button right edge
-    const right = window.innerWidth - rect.right;
-    // Flip upward when there isn't enough room below (4 items + divider ≈ 175 px)
-    const spaceBelow = window.innerHeight - rect.bottom;
-    if (spaceBelow >= 175) {
-      this.menuPos.set({ top: rect.bottom + 4, right });
-    } else {
-      this.menuPos.set({ bottom: window.innerHeight - rect.top + 4, right });
-    }
-    this.openMenuId.set(id);
+  openStaffMenu(s: Staff, event: Event): void {
+    this.staffMenuItems.set([
+      {
+        label: this.translate.instant('staff.editStaff'),
+        icon: 'pi pi-user',
+        routerLink: ['/staff', s.id],
+      },
+      {
+        label: this.translate.instant('staff.resetPassword'),
+        icon: 'pi pi-key',
+        command: () => this.openResetPassword(s),
+      },
+      { separator: true },
+      {
+        label: s.isActive
+          ? this.translate.instant('staff.deactivate')
+          : this.translate.instant('staff.activate'),
+        icon: 'pi pi-power-off',
+        command: () => this.toggleActive(s.id, s.isActive),
+      },
+      {
+        label: this.translate.instant('staff.delete'),
+        icon: 'pi pi-trash',
+        styleClass: 'nc-danger-item',
+        command: () => this.deleteStaff(s),
+      },
+    ]);
+    this.staffMenu.toggle(event);
   }
-
-  closeMenu(): void { this.openMenuId.set(null); this.menuPos.set(null); }
 
   openAdd(): void {
     this.showForm.set(true);
@@ -127,7 +134,6 @@ export class StaffComponent implements OnInit {
 
   closeForm(): void {
     this.showForm.set(false);
-    this.roleDropdownOpen.set(false);
     this.error.set('');
     this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: 'password123',
       roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: '' };
@@ -178,7 +184,6 @@ export class StaffComponent implements OnInit {
           icNo: null, passportNo: null, dateOfBirth: '' };
         this.saving.set(false);
         this.showForm.set(false);
-        this.roleDropdownOpen.set(false);
         this.toast.success('Staff registered.');
         this.search.set('');
         this.loadPage(1);
@@ -190,16 +195,6 @@ export class StaffComponent implements OnInit {
         this.saving.set(false);
       },
     });
-  }
-
-  toggleRole(roleName: string): void {
-    const idx = this.newStaff.roles.indexOf(roleName);
-    if (idx === -1) this.newStaff.roles = [...this.newStaff.roles, roleName];
-    else            this.newStaff.roles = this.newStaff.roles.filter(r => r !== roleName);
-  }
-
-  hasRole(roleName: string): boolean {
-    return this.newStaff.roles.includes(roleName);
   }
 
   toggleActive(id: string, isActive: boolean): void {

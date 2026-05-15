@@ -79,25 +79,14 @@
           <!-- Roles -->
           <div class="field" style="grid-column:1/-1">
             <label>{{ 'staffDetail.roles' | translate }}</label>
-            <div class="role-multiselect" (click)="roleDropdownOpen.update(v => !v)">
-              <div class="role-selected">
-                @if (editForm.roles.length === 0) { <span style="color:var(--p-text-muted-color)">{{ 'staffDetail.selectRoles' | translate }}</span> }
-                @for (r of editForm.roles; track r) { <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" /> }
-                <span style="margin-left:auto"><i class="pi pi-chevron-down"></i></span>
-              </div>
-              @if (roleDropdownOpen()) {
-                <div class="role-dropdown">
-                  @for (role of staffStore.roles(); track role.name) {
-                    @if (role.name !== 'admin') {
-                      <label class="role-option">
-                        <input type="checkbox" [checked]="editForm.roles.includes(role.name)" (change)="toggleDetailRole(role.name)" />
-                        {{ role.name | titlecase }}
-                      </label>
-                    }
-                  }
-                </div>
-              }
-            </div>
+            <p-multiselect
+              [(ngModel)]="editForm.roles"
+              [options]="availableRoles()"
+              optionLabel="name"
+              optionValue="name"
+              [placeholder]="'staffDetail.selectRoles' | translate"
+              display="chip"
+              styleClass="w-full" />
           </div>
         </div>
         <div style="display:flex;gap:.75rem;margin-top:1.5rem">

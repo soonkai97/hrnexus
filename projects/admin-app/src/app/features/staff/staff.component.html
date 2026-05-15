@@ -77,7 +77,12 @@
         <p class="id-required-note"><span class="req">*</span> {{ 'staff.idRequiredNote' | translate }}</p>
         <div class="field">
           <label><span class="req">*</span> {{ 'staff.dateOfBirth' | translate }}</label>
-          <input type="date" [(ngModel)]="newStaff.dateOfBirth" [max]="today" />
+          <p-datepicker [(ngModel)]="newStaff.dateOfBirth"
+            dateFormat="yy-mm-dd"
+            dataType="string"
+            [showIcon]="true"
+            [maxDate]="todayDate"
+            styleClass="w-full" />
         </div>
       </div>
       <div class="form-actions">

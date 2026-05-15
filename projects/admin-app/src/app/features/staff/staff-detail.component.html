@@ -62,7 +62,11 @@
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'staffDetail.dateOfBirth' | translate }}</label>
-            <input type="date" [(ngModel)]="editForm.dateOfBirth" />
+            <p-datepicker [(ngModel)]="editForm.dateOfBirth"
+              dateFormat="yy-mm-dd"
+              dataType="string"
+              [showIcon]="true"
+              styleClass="w-full" />
           </div>
           <div class="field">
             <label>{{ 'staffDetail.icNoOptional' | translate }}</label>

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
   AdminService, ReportResponse, ReportFilters,
-  LocationReportRow, StaffStore, StaffService, ToastService, PickerOnlyDirective,
+  LocationReportRow, StaffStore, StaffService, ToastService,
   toLocalDateString,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -14,12 +14,13 @@ import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Select } from 'primeng/select';
+import { DatePicker } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe, PickerOnlyDirective,
-    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Select],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
+    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Select, DatePicker],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })

@@ -3,19 +3,20 @@ import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffService, ToastService, WorkLogService, WorkLogDto, AmPmPipe, PickerOnlyDirective } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffService, ToastService, WorkLogService, WorkLogDto, AmPmPipe } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { ProgressSpinner } from 'primeng/progressspinner';
+import { DatePicker } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, PickerOnlyDirective,
-    Button, InputText, TableModule, Tag, Card, ProgressSpinner],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe,
+    Button, InputText, TableModule, Tag, Card, ProgressSpinner, DatePicker],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })

@@ -27,7 +27,6 @@ export * from './lib/components/theme-toggle/theme-toggle.component';
 export * from './lib/services/leave.service';
 export * from './lib/services/notification.service';
 export * from './lib/components/notification-bell/notification-bell.component';
-export * from './lib/directives/tooltip.directive';
 export * from './lib/directives/picker-only.directive';
 export * from './lib/provide-no-autofill';
 export * from './lib/services/announcement.service'; // exports AnnouncementDto, AdminAnnouncementDto, UpsertAnnouncementDto

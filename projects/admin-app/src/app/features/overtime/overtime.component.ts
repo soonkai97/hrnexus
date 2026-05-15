@@ -154,7 +154,7 @@ export class OvertimeComponent implements OnInit {
   }
 
   delete(id: string) {
-    this.confirmSvc.confirm({ title: 'Delete Rule', message: 'Remove this OT rule?', confirmLabel: 'Delete', danger: true })
+    this.confirmSvc.confirm({ title: 'Delete Overtime Rule', message: 'Are you sure you want to delete this overtime rule?', confirmLabel: 'Delete', danger: true })
       .subscribe(ok => {
         if (!ok) return;
         this.adminSvc.deleteOvertimeRule(id).subscribe({

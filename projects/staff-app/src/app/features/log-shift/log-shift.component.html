@@ -8,17 +8,13 @@
   </div>
 
   <!-- ── Top-level view tabs ───────────────────────────────────────────────── -->
-  <div class="view-tabs">
-    <button [class.active]="view() === 'log'" (click)="view.set('log')">
-      Log Shift
-    </button>
-    <button [class.active]="view() === 'history'" (click)="view.set('history')">
-      {{ 'logShift.history' | translate }}
-      @if (totalHistory() > 0) {
-        <span class="tab-count">{{ totalHistory() }}</span>
-      }
-    </button>
-  </div>
+  <p-selectbutton
+    [ngModel]="view()"
+    (ngModelChange)="view.set($event)"
+    [options]="viewOptions"
+    optionLabel="label"
+    optionValue="value"
+    styleClass="mb-5" />
 
   <!-- ═══════════════════════════ LOG VIEW ════════════════════════════════════ -->
   @if (view() === 'log') {
@@ -49,10 +45,13 @@
 
     <!-- Mode toggle (only when no active shift) -->
     @if (!activeLog()) {
-      <div class="mode-tabs">
-        <button [class.active]="mode() === 'live'"   (click)="setMode('live')">{{ 'logShift.startNow' | translate }}</button>
-        <button [class.active]="mode() === 'manual'" (click)="setMode('manual')">{{ 'logShift.manualEntry' | translate }}</button>
-      </div>
+      <p-selectbutton
+        [ngModel]="mode()"
+        (ngModelChange)="setMode($event)"
+        [options]="modeOptions"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="mb-4" />
 
       <!-- LIVE form -->
       @if (mode() === 'live') {
@@ -97,7 +96,11 @@
         <p-card styleClass="form-card">
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.date' | translate }}</label>
-            <input type="date" [(ngModel)]="manualForm.workDate" />
+            <p-datepicker [(ngModel)]="manualForm.workDate"
+              dateFormat="yy-mm-dd"
+              dataType="string"
+              [showIcon]="true"
+              styleClass="w-full" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>

@@ -11,6 +11,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { ProgressSpinner } from 'primeng/progressspinner';
+import { DatePicker } from 'primeng/datepicker';
+import { SelectButton } from 'primeng/selectbutton';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show'] as const;
 const STATUSES    = ['approved', 'pending', 'rejected'] as const;
@@ -19,7 +21,7 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
   selector: 'app-leave',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputText, InputNumber, Card, TooltipModule, Message, Select, ProgressSpinner],
+    Button, InputText, InputNumber, Card, TooltipModule, Message, Select, ProgressSpinner, DatePicker, SelectButton],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
@@ -67,6 +69,15 @@ export class LeaveComponent implements OnInit {
   readonly currentYear = new Date().getFullYear();
   readonly leaveTypes: string[] = [...LEAVE_TYPES];
   readonly calDayKeys  = ['leave.calDayMon','leave.calDayTue','leave.calDayWed','leave.calDayThu','leave.calDayFri','leave.calDaySat','leave.calDaySun'];
+
+  readonly tabOptions = [
+    { labelKey: 'leave.recordsTab',  value: 'records'  },
+    { labelKey: 'leave.balancesTab', value: 'balances' },
+  ];
+  readonly viewModeOptions = [
+    { label: 'Table',    value: 'table'    },
+    { label: 'Calendar', value: 'calendar' },
+  ];
 
   // ── Calendar view ────────────────────────────────────────────────────────
   viewMode    = signal<'table' | 'calendar'>('table');
@@ -357,7 +368,7 @@ export class LeaveComponent implements OnInit {
 
 
   remove(id: string): void {
-    this.confirmSvc.confirm({ title: 'Delete Leave', message: 'Remove this leave record?', confirmLabel: 'Delete', danger: true })
+    this.confirmSvc.confirm({ title: 'Delete Leave Record', message: 'Remove this leave record? This cannot be undone.', confirmLabel: 'Delete', danger: true })
       .subscribe(ok => {
         if (!ok) return;
         this.leaveSvc.delete(id).subscribe({

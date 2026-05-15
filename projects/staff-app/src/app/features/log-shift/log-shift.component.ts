@@ -9,6 +9,8 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Message } from 'primeng/message';
 import { ProgressSpinner } from 'primeng/progressspinner';
+import { SelectButton } from 'primeng/selectbutton';
+import { DatePicker } from 'primeng/datepicker';
 
 type Mode = 'live' | 'manual';
 
@@ -20,7 +22,7 @@ function nowHHmm(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, InputText, Select, Message, ProgressSpinner],
+  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, InputText, Select, Message, ProgressSpinner, SelectButton, DatePicker],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })
@@ -33,6 +35,15 @@ export class LogShiftComponent implements OnInit {
 
   mode = signal<Mode>('live');
   view = signal<'log' | 'history'>('log');
+
+  readonly viewOptions = [
+    { label: 'Log Shift', value: 'log'     },
+    { label: 'History',   value: 'history' },
+  ];
+  readonly modeOptions = [
+    { label: 'Start Now',     value: 'live'   },
+    { label: 'Manual Entry',  value: 'manual' },
+  ];
 
   // State
   activeLog    = signal<WorkLogDto | null>(null);
@@ -216,7 +227,7 @@ export class LogShiftComponent implements OnInit {
   // ── Delete ───────────────────────────────────────────────────────────────────
 
   deleteLog(id: string): void {
-    this.confirmSvc.confirm({ title: 'Delete Log', message: 'Remove this work log?', confirmLabel: 'Delete', danger: true }).subscribe(ok => {
+    this.confirmSvc.confirm({ title: 'Delete Shift Log', message: 'Are you sure you want to remove this shift record? This cannot be undone.', confirmLabel: 'Delete', danger: true }).subscribe(ok => {
       if (!ok) return;
       this.workLogSvc.delete(id).subscribe({
         next: () => { this.loadHistory(); this.toast.success('Log removed.'); },

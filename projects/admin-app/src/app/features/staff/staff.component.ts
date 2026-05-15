@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, StaffStore, RegisterStaffRequest,
-         Staff, ToastService, ConfirmService, PickerOnlyDirective, todayLocalString } from 'shared-lib';
+         Staff, ToastService, ConfirmService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
@@ -14,12 +14,13 @@ import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
+import { DatePicker } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe, PickerOnlyDirective,
-    Button, InputText, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message],
+  imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe,
+    Button, InputText, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })
@@ -37,8 +38,8 @@ export class StaffComponent implements OnInit {
   readonly loading    = this.staffStore.loading;
   readonly totalCount = this.staffStore.totalCount;
 
-  /** Used as [max] on the date-of-birth input to prevent future dates. */
-  readonly today   = todayLocalString();
+  /** Used as [maxDate] on the date-of-birth picker to prevent future dates. */
+  readonly todayDate = new Date();
 
   search           = signal('');
   readonly pageSize = 10;
@@ -196,18 +197,24 @@ export class StaffComponent implements OnInit {
   }
 
   toggleActive(id: string, isActive: boolean): void {
-    const action = isActive ? 'deactivate' : 'activate';
-    this.confirmSvc.confirm({
-      title: isActive ? 'Deactivate Staff' : 'Activate Staff',
-      message: `Are you sure you want to ${action} this staff member?`,
-      confirmLabel: isActive ? 'Deactivate' : 'Activate',
-      danger: isActive,
-    }).subscribe(confirmed => {
-      if (!confirmed) return;
+    if (isActive) {
+      const fullName = this.staff().find(s => s.id === id)?.fullName ?? 'this staff member';
+      this.confirmSvc.confirm({
+        title: 'Deactivate Staff',
+        message: `This will prevent ${fullName} from logging in. Are you sure?`,
+        confirmLabel: 'Deactivate',
+        danger: true,
+      }).subscribe((confirmed: boolean) => {
+        if (!confirmed) return;
+        this.staffStore.toggleActive(id, isActive).subscribe({
+          error: () => this.toast.error('Failed to update status.'),
+        });
+      });
+    } else {
       this.staffStore.toggleActive(id, isActive).subscribe({
         error: () => this.toast.error('Failed to update status.'),
       });
-    });
+    }
   }
 
   // ── Delete Staff ────────────────────────────────────────────────────────────

@@ -97,7 +97,7 @@ export class RolesComponent implements OnInit {
   deleteRole(name: string): void {
     this.confirmSvc.confirm({
       title: 'Delete Role',
-      message: `Delete the "${name.toUpperCase()}" role? This cannot be undone.`,
+      message: 'Deleting this role will remove it from all staff members. Are you sure?',
       confirmLabel: 'Delete',
       danger: true,
     }).subscribe(confirmed => {

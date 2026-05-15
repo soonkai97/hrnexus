@@ -2,19 +2,20 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, PickerOnlyDirective, todayLocalString } from 'shared-lib';
+import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, todayLocalString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
+import { DatePicker } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-tips',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, PickerOnlyDirective,
-    Button, InputNumber, TableModule, Tag, Card, Select],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe,
+    Button, InputNumber, TableModule, Tag, Card, Select, DatePicker],
   templateUrl: './tips.component.html',
   styleUrl: './tips.component.scss',
 })

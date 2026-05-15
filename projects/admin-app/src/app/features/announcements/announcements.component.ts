@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } fr
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService, PickerOnlyDirective } from 'shared-lib';
+import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
@@ -11,12 +11,13 @@ import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinner } from 'primeng/progressspinner';
+import { DatePicker } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslatePipe, PickerOnlyDirective,
-    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, ProgressSpinner],
+  imports: [DatePipe, FormsModule, TranslatePipe,
+    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, ProgressSpinner, DatePicker],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })
@@ -147,7 +148,7 @@ export class AnnouncementsComponent implements OnInit {
   }
 
   remove(id: string): void {
-    this.confirmSvc.confirm({ message: 'Delete this announcement?', confirmLabel: 'Delete', danger: true })
+    this.confirmSvc.confirm({ title: 'Delete Announcement', message: 'Are you sure you want to delete this announcement?', confirmLabel: 'Delete', danger: true })
       .subscribe(ok => {
         if (!ok) return;
         this.announcementSvc.delete(id).subscribe({

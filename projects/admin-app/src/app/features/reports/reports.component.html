@@ -28,11 +28,19 @@
       <div class="filter-row">
         <div class="field">
           <label>{{ 'reports.from' | translate }}</label>
-          <input type="date" [(ngModel)]="dateFrom" />
+          <p-datepicker [(ngModel)]="dateFrom"
+            dateFormat="yy-mm-dd"
+            dataType="string"
+            [showIcon]="true"
+            styleClass="w-full" />
         </div>
         <div class="field">
           <label>{{ 'reports.to' | translate }}</label>
-          <input type="date" [(ngModel)]="dateTo" />
+          <p-datepicker [(ngModel)]="dateTo"
+            dateFormat="yy-mm-dd"
+            dataType="string"
+            [showIcon]="true"
+            styleClass="w-full" />
         </div>
 
         <!-- Staff multi-select -->

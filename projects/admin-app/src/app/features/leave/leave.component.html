@@ -15,11 +15,21 @@
       </div>
       <div class="field filter-date">
         <label>{{ 'leave.fromLabel' | translate }}</label>
-        <input type="date" [(ngModel)]="filterFrom" (change)="load(1)" />
+        <p-datepicker [(ngModel)]="filterFrom"
+          dateFormat="yy-mm-dd"
+          dataType="string"
+          [showIcon]="true"
+          styleClass="w-full"
+          (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-date">
         <label>{{ 'leave.toLabel' | translate }}</label>
-        <input type="date" [(ngModel)]="filterTo" (change)="load(1)" />
+        <p-datepicker [(ngModel)]="filterTo"
+          dateFormat="yy-mm-dd"
+          dataType="string"
+          [showIcon]="true"
+          styleClass="w-full"
+          (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-status">
         <label>{{ 'leave.statusLabel' | translate }}</label>
@@ -41,17 +51,19 @@
   </p-card>
 
   <!-- ── Page tabs ─────────────────────────────────────────────────────────── -->
-  <div class="page-tabs">
-    <button [class.active]="tab() === 'records'" (click)="tab.set('records')">
-      {{ 'leave.recordsTab' | translate }}
-      @if (totalPendingCount() > 0) {
-        <span class="tab-badge">{{ totalPendingCount() }} pending</span>
+  <p-selectbutton
+    [ngModel]="tab()"
+    (ngModelChange)="tab.set($event)"
+    [options]="tabOptions"
+    optionValue="value"
+    styleClass="mb-5">
+    <ng-template pTemplate="item" let-opt>
+      {{ opt.labelKey | translate }}
+      @if (opt.value === 'records' && totalPendingCount() > 0) {
+        <span class="tab-badge">{{ totalPendingCount() }}</span>
       }
-    </button>
-    <button [class.active]="tab() === 'balances'" (click)="tab.set('balances')">
-      {{ 'leave.balancesTab' | translate }}
-    </button>
-  </div>
+    </ng-template>
+  </p-selectbutton>
 
   <!-- ═══════════════════════════ RECORDS TAB ═════════════════════════════════ -->
   @if (tab() === 'records') {
@@ -108,11 +120,19 @@
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
-            <input type="date" [(ngModel)]="form.startDate" />
+            <p-datepicker [(ngModel)]="form.startDate"
+              dateFormat="yy-mm-dd"
+              dataType="string"
+              [showIcon]="true"
+              styleClass="w-full" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
-            <input type="date" [(ngModel)]="form.endDate" />
+            <p-datepicker [(ngModel)]="form.endDate"
+              dateFormat="yy-mm-dd"
+              dataType="string"
+              [showIcon]="true"
+              styleClass="w-full" />
           </div>
 
           <div class="field">
@@ -134,10 +154,13 @@
     }
 
     <!-- View toggle -->
-    <div class="view-toggle-row">
-      <button class="view-toggle-btn" [class.active]="viewMode() === 'table'"    (click)="switchView('table')">{{ 'leave.tableView' | translate }}</button>
-      <button class="view-toggle-btn" [class.active]="viewMode() === 'calendar'" (click)="switchView('calendar')">{{ 'leave.calendarView' | translate }}</button>
-    </div>
+    <p-selectbutton
+      [ngModel]="viewMode()"
+      (ngModelChange)="switchView($event)"
+      [options]="viewModeOptions"
+      optionLabel="label"
+      optionValue="value"
+      styleClass="mb-4" />
 
     <!-- Calendar view -->
     @if (viewMode() === 'calendar') {

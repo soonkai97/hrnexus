@@ -69,11 +69,19 @@
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
-          <input type="date" [(ngModel)]="form.startDate" />
+          <p-datepicker [(ngModel)]="form.startDate"
+            dateFormat="yy-mm-dd"
+            dataType="string"
+            [showIcon]="true"
+            styleClass="w-full" />
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
-          <input type="date" [(ngModel)]="form.endDate" />
+          <p-datepicker [(ngModel)]="form.endDate"
+            dateFormat="yy-mm-dd"
+            dataType="string"
+            [showIcon]="true"
+            styleClass="w-full" />
         </div>
 
         <div class="field full-span">

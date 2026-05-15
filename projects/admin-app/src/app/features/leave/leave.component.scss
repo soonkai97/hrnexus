@@ -1,35 +1,5 @@
 @use 'styles/theme' as *;
 
-// ── Page tabs (Records / Balances) ────────────────────────────────────────────
-.page-tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 1.25rem;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
-  overflow: hidden;
-
-  button {
-    flex: 1;
-    padding: 0.65rem 1rem;
-    border: none;
-    background: $bg-surface;
-    color: $text-muted;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all $transition-fast;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-
-    & + button { border-left: 1px solid $border-subtle; }
-    &.active { background: rgba(168,85,247,0.15); color: $neon-purple; }
-    &:hover:not(.active) { background: rgba(168,85,247,0.06); color: $text-primary; }
-  }
-}
-
 .tab-badge {
   background: rgba(251,191,36,0.2);
   color: #fbbf24;
@@ -235,22 +205,6 @@
   &.bal-chip-ok     { background: rgba(74,222,128,0.1);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
   &.bal-chip-warn   { background: rgba(239,68,68,0.08);  color: #f87171; border: 1px solid rgba(239,68,68,0.22); }
   &.bal-chip-unpaid { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-}
-
-// ── View toggle ──────────────────────────────────────────────────────────────
-.view-toggle-row {
-  display: flex; gap: 0.5rem; margin-bottom: 1rem;
-}
-.view-toggle-btn {
-  background: rgba(168,85,247,0.07); border: 1px solid rgba(168,85,247,0.18);
-  border-radius: $radius-pill; color: $text-secondary;
-  font-size: 0.8rem; font-weight: 500; padding: 0.3rem 0.9rem; cursor: pointer;
-  transition: background $transition-fast, color $transition-fast, border-color $transition-fast;
-  &:hover { background: rgba(168,85,247,0.15); color: $text-primary; }
-  &.active {
-    background: rgba(168,85,247,0.2); border-color: rgba(168,85,247,0.5);
-    color: $neon-purple; font-weight: 600;
-  }
 }
 
 // ── Calendar ─────────────────────────────────────────────────────────────────

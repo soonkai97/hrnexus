@@ -59,7 +59,7 @@ export class LocationsComponent implements OnInit {
   remove(id: string): void {
     this.confirmSvc.confirm({
       title: 'Delete Location',
-      message: 'Are you sure you want to delete this location? This cannot be undone.',
+      message: 'Are you sure you want to delete this location?',
       confirmLabel: 'Delete',
       danger: true,
     }).subscribe(confirmed => {

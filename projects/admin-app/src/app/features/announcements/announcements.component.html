@@ -24,7 +24,11 @@
       </div>
       <div class="field">
         <label>{{ 'announcements.expiresAt' | translate }} <span class="field-hint">{{ 'announcements.expiresAtHint' | translate }}</span></label>
-        <input type="date" [(ngModel)]="form.expiresAt" />
+        <p-datepicker [(ngModel)]="form.expiresAt"
+          dateFormat="yy-mm-dd"
+          dataType="string"
+          [showIcon]="true"
+          styleClass="w-full" />
       </div>
       <div class="form-actions">
         <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />

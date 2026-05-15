@@ -17,7 +17,11 @@
 
       <div class="field">
         <label>{{ 'tips.shiftDate' | translate }}</label>
-        <input type="date" [(ngModel)]="form.shiftDate" />
+        <p-datepicker [(ngModel)]="form.shiftDate"
+          dateFormat="yy-mm-dd"
+          dataType="string"
+          [showIcon]="true"
+          styleClass="w-full" />
       </div>
 
       <div class="field">

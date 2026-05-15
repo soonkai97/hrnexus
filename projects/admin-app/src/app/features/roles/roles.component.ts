@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -16,9 +16,12 @@ export class RolesComponent implements OnInit {
   private readonly confirmSvc = inject(ConfirmService);
   private readonly toast      = inject(ToastService);
 
+  @ViewChild('formAnchor') private formAnchor?: ElementRef<HTMLElement>;
+
   readonly roles   = this.store.roles;
   readonly loading = this.store.loading;
 
+  showForm = signal(false);
   newRoleName = '';
   newRoleRate = 0;
   saving = signal(false);
@@ -31,13 +34,29 @@ export class RolesComponent implements OnInit {
 
   ngOnInit(): void { this.store.loadRoles(); }
 
+  openAdd(): void {
+    this.newRoleName = '';
+    this.newRoleRate = 0;
+    this.error.set('');
+    this.showForm.set(true);
+    setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  cancel(): void { this.showForm.set(false); this.error.set(''); }
+
   addRole(): void {
     const name = this.newRoleName.trim();
     if (!name) return;
     this.saving.set(true);
     this.error.set('');
     this.store.createRole(name, this.newRoleRate).subscribe({
-      next: () => { this.newRoleName = ''; this.newRoleRate = 0; this.saving.set(false); this.toast.success('Role created.'); },
+      next: () => {
+        this.newRoleName = '';
+        this.newRoleRate = 0;
+        this.saving.set(false);
+        this.showForm.set(false);
+        this.toast.success('Role created.');
+      },
       error: (e) => { this.error.set(e?.error?.error ?? 'Failed to create role.'); this.saving.set(false); },
     });
   }

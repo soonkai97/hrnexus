@@ -85,12 +85,14 @@ export class NotificationBellComponent implements OnInit {
   routeFor(n: AppNotification): string | null {
     switch (n.type) {
       case 'leave_approved':
-      case 'leave_rejected':  return '/my-leave';
-      case 'leave_pending':   return '/leave';
-      case 'roster_assigned': return '/log-shift';
-      case 'missed_clockin':  return '/log-shift';
-      case 'password_reset':  return '/staff';
-      default:                return null;
+      case 'leave_rejected':   return '/my-leave';
+      case 'leave_pending':    return '/leave';
+      case 'stale_shift':      return '/log-shift';
+      case 'stale_shift_admin':return '/dashboard';
+      case 'roster_assigned':
+      case 'missed_clockin':   return '/log-shift';
+      case 'password_reset':   return '/staff';
+      default:                 return null;
     }
   }
 

@@ -72,6 +72,7 @@
     "endDate":    "结束日期",
     "notesLabel": "备注",
     "optional":   "可选",
+    "used":       "已用",
     "submittedOn":"提交时间",
     "status": {
       "pending":   "待审批",

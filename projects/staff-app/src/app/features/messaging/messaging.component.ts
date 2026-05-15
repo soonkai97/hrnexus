@@ -1,7 +1,9 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MessagingService, MessageDto, ToastService } from 'shared-lib';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { MessagingService, MessageDto, ToastService, SignalRService } from 'shared-lib';
 
 @Component({
   selector: 'app-messaging',
@@ -10,9 +12,10 @@ import { MessagingService, MessageDto, ToastService } from 'shared-lib';
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss',
 })
-export class MessagingComponent implements OnInit {
-  private readonly msgSvc = inject(MessagingService);
-  private readonly toast  = inject(ToastService);
+export class MessagingComponent implements OnInit, OnDestroy {
+  private readonly msgSvc  = inject(MessagingService);
+  private readonly signalR = inject(SignalRService);
+  private readonly toast   = inject(ToastService);
 
   tab     = signal<'inbox' | 'sent'>('inbox');
   inbox   = signal<MessageDto[]>([]);
@@ -24,7 +27,17 @@ export class MessagingComponent implements OnInit {
 
   unread = computed(() => this.inbox().filter(m => !m.readAt).length);
 
-  ngOnInit() { this.loadAll(); }
+  private msgSub?: Subscription;
+
+  ngOnInit() {
+    this.loadAll();
+    // Reload inbox in real time whenever a new message arrives via SignalR
+    this.msgSub = this.signalR.notifications$
+      .pipe(filter(n => n.type === 'message'))
+      .subscribe(() => this.loadAll());
+  }
+
+  ngOnDestroy() { this.msgSub?.unsubscribe(); }
 
   loadAll() {
     this.loading.set(true);

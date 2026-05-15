@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 using NightclubWorkforce.Application.Announcements.Commands;
 using NightclubWorkforce.Application.Announcements.Queries;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Api.Filters;
 
 namespace NightclubWorkforce.Api.Controllers;
 
 [ApiController]
 [Route("api/announcements")]
 [Authorize]
+[FeatureRequired("announcements")]
 public class AnnouncementsController(IMediator mediator, IAppDbContext db) : ControllerBase
 {
     private Guid EmployeeId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

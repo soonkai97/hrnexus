@@ -43,7 +43,7 @@ export class LoginComponent {
         if (res.mustChangePassword) {
           this.router.navigate(['/auth/set-password']);
         } else {
-          this.router.navigate(['/log-shift']);
+          this.router.navigate(['/home']);
         }
       },
       error: (e: any) => {

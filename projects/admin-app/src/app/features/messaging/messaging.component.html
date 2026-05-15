@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">💬 Messaging</h1>
-    <button class="btn-primary" (click)="showCompose.set(!showCompose())">
+    <button class="btn-primary" (click)="showCompose() ? showCompose.set(false) : openCompose()">
       {{ showCompose() ? 'Cancel' : '✉ Compose' }}
     </button>
   </div>
@@ -52,7 +52,10 @@
         <div class="nc-card msg-card" [class.unread]="!msg.readAt" (click)="markRead(msg)">
           <div class="msg-from">{{ msg.senderName }}</div>
           <div class="msg-content">{{ msg.content }}</div>
-          <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
+          <div class="msg-footer">
+            <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
+            <button class="btn-ghost btn-xs" (click)="reply(msg); $event.stopPropagation()">↩ Reply</button>
+          </div>
           @if (!msg.readAt) { <span class="unread-dot"></span> }
         </div>
       }

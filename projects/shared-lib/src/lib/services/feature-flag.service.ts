@@ -36,15 +36,19 @@ const DEFAULTS: FlagMap = {
 export class FeatureFlagService {
   private readonly http = inject(HttpClient);
 
-  readonly #flags = signal<FlagMap>({ ...DEFAULTS });
+  readonly #flags  = signal<FlagMap>({ ...DEFAULTS });
+  readonly #loaded = signal(false);
+
   readonly flags  = this.#flags.asReadonly();
+  /** True once the first load() response has arrived (success or failure). */
+  readonly loaded = this.#loaded.asReadonly();
 
   /** Load flags from backend. Called by each shell on mount. Fails silently. */
   load(): Observable<void> {
     return this.http.get<Partial<FlagMap>>('/api/feature-flags').pipe(
-      tap(data => this.#flags.set({ ...DEFAULTS, ...data })),
+      tap(data => { this.#flags.set({ ...DEFAULTS, ...data }); this.#loaded.set(true); }),
       map(() => void 0 as void),
-      catchError(() => of(void 0 as void)),
+      catchError(() => { this.#loaded.set(true); return of(void 0 as void); }),
     );
   }
 

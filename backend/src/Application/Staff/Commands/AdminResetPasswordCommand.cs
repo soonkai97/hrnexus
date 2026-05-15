@@ -15,7 +15,6 @@ public class AdminResetPasswordCommandHandler(IAppDbContext db, IPasswordHasher 
             ?? throw new KeyNotFoundException($"Employee {req.EmployeeId} not found.");
 
         emp.SetPasswordHash(hasher.Hash(req.NewPassword));
-        emp.SetMustChangePassword(); // Force employee to change on next login
         emp.ClearRefreshToken();
         await db.SaveChangesAsync(ct);
     }

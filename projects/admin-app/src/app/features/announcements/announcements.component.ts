@@ -145,5 +145,9 @@ export class AnnouncementsComponent implements OnInit {
       });
   }
 
+  get isFormValid(): boolean {
+    return !!this.form.title.trim() && !!this.form.body.trim();
+  }
+
   cancel(): void { this.showForm.set(false); }
 }

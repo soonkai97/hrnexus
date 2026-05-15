@@ -1,3 +1,5 @@
+using NightclubWorkforce.Domain.Constants;
+
 namespace NightclubWorkforce.Domain.Entities;
 
 public class LeaveRequest
@@ -25,7 +27,7 @@ public class LeaveRequest
             StartDate  = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc),
             EndDate    = DateTime.SpecifyKind(endDate.Date,   DateTimeKind.Utc),
             Notes      = notes,
-            Status     = "pending",
+            Status     = AppConstants.Leave.Pending,
             CreatedAt  = DateTime.UtcNow,
         };
 
@@ -41,12 +43,12 @@ public class LeaveRequest
 
     public void SetStatus(string status) => Status = status.ToLower();
 
-    public void Cancel() => Status = "cancelled";
+    public void Cancel() => Status = AppConstants.Leave.Cancelled;
 
     /// <summary>Auto-reject this leave and stamp a system note onto it.</summary>
     public void AutoReject(string systemNote)
     {
-        Status = "rejected";
+        Status = AppConstants.Leave.Rejected;
         Notes  = string.IsNullOrWhiteSpace(Notes)
             ? systemNote
             : $"{Notes} | {systemNote}";

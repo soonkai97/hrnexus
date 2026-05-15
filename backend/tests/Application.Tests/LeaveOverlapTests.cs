@@ -33,6 +33,14 @@ public class LeaveOverlapTests
             Guid? performedById, string performedByName, string? changes = null, CancellationToken ct = default) => Task.CompletedTask;
     }
 
+    private sealed class NullDateTimeProvider : IDateTimeProvider
+    {
+        public DateTime     UtcNow        => DateTime.UtcNow;
+        public DateOnly     TodayUtc      => DateOnly.FromDateTime(DateTime.UtcNow);
+        public TimeZoneInfo VenueTimeZone => TimeZoneInfo.Local;
+        public DateTime     LocalNow      => DateTime.Now;
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static TestDbContext CreateDb()
@@ -44,7 +52,7 @@ public class LeaveOverlapTests
     }
 
     private static UpsertLeaveCommandHandler CreateHandler(IAppDbContext db) =>
-        new(db, new NullNotificationHub(), new NullPushService(), new NullAuditService());
+        new(db, new NullNotificationHub(), new NullPushService(), new NullAuditService(), new NullDateTimeProvider());
 
     private static DateTime Utc(int year, int month, int day) =>
         DateTime.SpecifyKind(new DateTime(year, month, day), DateTimeKind.Utc);

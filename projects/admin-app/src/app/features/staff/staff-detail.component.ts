@@ -91,6 +91,14 @@ export class StaffDetailComponent implements OnInit {
     else            this.editForm = { ...this.editForm, roles: this.editForm.roles.filter(r => r !== roleName) };
   }
 
+  /** Gates the Save button — mirrors the backend required-field checks. */
+  get isEditFormValid(): boolean {
+    return !!this.editForm.staffId?.trim() &&
+      !!this.editForm.firstName?.trim() &&
+      !!this.editForm.lastName?.trim() &&
+      !!this.editForm.email?.trim();
+  }
+
   cancelEdit(): void { this.editMode.set(false); this.roleDropdownOpen.set(false); }
 
   saveEdit(): void {

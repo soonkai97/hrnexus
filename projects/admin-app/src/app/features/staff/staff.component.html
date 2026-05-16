@@ -169,7 +169,7 @@
   (visibleChange)="!$event && closeResetPassword()"
   [header]="'staff.resetPasswordTitle' | translate"
   [modal]="true"
-  [style]="{'width':'440px'}"
+  [style]="{'width':'min(440px, 92vw)'}"
   [closable]="true">
 
   @if (resetPassTarget()) {

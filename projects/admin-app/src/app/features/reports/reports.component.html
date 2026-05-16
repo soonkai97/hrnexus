@@ -3,18 +3,7 @@
     <h1 class="page-title">{{ 'reports.title' | translate }}</h1>
   </div>
 
-  <!-- Top-level page tabs -->
-  <p-tabs [value]="pageTab()" (valueChange)="pageTab.set($any($event))">
-    <p-tablist>
-      <p-tab value="report">{{ 'reports.workforceReport' | translate }}</p-tab>
-      <p-tab value="payroll">{{ 'reports.payrollExport' | translate }}</p-tab>
-    </p-tablist>
-  </p-tabs>
-
-  <!-- ── TAB: Workforce Report ───────────────────────────────────────────── -->
-  @if (pageTab() === 'report') {
-
-    <!-- Filters -->
+  <!-- Filters -->
     <p-card styleClass="filter-bar">
       <div class="preset-row">
         <p-button [label]="'reports.today' | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset('today')" />
@@ -331,29 +320,5 @@
       }
 
     }
-  }
-
-  <!-- ── TAB: Payroll Export ─────────────────────────────────────────────── -->
-  @if (pageTab() === 'payroll') {
-    <p-card styleClass="payroll-card">
-      <div class="payroll-title">{{ 'reports.payrollTitle' | translate }}</div>
-      <p class="payroll-sub">{{ 'reports.payrollDesc' | translate }}</p>
-      <div class="payroll-controls">
-        <div class="field payroll-field">
-          <label>{{ 'reports.yearLabel' | translate }}</label>
-          <p-inputnumber [(ngModel)]="payrollYear" [min]="2020" [max]="payrollYear + 1" [useGrouping]="false" />
-        </div>
-        <div class="field payroll-field">
-          <label>{{ 'reports.monthLabel' | translate }}</label>
-          <p-select [(ngModel)]="payrollMonth"
-            [options]="payrollMonthOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
-        </div>
-        <p-button icon="pi pi-download"
-                  [label]="payrollExporting() ? ('reports.exporting' | translate) : ('reports.downloadPayroll' | translate)"
-                  severity="primary" styleClass="payroll-export-btn"
-                  (click)="exportPayrollCsv()" [disabled]="payrollExporting()" [loading]="payrollExporting()" />
-      </div>
-    </p-card>
-  }
 
 </div>

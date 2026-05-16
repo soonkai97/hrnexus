@@ -77,15 +77,12 @@
   .form-grid { grid-template-columns: 1fr; }
 }
 
-// Hide p-column-title on desktop; only visible inside the mobile stack layout
-.table-card :deep(.p-column-title) { display: none; }
-
 // ── Responsive table → card stack at 640px ───────────────────────────────────
 @media (max-width: 640px) {
-  .table-card :deep(.p-datatable-table) { display: block; }
-  .table-card :deep(.p-datatable-thead) { display: none; }
+  :host :deep(.p-datatable-table) { display: block; }
+  :host :deep(.p-datatable-thead) { display: none; }
 
-  .table-card :deep(.p-datatable-tbody > tr) {
+  :host :deep(.p-datatable-tbody > tr) {
     display: block;
     border: 1px solid $border-subtle;
     border-radius: $radius-md;
@@ -94,7 +91,7 @@
     background: $bg-surface;
   }
 
-  .table-card :deep(.p-datatable-tbody > tr > td) {
+  :host :deep(.p-datatable-tbody > tr > td) {
     display: flex;
     align-items: center;
     gap: 0.65rem;
@@ -117,7 +114,7 @@
     }
   }
 
-  .table-card :deep(.td-actions) {
+  :host :deep(.td-actions) {
     justify-content: flex-end;
     padding-top: 0.35rem;
     padding-bottom: 0.35rem;

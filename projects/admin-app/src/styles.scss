@@ -134,12 +134,10 @@ input[type="time"] {
   label { font-size: 0.75rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
 }
 
-// Normalise the height of PrimeNG form inputs in filter rows
-// Target inner labels/inputs only — setting height on the component root
-// breaks composite components (clear button, icons go out of place)
+// Normalise the height of PrimeNG select/multiselect labels in filter rows
+// (datepicker excluded — changing input padding misaligns it from its calendar button)
 .filter-row .p-select .p-select-label,
 .filter-row .p-multiselect .p-multiselect-label { padding-top: 0.6rem; padding-bottom: 0.6rem; }
-.filter-row .p-datepicker .p-datepicker-input   { padding-top: 0.6rem; padding-bottom: 0.6rem; }
 
 .divider { height: 1px; background: $border-subtle; }
 

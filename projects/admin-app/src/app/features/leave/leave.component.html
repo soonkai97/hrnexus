@@ -11,7 +11,7 @@
         <label>{{ 'leave.staffLabel' | translate }}</label>
         <p-select [(ngModel)]="filterEmployeeId" (onChange)="load(1)"
           [options]="staffStore.staff()" optionLabel="fullName" optionValue="id"
-          [placeholder]="'leave.allStaff' | translate" [showClear]="true"
+          [placeholder]="'leave.allStaff' | translate" [showClear]="!!filterEmployeeId"
           [filter]="true" filterPlaceholder="Search staff…"
           styleClass="w-full" />
       </div>
@@ -36,8 +36,9 @@
       <div class="field filter-status">
         <label>{{ 'leave.statusLabel' | translate }}</label>
         <p-select [(ngModel)]="filterStatus" (onChange)="load(1)"
-          [options]="statuses" [placeholder]="'leave.allStatus' | translate"
-          [showClear]="true" styleClass="w-full" />
+          [options]="statusOptions" optionLabel="label" optionValue="value"
+          [placeholder]="'leave.allStatus' | translate"
+          [showClear]="!!filterStatus" styleClass="w-full" />
       </div>
     </div>
     <div class="summary-row">
@@ -137,7 +138,8 @@
 
           <div class="field">
             <label>{{ 'leave.statusLabel' | translate }}</label>
-            <p-select [(ngModel)]="form.status" [options]="statuses" styleClass="w-full" />
+            <p-select [(ngModel)]="form.status" [options]="statusOptions"
+              optionLabel="label" optionValue="value" styleClass="w-full" />
           </div>
           <div class="field">
             <label>{{ 'leave.notesLabel' | translate }}</label>

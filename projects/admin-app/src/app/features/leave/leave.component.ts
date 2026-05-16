@@ -174,6 +174,10 @@ export class LeaveComponent implements OnInit {
     if (mode === 'calendar') this.loadCalRecords();
   }
   readonly statuses: string[] = [...STATUSES];
+  readonly statusOptions = STATUSES.map(s => ({
+    label: s.charAt(0).toUpperCase() + s.slice(1),
+    value: s,
+  }));
   form: UpsertLeaveRequest = {
     employeeId: '', leaveType: 'sick', startDate: '', endDate: '', notes: null, status: 'approved',
   };

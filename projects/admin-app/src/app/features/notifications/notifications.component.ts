@@ -30,6 +30,21 @@ export class NotificationsComponent implements OnInit {
       : this.notifications()
   );
 
+  grouped = computed(() => {
+    const now   = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const yest  = today - 86_400_000;
+    const items = this.filtered();
+    const groups: { label: string; items: AppNotification[] }[] = [];
+    const todayItems = items.filter(n => new Date(n.createdAt).getTime() >= today);
+    const yestItems  = items.filter(n => { const t = new Date(n.createdAt).getTime(); return t >= yest && t < today; });
+    const olderItems = items.filter(n => new Date(n.createdAt).getTime() < yest);
+    if (todayItems.length) groups.push({ label: 'Today',     items: todayItems });
+    if (yestItems.length)  groups.push({ label: 'Yesterday', items: yestItems  });
+    if (olderItems.length) groups.push({ label: 'Earlier',   items: olderItems });
+    return groups;
+  });
+
   ngOnInit(): void {
     this.svc.load().subscribe({ complete: () => this.loading.set(false) });
   }
@@ -68,15 +83,16 @@ export class NotificationsComponent implements OnInit {
 
   iconFor(type: string): string {
     switch (type) {
-      case 'leave_approved':  return '✅';
-      case 'leave_rejected':  return '❌';
-      case 'leave_pending':   return '📋';
-      case 'missed_clockin':  return '⚠️';
-      case 'roster_assigned': return '📅';
-      case 'password_reset':  return '🔐';
-      case 'announcement':    return '📢';
-      case 'message':         return '💬';
-      default:                return '🔔';
+      case 'leave_approved':  return 'pi pi-check-circle notif-type-success';
+      case 'leave_rejected':  return 'pi pi-times-circle notif-type-danger';
+      case 'leave_pending':   return 'pi pi-file          notif-type-info';
+      case 'missed_clockin':  return 'pi pi-exclamation-triangle notif-type-warn';
+      case 'stale_shift_admin': return 'pi pi-clock       notif-type-warn';
+      case 'roster_assigned': return 'pi pi-calendar      notif-type-info';
+      case 'password_reset':  return 'pi pi-lock          notif-type-warn';
+      case 'announcement':    return 'pi pi-megaphone     notif-type-info';
+      case 'message':         return 'pi pi-comments      notif-type-info';
+      default:                return 'pi pi-bell          notif-type-info';
     }
   }
 

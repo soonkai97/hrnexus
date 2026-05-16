@@ -294,7 +294,8 @@
     "payrollDesc":      "Download a monthly pay summary CSV for all active staff — includes regular hours, overtime (1.5×), tips, and approved leave days.",
     "yearLabel":        "Year",
     "monthLabel":       "Month",
-    "downloadPayroll":  "Download Payroll CSV"
+    "downloadPayroll":  "Download Payroll CSV",
+    "costShare":        "Cost Share"
   },
   "tips": {
     "title":              "Tips Pool",

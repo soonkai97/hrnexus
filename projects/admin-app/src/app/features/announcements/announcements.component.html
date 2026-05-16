@@ -68,10 +68,9 @@
                      [severity]="item.isActive ? 'success' : 'secondary'" />
             </td>
             <td class="td-actions">
-              <!-- trigger only — dropdown rendered below to escape backdrop-filter -->
-              <p-button label="Actions" [text]="true" severity="secondary" size="small"
+              <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small"
                         [attr.aria-label]="'Actions for ' + item.title"
-                        (click)="toggleMenu(item.id, $event); $event.stopPropagation()" />
+                        (click)="openMenu(item, $event)" />
             </td>
           </tr>
         </ng-template>
@@ -84,17 +83,6 @@
       }
     </p-card>
 
-    <!-- ── Action dropdown — outside .nc-card so backdrop-filter doesn't clip it ── -->
-    @if (menuTarget() && menuPos()) {
-      <div class="action-backdrop" (click)="closeMenu()"></div>
-      <div class="action-dropdown"
-           [style.top.px]="menuPos()!.top"
-           [style.bottom.px]="menuPos()!.bottom"
-           [style.right.px]="menuPos()!.right">
-        <button class="action-item" (click)="startEdit(menuTarget()!); closeMenu()">{{ 'common.edit' | translate }}</button>
-        <div class="action-divider"></div>
-        <button class="action-item action-item-danger" (click)="remove(menuTarget()!.id); closeMenu()">{{ 'common.delete' | translate }}</button>
-      </div>
-    }
+    <p-menu #rowMenu [popup]="true" [model]="menuItems()" [appendTo]="'body'" />
   }
 </div>

@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -13,12 +13,14 @@ import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { DatePicker } from 'primeng/datepicker';
+import { Menu } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe,
-    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, ProgressSpinner, DatePicker, Paginator],
+    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, ProgressSpinner, DatePicker, Paginator, Menu],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })
@@ -26,8 +28,10 @@ export class AnnouncementsComponent implements OnInit {
   private readonly announcementSvc = inject(AnnouncementService);
   private readonly confirmSvc      = inject(ConfirmService);
   private readonly toast           = inject(ToastService);
+  private readonly translate       = inject(TranslateService);
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('rowMenu') rowMenu!: Menu;
 
   items      = signal<AdminAnnouncementDto[]>([]);
   showForm   = signal(false);
@@ -35,6 +39,7 @@ export class AnnouncementsComponent implements OnInit {
   saving     = signal(false);
   loading    = signal(false);
   totalCount = signal(0);
+  menuItems  = signal<MenuItem[]>([]);
 
   readonly pageSize = 10;
   currentPage  = signal(1);
@@ -46,26 +51,14 @@ export class AnnouncementsComponent implements OnInit {
     this.load(page);
   }
 
-  // ── Action menu ────────────────────────────────────────────────────────────
-  openMenuId  = signal<string | null>(null);
-  menuPos     = signal<{ top?: number; bottom?: number; right: number } | null>(null);
-  menuTarget  = computed(() => this.items().find(i => i.id === this.openMenuId()) ?? null);
-
-  toggleMenu(id: string, event: MouseEvent): void {
-    if (this.openMenuId() === id) { this.closeMenu(); return; }
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const right = window.innerWidth - rect.right;
-    // Flip upward when there isn't enough room below (2 items + divider ≈ 120 px)
-    const spaceBelow = window.innerHeight - rect.bottom;
-    if (spaceBelow >= 120) {
-      this.menuPos.set({ top: rect.bottom + 4, right });
-    } else {
-      this.menuPos.set({ bottom: window.innerHeight - rect.top + 4, right });
-    }
-    this.openMenuId.set(id);
+  openMenu(item: AdminAnnouncementDto, event: Event): void {
+    this.menuItems.set([
+      { label: this.translate.instant('common.edit'),   icon: 'pi pi-pencil', command: () => this.startEdit(item) },
+      { separator: true },
+      { label: this.translate.instant('common.delete'), icon: 'pi pi-trash',  styleClass: 'nc-danger-item', command: () => this.remove(item.id) },
+    ]);
+    this.rowMenu.toggle(event);
   }
-
-  closeMenu(): void { this.openMenuId.set(null); this.menuPos.set(null); }
 
   form = { title: '', body: '', targetRoles: '*', expiresAt: '' };
 

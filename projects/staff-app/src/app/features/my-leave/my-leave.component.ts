@@ -27,7 +27,10 @@ export class MyLeaveComponent implements OnInit {
   private readonly confirm  = inject(ConfirmService);
 
   readonly leaveTypes = LEAVE_TYPES;
-  readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({ label: t, value: t }));
+  readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({
+    label: t.charAt(0).toUpperCase() + t.slice(1),
+    value: t,
+  }));
   readonly todayLocal = toLocalDateString(new Date());
 
   records     = signal<LeaveRecord[]>([]);
@@ -98,6 +101,12 @@ export class MyLeaveComponent implements OnInit {
         this.saving.set(false);
       },
     });
+  }
+
+  onStartDateChange(date: string): void {
+    if (!this.form.endDate || this.form.endDate < date) {
+      this.form.endDate = date;
+    }
   }
 
   cancel(r: LeaveRecord): void {

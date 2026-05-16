@@ -39,9 +39,9 @@
     <div class="sidebar-footer">
       @if (user()) {
         <div class="user-row">
-          <a routerLink="/account" class="user-avatar" [title]="'account.title' | translate">{{ initials() }}</a>
+          <a routerLink="/profile" class="user-avatar" [title]="'account.title' | translate">{{ initials() }}</a>
           @if (!collapsed()) {
-            <a routerLink="/account" class="user-info">
+            <a routerLink="/profile" class="user-info">
               <span class="user-name">{{ user()!.fullName.split(' ')[0] }}</span>
               <span class="user-role">{{ userRoleLabel() }}</span>
             </a>

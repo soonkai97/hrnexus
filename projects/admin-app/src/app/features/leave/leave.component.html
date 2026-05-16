@@ -193,7 +193,7 @@
                            [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
                            [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — Overdue' : '')"
                            (click)="openCalLeave(r, $event)">
-                        {{ r.staffName.split(' ')[0] }}
+                        {{ r.staffName.split(' ')[0] + (r.staffName.indexOf(' ') > -1 ? ' ' + r.staffName.split(' ')[1][0] + '.' : '') }}
                       </div>
                     }
                     @if (day.leaves.length > 2) { <div class="cal-leave-more">+{{ day.leaves.length - 2 }}</div> }

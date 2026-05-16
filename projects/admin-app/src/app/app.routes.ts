@@ -37,6 +37,7 @@ export const routes: Routes = [
         ],
       },
       { path: 'account',       loadChildren:  () => import('./features/account/account.routes').then(m => m.ACCOUNT_ROUTES) },
+      { path: 'profile',       redirectTo: 'account', pathMatch: 'full' },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

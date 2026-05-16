@@ -8,10 +8,12 @@
   </div>
 
   <!-- ── Top-level view tabs ───────────────────────────────────────────────── -->
-  <div class="view-tabs">
-    <button [class.active]="view() === 'log'" (click)="view.set('log')">{{ 'nav.logShift' | translate }}</button>
-    <button [class.active]="view() === 'history'" (click)="view.set('history')">{{ 'logShift.history' | translate }}</button>
-  </div>
+  <p-tabs [value]="view()" (valueChange)="view.set($any($event))">
+    <p-tablist>
+      <p-tab value="log">{{ 'nav.logShift' | translate }}</p-tab>
+      <p-tab value="history">{{ 'logShift.history' | translate }}</p-tab>
+    </p-tablist>
+  </p-tabs>
 
   <!-- ═══════════════════════════ LOG VIEW ════════════════════════════════════ -->
   @if (view() === 'log') {
@@ -42,10 +44,12 @@
 
     <!-- Mode toggle (only when no active shift) -->
     @if (!activeLog()) {
-      <div class="view-tabs">
-        <button [class.active]="mode() === 'live'" (click)="setMode('live')">{{ 'logShift.startNow' | translate }}</button>
-        <button [class.active]="mode() === 'manual'" (click)="setMode('manual')">{{ 'logShift.manualEntry' | translate }}</button>
-      </div>
+      <p-tabs [value]="mode()" (valueChange)="setMode($any($event))">
+        <p-tablist>
+          <p-tab value="live">{{ 'logShift.startNow' | translate }}</p-tab>
+          <p-tab value="manual">{{ 'logShift.manualEntry' | translate }}</p-tab>
+        </p-tablist>
+      </p-tabs>
 
       <!-- LIVE form -->
       @if (mode() === 'live') {
@@ -175,11 +179,9 @@
       </div>
 
       @if (totalHistoryPages() > 1) {
-        <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
-          <p-button label="Prev" [text]="true" severity="secondary" [disabled]="historyPage() === 1" (click)="loadHistory(historyPage() - 1)" />
-          <span>{{ historyPage() }} / {{ totalHistoryPages() }} ({{ totalHistory() }})</span>
-          <p-button label="Next" [text]="true" severity="secondary" [disabled]="historyPage() === totalHistoryPages()" (click)="loadHistory(historyPage() + 1)" />
-        </div>
+        <p-paginator [first]="(historyPage()-1)*historyPageSize" [rows]="historyPageSize"
+                     [totalRecords]="totalHistory()"
+                     (onPageChange)="loadHistory(($event.page ?? 0) + 1)" />
       }
     }
 

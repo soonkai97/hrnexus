@@ -1,14 +1,14 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Button } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
+import { Password } from 'primeng/password';
 import { Message } from 'primeng/message';
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'lib-change-password',
   standalone: true,
-  imports: [ReactiveFormsModule, Button, InputText, Message],
+  imports: [ReactiveFormsModule, Button, Password, Message],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.scss',
 })
@@ -17,12 +17,9 @@ export class ChangePasswordComponent {
   private readonly auth = inject(AuthService);
 
   form: FormGroup;
-  saving       = signal(false);
-  success      = signal(false);
-  error        = signal('');
-  showCurrent  = signal(false);
-  showNew      = signal(false);
-  showConfirm  = signal(false);
+  saving  = signal(false);
+  success = signal(false);
+  error   = signal('');
 
   constructor() {
     this.form = this.fb.group({

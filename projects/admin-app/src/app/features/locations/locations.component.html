@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">{{ 'locations.title' | translate }}</h1>
-    <p-button [label]="'locations.addLocation' | translate" severity="primary" (click)="openAdd()" />
+    <p-button icon="pi pi-plus" [label]="'locations.addLocation' | translate" severity="primary" (click)="openAdd()" />
   </div>
 
   @if (error()) {
@@ -55,8 +55,8 @@
         <div class="loc-body">
           <div class="loc-name">{{ loc.name }}</div>
           <div class="loc-actions">
-            <p-button [label]="'locations.editBtn' | translate" [text]="true" severity="secondary" (click)="openEdit(loc)" />
-            <p-button [label]="'locations.deleteBtn' | translate" [text]="true" severity="danger" (click)="remove(loc.id)" />
+            <p-button icon="pi pi-pencil" [label]="'locations.editBtn' | translate" [text]="true" severity="secondary" (click)="openEdit(loc)" />
+            <p-button icon="pi pi-trash" [label]="'locations.deleteBtn' | translate" [text]="true" severity="danger" (click)="remove(loc.id)" />
           </div>
         </div>
       </p-card>

@@ -7,11 +7,12 @@ import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
+import { Message } from 'primeng/message';
 
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, Button, InputNumber, TableModule, Card, Select],
+  imports: [DecimalPipe, FormsModule, Button, InputNumber, TableModule, Card, Select, Message],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Button } from 'primeng/button';
 import { Popover } from 'primeng/popover';
 import { BadgeModule } from 'primeng/badge';
+import { TooltipModule } from 'primeng/tooltip';
 import { NotificationService } from '../../services/notification.service';
 import { SignalRService } from '../../services/signalr.service';
 import { AppNotification } from '../../models';
@@ -10,7 +11,7 @@ import { AppNotification } from '../../models';
 @Component({
   selector: 'nc-notification-bell',
   standalone: true,
-  imports: [Button, Popover, BadgeModule],
+  imports: [Button, Popover, BadgeModule, TooltipModule],
   templateUrl: './notification-bell.component.html',
   styleUrl:    './notification-bell.component.scss',
 })

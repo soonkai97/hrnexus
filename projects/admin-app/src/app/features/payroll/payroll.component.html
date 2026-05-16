@@ -25,14 +25,13 @@
     <div class="summary-bar">
       <span class="summary-label">Total Gross Payroll</span>
       <span class="summary-amount">RM {{ data()!.totalGross | number:'1.2-2' }}</span>
-      <p-button label="Export CSV" [text]="true" severity="secondary" styleClass="export-btn"
+      <p-button icon="pi pi-download" label="Export CSV" [text]="true" severity="secondary" styleClass="export-btn"
                 (click)="exportCsv()" [disabled]="exporting()" [loading]="exporting()" />
     </div>
 
     @if (isCurrentOrFutureMonth()) {
-      <div class="warn-banner">
-        <i class="pi pi-exclamation-triangle"></i> This period hasn't ended yet — data is incomplete. Active shifts are excluded from payroll.
-      </div>
+      <p-message severity="warn" styleClass="w-full mb-2"
+                 text="This period hasn't ended yet — data is incomplete. Active shifts are excluded from payroll." />
     }
 
     <p-card styleClass="table-card p-0" [style]="{'padding':0}">

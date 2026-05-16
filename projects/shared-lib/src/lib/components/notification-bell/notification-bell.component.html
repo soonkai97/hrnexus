@@ -1,10 +1,12 @@
 <!-- Bell button with unread badge -->
 <div class="bell-wrap">
   <p-button
-    label="Alerts"
+    icon="pi pi-bell"
     [text]="true"
     severity="secondary"
     [class.has-unread]="svc.unreadCount() > 0"
+    pTooltip="Notifications"
+    tooltipPosition="bottom"
     aria-label="Notifications"
     (onClick)="toggle($event)" />
   @if (svc.unreadCount() > 0) {

@@ -5,6 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { Paginator } from 'primeng/paginator';
 import { Textarea } from 'primeng/textarea';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -17,7 +18,7 @@ import { DatePicker } from 'primeng/datepicker';
   selector: 'app-announcements',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe,
-    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, ProgressSpinner, DatePicker],
+    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, ProgressSpinner, DatePicker, Paginator],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })

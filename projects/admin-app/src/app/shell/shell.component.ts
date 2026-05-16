@@ -4,6 +4,7 @@ import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
+import { TooltipModule } from 'primeng/tooltip';
 import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, LangService, SignalRService, NotificationService } from 'shared-lib';
 
 interface NavItem {
@@ -17,7 +18,7 @@ interface NavItem {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, TranslatePipe, Button, BadgeModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, TranslatePipe, Button, BadgeModule, TooltipModule],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
@@ -60,18 +61,18 @@ export class ShellComponent {
   });
 
   private readonly allNavItems: NavItem[] = [
-    { path: '/dashboard',     labelKey: 'nav.dashboard',     icon: '◈'  },
-    { path: '/leave',         labelKey: 'nav.leave',         icon: '📅'  },
-    { path: '/announcements',  labelKey: 'nav.announcements',  icon: '📢', featureFlag: 'announcements'  },
-    { path: '/notifications',  labelKey: 'nav.notifications',  icon: '🔔'                               },
-    { path: '/messaging',      labelKey: 'nav.messaging',      icon: '💬', featureFlag: 'messagingAdmin' },
-    { path: '/staff',         labelKey: 'nav.staff',         icon: '👥'  },
-    { path: '/reports',       labelKey: 'nav.reports',       icon: '📊'  },
-    { path: '/tips',          labelKey: 'nav.tips',          icon: '💰', featureFlag: 'tips'           },
-    { path: '/payroll',       labelKey: 'nav.payroll',       icon: '💰', featureFlag: 'payroll'        },
-    { path: '/locations',     labelKey: 'nav.locations',     icon: '📍'  },
-    { path: '/overtime',      labelKey: 'nav.otRules',       icon: '⏱',  featureFlag: 'otRules'        },
-    { path: '/roles',         labelKey: 'nav.roles',         icon: '🏷'  },
+    { path: '/dashboard',     labelKey: 'nav.dashboard',     icon: 'pi pi-th-large'                                   },
+    { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                   },
+    { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'    },
+    { path: '/notifications', labelKey: 'nav.notifications', icon: 'pi pi-bell'                                       },
+    { path: '/messaging',     labelKey: 'nav.messaging',     icon: 'pi pi-comments',  featureFlag: 'messagingAdmin'   },
+    { path: '/staff',         labelKey: 'nav.staff',         icon: 'pi pi-users'                                      },
+    { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar'                                  },
+    { path: '/tips',          labelKey: 'nav.tips',          icon: 'pi pi-dollar',    featureFlag: 'tips'             },
+    { path: '/payroll',       labelKey: 'nav.payroll',       icon: 'pi pi-wallet',    featureFlag: 'payroll'          },
+    { path: '/locations',     labelKey: 'nav.locations',     icon: 'pi pi-map-marker'                                 },
+    { path: '/overtime',      labelKey: 'nav.otRules',       icon: 'pi pi-stopwatch', featureFlag: 'otRules'          },
+    { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card'                                    },
   ];
 
   navItems = computed(() => {

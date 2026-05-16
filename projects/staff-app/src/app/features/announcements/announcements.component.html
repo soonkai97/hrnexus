@@ -6,6 +6,7 @@
     </div>
     @if (hasUnread()) {
       <p-button
+        icon="pi pi-check-square"
         [label]="'announcements.markAllRead' | translate"
         severity="secondary"
         (click)="markAllRead()" />

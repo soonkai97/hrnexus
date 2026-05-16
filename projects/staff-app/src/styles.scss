@@ -49,6 +49,14 @@ p, span, li, td, th, div, h1, h2, h3 { cursor: default; }
 // Re-allow text select on actual content the user might want to copy
 pre, code, .copyable { cursor: text; user-select: text; }
 
+// ── Global focus ring ────────────────────────────────────────────────────────
+// 2 px brand-purple outline on every keyboard-focused interactive element.
+// Uses :focus-visible so mouse clicks don't show the ring.
+:focus-visible {
+  outline: 2px solid $neon-purple;
+  outline-offset: 2px;
+}
+
 // ── Global inputs ────────────────────────────────────────────────────────────
 
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="submit"]):not([type="button"]),
@@ -158,20 +166,6 @@ input[type="time"] {
     letter-spacing: 0.07em;
     font-weight: 600;
   }
-}
-
-// ── Spinner ──────────────────────────────────────────────────────────────────
-
-.nc-spinner {
-  width: 44px;
-  height: 44px;
-  border: 3px solid $border-subtle;
-  border-top-color: $neon-purple;
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-  margin: 0 auto 1.5rem;
-
-  &.sm { width: 24px; height: 24px; border-width: 2px; margin: 0; }
 }
 
 // ── Scrollbar ────────────────────────────────────────────────────────────────
@@ -313,6 +307,37 @@ input[type="time"] {
   padding: 0 !important;
   outline: none !important;
   box-shadow: none !important;
+}
+
+// ── PrimeNG compound widget border-radius corrections ─────────────────────────
+// The global input selector has specificity (0,6,1) from its six :not([attr])
+// pseudo-classes, silently overriding PrimeNG's internal compound-widget CSS
+// (typically specificity 0,2,0). These !important rules restore the correct
+// border-radius so compound inputs connect visually to their adjacent controls.
+
+// DatePicker with showIcon (iconDisplay='button', the default):
+// The text input must have no right border-radius to connect visually with the
+// calendar trigger button (.p-datepicker-dropdown).
+.p-datepicker:has(.p-datepicker-dropdown) .p-datepicker-input {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+// Password with toggleMask: the input must have no right border-radius so the
+// eye-toggle icon area connects to the input field cleanly.
+.p-password .p-password-input {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+// Select overlay filter input (when [filter]="true"):
+// Inside the dropdown panel, the filter input must not inherit the full global
+// padding / background / border-radius that's correct for standalone form fields.
+.p-select-overlay .p-select-filter {
+  padding: 0.4rem 0.6rem !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  width: 100% !important;
 }
 
 // ── Required field asterisk ────────────────────────────────────────────────────

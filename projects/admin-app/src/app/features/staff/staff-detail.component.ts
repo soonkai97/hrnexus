@@ -12,12 +12,13 @@ import { Card } from 'primeng/card';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
+import { Paginator } from 'primeng/paginator';
 
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe,
-    Button, InputText, TableModule, Tag, Card, ProgressSpinner, DatePicker, MultiSelect],
+    Button, InputText, TableModule, Tag, Card, ProgressSpinner, DatePicker, MultiSelect, Paginator],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })

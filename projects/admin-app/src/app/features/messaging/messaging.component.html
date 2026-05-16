@@ -1,7 +1,8 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">Messaging</h1>
-    <p-button [label]="showCompose() ? 'Cancel' : 'Compose'" [text]="showCompose()" [severity]="showCompose() ? 'secondary' : 'primary'"
+    <p-button [icon]="showCompose() ? 'pi pi-times' : 'pi pi-pencil'"
+              [label]="showCompose() ? 'Cancel' : 'Compose'" [text]="showCompose()" [severity]="showCompose() ? 'secondary' : 'primary'"
               (click)="showCompose() ? showCompose.set(false) : openCompose()" />
   </div>
 
@@ -26,12 +27,12 @@
     </p-card>
   }
 
-  <div class="view-tabs">
-    <button [class.active]="tab() === 'inbox'" (click)="tab.set('inbox')">
-      Inbox @if (unread() > 0) { <span class="unread-badge">{{ unread() }}</span> }
-    </button>
-    <button [class.active]="tab() === 'sent'" (click)="tab.set('sent')">Sent</button>
-  </div>
+  <p-tabs [value]="tab()" (valueChange)="tab.set($any($event))">
+    <p-tablist>
+      <p-tab value="inbox">Inbox @if (unread() > 0) { <span class="unread-badge">{{ unread() }}</span> }</p-tab>
+      <p-tab value="sent">Sent</p-tab>
+    </p-tablist>
+  </p-tabs>
 
   @if (loading()) {
     <div class="loading-state"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /> Loading…</div>
@@ -48,7 +49,7 @@
           <div class="msg-content">{{ msg.content }}</div>
           <div class="msg-footer">
             <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
-            <p-button label="Reply" [text]="true" severity="secondary" styleClass="btn-xs"
+            <p-button icon="pi pi-reply" label="Reply" [text]="true" severity="secondary" styleClass="btn-xs"
                       (click)="reply(msg); $event.stopPropagation()" />
           </div>
           @if (!msg.readAt) { <span class="unread-dot"></span> }

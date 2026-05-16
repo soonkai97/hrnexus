@@ -3,7 +3,7 @@
   <div class="page-header">
     <h2 class="page-title">{{ 'pay.title' | translate }}</h2>
     @if (summary() && !loading()) {
-      <p-button label="Print" severity="secondary" (click)="printPaySlip()" />
+      <p-button icon="pi pi-print" label="Print" severity="secondary" (click)="printPaySlip()" />
     }
   </div>
 

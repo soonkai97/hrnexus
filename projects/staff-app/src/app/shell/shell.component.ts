@@ -4,6 +4,7 @@ import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
+import { TooltipModule } from 'primeng/tooltip';
 import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService } from 'shared-lib';
 
 interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: FeatureKey; }
@@ -15,7 +16,7 @@ interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: 
     RouterOutlet, RouterLink, RouterLinkActive,
     ToastComponent, ConfirmDialogComponent,
     NotificationBellComponent, ThemeToggleComponent,
-    TranslatePipe, Button, BadgeModule,
+    TranslatePipe, Button, BadgeModule, TooltipModule,
   ],
   templateUrl: './shell.component.html',
   styleUrl:    './shell.component.scss',
@@ -70,15 +71,15 @@ export class ShellComponent {
   });
 
   private readonly allNavItems: NavItem[] = [
-    { path: '/home',            labelKey: 'nav.home',           icon: '◈'  },
-    { path: '/log-shift',       labelKey: 'nav.logShift',       icon: '⏱'  },
-    { path: '/pay-summary',     labelKey: 'nav.pay',            icon: '💵', featureFlag: 'paySummary'     },
-    { path: '/tips-history',    labelKey: 'nav.tipsHistory',    icon: '💵', featureFlag: 'tipsHistory'    },
-    { path: '/my-leave',        labelKey: 'nav.leave',          icon: '🌴'  },
-    { path: '/announcements',   labelKey: 'nav.announcements',  icon: '📢', featureFlag: 'announcements' },
-    { path: '/notifications',   labelKey: 'nav.notifications',  icon: '🔔'  },
-    { path: '/messaging',       labelKey: 'nav.messaging',      icon: '💬', featureFlag: 'messagingStaff' },
-    { path: '/profile',         labelKey: 'nav.profile',        icon: '👤'  },
+    { path: '/home',          labelKey: 'nav.home',          icon: 'pi pi-home'                                      },
+    { path: '/log-shift',     labelKey: 'nav.logShift',      icon: 'pi pi-clock'                                     },
+    { path: '/pay-summary',   labelKey: 'nav.pay',           icon: 'pi pi-wallet',    featureFlag: 'paySummary'      },
+    { path: '/tips-history',  labelKey: 'nav.tipsHistory',   icon: 'pi pi-dollar',    featureFlag: 'tipsHistory'     },
+    { path: '/my-leave',      labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                  },
+    { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'   },
+    { path: '/notifications', labelKey: 'nav.notifications', icon: 'pi pi-bell'                                      },
+    { path: '/messaging',     labelKey: 'nav.messaging',     icon: 'pi pi-comments',  featureFlag: 'messagingStaff'  },
+    { path: '/profile',       labelKey: 'nav.profile',       icon: 'pi pi-user'                                      },
   ];
 
   navItems = computed(() => {

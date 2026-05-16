@@ -6,6 +6,12 @@
 .field label { display: block; font-size: 0.8rem; color: $text-muted; margin-bottom: 0.25rem; }
 textarea { width: 100%; resize: vertical; }
 .char-count  { font-size: 0.75rem; color: $text-muted; text-align: right; margin-top: 0.2rem; }
+.recipient-hint {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.75rem; color: $text-muted; margin-top: 0.3rem;
+  i { font-size: 0.7rem; }
+  &.hint-broadcast { color: $neon-amber; }
+}
 .form-actions { display: flex; justify-content: flex-end; }
 .view-tabs {
   display: flex; gap: 0; margin-bottom: 1.25rem;

@@ -35,7 +35,7 @@
     }
 
     <p-card styleClass="table-card p-0" [style]="{'padding':0}">
-      <p-table [value]="data()!.staff" [tableStyle]="{'min-width':'100%'}">
+      <p-table [value]="data()!.staff" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
         <ng-template pTemplate="header">
           <tr>
             <th>Staff ID</th>
@@ -50,12 +50,13 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td class="td-muted mono">{{ row.staffId }}</td>
-            <td>{{ row.name }}</td>
-            <td>{{ row.regularHours | number:'1.1-1' }}</td>
-            <td>{{ row.overtimeHours | number:'1.1-1' }}</td>
-            <td>{{ row.totalPay | number:'1.2-2' }}</td>
+            <td class="td-muted mono"><span class="p-column-title">Staff ID</span>{{ row.staffId }}</td>
+            <td><span class="p-column-title">Name</span>{{ row.name }}</td>
+            <td><span class="p-column-title">Regular Hrs</span>{{ row.regularHours | number:'1.1-1' }}</td>
+            <td><span class="p-column-title">OT Hrs</span>{{ row.overtimeHours | number:'1.1-1' }}</td>
+            <td><span class="p-column-title">Work Pay (RM)</span>{{ row.totalPay | number:'1.2-2' }}</td>
             <td class="td-center">
+              <span class="p-column-title">Paid Leave</span>
               @if (row.paidLeaveDays > 0) {
                 <span class="leave-badge">{{ row.paidLeaveDays }}d</span>
               } @else {
@@ -63,13 +64,14 @@
               }
             </td>
             <td>
+              <span class="p-column-title">Leave Pay (RM)</span>
               @if (row.paidLeavePay > 0) {
                 {{ row.paidLeavePay | number:'1.2-2' }}
               } @else {
                 <span class="td-muted">—</span>
               }
             </td>
-            <td class="td-bold">{{ row.grandTotal | number:'1.2-2' }}</td>
+            <td class="td-bold"><span class="p-column-title">Grand Total (RM)</span>{{ row.grandTotal | number:'1.2-2' }}</td>
           </tr>
         </ng-template>
       </p-table>

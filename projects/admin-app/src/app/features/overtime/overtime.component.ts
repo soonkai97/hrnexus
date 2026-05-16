@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -14,12 +14,13 @@ import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { Skeleton } from 'primeng/skeleton';
+import { MultiSelect } from 'primeng/multiselect';
 
 @Component({
   selector: 'app-overtime',
   standalone: true,
   imports: [TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Message, ToggleSwitch, Menu, Skeleton],
+    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Message, ToggleSwitch, Menu, Skeleton, MultiSelect],
   templateUrl: './overtime.component.html',
   styleUrl: './overtime.component.scss',
 })
@@ -52,31 +53,7 @@ export class OvertimeComponent implements OnInit {
   form = { thresholdHours: 8, multiplier: 1.5, isActive: true };
 
   // ── Multi-role selector ────────────────────────────────────────────────────
-  selectedRoles   = signal<string[]>(['*']);
-  showRoleDropdown = signal(false);
-
-  roleLabel = computed(() => {
-    const s = this.selectedRoles();
-    if (s.includes('*')) return 'All Roles (*)';
-    if (s.length === 0)  return '— Select roles —';
-    return s.map(r => r.charAt(0).toUpperCase() + r.slice(1)).join(', ');
-  });
-
-  isRoleSelected(role: string): boolean {
-    return this.selectedRoles().includes(role);
-  }
-
-  toggleRole(role: string): void {
-    this.selectedRoles.update(current => {
-      if (role === '*') return ['*'];
-      const without = current.filter(r => r !== '*' && r !== role);
-      const hadRole = current.includes(role);
-      const next    = hadRole ? without : [...without, role];
-      return next.length ? next : ['*']; // fall back to "all" if nothing selected
-    });
-  }
-
-  closeRoleDropdown(): void { this.showRoleDropdown.set(false); }
+  selectedRoles = signal<string[]>([]);
 
   ngOnInit() {
     this.staffStore.loadRoles();
@@ -98,8 +75,7 @@ export class OvertimeComponent implements OnInit {
   openAdd(): void {
     this.editingId.set(null);
     this.form = { thresholdHours: 8, multiplier: 1.5, isActive: true };
-    this.selectedRoles.set(['*']);
-    this.showRoleDropdown.set(false);
+    this.selectedRoles.set([]);
     this.showForm.set(true);
     this.scrollToForm();
   }
@@ -112,10 +88,9 @@ export class OvertimeComponent implements OnInit {
       isActive: rule.isActive,
     };
     const roles = rule.role === '*'
-      ? ['*']
+      ? []
       : rule.role.split(',').map(r => r.trim()).filter(Boolean);
-    this.selectedRoles.set(roles.length ? roles : ['*']);
-    this.showRoleDropdown.set(false);
+    this.selectedRoles.set(roles);
     this.showForm.set(true);
     this.scrollToForm();
   }
@@ -123,7 +98,6 @@ export class OvertimeComponent implements OnInit {
   closeForm(): void {
     this.showForm.set(false);
     this.editingId.set(null);
-    this.showRoleDropdown.set(false);
   }
 
   save() {
@@ -134,7 +108,7 @@ export class OvertimeComponent implements OnInit {
     if (this.form.multiplier < 1) {
       this.toast.error('Multiplier must be at least 1.0 (cannot reduce pay).'); return;
     }
-    const role = this.selectedRoles().includes('*')
+    const role = this.selectedRoles().length === 0
       ? '*'
       : this.selectedRoles().join(',');
     this.saving.set(true);

@@ -16,12 +16,13 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Message } from 'primeng/message';
+import { Tabs, TabList, Tab } from 'primeng/tabs';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Select, DatePicker, Message],
+    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Select, DatePicker, Message, Tabs, TabList, Tab],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })

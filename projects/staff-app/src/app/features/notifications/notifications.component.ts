@@ -5,11 +5,12 @@ import { NotificationService, AppNotification } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { ProgressSpinner } from 'primeng/progressspinner';
+import { Tabs, TabList, Tab } from 'primeng/tabs';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [TranslatePipe, Button, Card, ProgressSpinner],
+  imports: [TranslatePipe, Button, Card, ProgressSpinner, Tabs, TabList, Tab],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss',
 })

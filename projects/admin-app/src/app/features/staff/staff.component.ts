@@ -7,6 +7,9 @@ import { AuthService, StaffStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
+import { Paginator } from 'primeng/paginator';
 import { Password } from 'primeng/password';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -23,8 +26,8 @@ import { MenuItem } from 'primeng/api';
   selector: 'app-staff',
   standalone: true,
   imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe,
-    Button, InputText, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
-    MultiSelect, Menu],
+    Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
+    MultiSelect, Menu, Paginator],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })
@@ -101,10 +104,12 @@ export class StaffComponent implements OnInit {
     this.staffMenuItems.set([
       {
         label: this.translate.instant('staff.editStaff'),
+        icon: 'pi pi-pencil',
         routerLink: ['/staff', s.id],
       },
       {
         label: this.translate.instant('staff.resetPassword'),
+        icon: 'pi pi-key',
         command: () => this.openResetPassword(s),
       },
       { separator: true },
@@ -112,10 +117,12 @@ export class StaffComponent implements OnInit {
         label: s.isActive
           ? this.translate.instant('staff.deactivate')
           : this.translate.instant('staff.activate'),
+        icon: 'pi pi-power-off',
         command: () => this.toggleActive(s.id, s.isActive),
       },
       {
         label: this.translate.instant('staff.delete'),
+        icon: 'pi pi-trash',
         styleClass: 'nc-danger-item',
         command: () => this.deleteStaff(s),
       },

@@ -2,7 +2,7 @@
   <div class="page-header">
     <h1 class="page-title">{{ 'staff.title' | translate }}</h1>
     @if (!showForm()) {
-      <p-button [label]="'staff.addStaff' | translate" severity="primary" (click)="openAdd()" />
+      <p-button icon="pi pi-plus" [label]="'staff.addStaff' | translate" severity="primary" (click)="openAdd()" />
     }
   </div>
 
@@ -78,8 +78,11 @@
 
   <!-- Search -->
   <div class="search-wrap">
-    <input pInputText type="text" [placeholder]="'staff.searchPlaceholder' | translate"
-           [value]="search()" (input)="onSearch($any($event.target).value)" />
+    <p-iconfield>
+      <p-inputicon styleClass="pi pi-search" />
+      <input pInputText type="text" [placeholder]="'staff.searchPlaceholder' | translate"
+             [value]="search()" (input)="onSearch($any($event.target).value)" />
+    </p-iconfield>
   </div>
 
   <!-- Table -->
@@ -133,11 +136,9 @@
 
   <!-- Pagination -->
   @if (totalPages() > 1) {
-    <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
-      <p-button label="Prev" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)" />
-      <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalCount() }})</span>
-      <p-button label="Next" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)" />
-    </div>
+    <p-paginator [first]="(currentPage()-1)*pageSize" [rows]="pageSize"
+                 [totalRecords]="totalCount()"
+                 (onPageChange)="loadPage(($event.page ?? 0) + 1)" />
   }
 
   <p-menu #staffMenu [popup]="true" [model]="staffMenuItems()" [appendTo]="'body'" />

@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">{{ 'announcements.title' | translate }}</h1>
-    <p-button [label]="'announcements.newAnnouncement' | translate" severity="primary" (click)="openAdd()" />
+    <p-button icon="pi pi-plus" [label]="'announcements.newAnnouncement' | translate" severity="primary" (click)="openAdd()" />
   </div>
 
   @if (showForm()) {
@@ -78,11 +78,9 @@
       </p-table>
 
       @if (totalPages() > 1) {
-        <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
-          <p-button label="Prev" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadPage(currentPage() - 1)" />
-          <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalCount() }})</span>
-          <p-button label="Next" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadPage(currentPage() + 1)" />
-        </div>
+        <p-paginator [first]="(currentPage()-1)*pageSize" [rows]="pageSize"
+                     [totalRecords]="totalCount()"
+                     (onPageChange)="loadPage(($event.page ?? 0) + 1)" />
       }
     </p-card>
 

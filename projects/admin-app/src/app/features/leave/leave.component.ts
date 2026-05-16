@@ -5,6 +5,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { Tabs, TabList, Tab } from 'primeng/tabs';
+import { Paginator } from 'primeng/paginator';
 import { InputNumber } from 'primeng/inputnumber';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
@@ -20,7 +22,8 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
   selector: 'app-leave',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputText, InputNumber, Card, TooltipModule, Message, Select, ProgressSpinner, DatePicker],
+    Button, InputText, InputNumber, Card, TooltipModule, Message, Select, ProgressSpinner, DatePicker,
+    Tabs, TabList, Tab, Paginator],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })

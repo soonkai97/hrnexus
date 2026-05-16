@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">{{ 'overtime.title' | translate }}</h1>
-    <p-button [label]="'overtime.addRule' | translate" severity="primary" (click)="openAdd()" />
+    <p-button icon="pi pi-plus" [label]="'overtime.addRule' | translate" severity="primary" (click)="openAdd()" />
   </div>
 
   @if (showForm()) {
@@ -51,10 +51,8 @@
         </div>
         @if (editingId()) {
           <div class="field" style="display:flex;align-items:center;gap:.75rem;padding-top:1.5rem">
-            <label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:.5rem">
-              <input type="checkbox" [(ngModel)]="form.isActive" />
-              {{ 'overtime.activeCol' | translate }}
-            </label>
+            <p-toggleswitch [(ngModel)]="form.isActive" />
+            <span>{{ 'overtime.activeCol' | translate }}</span>
           </div>
         }
       </div>
@@ -126,8 +124,5 @@
     </div>
   }
 
-  <div class="info-note">
-    <span><i class="pi pi-info-circle"></i></span>
-    {{ 'overtime.infoNote' | translate }}
-  </div>
+  <p-message severity="info" [text]="'overtime.infoNote' | translate" styleClass="w-full mt-2" />
 </div>

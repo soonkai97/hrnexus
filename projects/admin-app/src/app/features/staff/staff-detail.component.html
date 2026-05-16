@@ -1,12 +1,12 @@
 <div class="page-wrap">
   <div class="page-header" style="display:flex;align-items:center;gap:1rem">
-    <p-button label="Back" [text]="true" severity="secondary" routerLink="/staff" />
+    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" severity="secondary" routerLink="/staff" />
     <div>
       <h1 class="page-title">{{ staff()?.fullName ?? '…' }}</h1>
       <span class="page-sub">{{ staff()?.staffId }}</span>
     </div>
     @if (!editMode()) {
-      <p-button [label]="'staffDetail.editBtn' | translate" severity="primary" styleClass="ml-auto" (click)="startEdit()" />
+      <p-button icon="pi pi-pencil" [label]="'staffDetail.editBtn' | translate" severity="primary" styleClass="ml-auto" (click)="startEdit()" />
     }
   </div>
 
@@ -140,11 +140,9 @@
           </p-table>
         </p-card>
         @if (totalPages() > 1) {
-          <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
-            <p-button label="Prev" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="loadWorkLogs(currentPage() - 1)" />
-            <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalLogs() }})</span>
-            <p-button label="Next" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="loadWorkLogs(currentPage() + 1)" />
-          </div>
+          <p-paginator [first]="(currentPage()-1)*pageSize" [rows]="pageSize"
+                       [totalRecords]="totalLogs()"
+                       (onPageChange)="loadWorkLogs(($event.page ?? 0) + 1)" />
         }
       }
     </p-card>

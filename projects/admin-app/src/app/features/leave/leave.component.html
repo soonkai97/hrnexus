@@ -1,7 +1,7 @@
 <div class="page-wrap">
   <div class="page-header">
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
-    <p-button [label]="'leave.recordLeave' | translate" severity="primary" (click)="openAdd(); tab.set('records')" />
+    <p-button icon="pi pi-plus" [label]="'leave.recordLeave' | translate" severity="primary" (click)="openAdd(); tab.set('records')" />
   </div>
 
   <!-- ── Filter bar (always visible) ───────────────────────────────────────── -->
@@ -51,17 +51,17 @@
   </p-card>
 
   <!-- ── Page tabs ─────────────────────────────────────────────────────────── -->
-  <div class="view-tabs">
-    <button [class.active]="tab() === 'records'" (click)="tab.set('records')">
-      {{ 'leave.recordsTab' | translate }}
-      @if (totalPendingCount() > 0) {
-        <span class="tab-badge">{{ totalPendingCount() }}</span>
-      }
-    </button>
-    <button [class.active]="tab() === 'balances'" (click)="tab.set('balances')">
-      {{ 'leave.balancesTab' | translate }}
-    </button>
-  </div>
+  <p-tabs [value]="tab()" (valueChange)="tab.set($any($event))">
+    <p-tablist>
+      <p-tab value="records">
+        {{ 'leave.recordsTab' | translate }}
+        @if (totalPendingCount() > 0) {
+          <span class="tab-badge">{{ totalPendingCount() }}</span>
+        }
+      </p-tab>
+      <p-tab value="balances">{{ 'leave.balancesTab' | translate }}</p-tab>
+    </p-tablist>
+  </p-tabs>
 
   <!-- ═══════════════════════════ RECORDS TAB ═════════════════════════════════ -->
   @if (tab() === 'records') {
@@ -86,8 +86,8 @@
                   <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                 </div>
                 <div class="overdue-row-actions">
-                  <p-button [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                  <p-button [label]="'common.rejected' | translate" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
                   <p-button [label]="'leave.markNoShow' | translate" styleClass="overdue-noshow-btn" [text]="true" severity="secondary" (click)="markNoShow(r)" />
                 </div>
               </div>
@@ -152,10 +152,12 @@
     }
 
     <!-- View toggle -->
-    <div class="view-tabs">
-      <button [class.active]="viewMode() === 'table'" (click)="switchView('table')">Table</button>
-      <button [class.active]="viewMode() === 'calendar'" (click)="switchView('calendar')">Calendar</button>
-    </div>
+    <p-tabs [value]="viewMode()" (valueChange)="switchView($any($event))">
+      <p-tablist>
+        <p-tab value="table">Table</p-tab>
+        <p-tab value="calendar">Calendar</p-tab>
+      </p-tablist>
+    </p-tabs>
 
     <!-- Calendar view -->
     @if (viewMode() === 'calendar') {
@@ -227,8 +229,8 @@
                       <div class="cal-day-row-right">
                         <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
                         @if (r.status === 'pending') {
-                          <p-button label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
-                          <p-button label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
+                          <p-button icon="pi pi-check" label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
+                          <p-button icon="pi pi-times" label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
                           <span class="cal-day-edit-hint"><i class="pi pi-pencil"></i></span>
                         }
                       </div>
@@ -284,8 +286,8 @@
               @if (r.notes) { <div class="leave-notes">{{ r.notes }}</div> }
               @if (r.status === 'pending') {
                 <div class="leave-actions">
-                  <p-button [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                  <p-button [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
                 </div>
               }
             </p-card>
@@ -293,11 +295,9 @@
         </div>
 
         @if (totalPages() > 1) {
-          <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;margin-top:1rem;font-size:0.875rem">
-            <p-button label="Prev" [text]="true" severity="secondary" [disabled]="currentPage() === 1" (click)="load(currentPage() - 1)" />
-            <span>{{ currentPage() }} / {{ totalPages() }} ({{ totalRecords() }} records)</span>
-            <p-button label="Next" [text]="true" severity="secondary" [disabled]="currentPage() === totalPages()" (click)="load(currentPage() + 1)" />
-          </div>
+          <p-paginator [first]="(currentPage()-1)*pageSize" [rows]="pageSize"
+                       [totalRecords]="totalRecords()"
+                       (onPageChange)="load(($event.page ?? 0) + 1)" />
         }
       }
     }
@@ -313,7 +313,8 @@
       <p-card styleClass="balance-card">
         <div class="balance-card-header">
           <span class="balance-card-title">{{ 'leave.leaveBalance' | translate }} — {{ b.year }}</span>
-          <p-button [label]="editingEntitlement() ? ('leave.cancelEntitlement' | translate) : ('leave.editEntitlement' | translate)"
+          <p-button [icon]="editingEntitlement() ? 'pi pi-times' : 'pi pi-pencil'"
+                    [label]="editingEntitlement() ? ('leave.cancelEntitlement' | translate) : ('leave.editEntitlement' | translate)"
                     [text]="true" severity="secondary" (click)="toggleEntitlementEdit()" />
         </div>
         <div class="balance-bars">

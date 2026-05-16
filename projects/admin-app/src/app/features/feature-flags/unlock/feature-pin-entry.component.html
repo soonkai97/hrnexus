@@ -15,7 +15,7 @@
         (keydown.enter)="submit()"
         autocomplete="off"
         autofocus />
-      <p-button styleClass="pin-eye" [text]="true" severity="secondary" [label]="showPin() ? 'Hide' : 'Show'" (onClick)="showPin.update(v => !v)" />
+      <p-button styleClass="pin-eye" [text]="true" severity="secondary" [icon]="showPin() ? 'pi pi-eye-slash' : 'pi pi-eye'" (onClick)="showPin.update(v => !v)" />
     </div>
 
     @if (error()) {

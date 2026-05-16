@@ -1,12 +1,12 @@
 ::ng-deep .theme-toggle-btn.p-button {
+  width: 34px;
   height: 34px;
-  padding: 0 0.65rem;
-  border-radius: 8px;
+  padding: 0;
+  border-radius: 50%;
   border: 1px solid rgba(168,85,247,0.25) !important;
   background: rgba(13,13,22,0.7) !important;
   color: #f0eeff !important;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 1rem;
   flex-shrink: 0;
   transition: background 0.2s, border-color 0.2s;
 

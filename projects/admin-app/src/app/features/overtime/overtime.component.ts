@@ -10,12 +10,14 @@ import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinner } from 'primeng/progressspinner';
+import { Message } from 'primeng/message';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 
 @Component({
   selector: 'app-overtime',
   standalone: true,
   imports: [TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputNumber, TableModule, Tag, Card, TooltipModule, ProgressSpinner],
+    Button, InputNumber, TableModule, Tag, Card, TooltipModule, ProgressSpinner, Message, ToggleSwitch],
   templateUrl: './overtime.component.html',
   styleUrl: './overtime.component.scss',
 })

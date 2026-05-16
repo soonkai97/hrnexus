@@ -11,18 +11,20 @@
       </div>
       <p-button
         class="collapse-btn"
-        [label]="collapsed() ? 'Expand' : 'Collapse'"
+        [icon]="collapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'"
         [text]="true"
         severity="secondary"
         size="small"
-        [attr.aria-label]="collapsed() ? 'Expand' : 'Collapse'"
+        [pTooltip]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+        tooltipPosition="right"
+        [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
         (onClick)="toggleSidebar()" />
     </div>
 
     <nav class="sidebar-nav">
       @for (item of navItems(); track item.path) {
         <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-icon"><i [class]="item.icon"></i></span>
           @if (!collapsed()) {
             <span class="nav-label">{{ item.labelKey | translate }}</span>
           }
@@ -30,7 +32,7 @@
             <span class="nav-badge">{{ unreadAnnouncements() }}</span>
           }
           @if (item.path === '/notifications' && unreadNotifications() > 0) {
-            <span class="nav-badge">{{ unreadNotifications() > 9 ? '9+' : unreadNotifications() }}</span>
+            <span class="nav-badge">{{ unreadNotifications() > 99 ? '99+' : unreadNotifications() }}</span>
           }
           <span class="nav-indicator"></span>
         </a>
@@ -47,6 +49,7 @@
               <span class="user-role">{{ userRoleLabel() }}</span>
             </a>
             <p-button
+              icon="pi pi-power-off"
               [label]="'topbar.signOut' | translate"
               [text]="true"
               severity="secondary"
@@ -64,11 +67,11 @@
     <header class="topbar">
       <div class="topbar-left">
         <p-button
-          label="Menu"
+          icon="pi pi-bars"
           [text]="true"
           severity="secondary"
           class="mobile-menu-btn"
-          aria-label="Menu"
+          aria-label="Open navigation menu"
           (onClick)="toggleSidebar()" />
       </div>
       <div class="topbar-right">
@@ -84,6 +87,7 @@
             [title]="'profile.language' | translate"
             (onClick)="lang.toggle()" />
           <p-button
+            icon="pi pi-power-off"
             [label]="'topbar.signOut' | translate"
             [text]="true"
             severity="secondary"

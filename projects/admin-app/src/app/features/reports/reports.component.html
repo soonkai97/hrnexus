@@ -4,14 +4,12 @@
   </div>
 
   <!-- Top-level page tabs -->
-  <div class="page-tab-bar">
-    <button class="page-tab" [class.active]="pageTab() === 'report'"  (click)="pageTab.set('report')">
-      {{ 'reports.workforceReport' | translate }}
-    </button>
-    <button class="page-tab" [class.active]="pageTab() === 'payroll'" (click)="pageTab.set('payroll')">
-      {{ 'reports.payrollExport' | translate }}
-    </button>
-  </div>
+  <p-tabs [value]="pageTab()" (valueChange)="pageTab.set($any($event))">
+    <p-tablist>
+      <p-tab value="report">{{ 'reports.workforceReport' | translate }}</p-tab>
+      <p-tab value="payroll">{{ 'reports.payrollExport' | translate }}</p-tab>
+    </p-tablist>
+  </p-tabs>
 
   <!-- ── TAB: Workforce Report ───────────────────────────────────────────── -->
   @if (pageTab() === 'report') {
@@ -159,14 +157,17 @@
 
       <!-- Result tabs -->
       <div class="tab-nav">
-        <div class="tab-btn-group">
-          <button [class.active]="activeTab() === 'employee'"  (click)="activeTab.set('employee')">{{ 'reports.byEmployee' | translate }}</button>
-          <button [class.active]="activeTab() === 'location'"  (click)="activeTab.set('location')">{{ 'reports.byLocation' | translate }}</button>
-          <button [class.active]="activeTab() === 'role'"      (click)="activeTab.set('role')">{{ 'reports.byRole' | translate }}</button>
-          <button [class.active]="activeTab() === 'date'"      (click)="activeTab.set('date')">{{ 'reports.byDate' | translate }}</button>
-          <button [class.active]="activeTab() === 'shifts'"    (click)="activeTab.set('shifts')">{{ 'reports.allShifts' | translate }}</button>
-        </div>
-        <p-button [label]="reportExporting() ? ('reports.exporting' | translate) : ('reports.downloadCsv' | translate)"
+        <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))" styleClass="tab-nav-tabs">
+          <p-tablist>
+            <p-tab value="employee">{{ 'reports.byEmployee' | translate }}</p-tab>
+            <p-tab value="location">{{ 'reports.byLocation' | translate }}</p-tab>
+            <p-tab value="role">{{ 'reports.byRole' | translate }}</p-tab>
+            <p-tab value="date">{{ 'reports.byDate' | translate }}</p-tab>
+            <p-tab value="shifts">{{ 'reports.allShifts' | translate }}</p-tab>
+          </p-tablist>
+        </p-tabs>
+        <p-button icon="pi pi-download"
+                  [label]="reportExporting() ? ('reports.exporting' | translate) : ('reports.downloadCsv' | translate)"
                   severity="primary" styleClass="tab-csv-btn"
                   (click)="downloadReportCsv()" [disabled]="reportExporting()" [loading]="reportExporting()" />
       </div>
@@ -347,7 +348,8 @@
           <p-select [(ngModel)]="payrollMonth"
             [options]="payrollMonthOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
         </div>
-        <p-button [label]="payrollExporting() ? ('reports.exporting' | translate) : ('reports.downloadPayroll' | translate)"
+        <p-button icon="pi pi-download"
+                  [label]="payrollExporting() ? ('reports.exporting' | translate) : ('reports.downloadPayroll' | translate)"
                   severity="primary" styleClass="payroll-export-btn"
                   (click)="exportPayrollCsv()" [disabled]="payrollExporting()" [loading]="payrollExporting()" />
       </div>

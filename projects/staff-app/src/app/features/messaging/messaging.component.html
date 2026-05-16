@@ -27,7 +27,18 @@
     </p-tablist>
   </p-tabs>
 
-  @if (loading()) { <div class="loading-state"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div> }
+  @if (loading()) {
+    @for (i of [1,2,3]; track i) {
+      <p-card styleClass="msg-card">
+        <div style="display:flex;flex-direction:column;gap:0.45rem">
+          <p-skeleton width="35%" height="0.72rem" borderRadius="4px" />
+          <p-skeleton width="85%" height="0.65rem" borderRadius="4px" />
+          <p-skeleton width="65%" height="0.65rem" borderRadius="4px" />
+          <p-skeleton width="25%" height="0.58rem" borderRadius="4px" />
+        </div>
+      </p-card>
+    }
+  }
 
   @if (tab() === 'inbox') {
     @if (inbox().length === 0 && !loading()) {

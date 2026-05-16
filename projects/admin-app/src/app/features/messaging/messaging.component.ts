@@ -8,13 +8,13 @@ import { Button } from 'primeng/button';
 import { Textarea } from 'primeng/textarea';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { Card } from 'primeng/card';
-import { ProgressSpinner } from 'primeng/progressspinner';
+import { Skeleton } from 'primeng/skeleton';
 import { Select } from 'primeng/select';
 
 @Component({
   selector: 'app-messaging',
   standalone: true,
-  imports: [DatePipe, FormsModule, Button, Textarea, Card, ProgressSpinner, Select, Tabs, TabList, Tab],
+  imports: [DatePipe, FormsModule, Button, Textarea, Card, Skeleton, Select, Tabs, TabList, Tab],
   templateUrl: './messaging.component.html',
   styleUrl: './messaging.component.scss',
 })

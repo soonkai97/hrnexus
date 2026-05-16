@@ -48,6 +48,10 @@ label         { cursor: default; }
 p, span, li, td, th, div, h1, h2, h3, h4 { cursor: default; }
 // Re-allow text select on actual content the user might want to copy
 pre, code, .copyable { cursor: text; user-select: text; }
+// Children of interactive elements must inherit the parent cursor so the whole
+// hit area shows pointer (or not-allowed on disabled). Placed after the
+// cursor:default block so cascade order gives this rule the win at equal specificity.
+button *, a * { cursor: inherit; }
 
 // ── Global focus ring ────────────────────────────────────────────────────────
 // 2 px brand-purple outline on every keyboard-focused interactive element.

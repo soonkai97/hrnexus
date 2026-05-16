@@ -56,19 +56,12 @@
 .filter-date    { flex: 1 1 140px; margin: 0; }
 .filter-status  { flex: 1 1 130px; margin: 0; }
 
-.preset-row {
+.summary-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-}
-
-.preset-btn {
-  background: rgba(168,85,247,0.07); border: 1px solid rgba(168,85,247,0.18);
-  border-radius: $radius-pill; color: $text-secondary;
-  font-size: 0.78rem; font-weight: 500; padding: 0.25rem 0.75rem; cursor: pointer;
-  transition: background $transition-fast, color $transition-fast;
-  &:hover { background: rgba(168,85,247,0.18); color: $text-primary; }
+  margin-top: 0.75rem;
 }
 
 .summary-pill {

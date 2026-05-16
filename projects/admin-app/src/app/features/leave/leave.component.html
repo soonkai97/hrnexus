@@ -38,10 +38,7 @@
           [showClear]="true" styleClass="w-full" />
       </div>
     </div>
-    <div class="preset-row">
-      @for (p of presets; track p.value) {
-        <p-button [label]="p.labelKey | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset(p.value)" />
-      }
+    <div class="summary-row">
       @for (t of leaveTypes; track t) {
         <span class="summary-pill" [attr.data-type]="t">
           {{ t | titlecase }}: <strong>{{ countByType(t) }}d</strong>

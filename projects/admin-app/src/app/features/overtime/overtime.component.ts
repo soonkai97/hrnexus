@@ -9,17 +9,17 @@ import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { ProgressSpinner } from 'primeng/progressspinner';
 import { Message } from 'primeng/message';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-overtime',
   standalone: true,
   imports: [TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputNumber, TableModule, Tag, Card, TooltipModule, ProgressSpinner, Message, ToggleSwitch, Menu],
+    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Message, ToggleSwitch, Menu, Skeleton],
   templateUrl: './overtime.component.html',
   styleUrl: './overtime.component.scss',
 })

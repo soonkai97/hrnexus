@@ -58,7 +58,7 @@
             <td class="td-center">
               <span class="p-column-title">Paid Leave</span>
               @if (row.paidLeaveDays > 0) {
-                <span class="leave-badge">{{ row.paidLeaveDays }}d</span>
+                <p-tag [value]="row.paidLeaveDays + 'd'" severity="info" />
               } @else {
                 <span class="td-muted">—</span>
               }

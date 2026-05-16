@@ -10,6 +10,7 @@ import {
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
+import { ProgressBar } from 'primeng/progressbar';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { DatePicker } from 'primeng/datepicker';
@@ -21,7 +22,7 @@ import { MultiSelect } from 'primeng/multiselect';
   selector: 'app-reports',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, TableModule, Tag, Card, TooltipModule, DatePicker, Message, Tabs, TabList, Tab, MultiSelect],
+    Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message, Tabs, TabList, Tab, MultiSelect],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })

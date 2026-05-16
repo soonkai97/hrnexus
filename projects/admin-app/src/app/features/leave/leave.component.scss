@@ -193,13 +193,15 @@
   gap: 0.75rem;
 }
 .bal-row-label { font-size: 0.75rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em; }
-.bal-row-bar   {
-  height: 6px; background: $border-subtle; border-radius: 3px; overflow: hidden;
-}
-.bal-row-fill  { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-.annual-fill   { background: $neon-green; }
-.sick-fill     { background: $danger; }
+.bal-bar       { flex: 1; }
 .bal-row-nums  { font-size: 0.8rem; color: $text-secondary; text-align: right; strong { color: $text-primary; } }
+
+// PrimeNG progressbar overrides for balance bars
+:host :deep(.bal-bar .p-progressbar) {
+  height: 6px; background: $border-subtle; border-radius: 3px;
+}
+:host :deep(.bal-bar-annual .p-progressbar-value) { background: $neon-green; }
+:host :deep(.bal-bar-sick .p-progressbar-value)   { background: $danger; }
 
 .entitlement-form {
   display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;
@@ -355,23 +357,6 @@
 @keyframes overdue-pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.55; }
-}
-
-.leave-type-badge {
-  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
-  border-radius: $radius-pill; padding: 0.2rem 0.7rem;
-  &[data-type="sick"]    { background: rgba(239,68,68,0.12);  color: $danger; border: 1px solid rgba(239,68,68,0.25); }
-  &[data-type="annual"]  { background: rgba(74,222,128,0.1);  color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
-  &[data-type="unpaid"]  { background: rgba(168,85,247,0.1);  color: $neon-purple; border: 1px solid rgba(168,85,247,0.25); }
-  &[data-type="no-show"] { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-}
-
-.leave-status-badge {
-  font-size: 0.72rem; font-weight: 600; text-transform: capitalize;
-  border-radius: $radius-pill; padding: 0.2rem 0.65rem;
-  &[data-status="pending"]  { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-  &[data-status="approved"] { background: rgba(74,222,128,0.1);  color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
-  &[data-status="rejected"] { background: rgba(239,68,68,0.08);  color: $danger; border: 1px solid rgba(239,68,68,0.25); }
 }
 
 .leave-staff {

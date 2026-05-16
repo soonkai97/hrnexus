@@ -27,7 +27,7 @@
     @if (activeShift(); as shift) {
       <p-card styleClass="active-banner">
         <div class="active-inner">
-          <span class="live-badge">{{ 'logShift.live' | translate }}</span>
+          <p-tag [value]="'logShift.live' | translate" severity="success" styleClass="live-tag" />
           <div class="active-details">
             <span class="active-role">{{ shift.roleName | uppercase }}</span>
             <span class="active-loc"><i class="pi pi-map-marker"></i> {{ shift.locationName }}</span>

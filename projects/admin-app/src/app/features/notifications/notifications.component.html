@@ -9,18 +9,20 @@
   </div>
 
   <!-- Filter tabs -->
-  <div class="filter-tabs">
-    <button [class.active]="filter() === 'all'" (click)="filter.set('all')">
-      {{ 'notifications.all' | translate }}
-      <span class="tab-count">{{ notifications().length }}</span>
-    </button>
-    <button [class.active]="filter() === 'unread'" (click)="filter.set('unread')">
-      {{ 'notifications.unread' | translate }}
-      @if (unreadCount() > 0) {
-        <span class="tab-count unread">{{ unreadCount() }}</span>
-      }
-    </button>
-  </div>
+  <p-tabs [value]="filter()" (valueChange)="filter.set($any($event))">
+    <p-tablist>
+      <p-tab value="all">
+        {{ 'notifications.all' | translate }}
+        <span class="tab-count">{{ notifications().length }}</span>
+      </p-tab>
+      <p-tab value="unread">
+        {{ 'notifications.unread' | translate }}
+        @if (unreadCount() > 0) {
+          <span class="tab-count unread">{{ unreadCount() }}</span>
+        }
+      </p-tab>
+    </p-tablist>
+  </p-tabs>
 
   @if (loading()) {
     <p-card styleClass="notif-list">

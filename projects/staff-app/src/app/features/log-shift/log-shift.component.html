@@ -21,7 +21,7 @@
     <!-- Active shift -->
     @if (activeLog(); as a) {
       <p-card styleClass="active-card">
-        <div class="active-badge">{{ 'logShift.live' | translate }}</div>
+        <p-tag [value]="'logShift.live' | translate" severity="success" styleClass="live-tag" />
         <div class="active-info">
           <div class="active-role">{{ a.roleName | uppercase }}</div>
           <div class="active-location"><i class="pi pi-map-marker"></i> {{ a.locationName }}</div>
@@ -180,7 +180,7 @@
               <span><i class="pi pi-map-marker"></i> {{ wl.locationName }}</span>
               <span><i class="pi pi-clock"></i> {{ wl.startTime | amPm }} – {{ wl.endTime | amPm }}</span>
               <span class="h-hours"><i class="pi pi-stopwatch"></i> {{ wl.hours | number:'1.1-1' }}h</span>
-              @if (wl.isManualEntry) { <span class="badge-manual">{{ 'logShift.manual' | translate }}</span> }
+              @if (wl.isManualEntry) { <p-tag [value]="'logShift.manual' | translate" severity="secondary" /> }
             </div>
             @if (wl.notes) {
               <div class="h-notes"><i class="pi pi-pencil"></i> {{ wl.notes }}</div>

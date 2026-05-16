@@ -1,7 +1,9 @@
 import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FeatureFlagService, FeatureKey, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 
 interface FeatureDef {
   key: FeatureKey;
@@ -14,7 +16,7 @@ interface FeatureDef {
 @Component({
   selector: 'app-feature-flags',
   standalone: true,
-  imports: [TranslatePipe, Button],
+  imports: [FormsModule, TranslatePipe, Button, ToggleSwitch],
   templateUrl: './feature-flags.component.html',
   styleUrl: './feature-flags.component.scss',
 })
@@ -25,16 +27,16 @@ export class FeatureFlagsComponent {
 
   readonly features: FeatureDef[] = [
     // ── Phase 1 — Operations ─────────────────────────────────────────────────
-    { key: 'otRules',        icon: '⏱', phase: 1, label: 'features.otRules.label',         description: 'features.otRules.desc'         },
+    { key: 'otRules',        icon: 'pi pi-stopwatch', phase: 1, label: 'features.otRules.label',         description: 'features.otRules.desc'         },
     // ── Phase 2 — Finance & Reports ──────────────────────────────────────────
-    { key: 'payroll',        icon: '💰', phase: 2, label: 'features.payroll.label',         description: 'features.payroll.desc'         },
-    { key: 'tips',           icon: '💵', phase: 2, label: 'features.tips.label',            description: 'features.tips.desc'            },
-    { key: 'paySummary',     icon: '💵', phase: 2, label: 'features.paySummary.label',      description: 'features.paySummary.desc'      },
-    { key: 'tipsHistory',    icon: '💵', phase: 2, label: 'features.tipsHistory.label',     description: 'features.tipsHistory.desc'     },
+    { key: 'payroll',        icon: 'pi pi-wallet',    phase: 2, label: 'features.payroll.label',         description: 'features.payroll.desc'         },
+    { key: 'tips',           icon: 'pi pi-dollar',    phase: 2, label: 'features.tips.label',            description: 'features.tips.desc'            },
+    { key: 'paySummary',     icon: 'pi pi-chart-line',phase: 2, label: 'features.paySummary.label',      description: 'features.paySummary.desc'      },
+    { key: 'tipsHistory',    icon: 'pi pi-history',   phase: 2, label: 'features.tipsHistory.label',     description: 'features.tipsHistory.desc'     },
     // ── Phase 3 — Communication ──────────────────────────────────────────────
-    { key: 'messagingAdmin', icon: '💬', phase: 3, label: 'features.messagingAdmin.label',  description: 'features.messagingAdmin.desc'  },
-    { key: 'announcements',  icon: '📢', phase: 3, label: 'features.announcements.label',   description: 'features.announcements.desc'   },
-    { key: 'messagingStaff', icon: '💬', phase: 3, label: 'features.messagingStaff.label',  description: 'features.messagingStaff.desc'  },
+    { key: 'messagingAdmin', icon: 'pi pi-comments',  phase: 3, label: 'features.messagingAdmin.label',  description: 'features.messagingAdmin.desc'  },
+    { key: 'announcements',  icon: 'pi pi-megaphone', phase: 3, label: 'features.announcements.label',   description: 'features.announcements.desc'   },
+    { key: 'messagingStaff', icon: 'pi pi-comments',  phase: 3, label: 'features.messagingStaff.label',  description: 'features.messagingStaff.desc'  },
   ];
 
   readonly phases = [1, 2, 3];

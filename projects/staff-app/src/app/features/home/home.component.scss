@@ -76,14 +76,8 @@
   flex-wrap: wrap;
 }
 
-.live-badge {
-  background: rgba(168,85,247,0.2);
-  color: $neon-purple;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+// .live-tag styles the p-tag in the active-shift banner
+:host :deep(.live-tag.p-tag) {
   white-space: nowrap;
   animation: neon-flicker 3s ease-in-out infinite;
 }

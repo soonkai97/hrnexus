@@ -1,7 +1,7 @@
 # UI Design — Nightclub Workforce
 
 **Status:** as-is + gaps + target end-state
-**Last updated:** 2026-05-16 (responsive table pass + encapsulation fixes)
+**Last updated:** 2026-05-16 (responsive table pass + encapsulation fixes + doc cleanup + PrimeNG conventions + PrimeNG component migration pass)
 **Owner:** SK (Senior Software Architect)
 **Scope:** Visual + interaction design only. Two portals (admin-app desktop-first, staff-app mobile-first PWA), one shared library. Code architecture is documented separately if/when needed.
 
@@ -19,6 +19,17 @@
 - **A new "action dropdown" pattern** has appeared in announcements + overtime — rendered outside `.nc-card` to escape `backdrop-filter` clipping. Parallel to the existing `<p-menu [popup]>` pattern in staff list — see gap **U26**.
 - **Empty `projects/shared-lib/src/lib/components/help/`** directory present — feature in progress, not yet exported.
 - Token values (sidebar widths, topbar heights, neon palette) and feature-flag keys are unchanged.
+
+**PrimeNG migration pass (2026-05-16):**
+- **Feature-flags toggle** — replaced hand-rolled `<label class="toggle-switch"><input type="checkbox">` with `<p-toggleswitch>` (consistent with overtime). Feature card icons migrated from emoji (`⏱ 💰 💵 📢 💬`) to `pi pi-*` class strings rendered via `<i [class]>`.
+- **Admin notifications tabs** — replaced custom `<button [class.active]>` filter tabs with `<p-tabs>` (consistent with every other tabbed page in the app).
+- **Leave type + status badges** — replaced all `<span class="leave-type-badge">` and `<span class="leave-status-badge">` with `<p-tag>` across admin leave, staff my-leave (type + status both).
+- **Payroll leave-days pill** — replaced `<span class="leave-badge">` with `<p-tag severity="info">`.
+- **Log-shift badges** — `<div class="active-badge">LIVE</div>` → `<p-tag severity="success" styleClass="live-tag">`; `<span class="badge-manual">` → `<p-tag severity="secondary">`.
+- **Home live badge** — `<span class="live-badge">` → `<p-tag severity="success" styleClass="live-tag">`.
+- **Leave balance bars** — replaced `[style.width.%]` hand-rolled bars with `<p-progressbar [showValue]="false">` (annual `bal-bar-annual`, sick `bal-bar-sick`); colors overridden via `:host :deep()`.
+- **Reports location bars** — `<div class="loc-bar" [style.width.%]>` replaced with `<p-progressbar>`; gradient fill overridden via `:host :deep()`.
+- All replaced SCSS blocks removed; orphaned classes cleaned up.
 
 **Latest pass (2026-05-16):**
 - **Responsive tables** — staff, overtime, payroll, and tips tables now stack as cards at ≤640 px. PrimeNG `responsiveLayout="stack"` with manual `<span class="p-column-title">` spans. `.p-column-title { display:none }` globally; `:host :deep()` re-enables them at mobile.
@@ -132,7 +143,7 @@ Tokens are declared as CSS custom properties on `:root` (dark mode default) and 
 
 | | |
 |---|---|
-| Font stack | `-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` (system fonts only) |
+| Font stack | `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` (Inter configured as primary; system fonts as fallback) |
 | Heading weight | 700 (h1–h4 set globally) |
 | Heading line-height | 1.2 |
 | Page title | 1.4 rem / 700 / on admin: gradient text purple→pink |
@@ -535,11 +546,34 @@ Items use type-emoji icons from `iconFor(n.type)` (still emoji — see §gaps). 
 
 ### 4.9 Language toggle
 
-Pill button in topbar (and login top-right). Shows the **other** language (`EN` button when current is zh, `中文` button when current is en). Triggers `LangService.toggle()`.
+Pill button in topbar (and login top-right). Shows a globe icon (`pi-globe`) + the **current** language label (`EN` when current is en, `中文` when current is zh). Tooltip says what it switches to (e.g. "Switch to 中文"). Triggers `LangService.toggle()`.
 
 ### 4.10 Avatar
 
 32 px circle, `$grad-primary` background, white initials (2 chars), purple glow `0 0 10px rgba(168,85,247,0.4)`. Used in sidebar footer and as the "go to account/profile" target.
+
+### 4.11 PrimeNG component conventions
+
+One canonical component per use-case — no parallel patterns. New code must use the component in this table; deviations require a documented reason.
+
+| Use case | Canonical component | Key attributes |
+|---|---|---|
+| Multi-select dropdown | `<p-multiselect>` | Always `appendTo="body"` inside any card with `backdrop-filter` |
+| Single select / dropdown | `<p-select>` | Same `appendTo="body"` rule inside cards |
+| Date picker | `<p-datepicker>` | `appendTo="body"`; add `PickerOnlyDirective` on mobile to disable keyboard |
+| Row action menu | `<p-menu [popup]="true" [appendTo]="'body'">` | Do **not** use the custom-positioned dropdown (see U26) |
+| Tabs | `<p-tabs>` + `<p-tablist>` + `<p-tab>` | No `<button [class.active]>` tabs anywhere |
+| Pagination | `<p-paginator>` | Bind `[first]`, `[rows]`, `[totalRecords]`, `(onPageChange)` |
+| Inline spinner (button) | `[loading]="saving()"` PrimeNG button primitive | |
+| Section / page spinner | `<p-progressspinner styleClass="nc-spin">` | Not `.nc-spinner` (legacy) |
+| Skeleton loading | `<p-skeleton>` | Use for >150 ms initial page loads |
+| Modal / dialog | `<p-dialog>` | Width `min(440px, 92vw)` for small dialogs |
+| Confirm dialog | `ConfirmService.confirm(opts).subscribe()` | Do **not** call PrimeNG `ConfirmationService` directly |
+| Toast / alerts | `ToastService.success/error/warning/info()` | Do **not** call `MessageService` directly |
+| Toggle switch | `<p-toggleswitch>` | |
+| Tag / status badge | `<p-tag>` | Severities: `success` · `secondary` · `info` · `danger` · `warn` |
+| Number input | `<p-inputnumber>` | |
+| Text input | `pInputText` directive on `<input>` | |
 
 ---
 
@@ -1003,7 +1037,36 @@ View + Mode toggles are both `<p-tabs>` (`Log` / `History` and `Start Now` / `Ma
 
 ### 6.4 Pay summary (`/pay-summary`) — flagged
 
-Date-range chip presets (this week / this month / last month / custom). Stat cards: gross, regular hours, OT hours, net (if available). Detail list of shifts contributing to the period.
+```
+┌──────────────────────────────────┐
+│ Pay Summary                      │
+│                                  │
+│ [This Week][This Month][Last Mo] │
+│                                  │
+│ ┌────────────┐ ┌────────────┐   │
+│ │ 💼 GROSS   │ │ ⏱ REG HRS  │   │
+│ │ RM 2,108   │ │ 84.0h      │   │
+│ └────────────┘ └────────────┘   │
+│ ┌────────────┐ ┌────────────┐   │
+│ │ ⚡ OT HRS  │ │ 📋 SHIFTS  │   │
+│ │ 4.2h       │ │ 9          │   │
+│ └────────────┘ └────────────┘   │
+│                                  │
+│ Shifts this period               │
+│ ┌──────────────────────────────┐ │
+│ │ Fri 9 May | Bartender  8.0h  │ │
+│ │ Main Bar  · 21:00 – 05:00    │ │
+│ │ Thu 8 May | Bartender  6.5h  │ │
+│ │ Main Bar  · 22:00 – 04:30    │ │
+│ └──────────────────────────────┘ │
+└──────────────────────────────────┘
+```
+
+- Date-range presets: **This Week / This Month / Last Month** chip row. Selecting a chip triggers an API call.
+- 4 stat cards: Gross Pay (RM) · Regular Hours · OT Hours · Shifts Count.
+- Shifts list below: card per shift showing role · date · location · time range · hours. No pagination (all for the period).
+- Loading: `<p-progressspinner>` centered; empty: "No shifts in this period."
+- Uses `.page-content` layout (max-width 480 px, centered).
 
 ### 6.5 Profile (`/profile`)
 
@@ -1086,11 +1149,69 @@ History tab: card list per leave (type badge, status badge, dates, days pill, no
 
 ### 6.8 Tips history (`/tips-history`) — flagged
 
-Card list of past tips distributions for this staff member, grouped by month. Each card: pool date, role, hours-weighted share, amount.
+```
+┌──────────────────────────────────┐
+│ Tips History                     │
+│                                  │
+│ May 2026                         │
+│ ┌──────────────────────────────┐ │
+│ │ Pool: 9 May 2026             │ │
+│ │ Role: Bartender              │ │
+│ │ Hours: 8.0h (18% of pool)    │ │
+│ │ Your share:      RM  72.00   │ │
+│ └──────────────────────────────┘ │
+│ ┌──────────────────────────────┐ │
+│ │ Pool: 2 May 2026             │ │
+│ │ Role: Bartender              │ │
+│ │ Hours: 6.5h (14% of pool)    │ │
+│ │ Your share:      RM  58.50   │ │
+│ └──────────────────────────────┘ │
+│                                  │
+│ April 2026                       │
+│ ┌──────────────────────────────┐ │
+│ │ Pool: 25 Apr 2026  …         │ │
+│ └──────────────────────────────┘ │
+└──────────────────────────────────┘
+```
+
+- Card list of past tip distributions for this staff member, grouped by month header.
+- Each card shows: pool date · role worked · hours contributed · percentage share of pool · payout amount.
+- Hours weighting calculated by the server; percentage is displayed for transparency.
+- Loading: `<p-progressspinner>`; empty: `pi-dollar` icon + "No tips distributions yet."
+- Uses `.page-content` layout.
 
 ### 6.9 Announcements (`/announcements`) — flagged
 
-Card list, newest first. Unread cards have a left-edge purple bar. Tap → expand card to show body; auto-marks read on view.
+```
+┌──────────────────────────────────┐
+│ Announcements                    │
+│                                  │
+│ ┌──────────────────────────────┐ │
+│ │ ▌ Closing time update  [NEW] │ │  ← purple left bar = unread
+│ │ Posted by Aisha M.           │ │
+│ │ 12 May 2026, 8:00 pm         │ │
+│ │                              │ │
+│ │ [body expanded after tap]    │ │
+│ │ All staff please note that   │ │
+│ │ tonight's closing time is…   │ │
+│ └──────────────────────────────┘ │
+│ ┌──────────────────────────────┐ │
+│ │   Roster note for DJ team    │ │  ← no bar = already read
+│ │ Posted by Aisha M.           │ │
+│ │ 10 May 2026, 3:15 pm         │ │
+│ └──────────────────────────────┘ │
+│                                  │
+│  (empty: pi-megaphone            │
+│   "No announcements yet.")       │
+└──────────────────────────────────┘
+```
+
+- Card list, newest first.
+- Unread cards have a 3 px left-edge purple bar (`.unread` modifier) and a `[NEW]` badge.
+- Tapping a card expands the body inline and auto-marks it read on view (API `PATCH` call).
+- No pagination — all current (non-expired) announcements loaded at once.
+- Empty state: `pi-megaphone` + "No announcements yet."
+- Uses `.page-content` layout.
 
 ### 6.10 Notifications (`/notifications`)
 
@@ -1108,25 +1229,19 @@ Same as admin §5.17.
 | U4 | **Light-mode is bolted on with `!important`** | `styles.scss` light overrides | Hard to extend; component-scoped styles override it back; new components forget to register. |
 | U5 | **Focus rings rely on browser defaults** | global inputs/buttons | Inconsistent visual focus across PrimeNG components vs raw inputs; fails WCAG 2.1 focus visibility. |
 | U6 | **Loading patterns still mix skeleton and spinner** *(partially fixed)* | home uses 4-card skeleton; every other page uses `<p-progressspinner>`; dashboard still has plain text "Loading dashboard…" | Decide where skeletons belong (>150 ms loads) vs spinners. |
-| U7 | ~~Three different spinner classes~~ *(fixed)* | `<p-progressspinner styleClass="nc-spin">` is canonical | `.nc-spinner` is legacy and unused; delete it from global styles. |
-| U8 | ~~**Dialog widths are hardcoded**~~ *(fixed)* | reset-password dialog now uses `min(440px, 92vw)` | — |
 | U9 | ~~**Tables aren't responsive**~~ *(fixed — staff, overtime, payroll, tips)* | card-stack layout at ≤640 px via `:host :deep()` + `.p-column-title` spans | open for dashboard "on shift" table |
 | U10 | **Page header doesn't anchor primary action on mobile** | many pages | At ≤768 px the column-stack puts the CTA below the title in a way that's easy to miss; should pin to a sticky footer or move to a FAB. |
 | U11 | **Mixed inline `style="..."` attributes** | dashboards, staff list, leave | Cannot be themed; defeats light-mode overrides; breaks design-token model. |
 | U12 | **Gradient text on page titles has poor contrast** | admin `.page-title` | `-webkit-text-fill-color: transparent` over varied backgrounds; fails contrast on light theme. |
-| U13 | ~~**Eye-toggle no `aria-label`**~~ *(fixed)* | `aria-label="Show/Hide password"` added to all eye-btn spans in admin + staff login and set-password | — |
 | U14 | **Required-field marker is colour-only** (red asterisk) | every form | Should be marker + accessible text ("required") for AT users. |
 | U15 | **No keyboard shortcuts** | shell | Power users on admin can't paginate with arrow keys, open Add with `n`, etc. |
 | U16 | **Anti-autofill `readonly` trick** strips usability | login | Some assistive tech reads the field as "read-only"; iOS users sometimes see no caret on first tap. |
 | U17 | **Empty / error states inconsistent** | some pages have full state cards, others show plain `<p>` muted text | Cohesion problem. |
 | U18 | **Toast position not specified** | shell `<nc-toast>` | Likely top-right (PrimeNG default), but the design doesn't say so — drift risk. |
 | U19 | **Notification badge cap at "9+"** in admin | nav badge | Admin can plausibly have >9 unread; cap fine but should also affect topbar bell consistently. |
-| U20 | ~~**Sidebar avatar link inconsistency**~~ *(fixed)* | both shells now link to `/profile`; `/profile` redirects to `/account` in admin | — |
 | U21 | **No skeleton for tables** | dashboard, staff, leave | Spinner-only feels janky on slow networks; PrimeNG `<p-skeleton>` is available. |
 | U22 | **No FAB / sticky action on mobile** | staff-app pages | Long pages bury primary actions. |
 | U23 | ~~**No breadcrumb on detail pages**~~ *(fixed — staff detail)* | `Staff › Marcus Torres` breadcrumb nav above the page title; remaining detail pages still open | — |
-| U24 | ~~**Lang toggle shows other language**~~ *(fixed)* | globe icon + current language label (EN / 中文); tooltip says what it switches to | — |
-| U25 | ~~**Calendar leave chips truncate to first-name only**~~ *(fixed)* | chips now show `First L.` (first name + last initial) | — |
 | U26 | **Two parallel action-menu patterns** | staff list uses `<p-menu [popup]>`; announcements / overtime use a custom dropdown rendered outside `.nc-card` to escape `backdrop-filter` clipping | Pick one. The "outside the card" workaround exists because `backdrop-filter` creates a containing block — needs documenting or replacing with a CDK overlay. |
 | U27 | **Two parallel multi-select patterns** *(partial — overtime done)* | overtime role field migrated to `<p-multiselect appendTo="body">`; reports still uses hand-rolled checkbox dropdown | Unify remaining: reports staff/location/role selects. |
 | U28 | **Empty `help/` directory** in shared-lib | `projects/shared-lib/src/lib/components/help/` is committed empty; no exports | Either build it or remove. |
@@ -1488,22 +1603,17 @@ Each screen below lists **what changes from as-is** and the **state matrix** the
 |---|---|---|---|---|
 | 1 | Replace emoji nav icons with PrimeIcons (mapping in §9.8) | open | S | Low |
 | 2 | Unify sidebar widths & topbar heights between portals | open | S | Low |
-| 3 | Add focus-ring rule globally (every interactive element) | **done** — `:focus-visible` in `styles.scss` | S | Low |
-| 4 | Promote `<p-skeleton>` everywhere a spinner is used today (>150 ms loads) | partial — spinners unified to `<p-progressspinner>`; skeletons on home + staff list + tips history | M | Low |
-| 5 | Make every dialog responsive (mobile fullscreen) | **done** — `min(440px, 92vw)` on dialogs; fullscreen override in global `styles.scss` at ≤640 px | S | Low |
-| 6 | Convert admin tables to card-list <640 px | **done** — staff, overtime, payroll, tips. Dashboard "on shift" table still open. | M | Low |
-| 7 | Bottom nav on staff-app mobile | **done** | M | Low |
-| 8 | Rebuild light mode as token-defined (no `!important` cascade) | open | M | Medium |
-| 9 | Inter font · type scale refresh | open | S | Low |
-| 10 | A11y pass + axe-core in CI | open | M | Low |
-| 11 | Cmd-K palette (admin) | open | M | Low |
-| 12 | Figma library publish, deprecate ad-hoc inline styles | open | L | Low |
-| 13 | **Unify action-menu pattern** (U26) — settle on `<p-menu [popup] [appendTo]="'body'">` or CDK Overlay; retire the manually-positioned dropdown | open | M | Low |
-| 14 | **Unify multi-select pattern** (U27) — replace reports' custom checkbox dropdowns with `<p-multiselect>` | partial — overtime done; reports open | M | Low |
-| 15 | **Delete `/payroll` _or_ the Reports → Payroll Export tab** (U29) | open | S | Low |
-| 16 | **Migrate paginators consistently** | done — `<p-paginator>` everywhere now | — | — |
-| 17 | **Migrate tab pattern to `<p-tabs>`** | done | — | — |
-| 18 | Remove legacy `.nc-spinner` from global styles (replaced by `nc-spin` styleClass) | open | S | Low |
+| 3 | Promote `<p-skeleton>` everywhere a spinner is used today (>150 ms loads) | partial — spinners unified to `<p-progressspinner>`; skeletons on home + staff list + tips history | M | Low |
+| 4 | Convert dashboard "on shift" table to card-list <640 px | open (admin tables done; dashboard remains) | S | Low |
+| 5 | Rebuild light mode as token-defined (no `!important` cascade) | open | M | Medium |
+| 6 | Inter font · type scale refresh | open | S | Low |
+| 7 | A11y pass + axe-core in CI | open | M | Low |
+| 8 | Cmd-K palette (admin) | open | M | Low |
+| 9 | Figma library publish, deprecate ad-hoc inline styles | open | L | Low |
+| 10 | **Unify action-menu pattern** (U26) — settle on `<p-menu [popup] [appendTo]="'body'">` or CDK Overlay; retire the manually-positioned dropdown | open | M | Low |
+| 11 | **Unify multi-select pattern** (U27) — replace reports' custom checkbox dropdowns with `<p-multiselect>` | partial — overtime done; reports open | M | Low |
+| 12 | **Delete `/payroll` _or_ the Reports → Payroll Export tab** (U29) | open | S | Low |
+| 13 | Remove legacy `.nc-spinner` from global styles (replaced by `nc-spin` styleClass) | open | S | Low |
 
 Step 8 is still the only invasive one; everything else is incremental and safe to ship behind a feature flag.
 
@@ -1511,13 +1621,11 @@ Step 8 is still the only invasive one; everything else is incremental and safe t
 
 ## 15. Open questions
 
-1. **Bottom nav on staff-app** — willing to drop the drawer entirely, or keep "More" as a drawer?
-2. **Inter font** — does the team want a paid font, or stay system-only?
-3. **Cmd-K palette** — nice-to-have or in scope for Phase 1?
-4. **Admin app on mobile** — should we invest in true responsive (card-lists), or is "tablet+" acceptable?
-5. **Calendar on staff mobile** — week strip + day list, or skip calendar view for staff?
-6. **Empty-state illustrations** — keep PrimeIcon, or commission small neon line illustrations consistent with the brand?
-7. **Dark default** — confirm we ship dark by default and follow OS preference on first run if no user choice yet.
+1. **Cmd-K palette** — nice-to-have or in scope for Phase 1?
+2. **Admin app on mobile** — should we invest in true responsive (card-lists), or is "tablet+" acceptable?
+3. **Calendar on staff mobile** — week strip + day list, or skip calendar view for staff?
+4. **Empty-state illustrations** — keep PrimeIcon, or commission small neon line illustrations consistent with the brand?
+5. **Dark default** — confirm we ship dark by default and follow OS preference on first run if no user choice yet.
 
 ---
 

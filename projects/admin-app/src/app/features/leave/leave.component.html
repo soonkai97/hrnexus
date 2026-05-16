@@ -81,7 +81,7 @@
             @for (r of overdueLeaves(); track r.id) {
               <div class="overdue-row">
                 <div class="overdue-row-info">
-                  <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
+                  <p-tag [value]="r.leaveType | titlecase" [severity]="r.leaveType === 'annual' ? 'info' : r.leaveType === 'sick' ? 'success' : 'danger'" />
                   <span class="overdue-staff">{{ r.staffName }}</span>
                   <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                 </div>
@@ -224,7 +224,7 @@
                          [class.cal-day-row-locked]="r.status !== 'pending'"
                          (click)="r.status === 'pending' ? startEdit(r) : null">
                       <div class="cal-day-row-left">
-                        <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
+                        <p-tag [value]="r.leaveType | titlecase" [severity]="r.leaveType === 'annual' ? 'info' : r.leaveType === 'sick' ? 'success' : 'danger'" />
                         @if (r.status === 'pending' && r.endDate < todayIso) {
                           <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
@@ -232,7 +232,7 @@
                         <span class="cal-day-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                       </div>
                       <div class="cal-day-row-right">
-                        <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
+                        <p-tag [value]="r.status | titlecase" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
                         @if (r.status === 'pending') {
                           <p-button icon="pi pi-check" label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
                           <p-button icon="pi pi-times" label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
@@ -281,13 +281,13 @@
             <p-card styleClass="leave-card" [class.leave-card-overdue]="r.status === 'pending' && r.endDate < todayIso">
               <div class="leave-top">
                 <div class="leave-top-left">
-                  <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ r.leaveType | titlecase }}</span>
+                  <p-tag [value]="r.leaveType | titlecase" [severity]="r.leaveType === 'annual' ? 'info' : r.leaveType === 'sick' ? 'success' : 'danger'" />
                   @if (r.status === 'pending' && r.endDate < todayIso) {
                     <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                   }
                 </div>
                 <div class="leave-top-right">
-                  <span class="leave-status-badge" [attr.data-status]="r.status">{{ r.status | titlecase }}</span>
+                  <p-tag [value]="r.status | titlecase" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
                   @if (r.status === 'pending') {
                     <p-button label="Edit" [text]="true" severity="secondary" styleClass="lc-icon-btn" (click)="startEdit(r)" />
                   }
@@ -340,21 +340,21 @@
         <div class="balance-bars">
           <div class="bal-row">
             <span class="bal-row-label">{{ 'leave.annualLeave' | translate }}</span>
-            <div class="bal-row-bar">
-              <div class="bal-row-fill annual-fill" [style.width.%]="(b.annualUsed / b.annualEntitlement) * 100 | number:'1.0-0'"></div>
-            </div>
+            <p-progressbar class="bal-bar"
+              [value]="b.annualEntitlement > 0 ? (b.annualUsed / b.annualEntitlement) * 100 : 0"
+              [showValue]="false" styleClass="bal-bar-annual" />
             <span class="bal-row-nums"><strong>{{ b.annualRemaining }}</strong>/{{ b.annualEntitlement }}d</span>
           </div>
           <div class="bal-row">
             <span class="bal-row-label">{{ 'leave.sickLeave' | translate }}</span>
-            <div class="bal-row-bar">
-              <div class="bal-row-fill sick-fill" [style.width.%]="(b.sickUsed / b.sickEntitlement) * 100 | number:'1.0-0'"></div>
-            </div>
+            <p-progressbar class="bal-bar"
+              [value]="b.sickEntitlement > 0 ? (b.sickUsed / b.sickEntitlement) * 100 : 0"
+              [showValue]="false" styleClass="bal-bar-sick" />
             <span class="bal-row-nums"><strong>{{ b.sickRemaining }}</strong>/{{ b.sickEntitlement }}d</span>
           </div>
           <div class="bal-row">
             <span class="bal-row-label">{{ 'leave.unpaidLeave' | translate }}</span>
-            <div class="bal-row-bar"></div>
+            <span class="bal-bar"></span>
             <span class="bal-row-nums">{{ b.unpaidUsed }}d {{ 'leave.used' | translate }}</span>
           </div>
         </div>

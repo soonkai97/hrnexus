@@ -117,21 +117,6 @@
 .leave-card { padding: 1rem 1.25rem; }
 .leave-top  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
 
-.leave-type-badge {
-  font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
-  border-radius: $radius-pill; padding: 0.2rem 0.65rem;
-  &[data-type="sick"]   { background: rgba(239,68,68,0.12);   color: $danger; border: 1px solid rgba(239,68,68,0.25); }
-  &[data-type="annual"] { background: rgba(74,222,128,0.1);   color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
-  &[data-type="unpaid"] { background: rgba(168,85,247,0.1);   color: $neon-purple; border: 1px solid rgba(168,85,247,0.25); }
-}
-
-.leave-status {
-  font-size: 0.75rem; font-weight: 600; text-transform: capitalize; border-radius: $radius-pill; padding: 0.2rem 0.65rem;
-  &[data-status="pending"]  { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-  &[data-status="approved"] { background: rgba(74,222,128,0.1);  color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
-  &[data-status="rejected"] { background: rgba(239,68,68,0.08);  color: $danger; border: 1px solid rgba(239,68,68,0.25); }
-}
-
 .leave-dates { font-size: 0.85rem; color: $text-secondary; display: flex; align-items: center; gap: 0.5rem; }
 .leave-days  {
   font-weight: 700; color: $neon-purple; font-size: 0.82rem;

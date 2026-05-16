@@ -1,12 +1,17 @@
 <div class="pin-wrap">
-  <p-card styleClass="pin-card">
+  <div class="pin-card">
 
-    <div class="pin-icon"><i class="pi pi-lock"></i></div>
+    <div class="pin-icon-wrap">
+      <i class="pi pi-lock pin-icon"></i>
+    </div>
+
     <h2 class="pin-title">Feature Management</h2>
-    <p class="pin-sub">Enter your access PIN to continue. This area controls which features are available to this client.</p>
+    <p class="pin-sub">Enter your access PIN to manage which features are available.</p>
 
     <div class="pin-field">
+      <i class="pi pi-hashtag pin-field-icon"></i>
       <input
+        pInputText
         [type]="showPin() ? 'text' : 'password'"
         [(ngModel)]="pin"
         placeholder="Enter PIN"
@@ -15,20 +20,28 @@
         (keydown.enter)="submit()"
         autocomplete="off"
         autofocus />
-      <p-button styleClass="pin-eye" [text]="true" severity="secondary" [icon]="showPin() ? 'pi pi-eye-slash' : 'pi pi-eye'" (onClick)="showPin.update(v => !v)" />
+      <button class="pin-eye" type="button" (click)="showPin.update(v => !v)" [tabindex]="-1">
+        <i [class]="showPin() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+      </button>
     </div>
 
     @if (error()) {
       <div class="pin-error">
-        <i [class]="isLockedOut ? 'pi pi-lock' : 'pi pi-exclamation-triangle'"></i> {{ error() }}
+        <i [class]="isLockedOut ? 'pi pi-lock' : 'pi pi-exclamation-triangle'"></i>
+        {{ error() }}
       </div>
     }
 
-    <p-button styleClass="pin-submit" [label]="loading() ? 'Verifying…' : 'Unlock'"
-              [loading]="loading()" [disabled]="!pin || loading() || isLockedOut"
-              (click)="submit()" />
+    <p-button
+      label="Unlock"
+      icon="pi pi-unlock"
+      styleClass="pin-submit"
+      severity="primary"
+      [loading]="loading()"
+      [disabled]="!pin || loading() || isLockedOut"
+      (click)="submit()" />
 
-    <p class="pin-hint">5 incorrect attempts triggers a 15-minute lockout.</p>
+    <p class="pin-hint"><i class="pi pi-info-circle"></i> 5 incorrect attempts triggers a 15-minute lockout.</p>
 
-  </p-card>
+  </div>
 </div>

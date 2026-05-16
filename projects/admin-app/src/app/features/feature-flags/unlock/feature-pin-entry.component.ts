@@ -3,13 +3,13 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FeaturePinService } from '../feature-pin.service';
-import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-feature-pin-entry',
   standalone: true,
-  imports: [FormsModule, Card, Button],
+  imports: [FormsModule, Button, InputText],
   templateUrl: './feature-pin-entry.component.html',
   styleUrl:    './feature-pin-entry.component.scss',
 })

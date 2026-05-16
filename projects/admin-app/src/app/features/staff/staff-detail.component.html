@@ -1,12 +1,16 @@
 <div class="page-wrap">
-  <div class="page-header" style="display:flex;align-items:center;gap:1rem">
-    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" severity="secondary" routerLink="/staff" />
+  <div class="page-header">
     <div>
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a routerLink="/staff" class="bc-link">{{ 'nav.staff' | translate }}</a>
+        <i class="pi pi-chevron-right bc-sep" aria-hidden="true"></i>
+        <span class="bc-current">{{ staff()?.fullName ?? '…' }}</span>
+      </nav>
       <h1 class="page-title">{{ staff()?.fullName ?? '…' }}</h1>
       <span class="page-sub">{{ staff()?.staffId }}</span>
     </div>
     @if (!editMode()) {
-      <p-button icon="pi pi-pencil" [label]="'staffDetail.editBtn' | translate" severity="primary" styleClass="ml-auto" (click)="startEdit()" />
+      <p-button icon="pi pi-pencil" [label]="'staffDetail.editBtn' | translate" severity="primary" (click)="startEdit()" />
     }
   </div>
 

@@ -71,7 +71,8 @@
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
-            styleClass="w-full" />
+            styleClass="w-full"
+            (ngModelChange)="onStartDateChange($event)" />
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>

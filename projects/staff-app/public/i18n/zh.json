@@ -7,7 +7,8 @@
     "profile":       "个人",
     "messaging":     "消息",
     "tipsHistory":   "小费记录",
-    "announcements": "公告"
+    "announcements": "公告",
+    "more":          "更多"
   },
   "announcements": {
     "subtitle":        "了解最新场地通知",

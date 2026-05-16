@@ -9,7 +9,8 @@
     "messaging":       "Messages",
     "tipsHistory":     "Tips History",
     "announcements":   "Announcements",
-    "notifications":   "Notifications"
+    "notifications":   "Notifications",
+    "more":            "More"
   },
   "home": {
     "goodMorning":          "Good morning",

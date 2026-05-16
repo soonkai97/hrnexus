@@ -8,12 +8,10 @@ import {
   toLocalDateString,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
-import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Message } from 'primeng/message';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
@@ -22,7 +20,7 @@ import { Tabs, TabList, Tab } from 'primeng/tabs';
   selector: 'app-reports',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputNumber, TableModule, Tag, Card, TooltipModule, Select, DatePicker, Message, Tabs, TabList, Tab],
+    Button, TableModule, Tag, Card, TooltipModule, DatePicker, Message, Tabs, TabList, Tab],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -52,7 +50,6 @@ export class ReportsComponent implements OnInit {
   locOpen  = signal(false);
   roleOpen = signal(false);
 
-  pageTab   = signal<'report' | 'payroll'>('report');
   activeTab = signal<'employee' | 'location' | 'role' | 'date' | 'shifts'>('employee');
 
   // Close dropdowns when clicking outside
@@ -202,40 +199,6 @@ export class ReportsComponent implements OnInit {
     URL.revokeObjectURL(url);
     this.reportExporting.set(false);
     this.toast.success('Report downloaded.');
-  }
-
-  // ── Payroll export ──────────────────────────────────────────────────────────
-  payrollYear  = new Date().getFullYear();
-  payrollMonth = new Date().getMonth() + 1;
-  readonly payrollMonthOptions = Array.from({ length: 12 }, (_, i) => ({
-    label: new Date(2000, i, 1).toLocaleDateString('en-US', { month: 'long' }),
-    value: i + 1,
-  }));
-  payrollExporting = signal(false);
-
-  exportPayrollCsv(): void {
-    this.payrollExporting.set(true);
-    this.admin.exportPayrollCsv(this.payrollYear, this.payrollMonth).subscribe({
-      next: (blob: Blob) => {
-        this.payrollExporting.set(false);
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        const pad  = (n: number) => String(n).padStart(2, '0');
-        a.href     = url;
-        a.download = `payroll-${this.payrollYear}-${pad(this.payrollMonth)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.toast.success('Payroll CSV downloaded.');
-      },
-      error: () => {
-        this.payrollExporting.set(false);
-        this.toast.error('Failed to export payroll.');
-      },
-    });
-  }
-
-  monthName(m: number): string {
-    return new Date(2000, m - 1, 1).toLocaleDateString('en-US', { month: 'long' });
   }
 
   private firstDayOfMonth(): Date {

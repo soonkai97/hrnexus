@@ -441,6 +441,60 @@ table { min-width: 480px; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+// ── Table → card-list at <640px (§12 / U9) ───────────────────────────────────
+// On narrow screens (phones, small tablets) p-table and native tables inside
+// .table-card collapse into stacked card rows instead of scrolling horizontally.
+@media (max-width: 640px) {
+  .table-card {
+    overflow-x: visible;
+  }
+
+  .table-card table {
+    min-width: unset;
+  }
+
+  .table-card thead {
+    display: none; // column headings hidden; each td carries its own label
+  }
+
+  .table-card tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.5rem;
+    row-gap: 0.3rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid $border-subtle;
+
+    &:last-child { border-bottom: none; }
+    &:hover { background: rgba(168,85,247,0.04); }
+  }
+
+  // First cell = card "title" — full width, slightly larger
+  .table-card tbody td:first-child {
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $text-primary;
+    padding: 0;
+    border-bottom: none;
+  }
+
+  // Remaining cells = inline metadata chips
+  .table-card tbody td {
+    padding: 0;
+    border-bottom: none;
+    font-size: 0.8rem;
+    color: $text-secondary;
+    vertical-align: middle;
+  }
+
+  // Empty-message row stretches full width
+  .table-card tbody td[colspan] {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 // ── Dialog responsive (§9.6) ──────────────────────────────────────────────────
 // Fullscreen on mobile — overrides inline width set by [style] binding.
 @media (max-width: 640px) {

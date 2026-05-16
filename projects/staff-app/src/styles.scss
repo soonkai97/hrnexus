@@ -194,6 +194,11 @@ input[type="time"] {
   margin: 0 auto;
 }
 
+@media (max-width: 768px) {
+  // Push page content above the bottom nav bar on mobile
+  .page-wrap    { padding-bottom: calc(#{$nav-height} + 1rem); }
+}
+
 @media (max-width: 480px) {
   .page-content { padding: 0.75rem; }
 }
@@ -284,6 +289,15 @@ input[type="time"] {
   }
   app-shell .topbar-user { color: var(--nc-text-secondary) !important; }
   app-shell .shell::before { opacity: 0.04; }
+
+  // Bottom nav
+  app-shell .bottom-nav {
+    background: rgba(240,240,252,0.97) !important;
+    border-color: var(--nc-border-subtle) !important;
+  }
+  app-shell .bn-item { color: var(--nc-text-muted) !important; }
+  app-shell .bn-item:hover,
+  app-shell .bn-item.active { color: #7c3aed !important; }
 
   // Login page
   .login-page { background: var(--nc-bg-base) !important; }

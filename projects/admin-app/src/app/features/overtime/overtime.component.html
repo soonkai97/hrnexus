@@ -65,7 +65,17 @@
   }
 
   @if (loading()) {
-    <div class="loading-wrap"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
+    <p-card styleClass="nc-card skeleton-table">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="skeleton-row">
+          <p-skeleton width="30%" height="0.75rem" borderRadius="4px" />
+          <p-skeleton width="12%" height="0.75rem" borderRadius="4px" />
+          <p-skeleton width="10%" height="0.75rem" borderRadius="4px" />
+          <p-skeleton width="60px" height="1.4rem" borderRadius="6px" />
+          <p-skeleton width="28px" height="28px" borderRadius="6px" />
+        </div>
+      }
+    </p-card>
   }
 
   <p-card styleClass="nc-card">

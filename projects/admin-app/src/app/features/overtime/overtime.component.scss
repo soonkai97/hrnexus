@@ -181,6 +181,17 @@
   padding: 2rem;
 }
 
+// ── Skeleton loading ─────────────────────────────────────────────────────────
+.skeleton-table { padding: 0; overflow: hidden; margin-bottom: 0 !important; }
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid $border-subtle;
+  &:last-child { border-bottom: none; }
+}
+
 // ── Ellipsis action menu ──────────────────────────────────────────────────────
 // Uses <p-menu [popup]="true" [appendTo]="'body'"> — appended to document body
 // so backdrop-filter on .nc-card does not create a new stacking context and clip it.

@@ -13,9 +13,14 @@
   color: $text-muted;
 }
 
-.loading-wrap {
-  text-align: center;
-  padding: 3rem;
+.skeleton-table { padding: 0; overflow: hidden; }
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid $border-subtle;
+  &:last-child { border-bottom: none; }
 }
 
 .empty-state {

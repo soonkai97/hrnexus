@@ -11,16 +11,16 @@ import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { ProgressSpinner } from 'primeng/progressspinner';
 import { DatePicker } from 'primeng/datepicker';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-announcements',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe,
-    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, ProgressSpinner, DatePicker, Paginator, Menu],
+    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, DatePicker, Paginator, Menu, Skeleton],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })

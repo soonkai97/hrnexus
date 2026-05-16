@@ -28,7 +28,21 @@
   </p-card>
 
   @if (loading()) {
-    <div class="loading-state"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
+    <p-card styleClass="tips-card">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.65rem;padding:0.5rem 0 1.25rem">
+        <p-skeleton width="45%" height="0.7rem" borderRadius="4px" />
+        <p-skeleton width="50%" height="2rem" borderRadius="4px" />
+        <p-skeleton width="30%" height="0.6rem" borderRadius="4px" />
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        @for (i of [1,2,3,4]; track i) {
+          <div style="display:flex;justify-content:space-between">
+            <p-skeleton width="40%" height="0.65rem" borderRadius="4px" />
+            <p-skeleton width="25%" height="0.65rem" borderRadius="4px" />
+          </div>
+        }
+      </div>
+    </p-card>
   } @else if (summary()) {
     <p-card styleClass="tips-card">
       <div class="tips-hero">

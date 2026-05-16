@@ -47,6 +47,9 @@
   border-top: 1px solid $border-subtle;
 }
 
+// Hide p-column-title on desktop; only visible inside the mobile stack layout
+.table-card :deep(.p-column-title) { display: none; }
+
 // ── Responsive table → card stack at 640px ───────────────────────────────────
 @media (max-width: 640px) {
   .table-card :deep(.p-datatable-table) { display: block; }
@@ -73,6 +76,7 @@
     &:last-child { border-bottom: none; }
 
     .p-column-title {
+      display: block;
       font-size: 0.68rem;
       font-weight: 700;
       color: $text-muted;

@@ -5,13 +5,6 @@
 
   <!-- Filters -->
     <p-card styleClass="filter-bar">
-      <div class="preset-row">
-        <p-button [label]="'reports.today' | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset('today')" />
-        <p-button [label]="'reports.yesterday' | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset('yesterday')" />
-        <p-button [label]="'reports.thisWeek' | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset('week')" />
-        <p-button [label]="'reports.thisMonth' | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset('month')" />
-        <p-button [label]="'reports.lastMonth' | translate" styleClass="preset-btn" [text]="true" severity="secondary" (click)="setPreset('last-month')" />
-      </div>
       <div class="filter-row">
         <div class="field">
           <label>{{ 'reports.from' | translate }}</label>

@@ -134,6 +134,11 @@ input[type="time"] {
   label { font-size: 0.75rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
 }
 
+// Normalise the height of all PrimeNG form inputs so filter rows look uniform
+.filter-row .p-datepicker,
+.filter-row .p-multiselect,
+.filter-row .p-select { height: 2.5rem; }
+
 .divider { height: 1px; background: $border-subtle; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -165,11 +170,19 @@ input[type="time"] {
   @include glass;
   @include neon-border;
   border-radius: $radius-lg;
-  padding: 1rem 1.25rem;
   background: $grad-card;
-  display: flex; flex-direction: column; gap: 0.4rem;
+
+  // p-card wraps content in .p-card-body > .p-card-content — target those
+  > .p-card-body {
+    padding: 1rem 1.25rem;
+    > .p-card-content {
+      padding: 0;
+      display: flex; flex-direction: column; gap: 0.4rem;
+    }
+  }
+
   .stat-label { font-size: 0.73rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
-  .stat-value { font-size: 1.75rem; font-weight: 800; color: $text-primary; }
+  .stat-value { font-size: 1.75rem; font-weight: 800; color: $text-primary; line-height: 1.1; }
   .stat-sub   { font-size: 0.75rem; color: $text-secondary; }
   &.accent-purple .stat-value { color: $neon-purple; text-shadow: $glow-sm; }
   &.accent-green  .stat-value { color: $neon-green; }
@@ -182,9 +195,11 @@ input[type="time"] {
   @include neon-border;
   border-radius: $radius-lg;
   background: $grad-card;
-  overflow-x: auto;  // horizontal scroll on narrow screens
+  overflow-x: auto;
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch; // momentum scroll on iOS
+  -webkit-overflow-scrolling: touch;
+
+  > .p-card-body { padding: 0; > .p-card-content { padding: 0; } }
 }
 
 table { width: 100%; border-collapse: collapse; }

@@ -114,7 +114,8 @@
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
-            <p-select [(ngModel)]="form.leaveType" [options]="leaveTypes" styleClass="w-full" />
+            <p-select [(ngModel)]="form.leaveType" [options]="leaveTypeOptions"
+              optionLabel="label" optionValue="value" styleClass="w-full" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
@@ -122,7 +123,8 @@
               dateFormat="yy-mm-dd"
               dataType="string"
               [showIcon]="true"
-              styleClass="w-full" />
+              styleClass="w-full"
+              (ngModelChange)="onStartDateChange($event)" />
           </div>
           <div class="field">
             <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>

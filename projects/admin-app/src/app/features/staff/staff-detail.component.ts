@@ -9,7 +9,7 @@ import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
-import { ProgressSpinner } from 'primeng/progressspinner';
+import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
 import { Paginator } from 'primeng/paginator';
@@ -18,7 +18,7 @@ import { Paginator } from 'primeng/paginator';
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe,
-    Button, InputText, TableModule, Tag, Card, ProgressSpinner, DatePicker, MultiSelect, Paginator],
+    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Paginator],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })

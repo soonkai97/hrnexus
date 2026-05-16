@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService, OvertimeRuleDto, ToastService, ConfirmService, StaffStore } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
@@ -12,47 +12,42 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { Message } from 'primeng/message';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { Menu } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-overtime',
   standalone: true,
   imports: [TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputNumber, TableModule, Tag, Card, TooltipModule, ProgressSpinner, Message, ToggleSwitch],
+    Button, InputNumber, TableModule, Tag, Card, TooltipModule, ProgressSpinner, Message, ToggleSwitch, Menu],
   templateUrl: './overtime.component.html',
   styleUrl: './overtime.component.scss',
 })
 export class OvertimeComponent implements OnInit {
-  private adminSvc   = inject(AdminService);
-  private toast      = inject(ToastService);
-  private confirmSvc = inject(ConfirmService);
+  private adminSvc    = inject(AdminService);
+  private toast       = inject(ToastService);
+  private confirmSvc  = inject(ConfirmService);
+  private translate   = inject(TranslateService);
   readonly staffStore = inject(StaffStore);
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('rowMenu') rowMenu!: Menu;
 
   rules     = signal<OvertimeRuleDto[]>([]);
   loading   = signal(false);
   saving    = signal(false);
   showForm  = signal(false);
   editingId = signal<string | null>(null);
-  openMenuId  = signal<string | null>(null);
-  menuPos     = signal<{ top?: number; bottom?: number; right: number } | null>(null);
-  menuTarget  = computed(() => this.rules().find(r => r.id === this.openMenuId()) ?? null);
+  menuItems = signal<MenuItem[]>([]);
 
-  toggleMenu(id: string, event: MouseEvent): void {
-    if (this.openMenuId() === id) { this.closeMenu(); return; }
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const right = window.innerWidth - rect.right;
-    // Flip upward when there isn't enough room below (2 items ≈ 90 px)
-    const spaceBelow = window.innerHeight - rect.bottom;
-    if (spaceBelow >= 90) {
-      this.menuPos.set({ top: rect.bottom + 4, right });
-    } else {
-      this.menuPos.set({ bottom: window.innerHeight - rect.top + 4, right });
-    }
-    this.openMenuId.set(id);
+  openMenu(rule: OvertimeRuleDto, event: Event): void {
+    this.menuItems.set([
+      { label: this.translate.instant('common.edit'),   icon: 'pi pi-pencil', command: () => this.openEdit(rule) },
+      { separator: true },
+      { label: this.translate.instant('common.delete'), icon: 'pi pi-trash',  styleClass: 'nc-danger-item', command: () => this.delete(rule.id) },
+    ]);
+    this.rowMenu.toggle(event);
   }
-
-  closeMenu(): void { this.openMenuId.set(null); this.menuPos.set(null); }
 
   form = { thresholdHours: 8, multiplier: 1.5, isActive: true };
 

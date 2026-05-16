@@ -56,47 +56,9 @@
 .col-muted { color: $text-muted; }
 
 // ── Ellipsis action menu ──────────────────────────────────────────────────────
-.td-actions { width: 48px; text-align: center; }
-
-
-.action-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 98;
-}
-
-.action-dropdown {
-  position: fixed;
-  z-index: 9999;
-  background: $bg-surface;
-  border: 1px solid $border-glow;
-  border-radius: $radius-sm;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
-  min-width: 160px;
-  padding: 0.3rem 0;
-  animation: menu-pop 0.12s ease;
-}
-
-.action-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.55rem 1rem;
-  font-size: 0.855rem;
-  color: $text-secondary;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  text-decoration: none;
-  transition: background $transition-fast, color $transition-fast;
-  white-space: nowrap;
-  &:hover { background: rgba(168,85,247,0.08); color: $text-primary; }
-  &.action-item-danger { color: $danger; &:hover { background: rgba(239,68,68,0.1); } }
-}
-
-.action-divider { height: 1px; background: $border-subtle; margin: 0.25rem 0; }
+// Uses <p-menu [popup]="true" [appendTo]="'body'"> so backdrop-filter clipping
+// on .nc-card does not affect the menu overlay.
+.td-actions { width: 40px; text-align: center; }
 
 @media (max-width: 768px) {
   .form-card { padding: 1rem; }

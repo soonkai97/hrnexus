@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString } from 'shared-lib';
 import { Button } from 'primeng/button';
+import { Tag } from 'primeng/tag';
+import { ProgressBar } from 'primeng/progressbar';
 import { InputText } from 'primeng/inputtext';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { Paginator } from 'primeng/paginator';
@@ -22,7 +24,7 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
   selector: 'app-leave',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputText, InputNumber, Card, TooltipModule, Message, Select, Skeleton, DatePicker,
+    Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule, Message, Select, Skeleton, DatePicker,
     Tabs, TabList, Tab, Paginator],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',

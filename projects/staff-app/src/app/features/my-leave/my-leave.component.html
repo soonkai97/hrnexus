@@ -132,8 +132,8 @@
         @for (r of records(); track r.id) {
           <p-card styleClass="leave-card">
             <div class="leave-top">
-              <span class="leave-type-badge" [attr.data-type]="r.leaveType">{{ ('leave.type.' + r.leaveType) | translate }}</span>
-              <span class="leave-status" [attr.data-status]="r.status">{{ ('leave.status.' + r.status) | translate }}</span>
+              <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'info' : r.leaveType === 'sick' ? 'success' : 'secondary'" />
+              <p-tag [value]="('leave.status.' + r.status) | translate" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
             </div>
             <div class="leave-dates">
               {{ r.startDate }}{{ r.startDate !== r.endDate ? ' to ' + r.endDate : '' }}

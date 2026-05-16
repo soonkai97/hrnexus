@@ -15,16 +15,6 @@
 .empty-state  { text-align: center; padding: 3rem 1rem; color: $text-muted; }
 .empty-icon   { font-size: 2.5rem; margin-bottom: 0.75rem; }
 
-.leave-badge {
-  display: inline-block;
-  background: rgba(96, 165, 250, 0.15);
-  color: #60a5fa;
-  border: 1px solid rgba(96, 165, 250, 0.3);
-  border-radius: 999px;
-  padding: 0.1rem 0.55rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
 
 .warn-banner {
   display: flex;

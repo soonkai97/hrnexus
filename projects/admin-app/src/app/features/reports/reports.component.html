@@ -171,11 +171,9 @@
                 <span class="loc-name">{{ loc.locationName }}</span>
                 <span class="loc-meta">{{ loc.shifts }} shifts · {{ loc.hours }}h</span>
               </div>
-              <div class="loc-bar-wrap">
-                <div class="loc-bar"
-                  [style.width.%]="maxLocationCost() > 0 ? (loc.cost / maxLocationCost()) * 100 : 0">
-                </div>
-              </div>
+              <p-progressbar class="loc-bar"
+                [value]="maxLocationCost() > 0 ? (loc.cost / maxLocationCost()) * 100 : 0"
+                [showValue]="false" />
               <span class="loc-cost">RM {{ loc.cost | number:'1.2-2' }}</span>
             </p-card>
           }

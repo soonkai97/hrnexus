@@ -19,15 +19,12 @@
       <div class="features-grid">
         @for (feat of featuresForPhase(phase); track feat.key) {
           <div class="feature-card" [class.enabled]="isEnabled(feat.key)">
-            <div class="feature-icon">{{ feat.icon }}</div>
+            <div class="feature-icon"><i [class]="feat.icon"></i></div>
             <div class="feature-body">
               <div class="feature-name">{{ feat.label | translate }}</div>
               <div class="feature-desc">{{ feat.description | translate }}</div>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [checked]="isEnabled(feat.key)" (change)="toggle(feat.key)" />
-              <span class="toggle-slider"></span>
-            </label>
+            <p-toggleswitch [ngModel]="isEnabled(feat.key)" (ngModelChange)="toggle(feat.key)" />
           </div>
         }
       </div>

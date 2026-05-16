@@ -11,11 +11,12 @@ import {
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { Tag } from 'primeng/tag';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, DatePipe, UpperCasePipe, TranslatePipe, AmPmPipe, Button, Card],
+  imports: [RouterLink, DecimalPipe, DatePipe, UpperCasePipe, TranslatePipe, AmPmPipe, Button, Card, Tag],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

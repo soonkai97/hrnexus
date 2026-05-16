@@ -170,17 +170,13 @@
     .loc-meta { display: block; font-size: 0.72rem; color: $text-muted; margin-top: 2px; }
   }
 
-  .loc-bar-wrap {
-    flex: 1; height: 6px; background: $bg-raised;
-    border-radius: 3px; overflow: hidden;
+  :host :deep(.loc-bar .p-progressbar) {
+    flex: 1; height: 6px; background: $bg-raised; border-radius: 3px;
   }
-  .loc-bar {
-    height: 100%;
+  :host :deep(.loc-bar .p-progressbar-value) {
     background: $grad-primary;
-    border-radius: 3px;
     box-shadow: 0 0 8px rgba(168,85,247,0.4);
     transition: width 0.6s ease;
-    min-width: 4px;
   }
 
   .loc-cost {
@@ -244,7 +240,7 @@
     padding: 0.75rem 1rem;
 
     .loc-left  { width: 100%; }
-    .loc-bar-wrap { order: 3; width: 100%; flex: none; }
+    .loc-bar { order: 3; width: 100%; flex: none; }
     .loc-cost  { width: auto; order: 2; text-align: left; }
   }
 

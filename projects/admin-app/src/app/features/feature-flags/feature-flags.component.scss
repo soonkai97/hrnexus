@@ -51,10 +51,11 @@
 }
 
 .feature-icon {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   width: 2.5rem;
   text-align: center;
   flex-shrink: 0;
+  color: $neon-purple;
 }
 
 .feature-body {
@@ -74,49 +75,3 @@
   line-height: 1.4;
 }
 
-// ── Toggle switch ─────────────────────────────────────────────────────────────
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 46px;
-  height: 26px;
-  flex-shrink: 0;
-  cursor: pointer;
-
-  input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    position: absolute;
-  }
-}
-
-.toggle-slider {
-  position: absolute;
-  inset: 0;
-  background: $border-glow;   // visible purple-tint in both dark and light mode
-  border-radius: $radius-pill;
-  transition: background $transition-fast;
-
-  &::before {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    left: 3px;
-    top: 3px;
-    background: #fff;
-    border-radius: 50%;
-    transition: transform $transition-fast;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  }
-}
-
-.toggle-switch input:checked + .toggle-slider {
-  background: $neon-purple;
-  box-shadow: 0 0 8px rgba(168,85,247,0.45);
-}
-
-.toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(20px);
-}

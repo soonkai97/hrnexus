@@ -5,6 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { WorkLogService, WorkLogDto, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PickerOnlyDirective, PagedResult, todayLocalString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { Tag } from 'primeng/tag';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { Paginator } from 'primeng/paginator';
 import { InputText } from 'primeng/inputtext';
@@ -23,7 +24,7 @@ function nowHHmm(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, InputText, Select, Message, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator],
+  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, Tag, InputText, Select, Message, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })

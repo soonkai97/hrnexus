@@ -101,12 +101,10 @@ export class StaffComponent implements OnInit {
     this.staffMenuItems.set([
       {
         label: this.translate.instant('staff.editStaff'),
-        icon: 'pi pi-user',
         routerLink: ['/staff', s.id],
       },
       {
         label: this.translate.instant('staff.resetPassword'),
-        icon: 'pi pi-key',
         command: () => this.openResetPassword(s),
       },
       { separator: true },
@@ -114,12 +112,10 @@ export class StaffComponent implements OnInit {
         label: s.isActive
           ? this.translate.instant('staff.deactivate')
           : this.translate.instant('staff.activate'),
-        icon: 'pi pi-power-off',
         command: () => this.toggleActive(s.id, s.isActive),
       },
       {
         label: this.translate.instant('staff.delete'),
-        icon: 'pi pi-trash',
         styleClass: 'nc-danger-item',
         command: () => this.deleteStaff(s),
       },

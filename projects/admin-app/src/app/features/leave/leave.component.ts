@@ -174,12 +174,6 @@ export class LeaveComponent implements OnInit {
     if (mode === 'calendar') this.loadCalRecords();
   }
   readonly statuses: string[] = [...STATUSES];
-  readonly presets    = [
-    { labelKey: 'common.today',     value: 'today'  as const },
-    { labelKey: 'common.thisWeek',  value: 'week'   as const },
-    { labelKey: 'common.thisMonth', value: 'month'  as const },
-  ];
-
   form: UpsertLeaveRequest = {
     employeeId: '', leaveType: 'sick', startDate: '', endDate: '', notes: null, status: 'approved',
   };
@@ -223,24 +217,6 @@ export class LeaveComponent implements OnInit {
     this.leaveSvc.getAll({ status: 'pending', pageSize: 1 }).subscribe({
       next: r => this.totalPendingCount.set(r?.total ?? 0),
     });
-  }
-
-  setPreset(preset: 'today' | 'week' | 'month'): void {
-    const fmt = (d: Date) => toLocalDateString(d);
-    const now = new Date();
-    switch (preset) {
-      case 'today': this.filterFrom = this.filterTo = fmt(now); break;
-      case 'week': {
-        const mon = new Date(now);
-        mon.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-        this.filterFrom = fmt(mon); this.filterTo = fmt(now); break;
-      }
-      case 'month': {
-        const first = new Date(now.getFullYear(), now.getMonth(), 1);
-        this.filterFrom = fmt(first); this.filterTo = fmt(now); break;
-      }
-    }
-    this.load(1);
   }
 
   load(page = 1): void {

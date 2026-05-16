@@ -1,8 +1,42 @@
+@use 'styles/theme' as *;
+
 .form-card {
   padding: 1.5rem;
   margin-bottom: 1rem;
   animation: fade-up 0.2s ease both;
 }
+
+// ── History card ──────────────────────────────────────────────────────────────
+.history-card { margin-top: 1rem; }
+
+.history-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.history-empty {
+  color: $text-muted;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+// ── Preview section ───────────────────────────────────────────────────────────
+.preview-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.preview-meta {
+  font-size: 0.75rem;
+  color: $text-muted;
+  margin-bottom: 0.75rem;
+}
+
+// ── Table helpers ─────────────────────────────────────────────────────────────
+.td-muted  { color: $text-secondary; }
+.td-amount { color: $neon-green; font-weight: 600; }
 
 .preview-section {
   margin-top: 1.5rem;

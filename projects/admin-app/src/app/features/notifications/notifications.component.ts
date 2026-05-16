@@ -4,12 +4,12 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { NotificationService, AppNotification } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
-import { ProgressSpinner } from 'primeng/progressspinner';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [TranslatePipe, Button, Card, ProgressSpinner],
+  imports: [TranslatePipe, Button, Card, Skeleton],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss',
 })

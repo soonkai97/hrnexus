@@ -7,12 +7,12 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { InputNumber } from 'primeng/inputnumber';
-import { ProgressSpinner } from 'primeng/progressspinner';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-tips-history',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, InputNumber, ProgressSpinner],
+  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, InputNumber, Skeleton],
   templateUrl: './tips-history.component.html',
   styleUrl: './tips-history.component.scss',
 })

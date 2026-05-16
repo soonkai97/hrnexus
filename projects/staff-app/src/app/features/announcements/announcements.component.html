@@ -14,7 +14,21 @@
   </div>
 
   @if (loading()) {
-    <div class="loading-wrap"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
+    <div class="announcements-list">
+      @for (i of [1,2,3]; track i) {
+        <div class="announcement-card">
+          <div class="card-left-accent"></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:0.5rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem">
+              <p-skeleton width="55%" height="0.8rem" borderRadius="4px" />
+              <p-skeleton width="18%" height="0.65rem" borderRadius="4px" />
+            </div>
+            <p-skeleton width="100%" height="0.65rem" borderRadius="4px" />
+            <p-skeleton width="70%" height="0.65rem" borderRadius="4px" />
+          </div>
+        </div>
+      }
+    </div>
   } @else if (items().length === 0) {
     <div class="empty-state-card">
       <div class="empty-icon"><i class="pi pi-inbox"></i></div>

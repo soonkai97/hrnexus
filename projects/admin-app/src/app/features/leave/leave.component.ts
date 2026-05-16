@@ -72,6 +72,10 @@ export class LeaveComponent implements OnInit {
 
   readonly currentYear = new Date().getFullYear();
   readonly leaveTypes: string[] = [...LEAVE_TYPES];
+  readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({
+    label: t === 'no-show' ? 'No-Show' : t.charAt(0).toUpperCase() + t.slice(1),
+    value: t,
+  }));
   readonly calDayKeys  = ['leave.calDayMon','leave.calDayTue','leave.calDayWed','leave.calDayThu','leave.calDayFri','leave.calDaySat','leave.calDaySun'];
 
   readonly tabOptions = [
@@ -179,6 +183,12 @@ export class LeaveComponent implements OnInit {
   form: UpsertLeaveRequest = {
     employeeId: '', leaveType: 'sick', startDate: '', endDate: '', notes: null, status: 'approved',
   };
+
+  onStartDateChange(date: string): void {
+    if (!this.form.endDate || this.form.endDate < date) {
+      this.form.endDate = date;
+    }
+  }
 
   ngOnInit(): void {
     this.staffStore.loadStaff();

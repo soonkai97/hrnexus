@@ -182,7 +182,9 @@ input[type="time"] {
 
 // Generic wrapper used by some components (my-schedule, etc.)
 .page-wrap {
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem;
+  max-width: 640px;
+  margin: 0 auto;
   animation: fade-up 0.25s ease both;
 }
 

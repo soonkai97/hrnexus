@@ -10,10 +10,14 @@
     <p-card styleClass="compose-card">
       <h3 class="compose-title">New Message</h3>
       <div class="field">
-        <label>To (leave empty to send to all staff as broadcast)</label>
+        <label>To</label>
         <p-select [(ngModel)]="compose.recipientId"
           [options]="staff()" optionLabel="fullName" optionValue="id"
           placeholder="— All Staff (Broadcast) —" [showClear]="true" styleClass="w-full" />
+        <div class="recipient-hint" [class.hint-broadcast]="!compose.recipientId">
+          <i [class]="compose.recipientId ? 'pi pi-user' : 'pi pi-users'"></i>
+          {{ compose.recipientId ? 'Direct message — only the selected staff member will receive this.' : 'Broadcast — all staff will receive this message.' }}
+        </div>
       </div>
       <div class="field">
         <label>Message *</label>

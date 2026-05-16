@@ -11,7 +11,9 @@
         <label>{{ 'leave.staffLabel' | translate }}</label>
         <p-select [(ngModel)]="filterEmployeeId" (onChange)="load(1)"
           [options]="staffStore.staff()" optionLabel="fullName" optionValue="id"
-          [placeholder]="'leave.allStaff' | translate" [showClear]="true" styleClass="w-full" />
+          [placeholder]="'leave.allStaff' | translate" [showClear]="true"
+          [filter]="true" filterPlaceholder="Search staff…"
+          styleClass="w-full" />
       </div>
       <div class="field filter-date">
         <label>{{ 'leave.fromLabel' | translate }}</label>
@@ -107,6 +109,7 @@
             <p-select [(ngModel)]="form.employeeId" [options]="staffStore.staff()"
               optionLabel="fullName" optionValue="id"
               [placeholder]="'leave.selectOption' | translate"
+              [filter]="true" filterPlaceholder="Search staff…"
               [disabled]="!!editing()" styleClass="w-full" />
           </div>
           <div class="field">

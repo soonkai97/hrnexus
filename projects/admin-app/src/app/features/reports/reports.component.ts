@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, HostListener } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -15,12 +15,13 @@ import { TooltipModule } from 'primeng/tooltip';
 import { DatePicker } from 'primeng/datepicker';
 import { Message } from 'primeng/message';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
+import { MultiSelect } from 'primeng/multiselect';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, TableModule, Tag, Card, TooltipModule, DatePicker, Message, Tabs, TabList, Tab],
+    Button, TableModule, Tag, Card, TooltipModule, DatePicker, Message, Tabs, TabList, Tab, MultiSelect],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -45,23 +46,7 @@ export class ReportsComponent implements OnInit {
   locationNames: string[] = [];
   roles:         string[] = [];
 
-  // Dropdown open states
-  empOpen  = signal(false);
-  locOpen  = signal(false);
-  roleOpen = signal(false);
-
   activeTab = signal<'employee' | 'location' | 'role' | 'date' | 'shifts'>('employee');
-
-  // Close dropdowns when clicking outside
-  @HostListener('document:click', ['$event'])
-  onDocClick(e: MouseEvent): void {
-    const t = e.target as HTMLElement;
-    if (!t.closest('.ms-wrap')) {
-      this.empOpen.set(false);
-      this.locOpen.set(false);
-      this.roleOpen.set(false);
-    }
-  }
 
   maxLocationCost = computed(() => {
     const rows = this.report()?.byLocation ?? [];
@@ -103,29 +88,6 @@ export class ReportsComponent implements OnInit {
       error: ()    => { this.error.set('Failed to load report.'); this.toast.error('Failed to load report.'); this.loading.set(false); },
     });
   }
-
-  toggleStaff(id: string): void {
-    this.staffIds = this.staffIds.includes(id)
-      ? this.staffIds.filter(v => v !== id) : [...this.staffIds, id];
-  }
-
-  toggleLocation(name: string): void {
-    this.locationNames = this.locationNames.includes(name)
-      ? this.locationNames.filter(v => v !== name) : [...this.locationNames, name];
-  }
-
-  toggleRole(name: string): void {
-    this.roles = this.roles.includes(name)
-      ? this.roles.filter(v => v !== name) : [...this.roles, name];
-  }
-
-  clearStaff(): void      { this.staffIds       = []; }
-  clearLocations(): void  { this.locationNames = []; }
-  clearRoles(): void      { this.roles         = []; }
-
-  empLabel   = computed(() => this.staffIds.length       === 0 ? 'All Staff'     : `${this.staffIds.length} selected`);
-  locLabel   = computed(() => this.locationNames.length === 0 ? 'All Locations'  : `${this.locationNames.length} selected`);
-  roleLabel  = computed(() => this.roles.length         === 0 ? 'All Roles'      : `${this.roles.length} selected`);
 
   setPreset(preset: 'today' | 'yesterday' | 'week' | 'month' | 'last-month'): void {
     const now = new Date();

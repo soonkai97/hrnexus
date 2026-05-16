@@ -110,67 +110,6 @@
   .field-btn { flex-shrink: 0; }
 }
 
-// ── Multi-select dropdown ─────────────────────────────────────────────────────
-
-.ms-wrap {
-  position: relative;
-}
-
-.ms-trigger {
-  width: 100%;
-  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
-  background: $bg-surface; border: 1px solid $border-subtle; color: $text-primary;
-  padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.85rem;
-  cursor: pointer; text-align: left;
-  transition: border-color $transition-fast, box-shadow $transition-fast;
-
-  &:hover          { border-color: rgba(168,85,247,0.4); }
-  &:focus          { outline: none; box-shadow: $glow-sm; }
-  &.has-selection  { border-color: rgba(168,85,247,0.55); color: $neon-purple; font-weight: 600; }
-}
-
-.ms-arrow {
-  font-size: 0.7rem; color: $text-muted; flex-shrink: 0;
-  transition: transform $transition-fast;
-  &.open { transform: rotate(180deg); }
-}
-
-.ms-panel {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
-  background: $bg-raised; border: 1px solid $border-subtle;
-  border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  max-height: 240px; overflow-y: auto;
-  padding: 0.35rem 0;
-  min-width: 180px;
-}
-
-.ms-clear {
-  width: 100%; background: none; border: none;
-  color: $text-muted; font-size: 0.75rem; padding: 0.3rem 0.75rem;
-  text-align: left; cursor: pointer; display: block;
-  border-bottom: 1px solid $border-subtle; margin-bottom: 0.25rem;
-  &:hover { color: $danger; }
-}
-
-.ms-option {
-  display: flex; align-items: center; gap: 0.6rem;
-  padding: 0.45rem 0.75rem; cursor: pointer; font-size: 0.85rem; color: $text-primary;
-  transition: background $transition-fast;
-
-  &:hover { background: rgba(168,85,247,0.08); }
-
-  input[type="checkbox"] {
-    flex-shrink: 0;
-    width: 14px; height: 14px;
-    accent-color: $neon-purple;
-    cursor: pointer;
-  }
-}
-
-.ms-sub {
-  margin-left: auto; font-size: 0.72rem; color: $text-muted; font-family: monospace;
-}
-
 // ── Result stat grid ──────────────────────────────────────────────────────────
 
 .report-stat-grid { margin-top: 1.25rem; }

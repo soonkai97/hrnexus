@@ -10,12 +10,13 @@ import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-tips',
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe,
-    Button, InputNumber, TableModule, Tag, Card, Select, DatePicker],
+    Button, InputNumber, TableModule, Tag, Card, Select, DatePicker, Skeleton],
   templateUrl: './tips.component.html',
   styleUrl: './tips.component.scss',
 })
@@ -25,6 +26,7 @@ export class TipsComponent implements OnInit {
   readonly locationStore        = inject(LocationStore);
 
   pools        = signal<TipsPoolDto[]>([]);
+  loading      = signal(false);
   showForm     = signal(false);
   distributing = signal(false);
   preview      = signal<TipsDistributionResult | null>(null);
@@ -52,9 +54,10 @@ export class TipsComponent implements OnInit {
   }
 
   load(): void {
+    this.loading.set(true);
     this.adminSvc.getTipsPools().subscribe({
-      next:  list => this.pools.set(list),
-      error: ()   => this.toast.error('Failed to load tips pools.'),
+      next:  list => { this.pools.set(list); this.loading.set(false); },
+      error: ()   => { this.toast.error('Failed to load tips pools.'); this.loading.set(false); },
     });
   }
 

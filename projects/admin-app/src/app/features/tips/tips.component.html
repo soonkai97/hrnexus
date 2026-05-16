@@ -89,10 +89,24 @@
   <!-- History -->
   <p-card styleClass="nc-card history-card">
     <h3 class="history-title">{{ 'tips.distributionHistory' | translate }}</h3>
-    @if (pools().length === 0) {
+    @if (loading()) {
+      <div class="skeleton-table">
+        @for (i of [1,2,3,4]; track i) {
+          <div class="skeleton-row">
+            <p-skeleton width="18%" height="0.72rem" borderRadius="4px" />
+            <p-skeleton width="12%" height="0.72rem" borderRadius="4px" />
+            <p-skeleton width="10%" height="0.72rem" borderRadius="4px" />
+            <p-skeleton width="10%" height="0.72rem" borderRadius="4px" />
+            <p-skeleton width="6%"  height="0.72rem" borderRadius="4px" />
+            <p-skeleton width="60px" height="1.4rem" borderRadius="6px" />
+            <p-skeleton width="10%" height="0.72rem" borderRadius="4px" />
+          </div>
+        }
+      </div>
+    } @else if (pools().length === 0) {
       <p class="history-empty">{{ 'tips.noDistributions' | translate }}</p>
     } @else {
-      <p-table [value]="pools()" [tableStyle]="{'min-width':'100%'}">
+      <p-table [value]="pools()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
         <ng-template pTemplate="header">
           <tr>
             <th>{{ 'tips.locationCol' | translate }}</th>
@@ -106,16 +120,17 @@
         </ng-template>
         <ng-template pTemplate="body" let-p>
           <tr>
-            <td>{{ p.locationName }}</td>
-            <td class="td-muted">{{ p.shiftDate | date:'mediumDate' }}</td>
-            <td class="td-amount">{{ p.totalAmount | number:'1.2-2' }}</td>
-            <td>{{ p.splitMethod }}</td>
-            <td>{{ p.staffCount }}</td>
+            <td><span class="p-column-title">{{ 'tips.locationCol' | translate }}</span>{{ p.locationName }}</td>
+            <td class="td-muted"><span class="p-column-title">{{ 'tips.shiftDateCol' | translate }}</span>{{ p.shiftDate | date:'mediumDate' }}</td>
+            <td class="td-amount"><span class="p-column-title">{{ 'tips.totalCol' | translate }}</span>{{ p.totalAmount | number:'1.2-2' }}</td>
+            <td><span class="p-column-title">{{ 'tips.methodCol' | translate }}</span>{{ p.splitMethod }}</td>
+            <td><span class="p-column-title">{{ 'tips.staffCountCol' | translate }}</span>{{ p.staffCount }}</td>
             <td>
+              <span class="p-column-title">{{ 'tips.statusCol' | translate }}</span>
               <p-tag [value]="p.isDistributed ? ('tips.distributed' | translate) : ('common.pending' | translate)"
                      [severity]="p.isDistributed ? 'success' : 'secondary'" />
             </td>
-            <td class="td-muted">{{ p.createdAt | date:'mediumDate' }}</td>
+            <td class="td-muted"><span class="p-column-title">{{ 'tips.createdCol' | translate }}</span>{{ p.createdAt | date:'mediumDate' }}</td>
           </tr>
         </ng-template>
       </p-table>

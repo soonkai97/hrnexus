@@ -6,10 +6,6 @@
 
   @if (showForm()) {
     <p-card #formAnchor styleClass="form-card">
-      <!-- backdrop inside card so it doesn't bleed over table below -->
-      @if (showRoleDropdown()) {
-        <div class="role-backdrop" (click)="closeRoleDropdown()"></div>
-      }
       <div class="form-header">
         <h3>{{ editingId() ? ('overtime.editRule' | translate) : ('overtime.newOvertimeRule' | translate) }}</h3>
         <p-button label="Close" [text]="true" severity="secondary" (click)="closeForm()" />
@@ -19,26 +15,18 @@
         <!-- Role multi-select -->
         <div class="field">
           <label><span class="req">*</span> {{ 'overtime.roleLabel' | translate }}</label>
-          <div class="role-select">
-            <button type="button" class="role-trigger" (click)="showRoleDropdown.update(v => !v)">
-              <span class="role-trigger-label">{{ roleLabel() }}</span>
-            </button>
-            @if (showRoleDropdown()) {
-              <div class="role-dropdown">
-                <label class="role-option">
-                  <input type="checkbox" [checked]="isRoleSelected('*')" (change)="toggleRole('*')" />
-                  <span>{{ 'overtime.allRoles' | translate }}</span>
-                </label>
-                <div class="role-divider"></div>
-                @for (r of staffStore.roles(); track r.name) {
-                  <label class="role-option">
-                    <input type="checkbox" [checked]="isRoleSelected(r.name)" (change)="toggleRole(r.name)" />
-                    <span>{{ r.name | titlecase }}</span>
-                  </label>
-                }
-              </div>
-            }
-          </div>
+          <p-multiselect
+            [ngModel]="selectedRoles()"
+            (ngModelChange)="selectedRoles.set($event)"
+            [options]="staffStore.roles()"
+            optionLabel="name"
+            optionValue="name"
+            placeholder="All Roles (*)"
+            [showClear]="true"
+            [maxSelectedLabels]="2"
+            selectedItemsLabel="{0} roles"
+            appendTo="body"
+            styleClass="w-full" />
         </div>
 
         <div class="field">
@@ -82,7 +70,7 @@
     @if (rules().length === 0 && !loading()) {
       <div class="empty-state">{{ 'overtime.noRulesConfigured' | translate }}</div>
     } @else {
-      <p-table [value]="rules()" [tableStyle]="{'min-width':'100%'}">
+      <p-table [value]="rules()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
         <ng-template pTemplate="header">
           <tr>
             <th>{{ 'overtime.roleCol' | translate }}</th>
@@ -95,15 +83,17 @@
         <ng-template pTemplate="body" let-rule>
           <tr>
             <td>
+              <span class="p-column-title">{{ 'overtime.roleCol' | translate }}</span>
               @if (rule.role === '*') {
                 {{ 'overtime.allRoles' | translate }}
               } @else {
                 {{ rule.role.split(',').join(', ') | titlecase }}
               }
             </td>
-            <td>{{ rule.thresholdHours }}h</td>
-            <td>{{ rule.multiplier }}x</td>
+            <td><span class="p-column-title">{{ 'overtime.afterHoursCol' | translate }}</span>{{ rule.thresholdHours }}h</td>
+            <td><span class="p-column-title">{{ 'overtime.multiplierCol' | translate }}</span>{{ rule.multiplier }}x</td>
             <td>
+              <span class="p-column-title">{{ 'overtime.activeCol' | translate }}</span>
               @if (rule.isActive) {
                 <p-tag [value]="'common.active' | translate" severity="success" />
               } @else {

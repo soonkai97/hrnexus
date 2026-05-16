@@ -111,7 +111,7 @@
     </p-card>
   } @else {
   <p-card styleClass="table-card p-0" [style]="{'padding':0}">
-    <p-table [value]="staff()" [tableStyle]="{'min-width':'100%'}">
+    <p-table [value]="staff()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
       <ng-template pTemplate="header">
         <tr>
           <th scope="col">{{ 'staff.staffId' | translate }}</th>
@@ -124,18 +124,21 @@
       </ng-template>
       <ng-template pTemplate="body" let-s>
         <tr>
-          <td class="td-muted mono">{{ s.staffId }}</td>
+          <td class="td-muted mono"><span class="p-column-title">{{ 'staff.staffId' | translate }}</span>{{ s.staffId }}</td>
           <td>
+            <span class="p-column-title">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</span>
             <a [routerLink]="['/staff', s.id]" class="staff-name-link">{{ s.fullName }}</a>
             <div class="staff-email">{{ s.email }}</div>
           </td>
           <td>
+            <span class="p-column-title">{{ 'staff.roleCol' | translate }}</span>
             @for (r of s.roles; track r) {
               <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" />
             }
           </td>
-          <td class="td-muted td-masked">{{ maskPhone(s.phoneNumber) }}</td>
+          <td class="td-muted td-masked"><span class="p-column-title">{{ 'staff.phone' | translate }}</span>{{ maskPhone(s.phoneNumber) }}</td>
           <td>
+            <span class="p-column-title">{{ 'staff.statusCol' | translate }}</span>
             <p-tag [value]="s.isActive ? ('common.active' | translate) : ('common.inactive' | translate)"
                    [severity]="s.isActive ? 'success' : 'secondary'" />
           </td>

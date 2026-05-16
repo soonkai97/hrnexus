@@ -107,7 +107,19 @@
   @if (view() === 'history') {
 
     @if (loading()) {
-      <div class="center-spinner"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
+      <div class="leave-list">
+        @for (i of [1,2,3,4]; track i) {
+          <p-card styleClass="leave-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
+              <div style="display:flex;flex-direction:column;gap:0.4rem;flex:1">
+                <p-skeleton width="45%" height="0.75rem" borderRadius="4px" />
+                <p-skeleton width="60%" height="0.65rem" borderRadius="4px" />
+              </div>
+              <p-skeleton width="64px" height="1.4rem" borderRadius="6px" />
+            </div>
+          </p-card>
+        }
+      </div>
     } @else if (records().length === 0) {
       <p-card styleClass="empty-state">
         <div class="empty-inner">

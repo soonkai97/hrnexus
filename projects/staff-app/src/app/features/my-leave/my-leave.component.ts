@@ -7,7 +7,7 @@ import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { ProgressSpinner } from 'primeng/progressspinner';
+import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid'] as const;
@@ -16,7 +16,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 @Component({
   selector: 'app-my-leave',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, Button, Card, Select, InputText, Message, ProgressSpinner, DatePicker],
+  imports: [FormsModule, TranslatePipe, Button, Card, Select, InputText, Message, Skeleton, DatePicker],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })

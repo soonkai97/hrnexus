@@ -12,7 +12,7 @@ import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
-import { ProgressSpinner } from 'primeng/progressspinner';
+import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show'] as const;
@@ -22,7 +22,7 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
   selector: 'app-leave',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, InputText, InputNumber, Card, TooltipModule, Message, Select, ProgressSpinner, DatePicker,
+    Button, InputText, InputNumber, Card, TooltipModule, Message, Select, Skeleton, DatePicker,
     Tabs, TabList, Tab, Paginator],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',

@@ -11,7 +11,16 @@
   </div>
 
   @if (loading()) {
-    <p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" />
+    <p-card styleClass="nc-card" [style]="{'margin-bottom': '1.5rem'}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1.25rem">
+        @for (i of [1,2,3,4,5,6,7,8,9]; track i) {
+          <div style="display:flex;flex-direction:column;gap:0.4rem">
+            <p-skeleton width="55%" height="0.62rem" borderRadius="4px" />
+            <p-skeleton width="80%" height="0.78rem" borderRadius="4px" />
+          </div>
+        }
+      </div>
+    </p-card>
   } @else if (staff(); as s) {
 
     <!-- ── Profile card ─────────────────────────────────────────────── -->
@@ -106,7 +115,19 @@
         }
       </div>
       @if (workLogsLoading()) {
-        <p-progressspinner styleClass="nc-spin" [style]="{'width':'18px','height':'18px'}" strokeWidth="4" />
+        <div style="display:flex;flex-direction:column;gap:0.6rem">
+          @for (i of [1,2,3,4]; track i) {
+            <div style="display:flex;gap:1rem;align-items:center">
+              <p-skeleton width="14%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="10%" height="1.3rem" borderRadius="6px" />
+              <p-skeleton width="16%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="12%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="12%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="7%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="60px" height="1.3rem" borderRadius="6px" />
+            </div>
+          }
+        </div>
       } @else if (workLogs().length === 0) {
         <p style="color:var(--p-text-muted-color);text-align:center;padding:2rem">{{ 'staffDetail.noWorkLogs' | translate }}</p>
       } @else {

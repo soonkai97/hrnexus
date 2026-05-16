@@ -168,7 +168,12 @@
           <p-button label="Next" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="nextCalMonth()" />
         </div>
         @if (loading()) {
-          <div style="text-align:center;padding:2rem"><p-progressspinner styleClass="nc-spin" [style]="{'width':'18px','height':'18px'}" strokeWidth="4" /></div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.25rem;margin-top:0.5rem">
+            @for (i of [1,2,3,4,5,6,7]; track i) { <p-skeleton height="1.6rem" borderRadius="4px" /> }
+            @for (i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; track i) {
+              <p-skeleton height="3.2rem" borderRadius="4px" />
+            }
+          </div>
         } @else {
           <div class="cal-grid">
             @for (d of calDayKeys; track d) { <div class="cal-dow">{{ d | translate }}</div> }
@@ -247,7 +252,22 @@
     <!-- Table / card list view -->
     @if (viewMode() === 'table') {
       @if (loading()) {
-        <div style="text-align:center;padding:3rem"><p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" /></div>
+        <div class="leave-list">
+          @for (i of [1,2,3,4,5]; track i) {
+            <p-card styleClass="leave-card">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
+                <div style="display:flex;flex-direction:column;gap:0.45rem;flex:1">
+                  <div style="display:flex;gap:0.5rem;align-items:center">
+                    <p-skeleton width="60px" height="1.4rem" borderRadius="6px" />
+                    <p-skeleton width="55%" height="0.75rem" borderRadius="4px" />
+                  </div>
+                  <p-skeleton width="40%" height="0.65rem" borderRadius="4px" />
+                </div>
+                <p-skeleton width="70px" height="1.4rem" borderRadius="6px" />
+              </div>
+            </p-card>
+          }
+        </div>
       } @else if (records().length === 0) {
         <p-card styleClass="empty-state">
           <div class="empty-inner">
@@ -364,7 +384,16 @@
     <p-card styleClass="nc-card">
       <div class="section-title">{{ 'leave.balanceOverview' | translate }} — {{ currentYear }}</div>
       @if (allBalancesLoading()) {
-        <div style="text-align:center;padding:1.5rem"><p-progressspinner styleClass="nc-spin" [style]="{'width':'18px','height':'18px'}" strokeWidth="4" /></div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem">
+          @for (i of [1,2,3,4,5]; track i) {
+            <div style="display:flex;align-items:center;gap:1rem;padding:0.5rem 0">
+              <p-skeleton width="30%" height="0.72rem" borderRadius="4px" />
+              <p-skeleton width="15%" height="0.65rem" borderRadius="4px" />
+              <p-skeleton width="15%" height="0.65rem" borderRadius="4px" />
+              <p-skeleton width="15%" height="0.65rem" borderRadius="4px" />
+            </div>
+          }
+        </div>
       } @else if (allBalances().length === 0) {
         <p style="text-align:center;color:var(--p-text-muted-color);padding:1rem 0">{{ 'leave.noActiveStaff' | translate }}</p>
       } @else {

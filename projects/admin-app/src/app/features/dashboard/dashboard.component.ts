@@ -6,11 +6,12 @@ import { SignalRService, AdminService, ActiveStaffDto, RecentEventDto, Dashboard
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, TranslatePipe, TableModule, Tag, Card],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, TranslatePipe, TableModule, Tag, Card, Skeleton],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })

@@ -12,9 +12,21 @@
 .td-muted { color: $text-secondary; font-size: 0.825rem; }
 .mono     { font-family: 'Courier New', monospace; font-size: 0.8rem; }
 
-.loading-state {
-  text-align: center; color: $text-muted;
-  padding: 3rem; font-size: 0.9rem;
+// ── Skeleton loading states ───────────────────────────────────────────────────
+.skeleton-card {
+  background: $bg-surface;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-lg;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.skeleton-section {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .row-new {

@@ -29,7 +29,7 @@
             <span class="nav-label">{{ item.labelKey | translate }}</span>
           }
           @if (item.path === '/announcements' && unreadAnnouncements() > 0) {
-            <span class="nav-badge">{{ unreadAnnouncements() }}</span>
+            <span class="nav-badge">{{ unreadAnnouncements() > 99 ? '99+' : unreadAnnouncements() }}</span>
           }
           @if (item.path === '/notifications' && unreadNotifications() > 0) {
             <span class="nav-badge">{{ unreadNotifications() > 99 ? '99+' : unreadNotifications() }}</span>

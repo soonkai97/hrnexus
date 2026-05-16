@@ -21,13 +21,14 @@ import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-staff',
   standalone: true,
   imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe,
     Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
-    MultiSelect, Menu, Paginator],
+    MultiSelect, Menu, Paginator, Skeleton],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })

@@ -86,7 +86,23 @@
   </div>
 
   <!-- Table -->
-  @if (staff().length === 0 && !loading()) {
+  @if (loading()) {
+    <p-card styleClass="skeleton-table">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="skeleton-row">
+          <p-skeleton width="8%" height="0.72rem" borderRadius="4px" />
+          <div style="display:flex;flex-direction:column;gap:0.3rem;flex:1">
+            <p-skeleton width="50%" height="0.72rem" borderRadius="4px" />
+            <p-skeleton width="60%" height="0.6rem" borderRadius="4px" />
+          </div>
+          <p-skeleton width="60px" height="1.4rem" borderRadius="6px" />
+          <p-skeleton width="12%" height="0.7rem" borderRadius="4px" />
+          <p-skeleton width="60px" height="1.4rem" borderRadius="6px" />
+          <p-skeleton width="28px" height="28px" borderRadius="6px" />
+        </div>
+      }
+    </p-card>
+  } @else if (staff().length === 0) {
     <p-card styleClass="empty-state">
       <div class="empty-inner">
         <span><i class="pi pi-users"></i></span>

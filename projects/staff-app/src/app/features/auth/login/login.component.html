@@ -4,7 +4,7 @@
 
   <div class="login-controls">
     <nc-theme-toggle />
-    <p-button styleClass="login-lang-btn" [label]="lang.current() === 'en' ? '中文' : 'EN'" [text]="true" severity="secondary" (onClick)="lang.toggle()" />
+    <p-button icon="pi pi-globe" styleClass="login-lang-btn" [label]="lang.current() === 'en' ? 'EN' : '中文'" [text]="true" severity="secondary" [attr.aria-label]="lang.current() === 'en' ? 'Switch to Chinese' : 'Switch to English'" (onClick)="lang.toggle()" />
   </div>
 
   <div class="login-card">
@@ -33,6 +33,7 @@
                  (keydown)="removeReadonly($event)"
                  (keydown.enter)="submit()" />
           <span class="eye-btn" role="button" tabindex="0"
+                [attr.aria-label]="showPwd() ? 'Hide password' : 'Show password'"
                 (click)="showPwd.set(!showPwd())"
                 (keydown.enter)="showPwd.set(!showPwd())"
                 (keydown.space)="showPwd.set(!showPwd())">

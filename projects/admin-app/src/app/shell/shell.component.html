@@ -77,11 +77,13 @@
           <span class="topbar-user">{{ user()!.fullName }}</span>
           <nc-theme-toggle />
           <p-button
-            [label]="lang.current() === 'en' ? '中文' : 'EN'"
+            icon="pi pi-globe"
+            [label]="lang.current() === 'en' ? 'EN' : '中文'"
             severity="secondary"
             [outlined]="true"
             size="small"
-            [title]="'profile.language' | translate"
+            [pTooltip]="lang.current() === 'en' ? 'Switch to 中文' : 'Switch to English'"
+            [attr.aria-label]="lang.current() === 'en' ? 'Switch to Chinese' : 'Switch to English'"
             (onClick)="lang.toggle()" />
           <p-button
             icon="pi pi-power-off"

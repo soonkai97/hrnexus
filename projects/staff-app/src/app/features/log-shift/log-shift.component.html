@@ -148,8 +148,20 @@
   @if (view() === 'history') {
 
     @if (loading()) {
-      <div style="display:flex;justify-content:center;padding:3rem">
-        <p-progressspinner styleClass="nc-spin" [style]="{'width':'32px','height':'32px'}" strokeWidth="4" />
+      <div class="history-list">
+        @for (i of [1,2,3,4]; track i) {
+          <p-card styleClass="history-card">
+            <div class="history-top" style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+              <p-skeleton width="60px" height="1.2rem" borderRadius="4px" />
+              <p-skeleton width="90px" height="0.7rem" borderRadius="4px" />
+            </div>
+            <div style="display:flex;gap:1.25rem;flex-wrap:wrap">
+              <p-skeleton width="30%" height="0.65rem" borderRadius="4px" />
+              <p-skeleton width="35%" height="0.65rem" borderRadius="4px" />
+              <p-skeleton width="15%" height="0.65rem" borderRadius="4px" />
+            </div>
+          </p-card>
+        }
       </div>
     } @else if (history().length === 0) {
       <div class="empty-state">

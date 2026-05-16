@@ -10,7 +10,7 @@ import { Paginator } from 'primeng/paginator';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Message } from 'primeng/message';
-import { ProgressSpinner } from 'primeng/progressspinner';
+import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 
 type Mode = 'live' | 'manual';
@@ -23,7 +23,7 @@ function nowHHmm(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, InputText, Select, Message, ProgressSpinner, DatePicker, Tabs, TabList, Tab, Paginator],
+  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, PickerOnlyDirective, Button, Card, InputText, Select, Message, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })

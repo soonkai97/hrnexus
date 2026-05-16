@@ -441,6 +441,12 @@ table { min-width: 480px; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+// ── Responsive p-table: hide column-title spans on desktop ───────────────────
+// These spans are added manually to every <td> for the mobile stack layout.
+// Component-level :deep() rules don't reliably reach inside PrimeNG card
+// wrappers, so the hide must live here in global scope.
+.p-column-title { display: none; }
+
 // ── Table → card-list at <640px (§12 / U9) ───────────────────────────────────
 // On narrow screens (phones, small tablets) p-table and native tables inside
 // .table-card collapse into stacked card rows instead of scrolling horizontally.
@@ -493,6 +499,9 @@ table { min-width: 480px; }
     width: 100%;
     text-align: center;
   }
+
+  // Re-enable column-title spans inside PrimeNG p-table card-stack rows
+  .p-datatable-tbody > tr > td .p-column-title { display: block; }
 }
 
 // ── Dialog responsive (§9.6) ──────────────────────────────────────────────────

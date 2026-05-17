@@ -38,14 +38,7 @@
   <!-- ── View tabs ─────────────────────────────────────────────────────────── -->
   <p-selectbutton [options]="viewOptions"
     [ngModel]="view()" (ngModelChange)="view.set($any($event))"
-    optionValue="value" styleClass="mb-4">
-    <ng-template pTemplate="item" let-item>
-      {{ item.labelKey | translate }}
-      @if (item.value === 'history' && records().length > 0) {
-        <span class="tab-count ms-1">{{ records().length }}</span>
-      }
-    </ng-template>
-  </p-selectbutton>
+    optionLabel="label" optionValue="value" styleClass="mb-4" />
 
   <!-- ═══════════════════════════ APPLY VIEW ══════════════════════════════════ -->
   @if (view() === 'apply') {

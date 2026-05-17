@@ -34,13 +34,13 @@ test.describe('Admin — Leave Management', () => {
   });
 
   test('shows leave records table or empty state after load', async ({ page }) => {
-    await page.waitForSelector(
-      '.skeleton-row, .p-datatable-tbody tr, .empty-state, text=/no leave/i',
-      { timeout: 12_000 }
-    );
-    const hasRows  = await page.locator('.p-datatable-tbody tr').count();
-    const hasEmpty = await page.locator('.empty-state, text=/no leave/i').count();
-    expect(hasRows + hasEmpty).toBeGreaterThan(0);
+    // Leave component uses a card-based layout (not p-datatable).
+    // Skeleton and data cards both use styleClass="leave-card"; empty state uses styleClass="empty-state".
+    await page.waitForSelector('.filter-bar', { timeout: 8_000 });
+    await page.waitForSelector('.leave-card, .empty-state', { timeout: 10_000 });
+    const hasCards = await page.locator('.leave-card').count();
+    const hasEmpty = await page.locator('.empty-state').count();
+    expect(hasCards + hasEmpty).toBeGreaterThan(0);
   });
 
   test('opens the Record Leave form when button is clicked', async ({ page }) => {

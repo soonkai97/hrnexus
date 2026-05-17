@@ -34,20 +34,21 @@ test.describe('Admin — Announcements', () => {
     await expect(page.locator('input[placeholder]').first()).toBeVisible({ timeout: 5_000 });
   });
 
-  test('shows validation error when form is saved with empty title', async ({ page }) => {
+  test('Save button is disabled until both title and body are filled', async ({ page }) => {
     await page.getByRole('button', { name: /new announcement/i }).click();
     await page.waitForSelector('.form-card', { timeout: 5_000 });
 
-    // Leave title blank, fill body
+    // Empty form — Save must be disabled (isFormValid requires title + body)
+    const saveBtn = page.locator('.form-actions').getByRole('button').last();
+    await expect(saveBtn).toBeDisabled({ timeout: 5_000 });
+
+    // Fill body only — still disabled because title is blank
+    // provideNoAutofill() stamps inputs readonly until the first mousedown;
+    // .click() fires mousedown → removes readonly so .fill() can proceed.
     const bodyInput = page.locator('textarea').first();
-    await bodyInput.fill('Test body content for validation.');
-
-    await page.getByRole('button', { name: /^save$/i }).click();
-
-    // Toast or inline error should appear
-    await expect(
-      page.locator('.p-toast-message, .p-message').first()
-    ).toBeVisible({ timeout: 5_000 });
+    await bodyInput.click();
+    await bodyInput.fill('Some body text');
+    await expect(saveBtn).toBeDisabled();
   });
 
   test('creates an announcement and shows it in the list', async ({ page }) => {
@@ -56,13 +57,23 @@ test.describe('Admin — Announcements', () => {
     await page.getByRole('button', { name: /new announcement/i }).click();
     await page.waitForSelector('.form-card', { timeout: 5_000 });
 
-    await page.locator('input[placeholder]').first().fill(title);
-    await page.locator('textarea').first().fill('This is an automated E2E test announcement.');
-    await page.getByRole('button', { name: /^save$/i }).click();
+    // provideNoAutofill() stamps inputs readonly until first mousedown — click first.
+    const titleInput = page.locator('input[placeholder]').first();
+    await titleInput.click();
+    await titleInput.fill(title);
+
+    const bodyInput = page.locator('textarea').first();
+    await bodyInput.click();
+    await bodyInput.fill('This is an automated E2E test announcement.');
+
+    // Both fields filled — Save is now enabled
+    const saveBtn = page.locator('.form-actions').getByRole('button').last();
+    await expect(saveBtn).toBeEnabled({ timeout: 3_000 });
+    await saveBtn.click();
 
     // Form should close and list should contain the new item
     await expect(page.locator('.form-card')).not.toBeVisible({ timeout: 8_000 });
-    await expect(page.locator('text=' + title)).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator(`text=${title}`)).toBeVisible({ timeout: 8_000 });
   });
 
   test('shows announcements list or empty state', async ({ page }) => {

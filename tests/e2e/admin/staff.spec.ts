@@ -45,14 +45,12 @@ test.describe('Admin — Staff Management', () => {
     expect(hasRows + hasEmpty).toBeGreaterThan(0);
   });
 
-  test('Add Staff form shows validation error when submitted empty', async ({ page }) => {
+  test('Add Staff form Save button is disabled when required fields are empty', async ({ page }) => {
     await page.getByRole('button', { name: /add staff/i }).click();
     await page.waitForSelector('input[placeholder*="NC"]', { timeout: 5_000 });
-    // Click save without filling anything
-    await page.getByRole('button', { name: /^save$/i }).click();
-    // PrimeNG message or toast should appear
-    await expect(
-      page.locator('.p-message, [class*="toast"], [class*="error"]').first()
-    ).toBeVisible({ timeout: 5_000 });
+    // The primary (Save) button uses [disabled]="!isFormValid || saving()".
+    // An empty form means isFormValid is false, so Save must be disabled.
+    const saveBtn = page.locator('.form-actions').getByRole('button').last();
+    await expect(saveBtn).toBeDisabled({ timeout: 5_000 });
   });
 });

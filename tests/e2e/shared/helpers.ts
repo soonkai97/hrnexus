@@ -20,9 +20,10 @@ export async function loginAdmin(
 ): Promise<void> {
   await page.goto('/auth/login');
 
-  // Click first to dismiss the readonly anti-autofill attribute
+  // Click first to dismiss the readonly anti-autofill attribute.
+  // Use exact: true on Password to avoid matching the "Show password" eye-button aria-label.
   const idInput  = page.getByLabel(/staff id/i);
-  const pwdInput = page.getByLabel(/password/i);
+  const pwdInput = page.getByLabel('Password', { exact: true });
   await idInput.click();
   await idInput.fill(staffId);
   await pwdInput.click();
@@ -41,7 +42,7 @@ export async function loginStaff(
   await page.goto('/auth/login');
 
   const idInput  = page.getByLabel(/staff id/i);
-  const pwdInput = page.getByLabel(/password/i);
+  const pwdInput = page.getByLabel('Password', { exact: true });
   await idInput.click();
   await idInput.fill(staffId);
   await pwdInput.click();

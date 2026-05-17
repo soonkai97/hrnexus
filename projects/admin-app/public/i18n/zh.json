@@ -369,7 +369,7 @@
     "bodyLabel":        "内容",
     "bodyPlaceholder":  "公告内容",
     "targetRoles":      "目标职位",
-    "targetRolesPlaceholder": "* 表示所有职位，或输入：bartender,manager",
+    "targetRolesPlaceholder": "所有职位（默认）",
     "expiresAt":        "过期时间",
     "expiresAtHint":    "（可选）",
     "noAnnouncements":  "暂无公告。",

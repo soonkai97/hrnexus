@@ -60,3 +60,13 @@ response.txt
 check_*.sql
 verify_*.sql
 seed_fix_*.sql
+seed_*.sql
+
+# Playwright test output artifacts
+test-results.txt
+test-results-leave.txt
+test-results/
+playwright-report/
+
+# Build tool cache
+*.lscache

@@ -1,7 +1,7 @@
-<div class="page-wrap">
+<div class="p-3 p-md-4">
 
   <!-- Greeting -->
-  <div class="greeting">
+  <div class="greeting d-flex align-items-start justify-content-between flex-wrap gap-3">
     <div>
       <h1 class="greeting-text">{{ greeting() | translate }}, {{ firstName() }}</h1>
       @if (user()?.roles?.length) {
@@ -26,9 +26,9 @@
     <!-- Active shift banner -->
     @if (activeShift(); as shift) {
       <p-card styleClass="active-banner">
-        <div class="active-inner">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
           <p-tag [value]="'logShift.live' | translate" severity="success" styleClass="live-tag" />
-          <div class="active-details">
+          <div class="active-details d-flex flex-wrap gap-2 flex-grow-1">
             <span class="active-role">{{ shift.roleName | uppercase }}</span>
             <span class="active-loc"><i class="pi pi-map-marker"></i> {{ shift.locationName }}</span>
             <span class="active-time"><i class="pi pi-clock"></i> {{ shift.startTime | amPm }}</span>
@@ -38,7 +38,7 @@
       </p-card>
     } @else {
       <p-card styleClass="quick-log">
-        <div class="quick-row">
+        <div class="d-flex align-items-center justify-content-between">
           <span>{{ 'home.notClockedIn' | translate }}</span>
           <p-button [label]="'home.logShift' | translate" severity="primary" size="small" routerLink="/log-shift" />
         </div>
@@ -51,7 +51,7 @@
       <!-- Leave balance -->
       @if (leave(); as lb) {
         <p-card styleClass="stat-card">
-          <div class="stat-inner">
+          <div class="d-flex align-items-start gap-3">
             <div class="stat-icon"><i class="pi pi-sun"></i></div>
             <div class="stat-body">
               <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
@@ -61,7 +61,7 @@
           </div>
         </p-card>
         <p-card styleClass="stat-card">
-          <div class="stat-inner">
+          <div class="d-flex align-items-start gap-3">
             <div class="stat-icon"><i class="pi pi-heart"></i></div>
             <div class="stat-body">
               <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
@@ -73,7 +73,7 @@
       } @else {
         <!-- Leave API unavailable — show placeholder cards so the grid stays balanced -->
         <p-card styleClass="stat-card stat-card-muted">
-          <div class="stat-inner">
+          <div class="d-flex align-items-start gap-3">
             <div class="stat-icon"><i class="pi pi-sun"></i></div>
             <div class="stat-body">
               <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
@@ -82,7 +82,7 @@
           </div>
         </p-card>
         <p-card styleClass="stat-card stat-card-muted">
-          <div class="stat-inner">
+          <div class="d-flex align-items-start gap-3">
             <div class="stat-icon"><i class="pi pi-heart"></i></div>
             <div class="stat-body">
               <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
@@ -96,7 +96,7 @@
       @if (showPay()) {
         @if (pay(); as p) {
           <p-card styleClass="stat-card">
-            <div class="stat-inner">
+            <div class="d-flex align-items-start gap-3">
               <div class="stat-icon"><i class="pi pi-wallet"></i></div>
               <div class="stat-body">
                 <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
@@ -106,7 +106,7 @@
             </div>
           </p-card>
           <p-card styleClass="stat-card">
-            <div class="stat-inner">
+            <div class="d-flex align-items-start gap-3">
               <div class="stat-icon"><i class="pi pi-stopwatch"></i></div>
               <div class="stat-body">
                 <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
@@ -118,7 +118,7 @@
         } @else {
           <!-- Pay API unavailable -->
           <p-card styleClass="stat-card stat-card-muted">
-            <div class="stat-inner">
+            <div class="d-flex align-items-start gap-3">
               <div class="stat-icon"><i class="pi pi-wallet"></i></div>
               <div class="stat-body">
                 <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
@@ -127,7 +127,7 @@
             </div>
           </p-card>
           <p-card styleClass="stat-card stat-card-muted">
-            <div class="stat-inner">
+            <div class="d-flex align-items-start gap-3">
               <div class="stat-icon"><i class="pi pi-stopwatch"></i></div>
               <div class="stat-body">
                 <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
@@ -153,7 +153,7 @@
           </div>
         }
       </p-card>
-      <div style="text-align:right;margin-top:.5rem">
+      <div class="text-end mt-2">
         <p-button [label]="'home.viewAllShifts' | translate" [text]="true" severity="secondary" size="small" routerLink="/log-shift" />
       </div>
     } @else {

@@ -1,4 +1,6 @@
-import { Component, OnInit, signal, computed, inject, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, ElementRef, ViewChild } from '@angular/core';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -32,7 +34,7 @@ import { Skeleton } from 'primeng/skeleton';
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })
-export class StaffComponent implements OnInit {
+export class StaffComponent implements OnInit, OnDestroy {
   protected readonly auth      = inject(AuthService);
   private readonly staffStore  = inject(StaffStore);
   private readonly toast       = inject(ToastService);
@@ -51,6 +53,8 @@ export class StaffComponent implements OnInit {
   readonly todayDate = new Date();
 
   search           = signal('');
+  private readonly searchSubject = new Subject<string>();
+  private searchSub?: Subscription;
   readonly pageSize = 10;
   currentPage      = signal(1);
   totalPages       = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
@@ -88,6 +92,16 @@ export class StaffComponent implements OnInit {
   ngOnInit(): void {
     this.staffStore.loadStaff('', 1, this.pageSize);
     this.staffStore.loadRoles();
+    this.searchSub = this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+    ).subscribe(value => {
+      this.staffStore.loadStaff(value, 1, this.pageSize);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.searchSub?.unsubscribe();
   }
 
   loadPage(page: number): void {
@@ -98,7 +112,7 @@ export class StaffComponent implements OnInit {
   onSearch(value: string): void {
     this.search.set(value);
     this.currentPage.set(1);
-    this.staffStore.loadStaff(value, 1, this.pageSize);
+    this.searchSubject.next(value);
   }
 
   openStaffMenu(s: Staff, event: Event): void {
@@ -141,18 +155,6 @@ export class StaffComponent implements OnInit {
     this.error.set('');
     this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: 'password123',
       roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: '' };
-  }
-
-  /** Mask a phone number: +601X•••••89 */
-  maskPhone(phone: string | null | undefined): string {
-    if (!phone) return '—';
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length < 4) return phone;
-    const prefix = phone.startsWith('+') ? '+' : '';
-    const visible = digits.slice(0, 4);
-    const last2   = digits.slice(-2);
-    const masked  = '•'.repeat(Math.max(0, digits.length - 6));
-    return `${prefix}${visible}${masked}${last2}`;
   }
 
   saveStaff(): void {

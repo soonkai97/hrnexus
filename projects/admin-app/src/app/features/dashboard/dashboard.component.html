@@ -1,5 +1,5 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'dashboard.title' | translate }}</h1>
     @if (hubConnected()) {
       <p-tag severity="success"><span class="pulse-dot"></span> {{ 'dashboard.live' | translate }}</p-tag>
@@ -10,17 +10,17 @@
 
   @if (loading()) {
     <!-- Stat-card skeletons -->
-    <div class="stat-grid">
+    <div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
       @for (i of [1,2,3,4]; track i) {
-        <div class="skeleton-card">
+        <div class="col"><div class="skeleton-card d-flex flex-column gap-1">
           <p-skeleton width="55%" height="0.7rem" styleClass="mb-2" borderRadius="4px" />
           <p-skeleton width="45%" height="1.9rem" styleClass="mb-2" borderRadius="6px" />
           <p-skeleton width="75%" height="0.65rem" borderRadius="4px" />
-        </div>
+        </div></div>
       }
     </div>
     <!-- Table skeleton -->
-    <div class="skeleton-section">
+    <div class="skeleton-section d-flex flex-column">
       <p-skeleton width="160px" height="0.7rem" styleClass="mb-3" borderRadius="4px" />
       @for (i of [1,2,3,4,5,6]; track i) {
         <p-skeleton width="100%" height="44px" styleClass="mb-1" borderRadius="6px" />
@@ -28,44 +28,54 @@
     </div>
   } @else if (stats(); as s) {
 
-    <div class="stat-grid">
-      <p-card styleClass="stat-card accent-green">
-        <span class="stat-label">{{ 'dashboard.onShiftNow' | translate }}</span>
-        <span class="stat-value">{{ s.onShiftCount }}</span>
-        <span class="stat-sub">{{ 'dashboard.staffClockedIn' | translate }}</span>
-      </p-card>
-      <p-card styleClass="stat-card accent-purple">
-        <span class="stat-label">{{ 'dashboard.totalStaff' | translate }}</span>
-        <span class="stat-value">{{ s.totalStaff }}</span>
-        <span class="stat-sub">{{ 'dashboard.activeStaffMembers' | translate }}</span>
-      </p-card>
-      <p-card styleClass="stat-card accent-pink">
-        <span class="stat-label">{{ 'dashboard.tonightHours' | translate }}</span>
-        <span class="stat-value">{{ s.tonightHours }}h</span>
-        <span class="stat-sub">{{ 'dashboard.loggedSoFar' | translate }}</span>
-      </p-card>
-      <p-card styleClass="stat-card accent-amber">
-        <span class="stat-label">{{ 'dashboard.estLabourCost' | translate }}</span>
-        <span class="stat-value">RM {{ s.tonightCost | number:'1.2-2' }}</span>
-        <span class="stat-sub">{{ 'dashboard.thisShift' | translate }}</span>
-      </p-card>
-      @if (s.openShiftsCount) {
-        <p-card styleClass="stat-card warn-card">
-          <div class="warn-inner">
-            <div class="stat-icon"><i class="pi pi-exclamation-triangle"></i></div>
-            <div class="stat-body">
-              <div class="stat-value">{{ s.openShiftsCount }}</div>
-              <div class="stat-label">{{ 'dashboard.openShifts' | translate }}</div>
-            </div>
-          </div>
+    <div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
+      <div class="col">
+        <p-card styleClass="stat-card accent-green h-100">
+          <span class="stat-label">{{ 'dashboard.onShiftNow' | translate }}</span>
+          <span class="stat-value">{{ s.onShiftCount }}</span>
+          <span class="stat-sub">{{ 'dashboard.staffClockedIn' | translate }}</span>
         </p-card>
+      </div>
+      <div class="col">
+        <p-card styleClass="stat-card accent-purple h-100">
+          <span class="stat-label">{{ 'dashboard.totalStaff' | translate }}</span>
+          <span class="stat-value">{{ s.totalStaff }}</span>
+          <span class="stat-sub">{{ 'dashboard.activeStaffMembers' | translate }}</span>
+        </p-card>
+      </div>
+      <div class="col">
+        <p-card styleClass="stat-card accent-pink h-100">
+          <span class="stat-label">{{ 'dashboard.tonightHours' | translate }}</span>
+          <span class="stat-value">{{ s.tonightHours }}h</span>
+          <span class="stat-sub">{{ 'dashboard.loggedSoFar' | translate }}</span>
+        </p-card>
+      </div>
+      <div class="col">
+        <p-card styleClass="stat-card accent-amber h-100">
+          <span class="stat-label">{{ 'dashboard.estLabourCost' | translate }}</span>
+          <span class="stat-value">RM {{ s.tonightCost | number:'1.2-2' }}</span>
+          <span class="stat-sub">{{ 'dashboard.thisShift' | translate }}</span>
+        </p-card>
+      </div>
+      @if (s.openShiftsCount) {
+        <div class="col">
+          <p-card styleClass="stat-card warn-card h-100">
+            <div class="warn-inner d-flex align-items-center gap-3">
+              <div class="stat-icon"><i class="pi pi-exclamation-triangle"></i></div>
+              <div class="stat-body d-flex flex-column">
+                <div class="stat-value">{{ s.openShiftsCount }}</div>
+                <div class="stat-label">{{ 'dashboard.openShifts' | translate }}</div>
+              </div>
+            </div>
+          </p-card>
+        </div>
       }
     </div>
 
     <!-- Currently On Shift -->
     @if (onShift().length > 0) {
-      <div class="section-label" style="margin-top:1.5rem">{{ 'dashboard.currentlyOnShift' | translate }}</div>
-      <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+      <div class="section-label mt-4">{{ 'dashboard.currentlyOnShift' | translate }}</div>
+      <p-card styleClass="table-card p-0">
         <p-table [value]="onShift()" [tableStyle]="{'min-width':'100%'}">
           <ng-template pTemplate="header">
             <tr>
@@ -92,8 +102,8 @@
     }
 
     <!-- Recent Activity -->
-    <div class="section-label" style="margin-top:1.5rem">{{ 'dashboard.recentClockActivity' | translate }}</div>
-    <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+    <div class="section-label mt-4">{{ 'dashboard.recentClockActivity' | translate }}</div>
+    <p-card styleClass="table-card p-0">
       <p-table [value]="activity()" [tableStyle]="{'min-width':'100%'}">
         <ng-template pTemplate="header">
           <tr>
@@ -117,7 +127,7 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="5" class="td-muted" style="text-align:center;padding:2rem">{{ 'dashboard.noActivityToday' | translate }}</td></tr>
+          <tr><td colspan="5" class="td-muted text-center p-5">{{ 'dashboard.noActivityToday' | translate }}</td></tr>
         </ng-template>
       </p-table>
     </p-card>

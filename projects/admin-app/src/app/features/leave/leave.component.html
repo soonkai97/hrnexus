@@ -1,12 +1,12 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
     <p-button icon="pi pi-plus" [label]="'leave.recordLeave' | translate" severity="primary" (click)="openAdd(); tab.set('records')" />
   </div>
 
   <!-- ── Filter bar (always visible) ───────────────────────────────────────── -->
   <p-card styleClass="filter-bar">
-    <div class="filter-row">
+    <div class="filter-row d-flex flex-wrap gap-2 align-items-end">
       <div class="field filter-staff">
         <label>{{ 'leave.staffLabel' | translate }}</label>
         <p-select [(ngModel)]="filterEmployeeId" (onChange)="load(1)"
@@ -41,7 +41,7 @@
           [showClear]="!!filterStatus" styleClass="w-full" />
       </div>
     </div>
-    <div class="summary-row">
+    <div class="summary-row d-flex align-items-center gap-2 flex-wrap">
       @for (t of leaveTypes; track t) {
         <span class="summary-pill" [attr.data-type]="t">
           {{ t | titlecase }}: <strong>{{ countByType(t) }}d</strong>
@@ -81,14 +81,14 @@
             @for (r of overdueLeaves(); track r.id) {
               <div class="overdue-row">
                 <div class="overdue-row-info">
-                  <p-tag [value]="r.leaveType | titlecase" [severity]="r.leaveType === 'annual' ? 'info' : r.leaveType === 'sick' ? 'success' : 'danger'" />
+                  <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                   <span class="overdue-staff">{{ r.staffName }}</span>
                   <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.days }}d</span>
                 </div>
                 <div class="overdue-row-actions">
                   <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
                   <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
-                  <p-button [label]="'leave.markNoShow' | translate" styleClass="overdue-noshow-btn" [text]="true" severity="secondary" (click)="markNoShow(r)" />
+                  <p-button [label]="'leave.markNoShow' | translate" severity="warn" [outlined]="true" (click)="markNoShow(r)" />
                 </div>
               </div>
             }
@@ -100,12 +100,12 @@
     <!-- Add / Edit form -->
     @if (showForm()) {
       <p-card #formAnchor styleClass="form-card">
-        <div class="form-header">
+        <div class="form-header d-flex align-items-center justify-content-between">
           <h3>{{ editing() ? ('leave.editLeave' | translate) : ('leave.recordLeaveForm' | translate) }}</h3>
           <p-button label="Close" [text]="true" severity="secondary" (click)="cancelForm()" />
         </div>
-        <div class="form-grid">
-          <div class="field">
+        <div class="row g-3">
+          <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.staffMember' | translate }}</label>
             <p-select [(ngModel)]="form.employeeId" [options]="staffStore.staff()"
               optionLabel="fullName" optionValue="id"
@@ -113,12 +113,12 @@
               [filter]="true" filterPlaceholder="Search staff…"
               [disabled]="!!editing()" styleClass="w-full" />
           </div>
-          <div class="field">
+          <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
             <p-select [(ngModel)]="form.leaveType" [options]="leaveTypeOptions"
               optionLabel="label" optionValue="value" styleClass="w-full" />
           </div>
-          <div class="field">
+          <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
             <p-datepicker [(ngModel)]="form.startDate"
               dateFormat="yy-mm-dd"
@@ -127,7 +127,7 @@
               styleClass="w-full"
               (ngModelChange)="onStartDateChange($event)" />
           </div>
-          <div class="field">
+          <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
             <p-datepicker [(ngModel)]="form.endDate"
               dateFormat="yy-mm-dd"
@@ -136,18 +136,18 @@
               styleClass="w-full" />
           </div>
 
-          <div class="field">
+          <div class="col-12 col-md-6 field">
             <label>{{ 'leave.statusLabel' | translate }}</label>
             <p-select [(ngModel)]="form.status" [options]="statusOptions"
               optionLabel="label" optionValue="value" styleClass="w-full" />
           </div>
-          <div class="field">
+          <div class="col-12 col-md-6 field">
             <label>{{ 'leave.notesLabel' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="form.notes" placeholder="e.g. Doctor's note provided" />
           </div>
         </div>
         @if (formError()) { <p-message severity="error" [text]="formError()" /> }
-        <div class="form-actions">
+        <div class="form-actions d-flex gap-3 justify-content-end">
           <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelForm()" />
           <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"
                     severity="primary" (click)="save()" [disabled]="saving()" [loading]="saving()" />
@@ -172,7 +172,7 @@
           <p-button label="Next" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="nextCalMonth()" />
         </div>
         @if (loading()) {
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.25rem;margin-top:0.5rem">
+          <div class="calendar-week-grid mt-2">
             @for (i of [1,2,3,4,5,6,7]; track i) { <p-skeleton height="1.6rem" borderRadius="4px" /> }
             @for (i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; track i) {
               <p-skeleton height="3.2rem" borderRadius="4px" />
@@ -228,7 +228,7 @@
                          [class.cal-day-row-locked]="r.status !== 'pending'"
                          (click)="r.status === 'pending' ? startEdit(r) : null">
                       <div class="cal-day-row-left">
-                        <p-tag [value]="r.leaveType | titlecase" [severity]="r.leaveType === 'annual' ? 'info' : r.leaveType === 'sick' ? 'success' : 'danger'" />
+                        <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                         @if (r.status === 'pending' && r.endDate < todayIso) {
                           <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
@@ -259,9 +259,9 @@
         <div class="leave-list">
           @for (i of [1,2,3,4,5]; track i) {
             <p-card styleClass="leave-card">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
-                <div style="display:flex;flex-direction:column;gap:0.45rem;flex:1">
-                  <div style="display:flex;gap:0.5rem;align-items:center">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="d-flex flex-column gap-2 flex-fill">
+                  <div class="d-flex gap-2 align-items-center">
                     <p-skeleton width="60px" height="1.4rem" borderRadius="6px" />
                     <p-skeleton width="55%" height="0.75rem" borderRadius="4px" />
                   </div>
@@ -285,7 +285,7 @@
             <p-card styleClass="leave-card" [class.leave-card-overdue]="r.status === 'pending' && r.endDate < todayIso">
               <div class="leave-top">
                 <div class="leave-top-left">
-                  <p-tag [value]="r.leaveType | titlecase" [severity]="r.leaveType === 'annual' ? 'info' : r.leaveType === 'sick' ? 'success' : 'danger'" />
+                  <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                   @if (r.status === 'pending' && r.endDate < todayIso) {
                     <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                   }
@@ -364,15 +364,15 @@
         </div>
         @if (editingEntitlement()) {
           <div class="entitlement-form">
-            <div class="field" style="margin:0">
+            <div class="field m-0">
               <label>{{ 'leave.annualDays' | translate }}</label>
               <p-inputnumber [(ngModel)]="entitlementForm.annualDays" [min]="0" [max]="60" />
             </div>
-            <div class="field" style="margin:0">
+            <div class="field m-0">
               <label>{{ 'leave.sickDays' | translate }}</label>
               <p-inputnumber [(ngModel)]="entitlementForm.sickDays" [min]="0" [max]="60" />
             </div>
-            <div class="field" style="margin:0">
+            <div class="field m-0">
               <label>{{ 'common.year' | translate }}</label>
               <p-inputnumber [(ngModel)]="entitlementForm.year" />
             </div>
@@ -388,9 +388,9 @@
     <p-card styleClass="nc-card">
       <div class="section-title">{{ 'leave.balanceOverview' | translate }} — {{ currentYear }}</div>
       @if (allBalancesLoading()) {
-        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem">
+        <div class="d-flex flex-column gap-2 mt-2">
           @for (i of [1,2,3,4,5]; track i) {
-            <div style="display:flex;align-items:center;gap:1rem;padding:0.5rem 0">
+            <div class="d-flex align-items-center gap-3 py-2">
               <p-skeleton width="30%" height="0.72rem" borderRadius="4px" />
               <p-skeleton width="15%" height="0.65rem" borderRadius="4px" />
               <p-skeleton width="15%" height="0.65rem" borderRadius="4px" />
@@ -399,7 +399,7 @@
           }
         </div>
       } @else if (allBalances().length === 0) {
-        <p style="text-align:center;color:var(--p-text-muted-color);padding:1rem 0">{{ 'leave.noActiveStaff' | translate }}</p>
+        <p class="text-center py-3">{{ 'leave.noActiveStaff' | translate }}</p>
       } @else {
         <div class="staff-balance-list">
           @for (b of allBalances(); track b.employeeId) {

@@ -145,14 +145,7 @@ input[type="time"] {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: $border-glow; border-radius: 2px; }
 
-.page-wrap {
-  padding: 1.5rem;
-  animation: page-fade-in 0.2s ease;
-}
-
-
 .page-header {
-  display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 1.5rem;
   .page-title {
     font-size: 1.4rem;
@@ -161,10 +154,6 @@ input[type="time"] {
   }
 }
 
-.stat-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem; margin-bottom: 1.5rem;
-}
 
 .stat-card {
   @include glass;
@@ -224,24 +213,39 @@ tbody tr {
 // Ensure tables don't collapse below a usable minimum on small screens
 table { min-width: 480px; }
 
-// ── Responsive helpers ───────────────────────────────────────────────────────
-@media (max-width: 768px) {
-  .page-header { flex-wrap: wrap; gap: 0.75rem; }
-  .stat-grid   { grid-template-columns: repeat(2, 1fr); }
-
-  // Responsive page header
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+// ── PrimeNG overlay panels — undo global table styles ────────────────────────
+// The global table/th/td rules above are scoped for admin data tables.
+// PrimeNG's datepicker calendar is also rendered as a <table> inside
+// .p-datepicker-panel and must NOT inherit these data-table styles or the
+// calendar grid becomes 480 px wide, cells get huge padding, and rows get
+// horizontal dividers — making the popup look completely broken.
+.p-datepicker-panel {
+  table    { min-width: 0 !important; width: auto !important; }
+  thead tr { background: transparent !important; }
+  th {
+    padding: 0 !important;
+    text-align: center !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+    border-bottom: none !important;
   }
-  .page-wrap { padding: 1rem; }
+  td {
+    padding: 0 !important;
+    border-bottom: none !important;
+    font-size: inherit !important;
+    color: inherit !important;
+  }
+  tbody tr { &:hover { background: transparent !important; } }
+  tbody tr:last-child td { border-bottom: none !important; }
 }
 
+// ── Responsive helpers ───────────────────────────────────────────────────────
+
 @media (max-width: 480px) {
-  .stat-grid { grid-template-columns: 1fr 1fr; }
   th, td     { padding: 0.6rem 0.75rem; }
-  .page-wrap { padding: 0.75rem; }
   .nc-card   { padding: 1rem; }
 }
 
@@ -345,6 +349,14 @@ table { min-width: 480px; }
   }
 }
 
+// ── PrimeNG icon-field container border-radius + padding ─────────────────────
+// PrimeNG Aura sets a pill/capsule border-radius on .p-iconfield. Override it
+// to match the standard $radius-md used by all other inputs across the app.
+// The global input rule (specificity 0-6-0) also overrides PrimeNG's padding-left
+// that makes room for the icon, causing the icon to overlap the placeholder text.
+.p-iconfield { border-radius: $radius-md !important; }
+.p-iconfield > .p-inputtext { padding-left: 2.25rem !important; }
+
 // ── PrimeNG p-select internal button reset ────────────────────────────────────
 // The clear (×) and dropdown chevron are <button> elements. PrimeNG does not
 // reset browser-default button chrome on them, so they render as detached gray
@@ -371,6 +383,23 @@ table { min-width: 480px; }
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+// The calendar trigger button sits OUTSIDE the input (unlike p-select-dropdown
+// which is inside the container). Give it matching border on 3 sides, remove
+// the left border to avoid a double-line seam with the input, and remove the
+// left border-radius so it connects flush with the input's right edge.
+.p-datepicker:has(.p-datepicker-dropdown) .p-datepicker-dropdown {
+  border: 1px solid $border-subtle !important;
+  border-left: none !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  background: $bg-raised !important;
+  padding: 0 0.7rem !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: $text-muted !important;
+  cursor: pointer !important;
+  &:hover { background: rgba(168,85,247,0.07) !important; }
+}
 
 // Password with toggleMask: the input must have no right border-radius so the
 // eye-toggle icon area connects to the input field cleanly.
@@ -395,17 +424,11 @@ table { min-width: 480px; }
 // ── Shared inline-form standards ──────────────────────────────────────────────
 // Used by every page that has an inline add/edit form card.
 .form-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 1.1rem;
   h3 { margin: 0; font-size: 1rem; font-weight: 700; color: $text-primary; }
 }
 
 .form-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
   margin-top: 0.85rem;
   padding-top: 0.85rem;
   border-top: 1px solid $border-subtle;
@@ -417,13 +440,6 @@ table { min-width: 480px; }
   line-height: 1;
   color: $text-muted !important;
   &:hover { color: $text-primary !important; }
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  @media (max-width: 480px) { grid-template-columns: 1fr; }
 }
 
 // ── Action dropdown pop (opens upward) ────────────────────────────────────────
@@ -517,6 +533,28 @@ table { min-width: 480px; }
 
   // Re-enable column-title spans inside PrimeNG p-table card-stack rows
   .p-datatable-tbody > tr > td .p-column-title { display: block; }
+}
+
+// ── Report tables: opt out of card-stack, stay as scrollable tables ──────────
+// .report-table-card is added alongside .table-card on report page tables.
+// These rules come after the card-stack block and win on cascade order.
+@media (max-width: 640px) {
+  .report-table-card                 { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .report-table-card table           { min-width: 480px !important; }
+  .report-table-card thead           { display: table-header-group !important; }
+  .report-table-card tbody tr        { display: table-row !important; padding: 0 !important; border: none !important; border-radius: 0 !important; margin: 0 !important; }
+  .report-table-card tbody td,
+  .report-table-card tbody td:first-child {
+    display: table-cell !important;
+    width: auto !important;
+    padding: 0.5rem 0.6rem !important;
+    font-size: 0.78rem !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+    border-bottom: 1px solid $border-subtle !important;
+    vertical-align: middle !important;
+  }
+  .report-table-card tbody tr:last-child td { border-bottom: none !important; }
 }
 
 // ── Dialog responsive (§9.6) ──────────────────────────────────────────────────

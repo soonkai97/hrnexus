@@ -1,5 +1,5 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
   </div>
 
@@ -36,17 +36,16 @@
   }
 
   <!-- ── View tabs ─────────────────────────────────────────────────────────── -->
-  <div class="view-tabs">
-    <button [class.active]="view() === 'apply'" (click)="view.set('apply')">
-      {{ 'leave.applyLeave' | translate }}
-    </button>
-    <button [class.active]="view() === 'history'" (click)="view.set('history')">
-      {{ 'leave.history' | translate }}
-      @if (records().length > 0) {
-        <span class="tab-count">{{ records().length }}</span>
+  <p-selectbutton [options]="viewOptions"
+    [ngModel]="view()" (ngModelChange)="view.set($any($event))"
+    optionValue="value" styleClass="mb-4">
+    <ng-template pTemplate="item" let-item>
+      {{ item.labelKey | translate }}
+      @if (item.value === 'history' && records().length > 0) {
+        <span class="tab-count ms-1">{{ records().length }}</span>
       }
-    </button>
-  </div>
+    </ng-template>
+  </p-selectbutton>
 
   <!-- ═══════════════════════════ APPLY VIEW ══════════════════════════════════ -->
   @if (view() === 'apply') {
@@ -92,7 +91,7 @@
       @if (formError()) {
         <p-message severity="error" [text]="formError()" />
       }
-      <div class="form-actions">
+      <div class="form-actions d-flex gap-3 justify-content-end">
         <p-button
           [label]="saving() ? (('common.saving' | translate) + '…') : ('leave.applyLeave' | translate)"
           severity="primary"
@@ -111,8 +110,8 @@
       <div class="leave-list">
         @for (i of [1,2,3,4]; track i) {
           <p-card styleClass="leave-card">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
-              <div style="display:flex;flex-direction:column;gap:0.4rem;flex:1">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+              <div class="d-flex flex-column gap-1 flex-fill">
                 <p-skeleton width="45%" height="0.75rem" borderRadius="4px" />
                 <p-skeleton width="60%" height="0.65rem" borderRadius="4px" />
               </div>
@@ -133,7 +132,7 @@
         @for (r of records(); track r.id) {
           <p-card styleClass="leave-card">
             <div class="leave-top">
-              <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'info' : r.leaveType === 'sick' ? 'success' : 'secondary'" />
+              <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'no-show' ? 'warn' : 'secondary'" />
               <p-tag [value]="('leave.status.' + r.status) | translate" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
             </div>
             <div class="leave-dates">

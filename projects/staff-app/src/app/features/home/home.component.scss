@@ -3,11 +3,6 @@
 
 // ── Greeting ────────────────────────────────────────────────────────────────
 .greeting {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
   margin-bottom: 1.25rem;
 }
 
@@ -68,12 +63,6 @@
   border-color: rgba(168,85,247,0.4);
 }
 
-.active-inner {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
 
 // .live-tag styles the p-tag in the active-shift banner
 :host :deep(.live-tag.p-tag) {
@@ -82,10 +71,6 @@
 }
 
 .active-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  flex: 1;
   min-width: 0;
 }
 
@@ -109,11 +94,6 @@
   font-size: 0.875rem;
 }
 
-.quick-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
 .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.82rem; }
 
@@ -127,11 +107,6 @@
 
 .stat-card { padding: 1rem 1.1rem; }
 
-.stat-inner {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
 
 .stat-icon { font-size: 1.4rem; flex-shrink: 0; }
 

@@ -1,5 +1,5 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'locations.title' | translate }}</h1>
     <p-button icon="pi pi-plus" [label]="'locations.addLocation' | translate" severity="primary" (click)="openAdd()" />
   </div>
@@ -11,7 +11,7 @@
   <!-- Form -->
   @if (showForm()) {
     <p-card #formAnchor styleClass="form-card">
-      <div class="form-header">
+      <div class="form-header d-flex align-items-center justify-content-between">
         <h3>{{ editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate) }}</h3>
         <p-button label="Close" [text]="true" severity="secondary" (click)="cancel()" />
       </div>
@@ -19,7 +19,7 @@
         <label><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
         <input pInputText type="text" [(ngModel)]="form.name" [placeholder]="'locations.namePlaceholder' | translate" maxlength="100" />
       </div>
-      <div class="form-actions">
+      <div class="form-actions d-flex gap-3 justify-content-end">
         <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
         <p-button [label]="saving() ? ('common.saving' | translate) : (editing() ? ('common.update' | translate) : ('common.create' | translate))"
                   severity="primary" (click)="save()" [disabled]="saving() || !form.name" [loading]="saving()" />
@@ -33,11 +33,12 @@
   }
 
   <!-- Grid -->
-  <div class="loc-grid">
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
     @for (loc of locations(); track loc.id) {
-      <p-card styleClass="loc-card">
+      <div class="col">
+      <p-card styleClass="loc-card h-100">
         <!-- Image area -->
-        <div class="loc-image">
+        <div class="loc-image d-flex align-items-center justify-content-center">
           @if (loc.imagePath) {
             <img [src]="'/' + loc.imagePath" [alt]="loc.name" />
           } @else {
@@ -54,12 +55,13 @@
         <!-- Card body -->
         <div class="loc-body">
           <div class="loc-name">{{ loc.name }}</div>
-          <div class="loc-actions">
+          <div class="d-flex gap-2">
             <p-button icon="pi pi-pencil" [label]="'locations.editBtn' | translate" [text]="true" severity="secondary" (click)="openEdit(loc)" />
             <p-button icon="pi pi-trash" [label]="'locations.deleteBtn' | translate" [text]="true" severity="danger" (click)="remove(loc.id)" />
           </div>
         </div>
       </p-card>
+      </div>
     }
   </div>
 </div>

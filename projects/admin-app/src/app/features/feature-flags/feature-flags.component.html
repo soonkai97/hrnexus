@@ -1,10 +1,10 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <div>
       <h1 class="page-title">{{ 'features.title' | translate }}</h1>
-      <p style="font-size:0.85rem;color:var(--p-text-muted-color);margin-top:0.25rem">{{ 'features.subtitle' | translate }}</p>
+      <p class="mt-1">{{ 'features.subtitle' | translate }}</p>
     </div>
-    <div style="display:flex;gap:0.75rem">
+    <div class="d-flex gap-3">
       <p-button [label]="'features.disableAll' | translate" [text]="true" severity="secondary" (click)="disableAll()" />
       <p-button [label]="'features.enableAll' | translate" severity="primary" (click)="enableAll()" />
     </div>
@@ -12,15 +12,15 @@
 
   @for (phase of phases; track phase) {
     <div class="phase-section">
-      <div class="phase-header">
+      <div class="phase-header d-flex align-items-center gap-2 mb-3">
         <span class="phase-badge">{{ 'features.phase' | translate }} {{ phase }}</span>
         <span class="phase-label">{{ phaseLabel(phase) | translate }}</span>
       </div>
-      <div class="features-grid">
+      <div class="d-flex flex-column gap-2">
         @for (feat of featuresForPhase(phase); track feat.key) {
-          <div class="feature-card" [class.enabled]="isEnabled(feat.key)">
-            <div class="feature-icon"><i [class]="feat.icon"></i></div>
-            <div class="feature-body">
+          <div class="feature-card d-flex align-items-center gap-3" [class.enabled]="isEnabled(feat.key)">
+            <div class="feature-icon flex-shrink-0"><i [class]="feat.icon"></i></div>
+            <div class="feature-body flex-fill">
               <div class="feature-name">{{ feat.label | translate }}</div>
               <div class="feature-desc">{{ feat.description | translate }}</div>
             </div>

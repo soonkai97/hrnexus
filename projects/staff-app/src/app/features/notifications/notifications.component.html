@@ -1,6 +1,6 @@
-<div class="page-wrap">
+﻿<div class="p-3 p-md-4">
 
-  <div class="page-header">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <div>
       <h1 class="page-title">{{ 'notifications.title' | translate }}</h1>
       <p class="page-sub">{{ 'notifications.subtitle' | translate }}</p>
@@ -34,9 +34,9 @@
   @if (loading()) {
     <p-card styleClass="notif-list">
       @for (i of [1,2,3,4,5]; track i) {
-        <div class="notif-item">
+        <div class="notif-item d-flex gap-2 align-items-start">
           <div class="notif-icon"><p-skeleton shape="circle" width="22px" height="22px" /></div>
-          <div class="notif-body" style="display:flex;flex-direction:column;gap:0.35rem">
+          <div class="notif-body d-flex flex-column gap-1">
             <p-skeleton width="55%" height="0.72rem" borderRadius="4px" />
             <p-skeleton width="80%" height="0.65rem" borderRadius="4px" />
             <p-skeleton width="28%" height="0.58rem" borderRadius="4px" />
@@ -54,7 +54,7 @@
       @for (group of grouped(); track group.label) {
         <div class="notif-group-label">{{ group.label }}</div>
         @for (n of group.items; track n.id) {
-          <div class="notif-item"
+          <div class="notif-item d-flex gap-2 align-items-start"
                [class.unread]="!n.isRead"
                [class.clickable]="!!routeFor(n)"
                (click)="onNotifClick(n)">

@@ -31,11 +31,6 @@
 }
 
 // ── Inline rate editor ────────────────────────────────────────────────────────
-.rate-editor {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-}
 
 .rate-input {
   width: 90px;
@@ -49,11 +44,6 @@
   &:focus { box-shadow: $glow-sm; }
 }
 
-.rate-display {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
 
 // ── Custom badge variant ──────────────────────────────────────────────────────
 .badge-custom {

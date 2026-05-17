@@ -10,6 +10,7 @@ import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
+import { SelectButton } from 'primeng/selectbutton';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid'] as const;
 type StaffLeaveType = typeof LEAVE_TYPES[number];
@@ -17,7 +18,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 @Component({
   selector: 'app-my-leave',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker],
+  imports: [FormsModule, TranslatePipe, Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })
@@ -25,6 +26,11 @@ export class MyLeaveComponent implements OnInit {
   private readonly leaveSvc = inject(LeaveService);
   private readonly toast    = inject(ToastService);
   private readonly confirm  = inject(ConfirmService);
+
+  readonly viewOptions = [
+    { labelKey: 'leave.applyLeave', value: 'apply'   },
+    { labelKey: 'leave.history',    value: 'history' },
+  ];
 
   readonly leaveTypes = LEAVE_TYPES;
   readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({

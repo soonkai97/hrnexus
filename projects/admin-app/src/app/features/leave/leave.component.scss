@@ -1,34 +1,5 @@
 @use 'styles/theme' as *;
 
-// ── View tabs ────────────────────────────────────────────────────────────────
-.view-tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 1.25rem;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
-  overflow: hidden;
-
-  button {
-    flex: 1;
-    padding: 0.65rem 1rem;
-    border: none;
-    background: $bg-surface;
-    color: $text-muted;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all $transition-fast;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-
-    & + button { border-left: 1px solid $border-subtle; }
-    &.active { background: rgba(168,85,247,0.15); color: $neon-purple; }
-    &:hover:not(.active) { background: rgba(168,85,247,0.06); color: $text-primary; }
-  }
-}
 
 .tab-badge {
   background: rgba(251,191,36,0.2);
@@ -45,10 +16,6 @@
 .filter-bar { padding: 1rem; margin-bottom: 1.25rem; }
 
 .filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: flex-end;
   margin-bottom: 0.75rem;
 }
 
@@ -57,10 +24,6 @@
 .filter-status  { flex: 1 1 130px; margin: 0; }
 
 .summary-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
   margin-top: 0.75rem;
 }
 
@@ -127,7 +90,6 @@
 
 // ── Form ──────────────────────────────────────────────────────────────────────
 .form-card   { padding: 1.5rem; margin-bottom: 1.25rem; }
-.form-grid   { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 1rem; }
 
 .form-error {
   background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
@@ -432,7 +394,6 @@
 
 // ── Responsive ────────────────────────────────────────────────────────────────
 @media (max-width: 768px) {
-  .form-grid      { grid-template-columns: 1fr; }
   .cal-cell       { min-height: 52px; padding: 0.2rem; }
   .cal-grid { grid-template-columns: repeat(7, minmax(40px, 1fr)); }
   .cal-leave-chip { font-size: 0.52rem; }
@@ -444,3 +405,13 @@
   .entitlement-form .field { max-width: 100%; }
   .bal-row { grid-template-columns: 80px 1fr 60px; }
 }
+
+// Skeleton 7-column calendar grid (was inline style)
+.calendar-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+// No-active-staff empty message colour
+p.text-center { color: $text-muted; }

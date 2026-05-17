@@ -2,16 +2,10 @@
 
 .form-card { margin-bottom: 1.25rem; }
 .form-title { font-size: 1rem; margin-bottom: 1rem; color: $text-primary; }
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0 1rem;
-}
-.form-actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
+.form-actions { margin-top: 0.5rem; }
 
 // Note shown below the IC / Passport pair to clarify "at least one required"
 .id-required-note {
-  grid-column: 1 / -1;      // span all columns so it sits below both fields
   margin: -0.25rem 0 0.25rem;
   font-size: 0.75rem;
   color: $text-muted;
@@ -23,7 +17,6 @@
 
 .empty-state { padding: 3rem; text-align: center; color: $text-muted; }
 .empty-inner {
-  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
   span { font-size: 2.5rem; }
   p { font-size: 0.9rem; }
 }
@@ -40,8 +33,6 @@
   &:hover { text-decoration: underline; }
 }
 
-// Masked phone cell
-.td-masked { letter-spacing: 0.03em; }
 
 // ── Ellipsis action menu ──────────────────────────────────────────────────────
 .td-actions { width: 48px; text-align: center; }
@@ -65,16 +56,9 @@
 // ── Skeleton loading ─────────────────────────────────────────────────────────
 .skeleton-table { padding: 0; overflow: hidden; }
 .skeleton-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   padding: 0.9rem 1.25rem;
   border-bottom: 1px solid $border-subtle;
   &:last-child { border-bottom: none; }
-}
-
-@media (max-width: 768px) {
-  .form-grid { grid-template-columns: 1fr; }
 }
 
 // ── Responsive table → card stack at 640px ───────────────────────────────────

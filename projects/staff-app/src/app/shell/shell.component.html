@@ -88,12 +88,6 @@
             [pTooltip]="lang.current() === 'en' ? 'Switch to 中文' : 'Switch to English'"
             [attr.aria-label]="lang.current() === 'en' ? 'Switch to Chinese' : 'Switch to English'"
             (onClick)="lang.toggle()" />
-          <p-button
-            icon="pi pi-power-off"
-            [label]="'topbar.signOut' | translate"
-            [text]="true"
-            severity="secondary"
-            (onClick)="logout()" />
         }
       </div>
     </header>
@@ -101,34 +95,6 @@
       <router-outlet />
     </div>
 
-    <!-- Bottom navigation bar (mobile ≤768px) -->
-    <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-      <a routerLink="/home" routerLinkActive="active" class="bn-item">
-        <span class="bn-icon-wrap"><i class="pi pi-home"></i></span>
-        <span class="bn-label">{{ 'nav.home' | translate }}</span>
-      </a>
-      <a routerLink="/log-shift" routerLinkActive="active" class="bn-item">
-        <span class="bn-icon-wrap"><i class="pi pi-clock"></i></span>
-        <span class="bn-label">{{ 'nav.logShift' | translate }}</span>
-      </a>
-      <a routerLink="/my-leave" routerLinkActive="active" class="bn-item">
-        <span class="bn-icon-wrap"><i class="pi pi-calendar"></i></span>
-        <span class="bn-label">{{ 'nav.leave' | translate }}</span>
-      </a>
-      <a routerLink="/notifications" routerLinkActive="active" class="bn-item">
-        <span class="bn-icon-wrap">
-          <i class="pi pi-bell"></i>
-          @if (unreadNotifications() > 0) {
-            <span class="bn-badge">{{ unreadNotifications() > 99 ? '99+' : unreadNotifications() }}</span>
-          }
-        </span>
-        <span class="bn-label">{{ 'nav.notifications' | translate }}</span>
-      </a>
-      <button type="button" class="bn-item" [class.active]="!collapsed()" (click)="toggleSidebar()">
-        <span class="bn-icon-wrap"><i class="pi pi-th-large"></i></span>
-        <span class="bn-label">{{ 'nav.more' | translate }}</span>
-      </button>
-    </nav>
   </div>
 
 </div>

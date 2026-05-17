@@ -1,5 +1,5 @@
-<div class="page-content">
-  <div class="page-header">
+﻿<div class="px-4 py-3 mx-auto" style="max-width:480px">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">Messages</h1>
     <p-button
       [icon]="showCompose() ? 'pi pi-times' : 'pi pi-pencil'"
@@ -11,7 +11,7 @@
 
   @if (showCompose()) {
     <p-card styleClass="compose-card">
-      <div class="compose-body">
+      <div class="d-flex flex-column gap-2">
         <div class="compose-to">To: <strong>Management</strong></div>
         <textarea pTextarea [(ngModel)]="replyContent" rows="4" placeholder="Type your message to management…" maxlength="2000"></textarea>
         <div class="char-count">{{ replyContent.length }}/2000</div>
@@ -30,7 +30,7 @@
   @if (loading()) {
     @for (i of [1,2,3]; track i) {
       <p-card styleClass="msg-card">
-        <div style="display:flex;flex-direction:column;gap:0.45rem">
+        <div class="d-flex flex-column gap-2">
           <p-skeleton width="35%" height="0.72rem" borderRadius="4px" />
           <p-skeleton width="85%" height="0.65rem" borderRadius="4px" />
           <p-skeleton width="65%" height="0.65rem" borderRadius="4px" />

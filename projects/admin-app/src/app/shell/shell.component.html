@@ -85,12 +85,6 @@
             [pTooltip]="lang.current() === 'en' ? 'Switch to 中文' : 'Switch to English'"
             [attr.aria-label]="lang.current() === 'en' ? 'Switch to Chinese' : 'Switch to English'"
             (onClick)="lang.toggle()" />
-          <p-button
-            icon="pi pi-power-off"
-            [label]="'shell.signOut' | translate"
-            [text]="true"
-            severity="secondary"
-            (onClick)="logout()" />
         }
       </div>
     </header>

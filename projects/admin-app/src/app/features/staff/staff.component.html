@@ -1,5 +1,5 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'staff.title' | translate }}</h1>
     @if (!showForm()) {
       <p-button icon="pi pi-plus" [label]="'staff.addStaff' | translate" severity="primary" (click)="openAdd()" />
@@ -13,28 +13,28 @@
   <!-- Add staff form -->
   @if (showForm()) {
     <p-card #formAnchor styleClass="form-card">
-      <div class="form-header">
+      <div class="form-header d-flex align-items-center justify-content-between">
         <h3>{{ 'staff.newStaffMember' | translate }}</h3>
         <p-button label="Close" [text]="true" severity="secondary" aria-label="Close form" (click)="closeForm()" />
       </div>
-      <div class="form-grid">
-        <div class="field">
+      <div class="row g-3">
+        <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.staffId' | translate }}</label>
           <input pInputText type="text" [(ngModel)]="newStaff.staffId" placeholder="e.g. NC1001" maxlength="20" style="text-transform:uppercase" />
         </div>
-        <div class="field">
+        <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.firstName' | translate }}</label>
           <input pInputText type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" maxlength="100" />
         </div>
-        <div class="field">
+        <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.lastName' | translate }}</label>
           <input pInputText type="text" [(ngModel)]="newStaff.lastName" placeholder="e.g. Torres" maxlength="100" />
         </div>
-        <div class="field">
+        <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.email' | translate }}</label>
           <input pInputText type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off" />
         </div>
-        <div class="field">
+        <div class="col-12 col-md-6 field">
           <label>{{ 'staff.roles' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
           <p-multiselect
             [(ngModel)]="newStaff.roles"
@@ -45,20 +45,20 @@
             display="chip"
             styleClass="w-full" />
         </div>
-        <div class="field">
+        <div class="col-12 col-md-6 field">
           <label>{{ 'staff.phoneNumber' | translate }}</label>
           <input pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" maxlength="20" />
         </div>
-        <div class="field">
+        <div class="col-12 col-md-6 field">
           <label>{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
           <input pInputText type="text" [(ngModel)]="newStaff.icNo" placeholder="e.g. 990101-01-1234" />
         </div>
-        <div class="field">
+        <div class="col-12 col-md-6 field">
           <label>{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
           <input pInputText type="text" [(ngModel)]="newStaff.passportNo" placeholder="e.g. A12345678" />
         </div>
-        <p class="id-required-note"><span class="req">*</span> {{ 'staff.idRequiredNote' | translate }}</p>
-        <div class="field">
+        <p class="col-12 id-required-note"><span class="req">*</span> {{ 'staff.idRequiredNote' | translate }}</p>
+        <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.dateOfBirth' | translate }}</label>
           <p-datepicker [(ngModel)]="newStaff.dateOfBirth"
             dateFormat="yy-mm-dd"
@@ -68,7 +68,7 @@
             styleClass="w-full" />
         </div>
       </div>
-      <div class="form-actions">
+      <div class="form-actions d-flex justify-content-end">
         <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="closeForm()" />
         <p-button [label]="saving() ? ('common.saving' | translate) : ('staff.saveStaff' | translate)"
                   severity="primary" (click)="saveStaff()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
@@ -89,9 +89,9 @@
   @if (loading()) {
     <p-card styleClass="skeleton-table">
       @for (i of [1,2,3,4,5,6]; track i) {
-        <div class="skeleton-row">
+        <div class="skeleton-row d-flex align-items-center gap-3">
           <p-skeleton width="8%" height="0.72rem" borderRadius="4px" />
-          <div style="display:flex;flex-direction:column;gap:0.3rem;flex:1">
+          <div class="d-flex flex-column gap-1 flex-fill">
             <p-skeleton width="50%" height="0.72rem" borderRadius="4px" />
             <p-skeleton width="60%" height="0.6rem" borderRadius="4px" />
           </div>
@@ -104,13 +104,13 @@
     </p-card>
   } @else if (staff().length === 0) {
     <p-card styleClass="empty-state">
-      <div class="empty-inner">
+      <div class="empty-inner d-flex flex-column align-items-center gap-2">
         <span><i class="pi pi-users"></i></span>
         <p>{{ 'staff.noStaffFound' | translate }}</p>
       </div>
     </p-card>
   } @else {
-  <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+  <p-card styleClass="table-card p-0">
     <p-table [value]="staff()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
       <ng-template pTemplate="header">
         <tr>
@@ -128,7 +128,6 @@
           <td>
             <span class="p-column-title">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</span>
             <a [routerLink]="['/staff', s.id]" class="staff-name-link">{{ s.fullName }}</a>
-            <div class="staff-email">{{ s.email }}</div>
           </td>
           <td>
             <span class="p-column-title">{{ 'staff.roleCol' | translate }}</span>
@@ -136,14 +135,14 @@
               <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" />
             }
           </td>
-          <td class="td-muted td-masked"><span class="p-column-title">{{ 'staff.phone' | translate }}</span>{{ maskPhone(s.phoneNumber) }}</td>
+          <td class="td-muted"><span class="p-column-title">{{ 'staff.phone' | translate }}</span>{{ s.phoneNumber || '—' }}</td>
           <td>
             <span class="p-column-title">{{ 'staff.statusCol' | translate }}</span>
             <p-tag [value]="s.isActive ? ('common.active' | translate) : ('common.inactive' | translate)"
                    [severity]="s.isActive ? 'success' : 'secondary'" />
           </td>
           <td class="td-actions">
-            <p-button label="Actions" [text]="true" severity="secondary" size="small"
+            <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small" rounded
                       [attr.aria-label]="'Actions for ' + s.fullName"
                       (click)="openStaffMenu(s, $event)" />
           </td>
@@ -186,12 +185,12 @@
       <p-button [label]="'staff.generatePassword' | translate" [text]="true" severity="secondary"
                 styleClass="gen-btn" (click)="generatePassword()" />
     </div>
-
-    <ng-template pTemplate="footer">
-      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="closeResetPassword()" />
-      <p-button [label]="savingReset() ? ('common.saving' | translate) : ('staff.saveReset' | translate)"
-                severity="primary" (click)="saveResetPassword()"
-                [disabled]="savingReset() || newPassword.length < 8" [loading]="savingReset()" />
-    </ng-template>
   }
+
+  <ng-template pTemplate="footer">
+    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="closeResetPassword()" />
+    <p-button [label]="savingReset() ? ('common.saving' | translate) : ('staff.saveReset' | translate)"
+              severity="primary" (click)="saveResetPassword()"
+              [disabled]="savingReset() || newPassword.length < 8" [loading]="savingReset()" />
+  </ng-template>
 </p-dialog>

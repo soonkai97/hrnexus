@@ -1,7 +1,5 @@
 @use 'styles/theme' as *;
 
-.page-wrap { padding: 1.5rem; }
-
 .tab-count {
   background: rgba(168,85,247,0.2);
   color: $neon-purple;
@@ -18,11 +16,6 @@
   }
 }
 
-.loading-wrap {
-  display: flex;
-  justify-content: center;
-  padding: 3rem;
-}
 
 .empty-state {
   text-align: center;
@@ -35,9 +28,6 @@
 .notif-list { overflow: hidden; }
 
 .notif-item {
-  display: flex;
-  gap: 0.875rem;
-  align-items: flex-start;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid $border-subtle;
   transition: background $transition-fast;

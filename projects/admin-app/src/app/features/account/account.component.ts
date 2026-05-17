@@ -1,45 +1,44 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, ToastService, StaffService } from 'shared-lib';
+import { AuthService, StaffService, StaffDetail, LangService } from 'shared-lib';
 import { Button } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
 import { Card } from 'primeng/card';
-import { Message } from 'primeng/message';
+import { Tag } from 'primeng/tag';
+import { SelectButton } from 'primeng/selectbutton';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe, Button, InputText, Card, Message],
+  imports: [TitleCasePipe, RouterLink, FormsModule, TranslatePipe, Button, Card, Tag, SelectButton],
   templateUrl: './account.component.html',
   styleUrl:    './account.component.scss',
 })
 export class AccountComponent implements OnInit {
-  private readonly auth      = inject(AuthService);
-  private readonly toast     = inject(ToastService);
-  private readonly staffSvc  = inject(StaffService);
+  private readonly auth     = inject(AuthService);
+  private readonly staffSvc = inject(StaffService);
+  readonly lang             = inject(LangService);
 
-  phoneNumber   = '';
-  savingProfile = signal(false);
-  profileError  = signal('');
+  readonly langOptions = [
+    { label: 'English', value: 'en' },
+    { label: '中文',    value: 'zh' },
+  ];
+
+  user    = computed(() => this.auth.user());
+  profile = signal<StaffDetail | null>(null);
+
+  initials = computed(() => {
+    const name = this.auth.user()?.fullName ?? '';
+    return name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  });
 
   ngOnInit(): void {
     this.staffSvc.getMyProfile().subscribe({
-      next: profile => { this.phoneNumber = profile.phoneNumber ?? ''; },
+      next: p => this.profile.set(p),
     });
   }
 
-  saveProfile(): void {
-    this.savingProfile.set(true);
-    this.profileError.set('');
-    this.auth.updateProfile(this.phoneNumber || null).subscribe({
-      next: () => { this.savingProfile.set(false); this.toast.success('Profile updated.'); },
-      error: () => {
-        this.profileError.set('Failed to update profile.');
-        this.toast.error('Failed to update profile.');
-        this.savingProfile.set(false);
-      },
-    });
-  }
+  logout(): void { this.auth.logout(); }
 }

@@ -109,31 +109,6 @@
 
 .action-card-arrow { font-size: 1.1rem; color: $text-muted; }
 
-// ── Language / view tabs ──────────────────────────────────────────────────────
-.view-tabs {
-  display: flex;
-  gap: 0;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-sm;
-  overflow: hidden;
-
-  button {
-    flex: 1;
-    padding: 0.6rem 1rem;
-    border: none;
-    background: $bg-surface;
-    color: $text-muted;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all $transition-fast;
-
-    & + button { border-left: 1px solid $border-subtle; }
-    &.active { background: rgba(168,85,247,0.15); color: $neon-purple; }
-    &:hover:not(.active) { background: rgba(168,85,247,0.06); color: $text-primary; }
-  }
-}
-
 // ── Sign out ──────────────────────────────────────────────────────────────────
 .sign-out-wrap {
   display: flex;

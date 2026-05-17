@@ -74,9 +74,6 @@
   border: 1px solid rgba(168, 85, 247, 0.2);
   font-size: 0.82rem;
   color: $text-muted;
-  display: flex;
-  gap: 0.5rem;
-  align-items: flex-start;
 
   span:first-child {
     font-size: 1rem;
@@ -92,17 +89,12 @@
 }
 
 .loading-wrap {
-  display: flex;
-  justify-content: center;
   padding: 2rem;
 }
 
 // ── Skeleton loading ─────────────────────────────────────────────────────────
 .skeleton-table { padding: 0; overflow: hidden; margin-bottom: 0 !important; }
 .skeleton-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   padding: 0.9rem 1.25rem;
   border-bottom: 1px solid $border-subtle;
   &:last-child { border-bottom: none; }

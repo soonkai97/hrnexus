@@ -1,15 +1,12 @@
 @use 'styles/theme' as *;
 
-.phase-section {
-  margin-bottom: 2rem;
-}
+// Subtitle paragraph below page title
+.page-header p { font-size: 0.85rem; color: $text-muted; }
 
-.phase-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
+.phase-section { margin-bottom: 2rem; }
+
+// phase-header layout handled by Bootstrap (d-flex align-items-center gap-2 mb-3)
+.phase-header { }
 
 .phase-badge {
   background: $grad-primary;
@@ -28,16 +25,9 @@
   color: $text-primary;
 }
 
-.features-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+// features-grid layout handled by Bootstrap (d-flex flex-column gap-2)
 
 .feature-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   background: $bg-raised;
   border: 1px solid $border-subtle;
   border-radius: $radius-md;
@@ -54,12 +44,7 @@
   font-size: 1.25rem;
   width: 2.5rem;
   text-align: center;
-  flex-shrink: 0;
   color: $neon-purple;
-}
-
-.feature-body {
-  flex: 1;
 }
 
 .feature-name {

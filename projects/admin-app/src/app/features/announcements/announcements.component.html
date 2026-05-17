@@ -1,12 +1,12 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'announcements.title' | translate }}</h1>
     <p-button icon="pi pi-plus" [label]="'announcements.newAnnouncement' | translate" severity="primary" (click)="openAdd()" />
   </div>
 
   @if (showForm()) {
     <p-card #formAnchor styleClass="form-card">
-      <div class="form-header">
+      <div class="form-header d-flex align-items-center justify-content-between">
         <h3>{{ editing() ? ('announcements.editForm' | translate) : ('announcements.newForm' | translate) }}</h3>
         <p-button label="Close" [text]="true" severity="secondary" aria-label="Close form" (click)="cancel()" />
       </div>
@@ -30,7 +30,7 @@
           [showIcon]="true"
           styleClass="w-full" />
       </div>
-      <div class="form-actions">
+      <div class="form-actions d-flex gap-3 justify-content-end">
         <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
         <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"
                   severity="primary" (click)="save()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
@@ -41,7 +41,7 @@
   @if (loading()) {
     <p-card styleClass="skeleton-table">
       @for (i of [1,2,3,4,5]; track i) {
-        <div class="skeleton-row">
+        <div class="skeleton-row d-flex align-items-center gap-3">
           <p-skeleton width="35%" height="0.75rem" borderRadius="4px" />
           <p-skeleton width="60px" height="1.4rem" borderRadius="6px" />
           <p-skeleton width="6%"  height="0.75rem" borderRadius="4px" />

@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-and-test:
+    name: Build & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared-lib
+        run: npx ng build shared-lib --configuration production
+
+      - name: Build admin-app
+        run: npx ng build admin-app --configuration production
+
+      - name: Build staff-app
+        run: npx ng build staff-app --configuration production
+
+      - name: Unit tests — shared-lib
+        run: npm run test:shared
+
+      - name: Unit tests — admin-app
+        run: npm run test:admin
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  # E2E tests require Docker infrastructure — run separately on push to main only
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: build-and-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Docker stack
+        run: docker compose up -d --wait
+        timeout-minutes: 5
+
+      - name: Run E2E tests — admin
+        run: npm run test:e2e:admin
+
+      - name: Run E2E tests — staff
+        run: npm run test:e2e:staff
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

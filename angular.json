@@ -30,7 +30,7 @@
                 "input": "projects/staff-app/public"
               }
             ],
-            "styles": ["primeicons/primeicons.css", "projects/staff-app/src/styles.scss"],
+            "styles": ["primeicons/primeicons.css", "node_modules/bootstrap/dist/css/bootstrap-grid.min.css", "node_modules/bootstrap/dist/css/bootstrap-utilities.min.css", "projects/staff-app/src/styles.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["projects/staff-app/src"]
             }
@@ -74,7 +74,11 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/staff-app/tsconfig.spec.json",
+            "include": ["projects/staff-app/src/**/*.spec.ts"]
+          }
         }
       }
     },
@@ -101,7 +105,7 @@
                 "input": "projects/admin-app/public"
               }
             ],
-            "styles": ["primeicons/primeicons.css", "projects/admin-app/src/styles.scss"],
+            "styles": ["primeicons/primeicons.css", "node_modules/bootstrap/dist/css/bootstrap-grid.min.css", "node_modules/bootstrap/dist/css/bootstrap-utilities.min.css", "projects/admin-app/src/styles.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["projects/admin-app/src"]
             }
@@ -144,7 +148,11 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/admin-app/tsconfig.spec.json",
+            "include": ["projects/admin-app/src/**/*.spec.ts"]
+          }
         }
       }
     },

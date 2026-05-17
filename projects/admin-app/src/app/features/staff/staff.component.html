@@ -111,14 +111,15 @@
     </p-card>
   } @else {
   <p-card styleClass="table-card p-0">
-    <p-table [value]="staff()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
+    <p-table [value]="staff()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px"
+      sortField="firstName" [sortOrder]="1">
       <ng-template pTemplate="header">
         <tr>
-          <th scope="col">{{ 'staff.staffId' | translate }}</th>
-          <th scope="col">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</th>
-          <th scope="col">{{ 'staff.roleCol' | translate }}</th>
-          <th scope="col">{{ 'staff.phone' | translate }}</th>
-          <th scope="col">{{ 'staff.statusCol' | translate }}</th>
+          <th scope="col" pSortableColumn="staffId">{{ 'staff.staffId' | translate }} <p-sortIcon field="staffId" /></th>
+          <th scope="col" pSortableColumn="firstName">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }} <p-sortIcon field="firstName" /></th>
+          <th scope="col" pSortableColumn="roles">{{ 'staff.roleCol' | translate }} <p-sortIcon field="roles" /></th>
+          <th scope="col" pSortableColumn="phoneNumber">{{ 'staff.phone' | translate }} <p-sortIcon field="phoneNumber" /></th>
+          <th scope="col" pSortableColumn="isActive">{{ 'staff.statusCol' | translate }} <p-sortIcon field="isActive" /></th>
           <th scope="col" class="td-actions"></th>
         </tr>
       </ng-template>

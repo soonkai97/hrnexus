@@ -64,12 +64,13 @@
             </div>
           }
 
-          <p-table [value]="p.allocations" [tableStyle]="{'min-width':'100%'}">
+          <p-table [value]="p.allocations" [tableStyle]="{'min-width':'100%'}"
+            sortField="amount" [sortOrder]="-1">
             <ng-template pTemplate="header">
               <tr>
-                <th>{{ 'tips.staffCol' | translate }}</th>
-                <th>{{ 'tips.hoursCol' | translate }}</th>
-                <th>{{ 'tips.amountCol' | translate }}</th>
+                <th pSortableColumn="fullName">{{ 'tips.staffCol' | translate }} <p-sortIcon field="fullName" /></th>
+                <th pSortableColumn="hoursWorked">{{ 'tips.hoursCol' | translate }} <p-sortIcon field="hoursWorked" /></th>
+                <th pSortableColumn="amount">{{ 'tips.amountCol' | translate }} <p-sortIcon field="amount" /></th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-a>
@@ -106,16 +107,17 @@
     } @else if (pools().length === 0) {
       <p class="history-empty">{{ 'tips.noDistributions' | translate }}</p>
     } @else {
-      <p-table [value]="pools()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
+      <p-table [value]="pools()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px"
+        sortField="shiftDate" [sortOrder]="-1">
         <ng-template pTemplate="header">
           <tr>
-            <th>{{ 'tips.locationCol' | translate }}</th>
-            <th>{{ 'tips.shiftDateCol' | translate }}</th>
-            <th>{{ 'tips.totalCol' | translate }}</th>
-            <th>{{ 'tips.methodCol' | translate }}</th>
-            <th>{{ 'tips.staffCountCol' | translate }}</th>
-            <th>{{ 'tips.statusCol' | translate }}</th>
-            <th>{{ 'tips.createdCol' | translate }}</th>
+            <th pSortableColumn="locationName">{{ 'tips.locationCol' | translate }} <p-sortIcon field="locationName" /></th>
+            <th pSortableColumn="shiftDate">{{ 'tips.shiftDateCol' | translate }} <p-sortIcon field="shiftDate" /></th>
+            <th pSortableColumn="totalAmount">{{ 'tips.totalCol' | translate }} <p-sortIcon field="totalAmount" /></th>
+            <th pSortableColumn="splitMethod">{{ 'tips.methodCol' | translate }} <p-sortIcon field="splitMethod" /></th>
+            <th pSortableColumn="staffCount">{{ 'tips.staffCountCol' | translate }} <p-sortIcon field="staffCount" /></th>
+            <th pSortableColumn="isDistributed">{{ 'tips.statusCol' | translate }} <p-sortIcon field="isDistributed" /></th>
+            <th pSortableColumn="createdAt">{{ 'tips.createdCol' | translate }} <p-sortIcon field="createdAt" /></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-p>

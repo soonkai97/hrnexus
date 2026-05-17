@@ -76,15 +76,16 @@
     @if (onShift().length > 0) {
       <div class="section-label mt-4">{{ 'dashboard.currentlyOnShift' | translate }}</div>
       <p-card styleClass="table-card p-0">
-        <p-table [value]="onShift()" [tableStyle]="{'min-width':'100%'}">
+        <p-table [value]="onShift()" [tableStyle]="{'min-width':'100%'}"
+          sortField="clockedInAt" [sortOrder]="1">
           <ng-template pTemplate="header">
             <tr>
-              <th>{{ 'dashboard.staffId' | translate }}</th>
-              <th>{{ 'dashboard.staffName' | translate }}</th>
-              <th>{{ 'dashboard.role' | translate }}</th>
-              <th>{{ 'dashboard.location' | translate }}</th>
-              <th>{{ 'dashboard.clockedIn' | translate }}</th>
-              <th>{{ 'dashboard.duration' | translate }}</th>
+              <th pSortableColumn="staffId">{{ 'dashboard.staffId' | translate }} <p-sortIcon field="staffId" /></th>
+              <th pSortableColumn="name">{{ 'dashboard.staffName' | translate }} <p-sortIcon field="name" /></th>
+              <th pSortableColumn="role">{{ 'dashboard.role' | translate }} <p-sortIcon field="role" /></th>
+              <th pSortableColumn="locationName">{{ 'dashboard.location' | translate }} <p-sortIcon field="locationName" /></th>
+              <th pSortableColumn="clockedInAt">{{ 'dashboard.clockedIn' | translate }} <p-sortIcon field="clockedInAt" /></th>
+              <th pSortableColumn="minutesOnShift">{{ 'dashboard.duration' | translate }} <p-sortIcon field="minutesOnShift" /></th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-s>
@@ -104,14 +105,15 @@
     <!-- Recent Activity -->
     <div class="section-label mt-4">{{ 'dashboard.recentClockActivity' | translate }}</div>
     <p-card styleClass="table-card p-0">
-      <p-table [value]="activity()" [tableStyle]="{'min-width':'100%'}">
+      <p-table [value]="activity()" [tableStyle]="{'min-width':'100%'}"
+        sortField="timestamp" [sortOrder]="-1">
         <ng-template pTemplate="header">
           <tr>
-            <th>{{ 'dashboard.staff' | translate }}</th>
-            <th>{{ 'dashboard.role' | translate }}</th>
-            <th>{{ 'dashboard.location' | translate }}</th>
-            <th>{{ 'dashboard.time' | translate }}</th>
-            <th>{{ 'dashboard.event' | translate }}</th>
+            <th pSortableColumn="staffName">{{ 'dashboard.staff' | translate }} <p-sortIcon field="staffName" /></th>
+            <th pSortableColumn="role">{{ 'dashboard.role' | translate }} <p-sortIcon field="role" /></th>
+            <th pSortableColumn="locationName">{{ 'dashboard.location' | translate }} <p-sortIcon field="locationName" /></th>
+            <th pSortableColumn="timestamp">{{ 'dashboard.time' | translate }} <p-sortIcon field="timestamp" /></th>
+            <th pSortableColumn="eventType">{{ 'dashboard.event' | translate }} <p-sortIcon field="eventType" /></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-a>

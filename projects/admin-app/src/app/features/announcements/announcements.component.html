@@ -63,15 +63,16 @@
     <p class="empty-state">{{ 'announcements.noAnnouncements' | translate }}</p>
   } @else {
     <p-card styleClass="table-wrap">
-      <p-table [value]="pagedItems()" [tableStyle]="{'min-width':'100%'}">
+      <p-table [value]="pagedItems()" [tableStyle]="{'min-width':'100%'}"
+        sortField="createdAt" [sortOrder]="-1">
         <ng-template pTemplate="header">
           <tr>
-            <th scope="col">{{ 'announcements.titleCol' | translate }}</th>
+            <th scope="col" pSortableColumn="title">{{ 'announcements.titleCol' | translate }} <p-sortIcon field="title" /></th>
             <th scope="col">{{ 'announcements.targetRolesCol' | translate }}</th>
-            <th scope="col">{{ 'announcements.readsCol' | translate }}</th>
-            <th scope="col">{{ 'announcements.createdByCol' | translate }}</th>
-            <th scope="col">{{ 'announcements.expiresCol' | translate }}</th>
-            <th scope="col">{{ 'announcements.activeCol' | translate }}</th>
+            <th scope="col" pSortableColumn="readCount">{{ 'announcements.readsCol' | translate }} <p-sortIcon field="readCount" /></th>
+            <th scope="col" pSortableColumn="createdByName">{{ 'announcements.createdByCol' | translate }} <p-sortIcon field="createdByName" /></th>
+            <th scope="col" pSortableColumn="expiresAt">{{ 'announcements.expiresCol' | translate }} <p-sortIcon field="expiresAt" /></th>
+            <th scope="col" pSortableColumn="isActive">{{ 'announcements.activeCol' | translate }} <p-sortIcon field="isActive" /></th>
             <th scope="col" class="td-actions"></th>
           </tr>
         </ng-template>

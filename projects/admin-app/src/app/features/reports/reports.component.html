@@ -133,16 +133,17 @@
       <!-- By Employee -->
       @if (activeTab() === 'employee') {
         <p-card styleClass="table-card report-table-card p-0">
-          <p-table [value]="r.byStaff" [tableStyle]="{'min-width':'100%'}">
+          <p-table [value]="r.byStaff" [tableStyle]="{'min-width':'100%'}"
+            sortField="hours" [sortOrder]="-1">
             <ng-template pTemplate="header">
               <tr>
-                <th>{{ 'reports.staffId' | translate }}</th>
-                <th>{{ 'reports.name' | translate }}</th>
-                <th>{{ 'dashboard.role' | translate }}</th>
-                <th>{{ 'reports.shifts' | translate }}</th>
-                <th>{{ 'reports.hours' | translate }}</th>
-                <th>{{ 'reports.avgHShift' | translate }}</th>
-                <th>{{ 'reports.grossPay' | translate }}</th>
+                <th pSortableColumn="staffId">{{ 'reports.staffId' | translate }} <p-sortIcon field="staffId" /></th>
+                <th pSortableColumn="name">{{ 'reports.name' | translate }} <p-sortIcon field="name" /></th>
+                <th pSortableColumn="role">{{ 'dashboard.role' | translate }} <p-sortIcon field="role" /></th>
+                <th pSortableColumn="shifts">{{ 'reports.shifts' | translate }} <p-sortIcon field="shifts" /></th>
+                <th pSortableColumn="hours">{{ 'reports.hours' | translate }} <p-sortIcon field="hours" /></th>
+                <th pSortableColumn="avgHoursPerShift">{{ 'reports.avgHShift' | translate }} <p-sortIcon field="avgHoursPerShift" /></th>
+                <th pSortableColumn="cost">{{ 'reports.grossPay' | translate }} <p-sortIcon field="cost" /></th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-e>
@@ -255,17 +256,18 @@
       <!-- All Shifts -->
       @if (activeTab() === 'shifts') {
         <p-card styleClass="table-card report-table-card p-0">
-          <p-table [value]="r.shifts" [tableStyle]="{'min-width':'100%'}">
+          <p-table [value]="r.shifts" [tableStyle]="{'min-width':'100%'}"
+            sortField="clockedIn" [sortOrder]="-1">
             <ng-template pTemplate="header">
               <tr>
-                <th>{{ 'reports.staffId' | translate }}</th>
-                <th>{{ 'reports.name' | translate }}</th>
-                <th>{{ 'dashboard.role' | translate }}</th>
-                <th>{{ 'dashboard.location' | translate }}</th>
-                <th>{{ 'reports.clockedIn' | translate }}</th>
-                <th>{{ 'reports.clockedOut' | translate }}</th>
-                <th>{{ 'reports.hours' | translate }}</th>
-                <th>{{ 'reports.cost' | translate }}</th>
+                <th pSortableColumn="staffId">{{ 'reports.staffId' | translate }} <p-sortIcon field="staffId" /></th>
+                <th pSortableColumn="staffName">{{ 'reports.name' | translate }} <p-sortIcon field="staffName" /></th>
+                <th pSortableColumn="role">{{ 'dashboard.role' | translate }} <p-sortIcon field="role" /></th>
+                <th pSortableColumn="locationName">{{ 'dashboard.location' | translate }} <p-sortIcon field="locationName" /></th>
+                <th pSortableColumn="clockedIn">{{ 'reports.clockedIn' | translate }} <p-sortIcon field="clockedIn" /></th>
+                <th pSortableColumn="clockedOut">{{ 'reports.clockedOut' | translate }} <p-sortIcon field="clockedOut" /></th>
+                <th pSortableColumn="hours">{{ 'reports.hours' | translate }} <p-sortIcon field="hours" /></th>
+                <th pSortableColumn="cost">{{ 'reports.cost' | translate }} <p-sortIcon field="cost" /></th>
                 <th>{{ 'reports.status' | translate }}</th>
                 <th>{{ 'reports.flag' | translate }}</th>
               </tr>

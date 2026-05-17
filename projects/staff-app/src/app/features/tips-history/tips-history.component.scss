@@ -1,8 +1,6 @@
 @use 'styles/theme' as *;
 
 .period-picker { padding: 1rem; margin-bottom: 1rem; }
-.field        { display: flex; flex-direction: column; gap: 0.25rem; }
-.field label  { font-size: 0.8rem; color: $text-muted; }
 .loading-state { padding: 2rem; }
 .empty-state  { text-align: center; padding: 3rem 1rem; color: $text-muted; }
 .empty-icon   { font-size: 2.5rem; margin-bottom: 0.75rem; }
@@ -15,4 +13,3 @@
   &.highlight { color: $neon-purple; font-weight: 600; }
   &.total     { color: $text-primary; font-weight: 700; font-size: 1rem; border-top: 1px solid $border-subtle; margin-top: 0.25rem; padding-top: 0.6rem; border-bottom: none; }
 }
-.sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }

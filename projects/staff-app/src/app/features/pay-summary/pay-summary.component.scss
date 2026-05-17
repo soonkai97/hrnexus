@@ -3,23 +3,6 @@
 // ── Period picker ─────────────────────────────────────────────────────────────
 
 .period-picker { padding: 1rem; margin-bottom: 1rem; }
-.picker-row    { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
-.period-label  { font-size: 0.78rem; color: $text-muted; margin-top: 0.6rem; }
-.sm { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
-
-// ── Print button ──────────────────────────────────────────────────────────────
-
-.print-btn {
-  background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
-  color: $neon-purple; border-radius: $radius-sm; padding: 0.3rem 0.75rem;
-  font-size: 0.78rem; font-weight: 600; cursor: pointer;
-  transition: background $transition-fast;
-  &:hover { background: rgba(168,85,247,0.2); }
-}
-
-@media print {
-  nc-notification-bell, app-shell > nav, app-shell > header, .print-btn { display: none !important; }
-}
 
 .page-header {
   display: flex;

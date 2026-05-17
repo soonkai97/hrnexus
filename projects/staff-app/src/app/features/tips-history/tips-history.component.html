@@ -4,7 +4,7 @@
   </div>
 
   <p-card styleClass="period-picker">
-    <div class="d-flex gap-2 align-items-end flex-wrap">
+    <div class="d-flex gap-3 align-items-end flex-wrap">
       <div class="field">
         <label>{{ 'pay.year' | translate }}</label>
         <p-inputnumber
@@ -23,7 +23,10 @@
           optionLabel="label"
           optionValue="value" />
       </div>
-      <p-button [label]="'pay.view' | translate" severity="primary" size="small" [loading]="loading()" (click)="load()" />
+      <div class="field">
+        <label>&nbsp;</label>
+        <p-button [label]="'pay.view' | translate" severity="primary" [loading]="loading()" (click)="load()" />
+      </div>
     </div>
   </p-card>
 

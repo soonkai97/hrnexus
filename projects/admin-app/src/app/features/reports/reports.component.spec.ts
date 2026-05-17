@@ -152,6 +152,51 @@ describe('ReportsComponent', () => {
       expect(filters.staffIds).toEqual(['e1', 'e2']);
     });
 
+    it('omits locationNames from filters when array is empty', () => {
+      component.dateFrom       = '2026-05-01';
+      component.dateTo         = '2026-05-31';
+      component.locationNames  = [];
+      component.runReport();
+      const filters = mockAdminSvc.getReport.mock.calls[0][0];
+      expect(filters.locationNames).toBeUndefined();
+    });
+
+    it('passes locationNames when filter array is populated', () => {
+      component.dateFrom       = '2026-05-01';
+      component.dateTo         = '2026-05-31';
+      component.locationNames  = ['Main Bar', 'VIP Room'];
+      component.runReport();
+      const filters = mockAdminSvc.getReport.mock.calls[0][0];
+      expect(filters.locationNames).toEqual(['Main Bar', 'VIP Room']);
+    });
+
+    it('omits roles from filters when array is empty', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      component.roles    = [];
+      component.runReport();
+      const filters = mockAdminSvc.getReport.mock.calls[0][0];
+      expect(filters.roles).toBeUndefined();
+    });
+
+    it('passes roles when filter array is populated', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      component.roles    = ['bartender', 'dj'];
+      component.runReport();
+      const filters = mockAdminSvc.getReport.mock.calls[0][0];
+      expect(filters.roles).toEqual(['bartender', 'dj']);
+    });
+
+    it('always passes dateFrom and dateTo to the API', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      component.runReport();
+      const filters = mockAdminSvc.getReport.mock.calls[0][0];
+      expect(filters.dateFrom).toBe('2026-05-01');
+      expect(filters.dateTo).toBe('2026-05-31');
+    });
+
     it('sets error signal and shows toast on API failure', () => {
       component.dateFrom = '2026-05-01';
       component.dateTo   = '2026-05-31';

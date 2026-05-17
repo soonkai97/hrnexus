@@ -100,3 +100,8 @@
   flex-shrink: 0;
   margin-top: 6px;
 }
+
+// ── Desktop: cap the notifications list width ────────────────────────────────
+@media (min-width: 768px) {
+  .notif-list { max-width: 640px; }
+}

@@ -147,7 +147,10 @@
         @for (s of recentShifts(); track s.id) {
           <div class="recent-row">
             <div class="recent-date">{{ s.workDate | date:'EEE, d MMM' }}</div>
-            <div class="recent-role">{{ s.roleName | uppercase }}</div>
+            <div class="recent-role">
+              <span>{{ s.roleName | uppercase }}</span>
+              <span class="recent-time">{{ s.startTime | amPm }}@if (s.endTime) { – {{ s.endTime | amPm }}}</span>
+            </div>
             <div class="recent-loc"><i class="pi pi-map-marker"></i> {{ s.locationName }}</div>
             <div class="recent-hrs">{{ s.hours | number:'1.1-1' }}h</div>
           </div>

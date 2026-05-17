@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
   AdminService, ReportResponse, ReportFilters,
-  LocationReportRow, StaffStore, StaffService, ToastService,
+  LocationReportRow, StaffStore, StaffService, ToastService, Staff,
   toLocalDateString,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -32,7 +32,9 @@ export class ReportsComponent implements OnInit {
   private readonly staffSvc   = inject(StaffService);
   private readonly toast      = inject(ToastService);
 
-  readonly staff      = this.staffStore.staff;
+  // Load all staff independently (not via paginated store) so the dropdown
+  // shows every staff member, not just the first page of 10.
+  allStaff            = signal<Staff[]>([]);
   readonly staffRoles = this.staffStore.roles;
   loading    = signal(false);
   error      = signal('');
@@ -55,7 +57,10 @@ export class ReportsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.staffStore.loadStaff();
+    this.staffSvc.getAll('', 1, 999).subscribe({
+      next: r => this.allStaff.set(r.items),
+      error: () => {},
+    });
     this.staffStore.loadRoles();
     this.staffSvc.getLocations().subscribe({
       next: locs => this.locations.set(locs.map(l => l.name)),
@@ -77,12 +82,19 @@ export class ReportsComponent implements OnInit {
       return;
     }
 
+    // Normalise to [] when PrimeNG clear (×) button sets the value to null.
+    // Treat "all options selected" as "no filter" — avoids blasting every ID
+    // into the query string when the user clicks Select All.
+    const staffIds      = this.staffIds      ?? [];
+    const locationNames = this.locationNames ?? [];
+    const roles         = this.roles         ?? [];
+
     const filters: ReportFilters = {
       dateFrom:      this.dateFrom,
       dateTo:        this.dateTo,
-      staffIds:      this.staffIds.length       ? this.staffIds       : undefined,
-      locationNames: this.locationNames.length ? this.locationNames : undefined,
-      roles:         this.roles.length         ? this.roles         : undefined,
+      staffIds:      staffIds.length      && staffIds.length      < this.allStaff().length   ? staffIds      : undefined,
+      locationNames: locationNames.length && locationNames.length < this.locations().length  ? locationNames : undefined,
+      roles:         roles.length         && roles.length         < this.staffRoles().length ? roles         : undefined,
     };
     this.admin.getReport(filters).subscribe({
       next:  data  => { this.report.set(data); this.loading.set(false); },

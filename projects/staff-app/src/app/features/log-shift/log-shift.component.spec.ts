@@ -394,10 +394,19 @@ describe('LogShiftComponent', () => {
       );
     });
 
+    it('sets formError when start and end times are identical — zero-duration shifts are invalid', () => {
+      fillManualForm();
+      component.manualForm.startTime = '08:00';
+      component.manualForm.endTime   = '08:00';
+      component.submitManual();
+      expect(component.formError()).toBe('End time must be different from start time.');
+      expect(mockWorkLogSvc.createManual).not.toHaveBeenCalled();
+    });
+
     it('supports overnight shifts (startTime > endTime) without blocking submission', () => {
       fillManualForm();
       component.manualForm.startTime = '22:00';
-      component.manualForm.endTime   = '06:00'; // next day
+      component.manualForm.endTime   = '06:00'; // next day — duration 8h, < 24h
       component.submitManual();
       expect(mockWorkLogSvc.createManual).toHaveBeenCalled();
     });

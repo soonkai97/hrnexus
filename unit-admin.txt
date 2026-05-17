@@ -1,0 +1,41 @@
+﻿
+> nightclub-workforce@0.0.0 test:admin
+> ng test admin-app
+
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m                                       [2m | [22m[1mNames[22m                                                  [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m                                                [2m | [22m[2mstyles[22m                                                 [2m | [22m[36m211.05 kB[39m[2m | [22m
+[32mspec-app-features-leave-leave.component.js[39m                [2m | [22m[2mspec-app-features-leave-leave.component[22m                [2m | [22m[36m166.73 kB[39m[2m | [22m
+[32mspec-app-features-reports-reports.component.js[39m            [2m | [22m[2mspec-app-features-reports-reports.component[22m            [2m | [22m [36m82.72 kB[39m[2m | [22m
+[32mspec-app-features-staff-staff.component.js[39m                [2m | [22m[2mspec-app-features-staff-staff.component[22m                [2m | [22m [36m81.53 kB[39m[2m | [22m
+[32mchunk-BOWWPOSQ.js[39m                                         [2m | [22m[2m-[22m                                                      [2m | [22m [36m71.94 kB[39m[2m | [22m
+[32mspec-app-features-tips-tips.component.js[39m                  [2m | [22m[2mspec-app-features-tips-tips.component[22m                  [2m | [22m [36m49.64 kB[39m[2m | [22m
+[32mspec-app-features-overtime-overtime.component.js[39m          [2m | [22m[2mspec-app-features-overtime-overtime.component[22m          [2m | [22m [36m46.88 kB[39m[2m | [22m
+[32mspec-app-features-announcements-announcements.component.js[39m[2m | [22m[2mspec-app-features-announcements-announcements.component[22m[2m | [22m [36m44.52 kB[39m[2m | [22m
+[32mspec-app-features-dashboard-dashboard.component.js[39m        [2m | [22m[2mspec-app-features-dashboard-dashboard.component[22m        [2m | [22m [36m36.16 kB[39m[2m | [22m
+[32mspec-app-features-roles-roles.component.js[39m                [2m | [22m[2mspec-app-features-roles-roles.component[22m                [2m | [22m [36m33.90 kB[39m[2m | [22m
+[32mspec-app-features-notifications-notifications.component.js[39m[2m | [22m[2mspec-app-features-notifications-notifications.component[22m[2m | [22m [36m31.54 kB[39m[2m | [22m
+[32mspec-app-features-payroll-payroll.component.js[39m            [2m | [22m[2mspec-app-features-payroll-payroll.component[22m            [2m | [22m [36m29.76 kB[39m[2m | [22m
+[32mspec-app-features-locations-locations.component.js[39m        [2m | [22m[2mspec-app-features-locations-locations.component[22m        [2m | [22m [36m28.21 kB[39m[2m | [22m
+[32mspec-app-features-account-account.component.js[39m            [2m | [22m[2mspec-app-features-account-account.component[22m            [2m | [22m [36m21.31 kB[39m[2m | [22m
+[32mchunk-RSTWSNOR.js[39m                                         [2m | [22m[2m-[22m                                                      [2m | [22m  [36m4.75 kB[39m[2m | [22m
+[32mspec-app-features-feature-flags-feature-pin.service.js[39m    [2m | [22m[2mspec-app-features-feature-flags-feature-pin.service[22m    [2m | [22m  [36m4.23 kB[39m[2m | [22m
+[32mspec-app-features-feature-flags-feature-pin.guard.js[39m      [2m | [22m[2mspec-app-features-feature-flags-feature-pin.guard[22m      [2m | [22m  [36m2.40 kB[39m[2m | [22m
+[32mchunk-BBS7I23L.js[39m                                         [2m | [22m[2m-[22m                                                      [2m | [22m  [36m1.93 kB[39m[2m | [22m
+[32minit-testbed.js[39m                                           [2m | [22m[2minit-testbed[22m                                           [2m | [22m  [36m1.21 kB[39m[2m | [22m
+[32mvitest-mock-patch.js[39m                                      [2m | [22m[2mvitest-mock-patch[22m                                      [2m | [22m[36m969 bytes[39m[2m | [22m
+
+[1m [22m                                                         [2m | [22m[1mInitial total[22m                                          [2m | [22m[1m951.37 kB[22m
+
+Application bundle generation complete. [5.046 seconds] - 2026-05-17T13:03:39.691Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.6 [39m[90mC:/Users/SOONKAI97/projects/nightclub-workforce[39m
+
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m341 passed[39m[22m[90m (341)[39m
+[2m   Start at [22m 21:03:40
+[2m   Duration [22m 10.27s[2m (transform 8.35s, setup 12.44s, import 53.98s, tests 14.68s, environment 26.95s)[22m
+

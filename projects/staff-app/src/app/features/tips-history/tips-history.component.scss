@@ -16,3 +16,11 @@
   &.total     { color: $text-primary; font-weight: 700; font-size: 1rem; border-top: 1px solid $border-subtle; margin-top: 0.25rem; padding-top: 0.6rem; border-bottom: none; }
 }
 .sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+// ── Year input: constrain width so it doesn't stretch the flex row ────────────
+:host :deep(.p-inputnumber-input) { width: 110px; max-width: 110px; }
+
+// ── Desktop: cap breakdown card so rows don't span 1400px ────────────────────
+@media (min-width: 768px) {
+  .tips-card { max-width: 640px; }
+}

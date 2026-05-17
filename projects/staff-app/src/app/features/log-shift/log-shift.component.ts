@@ -196,7 +196,8 @@ export class LogShiftComponent implements OnInit {
     const [eh, em] = this.manualForm.endTime.split(':').map(Number);
     const startMins = sh * 60 + sm;
     const endMins   = eh * 60 + em;
-    const durationMins = endMins > startMins ? endMins - startMins : endMins + 1440 - startMins;
+    // >= so same-time gives 0 (not 1440); overnight gives [1, 1439]
+    const durationMins = endMins >= startMins ? endMins - startMins : endMins + 1440 - startMins;
     if (durationMins === 0) {
       this.formError.set('End time must be different from start time.'); return;
     }

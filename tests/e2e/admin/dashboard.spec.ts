@@ -21,8 +21,11 @@ test.describe('Admin — Dashboard', () => {
   });
 
   test('shows four KPI stat cards', async ({ page }) => {
-    // Wait for loading skeleton to clear
-    await expect(page.locator('.stat-card')).toHaveCount(4, { timeout: 10_000 });
+    // Wait for the loading skeleton to clear then check KPI cards.
+    // There are always 4 KPI cards; an optional 5th warn card appears when openShiftsCount > 0.
+    await page.waitForSelector('.stat-card', { timeout: 10_000 });
+    const count = await page.locator('.stat-card').count();
+    expect(count).toBeGreaterThanOrEqual(4);
   });
 
   test('shows the on-shift staff section', async ({ page }) => {

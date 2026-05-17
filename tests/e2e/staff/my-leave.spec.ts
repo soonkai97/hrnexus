@@ -43,14 +43,13 @@ test.describe('Staff — My Leave', () => {
 
   test('switches to History tab and shows records or empty state', async ({ page }) => {
     await page.waitForSelector('.p-selectbutton', { timeout: 8_000 });
-    // Click the History option in the selectbutton
-    await page.locator('.p-selectbutton').getByText(/history/i).click();
-    await page.waitForSelector(
-      '.p-datatable-tbody tr, .empty-state, text=/no leave/i',
-      { timeout: 10_000 }
-    );
-    const hasRows   = await page.locator('.p-datatable-tbody tr').count();
-    const hasEmpty  = await page.locator('.empty-state, text=/no leave/i').count();
-    expect(hasRows + hasEmpty).toBeGreaterThan(0);
+    // PrimeNG 21 SelectButton renders options as plain <button> elements inside a role="group".
+    // The second button is "Leave History" — click by position to avoid translated-text dependency.
+    await page.locator('.p-selectbutton').getByRole('button').last().click();
+    // History view uses card-based layout (styleClass="leave-card" / "empty-state"), not p-datatable.
+    await page.waitForSelector('.leave-card, .empty-state', { timeout: 10_000 });
+    const hasCards = await page.locator('.leave-card').count();
+    const hasEmpty = await page.locator('.empty-state').count();
+    expect(hasCards + hasEmpty).toBeGreaterThan(0);
   });
 });

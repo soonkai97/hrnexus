@@ -51,16 +51,17 @@ test.describe('Staff — Announcements', () => {
       { timeout: 12_000 }
     );
 
-    const unreadCards = page.locator('.announcement-card.unread, [class*="unread"]');
-    const count = await unreadCards.count();
+    // Use the specific compound selector — avoids matching the notification bell's "has-unread" class.
+    const unreadLocator = page.locator('.announcement-card.unread');
+    const count = await unreadLocator.count();
 
     if (count === 0) {
-      test.skip(); // No unread items to click — test not applicable
+      test.skip(); // No unread items — test not applicable
       return;
     }
 
-    await unreadCards.first().click();
-    // After clicking, the card should no longer have the unread class
-    await expect(unreadCards.first()).not.toHaveClass(/unread/, { timeout: 5_000 });
+    // Click the first unread card; verify the unread count drops by one.
+    await unreadLocator.first().click();
+    await expect(unreadLocator).toHaveCount(count - 1, { timeout: 5_000 });
   });
 });

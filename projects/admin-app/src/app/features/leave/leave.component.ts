@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
-import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { DatePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString } from 'shared-lib';
@@ -23,7 +23,7 @@ const STATUSES    = ['approved', 'pending', 'rejected'] as const;
 @Component({
   selector: 'app-leave',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
+  imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule, Message, Select, Skeleton, DatePicker,
     Tabs, TabList, Tab, Paginator],
   templateUrl: './leave.component.html',
@@ -294,6 +294,16 @@ export class LeaveComponent implements OnInit {
       next:  () => { this.load(); this.loadOverdue(); this.refreshPendingCount(); this.toast.success(`Leave ${status}.`); },
       error: () => this.toast.error('Update failed.'),
     });
+  }
+
+  leaveTypeSeverity(type: string): 'success' | 'danger' | 'secondary' | 'warn' {
+    const map: Record<string, 'success' | 'danger' | 'secondary' | 'warn'> = {
+      annual:    'success',
+      sick:      'danger',
+      unpaid:    'secondary',
+      'no-show': 'warn',
+    };
+    return map[type] ?? 'secondary';
   }
 
   countByType(type: string): number {

@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -23,14 +23,19 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
   styleUrl: './my-leave.component.scss',
 })
 export class MyLeaveComponent implements OnInit {
-  private readonly leaveSvc = inject(LeaveService);
-  private readonly toast    = inject(ToastService);
-  private readonly confirm  = inject(ConfirmService);
+  private readonly leaveSvc  = inject(LeaveService);
+  private readonly toast     = inject(ToastService);
+  private readonly confirm   = inject(ConfirmService);
+  private readonly translate = inject(TranslateService);
 
-  readonly viewOptions = [
-    { labelKey: 'leave.applyLeave', value: 'apply'   },
-    { labelKey: 'leave.history',    value: 'history' },
-  ];
+  // PrimeNG 21 SelectButton does not support ng-template pTemplate="item".
+  // Use optionLabel="label" (matching the pattern used by the profile language selector).
+  get viewOptions() {
+    return [
+      { label: this.translate.instant('leave.applyLeave'), value: 'apply'   },
+      { label: this.translate.instant('leave.history'),    value: 'history' },
+    ];
+  }
 
   readonly leaveTypes = LEAVE_TYPES;
   readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({

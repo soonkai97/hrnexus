@@ -17,8 +17,3 @@ textarea { width: 100%; resize: vertical; }
 .msg-time     { font-size: 0.75rem; color: $text-muted; margin-top: 0.35rem; }
 .unread-dot   { position: absolute; top: 0.75rem; right: 0.75rem; width: 8px; height: 8px; border-radius: 50%; background: $neon-purple; }
 .sm           { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
-
-// ── Desktop: cap narrow content ───────────────────────────────────────────────
-@media (min-width: 768px) {
-  .compose-card, .msg-card { max-width: 640px; }
-}

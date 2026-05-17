@@ -116,8 +116,3 @@
   margin-top: 1.5rem;
   padding-bottom: 1rem;
 }
-
-// ── Desktop: cap narrow content so info rows don't span 1400px ───────────────
-@media (min-width: 768px) {
-  .avatar-section, .info-card, .actions-card, .action-card, .sign-out-wrap { max-width: 640px; }
-}

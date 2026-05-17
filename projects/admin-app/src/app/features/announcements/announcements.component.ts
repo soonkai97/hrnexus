@@ -5,6 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { MultiSelect } from 'primeng/multiselect';
 import { Paginator } from 'primeng/paginator';
 import { Textarea } from 'primeng/textarea';
 import { TableModule } from 'primeng/table';
@@ -20,7 +21,7 @@ import { Skeleton } from 'primeng/skeleton';
   selector: 'app-announcements',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe,
-    Button, InputText, Textarea, TableModule, Tag, Card, TooltipModule, DatePicker, Paginator, Menu, Skeleton],
+    Button, InputText, MultiSelect, Textarea, TableModule, Tag, Card, TooltipModule, DatePicker, Paginator, Menu, Skeleton],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })
@@ -60,7 +61,15 @@ export class AnnouncementsComponent implements OnInit {
     this.rowMenu.toggle(event);
   }
 
-  form = { title: '', body: '', targetRoles: '*', expiresAt: '' };
+  readonly roleOptions = [
+    { label: 'Admin',    value: 'admin'    },
+    { label: 'Manager',  value: 'manager'  },
+    { label: 'Employee', value: 'employee' },
+  ];
+
+  form: { title: string; body: string; targetRoles: string[]; expiresAt: string } = {
+    title: '', body: '', targetRoles: [], expiresAt: '',
+  };
 
   ngOnInit(): void { this.load(1); }
 
@@ -77,7 +86,7 @@ export class AnnouncementsComponent implements OnInit {
   }
 
   openAdd(): void {
-    this.form = { title: '', body: '', targetRoles: '*', expiresAt: '' };
+    this.form = { title: '', body: '', targetRoles: [], expiresAt: '' };
     this.editing.set(null);
     this.showForm.set(true);
     this.scrollToForm();
@@ -87,7 +96,7 @@ export class AnnouncementsComponent implements OnInit {
     this.form = {
       title:       item.title,
       body:        item.body,
-      targetRoles: item.targetRoles,
+      targetRoles: item.targetRoles === '*' ? [] : item.targetRoles.split(','),
       expiresAt:   item.expiresAt ? item.expiresAt.slice(0, 10) : '',
     };
     this.editing.set(item.id);
@@ -119,7 +128,7 @@ export class AnnouncementsComponent implements OnInit {
     const dto = {
       title:       this.form.title.trim(),
       body:        this.form.body.trim(),
-      targetRoles: this.form.targetRoles.trim() || '*',
+      targetRoles: this.form.targetRoles.length ? this.form.targetRoles.join(',') : '*',
       expiresAt:   this.form.expiresAt || null,
     };
     const editId = this.editing();

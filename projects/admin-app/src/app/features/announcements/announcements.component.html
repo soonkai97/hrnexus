@@ -20,7 +20,14 @@
       </div>
       <div class="field">
         <label>{{ 'announcements.targetRoles' | translate }}</label>
-        <input pInputText [(ngModel)]="form.targetRoles" [placeholder]="'announcements.targetRolesPlaceholder' | translate" />
+        <p-multiselect
+          [options]="roleOptions"
+          [(ngModel)]="form.targetRoles"
+          optionLabel="label"
+          optionValue="value"
+          [placeholder]="'announcements.targetRolesPlaceholder' | translate"
+          styleClass="w-full"
+          appendTo="body" />
       </div>
       <div class="field">
         <label>{{ 'announcements.expiresAt' | translate }} <span class="field-hint">{{ 'announcements.expiresAtHint' | translate }}</span></label>

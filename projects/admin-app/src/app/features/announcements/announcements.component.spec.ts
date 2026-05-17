@@ -197,7 +197,7 @@ describe('AnnouncementsComponent', () => {
 
   describe('save() — create path (editing is null)', () => {
     beforeEach(() => {
-      component.form = { title: 'Hello', body: 'World', targetRoles: '*', expiresAt: '' };
+      component.form = { title: 'Hello', body: 'World', targetRoles: [], expiresAt: '' };
       component.editing.set(null);
     });
 
@@ -230,7 +230,7 @@ describe('AnnouncementsComponent', () => {
 
   describe('save() — update path (editing is set)', () => {
     beforeEach(() => {
-      component.form = { title: 'Hello', body: 'World', targetRoles: '*', expiresAt: '' };
+      component.form = { title: 'Hello', body: 'World', targetRoles: [], expiresAt: '' };
       component.editing.set('a1');
     });
 
@@ -253,7 +253,17 @@ describe('AnnouncementsComponent', () => {
       component.startEdit(makeItem({ title: 'News', body: 'Details', targetRoles: 'manager' }));
       expect(component.form.title).toBe('News');
       expect(component.form.body).toBe('Details');
-      expect(component.form.targetRoles).toBe('manager');
+      expect(component.form.targetRoles).toEqual(['manager']);
+    });
+
+    it('converts * targetRoles to empty array (meaning all roles)', () => {
+      component.startEdit(makeItem({ targetRoles: '*' }));
+      expect(component.form.targetRoles).toEqual([]);
+    });
+
+    it('splits comma-separated targetRoles into an array', () => {
+      component.startEdit(makeItem({ targetRoles: 'manager,employee' }));
+      expect(component.form.targetRoles).toEqual(['manager', 'employee']);
     });
 
     it('slices expiresAt to date-only (first 10 chars)', () => {

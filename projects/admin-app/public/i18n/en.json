@@ -379,7 +379,7 @@
     "bodyLabel":        "Body",
     "bodyPlaceholder":  "Announcement body",
     "targetRoles":      "Target Roles",
-    "targetRolesPlaceholder": "* for all, or: bartender,manager",
+    "targetRolesPlaceholder": "All roles (default)",
     "expiresAt":        "Expires At",
     "expiresAtHint":    "(optional)",
     "noAnnouncements":  "No announcements yet.",

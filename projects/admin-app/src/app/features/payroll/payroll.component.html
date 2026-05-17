@@ -35,17 +35,18 @@
     }
 
     <p-card styleClass="table-card p-0">
-      <p-table [value]="data()!.staff" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
+      <p-table [value]="data()!.staff" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px"
+        sortField="name" [sortOrder]="1">
         <ng-template pTemplate="header">
           <tr>
-            <th>Staff ID</th>
-            <th>Name</th>
-            <th>Regular Hrs</th>
-            <th>OT Hrs</th>
-            <th>Work Pay (RM)</th>
-            <th>Paid Leave Days</th>
-            <th>Leave Pay (RM)</th>
-            <th>Grand Total (RM)</th>
+            <th pSortableColumn="staffId">Staff ID <p-sortIcon field="staffId" /></th>
+            <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+            <th pSortableColumn="regularHours">Regular Hrs <p-sortIcon field="regularHours" /></th>
+            <th pSortableColumn="overtimeHours">OT Hrs <p-sortIcon field="overtimeHours" /></th>
+            <th pSortableColumn="totalPay">Work Pay (RM) <p-sortIcon field="totalPay" /></th>
+            <th pSortableColumn="paidLeaveDays">Paid Leave Days <p-sortIcon field="paidLeaveDays" /></th>
+            <th pSortableColumn="paidLeavePay">Leave Pay (RM) <p-sortIcon field="paidLeavePay" /></th>
+            <th pSortableColumn="grandTotal">Grand Total (RM) <p-sortIcon field="grandTotal" /></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>

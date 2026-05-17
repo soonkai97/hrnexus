@@ -70,13 +70,14 @@
     @if (rules().length === 0 && !loading()) {
       <div class="empty-state">{{ 'overtime.noRulesConfigured' | translate }}</div>
     } @else {
-      <p-table [value]="rules()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
+      <p-table [value]="rules()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px"
+        sortField="role" [sortOrder]="1">
         <ng-template pTemplate="header">
           <tr>
-            <th>{{ 'overtime.roleCol' | translate }}</th>
-            <th>{{ 'overtime.afterHoursCol' | translate }}</th>
-            <th>{{ 'overtime.multiplierCol' | translate }}</th>
-            <th>{{ 'overtime.activeCol' | translate }}</th>
+            <th pSortableColumn="role">{{ 'overtime.roleCol' | translate }} <p-sortIcon field="role" /></th>
+            <th pSortableColumn="thresholdHours">{{ 'overtime.afterHoursCol' | translate }} <p-sortIcon field="thresholdHours" /></th>
+            <th pSortableColumn="multiplier">{{ 'overtime.multiplierCol' | translate }} <p-sortIcon field="multiplier" /></th>
+            <th pSortableColumn="isActive">{{ 'overtime.activeCol' | translate }} <p-sortIcon field="isActive" /></th>
             <th class="td-actions"></th>
           </tr>
         </ng-template>

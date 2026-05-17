@@ -32,12 +32,13 @@
 
   <!-- Roles list -->
   <p-card styleClass="table-card p-0">
-    <p-table [value]="roles()" [tableStyle]="{'min-width':'100%'}">
+    <p-table [value]="roles()" [tableStyle]="{'min-width':'100%'}"
+      sortField="name" [sortOrder]="1">
       <ng-template pTemplate="header">
         <tr>
-          <th scope="col">{{ 'roles.roleNameCol' | translate }}</th>
-          <th scope="col">Hourly Rate (RM)</th>
-          <th scope="col">{{ 'roles.typeCol' | translate }}</th>
+          <th scope="col" pSortableColumn="name">{{ 'roles.roleNameCol' | translate }} <p-sortIcon field="name" /></th>
+          <th scope="col" pSortableColumn="hourlyRate">Hourly Rate (RM) <p-sortIcon field="hourlyRate" /></th>
+          <th scope="col" pSortableColumn="isSystem">{{ 'roles.typeCol' | translate }} <p-sortIcon field="isSystem" /></th>
           <th scope="col">{{ 'roles.actionsCol' | translate }}</th>
         </tr>
       </ng-template>

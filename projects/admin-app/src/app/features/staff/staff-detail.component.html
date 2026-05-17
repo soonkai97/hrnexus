@@ -136,15 +136,16 @@
         <p style="color:var(--p-text-muted-color);text-align:center;padding:2rem">{{ 'staffDetail.noWorkLogs' | translate }}</p>
       } @else {
         <p-card styleClass="table-card p-0">
-          <p-table [value]="workLogs()" [tableStyle]="{'min-width':'100%'}">
+          <p-table [value]="workLogs()" [tableStyle]="{'min-width':'100%'}"
+            sortField="workDate" [sortOrder]="-1">
             <ng-template pTemplate="header">
               <tr>
-                <th>{{ 'staffDetail.dateCol' | translate }}</th>
-                <th>{{ 'staffDetail.roleCol' | translate }}</th>
-                <th>{{ 'staffDetail.locationCol' | translate }}</th>
-                <th>{{ 'staffDetail.startCol' | translate }}</th>
-                <th>{{ 'staffDetail.endCol' | translate }}</th>
-                <th>{{ 'staffDetail.hoursCol' | translate }}</th>
+                <th pSortableColumn="workDate">{{ 'staffDetail.dateCol' | translate }} <p-sortIcon field="workDate" /></th>
+                <th pSortableColumn="roleName">{{ 'staffDetail.roleCol' | translate }} <p-sortIcon field="roleName" /></th>
+                <th pSortableColumn="locationName">{{ 'staffDetail.locationCol' | translate }} <p-sortIcon field="locationName" /></th>
+                <th pSortableColumn="startTime">{{ 'staffDetail.startCol' | translate }} <p-sortIcon field="startTime" /></th>
+                <th pSortableColumn="endTime">{{ 'staffDetail.endCol' | translate }} <p-sortIcon field="endTime" /></th>
+                <th pSortableColumn="hours">{{ 'staffDetail.hoursCol' | translate }} <p-sortIcon field="hours" /></th>
                 <th>{{ 'staffDetail.status' | translate }}</th>
               </tr>
             </ng-template>

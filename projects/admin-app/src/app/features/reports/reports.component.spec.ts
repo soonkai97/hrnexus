@@ -38,23 +38,25 @@ describe('ReportsComponent', () => {
 
   let mockAdminSvc:  { getReport: ReturnType<typeof vi.fn> };
   let mockStaffStore: {
-    staff:     ReturnType<typeof vi.fn>;
     roles:     ReturnType<typeof vi.fn>;
-    loadStaff: ReturnType<typeof vi.fn>;
     loadRoles: ReturnType<typeof vi.fn>;
   };
-  let mockStaffSvc: { getLocations: ReturnType<typeof vi.fn> };
+  let mockStaffSvc: {
+    getAll:       ReturnType<typeof vi.fn>;
+    getLocations: ReturnType<typeof vi.fn>;
+  };
   let mockToastSvc: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    mockAdminSvc = { getReport: vi.fn().mockReturnValue(of(fakeReport)) };
+    mockAdminSvc  = { getReport: vi.fn().mockReturnValue(of(fakeReport)) };
     mockStaffStore = {
-      staff:     vi.fn().mockReturnValue([]),
       roles:     vi.fn().mockReturnValue([]),
-      loadStaff: vi.fn(),
       loadRoles: vi.fn(),
     };
-    mockStaffSvc  = { getLocations: vi.fn().mockReturnValue(of([])) };
+    mockStaffSvc  = {
+      getAll:       vi.fn().mockReturnValue(of({ items: [], total: 0 })),
+      getLocations: vi.fn().mockReturnValue(of([])),
+    };
     mockToastSvc  = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
@@ -83,9 +85,13 @@ describe('ReportsComponent', () => {
   // ── ngOnInit() ───────────────────────────────────────────────────────────────
 
   describe('ngOnInit()', () => {
-    it('loads staff and roles so filter dropdowns are populated', () => {
+    it('loads all staff (pageSize 999) for the dropdown — not the paginated store', () => {
       component.ngOnInit();
-      expect(mockStaffStore.loadStaff).toHaveBeenCalled();
+      expect(mockStaffSvc.getAll).toHaveBeenCalledWith('', 1, 999);
+    });
+
+    it('loads roles so the role filter is populated', () => {
+      component.ngOnInit();
       expect(mockStaffStore.loadRoles).toHaveBeenCalled();
     });
 
@@ -146,7 +152,63 @@ describe('ReportsComponent', () => {
     it('passes staffIds when filter array is populated', () => {
       component.dateFrom  = '2026-05-01';
       component.dateTo    = '2026-05-31';
+      // allStaff must have more items than selected so subset logic fires
+      component.allStaff.set([{ id: 'e1' } as any, { id: 'e2' } as any, { id: 'e3' } as any]);
       component.staffIds  = ['e1', 'e2'];
+      component.runReport();
+      const filters = mockAdminSvc.getReport.mock.calls[0][0];
+      expect(filters.staffIds).toEqual(['e1', 'e2']);
+    });
+
+    // ── null guard (PrimeNG clear button sets value to null, not []) ────────────
+
+    it('does not crash when staffIds is null — PrimeNG clear button sets null', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      (component as any).staffIds = null;
+      expect(() => component.runReport()).not.toThrow();
+    });
+
+    it('does not crash when locationNames is null after clear', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      (component as any).locationNames = null;
+      expect(() => component.runReport()).not.toThrow();
+    });
+
+    it('does not crash when roles is null after clear', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      (component as any).roles = null;
+      expect(() => component.runReport()).not.toThrow();
+    });
+
+    it('treats null staffIds as no filter — omits from API call', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      (component as any).staffIds = null;
+      component.runReport();
+      const filters = mockAdminSvc.getReport.mock.calls[0][0];
+      expect(filters.staffIds).toBeUndefined();
+    });
+
+    // ── select-all = no filter ────────────────────────────────────────────────
+
+    it('omits staffIds when all staff are selected — avoids blasting every UUID', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      component.allStaff.set([{ id: 'e1' } as any, { id: 'e2' } as any]);
+      component.staffIds = ['e1', 'e2']; // all staff selected
+      component.runReport();
+      const filters = mockAdminSvc.getReport.mock.calls[0][0];
+      expect(filters.staffIds).toBeUndefined();
+    });
+
+    it('sends staffIds when only a subset of staff are selected', () => {
+      component.dateFrom = '2026-05-01';
+      component.dateTo   = '2026-05-31';
+      component.allStaff.set([{ id: 'e1' } as any, { id: 'e2' } as any, { id: 'e3' } as any]);
+      component.staffIds = ['e1', 'e2']; // subset selected
       component.runReport();
       const filters = mockAdminSvc.getReport.mock.calls[0][0];
       expect(filters.staffIds).toEqual(['e1', 'e2']);
@@ -164,6 +226,7 @@ describe('ReportsComponent', () => {
     it('passes locationNames when filter array is populated', () => {
       component.dateFrom       = '2026-05-01';
       component.dateTo         = '2026-05-31';
+      component.locations.set(['Main Bar', 'VIP Room', 'Rooftop']); // more than selected
       component.locationNames  = ['Main Bar', 'VIP Room'];
       component.runReport();
       const filters = mockAdminSvc.getReport.mock.calls[0][0];
@@ -182,6 +245,9 @@ describe('ReportsComponent', () => {
     it('passes roles when filter array is populated', () => {
       component.dateFrom = '2026-05-01';
       component.dateTo   = '2026-05-31';
+      mockStaffStore.roles.mockReturnValue([
+        { name: 'bartender' }, { name: 'dj' }, { name: 'manager' }, // more than selected
+      ]);
       component.roles    = ['bartender', 'dj'];
       component.runReport();
       const filters = mockAdminSvc.getReport.mock.calls[0][0];

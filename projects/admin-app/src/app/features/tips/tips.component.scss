@@ -45,8 +45,6 @@
 }
 
 .exclusion-warning {
-  display: flex;
-  gap: 0.75rem;
   background: rgba(251, 191, 36, 0.08);
   border: 1px solid rgba(251, 191, 36, 0.3);
   border-radius: 8px;
@@ -71,9 +69,6 @@
 // ── Skeleton loading ─────────────────────────────────────────────────────────
 .skeleton-table { display: flex; flex-direction: column; }
 .skeleton-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   padding: 0.9rem 0;
   border-bottom: 1px solid $border-subtle;
   &:last-child { border-bottom: none; }

@@ -1,5 +1,5 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">Messaging</h1>
     <p-button [icon]="showCompose() ? 'pi pi-times' : 'pi pi-pencil'"
               [label]="showCompose() ? 'Cancel' : 'Compose'" [text]="showCompose()" [severity]="showCompose() ? 'secondary' : 'primary'"
@@ -16,7 +16,7 @@
           placeholder="— All Staff (Broadcast) —" [showClear]="true"
           [filter]="true" filterPlaceholder="Search staff…"
           styleClass="w-full" />
-        <div class="recipient-hint" [class.hint-broadcast]="!compose.recipientId">
+        <div class="recipient-hint d-flex align-items-center gap-1" [class.hint-broadcast]="!compose.recipientId">
           <i [class]="compose.recipientId ? 'pi pi-user' : 'pi pi-users'"></i>
           {{ compose.recipientId ? 'Direct message — only the selected staff member will receive this.' : 'Broadcast — all staff will receive this message.' }}
         </div>
@@ -26,7 +26,7 @@
         <textarea pTextarea [(ngModel)]="compose.content" rows="4" placeholder="Type your message…" maxlength="2000"></textarea>
         <div class="char-count">{{ compose.content.length }}/2000</div>
       </div>
-      <div class="form-actions">
+      <div class="d-flex justify-content-end">
         <p-button [label]="sending() ? 'Sending…' : 'Send Message'" severity="primary"
                   (click)="send()" [disabled]="sending() || !compose.content.trim()" [loading]="sending()" />
       </div>
@@ -44,7 +44,7 @@
     <div class="msg-list">
       @for (i of [1,2,3]; track i) {
         <p-card styleClass="msg-card">
-          <div style="display:flex;flex-direction:column;gap:0.45rem">
+          <div class="d-flex flex-column gap-2">
             <p-skeleton width="30%" height="0.72rem" borderRadius="4px" />
             <p-skeleton width="80%" height="0.65rem" borderRadius="4px" />
             <p-skeleton width="60%" height="0.65rem" borderRadius="4px" />
@@ -64,7 +64,7 @@
         <p-card styleClass="msg-card" [class.unread]="!msg.readAt" (click)="markRead(msg)">
           <div class="msg-from">{{ msg.senderName }}</div>
           <div class="msg-content">{{ msg.content }}</div>
-          <div class="msg-footer">
+          <div class="msg-footer d-flex align-items-center justify-content-between">
             <div class="msg-time">{{ msg.sentAt | date:'d MMM yyyy, h:mm a' }}</div>
             <p-button icon="pi pi-reply" label="Reply" [text]="true" severity="secondary" styleClass="btn-xs"
                       (click)="reply(msg); $event.stopPropagation()" />

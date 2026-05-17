@@ -1,6 +1,6 @@
-<div class="page-wrap">
+﻿<div class="px-4 py-3 mx-auto" style="max-width:480px">
 
-  <div class="page-header">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title"><i class="pi pi-bell"></i> {{ 'notifications.title' | translate }}</h1>
     @if (unreadCount() > 0) {
       <p-button [label]="'notifications.markAllRead' | translate" [text]="true" severity="secondary"
@@ -29,7 +29,7 @@
       @for (i of [1,2,3,4,5]; track i) {
         <div class="notif-item">
           <div class="notif-icon"><p-skeleton shape="circle" width="22px" height="22px" /></div>
-          <div class="notif-body" style="display:flex;flex-direction:column;gap:0.35rem">
+          <div class="notif-body d-flex flex-column gap-1">
             <p-skeleton width="55%" height="0.72rem" borderRadius="4px" />
             <p-skeleton width="80%" height="0.65rem" borderRadius="4px" />
             <p-skeleton width="28%" height="0.58rem" borderRadius="4px" />

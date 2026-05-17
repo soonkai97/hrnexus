@@ -1,11 +1,11 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'reports.title' | translate }}</h1>
   </div>
 
   <!-- Filters -->
     <p-card styleClass="filter-bar">
-      <div class="filter-row">
+      <div class="filter-row d-flex flex-wrap gap-2 align-items-end">
         <div class="field">
           <label>{{ 'reports.from' | translate }}</label>
           <p-datepicker [(ngModel)]="dateFrom"
@@ -82,31 +82,39 @@
     @if (report(); as r) {
 
       <!-- Summary cards -->
-      <div class="stat-grid report-stat-grid">
-        <p-card styleClass="stat-card accent-purple">
-          <span class="stat-label">{{ 'reports.totalShifts' | translate }}</span>
-          <span class="stat-value">{{ r.summary.totalShifts }}</span>
-          <span class="stat-sub">{{ 'reports.inSelectedPeriod' | translate }}</span>
-        </p-card>
-        <p-card styleClass="stat-card accent-pink">
-          <span class="stat-label">{{ 'reports.totalHours' | translate }}</span>
-          <span class="stat-value">{{ r.summary.totalHours }}h</span>
-          <span class="stat-sub">{{ 'reports.avgPerShift' | translate }} {{ r.summary.avgHoursPerShift }}h {{ 'reports.perShift' | translate }}</span>
-        </p-card>
-        <p-card styleClass="stat-card accent-amber">
-          <span class="stat-label">{{ 'reports.labourCost' | translate }}</span>
-          <span class="stat-value">RM {{ r.summary.totalCost | number:'1.2-2' }}</span>
-          <span class="stat-sub">{{ 'reports.grossPayTotal' | translate }}</span>
-        </p-card>
-        <p-card styleClass="stat-card accent-green">
-          <span class="stat-label">{{ 'reports.uniqueStaff' | translate }}</span>
-          <span class="stat-value">{{ r.summary.uniqueStaff }}</span>
-          <span class="stat-sub">{{ 'reports.across' | translate }} {{ r.summary.uniqueLocations }} {{ 'reports.locations' | translate }}</span>
-        </p-card>
+      <div class="row row-cols-2 row-cols-lg-4 g-3 mt-3 mb-4">
+        <div class="col">
+          <p-card styleClass="stat-card accent-purple h-100">
+            <span class="stat-label">{{ 'reports.totalShifts' | translate }}</span>
+            <span class="stat-value">{{ r.summary.totalShifts }}</span>
+            <span class="stat-sub">{{ 'reports.inSelectedPeriod' | translate }}</span>
+          </p-card>
+        </div>
+        <div class="col">
+          <p-card styleClass="stat-card accent-pink h-100">
+            <span class="stat-label">{{ 'reports.totalHours' | translate }}</span>
+            <span class="stat-value">{{ r.summary.totalHours }}h</span>
+            <span class="stat-sub">{{ 'reports.avgPerShift' | translate }} {{ r.summary.avgHoursPerShift }}h {{ 'reports.perShift' | translate }}</span>
+          </p-card>
+        </div>
+        <div class="col">
+          <p-card styleClass="stat-card accent-amber h-100">
+            <span class="stat-label">{{ 'reports.labourCost' | translate }}</span>
+            <span class="stat-value">RM {{ r.summary.totalCost | number:'1.2-2' }}</span>
+            <span class="stat-sub">{{ 'reports.grossPayTotal' | translate }}</span>
+          </p-card>
+        </div>
+        <div class="col">
+          <p-card styleClass="stat-card accent-green h-100">
+            <span class="stat-label">{{ 'reports.uniqueStaff' | translate }}</span>
+            <span class="stat-value">{{ r.summary.uniqueStaff }}</span>
+            <span class="stat-sub">{{ 'reports.across' | translate }} {{ r.summary.uniqueLocations }} {{ 'reports.locations' | translate }}</span>
+          </p-card>
+        </div>
       </div>
 
       <!-- Result tabs -->
-      <div class="tab-nav">
+      <div class="d-flex justify-content-between align-items-center gap-2 mt-4 mb-3">
         <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))" styleClass="tab-nav-tabs">
           <p-tablist>
             <p-tab value="employee">{{ 'reports.byEmployee' | translate }}</p-tab>
@@ -124,7 +132,7 @@
 
       <!-- By Employee -->
       @if (activeTab() === 'employee') {
-        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+        <p-card styleClass="table-card report-table-card p-0">
           <p-table [value]="r.byStaff" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>
@@ -157,7 +165,7 @@
 
       <!-- By Location -->
       @if (activeTab() === 'location') {
-        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+        <p-card styleClass="table-card report-table-card p-0">
           <p-table [value]="r.byLocation" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>
@@ -190,7 +198,7 @@
 
       <!-- By Role -->
       @if (activeTab() === 'role') {
-        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+        <p-card styleClass="table-card report-table-card p-0">
           <p-table [value]="r.byRole" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>
@@ -219,7 +227,7 @@
 
       <!-- By Date -->
       @if (activeTab() === 'date') {
-        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+        <p-card styleClass="table-card report-table-card p-0">
           <p-table [value]="r.byDate" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>
@@ -246,7 +254,7 @@
 
       <!-- All Shifts -->
       @if (activeTab() === 'shifts') {
-        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+        <p-card styleClass="table-card report-table-card p-0">
           <p-table [value]="r.shifts" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>

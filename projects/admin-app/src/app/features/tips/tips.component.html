@@ -1,12 +1,12 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'tips.title' | translate }}</h1>
     <p-button [label]="'tips.distributeTips' | translate" severity="primary" (click)="openForm()" />
   </div>
 
   @if (showForm()) {
     <p-card styleClass="form-card">
-      <div class="form-header">
+      <div class="form-header d-flex align-items-center justify-content-between">
         <h3>{{ 'tips.newDistribution' | translate }}</h3>
         <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
       </div>
@@ -38,7 +38,7 @@
           [options]="splitMethodOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
       </div>
 
-      <div class="form-actions">
+      <div class="form-actions d-flex gap-3 justify-content-end">
         <p-button [label]="'tips.previewDistribution' | translate" severity="primary"
                   (click)="distribute()" [disabled]="distributing()" [loading]="distributing()" />
       </div>
@@ -51,7 +51,7 @@
           }
 
           @if (p.excludedStaff && p.excludedStaff.length > 0) {
-            <div class="exclusion-warning">
+            <div class="exclusion-warning d-flex gap-2">
               <span class="exclusion-icon"><i class="pi pi-exclamation-triangle"></i></span>
               <div>
                 <strong>{{ p.excludedStaff.length }} staff clocked out and will NOT receive tips:</strong>
@@ -92,7 +92,7 @@
     @if (loading()) {
       <div class="skeleton-table">
         @for (i of [1,2,3,4]; track i) {
-          <div class="skeleton-row">
+          <div class="skeleton-row d-flex align-items-center gap-3">
             <p-skeleton width="18%" height="0.72rem" borderRadius="4px" />
             <p-skeleton width="12%" height="0.72rem" borderRadius="4px" />
             <p-skeleton width="10%" height="0.72rem" borderRadius="4px" />

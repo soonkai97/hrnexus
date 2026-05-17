@@ -1,16 +1,18 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, StaffService, StaffDetail, ToastService, PushService, LangService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
+import { SelectButton } from 'primeng/selectbutton';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [TitleCasePipe, RouterLink, TranslatePipe, Button, Card, Tag],
+  imports: [TitleCasePipe, RouterLink, FormsModule, TranslatePipe, Button, Card, Tag, SelectButton],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
@@ -20,6 +22,11 @@ export class ProfileComponent implements OnInit {
   private readonly toast    = inject(ToastService);
   private readonly pushSvc  = inject(PushService);
   readonly lang             = inject(LangService);
+
+  readonly langOptions = [
+    { label: 'English', value: 'en' },
+    { label: '中文',    value: 'zh' },
+  ];
 
   user     = computed(() => this.auth.user());
   profile  = signal<StaffDetail | null>(null);

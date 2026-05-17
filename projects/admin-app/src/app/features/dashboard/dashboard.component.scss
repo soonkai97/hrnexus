@@ -18,15 +18,10 @@
   border: 1px solid $border-subtle;
   border-radius: $radius-lg;
   padding: 1rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
 }
 
 .skeleton-section {
   margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
 }
 
 .row-new {
@@ -45,17 +40,7 @@
 }
 
 .warn-inner {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-
   .stat-icon { font-size: 1.5rem; }
-
-  .stat-body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-  }
 
   .stat-value {
     font-size: 1.5rem;
@@ -72,10 +57,5 @@
 }
 
 @media (max-width: 768px) {
-  .stat-grid   { grid-template-columns: repeat(2, 1fr); }
   .bottom-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 480px) {
-  .stat-grid { grid-template-columns: 1fr 1fr; }
 }

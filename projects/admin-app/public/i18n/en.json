@@ -144,7 +144,7 @@
     "resetPasswordTitle": "Reset Password",
     "resetPasswordDesc":  "Set a new password for {{name}}. After saving, inform them of the new password verbally — they will be prompted to change it on next login.",
     "newPassword":        "New Password",
-    "minChars":           "Min. 6 characters",
+    "minChars":           "Min. 8 characters",
     "generatePassword":   "Generate Password",
     "saveReset":          "Save & Reset",
     "system":             "system",
@@ -419,12 +419,17 @@
   "account": {
     "title":            "My Account",
     "profileSection":   "Profile",
+    "staffId":          "Staff ID",
+    "email":            "Email",
+    "roles":            "Role(s)",
     "phoneNumber":      "Phone Number",
-    "saveProfile":      "Save Profile",
+    "saveProfile":      "Save",
     "passwordSection":  "Password",
     "passwordDesc":     "Update your login password",
     "changePassword":   "Change Password",
     "changePasswordTitle": "Change Password",
+    "language":         "Language",
+    "signOut":          "Sign Out",
     "back":             "Back"
   }
 }

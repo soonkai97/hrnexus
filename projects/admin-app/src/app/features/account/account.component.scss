@@ -1,37 +1,80 @@
 @use 'styles/theme' as *;
 
-.account-layout {
+// ── Avatar section ────────────────────────────────────────────────────────────
+.avatar-section {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 480px;
+  align-items: center;
+  padding: 1.5rem 0 1.75rem;
+  gap: 0.6rem;
+
+  .user-name { font-size: 1.2rem; font-weight: 700; color: $text-primary; }
 }
 
-.profile-card {
-  padding: 2rem;
+.avatar-ring {
+  width: 84px; height: 84px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, $neon-purple, $neon-pink);
+  box-shadow: $glow-purple;
+  margin-bottom: 0.25rem;
 }
 
-.section-heading {
-  font-size: 1rem;
-  margin-bottom: 1.25rem;
-  color: $text-primary;
+.avatar {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: $bg-surface;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; font-weight: 800;
+  color: $neon-purple; letter-spacing: -1px;
 }
 
-.password-card {
-  padding: 1.5rem 2rem;
+// ── Info card ─────────────────────────────────────────────────────────────────
+.info-card { margin-bottom: 0.75rem; overflow: hidden; }
+
+.info-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+
+  .info-label { font-size: 0.8rem; color: $text-muted; }
+  .info-value {
+    font-size: 0.875rem; color: $text-primary; font-weight: 500;
+    &.mono { font-family: monospace; letter-spacing: 0.05em; color: $neon-purple; }
+  }
 }
 
-.password-card-label {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: $text-primary;
+.divider { height: 1px; background: $border-subtle; margin: 0 1.25rem; }
+
+// ── Action card (Change Password) ─────────────────────────────────────────────
+.action-card {
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: background $transition-fast;
+  &:hover { background: $bg-raised; }
 }
 
-.password-card-sub {
-  font-size: 0.8rem;
-  color: $text-muted;
-  margin-top: 2px;
+.action-card-link {
+  display: flex; align-items: center; justify-content: space-between;
+  text-decoration: none; color: $text-primary; gap: 0.75rem;
+}
+
+.action-card-label {
+  display: flex; flex-direction: column;
+  font-size: 0.9rem; font-weight: 600; color: $text-primary;
+}
+
+.action-card-sub { font-size: 0.78rem; color: $text-muted; margin-top: 2px; font-weight: 400; }
+.action-card-arrow { font-size: 1.1rem; color: $text-muted; }
+
+// ── Language card ─────────────────────────────────────────────────────────────
+.lang-card { margin-bottom: 0.75rem; }
+
+.card-heading { font-size: 0.9rem; margin-bottom: 0.75rem; font-weight: 600; color: $text-primary; }
+
+// ── Sign out ──────────────────────────────────────────────────────────────────
+.sign-out-wrap {
+  display: flex; justify-content: center;
+  margin-top: 1.5rem; padding-bottom: 1rem;
 }

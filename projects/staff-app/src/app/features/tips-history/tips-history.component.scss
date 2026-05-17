@@ -1,10 +1,9 @@
 @use 'styles/theme' as *;
 
 .period-picker { padding: 1rem; margin-bottom: 1rem; }
-.picker-row   { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
 .field        { display: flex; flex-direction: column; gap: 0.25rem; }
 .field label  { font-size: 0.8rem; color: $text-muted; }
-.loading-state { padding: 2rem; display: flex; justify-content: center; }
+.loading-state { padding: 2rem; }
 .empty-state  { text-align: center; padding: 3rem 1rem; color: $text-muted; }
 .empty-icon   { font-size: 2.5rem; margin-bottom: 0.75rem; }
 .tips-card    { padding: 1.5rem; }
@@ -12,8 +11,7 @@
 .tips-label   { font-size: 0.85rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.05em; }
 .tips-amount  { font-size: 2.5rem; font-weight: 800; color: $neon-purple; margin: 0.25rem 0; }
 .tips-period  { font-size: 0.85rem; color: $text-secondary; }
-.pay-breakdown { display: flex; flex-direction: column; gap: 0.6rem; }
-.breakdown-row { display: flex; justify-content: space-between; font-size: 0.875rem; color: $text-secondary; padding: 0.25rem 0; border-bottom: 1px solid $border-subtle;
+.breakdown-row { font-size: 0.875rem; color: $text-secondary; padding: 0.25rem 0; border-bottom: 1px solid $border-subtle;
   &.highlight { color: $neon-purple; font-weight: 600; }
   &.total     { color: $text-primary; font-weight: 700; font-size: 1rem; border-top: 1px solid $border-subtle; margin-top: 0.25rem; padding-top: 0.6rem; border-bottom: none; }
 }

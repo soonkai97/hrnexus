@@ -1,5 +1,5 @@
-<div class="page-wrap">
-  <div class="page-header">
+﻿<div class="p-3 p-md-4">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <div>
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a routerLink="/staff" class="bc-link">{{ 'nav.staff' | translate }}</a>
@@ -15,10 +15,10 @@
   </div>
 
   @if (loading()) {
-    <p-card styleClass="nc-card" [style]="{'margin-bottom': '1.5rem'}">
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1.25rem">
+    <p-card styleClass="nc-card" class="mb-4">
+      <div class="detail-info-grid">
         @for (i of [1,2,3,4,5,6,7,8,9]; track i) {
-          <div style="display:flex;flex-direction:column;gap:0.4rem">
+          <div class="d-flex flex-column gap-1">
             <p-skeleton width="55%" height="0.62rem" borderRadius="4px" />
             <p-skeleton width="80%" height="0.78rem" borderRadius="4px" />
           </div>
@@ -28,9 +28,9 @@
   } @else if (staff(); as s) {
 
     <!-- ── Profile card ─────────────────────────────────────────────── -->
-    <p-card styleClass="nc-card" [style]="{'margin-bottom': '1.5rem'}">
+    <p-card styleClass="nc-card" class="mb-4">
       @if (!editMode()) {
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem">
+        <div class="detail-info-grid">
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.fullName' | translate }}</label><div>{{ s.fullName }}</div></div>
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.staffId' | translate }}</label><div>{{ s.staffId }}</div></div>
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.email' | translate }}</label><div>{{ s.email }}</div></div>
@@ -45,35 +45,35 @@
             </div>
           </div>
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.roles' | translate }}</label>
-            <div style="display:flex;flex-wrap:wrap;gap:.3rem">
+            <div class="d-flex flex-wrap gap-1">
               @for (r of s.roles; track r) { <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" /> }
             </div>
           </div>
         </div>
       } @else {
         <!-- Edit form -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-          <div class="field">
+        <div class="row g-3">
+          <div class="col-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.staffId' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.staffId" />
           </div>
-          <div class="field">
+          <div class="col-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.email' | translate }}</label>
             <input pInputText type="email" [(ngModel)]="editForm.email" />
           </div>
-          <div class="field">
+          <div class="col-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.firstName' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.firstName" />
           </div>
-          <div class="field">
+          <div class="col-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.lastName' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.lastName" />
           </div>
-          <div class="field">
+          <div class="col-6 field">
             <label>{{ 'staffDetail.phone' | translate }}</label>
             <input pInputText type="tel" [(ngModel)]="editForm.phoneNumber" />
           </div>
-          <div class="field">
+          <div class="col-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.dateOfBirth' | translate }}</label>
             <p-datepicker [(ngModel)]="editForm.dateOfBirth"
               dateFormat="yy-mm-dd"
@@ -81,16 +81,16 @@
               [showIcon]="true"
               styleClass="w-full" />
           </div>
-          <div class="field">
+          <div class="col-6 field">
             <label>{{ 'staffDetail.icNoOptional' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.icNo" />
           </div>
-          <div class="field">
+          <div class="col-6 field">
             <label>{{ 'staffDetail.passportNoOptional' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.passportNo" />
           </div>
           <!-- Roles -->
-          <div class="field" style="grid-column:1/-1">
+          <div class="field col-12">
             <label>{{ 'staffDetail.roles' | translate }}</label>
             <p-multiselect
               [(ngModel)]="editForm.roles"
@@ -102,7 +102,7 @@
               styleClass="w-full" />
           </div>
         </div>
-        <div style="display:flex;gap:.75rem;margin-top:1.5rem">
+        <div class="d-flex gap-2 mt-4">
           <p-button [label]="'common.save' | translate" severity="primary"
                     (click)="saveEdit()" [disabled]="saving() || !isEditFormValid" [loading]="saving()" />
           <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEdit()" />
@@ -112,16 +112,16 @@
 
     <!-- ── Work Logs ─────────────────────────────────────────────────── -->
     <p-card styleClass="nc-card">
-      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
-        <h3 style="margin:0">{{ 'staffDetail.workLogHistory' | translate }}</h3>
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <h3 class="m-0">{{ 'staffDetail.workLogHistory' | translate }}</h3>
         @if (totalLogs() > 0) {
           <span style="color:var(--p-text-muted-color);font-size:.85rem">{{ totalLogs() }} {{ 'common.of' | translate }} {{ totalLogs() }}</span>
         }
       </div>
       @if (workLogsLoading()) {
-        <div style="display:flex;flex-direction:column;gap:0.6rem">
+        <div class="d-flex flex-column gap-2">
           @for (i of [1,2,3,4]; track i) {
-            <div style="display:flex;gap:1rem;align-items:center">
+            <div class="d-flex gap-3 align-items-center">
               <p-skeleton width="14%" height="0.7rem" borderRadius="4px" />
               <p-skeleton width="10%" height="1.3rem" borderRadius="6px" />
               <p-skeleton width="16%" height="0.7rem" borderRadius="4px" />
@@ -135,7 +135,7 @@
       } @else if (workLogs().length === 0) {
         <p style="color:var(--p-text-muted-color);text-align:center;padding:2rem">{{ 'staffDetail.noWorkLogs' | translate }}</p>
       } @else {
-        <p-card styleClass="table-card p-0" [style]="{'padding':0}">
+        <p-card styleClass="table-card p-0">
           <p-table [value]="workLogs()" [tableStyle]="{'min-width':'100%'}">
             <ng-template pTemplate="header">
               <tr>

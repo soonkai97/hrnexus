@@ -79,7 +79,6 @@ export class ShellComponent {
     { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'   },
     { path: '/notifications', labelKey: 'nav.notifications', icon: 'pi pi-bell'                                      },
     { path: '/messaging',     labelKey: 'nav.messaging',     icon: 'pi pi-comments',  featureFlag: 'messagingStaff'  },
-    { path: '/profile',       labelKey: 'nav.profile',       icon: 'pi pi-user'                                      },
   ];
 
   navItems = computed(() => {

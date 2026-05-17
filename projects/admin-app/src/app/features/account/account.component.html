@@ -1,27 +1,69 @@
-<div class="page-wrap">
-  <div class="page-header">
-    <h1 class="page-title">{{ 'account.title' | translate }}</h1>
-  </div>
-  <div class="account-layout">
-    <p-card styleClass="profile-card">
-      <h3 class="section-heading">{{ 'account.profileSection' | translate }}</h3>
-      <div class="field">
-        <label>{{ 'account.phoneNumber' | translate }}</label>
-        <input pInputText type="text" [(ngModel)]="phoneNumber" placeholder="+60 12-345 6789" />
+<div class="px-4 py-3 mx-auto" style="max-width:480px">
+
+  @if (user()) {
+    <!-- Avatar -->
+    <div class="avatar-section">
+      <div class="avatar-ring">
+        <div class="avatar">{{ initials() }}</div>
       </div>
-      @if (profileError()) {
-        <p-message severity="error" [text]="profileError()" styleClass="mb-3 w-full" />
+      <h2 class="user-name">{{ user()!.fullName }}</h2>
+      @for (r of user()!.roles; track r) {
+        <p-tag [value]="r | titlecase" severity="secondary" styleClass="mr-1" />
       }
-      <p-button [label]="savingProfile() ? ('common.saving' | translate) : ('account.saveProfile' | translate)"
-                severity="primary" (click)="saveProfile()" [disabled]="savingProfile()" [loading]="savingProfile()" />
+    </div>
+
+    <!-- Info card -->
+    <p-card styleClass="info-card">
+      <div class="info-row">
+        <span class="info-label">{{ 'account.staffId' | translate }}</span>
+        <span class="info-value mono">{{ user()!.staffId }}</span>
+      </div>
+      <div class="divider"></div>
+      <div class="info-row">
+        <span class="info-label">{{ 'account.email' | translate }}</span>
+        <span class="info-value">{{ user()!.email }}</span>
+      </div>
+      <div class="divider"></div>
+      <div class="info-row">
+        <span class="info-label">{{ 'account.roles' | translate }}</span>
+        <span class="info-value">
+          @for (r of user()!.roles; track r) {
+            <p-tag [value]="r | titlecase" severity="secondary" styleClass="mr-1" />
+          }
+        </span>
+      </div>
+      @if (profile()?.phoneNumber) {
+        <div class="divider"></div>
+        <div class="info-row">
+          <span class="info-label">{{ 'account.phoneNumber' | translate }}</span>
+          <span class="info-value">{{ profile()!.phoneNumber }}</span>
+        </div>
+      }
     </p-card>
 
-    <p-card styleClass="password-card">
-      <div class="password-card-info">
-        <div class="password-card-label">{{ 'account.passwordSection' | translate }}</div>
-        <div class="password-card-sub">{{ 'account.passwordDesc' | translate }}</div>
-      </div>
-      <p-button icon="pi pi-lock" [label]="'account.changePassword' | translate" [text]="true" severity="secondary" routerLink="/account/change-password" />
+    <!-- Change Password -->
+    <p-card styleClass="action-card">
+      <a routerLink="/account/change-password" class="action-card-link">
+        <div class="action-card-label">
+          <span><i class="pi pi-key"></i> {{ 'account.changePassword' | translate }}</span>
+          <span class="action-card-sub">{{ 'account.passwordDesc' | translate }}</span>
+        </div>
+        <span class="action-card-arrow"><i class="pi pi-chevron-right"></i></span>
+      </a>
     </p-card>
-  </div>
+
+    <!-- Language -->
+    <p-card styleClass="lang-card">
+      <h3 class="card-heading"><i class="pi pi-globe"></i> {{ 'account.language' | translate }}</h3>
+      <p-selectbutton [options]="langOptions"
+        [ngModel]="lang.current()" (ngModelChange)="lang.set($any($event))"
+        optionLabel="label" optionValue="value" />
+    </p-card>
+
+    <!-- Sign out -->
+    <div class="sign-out-wrap">
+      <p-button [label]="'account.signOut' | translate" severity="danger" (click)="logout()" />
+    </div>
+  }
+
 </div>

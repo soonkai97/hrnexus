@@ -1,10 +1,10 @@
-<div class="page-content">
-  <div class="page-header">
+﻿<div class="px-4 py-3 mx-auto" style="max-width:480px">
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'nav.tipsHistory' | translate }}</h1>
   </div>
 
   <p-card styleClass="period-picker">
-    <div class="picker-row">
+    <div class="d-flex gap-2 align-items-end flex-wrap">
       <div class="field">
         <label>{{ 'pay.year' | translate }}</label>
         <p-inputnumber
@@ -29,14 +29,14 @@
 
   @if (loading()) {
     <p-card styleClass="tips-card">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:0.65rem;padding:0.5rem 0 1.25rem">
+      <div class="d-flex flex-column align-items-center gap-2 py-3">
         <p-skeleton width="45%" height="0.7rem" borderRadius="4px" />
         <p-skeleton width="50%" height="2rem" borderRadius="4px" />
         <p-skeleton width="30%" height="0.6rem" borderRadius="4px" />
       </div>
-      <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div class="d-flex flex-column gap-2">
         @for (i of [1,2,3,4]; track i) {
-          <div style="display:flex;justify-content:space-between">
+          <div class="d-flex justify-content-between">
             <p-skeleton width="40%" height="0.65rem" borderRadius="4px" />
             <p-skeleton width="25%" height="0.65rem" borderRadius="4px" />
           </div>
@@ -50,20 +50,20 @@
         <div class="tips-amount">RM {{ summary()!.tipsAllocated | number:'1.2-2' }}</div>
         <div class="tips-period">{{ months[selectedMonth() - 1] }} {{ selectedYear() }}</div>
       </div>
-      <div class="pay-breakdown">
-        <div class="breakdown-row">
+      <div class="d-flex flex-column gap-2">
+        <div class="breakdown-row d-flex justify-content-between">
           <span>{{ 'pay.regularHours' | translate }}</span>
           <span>RM {{ summary()!.regularPay | number:'1.2-2' }}</span>
         </div>
-        <div class="breakdown-row">
+        <div class="breakdown-row d-flex justify-content-between">
           <span>{{ 'pay.overtimeHours' | translate }}</span>
           <span>RM {{ summary()!.overtimePay | number:'1.2-2' }}</span>
         </div>
-        <div class="breakdown-row highlight">
+        <div class="breakdown-row d-flex justify-content-between highlight">
           <span>{{ 'pay.tips' | translate }}</span>
           <span>RM {{ summary()!.tipsAllocated | number:'1.2-2' }}</span>
         </div>
-        <div class="breakdown-row total">
+        <div class="breakdown-row d-flex justify-content-between total">
           <span>{{ 'pay.grossPay' | translate }}</span>
           <span>RM {{ summary()!.grossPay | number:'1.2-2' }}</span>
         </div>

@@ -20,12 +20,11 @@
       </div>
       <div class="field">
         <label>{{ 'announcements.targetRoles' | translate }}</label>
-        <p-multiselect
-          [options]="roleOptions"
+        <p-select
+          [options]="roleOptions()"
           [(ngModel)]="form.targetRoles"
           optionLabel="label"
           optionValue="value"
-          [placeholder]="'announcements.targetRolesPlaceholder' | translate"
           styleClass="w-full"
           appendTo="body" />
       </div>

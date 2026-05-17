@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AnnouncementsComponent } from './announcements.component';
-import { AnnouncementService, ConfirmService, ToastService } from 'shared-lib';
+import { AnnouncementService, ConfirmService, ToastService, StaffStore } from 'shared-lib';
 
 /**
  * AnnouncementsComponent — admin announcement CRUD with pagination.
@@ -38,8 +38,9 @@ describe('AnnouncementsComponent', () => {
     update:   ReturnType<typeof vi.fn>;
     delete:   ReturnType<typeof vi.fn>;
   };
-  let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
-  let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
+  let mockConfirmSvc:  { confirm:    ReturnType<typeof vi.fn> };
+  let mockToastSvc:    { success:    ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
+  let mockStaffStore:  { loadRoles:  ReturnType<typeof vi.fn>; roles: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockAnnouncementSvc = {
@@ -48,8 +49,9 @@ describe('AnnouncementsComponent', () => {
       update:  vi.fn().mockReturnValue(of(undefined)),
       delete:  vi.fn().mockReturnValue(of(undefined)),
     };
-    mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
-    mockToastSvc   = { success: vi.fn(), error: vi.fn() };
+    mockConfirmSvc  = { confirm:   vi.fn().mockReturnValue(of(true)) };
+    mockToastSvc    = { success:   vi.fn(), error: vi.fn() };
+    mockStaffStore  = { loadRoles: vi.fn(), roles: vi.fn().mockReturnValue([]) };
 
     await TestBed.configureTestingModule({
       imports: [AnnouncementsComponent],
@@ -60,6 +62,7 @@ describe('AnnouncementsComponent', () => {
         { provide: AnnouncementService, useValue: mockAnnouncementSvc },
         { provide: ConfirmService,      useValue: mockConfirmSvc },
         { provide: ToastService,        useValue: mockToastSvc },
+        { provide: StaffStore,          useValue: mockStaffStore },
         MessageService,
         ConfirmationService,
       ],
@@ -76,6 +79,11 @@ describe('AnnouncementsComponent', () => {
     it('loads the first page of announcements on init', () => {
       component.ngOnInit();
       expect(mockAnnouncementSvc.getAll).toHaveBeenCalledWith(1, 10);
+    });
+
+    it('loads roles on init so the target-role dropdown is populated', () => {
+      component.ngOnInit();
+      expect(mockStaffStore.loadRoles).toHaveBeenCalled();
     });
 
     it('populates items signal with fetched data', () => {
@@ -197,7 +205,7 @@ describe('AnnouncementsComponent', () => {
 
   describe('save() — create path (editing is null)', () => {
     beforeEach(() => {
-      component.form = { title: 'Hello', body: 'World', targetRoles: [], expiresAt: '' };
+      component.form = { title: 'Hello', body: 'World', targetRoles: '*', expiresAt: '' };
       component.editing.set(null);
     });
 
@@ -230,7 +238,7 @@ describe('AnnouncementsComponent', () => {
 
   describe('save() — update path (editing is set)', () => {
     beforeEach(() => {
-      component.form = { title: 'Hello', body: 'World', targetRoles: [], expiresAt: '' };
+      component.form = { title: 'Hello', body: 'World', targetRoles: '*', expiresAt: '' };
       component.editing.set('a1');
     });
 
@@ -253,17 +261,7 @@ describe('AnnouncementsComponent', () => {
       component.startEdit(makeItem({ title: 'News', body: 'Details', targetRoles: 'manager' }));
       expect(component.form.title).toBe('News');
       expect(component.form.body).toBe('Details');
-      expect(component.form.targetRoles).toEqual(['manager']);
-    });
-
-    it('converts * targetRoles to empty array (meaning all roles)', () => {
-      component.startEdit(makeItem({ targetRoles: '*' }));
-      expect(component.form.targetRoles).toEqual([]);
-    });
-
-    it('splits comma-separated targetRoles into an array', () => {
-      component.startEdit(makeItem({ targetRoles: 'manager,employee' }));
-      expect(component.form.targetRoles).toEqual(['manager', 'employee']);
+      expect(component.form.targetRoles).toBe('manager');
     });
 
     it('slices expiresAt to date-only (first 10 chars)', () => {

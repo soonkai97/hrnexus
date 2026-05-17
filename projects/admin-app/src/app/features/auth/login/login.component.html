@@ -16,17 +16,17 @@
 
     <div [formGroup]="form">
       <div class="field">
-        <label>{{ 'auth.staffId' | translate }}</label>
-        <input pInputText type="text" formControlName="staffId" placeholder="NC1001"
+        <label for="login-staff-id">{{ 'auth.staffId' | translate }}</label>
+        <input id="login-staff-id" pInputText type="text" formControlName="staffId" placeholder="NC1001"
                class="w-full" readonly autocomplete="off" style="text-transform:uppercase"
                (mousedown)="removeReadonly($event)"
                (touchstart)="removeReadonly($event)"
                (keydown)="removeReadonly($event)" />
       </div>
       <div class="field">
-        <label>{{ 'auth.password' | translate }}</label>
+        <label for="login-password">{{ 'auth.password' | translate }}</label>
         <div class="pwd-wrap">
-          <input pInputText [type]="showPwd() ? 'text' : 'password'" formControlName="password"
+          <input id="login-password" pInputText [type]="showPwd() ? 'text' : 'password'" formControlName="password"
                  class="w-full" placeholder="••••••••" readonly autocomplete="new-password"
                  (mousedown)="removeReadonly($event)"
                  (touchstart)="removeReadonly($event)"
@@ -51,7 +51,7 @@
         styleClass="w-full mt-1"
         [loading]="loading()"
         (onClick)="submit()" />
-      <div style="text-align:center;margin-top:1rem">
+      <div class="text-center mt-3">
         <a routerLink="/auth/forgot-password" class="forgot-link">{{ 'auth.forgotPassword' | translate }}</a>
       </div>
     </div>

@@ -687,3 +687,105 @@ If you genuinely think a convention is harmful, surface it. Don't fork silently.
 "Completed" is wrong if anything was skipped silently.
 "Tests pass" is wrong if any were skipped.
 Default to surfacing uncertainty, not hiding it.
+
+---
+
+## Component unit test pattern (Angular 21 standalone)
+
+Mock all injected services; do NOT call `detectChanges()` — this avoids PrimeNG template errors and keeps tests focused on TypeScript logic only.
+
+```typescript
+import { TestBed } from '@angular/core/testing';
+import { of, throwError } from 'rxjs';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { provideTranslateService } from '@ngx-translate/core';
+import { MessageService, ConfirmationService } from 'primeng/api';
+
+await TestBed.configureTestingModule({
+  imports: [ComponentUnderTest],
+  providers: [
+    provideHttpClient(),
+    provideRouter([]),
+    provideTranslateService({ defaultLanguage: 'en' }),
+    { provide: SomeService, useValue: { method: vi.fn().mockReturnValue(of(data)) } },
+    MessageService,       // always provide — PrimeNG requires these even in unit tests
+    ConfirmationService,
+  ],
+}).compileComponents();
+
+const component = TestBed.createComponent(ComponentUnderTest).componentInstance;
+// Do NOT call detectChanges()
+// Test signals and methods directly: component.mySignal(), component.myMethod()
+```
+
+**Key patterns:**
+- Mock services with `vi.fn().mockReturnValue(of(value))` for success; `throwError(() => err)` for failure
+- Store signals (`StaffStore.staff`, `LocationStore.locations`, etc.) are plain functions — mock as `vi.fn().mockReturnValue([])`
+- Angular `computed()` with non-signal dependencies (mocks) evaluates once and caches — tests needing different values use fresh component instances via `TestBed.createComponent()`
+- For debounce tests: `vi.useFakeTimers()` + `vi.advanceTimersByTime(ms)`; always `vi.useRealTimers()` in `afterEach`
+- For time-of-day computed (`new Date().getHours()`): `vi.useFakeTimers()` + `vi.setSystemTime(new Date(...))` before creating the component
+- `ConfirmService.confirm()` mock: `{ confirm: vi.fn().mockReturnValue(of(true)) }` for accept; `of(false)` for reject
+
+---
+
+## Development Process
+
+All non-trivial work follows a phased, TDD-driven execution model. Phase documents live in `docs/process/`.
+
+### Phased Execution Mandate (Rule 13)
+
+Before implementing any significant feature or refactor:
+1. **Brainstorm** — explore the problem space; no code yet
+2. **Finalize spec** — write or update the phase document (`docs/process/PHASE_TEMPLATE.md`)
+3. **Split into phases** — each phase ≤ 1–2 days of focused work; smaller is safer
+4. **Execute one phase** — implement with TDD (Rule 14); never mix two phases in one pass
+5. **Multi-perspective review** — use `REVIEW_CHECKLIST.md`; all 7 perspectives
+6. **Update future phases** — adjust subsequent phase docs based on review findings
+7. **Repeat** — next phase starts only after current phase is signed off
+
+Do NOT attempt to implement everything at once. Doing so increases the risk of overlooking details and causing inconsistencies.
+
+### TDD Enforcement (Rule 14)
+
+For any step marked `[TDD]` in a phase document:
+1. Write the failing test first
+2. Run it — confirm it fails for the right reason
+3. Write the minimum code to make it pass
+4. Refactor — keep tests green
+
+Tests must verify **intent** (why the behavior matters), not just current output (Rule 9 extended).
+
+**Test commands:**
+```bash
+npm run test:shared          # shared-lib unit tests
+npm run test:admin           # admin-app unit tests
+npm run test:staff           # staff-app unit tests
+npm run test:coverage        # coverage report for shared-lib
+npm run test:e2e             # all E2E tests (requires Docker)
+npm run test:e2e:admin       # admin app E2E only
+npm run test:e2e:staff       # staff app E2E only
+```
+
+### Multi-Perspective Review (Rule 15)
+
+After every phase, reviews must cover all 7 perspectives in `docs/process/REVIEW_CHECKLIST.md`:
+1. Architecture
+2. Scalability
+3. Security
+4. Maintainability
+5. Testing
+6. Product Alignment
+7. Performance
+
+Issues found during review → update the next phase's scope/risks before proceeding.
+
+### E2E Validation (Rule 16)
+
+The final phase of any project must include E2E validation that covers:
+- The primary happy-path user journey end-to-end
+- At least one edge case per major feature
+- Auth flow (login → guarded route) for any route changes
+
+E2E tests live in `tests/e2e/{admin,staff}/` and use Playwright.
+Run against the Docker deployment (`http://localhost` for admin, `http://localhost:8081` for staff).

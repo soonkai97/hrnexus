@@ -2,14 +2,11 @@
 
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h2 class="page-title">{{ 'pay.title' | translate }}</h2>
-    @if (summary() && !loading()) {
-      <p-button icon="pi pi-print" label="Print" severity="secondary" (click)="printPaySlip()" />
-    }
   </div>
 
   <!-- Period picker -->
   <p-card styleClass="period-picker">
-    <div class="picker-row">
+    <div class="d-flex gap-3 align-items-end flex-wrap">
       <div class="field">
         <label>{{ 'pay.year' | translate }}</label>
         <p-inputnumber
@@ -28,9 +25,11 @@
           optionLabel="label"
           optionValue="value" />
       </div>
-      <p-button [label]="'pay.view' | translate" severity="primary" size="small" [loading]="loading()" (click)="load()" />
+      <div class="field">
+        <label>&nbsp;</label>
+        <p-button [label]="'pay.view' | translate" severity="primary" [loading]="loading()" (click)="load()" />
+      </div>
     </div>
-    <div class="period-label">{{ months[selectedMonth() - 1] }} {{ selectedYear() }}</div>
   </p-card>
 
   @if (loading()) {

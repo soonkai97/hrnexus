@@ -28,7 +28,8 @@ function makeRecord(overrides: Partial<LeaveRecord> = {}): LeaveRecord {
   return {
     id: 'r1', employeeId: 'e1', staffId: 'NC001', staffName: 'Jane Doe',
     leaveType: 'annual', startDate: '2026-06-01', endDate: '2026-06-05',
-    days: 5, notes: null, status: 'pending', createdAt: '2026-05-01T00:00:00Z',
+    startTime: '18:00', endTime: '02:00', hours: 8,
+    notes: null, status: 'pending', createdAt: '2026-05-01T00:00:00Z',
     ...overrides,
   };
 }
@@ -290,18 +291,18 @@ describe('LeaveComponent', () => {
   // ── countByType() ─────────────────────────────────────────────────────────────
 
   describe('countByType()', () => {
-    it('sums days for approved records of the given type only', () => {
+    it('sums hours for approved records of the given type only', () => {
       component.records.set([
-        makeRecord({ leaveType: 'annual', status: 'approved', days: 3 }),
-        makeRecord({ id: 'r2', leaveType: 'annual', status: 'approved', days: 2 }),
-        makeRecord({ id: 'r3', leaveType: 'annual', status: 'pending', days: 5 }), // pending — not counted
-        makeRecord({ id: 'r4', leaveType: 'sick',   status: 'approved', days: 1 }), // different type
+        makeRecord({ leaveType: 'annual', status: 'approved', hours: 6 }),
+        makeRecord({ id: 'r2', leaveType: 'annual', status: 'approved', hours: 8 }),
+        makeRecord({ id: 'r3', leaveType: 'annual', status: 'pending', hours: 4 }), // pending — not counted
+        makeRecord({ id: 'r4', leaveType: 'sick',   status: 'approved', hours: 6 }), // different type
       ]);
-      expect(component.countByType('annual')).toBe(5);
+      expect(component.countByType('annual')).toBe(14);
     });
 
     it('returns 0 when no records match the type', () => {
-      component.records.set([makeRecord({ leaveType: 'sick', status: 'approved', days: 3 })]);
+      component.records.set([makeRecord({ leaveType: 'sick', status: 'approved', hours: 6 })]);
       expect(component.countByType('annual')).toBe(0);
     });
 
@@ -461,9 +462,9 @@ describe('LeaveComponent', () => {
 
     it('calls setEntitlement with the form values when employee is filtered', () => {
       component.filterEmployeeId = 'emp-1';
-      component.entitlementForm = { year: 2026, annualDays: 16, sickDays: 10 };
+      component.entitlementForm = { year: 2026, annualHours: 128, sickHours: 80 };
       component.saveEntitlement();
-      expect(mockLeaveSvc.setEntitlement).toHaveBeenCalledWith('emp-1', 2026, 16, 10);
+      expect(mockLeaveSvc.setEntitlement).toHaveBeenCalledWith('emp-1', 2026, 128, 80);
     });
 
     it('shows success toast and exits edit mode after saving', () => {

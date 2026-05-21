@@ -33,9 +33,17 @@
 
 .form-card { padding: 1.5rem; margin-bottom: 1.25rem; }
 .form-title { font-size: 0.95rem; font-weight: 700; color: $text-primary; margin-bottom: 1rem; }
-.form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 1rem; }
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 1rem; }
 .full-span  { grid-column: 1 / -1; }
 .opt        { font-size: 0.72rem; color: $text-muted; font-weight: 400; }
+
+.hours-preview {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.85rem; font-weight: 600; color: $neon-purple;
+  background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
+  border-radius: $radius-pill; padding: 0.3rem 0.8rem;
+  margin-top: 0.25rem;
+}
 
 .period-btns {
   display: flex; gap: 0.4rem;

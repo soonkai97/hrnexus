@@ -12,6 +12,9 @@ export interface ApplyLeaveRequest {
   leaveType: string;
   startDate:  string;
   endDate:    string;
+  startTime:  string | null;  // HH:mm
+  endTime:    string | null;  // HH:mm
+  hours:      number | null;
   notes:      string | null;
 }
 
@@ -88,9 +91,9 @@ export class LeaveService {
     return this.http.get<LeaveBalance>(`/api/admin/leave-balance/${employeeId}${q}`);
   }
 
-  /** Admin: set an employee's entitlement for a year. */
-  setEntitlement(employeeId: string, year: number, annualDays: number, sickDays: number): Observable<void> {
+  /** Admin: set an employee's entitlement for a year (values in hours). */
+  setEntitlement(employeeId: string, year: number, annualHours: number, sickHours: number): Observable<void> {
     return this.http.put<void>(`/api/admin/leave-balance/${employeeId}`,
-      { year, annualDays, sickDays });
+      { year, annualHours, sickHours });
   }
 }

@@ -68,7 +68,17 @@ export class LeaveComponent implements OnInit {
   allBalancesLoading = signal(false);
   editingEntitlement = signal(false);
   savingEntitlement  = signal(false);
-  entitlementForm    = { year: new Date().getFullYear(), annualDays: 14, sickDays: 14 };
+  entitlementForm    = { year: new Date().getFullYear(), annualHours: 112, sickHours: 112 };
+
+  /** 30-minute interval time options displayed in 12-hour format */
+  readonly timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const h = Math.floor(i / 2);
+    const m = i % 2 === 0 ? '00' : '30';
+    const value = `${String(h).padStart(2, '0')}:${m}`;
+    const period = h < 12 ? 'AM' : 'PM';
+    const dh = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return { label: `${String(dh).padStart(2, '0')}:${m} ${period}`, value };
+  });
 
   readonly currentYear = new Date().getFullYear();
   readonly leaveTypes: string[] = [...LEAVE_TYPES];
@@ -179,8 +189,19 @@ export class LeaveComponent implements OnInit {
     value: s,
   }));
   form: UpsertLeaveRequest = {
-    employeeId: '', leaveType: 'sick', startDate: '', endDate: '', notes: null, status: 'approved',
+    employeeId: '', leaveType: 'sick', startDate: '', endDate: '',
+    startTime: null, endTime: null, hours: null, notes: null, status: 'approved',
   };
+
+  /** Auto-calculated hours from the form's date+time range. */
+  get calcHours(): number {
+    const { startDate, startTime, endDate, endTime } = this.form;
+    if (!startDate || !startTime || !endDate || !endTime) return 0;
+    const start = new Date(`${startDate}T${startTime}`);
+    const end   = new Date(`${endDate}T${endTime}`);
+    const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    return Math.round(h * 10) / 10;
+  }
 
   onStartDateChange(date: string): void {
     if (!this.form.endDate || this.form.endDate < date) {
@@ -208,6 +229,7 @@ export class LeaveComponent implements OnInit {
     const req: UpsertLeaveRequest = {
       employeeId: r.employeeId, leaveType: 'no-show',
       startDate: r.startDate, endDate: r.endDate,
+      startTime: r.startTime, endTime: r.endTime, hours: r.hours,
       notes: r.notes, status: 'approved',
     };
     this.leaveSvc.update(r.id, req).subscribe({
@@ -247,7 +269,7 @@ export class LeaveComponent implements OnInit {
       this.leaveSvc.getBalance(this.filterEmployeeId).subscribe({
         next: b => {
           this.staffBalance.set(b);
-          this.entitlementForm = { year: b.year, annualDays: b.annualEntitlement, sickDays: b.sickEntitlement };
+          this.entitlementForm = { year: b.year, annualHours: b.annualEntitlement, sickHours: b.sickEntitlement };
         },
         error: () => this.staffBalance.set(null),
       });
@@ -269,8 +291,8 @@ export class LeaveComponent implements OnInit {
     this.leaveSvc.setEntitlement(
       this.filterEmployeeId,
       this.entitlementForm.year,
-      this.entitlementForm.annualDays,
-      this.entitlementForm.sickDays,
+      this.entitlementForm.annualHours,
+      this.entitlementForm.sickHours,
     ).subscribe({
       next: () => {
         this.savingEntitlement.set(false);
@@ -288,6 +310,7 @@ export class LeaveComponent implements OnInit {
     const req: UpsertLeaveRequest = {
       employeeId: r.employeeId, leaveType: r.leaveType as any,
       startDate: r.startDate, endDate: r.endDate,
+      startTime: r.startTime, endTime: r.endTime, hours: r.hours,
       notes: r.notes, status,
     };
     this.leaveSvc.update(id, req).subscribe({
@@ -309,7 +332,7 @@ export class LeaveComponent implements OnInit {
   countByType(type: string): number {
     return this.records()
       .filter(r => r.leaveType === type && r.status === 'approved')
-      .reduce((s, r) => s + r.days, 0);
+      .reduce((s, r) => s + r.hours, 0);
   }
 
   private scrollToForm(): void {
@@ -320,6 +343,7 @@ export class LeaveComponent implements OnInit {
     this.form = { employeeId: '', leaveType: 'sick',
       startDate: toLocalDateString(new Date()),
       endDate:   toLocalDateString(new Date()),
+      startTime: null, endTime: null, hours: null,
       notes: null, status: 'approved' };
     this.editing.set(null);
     this.formError.set('');
@@ -330,6 +354,7 @@ export class LeaveComponent implements OnInit {
   startEdit(r: LeaveRecord): void {
     this.form = { employeeId: r.employeeId, leaveType: r.leaveType as any,
       startDate: r.startDate, endDate: r.endDate,
+      startTime: r.startTime, endTime: r.endTime, hours: r.hours,
       notes: r.notes, status: r.status as any };
     this.editing.set(r.id);
     this.formError.set('');
@@ -343,9 +368,13 @@ export class LeaveComponent implements OnInit {
     if (!this.form.employeeId || !this.form.startDate || !this.form.endDate) {
       this.formError.set('Please fill in all required fields.'); return;
     }
-    if (this.form.startDate > this.form.endDate) {
-      this.formError.set('End date must be on or after start date.');
-      return;
+    // When times are provided, validate the range; otherwise require manual hours
+    if (this.form.startTime && this.form.endTime) {
+      const h = this.calcHours;
+      if (h <= 0) { this.formError.set('End date/time must be after start date/time.'); return; }
+      this.form.hours = h;
+    } else if (!this.form.hours || this.form.hours <= 0) {
+      this.formError.set('Please enter start/end times or specify hours manually.'); return;
     }
     this.saving.set(true);
     const id   = this.editing();

@@ -12,25 +12,25 @@
         <div class="bal-nums">
           <span class="bal-remaining">{{ b.annualRemaining }}</span>
           <span class="bal-sep">/</span>
-          <span class="bal-total">{{ b.annualEntitlement }}{{ 'leave.days' | translate }}</span>
+          <span class="bal-total">{{ b.annualEntitlement }}{{ 'leave.hrs' | translate }}</span>
         </div>
-        <div class="bal-used">{{ b.annualUsed }} {{ 'leave.used' | translate }}</div>
+        <div class="bal-used">{{ b.annualUsed }}{{ 'leave.hrs' | translate }} {{ 'leave.used' | translate }}</div>
       </div>
       <div class="bal-card sick">
         <div class="bal-label">{{ 'leave.sick' | translate }}</div>
         <div class="bal-nums">
           <span class="bal-remaining">{{ b.sickRemaining }}</span>
           <span class="bal-sep">/</span>
-          <span class="bal-total">{{ b.sickEntitlement }}{{ 'leave.days' | translate }}</span>
+          <span class="bal-total">{{ b.sickEntitlement }}{{ 'leave.hrs' | translate }}</span>
         </div>
-        <div class="bal-used">{{ b.sickUsed }} {{ 'leave.used' | translate }}</div>
+        <div class="bal-used">{{ b.sickUsed }}{{ 'leave.hrs' | translate }} {{ 'leave.used' | translate }}</div>
       </div>
       <div class="bal-card unpaid">
         <div class="bal-label">{{ 'leave.type.unpaid' | translate }}</div>
         <div class="bal-nums">
           <span class="bal-remaining">{{ b.unpaidUsed }}</span>
         </div>
-        <div class="bal-used">{{ 'leave.days' | translate }} taken this year</div>
+        <div class="bal-used">{{ 'leave.hrs' | translate }} {{ 'leave.used' | translate }} this year</div>
       </div>
     </div>
   }
@@ -48,7 +48,7 @@
     <p-card styleClass="form-card">
       <h3 class="form-title">{{ 'leave.applyLeave' | translate }}</h3>
       <div class="form-grid">
-        <div class="field">
+        <div class="field full-span">
           <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
           <p-select
             [options]="leaveTypeOptions"
@@ -67,6 +67,13 @@
             (ngModelChange)="onStartDateChange($event)" />
         </div>
         <div class="field">
+          <label><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
+          <p-select [options]="timeOptions" [(ngModel)]="form.startTime"
+            optionLabel="label" optionValue="value"
+            [placeholder]="'leave.selectTime' | translate"
+            styleClass="w-full" />
+        </div>
+        <div class="field">
           <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
           <p-datepicker [(ngModel)]="form.endDate"
             dateFormat="yy-mm-dd"
@@ -74,6 +81,22 @@
             [showIcon]="true"
             styleClass="w-full" />
         </div>
+        <div class="field">
+          <label><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
+          <p-select [options]="timeOptions" [(ngModel)]="form.endTime"
+            optionLabel="label" optionValue="value"
+            [placeholder]="'leave.selectTime' | translate"
+            styleClass="w-full" />
+        </div>
+
+        @if (calcHours > 0) {
+          <div class="field full-span">
+            <div class="hours-preview">
+              <i class="pi pi-clock"></i>
+              {{ calcHours }}{{ 'leave.hrs' | translate }} {{ 'leave.duration' | translate }}
+            </div>
+          </div>
+        }
 
         <div class="field full-span">
           <label>{{ 'leave.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
@@ -129,9 +152,8 @@
               <p-tag [value]="('leave.status.' + r.status) | translate" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
             </div>
             <div class="leave-dates">
-              {{ r.startDate }}{{ r.startDate !== r.endDate ? ' to ' + r.endDate : '' }}
-
-              <span class="leave-days">{{ r.days }}{{ 'leave.days' | translate }}</span>
+              {{ r.startDate }}@if (r.startTime) { {{ r.startTime | amPm }}} – {{ r.endDate }}@if (r.endTime) { {{ r.endTime | amPm }}}
+              <span class="leave-days">{{ r.hours }}{{ 'leave.hrs' | translate }}</span>
             </div>
             @if (r.notes) {
               <div class="leave-notes">{{ r.notes }}</div>

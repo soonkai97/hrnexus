@@ -12,6 +12,13 @@
   white-space: nowrap;
 }
 
+.hours-preview {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.85rem; font-weight: 600; color: $neon-purple;
+  background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
+  border-radius: $radius-pill; padding: 0.3rem 0.8rem;
+}
+
 // ── Filter bar ────────────────────────────────────────────────────────────────
 .filter-bar { padding: 1rem; margin-bottom: 1.25rem; }
 

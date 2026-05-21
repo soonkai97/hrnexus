@@ -9,7 +9,9 @@ export interface LeaveRecord {
   leaveType: LeaveType;
   startDate: string;
   endDate: string;
-  days: number;
+  startTime: string | null;  // HH:mm
+  endTime: string | null;    // HH:mm
+  hours: number;             // total leave duration in hours
   notes: string | null;
   status: LeaveStatus;
   createdAt: string;
@@ -20,6 +22,9 @@ export interface UpsertLeaveRequest {
   leaveType: LeaveType;
   startDate: string;
   endDate: string;
+  startTime: string | null;  // HH:mm
+  endTime: string | null;    // HH:mm
+  hours: number | null;      // explicit hours (used when times are not specified)
   notes: string | null;
   status: LeaveStatus;
 }

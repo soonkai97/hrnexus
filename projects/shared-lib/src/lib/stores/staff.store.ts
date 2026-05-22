@@ -1,11 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { tap } from 'rxjs';
-import { StaffService } from '../services/staff.service';
+import { StaffManagementService } from '../services/staff-management.service';
 import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class StaffStore {
-  private readonly svc = inject(StaffService);
+  private readonly svc = inject(StaffManagementService);
 
   readonly #staff      = signal<Staff[]>([]);
   readonly #roles      = signal<StaffRole[]>([]);

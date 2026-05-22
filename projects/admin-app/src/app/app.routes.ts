@@ -25,7 +25,8 @@ export const routes: Routes = [
       { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/dashboard')], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
       { path: 'tips',          canActivate: [featureFlagGuard('tips',           '/dashboard')], loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },
       { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
-      { path: 'hostess-ledger', canActivate: [featureFlagGuard('hostessLedger', '/dashboard')], loadComponent: () => import('./features/hostess-ledger/hostess-ledger.component').then(m => m.HostessLedgerComponent) },
+      { path: 'staff-ledger',   canActivate: [featureFlagGuard('staffLedger', '/dashboard')], loadComponent: () => import('./features/staff-ledger/staff-ledger.component').then(m => m.StaffLedgerComponent) },
+      { path: 'staff-settings', loadComponent: () => import('./features/staff-settings/staff-settings.component').then(m => m.StaffSettingsComponent) },
       {
         path: 'features',
         canActivate: [roleGuard('admin')],

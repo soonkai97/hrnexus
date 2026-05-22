@@ -185,3 +185,63 @@
 
 
 .badge-ot { font-size: 0.65rem; }
+
+// ── Empty / no-data state ─────────────────────────────────────────────────────
+
+.no-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 5rem 1rem;
+  color: $text-muted;
+  text-align: center;
+  width: 100%;
+
+  .no-selection-icon {
+    font-size: 3rem;
+    opacity: 0.25;
+  }
+
+  p { font-size: 0.95rem; margin: 0; }
+}
+
+// ── Section subtitle ─────────────────────────────────────────────────────────
+
+.section-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+// ── Outstanding settle bar ────────────────────────────────────────────────────
+
+.settle-bar {
+  flex-wrap: wrap;
+}
+
+.settle-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $text-secondary;
+  white-space: nowrap;
+}
+
+:host :deep(.settle-select .p-select) {
+  min-width: 160px;
+}
+
+// ── Ledger table helpers ──────────────────────────────────────────────────────
+
+.num-col { text-align: right; }
+.green   { color: $neon-green; font-weight: 600; }
+.amber   { color: $neon-amber; font-weight: 600; }
+
+// ── Section switcher ──────────────────────────────────────────────────────────
+
+.section-switcher {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

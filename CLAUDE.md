@@ -56,9 +56,9 @@ projects/
 │       ├── roles/
 │       ├── locations/
 │       ├── announcements/
-│       ├── messaging/
-│       ├── notifications/
 │       ├── feature-flags/
+│       ├── staff-ledger/         # per-staff earnings ledger (featureFlag: staffLedger)
+│       ├── staff-settings/       # work types & settlements config (featureFlag: staffLedger)
 │       └── account/
 │
 ├── staff-app/src/app/
@@ -68,10 +68,8 @@ projects/
 │       ├── log-shift/
 │       ├── pay-summary/
 │       ├── my-leave/
-│       ├── messaging/
 │       ├── tips-history/
 │       ├── announcements/
-│       ├── notifications/
 │       └── profile/
 │
 └── shared-lib/src/lib/
@@ -120,12 +118,12 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /staff                 same
 /staff/:id             same (StaffDetailComponent)
 /leave                 same
-/overtime              same + featureFlagGuard('otRules', '/dashboard')
 /payroll               same + featureFlagGuard('payroll', '/dashboard')
 /tips                  same + featureFlagGuard('tips', '/dashboard')
 /announcements         same + featureFlagGuard('announcements', '/dashboard')
-/messaging             same + featureFlagGuard('messagingAdmin', '/dashboard')
 /reports               same
+/staff-ledger          authGuard + roleGuard + featureFlagGuard('staffLedger', '/dashboard')
+/staff-settings        authGuard + roleGuard (work types & settlements admin)
 /roles, /locations     same
 /features/unlock       featurePinGuard
 /features              featurePinGuard + admin-only
@@ -139,7 +137,6 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /log-shift             authGuard
 /my-leave              authGuard
 /pay-summary           authGuard + featureFlagGuard('paySummary', '/home')
-/messaging             authGuard + featureFlagGuard('messagingStaff', '/home')
 /tips-history          authGuard + featureFlagGuard('tipsHistory', '/home')
 /profile/**            authGuard (sub-routes: profile, change-password)
 /auth/**               public
@@ -217,8 +214,7 @@ getAccessToken(): string | null
 **FeatureFlagService** (`shared-lib/src/lib/services/feature-flag.service.ts`):
 
 ```typescript
-type FeatureKey = 'otRules' | 'payroll' | 'tips' | 'tipsHistory' | 'paySummary'
-               | 'messagingAdmin' | 'messagingStaff' | 'announcements'
+type FeatureKey = 'payroll' | 'tips' | 'tipsHistory' | 'paySummary' | 'announcements' | 'staffLedger'
 
 // Signals
 flags = signal<Record<FeatureKey, boolean>>(defaults)   // all false by default
@@ -241,13 +237,15 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 
 ## Shared-lib exports
 
-**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `AnnouncementDto`, `AdminAnnouncementDto`, `UpsertAnnouncementDto`, `Location`, `PayrollData`, `WorkLogDto`, `PagedResult<T>`
+**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `AnnouncementDto`, `AdminAnnouncementDto`, `UpsertAnnouncementDto`, `Location`, `PayrollData`, `WorkLogDto`, `PagedResult<T>`, `StaffEntryDto`, `StaffExpenseDto`, `StaffLoanDto`, `StaffLedgerPayoutDto`, `StaffOutstandingDto`, `StaffWorkTypeDto`, `StaffSettlementDto`
 
 **Services:**
 | Service | Purpose |
 |---|---|
 | `AuthService` | Login, logout, token refresh, password change |
-| `StaffService` | Staff CRUD (some ops moved to `StaffStore`) |
+| `StaffManagementService` | Employee CRUD (get, register, update, toggleActive, getRoles) |
+| `StaffService` | Staff ledger: entries (CRUD), expenses (CRUD), loans (create/delete), `summary(year,month)`, `outstanding()`, `bulkSettle(entryIds, settlement)` |
+| `StaffConfigService` | Work types & settlements — `/api/staff-config` |
 | `WorkLogService` | Shift log CRUD; exports `PagedResult<T>` |
 | `PayrollService` | Payroll data |
 | `LeaveService` | Leave requests + balances |
@@ -616,6 +614,21 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 - `index.html` and `/i18n/` — `no-cache` headers so new deploys take effect immediately
 
 **No `environment.ts` files.** All config is relative URLs or runtime API calls.
+
+---
+
+## Staff pay model — design intent
+
+Two systems exist and intentionally serve different purposes. Do not conflate them:
+
+| System | Where | Purpose |
+|---|---|---|
+| **Shift logs** | `WorkLogService`, `/api/work-logs`, staff-app `log-shift`, admin Reports workforce tab | Attendance & compliance — who was physically present, clock-in/out times, shift duration |
+| **Staff ledger** | `StaffService`, `/api/staff-entries`, admin-app `staff-ledger` | Actual pay — commission earnings by work type (写钟, 跑台, 包夜, etc.), deductions, loan advances/repayments, settlement status |
+
+**All staff are commission-based** (not hourly). The "Est. Labour Cost" column in the workforce report is a rough estimate only — the ledger is the financial source of truth for payouts.
+
+The two systems are intentionally decoupled. A shift log proves presence; a ledger entry records earnings. Managers enter ledger entries manually after each period.
 
 ---
 

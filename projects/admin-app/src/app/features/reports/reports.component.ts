@@ -4,8 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
   AdminService, ReportResponse, ReportFilters,
-  LocationReportRow, StaffStore, StaffService, ToastService, Staff,
+  LocationReportRow, StaffStore, StaffManagementService, ToastService, Staff,
   toLocalDateString,
+  StaffService, FeatureFlagService,
+  StaffLedgerPayoutDto, StaffOutstandingDto,
+  WORK_TYPE_LABELS, SETTLEMENT_LABELS,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -17,20 +20,32 @@ import { DatePicker } from 'primeng/datepicker';
 import { Message } from 'primeng/message';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { MultiSelect } from 'primeng/multiselect';
+import { Select } from 'primeng/select';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message, Tabs, TabList, Tab, MultiSelect],
+    Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
+    Tabs, TabList, Tab, MultiSelect, Select, Skeleton],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
 export class ReportsComponent implements OnInit {
-  private readonly admin      = inject(AdminService);
-  private readonly staffStore = inject(StaffStore);
-  private readonly staffSvc   = inject(StaffService);
-  private readonly toast      = inject(ToastService);
+  private readonly admin              = inject(AdminService);
+  private readonly staffStore         = inject(StaffStore);
+  private readonly staffSvc           = inject(StaffManagementService);
+  private readonly toast              = inject(ToastService);
+  private readonly staffLedgerSvc     = inject(StaffService);
+  private readonly featureFlagSvc     = inject(FeatureFlagService);
+
+  // ── Section switcher ─────────────────────────────────────────────────────────
+
+  activeSection = signal<'workforce' | 'ledger'>('workforce');
+  isStaffLedgerEnabled = computed(() => this.featureFlagSvc.isEnabled('staffLedger'));
+
+  // ── Workforce Report ─────────────────────────────────────────────────────────
 
   // Load all staff independently (not via paginated store) so the dropdown
   // shows every staff member, not just the first page of 10.
@@ -174,6 +189,115 @@ export class ReportsComponent implements OnInit {
     URL.revokeObjectURL(url);
     this.reportExporting.set(false);
     this.toast.success('Report downloaded.');
+  }
+
+  // ── Staff Ledger Payout ───────────────────────────────────────────────────────
+
+  readonly MONTH_OPTS = [
+    { label: 'January',   value: 1  },
+    { label: 'February',  value: 2  },
+    { label: 'March',     value: 3  },
+    { label: 'April',     value: 4  },
+    { label: 'May',       value: 5  },
+    { label: 'June',      value: 6  },
+    { label: 'July',      value: 7  },
+    { label: 'August',    value: 8  },
+    { label: 'September', value: 9  },
+    { label: 'October',   value: 10 },
+    { label: 'November',  value: 11 },
+    { label: 'December',  value: 12 },
+  ];
+
+  readonly yearOpts = [-2, -1, 0, 1].map(offset => {
+    const y = new Date().getFullYear() + offset;
+    return { label: String(y), value: y };
+  });
+
+  ledgerYear    = signal(new Date().getFullYear());
+  ledgerMonth   = signal(new Date().getMonth() + 1);
+  ledgerPayout  = signal<StaffLedgerPayoutDto[]>([]);
+  ledgerOutstanding = signal<StaffOutstandingDto[]>([]);
+  ledgerLoading = signal(false);
+  ledgerExporting = signal(false);
+
+  ledgerTotalVenue   = computed(() => this.ledgerPayout().reduce((s, r) => s + r.venueEarnings, 0));
+  ledgerTotalPrivate = computed(() => this.ledgerPayout().reduce((s, r) => s + r.privateNet, 0));
+  ledgerTotalPayout  = computed(() => this.ledgerPayout().reduce((s, r) => s + r.netPayout, 0));
+
+  loadLedgerData(): void {
+    this.ledgerLoading.set(true);
+    this.staffLedgerSvc.summary(this.ledgerYear(), this.ledgerMonth()).subscribe({
+      next:  rows => { this.ledgerPayout.set(rows); this.ledgerLoading.set(false); },
+      error: ()   => { this.toast.error('Failed to load payout data.'); this.ledgerLoading.set(false); },
+    });
+    this.staffLedgerSvc.outstanding().subscribe({
+      next:  rows => this.ledgerOutstanding.set(rows),
+      error: ()   => {},
+    });
+  }
+
+  workTypeLabel(key: string): string {
+    return (WORK_TYPE_LABELS as Record<string, string>)[key] ?? key;
+  }
+
+  settlementLabel(key: string): string {
+    return (SETTLEMENT_LABELS as Record<string, string>)[key] ?? key;
+  }
+
+  // ── Outstanding bulk-settle ───────────────────────────────────────────────────
+
+  /** Settlement options for the bulk-settle dropdown — only the "resolved" states. */
+  readonly SETTLE_OPTIONS = [
+    { label: '清 (Settled)',  value: 'SETTLED' },
+    { label: 'Cash',          value: 'CASH'    },
+    { label: 'Bank In',       value: 'BANKIN'  },
+  ];
+
+  /** Rows selected in the outstanding table (PrimeNG two-way binding target). */
+  outstandingSelection: StaffOutstandingDto[] = [];
+  settleWith  = signal('SETTLED');
+  settling    = signal(false);
+
+  bulkSettle(): void {
+    const selected = this.outstandingSelection;
+    if (!selected.length) return;
+    this.settling.set(true);
+    const entryIds = selected.map(e => e.entryId);
+    this.staffLedgerSvc.bulkSettle(entryIds, this.settleWith()).subscribe({
+      next: (res) => {
+        const n = res.updated;
+        this.toast.success(`${n} ${n === 1 ? 'entry' : 'entries'} settled.`);
+        this.outstandingSelection = [];
+        this.loadLedgerData();
+        this.settling.set(false);
+      },
+      error: () => {
+        this.toast.error('Failed to settle entries.');
+        this.settling.set(false);
+      },
+    });
+  }
+
+  downloadLedgerCsv(): void {
+    const rows = this.ledgerPayout();
+    if (!rows.length) return;
+    this.ledgerExporting.set(true);
+
+    const monthStr = String(this.ledgerMonth()).padStart(2, '0');
+    let csv = 'Staff Code,Name,Venue Earnings,Private Net,Net Payout,Entries,Pending,Not Collected\n';
+    csv += rows.map(r =>
+      `${r.staffCode},"${r.staffName}",${r.venueEarnings.toFixed(2)},${r.privateNet.toFixed(2)},${r.netPayout.toFixed(2)},${r.entryCount},${r.pendingCount},${r.notCollectedCount}`
+    ).join('\n');
+
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `staff-ledger-payout-${this.ledgerYear()}-${monthStr}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.ledgerExporting.set(false);
+    this.toast.success('Payout report downloaded.');
   }
 
   private firstDayOfMonth(): Date {

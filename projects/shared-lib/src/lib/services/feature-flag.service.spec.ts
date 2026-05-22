@@ -5,8 +5,8 @@ import { firstValueFrom } from 'rxjs';
 import { FeatureFlagService, FeatureKey, FlagMap } from './feature-flag.service';
 
 const ALL_KEYS: FeatureKey[] = [
-  'otRules', 'payroll', 'tips', 'tipsHistory', 'paySummary',
-  'messagingAdmin', 'announcements', 'messagingStaff',
+  'payroll', 'tips', 'tipsHistory', 'paySummary',
+  'announcements', 'staffLedger',
 ];
 
 function makeAllFlags(value: boolean): Partial<FlagMap> {

@@ -100,6 +100,6 @@ public static class AppConstants
         public const string Payroll       = "payroll";
         public const string PaySummary    = "paySummary";
         public const string Announcements = "announcements";
-        public const string HostessLedger = "hostessLedger";
+        public const string StaffLedger = "staffLedger";
     }
 }

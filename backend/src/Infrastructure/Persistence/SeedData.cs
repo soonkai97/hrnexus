@@ -46,5 +46,20 @@ public static class SeedData
                     d.Roles, d.Phone, d.IcNo, d.PassportNo, d.Dob));
 
         await db.SaveChangesAsync();
+
+        // Seed default expense categories
+        var defaultExpenseCategories = new (string Key, string Label, int Order)[]
+        {
+            ("MEAL",      "Meal Subsidy",        0),
+            ("TRANSPORT", "Transport",           1),
+            ("PENALTY",   "Penalty / Deduction", 2),
+            ("BONUS",     "Bonus",               3),
+            ("OTHER",     "Other",               4),
+        };
+        foreach (var (key, label, order) in defaultExpenseCategories)
+            if (!await db.StaffExpenseCategories.AnyAsync(c => c.Key == key))
+                db.StaffExpenseCategories.Add(StaffExpenseCategory.Create(key, label, order));
+
+        await db.SaveChangesAsync();
     }
 }

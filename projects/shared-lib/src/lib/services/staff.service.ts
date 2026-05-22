@@ -1,69 +1,91 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Staff, RegisterStaffRequest, StaffDetail, UpdateStaffRequest, StaffRole } from '../models';
-import { PagedResult } from './work-log.service';
-
-export interface VenueLocation { id: string; name: string; }
+import {
+  StaffEntryDto,
+  StaffExpenseDto,
+  StaffLoanDto,
+  StaffSummaryDto,
+  StaffLedgerPayoutDto,
+  StaffOutstandingDto,
+  UpsertEntryRequest,
+  UpsertExpenseRequest,
+  UpsertLoanRequest,
+} from '../models/staff-ledger.model';
 
 @Injectable({ providedIn: 'root' })
 export class StaffService {
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
-  getAll(search?: string, page = 1, pageSize = 10): Observable<PagedResult<Staff>> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('pageSize', pageSize.toString());
-    if (search) params = params.set('search', search);
-    return this.http.get<PagedResult<Staff>>('/api/staff', { params });
+  // ── Entries ─────────────────────────────────────────────────────────────────
+
+  listEntries(staffId: string, year: number, month: number): Observable<StaffEntryDto[]> {
+    return this.http.get<StaffEntryDto[]>('/api/staff-entries', {
+      params: { staffId, year, month },
+    });
   }
 
-  getById(id: string): Observable<StaffDetail> {
-    return this.http.get<StaffDetail>(`/api/staff/${id}`);
+  createEntry(req: UpsertEntryRequest): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>('/api/staff-entries', req);
   }
 
-  register(req: RegisterStaffRequest): Observable<{ id: string }> {
-    return this.http.post<{ id: string }>('/api/staff', req);
+  updateEntry(id: string, req: UpsertEntryRequest): Observable<void> {
+    return this.http.put<void>(`/api/staff-entries/${id}`, req);
   }
 
-  update(id: string, req: UpdateStaffRequest): Observable<void> {
-    return this.http.put<void>(`/api/staff/${id}`, req);
+  deleteEntry(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/staff-entries/${id}`);
   }
 
-  toggleActive(id: string, activate: boolean): Observable<void> {
-    return this.http.patch<void>(`/api/staff/${id}/${activate ? 'activate' : 'deactivate'}`, {});
+  // ── Expenses ─────────────────────────────────────────────────────────────────
+
+  listExpenses(staffId: string, year: number, month: number): Observable<StaffExpenseDto[]> {
+    return this.http.get<StaffExpenseDto[]>('/api/staff-entries/expenses', {
+      params: { staffId, year, month },
+    });
   }
 
-  getRoles(): Observable<StaffRole[]> {
-    return this.http.get<StaffRole[]>('/api/staff/roles');
+  createExpense(req: UpsertExpenseRequest): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>('/api/staff-entries/expenses', req);
   }
 
-  createRole(name: string, hourlyRate: number = 0): Observable<void> {
-    return this.http.post<void>('/api/staff/roles', { name, hourlyRate });
+  updateExpense(id: string, req: UpsertExpenseRequest): Observable<void> {
+    return this.http.put<void>(`/api/staff-entries/expenses/${id}`, req);
   }
 
-  updateRoleRate(name: string, hourlyRate: number): Observable<void> {
-    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(name)}/rate`, { hourlyRate });
+  deleteExpense(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/staff-entries/expenses/${id}`);
   }
 
-  deleteRole(name: string): Observable<void> {
-    return this.http.delete<void>(`/api/staff/roles/${encodeURIComponent(name)}`);
+  // ── Loans ────────────────────────────────────────────────────────────────────
+
+  listLoans(staffId: string): Observable<StaffLoanDto[]> {
+    return this.http.get<StaffLoanDto[]>('/api/staff-entries/loans', {
+      params: { staffId },
+    });
   }
 
-  resetPassword(id: string, newPassword: string): Observable<void> {
-    return this.http.post<void>(`/api/staff/${id}/reset-password`, { newPassword });
+  createLoan(req: UpsertLoanRequest): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>('/api/staff-entries/loans', req);
   }
 
-  delete(id: string): Observable<void> {
-    return this.http.delete<void>(`/api/staff/${id}`);
+  deleteLoan(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/staff-entries/loans/${id}`);
   }
 
-  getLocations(): Observable<VenueLocation[]> {
-    return this.http.get<VenueLocation[]>('/api/locations');
+  // ── Summary ──────────────────────────────────────────────────────────────────
+
+  summary(year: number, month: number): Observable<StaffLedgerPayoutDto[]> {
+    return this.http.get<StaffLedgerPayoutDto[]>('/api/staff-entries/summary', {
+      params: { year, month },
+    });
   }
 
-  /** Employee: get own full profile */
-  getMyProfile(): Observable<StaffDetail> {
-    return this.http.get<StaffDetail>('/api/auth/me');
+  outstanding(): Observable<StaffOutstandingDto[]> {
+    return this.http.get<StaffOutstandingDto[]>('/api/staff-entries/outstanding');
+  }
+
+  bulkSettle(entryIds: string[], settlement: string): Observable<{ updated: number }> {
+    return this.http.put<{ updated: number }>('/api/staff-entries/bulk-settle', { entryIds, settlement });
   }
 }

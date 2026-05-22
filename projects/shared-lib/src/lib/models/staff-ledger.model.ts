@@ -4,7 +4,7 @@ export type WorkType =
   | 'OVERTIME'       // 加时 — overtime extension at venue (extra hours after regular shift)
   | 'OVERNIGHT'      // 包夜 — overnight booking
   | 'PRIVATEHOURS'   // 私小时 — private hours with customer
-  | 'SELFDEDUCT'     // 自扣 / 自己写钟 — self-funded clock (comes out of hostess's share)
+  | 'SELFDEDUCT'     // 自扣 / 自己写钟 — self-funded clock (comes out of staff member's share)
   | 'REST'           // 休息 — rest / off night
   | 'SLOWNIGHT';     // 吃蛋 — zero-earning night ("eating egg" = zero)
 
@@ -61,17 +61,17 @@ export const WORK_TYPE_FROM_EXCEL: Array<{ test: RegExp; type: WorkType }> = [
   { test: /写钟/,                     type: 'VENUECLOCK'    }, // catch-all for 写钟 last
 ];
 
-export interface HostessEntryDto {
+export interface StaffEntryDto {
   id: string;
   staffId: string;
   entryDate: string;       // yyyy-MM-dd
-  workType: WorkType;
+  workType: string;        // key from StaffWorkType table (e.g. 'VENUECLOCK')
   venueUnits: number;
   venueRate: number;
   venueEarnings: number;
   privateGross: number;
   privateNet: number;
-  settlement: Settlement;
+  settlement: string;      // key from StaffSettlement table (e.g. 'PENDING')
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -80,17 +80,17 @@ export interface HostessEntryDto {
 export interface UpsertEntryRequest {
   staffId: string;
   entryDate: string;       // yyyy-MM-dd
-  workType: WorkType;
+  workType: string;        // key from StaffWorkType table
   venueUnits: number;
   venueRate: number;
   venueEarnings: number;
   privateGross: number;
   privateNet: number;
-  settlement: Settlement;
+  settlement: string;      // key from StaffSettlement table
   notes: string | null;
 }
 
-export interface HostessExpenseDto {
+export interface StaffExpenseDto {
   id: string;
   staffId: string;
   year: number;
@@ -109,7 +109,7 @@ export interface UpsertExpenseRequest {
   notes: string | null;
 }
 
-export interface HostessLoanDto {
+export interface StaffLoanDto {
   id: string;
   staffId: string;
   loanDate: string;        // yyyy-MM-dd
@@ -127,10 +127,87 @@ export interface UpsertLoanRequest {
   purpose: string | null;
 }
 
-export interface HostessSummaryDto {
+export interface StaffSummaryDto {
   staffId: string;
   venueEarnings: number;
   privateGross: number;
   privateNet: number;
   entryCount: number;
+}
+
+export interface StaffLedgerPayoutDto {
+  staffId:           string;
+  staffCode:         string;
+  staffName:         string;
+  venueEarnings:     number;
+  privateNet:        number;
+  netPayout:         number;
+  entryCount:        number;
+  pendingCount:      number;
+  notCollectedCount: number;
+}
+
+export interface StaffOutstandingDto {
+  entryId:       string;
+  staffId:       string;
+  staffCode:     string;
+  staffName:     string;
+  entryDate:     string;
+  workType:      string;
+  venueEarnings: number;
+  privateNet:    number;
+  settlement:    string;
+}
+
+// ── Config (work types & settlements) ─────────────────────────────────────────
+
+export interface StaffWorkTypeDto {
+  id: string;
+  key: string;
+  label: string;
+  autoCalc: boolean;
+  hasPrivate: boolean;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface UpsertWorkTypeRequest {
+  key: string;
+  label: string;
+  autoCalc: boolean;
+  hasPrivate: boolean;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface StaffSettlementDto {
+  id: string;
+  key: string;
+  label: string;
+  severity: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface UpsertSettlementRequest {
+  key: string;
+  label: string;
+  severity: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface StaffExpenseCategoryDto {
+  id: string;
+  key: string;
+  label: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface UpsertExpenseCategoryRequest {
+  key: string;
+  label: string;
+  displayOrder: number;
+  isActive: boolean;
 }

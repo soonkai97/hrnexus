@@ -1,0 +1,275 @@
+<div class="p-3 p-md-4">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'staffSettings.title' | translate }}</h1>
+    <p class="page-subtitle">{{ 'staffSettings.subtitle' | translate }}</p>
+  </div>
+
+  <p-tabs value="workTypes">
+    <p-tablist>
+      <p-tab value="workTypes">{{ 'staffSettings.workTypes' | translate }}</p-tab>
+      <p-tab value="expenseCategories">{{ 'staffSettings.expenseCategories' | translate }}</p-tab>
+      <p-tab value="settlements">{{ 'staffSettings.settlements' | translate }}</p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+
+      <!-- ── Work Types ──────────────────────────────────────────────────── -->
+      <p-tabpanel value="workTypes">
+        <div class="tab-panel">
+
+          <div class="tab-panel-actions">
+            @if (wtError()) {
+              <p-message severity="error" [text]="wtError()" styleClass="flex-1" />
+            }
+            <p-button icon="pi pi-plus" [label]="'common.add' | translate"
+              severity="primary" (click)="openAddWt()" class="ms-auto" />
+          </div>
+
+          <!-- Add / Edit form -->
+          @if (showWtForm()) {
+            <div class="inline-form">
+              <p-divider />
+              <h3 class="form-title">{{ editingWt() ? ('staffSettings.editWorkType' | translate) : ('staffSettings.addWorkType' | translate) }}</h3>
+
+              <div class="form-row">
+                <div class="field">
+                  <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
+                  <input pInputText [(ngModel)]="wtForm.key" [placeholder]="'VENUECLOCK'"
+                         [disabled]="!!editingWt()" maxlength="50" />
+                </div>
+                <div class="field">
+                  <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
+                  <input pInputText [(ngModel)]="wtForm.label" placeholder="写钟" maxlength="100" />
+                </div>
+                <div class="field field-sm">
+                  <label>{{ 'staffSettings.order' | translate }}</label>
+                  <p-inputnumber [(ngModel)]="wtForm.displayOrder" [min]="0" [max]="999" [showButtons]="true" />
+                </div>
+              </div>
+
+              <div class="form-row flags-row">
+                <div class="flag-field">
+                  <p-checkbox [(ngModel)]="wtForm.autoCalc" [binary]="true" inputId="wt-autocalc" />
+                  <label for="wt-autocalc">{{ 'staffSettings.autoCalc' | translate }}</label>
+                </div>
+                <div class="flag-field">
+                  <p-checkbox [(ngModel)]="wtForm.hasPrivate" [binary]="true" inputId="wt-hasprivate" />
+                  <label for="wt-hasprivate">{{ 'staffSettings.hasPrivate' | translate }}</label>
+                </div>
+                @if (editingWt()) {
+                  <div class="flag-field">
+                    <p-checkbox [(ngModel)]="wtForm.isActive" [binary]="true" inputId="wt-active" />
+                    <label for="wt-active">{{ 'common.active' | translate }}</label>
+                  </div>
+                }
+              </div>
+
+              <div class="form-actions d-flex gap-2 justify-content-end">
+                <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelWt()" />
+                <p-button [label]="savingWt() ? ('common.saving' | translate) : (editingWt() ? ('common.update' | translate) : ('common.create' | translate))"
+                          severity="primary" (click)="saveWt()"
+                          [disabled]="savingWt() || !wtForm.key.trim() || !wtForm.label.trim()"
+                          [loading]="savingWt()" />
+              </div>
+              <p-divider />
+            </div>
+          }
+
+          <!-- List -->
+          <div class="item-list">
+            @for (item of workTypes(); track item.id) {
+              <div class="list-row" [class.inactive]="!item.isActive">
+                <div class="list-row-info">
+                  <span class="list-key">{{ item.key }}</span>
+                  <span class="list-label">{{ item.label }}</span>
+                  <span class="list-badges">
+                    @if (item.autoCalc) { <span class="badge badge-calc">AutoCalc</span> }
+                    @if (item.hasPrivate) { <span class="badge badge-private">Private</span> }
+                    @if (!item.isActive) { <span class="badge badge-inactive">Inactive</span> }
+                  </span>
+                </div>
+                <div class="list-row-order">{{ item.displayOrder }}</div>
+                <div class="list-row-actions">
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditWt(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeWt(item)" />
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-list">{{ 'staffSettings.noItems' | translate }}</div>
+            }
+          </div>
+
+        </div>
+      </p-tabpanel>
+
+      <!-- ── Deduction Categories ────────────────────────────────────────── -->
+      <p-tabpanel value="expenseCategories">
+        <div class="tab-panel">
+
+          <div class="tab-panel-actions">
+            @if (ecError()) {
+              <p-message severity="error" [text]="ecError()" styleClass="flex-1" />
+            }
+            <p-button icon="pi pi-plus" [label]="'common.add' | translate"
+              severity="primary" (click)="openAddEc()" class="ms-auto" />
+          </div>
+
+          <!-- Add / Edit form -->
+          @if (showEcForm()) {
+            <div class="inline-form">
+              <p-divider />
+              <h3 class="form-title">{{ editingEc() ? ('staffSettings.editExpenseCategory' | translate) : ('staffSettings.addExpenseCategory' | translate) }}</h3>
+
+              <div class="form-row">
+                <div class="field">
+                  <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
+                  <input pInputText [(ngModel)]="ecForm.key" placeholder="MEAL"
+                         [disabled]="!!editingEc()" maxlength="50" />
+                </div>
+                <div class="field">
+                  <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
+                  <input pInputText [(ngModel)]="ecForm.label" placeholder="Meal Subsidy" maxlength="100" />
+                </div>
+                <div class="field field-sm">
+                  <label>{{ 'staffSettings.order' | translate }}</label>
+                  <p-inputnumber [(ngModel)]="ecForm.displayOrder" [min]="0" [max]="999" [showButtons]="true" />
+                </div>
+                @if (editingEc()) {
+                  <div class="flag-field align-self-end pb-2">
+                    <p-checkbox [(ngModel)]="ecForm.isActive" [binary]="true" inputId="ec-active" />
+                    <label for="ec-active">{{ 'common.active' | translate }}</label>
+                  </div>
+                }
+              </div>
+
+              <div class="form-actions d-flex gap-2 justify-content-end">
+                <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEc()" />
+                <p-button [label]="savingEc() ? ('common.saving' | translate) : (editingEc() ? ('common.update' | translate) : ('common.create' | translate))"
+                          severity="primary" (click)="saveEc()"
+                          [disabled]="savingEc() || !ecForm.key.trim() || !ecForm.label.trim()"
+                          [loading]="savingEc()" />
+              </div>
+              <p-divider />
+            </div>
+          }
+
+          <!-- List -->
+          <div class="item-list">
+            @for (item of expenseCategories(); track item.id) {
+              <div class="list-row" [class.inactive]="!item.isActive">
+                <div class="list-row-info">
+                  <span class="list-key">{{ item.key }}</span>
+                  <span class="list-label">{{ item.label }}</span>
+                  @if (!item.isActive) { <span class="badge badge-inactive">Inactive</span> }
+                </div>
+                <div class="list-row-order">{{ item.displayOrder }}</div>
+                <div class="list-row-actions">
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditEc(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeEc(item)" />
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-list">{{ 'staffSettings.noItems' | translate }}</div>
+            }
+          </div>
+
+        </div>
+      </p-tabpanel>
+
+      <!-- ── Settlements ────────────────────────────────────────────────── -->
+      <p-tabpanel value="settlements">
+        <div class="tab-panel">
+
+          <div class="tab-panel-actions">
+            @if (stError()) {
+              <p-message severity="error" [text]="stError()" styleClass="flex-1" />
+            }
+            <p-button icon="pi pi-plus" [label]="'common.add' | translate"
+              severity="primary" (click)="openAddSt()" class="ms-auto" />
+          </div>
+
+          <!-- Add / Edit form -->
+          @if (showStForm()) {
+            <div class="inline-form">
+              <p-divider />
+              <h3 class="form-title">{{ editingSt() ? ('staffSettings.editSettlement' | translate) : ('staffSettings.addSettlement' | translate) }}</h3>
+
+              <div class="form-row">
+                <div class="field">
+                  <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
+                  <input pInputText [(ngModel)]="stForm.key" placeholder="SETTLED"
+                         [disabled]="!!editingSt()" maxlength="50" />
+                </div>
+                <div class="field">
+                  <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
+                  <input pInputText [(ngModel)]="stForm.label" placeholder="清 (Settled)" maxlength="100" />
+                </div>
+                <div class="field field-sm">
+                  <label>{{ 'staffSettings.order' | translate }}</label>
+                  <p-inputnumber [(ngModel)]="stForm.displayOrder" [min]="0" [max]="999" [showButtons]="true" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label>{{ 'staffSettings.severity' | translate }}</label>
+                  <p-select
+                    [(ngModel)]="stForm.severity"
+                    [options]="severityOpts"
+                    optionLabel="label"
+                    optionValue="value"
+                    appendTo="body">
+                    <ng-template #selectedItem let-sel>
+                      <p-tag [severity]="severityType(sel.value)" [value]="sel.label" />
+                    </ng-template>
+                    <ng-template #item let-opt>
+                      <p-tag [severity]="severityType(opt.value)" [value]="opt.label" />
+                    </ng-template>
+                  </p-select>
+                </div>
+                @if (editingSt()) {
+                  <div class="flag-field align-self-end pb-2">
+                    <p-checkbox [(ngModel)]="stForm.isActive" [binary]="true" inputId="st-active" />
+                    <label for="st-active">{{ 'common.active' | translate }}</label>
+                  </div>
+                }
+              </div>
+
+              <div class="form-actions d-flex gap-2 justify-content-end">
+                <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelSt()" />
+                <p-button [label]="savingSt() ? ('common.saving' | translate) : (editingSt() ? ('common.update' | translate) : ('common.create' | translate))"
+                          severity="primary" (click)="saveSt()"
+                          [disabled]="savingSt() || !stForm.key.trim() || !stForm.label.trim()"
+                          [loading]="savingSt()" />
+              </div>
+              <p-divider />
+            </div>
+          }
+
+          <!-- List -->
+          <div class="item-list">
+            @for (item of settlements(); track item.id) {
+              <div class="list-row" [class.inactive]="!item.isActive">
+                <div class="list-row-info">
+                  <span class="list-key">{{ item.key }}</span>
+                  <p-tag [severity]="severityType(item.severity)" [value]="item.label" />
+                  @if (!item.isActive) { <span class="badge badge-inactive">Inactive</span> }
+                </div>
+                <div class="list-row-order">{{ item.displayOrder }}</div>
+                <div class="list-row-actions">
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditSt(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeSt(item)" />
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-list">{{ 'staffSettings.noItems' | translate }}</div>
+            }
+          </div>
+
+        </div>
+      </p-tabpanel>
+
+    </p-tabpanels>
+  </p-tabs>
+
+</div>

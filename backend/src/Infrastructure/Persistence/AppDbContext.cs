@@ -31,6 +31,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<StaffWorkType>         StaffWorkTypes         => Set<StaffWorkType>();
     public DbSet<StaffSettlement>       StaffSettlements       => Set<StaffSettlement>();
     public DbSet<StaffExpenseCategory>  StaffExpenseCategories => Set<StaffExpenseCategory>();
+    public DbSet<StaffLoanType>        StaffLoanTypes         => Set<StaffLoanType>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -57,6 +58,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         mb.ApplyConfiguration(new StaffWorkTypeConfiguration());
         mb.ApplyConfiguration(new StaffSettlementConfiguration());
         mb.ApplyConfiguration(new StaffExpenseCategoryConfiguration());
+        mb.ApplyConfiguration(new StaffLoanTypeConfiguration());
         SeedData.Seed(mb);
     }
 }

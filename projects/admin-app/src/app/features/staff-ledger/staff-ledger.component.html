@@ -409,7 +409,7 @@
                 <div class="field">
                   <label>{{ 'staffLedger.loanTypeLabel' | translate }}</label>
                   <p-select
-                    [options]="LOAN_TYPES"
+                    [options]="loanTypeOptions()"
                     [(ngModel)]="loanForm.loanType"
                     optionLabel="label"
                     optionValue="value"

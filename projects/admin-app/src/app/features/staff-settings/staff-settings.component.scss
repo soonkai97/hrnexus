@@ -162,7 +162,10 @@
 
   &.badge-calc    { background: rgba($neon-blue,  0.15); color: $neon-blue;  }
   &.badge-private { background: rgba($neon-purple, 0.15); color: $neon-purple; }
-  &.badge-inactive { background: rgba($text-muted, 0.15); color: $text-muted; }
+  &.badge-inactive  { background: rgba($text-muted,  0.15); color: $text-muted;  }
+  &.badge-advance   { background: rgba($neon-green,  0.15); color: $neon-green;  }
+  &.badge-repayment { background: rgba($neon-amber,  0.15); color: $neon-amber;  }
+  &.badge-system    { background: rgba($neon-blue,   0.15); color: $neon-blue;   }
 }
 
 .list-row-order {

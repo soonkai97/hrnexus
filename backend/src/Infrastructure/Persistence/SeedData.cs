@@ -61,5 +61,17 @@ public static class SeedData
                 db.StaffExpenseCategories.Add(StaffExpenseCategory.Create(key, label, order));
 
         await db.SaveChangesAsync();
+
+        // Seed system loan types — these two are structural and cannot be deleted
+        var systemLoanTypes = new (string Key, string Label, bool IsAdvance, int Order)[]
+        {
+            ("ADVANCE",   "Advance (Cash Out)", true,  0),
+            ("REPAYMENT", "Repayment",          false, 1),
+        };
+        foreach (var (key, label, isAdvance, order) in systemLoanTypes)
+            if (!await db.StaffLoanTypes.AnyAsync(lt => lt.Key == key))
+                db.StaffLoanTypes.Add(StaffLoanType.Create(key, label, isAdvance, order, isSystem: true));
+
+        await db.SaveChangesAsync();
     }
 }

@@ -9,6 +9,8 @@ import {
   UpsertSettlementRequest,
   StaffExpenseCategoryDto,
   UpsertExpenseCategoryRequest,
+  StaffLoanTypeDto,
+  UpsertLoanTypeRequest,
   ToastService,
   ConfirmService,
 } from 'shared-lib';
@@ -22,6 +24,11 @@ import { Card } from 'primeng/card';
 import { Divider } from 'primeng/divider';
 import { Message } from 'primeng/message';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
+
+export const LOAN_DIRECTION_OPTIONS: { label: string; value: boolean }[] = [
+  { label: 'Advance (Cash Out)',  value: true  },
+  { label: 'Repayment (Cash In)', value: false },
+];
 
 export const SEVERITY_OPTIONS: { label: string; value: string }[] = [
   { label: 'Success (green)',  value: 'success'   },
@@ -53,6 +60,8 @@ export class StaffSettingsComponent implements OnInit {
   readonly workTypes         = this.configSvc.workTypes;
   readonly settlements       = this.configSvc.settlements;
   readonly expenseCategories = this.configSvc.expenseCategories;
+  readonly loanTypes       = this.configSvc.loanTypes;
+  readonly loanDirectionOpts = LOAN_DIRECTION_OPTIONS;
   readonly severityOpts      = SEVERITY_OPTIONS;
 
   // ── Work type form ────────────────────────────────────────────────────────
@@ -76,10 +85,18 @@ export class StaffSettingsComponent implements OnInit {
   ecError     = signal('');
   ecForm: UpsertExpenseCategoryRequest = this.emptyEcForm();
 
+  // ── Loan type form ────────────────────────────────────────────────────────
+  showLtForm  = signal(false);
+  editingLt   = signal<StaffLoanTypeDto | null>(null);
+  savingLt    = signal(false);
+  ltError     = signal('');
+  ltForm: UpsertLoanTypeRequest = this.emptyLtForm();
+
   ngOnInit(): void {
     this.configSvc.loadWorkTypes();
     this.configSvc.loadSettlements();
     this.configSvc.loadExpenseCategories();
+    this.configSvc.loadLoanTypes();
   }
 
   // ── Work type actions ─────────────────────────────────────────────────────
@@ -218,6 +235,57 @@ export class StaffSettingsComponent implements OnInit {
         error: (e) => this.toast.error(e?.error?.error ?? 'Delete failed.'),
       });
     });
+  }
+
+  // ── Loan type actions ─────────────────────────────────────────────────────
+  openAddLt(): void {
+    this.ltForm = this.emptyLtForm();
+    this.editingLt.set(null);
+    this.ltError.set('');
+    this.showLtForm.set(true);
+  }
+
+  openEditLt(item: StaffLoanTypeDto): void {
+    this.ltForm = { key: item.key, label: item.label, isAdvance: item.isAdvance, displayOrder: item.displayOrder, isActive: item.isActive };
+    this.editingLt.set(item);
+    this.ltError.set('');
+    this.showLtForm.set(true);
+  }
+
+  cancelLt(): void { this.showLtForm.set(false); this.editingLt.set(null); }
+
+  saveLt(): void {
+    if (!this.ltForm.key.trim() || !this.ltForm.label.trim()) return;
+    this.savingLt.set(true);
+    this.ltError.set('');
+    const done = () => { this.savingLt.set(false); this.showLtForm.set(false); this.editingLt.set(null); this.toast.success('Loan type saved.'); };
+    const fail = (e: any) => { const msg = e?.error?.error ?? 'Save failed.'; this.ltError.set(msg); this.toast.error(msg); this.savingLt.set(false); };
+    const editing = this.editingLt();
+    if (editing) {
+      this.configSvc.updateLoanType(editing.id, this.ltForm).subscribe({ next: done, error: fail });
+    } else {
+      this.configSvc.createLoanType(this.ltForm).subscribe({ next: done, error: fail });
+    }
+  }
+
+  removeLt(item: StaffLoanTypeDto): void {
+    if (item.isSystem) return;
+    this.confirmSvc.confirm({
+      title: 'Delete Loan Type',
+      message: `Delete "${item.label}" (${item.key})?`,
+      confirmLabel: 'Delete',
+      danger: true,
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.configSvc.deleteLoanType(item.id).subscribe({
+        next:  () => this.toast.success('Loan type deleted.'),
+        error: (e) => this.toast.error(e?.error?.error ?? 'Delete failed.'),
+      });
+    });
+  }
+
+  private emptyLtForm(): UpsertLoanTypeRequest {
+    return { key: '', label: '', isAdvance: true, displayOrder: 0, isActive: true };
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

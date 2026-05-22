@@ -31,7 +31,7 @@ export * from './lib/directives/picker-only.directive';
 export * from './lib/provide-no-autofill';
 export * from './lib/services/announcement.service'; // exports AnnouncementDto, AdminAnnouncementDto, UpsertAnnouncementDto
 export * from './lib/services/push.service';
-export * from './lib/services/messaging.service';
 export * from './lib/services/feature-flag.service';
+export * from './lib/services/hostess.service';
 export * from './lib/pipes/am-pm.pipe';
 export * from './lib/utils/date.utils';

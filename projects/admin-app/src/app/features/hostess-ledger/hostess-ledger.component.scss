@@ -1,0 +1,341 @@
+@use 'styles/theme' as *;
+
+// ── Page shell ────────────────────────────────────────────────────────────────
+
+.hl-page {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 100%;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin: 0;
+}
+
+// ── Filters row ───────────────────────────────────────────────────────────────
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  .filter-select {
+    min-width: 220px;
+  }
+
+  .month-select {
+    min-width: 180px;
+  }
+}
+
+// ── Body (main + sidebar) ─────────────────────────────────────────────────────
+
+.hl-body {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.hl-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+// ── Form card ────────────────────────────────────────────────────────────────
+
+:host :deep(.form-card) {
+  border: 1px solid $border-subtle;
+  background: $bg-surface;
+}
+
+.form-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.85rem 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  input,
+  .p-select,
+  .p-inputnumber {
+    width: 100%;
+  }
+}
+
+.req {
+  color: $neon-pink;
+  margin-left: 2px;
+}
+
+.form-error {
+  margin-bottom: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid $border-subtle;
+}
+
+// ── Table card ────────────────────────────────────────────────────────────────
+
+:host :deep(.table-card) {
+  border: 1px solid $border-subtle;
+  background: $bg-surface;
+}
+
+.entries-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid $border-subtle;
+  }
+
+  td {
+    padding: 0.6rem 0.75rem;
+    color: $text-primary;
+    border-bottom: 1px solid $border-subtle;
+    vertical-align: middle;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: rgba($neon-purple, 0.04);
+  }
+
+  .num-col {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .notes-col {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: $text-muted;
+    font-size: 0.82rem;
+  }
+
+  .action-col {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .green { color: $neon-green; font-weight: 600; }
+  .amber { color: $neon-amber; font-weight: 600; }
+}
+
+// ── Work type badges ──────────────────────────────────────────────────────────
+
+.wt-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: $radius-pill;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+
+  &--venueclock   { background: rgba($neon-blue,   0.15); color: $neon-blue;   }
+  &--tablerun     { background: rgba($neon-purple, 0.15); color: $neon-purple; }
+  &--overnight    { background: rgba($neon-pink,   0.15); color: $neon-pink;   }
+  &--privatehours { background: rgba($neon-amber,  0.15); color: $neon-amber;  }
+  &--selfdeduct   { background: rgba(#ef4444, 0.15);      color: #ef4444;      }
+  &--rest         { background: rgba($text-muted,  0.12); color: $text-muted;  }
+  &--slownight    { background: rgba($text-muted,  0.12); color: $text-muted;  }
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.4rem 0;
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: $text-muted;
+
+  .empty-icon {
+    font-size: 2.5rem;
+    opacity: 0.35;
+  }
+
+  p { font-size: 0.9rem; margin: 0; }
+}
+
+// ── Summary sidebar ───────────────────────────────────────────────────────────
+
+.hl-summary {
+  width: 240px;
+  flex-shrink: 0;
+}
+
+:host :deep(.summary-card) {
+  border: 1px solid $border-subtle;
+  background: $bg-surface;
+}
+
+.summary-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.45rem 0;
+
+  &--total {
+    padding-top: 0.6rem;
+  }
+}
+
+.summary-label {
+  font-size: 0.82rem;
+  color: $text-secondary;
+}
+
+.summary-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $text-primary;
+  font-variant-numeric: tabular-nums;
+
+  &.green { color: $neon-green; }
+  &.amber { color: $neon-amber; }
+}
+
+.summary-row--total .summary-label  { font-weight: 700; color: $text-primary; font-size: 0.88rem; }
+.summary-row--total .summary-value  { font-size: 1.05rem; }
+
+.summary-entries-note {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: $text-muted;
+  text-align: center;
+}
+
+// ── No selection prompt ───────────────────────────────────────────────────────
+
+.no-selection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 6rem 1rem;
+  color: $text-muted;
+
+  .no-selection-icon {
+    font-size: 3rem;
+    opacity: 0.25;
+  }
+
+  p { font-size: 0.95rem; margin: 0; }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+
+@media (max-width: 900px) {
+  .hl-body {
+    flex-direction: column;
+  }
+
+  .hl-summary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .hl-page {
+    padding: 1rem;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+
+    .filter-select,
+    .month-select {
+      width: 100%;
+    }
+  }
+
+  .entries-table {
+    font-size: 0.8rem;
+  }
+}

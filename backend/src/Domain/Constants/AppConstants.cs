@@ -95,13 +95,11 @@ public static class AppConstants
     // ── Feature flag keys ──────────────────────────────────────────────────────
     public static class FeatureFlags
     {
-        public const string Tips            = "tips";
-        public const string TipsHistory     = "tipsHistory";
-        public const string Payroll         = "payroll";
-        public const string PaySummary      = "paySummary";
-        public const string OtRules         = "otRules";
-        public const string Announcements   = "announcements";
-        public const string MessagingAdmin  = "messagingAdmin";
-        public const string MessagingStaff  = "messagingStaff";
+        public const string Tips          = "tips";
+        public const string TipsHistory   = "tipsHistory";
+        public const string Payroll       = "payroll";
+        public const string PaySummary    = "paySummary";
+        public const string Announcements = "announcements";
+        public const string HostessLedger = "hostessLedger";
     }
 }

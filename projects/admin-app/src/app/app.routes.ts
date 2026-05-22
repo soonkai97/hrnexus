@@ -22,12 +22,10 @@ export const routes: Routes = [
       { path: 'locations',     loadComponent: () => import('./features/locations/locations.component').then(m => m.LocationsComponent) },
       { path: 'leave',         loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
 
-      { path: 'overtime',      canActivate: [featureFlagGuard('otRules',        '/dashboard')], loadComponent: () => import('./features/overtime/overtime.component').then(m => m.OvertimeComponent) },
       { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/dashboard')], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
       { path: 'tips',          canActivate: [featureFlagGuard('tips',           '/dashboard')], loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },
-      { path: 'payroll',       canActivate: [featureFlagGuard('payroll',        '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
-      { path: 'notifications', loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent) },
-      { path: 'messaging',     canActivate: [featureFlagGuard('messagingAdmin', '/dashboard')], loadComponent: () => import('./features/messaging/messaging.component').then(m => m.MessagingComponent) },
+      { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
+      { path: 'hostess-ledger', canActivate: [featureFlagGuard('hostessLedger', '/dashboard')], loadComponent: () => import('./features/hostess-ledger/hostess-ledger.component').then(m => m.HostessLedgerComponent) },
       {
         path: 'features',
         canActivate: [roleGuard('admin')],

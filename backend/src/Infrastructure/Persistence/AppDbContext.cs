@@ -25,6 +25,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<PushSubscription>     PushSubscriptions   => Set<PushSubscription>();
     public DbSet<StaffMessage>       StaffMessages        => Set<StaffMessage>();
     public DbSet<FeatureFlag>        FeatureFlags         => Set<FeatureFlag>();
+    public DbSet<HostessEntry>       HostessEntries       => Set<HostessEntry>();
+    public DbSet<HostessExpense>     HostessExpenses      => Set<HostessExpense>();
+    public DbSet<HostessLoan>        HostessLoans         => Set<HostessLoan>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -45,6 +48,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         mb.ApplyConfiguration(new TipsAllocationConfiguration());
         mb.ApplyConfiguration(new StaffMessageConfiguration());
         mb.ApplyConfiguration(new FeatureFlagConfiguration());
+        mb.ApplyConfiguration(new HostessEntryConfiguration());
+        mb.ApplyConfiguration(new HostessExpenseConfiguration());
+        mb.ApplyConfiguration(new HostessLoanConfiguration());
         SeedData.Seed(mb);
     }
 }

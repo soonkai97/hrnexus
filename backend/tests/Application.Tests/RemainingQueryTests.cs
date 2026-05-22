@@ -1,0 +1,419 @@
+using Microsoft.EntityFrameworkCore;
+using NightclubWorkforce.Application.Admin.Queries;
+using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Application.Tests.Infrastructure;
+using NightclubWorkforce.Application.WorkLog.Queries;
+using E = NightclubWorkforce.Domain.Entities;
+using Xunit;
+
+namespace NightclubWorkforce.Application.Tests;
+
+/// <summary>
+/// Tests for three handlers that were not covered by previous test files:
+///   - GetPaySummaryQueryHandler  : staff-facing pay breakdown with OT calculation and tips
+///   - GetPayrollExportQueryHandler : admin CSV-ready payroll per employee
+///   - GetLiveStatsQueryHandler   : real-time dashboard counters (on-shift, total staff, hours, cost)
+/// WHY: incorrect pay figures directly mislead staff and managers; live-stats errors show
+/// wrong occupancy on the dashboard, hiding potential compliance issues.
+/// </summary>
+public class RemainingQueryTests
+{
+    // ── Stubs ─────────────────────────────────────────────────────────────────
+
+    /// <summary>Fixed-time provider so tests do not depend on wall-clock time.</summary>
+    private sealed class FixedDateTimeProvider(DateTime fixedLocal) : IDateTimeProvider
+    {
+        public DateTime     UtcNow        => fixedLocal.ToUniversalTime();
+        public DateOnly     TodayUtc      => DateOnly.FromDateTime(UtcNow);
+        public TimeZoneInfo VenueTimeZone => TimeZoneInfo.Utc;
+        public DateTime     LocalNow      => fixedLocal;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static TestDbContext CreateDb()
+    {
+        var opts = new DbContextOptionsBuilder<TestDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        return new TestDbContext(opts);
+    }
+
+    private static E.Staff MakeStaff(string staffId = "S001", List<string>? roles = null) =>
+        E.Staff.Create(staffId, "Alice", "Wong", $"{staffId}@test.com", "hash",
+            roles ?? ["BARTENDER"]);
+
+    private static E.WorkLog MakeCompletedLog(
+        Guid empId, DateOnly date, string start, string end, decimal rate = 20m) =>
+        E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", date, start, end, rate);
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // GetPaySummaryQuery
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // 1. No logs → all zeros
+    [Fact]
+    public async Task GetPaySummary_ReturnsZeros_WhenNoLogsInPeriod()
+    {
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+
+        var result = await new GetPaySummaryQueryHandler(db).Handle(
+            new GetPaySummaryQuery(empId,
+                new DateOnly(2026, 5, 1),
+                new DateOnly(2026, 5, 31)),
+            CancellationToken.None);
+
+        Assert.Equal(0m, result.TotalHours);
+        Assert.Equal(0m, result.GrossPay);
+        Assert.Empty(result.Shifts);
+    }
+
+    // 2. Single shift — hours and pay calculated correctly
+    [Fact]
+    public async Task GetPaySummary_CalculatesHoursAndPay_ForCompletedShift()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+        // 18:00 → 23:00 = 5 hours @ 20/h = 100
+        var log = MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "18:00", "23:00", 20m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        var result = await new GetPaySummaryQueryHandler(db).Handle(
+            new GetPaySummaryQuery(emp.Id,
+                new DateOnly(2026, 5, 1),
+                new DateOnly(2026, 5, 31)),
+            CancellationToken.None);
+
+        Assert.Equal(5m,   result.TotalHours);
+        Assert.Equal(100m, result.GrossPay);
+        Assert.Single(result.Shifts);
+    }
+
+    // 3. Open shift (no EndTime) is excluded from pay summary
+    [Fact]
+    public async Task GetPaySummary_ExcludesOpenShifts()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+        // Open shift — StartLive sets EndTime = null
+        db.WorkLogs.Add(E.WorkLog.StartLive(emp.Id, "BARTENDER", "loc-1", "Main Bar",
+            new DateOnly(2026, 5, 10), "18:00", 20m));
+        await db.SaveChangesAsync();
+
+        var result = await new GetPaySummaryQueryHandler(db).Handle(
+            new GetPaySummaryQuery(emp.Id,
+                new DateOnly(2026, 5, 1),
+                new DateOnly(2026, 5, 31)),
+            CancellationToken.None);
+
+        Assert.Equal(0m, result.TotalHours);
+        Assert.Empty(result.Shifts);
+    }
+
+    // 4. Overtime threshold applies — hours above threshold charged at OT rate
+    [Fact]
+    public async Task GetPaySummary_AppliesOvertimeMultiplier_WhenHoursExceedThreshold()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+        // OT rule: threshold 8h, multiplier 1.5x, wildcard role
+        db.OvertimeRules.Add(E.OvertimeRule.Create("*", 8m, 1.5m));
+        // 10 hours @ 20/h: 8h regular (160) + 2h OT (2 × 20 × 1.5 = 60) = 220
+        var log = MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "08:00", "18:00", 20m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        var result = await new GetPaySummaryQueryHandler(db).Handle(
+            new GetPaySummaryQuery(emp.Id,
+                new DateOnly(2026, 5, 1),
+                new DateOnly(2026, 5, 31)),
+            CancellationToken.None);
+
+        Assert.Equal(10m,  result.TotalHours);
+        Assert.Equal(8m,   result.RegularHours);
+        Assert.Equal(2m,   result.OvertimeHours);
+        Assert.Equal(220m, result.GrossPay);
+    }
+
+    // 5. Tips within the period are included in GrossPay
+    [Fact]
+    public async Task GetPaySummary_IncludesTipsAllocated_InGrossPay()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+
+        // 5h shift @ 20/h = 100
+        var log = MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "18:00", "23:00", 20m);
+        db.WorkLogs.Add(log);
+
+        // Tips pool for same date
+        var pool = E.TipsPool.Create(Guid.NewGuid(), "Main Bar",
+            new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc), 200m, "equal");
+        db.TipsPools.Add(pool);
+        db.TipsAllocations.Add(E.TipsAllocationRecord.Create(pool.Id, emp.Id, emp.FullName, 50m, 0m));
+        await db.SaveChangesAsync();
+
+        var result = await new GetPaySummaryQueryHandler(db).Handle(
+            new GetPaySummaryQuery(emp.Id,
+                new DateOnly(2026, 5, 1),
+                new DateOnly(2026, 5, 31)),
+            CancellationToken.None);
+
+        Assert.Equal(50m,  result.TipsAllocated);
+        Assert.Equal(150m, result.GrossPay);  // 100 (work) + 50 (tips)
+    }
+
+    // 6. Logs outside the requested period are excluded
+    [Fact]
+    public async Task GetPaySummary_ExcludesLogsOutsidePeriod()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+
+        // Log in April — outside the May query
+        db.WorkLogs.Add(MakeCompletedLog(emp.Id, new DateOnly(2026, 4, 30), "18:00", "23:00", 20m));
+        await db.SaveChangesAsync();
+
+        var result = await new GetPaySummaryQueryHandler(db).Handle(
+            new GetPaySummaryQuery(emp.Id,
+                new DateOnly(2026, 5, 1),
+                new DateOnly(2026, 5, 31)),
+            CancellationToken.None);
+
+        Assert.Equal(0m, result.TotalHours);
+        Assert.Empty(result.Shifts);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // GetPayrollExportQuery
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // 1. No active employees → empty rows
+    [Fact]
+    public async Task GetPayrollExport_ReturnsEmptyRows_WhenNoActiveEmployees()
+    {
+        await using var db = CreateDb();
+
+        var result = await new GetPayrollExportQueryHandler(db).Handle(
+            new GetPayrollExportQuery(2026, 5), CancellationToken.None);
+
+        Assert.Equal("2026-05", result.Month);
+        Assert.Empty(result.Rows);
+    }
+
+    // 2. Inactive employees are excluded
+    [Fact]
+    public async Task GetPayrollExport_ExcludesInactiveEmployees()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff();
+        emp.Deactivate();
+        db.Staff.Add(emp);
+        await db.SaveChangesAsync();
+
+        var result = await new GetPayrollExportQueryHandler(db).Handle(
+            new GetPayrollExportQuery(2026, 5), CancellationToken.None);
+
+        Assert.Empty(result.Rows);
+    }
+
+    // 3. Active employee with completed shifts → row with correct hours and pay
+    [Fact]
+    public async Task GetPayrollExport_CalculatesRegularPayRow_ForActiveEmployee()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff("E001");
+        db.Staff.Add(emp);
+        // 5h shift @ 20/h = 100 regular pay, no OT
+        db.WorkLogs.Add(MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "18:00", "23:00", 20m));
+        await db.SaveChangesAsync();
+
+        var result = await new GetPayrollExportQueryHandler(db).Handle(
+            new GetPayrollExportQuery(2026, 5), CancellationToken.None);
+
+        Assert.Single(result.Rows);
+        var row = result.Rows[0];
+        Assert.Equal("E001",  row.StaffId);
+        Assert.Equal(5m,      row.TotalHours);
+        Assert.Equal(100m,    row.RegularPay);
+        Assert.Equal(0m,      row.OvertimePay);
+        Assert.Equal(100m,    row.GrossPay);
+    }
+
+    // 4. Open shifts (no EndTime) are excluded from payroll
+    [Fact]
+    public async Task GetPayrollExport_ExcludesOpenShifts_FromPay()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+        db.WorkLogs.Add(E.WorkLog.StartLive(emp.Id, "BARTENDER", "loc-1", "Main Bar",
+            new DateOnly(2026, 5, 10), "18:00", 20m));
+        await db.SaveChangesAsync();
+
+        var result = await new GetPayrollExportQueryHandler(db).Handle(
+            new GetPayrollExportQuery(2026, 5), CancellationToken.None);
+
+        Assert.Single(result.Rows);
+        Assert.Equal(0m, result.Rows[0].TotalHours);
+        Assert.Equal(0m, result.Rows[0].GrandTotal);
+    }
+
+    // 5. Paid leave (annual/sick) is included in PaidLeavePay; unpaid leave is not
+    [Fact]
+    public async Task GetPayrollExport_IncludesPaidLeave_ExcludesUnpaidLeave()
+    {
+        await using var db = CreateDb();
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+        // 1 day annual leave @ 8h × 20/h = 160
+        db.WorkLogs.Add(MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 5), "18:00", "23:00", 20m));
+        var annualLeave = E.LeaveRequest.Create(emp.Id, "annual",
+            new DateTime(2026, 5, 20, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 5, 20, 23, 59, 59, DateTimeKind.Utc), null);
+        annualLeave.Update("annual",
+            new DateTime(2026, 5, 20, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 5, 20, 23, 59, 59, DateTimeKind.Utc), null, "approved");
+        var unpaidLeave = E.LeaveRequest.Create(emp.Id, "unpaid",
+            new DateTime(2026, 5, 21, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 5, 21, 23, 59, 59, DateTimeKind.Utc), null);
+        unpaidLeave.Update("unpaid",
+            new DateTime(2026, 5, 21, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 5, 21, 23, 59, 59, DateTimeKind.Utc), null, "approved");
+        db.LeaveRequests.AddRange(annualLeave, unpaidLeave);
+        await db.SaveChangesAsync();
+
+        var result = await new GetPayrollExportQueryHandler(db).Handle(
+            new GetPayrollExportQuery(2026, 5), CancellationToken.None);
+
+        Assert.Single(result.Rows);
+        var row = result.Rows[0];
+        Assert.Equal(1, row.PaidLeaveDays);           // annual only
+        Assert.Equal(2, row.ApprovedLeaveDays);        // annual + unpaid
+        Assert.Equal(160m, row.PaidLeavePay);          // 1 day × 8h × 20/h
+    }
+
+    // 6. Month label is formatted correctly
+    [Fact]
+    public async Task GetPayrollExport_ReturnsCorrectMonthLabel()
+    {
+        await using var db = CreateDb();
+
+        var result = await new GetPayrollExportQueryHandler(db).Handle(
+            new GetPayrollExportQuery(2026, 12), CancellationToken.None);
+
+        Assert.Equal("2026-12", result.Month);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // GetLiveStatsQuery
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // 1. Empty DB → all zeros
+    [Fact]
+    public async Task GetLiveStats_ReturnsZeros_WhenDbIsEmpty()
+    {
+        await using var db = CreateDb();
+        var fixedNow = new DateTime(2026, 5, 10, 21, 0, 0, DateTimeKind.Local);
+
+        var result = await new GetLiveStatsQueryHandler(db, new FixedDateTimeProvider(fixedNow))
+            .Handle(new GetLiveStatsQuery(), CancellationToken.None);
+
+        Assert.Equal(0, result.OnShiftCount);
+        Assert.Equal(0, result.TotalStaff);
+        Assert.Equal(0m, result.TonightHours);
+        Assert.Equal(0m, result.EstimatedLabourCost);
+    }
+
+    // 2. Active staff count is correct; inactive staff not counted
+    [Fact]
+    public async Task GetLiveStats_CountsOnlyActiveStaff()
+    {
+        await using var db = CreateDb();
+        var fixedNow = new DateTime(2026, 5, 10, 21, 0, 0, DateTimeKind.Local);
+        var today    = DateOnly.FromDateTime(fixedNow);
+
+        var active   = MakeStaff("S001");
+        var inactive = MakeStaff("S002");
+        inactive.Deactivate();
+        db.Staff.AddRange(active, inactive);
+        await db.SaveChangesAsync();
+
+        var result = await new GetLiveStatsQueryHandler(db, new FixedDateTimeProvider(fixedNow))
+            .Handle(new GetLiveStatsQuery(), CancellationToken.None);
+
+        Assert.Equal(1, result.TotalStaff);
+    }
+
+    // 3. Open shift today → counted in OnShiftCount, hours calculated using current time
+    [Fact]
+    public async Task GetLiveStats_CountsOpenShifts_AndCalculatesRunningHours()
+    {
+        await using var db = CreateDb();
+        // Current local time: 22:00. Open shift started 20:00 → 2 hours running @ 20/h = 40
+        var fixedNow = new DateTime(2026, 5, 10, 22, 0, 0, DateTimeKind.Local);
+        var today    = DateOnly.FromDateTime(fixedNow);
+
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+        db.WorkLogs.Add(E.WorkLog.StartLive(emp.Id, "BARTENDER", "loc-1", "Main Bar",
+            today, "20:00", 20m));
+        await db.SaveChangesAsync();
+
+        var result = await new GetLiveStatsQueryHandler(db, new FixedDateTimeProvider(fixedNow))
+            .Handle(new GetLiveStatsQuery(), CancellationToken.None);
+
+        Assert.Equal(1, result.OnShiftCount);
+        Assert.Equal(2m, result.TonightHours);
+        Assert.Equal(40m, result.EstimatedLabourCost);
+    }
+
+    // 4. Completed shift today → excluded from OnShiftCount but included in hours/cost
+    [Fact]
+    public async Task GetLiveStats_ExcludesCompletedShifts_FromOnShiftCount_ButIncludesInHours()
+    {
+        await using var db = CreateDb();
+        var fixedNow = new DateTime(2026, 5, 10, 23, 0, 0, DateTimeKind.Local);
+        var today    = DateOnly.FromDateTime(fixedNow);
+
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+        // Completed 5h shift 18:00–23:00 @ 20/h = 100
+        db.WorkLogs.Add(MakeCompletedLog(emp.Id, today, "18:00", "23:00", 20m));
+        await db.SaveChangesAsync();
+
+        var result = await new GetLiveStatsQueryHandler(db, new FixedDateTimeProvider(fixedNow))
+            .Handle(new GetLiveStatsQuery(), CancellationToken.None);
+
+        Assert.Equal(0,    result.OnShiftCount);   // shift is done
+        Assert.Equal(5m,   result.TonightHours);
+        Assert.Equal(100m, result.EstimatedLabourCost);
+    }
+
+    // 5. Yesterday's logs are not counted in tonight's stats
+    [Fact]
+    public async Task GetLiveStats_ExcludesYesterdaysLogs()
+    {
+        await using var db = CreateDb();
+        var fixedNow = new DateTime(2026, 5, 10, 22, 0, 0, DateTimeKind.Local);
+        var yesterday = DateOnly.FromDateTime(fixedNow).AddDays(-1);
+
+        var emp = MakeStaff();
+        db.Staff.Add(emp);
+        db.WorkLogs.Add(MakeCompletedLog(emp.Id, yesterday, "18:00", "23:00", 20m));
+        await db.SaveChangesAsync();
+
+        var result = await new GetLiveStatsQueryHandler(db, new FixedDateTimeProvider(fixedNow))
+            .Handle(new GetLiveStatsQuery(), CancellationToken.None);
+
+        Assert.Equal(0m, result.TonightHours);
+        Assert.Equal(0m, result.EstimatedLabourCost);
+    }
+}

@@ -12,6 +12,7 @@ import {
   StaffExpenseDto,
   StaffLoanDto,
   StaffWorkTypeDto, StaffSettlementDto,
+  StaffExpenseCategoryDto, StaffLoanTypeDto,
 } from 'shared-lib';
 
 /**
@@ -52,6 +53,19 @@ const SEED_SETTLEMENTS: StaffSettlementDto[] = [
   { id: '4', key: 'BANKIN',       label: 'Bank In',      severity: 'info',      displayOrder: 4, isActive: true },
   { id: '5', key: 'NOTCOLLECTED', label: '还没收',       severity: 'danger',    displayOrder: 5, isActive: true },
   { id: '6', key: 'COMP',         label: 'Comp',         severity: 'secondary', displayOrder: 6, isActive: true },
+];
+
+const SEED_EXPENSE_CATEGORIES: StaffExpenseCategoryDto[] = [
+  { id: 'ec-1', key: 'MEAL',      label: 'Meal Subsidy',       displayOrder: 1, isActive: true },
+  { id: 'ec-2', key: 'TRANSPORT', label: 'Transport',          displayOrder: 2, isActive: true },
+  { id: 'ec-3', key: 'PENALTY',   label: 'Penalty / Deduction',displayOrder: 3, isActive: true },
+  { id: 'ec-4', key: 'BONUS',     label: 'Bonus',              displayOrder: 4, isActive: true },
+  { id: 'ec-5', key: 'OTHER',     label: 'Other',              displayOrder: 5, isActive: true },
+];
+
+const SEED_LOAN_TYPES: StaffLoanTypeDto[] = [
+  { id: 'lt-1', key: 'ADVANCE',   label: 'Advance (Cash Out)', isAdvance: true,  displayOrder: 1, isActive: true, isSystem: true },
+  { id: 'lt-2', key: 'REPAYMENT', label: 'Repayment',          isAdvance: false, displayOrder: 2, isActive: true, isSystem: true },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -106,10 +120,14 @@ describe('StaffLedgerComponent', () => {
     deleteLoan:    ReturnType<typeof vi.fn>;
   };
   let mockConfigSvc: {
-    workTypes:      ReturnType<typeof vi.fn>;
-    settlements:    ReturnType<typeof vi.fn>;
-    loadWorkTypes:  ReturnType<typeof vi.fn>;
-    loadSettlements: ReturnType<typeof vi.fn>;
+    workTypes:             ReturnType<typeof vi.fn>;
+    settlements:           ReturnType<typeof vi.fn>;
+    expenseCategories:     ReturnType<typeof vi.fn>;
+    loanTypes:             ReturnType<typeof vi.fn>;
+    loadWorkTypes:         ReturnType<typeof vi.fn>;
+    loadSettlements:       ReturnType<typeof vi.fn>;
+    loadExpenseCategories: ReturnType<typeof vi.fn>;
+    loadLoanTypes:         ReturnType<typeof vi.fn>;
   };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
@@ -133,10 +151,14 @@ describe('StaffLedgerComponent', () => {
       deleteLoan:    vi.fn().mockReturnValue(of(undefined)),
     };
     mockConfigSvc = {
-      workTypes:      vi.fn().mockReturnValue(SEED_WORK_TYPES),
-      settlements:    vi.fn().mockReturnValue(SEED_SETTLEMENTS),
-      loadWorkTypes:  vi.fn(),
-      loadSettlements: vi.fn(),
+      workTypes:             vi.fn().mockReturnValue(SEED_WORK_TYPES),
+      settlements:           vi.fn().mockReturnValue(SEED_SETTLEMENTS),
+      expenseCategories:     vi.fn().mockReturnValue(SEED_EXPENSE_CATEGORIES),
+      loanTypes:             vi.fn().mockReturnValue(SEED_LOAN_TYPES),
+      loadWorkTypes:         vi.fn(),
+      loadSettlements:       vi.fn(),
+      loadExpenseCategories: vi.fn(),
+      loadLoanTypes:         vi.fn(),
     };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
@@ -505,27 +527,27 @@ describe('StaffLedgerComponent', () => {
 
   describe('onMonthChange()', () => {
     it('updates selectedMonth signal', () => {
-      const newMonth = { label: 'March 2026', year: 2026, month: 3 };
-      component.onMonthChange(newMonth);
-      expect(component.selectedMonth()).toEqual(newMonth);
+      component.onMonthChange(3);
+      expect(component.selectedMonth()).toBe(3);
     });
 
     it('loads entries when a staff is already selected', () => {
       component.selectedStaffId.set('staff-uuid-1');
       mockStaffSvc.listEntries.mockClear();
-      component.onMonthChange({ label: 'March 2026', year: 2026, month: 3 });
+      component.onMonthChange(3);
       expect(mockStaffSvc.listEntries).toHaveBeenCalled();
     });
 
     it('does NOT load entries when no staff is selected', () => {
       component.selectedStaffId.set(null);
-      component.onMonthChange({ label: 'March 2026', year: 2026, month: 3 });
+      component.onMonthChange(3);
       expect(mockStaffSvc.listEntries).not.toHaveBeenCalled();
     });
 
     it('passes correct year+month to listEntries', () => {
       component.selectedStaffId.set('staff-uuid-1');
-      component.onMonthChange({ label: 'March 2026', year: 2026, month: 3 });
+      component.selectedYear.set(2026);
+      component.onMonthChange(3);
       expect(mockStaffSvc.listEntries).toHaveBeenCalledWith('staff-uuid-1', 2026, 3);
     });
   });
@@ -1360,7 +1382,8 @@ describe('StaffLedgerComponent', () => {
     let clickSpy: ReturnType<typeof vi.fn>;
     let createObjectURLSpy: ReturnType<typeof vi.fn>;
     let revokeObjectURLSpy: ReturnType<typeof vi.fn>;
-    let anchorEl: Partial<HTMLAnchorElement> & { download: string; href: string; click: ReturnType<typeof vi.fn> };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let anchorEl: any;
 
     beforeEach(() => {
       anchorEl = { download: '', href: '', click: vi.fn() };

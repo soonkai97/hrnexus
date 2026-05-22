@@ -32,7 +32,7 @@ public class StaffEntriesController(IAppDbContext db) : ControllerBase
                 e.Id.ToString(), e.StaffId.ToString(), e.EntryDate.ToString("yyyy-MM-dd"),
                 e.WorkType, e.VenueUnits, e.VenueRate, e.VenueEarnings,
                 e.PrivateGross, e.PrivateNet, e.Settlement, e.Notes,
-                e.CreatedAt, e.UpdatedAt))
+                e.CreatedAt, e.ModifiedAt))
             .ToListAsync(ct);
 
         return Ok(entries);
@@ -360,8 +360,8 @@ public record StaffEntryDto(
     decimal  PrivateNet,
     string   Settlement,
     string?  Notes,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime  CreatedAt,
+    DateTime? ModifiedAt);
 
 public record StaffExpenseDto(
     string  Id,

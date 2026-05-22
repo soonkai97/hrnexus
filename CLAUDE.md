@@ -19,20 +19,25 @@ Angular 21 + PrimeNG 21 monorepo. Two frontend apps share one backend and one li
 
 ## Commands
 
-```bash
-# Deploy (Docker) — always --no-cache for SCSS/TS changes
-# Without it Docker reuses the cached Angular build layer and changes won't appear
-docker compose build web --no-cache && docker compose up -d web
+```powershell
+# ── Deploy (Docker) ──────────────────────────────────────────────────────────
+# Always --no-cache for Angular/SCSS/TS changes (avoids stale cached build layer)
+docker compose build web --no-cache
+docker compose up -d web
 
-# Incremental deploy (only when you know the layer is already stale)
+# Incremental deploy — only when layer is known-stale (e.g. config-only change)
 docker compose build web && docker compose up -d web
 
-# Local dev (no Docker) — proxy.conf.json routes /api/ to localhost API
+# ── Local dev (no Docker) ────────────────────────────────────────────────────
+# proxy.conf.json routes /api/ to localhost API
 npx ng serve admin-app    # → localhost:4200
 npx ng serve staff-app    # → localhost:4201
 ```
 
 After every deploy, hard-refresh the browser (**Ctrl+Shift+R**) — nginx caches `index.html` without a content hash.
+
+> **Rule 18**: After any coding session, always commit to GitHub AND rebuild Docker before closing.  
+> See **Rule 18 — Docker and GitHub must always reflect the latest code** in the Process rules section.
 
 ---
 
@@ -701,6 +706,202 @@ If you genuinely think a convention is harmful, surface it. Don't fork silently.
 "Tests pass" is wrong if any were skipped.
 Default to surfacing uncertainty, not hiding it.
 
+### Rule 18 — Docker and GitHub must always reflect the latest code
+
+After any session that modifies source files, spec files, config, or migrations:
+
+1. **All tests green first** — never ship broken code.
+2. **Commit everything to GitHub** — staged, committed, pushed to `origin/master`.
+3. **Docker rebuild and redeploy** — always `--no-cache` for any Angular/SCSS/TS change.
+
+```powershell
+# Step 1 — verify tests
+npx ng test shared-lib --no-watch
+npx ng test admin-app  --no-watch
+npx ng test staff-app  --no-watch
+Set-Location backend; dotnet test; Set-Location ..
+
+# Step 2 — commit and push
+git add -A
+git commit -m "your message here"
+git push origin master
+
+# Step 3 — rebuild and redeploy Docker
+docker compose build web --no-cache
+docker compose up -d web
+```
+
+**Never leave Docker stale.** A stale Docker image means the running app doesn't match the source. If unsure whether Docker is current, rebuild — `--no-cache` takes a few minutes and is always safe.
+
+**Never leave commits unpushed.** All work must be on `origin/master` so it isn't lost and so teammates/CI can see it.
+
+---
+
+## Backend unit test pattern (C# xUnit + EF Core InMemory)
+
+All backend tests live in `backend/tests/Application.Tests/`. Each test class creates a fresh in-memory `AppDbContext` per test to guarantee isolation.
+
+### Test commands
+```bash
+cd backend
+dotnet test tests/Application.Tests/               # run all Application tests
+dotnet test tests/Infrastructure.Tests/            # run Infrastructure tests
+dotnet test                                         # run everything
+```
+
+### Boilerplate
+```csharp
+using Microsoft.EntityFrameworkCore;
+using NightclubWorkforce.Infrastructure.Persistence;
+using Xunit;
+using E = NightclubWorkforce.Domain.Entities;
+
+namespace NightclubWorkforce.Application.Tests;
+
+public class MyFeatureTests
+{
+    private static AppDbContext MakeDb()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())   // unique DB per test
+            .Options;
+        return new AppDbContext(opts);
+    }
+}
+```
+
+### Available stubs (defined in `TestHelpers.cs`)
+| Stub | Replaces |
+|---|---|
+| `NullNotificationHub` | `INotificationHub` (no-op SignalR) |
+| `NullPushSvc` | `IPushNotificationService` (no-op) |
+| `NullAuditService` | `IAuditService` (no-op) |
+| `StubHasher` | `IPasswordHasher` — `Hash(p)` returns `"hash:"+p`; `Verify(p,h)` returns `h == "hash:"+p` |
+| `StubTokenService` | `ITokenService` — always returns a fixed token/refresh pair |
+| `StubDateTimeProvider` | `IDateTimeProvider` — exposes a mutable `DateTime _now` field |
+
+### Critical gotcha — Role.Name primary key casing
+`Role.Create(name)` stores `Name = name.Trim().ToUpperInvariant()`.  
+Handlers that look up roles call `db.Roles.FindAsync([roleName.ToLowerInvariant()])`.  
+This means a normal `db.Roles.Add(E.Role.Create("BARTENDER"))` is **never found** by the handler.
+
+**Fix**: use reflection to force the stored Name to lowercase, matching what the handler queries:
+```csharp
+private static E.Role MakeRole(string name = "bartender", decimal rate = 20m)
+{
+    var role = E.Role.Create(name, hourlyRate: rate);
+    // Force Name to lowercase so FindAsync([name.ToLowerInvariant()]) finds it
+    typeof(E.Role).GetProperty(nameof(E.Role.Name))!.SetValue(role, name.ToLowerInvariant());
+    return role;
+}
+```
+
+### TDD cycle for backend
+1. Read the handler's `Handle()` method fully — note every branch and validation
+2. Write one failing test per branch (validation error, not-found, success)
+3. Run `dotnet test` — confirm it fails for the right reason
+4. Implement / fix — green
+5. One test per logical branch; no duplicate assertions
+
+---
+
+## Frontend service test pattern (HttpTestingController)
+
+For services that make HTTP calls — use `HttpTestingController`. Pattern:
+
+```typescript
+import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { MyService } from './my.service';
+
+describe('MyService', () => {
+  let service: MyService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [MyService, provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(MyService);
+    http    = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => http.verify());   // fails if any request was not handled
+});
+```
+
+**Key rules:**
+- Use `http.expectOne(url)` for exact URL; `http.expectOne(r => r.url === '...')` when params vary
+- Always `req.flush(data)` to resolve each pending request
+- For mutation methods that call `tap(() => this.loadX())` internally, a second GET request fires automatically — always flush it too, or `http.verify()` will fail
+- `urlWithParams` includes query string; check it with `.toContain('param=value')`
+- Angular encodes spaces as `%20` (not `+`) in query params
+
+---
+
+## Coverage tracking (Rule 17)
+
+After writing or modifying any handler/service/component, run the full coverage check to confirm nothing is left untested.
+
+### Quick coverage scan (PowerShell — run from repo root)
+
+```powershell
+# ── Frontend: find .component.ts / .service.ts / .store.ts / .guard.ts with no spec ──
+$roots = @(
+  "projects/shared-lib/src/lib/services",
+  "projects/shared-lib/src/lib/stores",
+  "projects/shared-lib/src/lib/guards",
+  "projects/shared-lib/src/lib/auth",
+  "projects/admin-app/src/app",
+  "projects/staff-app/src/app"
+)
+$gaps = @()
+foreach ($root in $roots) {
+  Get-ChildItem -Path $root -Recurse -Include "*.service.ts","*.store.ts","*.guard.ts","*.component.ts" |
+    Where-Object { $_.Name -notmatch "\.spec\.ts$" } |
+    ForEach-Object {
+      $spec = $_.FullName -replace "\.ts$", ".spec.ts"
+      if (-not (Test-Path $spec)) { $gaps += "MISSING SPEC: $($_.FullName)" }
+    }
+}
+if ($gaps.Count -eq 0) { Write-Host "✓ No frontend spec gaps" -ForegroundColor Green }
+else { $gaps | ForEach-Object { Write-Host $_ -ForegroundColor Red } }
+
+# ── Backend: find *Command.cs / *Query.cs with no test coverage marker ──
+# (Manual cross-reference — see "Baseline" table below)
+```
+
+### Run all tests (full baseline check)
+
+```powershell
+# From repo root
+npx ng test shared-lib --no-watch
+npx ng test admin-app  --no-watch
+npx ng test staff-app  --no-watch
+
+# Backend
+Set-Location backend
+dotnet test
+```
+
+### Baseline — as of 2026-05-22 (0 gaps, all green)
+
+| Layer | Test files | Tests | Status |
+|---|---|---|---|
+| shared-lib (services + stores + guards + auth) | 25 | 360 | ✅ |
+| admin-app components | 22 | 685 | ✅ |
+| staff-app components | 12 | 245 | ✅ |
+| backend Application.Tests | — | 401 | ✅ |
+
+**Wrapper-component rule**: `change-password-page.component.spec.ts` in both apps intentionally has 1 smoke test — the component is a pure template wrapper around shared-lib's `ChangePasswordComponent`; all logic lives in shared-lib and is tested there.
+
+**7 future feature areas** (no source yet → no tests needed yet):  
+`Clock`, `Incidents`, `QrCodes`, `Roster`, `ShiftSwap`, `ShiftTemplates`, `VenueEvents`  
+Each must get a test file written **at the same time** its first handler is implemented.
+
+**Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
+
 ---
 
 ## Component unit test pattern (Angular 21 standalone)
@@ -740,6 +941,30 @@ const component = TestBed.createComponent(ComponentUnderTest).componentInstance;
 - For time-of-day computed (`new Date().getHours()`): `vi.useFakeTimers()` + `vi.setSystemTime(new Date(...))` before creating the component
 - `ConfirmService.confirm()` mock: `{ confirm: vi.fn().mockReturnValue(of(true)) }` for accept; `of(false)` for reject
 
+**Critical: stub routes for components that navigate**  
+Any component that calls `router.navigate(['/some-path'])` — e.g. on successful login or submit — will throw `NG04002: Cannot match any routes` if `provideRouter([])` has no matching route. Always add a `StubComponent` and list every route the component may navigate to:
+
+```typescript
+import { Component } from '@angular/core';
+@Component({ template: '', standalone: true }) class StubComponent {}
+
+// In providers:
+provideRouter([
+  { path: 'dashboard',        component: StubComponent },
+  { path: 'auth/set-password', component: StubComponent },
+  { path: 'home',              component: StubComponent },
+])
+```
+
+Known components that navigate and require stub routes:
+| Component | Routes needed |
+|---|---|
+| admin-app `LoginComponent` | `dashboard`, `auth/set-password` |
+| admin-app `SetPasswordComponent` | `dashboard` |
+| admin-app `FeaturePinEntryComponent` | `features` |
+| staff-app `LoginComponent` | `home`, `auth/set-password` |
+| staff-app `SetPasswordComponent` | `home` |
+
 ---
 
 ## Development Process
@@ -761,23 +986,44 @@ Do NOT attempt to implement everything at once. Doing so increases the risk of o
 
 ### TDD Enforcement (Rule 14)
 
-For any step marked `[TDD]` in a phase document:
-1. Write the failing test first
-2. Run it — confirm it fails for the right reason
-3. Write the minimum code to make it pass
-4. Refactor — keep tests green
+**Red → Green → Refactor — strictly in that order.**
 
-Tests must verify **intent** (why the behavior matters), not just current output (Rule 9 extended).
+For every new handler, service method, or component behaviour:
+
+1. **Write the failing test first** — name it for the *intent*, not the implementation
+2. **Run it** — confirm it fails for the right reason (not a compile error, a real assertion failure)
+3. **Write the minimum code** to make it pass — no extras
+4. **Refactor** — keep all tests green throughout
+
+Tests must verify **intent** (why the behavior matters), not just current output (Rule 9).  
+A test that passes even when the business logic is deleted is wrong.
+
+#### Which pattern to use
+
+| What you're writing | Pattern section to follow |
+|---|---|
+| C# handler (command/query) | **Backend unit test pattern** |
+| Angular service / store HTTP calls | **Frontend service test pattern** |
+| Angular component logic (signals, methods) | **Component unit test pattern** |
+
+#### Coverage check after every feature
+
+Run the PowerShell scan in **Coverage tracking (Rule 17)** before closing any PR.  
+The check must return 0 gaps and all test counts must be ≥ baseline.
 
 **Test commands:**
-```bash
-npm run test:shared          # shared-lib unit tests
-npm run test:admin           # admin-app unit tests
-npm run test:staff           # staff-app unit tests
-npm run test:coverage        # coverage report for shared-lib
-npm run test:e2e             # all E2E tests (requires Docker)
-npm run test:e2e:admin       # admin app E2E only
-npm run test:e2e:staff       # staff app E2E only
+```powershell
+# Frontend (from repo root)
+npx ng test shared-lib --no-watch   # 360 tests
+npx ng test admin-app  --no-watch   # 685 tests
+npx ng test staff-app  --no-watch   # 245 tests
+
+# Backend
+Set-Location backend
+dotnet test                          # 401 tests
+dotnet test tests/Application.Tests/
+dotnet test tests/Infrastructure.Tests/
+```
 ```
 
 ### Multi-Perspective Review (Rule 15)

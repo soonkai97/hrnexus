@@ -1,10 +1,12 @@
+using NightclubWorkforce.Domain.Common;
+
 namespace NightclubWorkforce.Domain.Entities;
 
 /// <summary>
 /// Admin-managed settlement status (e.g. SETTLED, PENDING) with PrimeNG severity for UI colouring.
 /// Severity values: success | warn | danger | info | secondary | contrast.
 /// </summary>
-public sealed class StaffSettlement
+public sealed class StaffSettlement : IHasAudit
 {
     public Guid   Id           { get; private set; }
     public string Key          { get; private set; } = string.Empty;   // e.g. "SETTLED"
@@ -12,6 +14,12 @@ public sealed class StaffSettlement
     public string Severity     { get; private set; } = string.Empty;   // PrimeNG Tag severity
     public int    DisplayOrder { get; private set; }
     public bool   IsActive     { get; private set; }
+
+    // ── Audit (set automatically by AppDbContext) ──────────────────────────────────
+    public DateTime  CreatedAt  { get; private set; }
+    public string    CreatedBy  { get; private set; } = string.Empty;
+    public DateTime? ModifiedAt { get; private set; }
+    public string?   ModifiedBy { get; private set; }
 
     private StaffSettlement() { }
 

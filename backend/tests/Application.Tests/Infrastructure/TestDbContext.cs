@@ -43,9 +43,13 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
         mb.Entity<E.AnnouncementRead>()
             .HasKey(r => new { r.AnnouncementId, r.EmployeeId });
 
-        // StaffRole: composite PK
+        // StaffRole: composite PK + auto-include so Staff.RoleEntries is always loaded,
+        // matching AppDbContext behaviour (SetRoles relies on the collection being populated).
         mb.Entity<E.StaffRole>()
             .HasKey(r => new { r.EmployeeId, r.Role });
+        mb.Entity<E.Staff>()
+            .Navigation(s => s.RoleEntries)
+            .AutoInclude();
 
         // FeatureFlag: string PK on "Key" property (not "Id")
         mb.Entity<E.FeatureFlag>()

@@ -130,7 +130,8 @@
     "history":          "历史记录",
     "noHistory":        "暂无班次记录。",
     "delete":           "🗑 删除",
-    "manual":           "手动"
+    "manual":           "手动",
+    "edited":           "已修改"
   },
   "common": {
     "loading": "加载中…",

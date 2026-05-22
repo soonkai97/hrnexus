@@ -7,7 +7,7 @@ namespace NightclubWorkforce.Application.WorkLog.Queries;
 
 public record GetMyWorkLogsQuery(Guid EmployeeId, int Page = 1, int PageSize = 10) : IRequest<PagedResult<WorkLogDto>>;
 
-public record WorkLogDto(Guid Id, string RoleName, string LocationName, string WorkDate, string StartTime, string? EndTime, decimal Hours, decimal Cost, bool IsActive, bool IsManualEntry, string? Notes);
+public record WorkLogDto(Guid Id, string RoleName, string LocationId, string LocationName, string WorkDate, string StartTime, string? EndTime, decimal Hours, decimal Cost, bool IsActive, bool IsManualEntry, bool IsEdited, string? Notes);
 
 public class GetMyWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetMyWorkLogsQuery, PagedResult<WorkLogDto>>
 {
@@ -31,7 +31,7 @@ public class GetMyWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetMy
     {
         var isActive = w.EndTime == null;
         var hours    = isActive ? 0m : CalcHours(w.StartTime, w.EndTime!);
-        return new WorkLogDto(w.Id, w.RoleName, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndTime, Math.Round(hours, 2), Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.Notes);
+        return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndTime, Math.Round(hours, 2), Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
     }
 
     private static decimal CalcHours(string start, string end)

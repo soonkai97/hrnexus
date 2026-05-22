@@ -1,3 +1,5 @@
+using NightclubWorkforce.Domain.Common;
+
 namespace NightclubWorkforce.Domain.Entities;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace NightclubWorkforce.Domain.Entities;
 /// System types (IsSystem=true) cannot be deleted — they underpin the net loan balance formula.
 /// IsAdvance=true means cash-out (increases balance); false means cash-in (decreases balance).
 /// </summary>
-public sealed class StaffLoanType
+public sealed class StaffLoanType : IHasAudit
 {
     public Guid   Id           { get; private set; }
     public string Key          { get; private set; } = string.Empty;
@@ -14,6 +16,12 @@ public sealed class StaffLoanType
     public int    DisplayOrder { get; private set; }
     public bool   IsActive     { get; private set; }
     public bool   IsSystem     { get; private set; }
+
+    // ── Audit (set automatically by AppDbContext) ──────────────────────────────────
+    public DateTime  CreatedAt  { get; private set; }
+    public string    CreatedBy  { get; private set; } = string.Empty;
+    public DateTime? ModifiedAt { get; private set; }
+    public string?   ModifiedBy { get; private set; }
 
     private StaffLoanType() { }
 

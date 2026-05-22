@@ -49,6 +49,7 @@ public static class DependencyInjection
         // Cross-cutting abstractions
         services.AddHttpContextAccessor();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         // SignalR
         services.AddSignalR();

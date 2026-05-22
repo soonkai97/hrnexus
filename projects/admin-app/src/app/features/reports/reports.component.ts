@@ -3,12 +3,13 @@ import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
-  AdminService, ReportResponse, ReportFilters,
+  AdminService, ReportResponse, ReportFilters, ShiftDetailRow,
   LocationReportRow, StaffStore, StaffManagementService, ToastService, Staff,
   toLocalDateString,
   StaffService, FeatureFlagService,
   StaffLedgerPayoutDto, StaffOutstandingDto,
   WORK_TYPE_LABELS, SETTLEMENT_LABELS,
+  WorkLogService, UpdateWorkLogRequest, LocationStore,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -22,13 +23,15 @@ import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
+import { Dialog } from 'primeng/dialog';
+import { InputText } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
     Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
-    Tabs, TabList, Tab, MultiSelect, Select, Skeleton],
+    Tabs, TabList, Tab, MultiSelect, Select, Skeleton, Dialog, InputText],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -39,6 +42,8 @@ export class ReportsComponent implements OnInit {
   private readonly toast              = inject(ToastService);
   private readonly staffLedgerSvc     = inject(StaffService);
   private readonly featureFlagSvc     = inject(FeatureFlagService);
+  private readonly workLogSvc         = inject(WorkLogService);
+  private readonly locationStore      = inject(LocationStore);
 
   // ── Section switcher ─────────────────────────────────────────────────────────
 
@@ -66,6 +71,71 @@ export class ReportsComponent implements OnInit {
 
   activeTab = signal<'employee' | 'location' | 'role' | 'date' | 'shifts'>('employee');
 
+  // ── Edit shift (manager can edit any staff's shift) ───────────────────────────
+  readonly locationOptions = computed(() =>
+    this.locationStore.locations().map(l => ({ label: l.name, value: l.id }))
+  );
+  readonly roleOptions = computed(() =>
+    this.staffStore.roles().map(r => ({ label: r.name.toUpperCase(), value: r.name }))
+  );
+
+  editShiftVisible = signal(false);
+  editShiftSaving  = signal(false);
+  editShiftError   = signal('');
+  editingShift     = signal<ShiftDetailRow | null>(null);
+  editShiftForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endTime: '', notes: '' };
+
+  openEditShift(s: ShiftDetailRow): void {
+    this.editShiftForm = {
+      roleName:   s.role,
+      locationId: s.locationId,
+      workDate:   s.workDate,
+      startTime:  s.startTime,
+      endTime:    s.endTime ?? '',
+      notes:      s.notes ?? '',
+    };
+    this.editShiftError.set('');
+    this.editingShift.set(s);
+    this.editShiftVisible.set(true);
+  }
+
+  cancelEditShift(): void {
+    this.editShiftVisible.set(false);
+    this.editingShift.set(null);
+  }
+
+  saveEditShift(): void {
+    const s = this.editingShift();
+    if (!s) return;
+    if (!this.editShiftForm.roleName || !this.editShiftForm.locationId ||
+        !this.editShiftForm.workDate || !this.editShiftForm.startTime || !this.editShiftForm.endTime) {
+      this.editShiftError.set('Please fill in all required fields.'); return;
+    }
+    const [sh, sm] = this.editShiftForm.startTime.split(':').map(Number);
+    const [eh, em] = this.editShiftForm.endTime.split(':').map(Number);
+    const durationMins = (eh * 60 + em) >= (sh * 60 + sm)
+      ? (eh * 60 + em) - (sh * 60 + sm)
+      : (eh * 60 + em) + 1440 - (sh * 60 + sm);
+    if (durationMins === 0) { this.editShiftError.set('End time must differ from start time.'); return; }
+    if (durationMins > 1440) { this.editShiftError.set('A single shift cannot exceed 24 hours.'); return; }
+
+    this.editShiftSaving.set(true);
+    this.editShiftError.set('');
+    this.workLogSvc.update(s.id, { ...this.editShiftForm, notes: this.editShiftForm.notes || null }).subscribe({
+      next: () => {
+        this.editShiftSaving.set(false);
+        this.editShiftVisible.set(false);
+        this.editingShift.set(null);
+        this.toast.success('Shift updated.');
+        this.runReport();
+      },
+      error: (e) => {
+        this.editShiftError.set(e?.error?.error ?? 'Failed to update shift.');
+        this.editShiftSaving.set(false);
+      },
+    });
+  }
+
   maxLocationCost = computed(() => {
     const rows = this.report()?.byLocation ?? [];
     return rows.length ? Math.max(...rows.map(r => r.cost)) : 1;
@@ -77,6 +147,7 @@ export class ReportsComponent implements OnInit {
       error: () => {},
     });
     this.staffStore.loadRoles();
+    this.locationStore.load();
     this.staffSvc.getLocations().subscribe({
       next: locs => this.locations.set(locs.map(l => l.name)),
     });

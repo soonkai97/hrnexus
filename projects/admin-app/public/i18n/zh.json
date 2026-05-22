@@ -280,6 +280,8 @@
     "cost":             "费用",
     "status":           "状态",
     "flag":             "标记",
+    "edited":           "已修改",
+    "editedTooltip":    "此班次在首次记录后已被修改。",
     "noShiftsInPeriod": "所选时段内无班次记录。",
     "payrollTitle":     "工资导出",
     "payrollDesc":      "下载所有在职员工的月度工资摘要CSV——包含正常工时、加班（1.5倍）、小费及已批准假期天数。",
@@ -312,7 +314,15 @@
     "ledgerDownloadCsv":     "下载CSV",
     "selected":              "条已选",
     "applySettle":           "批量结算",
-    "settling":              "结算中…"
+    "settling":              "结算中…",
+    "editShift":             "编辑班次",
+    "shiftDate":             "日期",
+    "shiftStartTime":        "开始时间",
+    "shiftEndTime":          "结束时间",
+    "shiftNotes":            "备注",
+    "shiftNotesPlaceholder": "可选备注…",
+    "selectRole":            "— 选择角色 —",
+    "selectLocation":        "— 选择位置 —"
   },
   "tips": {
     "title":              "小费池",

@@ -11,6 +11,10 @@ public class StaffWorkTypeConfiguration : IEntityTypeConfiguration<StaffWorkType
         b.HasKey(e => e.Id);
         b.Property(e => e.Key).IsRequired().HasMaxLength(50);
         b.Property(e => e.Label).IsRequired().HasMaxLength(100);
+        b.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.CreatedBy).HasMaxLength(100);
+        b.Property(e => e.ModifiedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.ModifiedBy).HasMaxLength(100);
 
         b.HasIndex(e => e.Key).IsUnique().HasDatabaseName("IX_StaffWorkTypes_Key");
     }

@@ -28,6 +28,15 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
             .OnDelete(DeleteBehavior.Cascade);
         b.Navigation(e => e.RoleEntries).AutoInclude();
 
+        b.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.CreatedBy).HasMaxLength(100);
+        b.Property(e => e.ModifiedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.ModifiedBy).HasMaxLength(100);
+        b.Property(e => e.DeletedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.DeletedBy).HasMaxLength(100);
+
+        b.HasQueryFilter(e => !e.IsDeleted);
+
         // Computed properties — not mapped to columns.
         b.Ignore(e => e.Roles);
         b.Ignore(e => e.RolesDisplay);

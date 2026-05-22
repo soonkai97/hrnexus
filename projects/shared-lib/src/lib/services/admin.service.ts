@@ -79,7 +79,13 @@ export interface ShiftDetailRow {
   staffId:      string;
   staffName:    string;
   role:         string;
+  locationId:   string;
   locationName: string;
+  workDate:     string;        // yyyy-MM-dd
+  startTime:    string;        // HH:mm
+  endTime:      string | null; // HH:mm
+  notes:        string | null;
+  isEdited:     boolean;
   clockedIn:    string;
   clockedOut:   string | null;
   hours:        number;

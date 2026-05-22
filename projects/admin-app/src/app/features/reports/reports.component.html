@@ -295,6 +295,7 @@
                 <th pSortableColumn="cost">{{ 'reports.cost' | translate }} <p-sortIcon field="cost" /></th>
                 <th>{{ 'reports.status' | translate }}</th>
                 <th>{{ 'reports.flag' | translate }}</th>
+                <th></th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-s>
@@ -311,15 +312,22 @@
                   <p-tag [value]="s.status"
                          [severity]="s.status === 'Active' ? 'success' : 'secondary'" />
                 </td>
-                <td>
+                <td class="td-flags">
                   @if (s.isOvertime) {
                     <p-tag value="OT" severity="warn" [pTooltip]="'Shift exceeds ' + s.otThreshold + 'h (configured OT threshold)'" styleClass="badge-ot" />
                   }
+                  @if (s.isEdited) {
+                    <p-tag [value]="'reports.edited' | translate" severity="secondary" [pTooltip]="'reports.editedTooltip' | translate" />
+                  }
+                </td>
+                <td>
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small"
+                    [pTooltip]="'common.edit' | translate" (click)="openEditShift(s)" />
                 </td>
               </tr>
             </ng-template>
             <ng-template pTemplate="emptymessage">
-              <tr><td colspan="10" class="td-empty">{{ 'reports.noShiftsInPeriod' | translate }}</td></tr>
+              <tr><td colspan="11" class="td-empty">{{ 'reports.noShiftsInPeriod' | translate }}</td></tr>
             </ng-template>
           </p-table>
         </p-card>
@@ -328,6 +336,73 @@
     }
 
   }<!-- /workforce section -->
+
+  <!-- ── Edit Shift Dialog ──────────────────────────────────────────────────── -->
+  <p-dialog
+    [header]="'reports.editShift' | translate"
+    [visible]="editShiftVisible()"
+    (visibleChange)="editShiftVisible.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="edit-shift-dialog"
+    [style]="{ width: '480px' }">
+
+    @if (editingShift(); as s) {
+      <div class="edit-shift-staff mb-3">
+        <span class="fw-semibold">{{ s.staffName }}</span>
+        <span class="text-muted ms-2">{{ s.staffId }}</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label><span class="req">*</span> {{ 'dashboard.role' | translate }}</label>
+          <p-select [options]="roleOptions()" [(ngModel)]="editShiftForm.roleName"
+            optionLabel="label" optionValue="value"
+            [placeholder]="'reports.selectRole' | translate"
+            appendTo="body" styleClass="w-full" />
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> {{ 'dashboard.location' | translate }}</label>
+          <p-select [options]="locationOptions()" [(ngModel)]="editShiftForm.locationId"
+            optionLabel="label" optionValue="value"
+            [placeholder]="'reports.selectLocation' | translate"
+            [filter]="true" appendTo="body" styleClass="w-full" />
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> {{ 'reports.shiftDate' | translate }}</label>
+          <p-datepicker [(ngModel)]="editShiftForm.workDate" dateFormat="yy-mm-dd"
+            dataType="string" [showIcon]="true" styleClass="w-full" appendTo="body" />
+        </div>
+        <div class="row g-2">
+          <div class="col-6 field">
+            <label><span class="req">*</span> {{ 'reports.shiftStartTime' | translate }}</label>
+            <input pInputText type="time" [(ngModel)]="editShiftForm.startTime" class="w-full" />
+          </div>
+          <div class="col-6 field">
+            <label><span class="req">*</span> {{ 'reports.shiftEndTime' | translate }}</label>
+            <input pInputText type="time" [(ngModel)]="editShiftForm.endTime" class="w-full" />
+          </div>
+        </div>
+        <div class="field">
+          <label>{{ 'reports.shiftNotes' | translate }}</label>
+          <input pInputText type="text" [(ngModel)]="editShiftForm.notes"
+            [placeholder]="'reports.shiftNotesPlaceholder' | translate" />
+        </div>
+      </div>
+
+      @if (editShiftError()) {
+        <p-message severity="error" [text]="editShiftError()" styleClass="w-full mt-2" />
+      }
+    }
+
+    <ng-template pTemplate="footer">
+      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary"
+        (click)="cancelEditShift()" />
+      <p-button [label]="'common.save' | translate" severity="primary"
+        [loading]="editShiftSaving()" (click)="saveEditShift()" />
+    </ng-template>
+  </p-dialog>
 
   <!-- ══ STAFF LEDGER PAYOUT SECTION ════════════════════════════════════════ -->
 

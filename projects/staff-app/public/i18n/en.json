@@ -6,10 +6,8 @@
     "pay":             "Pay",
     "leave":           "Leave",
     "profile":         "Profile",
-    "messaging":       "Messages",
     "tipsHistory":     "Tips History",
     "announcements":   "Announcements",
-    "notifications":   "Notifications",
     "more":            "More"
   },
   "home": {
@@ -31,15 +29,6 @@
     "viewAllShifts":        "View All Shifts",
     "noRecentShifts":       "No shifts logged yet. Tap Log Shift to get started.",
     "dataUnavailable":      "Unavailable"
-  },
-  "notifications": {
-    "title":             "Notifications",
-    "subtitle":          "Your alerts and updates",
-    "all":               "All",
-    "unread":            "Unread",
-    "markAllRead":       "Mark all read",
-    "noNotifications":   "No notifications yet.",
-    "noUnread":          "You're all caught up!"
   },
   "announcements": {
     "subtitle":       "Stay up to date with venue notices",

@@ -620,6 +620,35 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 
 **No `environment.ts` files.** All config is relative URLs or runtime API calls.
 
+### UAT deployment (soft launch for user testing)
+
+Uses `docker-compose.uat.yml` overlay which overrides CORS to accept the public server IP/hostname instead of prod subdomains.
+
+**Required `.env` file on the server** (never commit this):
+```
+DOMAIN=yourname.duckdns.org
+UAT_HOST=yourname.duckdns.org
+JWT_SECRET=<random-long-string-min-32-chars>
+```
+
+**Launch command on UAT server:**
+```bash
+docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d --build
+```
+
+**Update after pushing new code:**
+```bash
+git pull && docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d --build --no-deps web api
+```
+
+**UAT URLs** (replace `yourname` with your DuckDNS subdomain):
+- Admin portal: `http://yourname.duckdns.org` (port 80)
+- Staff portal: `http://yourname.duckdns.org:8081`
+
+**Server spec**: Minimum **2 GB RAM** (DigitalOcean $14/month Singapore droplet) — the Angular build needs ~1.5 GB during `docker compose build`.
+
+**Firewall**: Open ports 80, 8081, and 22 with `ufw allow 80 && ufw allow 8081 && ufw allow 22 && ufw enable`.
+
 ---
 
 ## Staff pay model — design intent

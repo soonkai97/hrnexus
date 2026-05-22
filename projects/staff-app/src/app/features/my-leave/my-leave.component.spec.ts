@@ -139,48 +139,60 @@ describe('MyLeaveComponent', () => {
 
   describe('submit() — validation', () => {
     it('blocks submission and sets error when startDate is missing', () => {
-      component.form.startDate = '';
-      component.form.endDate   = '2026-06-05';
+      component.form.startDate  = '';
+      component.form.endDate    = '2026-06-05';
+      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
+      component.form.endTime    = new Date(2026, 5, 5, 18, 0);
       component.submit();
-      expect(component.formError()).toBe('Please select start and end dates.');
+      expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
     it('blocks submission and sets error when endDate is missing', () => {
-      component.form.startDate = '2026-06-01';
-      component.form.endDate   = '';
+      component.form.startDate  = '2026-06-01';
+      component.form.endDate    = '';
+      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
+      component.form.endTime    = new Date(2026, 5, 1, 18, 0);
       component.submit();
-      expect(component.formError()).toBe('Please select start and end dates.');
+      expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
-    it('blocks submission when end date is before start date — staff cannot apply for inverted ranges', () => {
-      component.form.startDate = dateStr(5);
-      component.form.endDate   = dateStr(3);
+    it('blocks submission when startTime is missing', () => {
+      component.form.startDate  = '2026-06-01';
+      component.form.endDate    = '2026-06-05';
+      component.form.startTime  = null;
+      component.form.endTime    = new Date(2026, 5, 5, 18, 0);
       component.submit();
-      expect(component.formError()).toBe('End date must be on or after start date.');
+      expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
-    it('blocks submission when duration exceeds 60 days — single requests are capped', () => {
-      // 62 days inclusive: dateStr(0) to dateStr(61)
-      component.form.startDate = dateStr(0);
-      component.form.endDate   = dateStr(61);
+    it('blocks submission when end time is before start time on same date — inverted time range', () => {
+      component.form.startDate  = '2026-06-01';
+      component.form.endDate    = '2026-06-01';
+      component.form.startTime  = new Date(2026, 5, 1, 18, 0);
+      component.form.endTime    = new Date(2026, 5, 1, 10, 0); // earlier on same date
       component.submit();
-      expect(component.formError()).toBe('Leave duration cannot exceed 60 days in a single request.');
+      expect(component.formError()).toBe('End date/time must be after start date/time.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
-    it('accepts exactly 60 days without triggering the cap error', () => {
-      component.form.startDate = dateStr(0);
-      component.form.endDate   = dateStr(59); // 60 days inclusive
+    it('blocks submission when duration exceeds 720 hours — single requests are capped at 30 days', () => {
+      component.form.startDate  = dateStr(0);
+      component.form.endDate    = dateStr(31); // 31 days = 744h > 720h cap
+      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
+      component.form.endTime    = new Date(2026, 5, 1, 10, 0);
       component.submit();
-      expect(component.formError()).not.toBe('Leave duration cannot exceed 60 days in a single request.');
+      expect(component.formError()).toBe('Leave duration cannot exceed 720 hours (30 days) in a single request.');
+      expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
     it('blocks submission when start date is more than 1 year in advance', () => {
-      component.form.startDate = dateStr(400);
-      component.form.endDate   = dateStr(401);
+      component.form.startDate  = dateStr(400);
+      component.form.endDate    = dateStr(401);
+      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
+      component.form.endTime    = new Date(2026, 5, 1, 18, 0);
       component.submit();
       expect(component.formError()).toBe('Leave cannot be requested more than 1 year in advance.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
@@ -191,7 +203,7 @@ describe('MyLeaveComponent', () => {
       component.form.startDate = '';
       component.submit();
       // Error is cleared then set to the new validation message — old text never survives
-      expect(component.formError()).toBe('Please select start and end dates.');
+      expect(component.formError()).toBe('Please select start date, end date, and times.');
     });
   });
 
@@ -199,20 +211,26 @@ describe('MyLeaveComponent', () => {
 
   describe('submit() — success', () => {
     beforeEach(() => {
-      component.form.startDate = dateStr(1);
-      component.form.endDate   = dateStr(3);
-      component.form.leaveType = 'annual';
-      component.form.notes     = 'Family trip';
+      component.form.startDate  = dateStr(1);
+      component.form.endDate    = dateStr(2);
+      component.form.startTime  = new Date(2026, 5, 1, 10, 0);  // 10:00 AM
+      component.form.endTime    = new Date(2026, 5, 2, 18, 0);  // 18:00 PM next day → 32h
+      component.form.leaveType  = 'annual';
+      component.form.notes      = 'Family trip';
     });
 
     it('calls apply() with the correct payload built from the form', () => {
       component.submit();
-      expect(mockLeaveSvc.apply).toHaveBeenCalledWith({
-        leaveType: 'annual',
-        startDate: dateStr(1),
-        endDate:   dateStr(3),
-        notes:     'Family trip',
-      });
+      expect(mockLeaveSvc.apply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          leaveType: 'annual',
+          startDate: dateStr(1),
+          endDate:   dateStr(2),
+          startTime: '10:00',
+          endTime:   '18:00',
+          notes:     'Family trip',
+        }),
+      );
     });
 
     it('converts empty notes to null so the API does not receive empty strings', () => {
@@ -227,6 +245,8 @@ describe('MyLeaveComponent', () => {
       component.submit();
       expect(component.form.startDate).toBe('');
       expect(component.form.endDate).toBe('');
+      expect(component.form.startTime).toBeNull();
+      expect(component.form.endTime).toBeNull();
       expect(component.form.notes).toBe('');
       expect(component.form.leaveType).toBe('annual');
     });
@@ -258,7 +278,9 @@ describe('MyLeaveComponent', () => {
   describe('submit() — API error', () => {
     beforeEach(() => {
       component.form.startDate = dateStr(1);
-      component.form.endDate   = dateStr(3);
+      component.form.endDate   = dateStr(2);
+      component.form.startTime = new Date(2026, 5, 1, 10, 0);
+      component.form.endTime   = new Date(2026, 5, 2, 18, 0);
     });
 
     it('shows the API error message in formError so staff know why it failed', () => {

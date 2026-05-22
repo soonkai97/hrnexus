@@ -52,18 +52,26 @@ export class MyLeaveComponent implements OnInit {
   formError   = signal('');
   view        = signal<'apply' | 'history'>('apply');
 
-  form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: string; endTime: string; notes: string } = {
-    leaveType: 'annual', startDate: '', endDate: '', startTime: '', endTime: '', notes: '',
+  form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: Date | null; endTime: Date | null; notes: string } = {
+    leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '',
   };
 
   /** Auto-calculated hours from date+time range. Returns 0 if any field is missing. */
   get calcHours(): number {
-    const { startDate, startTime, endDate, endTime } = this.form;
-    if (!startDate || !startTime || !endDate || !endTime) return 0;
-    const start = new Date(`${startDate}T${startTime}`);
-    const end   = new Date(`${endDate}T${endTime}`);
+    const { startDate, endDate } = this.form;
+    const st = this.form.startTime;
+    const et = this.form.endTime;
+    if (!startDate || !st || !endDate || !et) return 0;
+    const start = new Date(startDate);
+    start.setHours(st.getHours(), st.getMinutes(), 0, 0);
+    const end = new Date(endDate);
+    end.setHours(et.getHours(), et.getMinutes(), 0, 0);
     const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     return Math.round(h * 10) / 10;
+  }
+
+  private toTimeStr(d: Date): string {
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
   ngOnInit(): void {
@@ -95,7 +103,9 @@ export class MyLeaveComponent implements OnInit {
 
     const maxFuture = new Date();
     maxFuture.setFullYear(maxFuture.getFullYear() + 1);
-    if (new Date(`${this.form.startDate}T${this.form.startTime}`) > maxFuture) {
+    const startDt = new Date(this.form.startDate);
+    startDt.setHours(this.form.startTime!.getHours(), this.form.startTime!.getMinutes(), 0, 0);
+    if (startDt > maxFuture) {
       this.formError.set('Leave cannot be requested more than 1 year in advance.'); return;
     }
 
@@ -105,8 +115,8 @@ export class MyLeaveComponent implements OnInit {
       leaveType: this.form.leaveType,
       startDate: this.form.startDate,
       endDate:   this.form.endDate,
-      startTime: this.form.startTime,
-      endTime:   this.form.endTime,
+      startTime: this.toTimeStr(this.form.startTime!),
+      endTime:   this.toTimeStr(this.form.endTime!),
       hours,
       notes:     this.form.notes || null,
     };
@@ -114,7 +124,7 @@ export class MyLeaveComponent implements OnInit {
       next: () => {
         this.saving.set(false);
         this.formError.set('');
-        this.form = { leaveType: 'annual', startDate: '', endDate: '', startTime: '', endTime: '', notes: '' };
+        this.form = { leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '' };
         this.load();
         this.leaveSvc.getMyBalance().subscribe({ next: b => this.balance.set(b), error: () => {} });
         this.toast.success('Leave request submitted.');

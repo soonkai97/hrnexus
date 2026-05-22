@@ -173,12 +173,26 @@ describe('LeaveComponent', () => {
       expect(component.formError()).toBe('Please fill in all required fields.');
     });
 
-    it('sets formError when end date is before start date', () => {
+    it('sets formError when no times and no manual hours are provided', () => {
       component.form.employeeId = 'e1';
-      component.form.startDate  = '2026-06-10';
+      component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-05';
+      component.form.hours      = null;
+      // startTimeDate/endTimeDate are null by default → no auto-calculated hours
       component.save();
-      expect(component.formError()).toBe('End date must be on or after start date.');
+      expect(component.formError()).toBe('Please enter start/end times or specify hours manually.');
+      expect(mockLeaveSvc.create).not.toHaveBeenCalled();
+    });
+
+    it('sets formError when times produce negative hours (end before start)', () => {
+      component.form.employeeId = 'e1';
+      component.form.startDate  = '2026-06-01';
+      component.form.endDate    = '2026-06-01';
+      component.form.hours      = null;
+      component.startTimeDate   = new Date(2026, 5, 1, 18, 0); // 18:00
+      component.endTimeDate     = new Date(2026, 5, 1, 10, 0); // 10:00 — before start
+      component.save();
+      expect(component.formError()).toBe('End date/time must be after start date/time.');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
     });
   });
@@ -190,8 +204,11 @@ describe('LeaveComponent', () => {
       component.form = {
         employeeId: 'e1', leaveType: 'annual',
         startDate: '2026-06-01', endDate: '2026-06-05',
+        startTime: null, endTime: null, hours: 8,
         notes: null, status: 'approved',
       };
+      component.startTimeDate = null;
+      component.endTimeDate   = null;
       component.editing.set(null);
     });
 
@@ -231,8 +248,11 @@ describe('LeaveComponent', () => {
       component.form = {
         employeeId: 'e1', leaveType: 'annual',
         startDate: '2026-06-01', endDate: '2026-06-05',
+        startTime: null, endTime: null, hours: 8,
         notes: null, status: 'approved',
       };
+      component.startTimeDate = null;
+      component.endTimeDate   = null;
       component.editing.set('r-existing');
     });
 

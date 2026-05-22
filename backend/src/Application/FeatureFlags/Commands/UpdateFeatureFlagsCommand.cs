@@ -18,10 +18,8 @@ public class UpdateFeatureFlagsHandler(IAppDbContext db)
         AppConstants.FeatureFlags.TipsHistory,
         AppConstants.FeatureFlags.Payroll,
         AppConstants.FeatureFlags.PaySummary,
-        AppConstants.FeatureFlags.OtRules,
         AppConstants.FeatureFlags.Announcements,
-        AppConstants.FeatureFlags.MessagingAdmin,
-        AppConstants.FeatureFlags.MessagingStaff,
+        AppConstants.FeatureFlags.HostessLedger,
     };
 
     public async Task Handle(UpdateFeatureFlagsCommand request, CancellationToken ct)

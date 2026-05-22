@@ -64,14 +64,12 @@ export class ShellComponent {
     { path: '/dashboard',     labelKey: 'nav.dashboard',     icon: 'pi pi-th-large'                                   },
     { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                   },
     { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'    },
-    { path: '/notifications', labelKey: 'nav.notifications', icon: 'pi pi-bell'                                       },
-    { path: '/messaging',     labelKey: 'nav.messaging',     icon: 'pi pi-comments',  featureFlag: 'messagingAdmin'   },
     { path: '/staff',         labelKey: 'nav.staff',         icon: 'pi pi-users'                                      },
     { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar'                                  },
-    { path: '/tips',          labelKey: 'nav.tips',          icon: 'pi pi-dollar',    featureFlag: 'tips'             },
-    { path: '/payroll',       labelKey: 'nav.payroll',       icon: 'pi pi-wallet',    featureFlag: 'payroll'          },
-    { path: '/locations',     labelKey: 'nav.locations',     icon: 'pi pi-map-marker'                                 },
-    { path: '/overtime',      labelKey: 'nav.otRules',       icon: 'pi pi-stopwatch', featureFlag: 'otRules'          },
+    { path: '/tips',           labelKey: 'nav.tips',           icon: 'pi pi-dollar',    featureFlag: 'tips'             },
+    { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    featureFlag: 'payroll'          },
+    { path: '/hostess-ledger', labelKey: 'nav.hostessLedger',  icon: 'pi pi-book',      featureFlag: 'hostessLedger'    },
+    { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker'                                },
     { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card'                                    },
   ];
 

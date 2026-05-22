@@ -4,32 +4,28 @@ import { Observable, of, throwError } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
 
 export type FeatureKey =
-  // Phase 1 — Operations
-  | 'otRules'
-  // Phase 2 — Finance
+  // Phase 1 — Finance
   | 'payroll'
   | 'tips'
   | 'tipsHistory'       // staff portal
   | 'paySummary'        // staff portal
-  // Phase 3 — Communication
-  | 'messagingAdmin'
+  // Phase 2 — Communication
   | 'announcements'
-  | 'messagingStaff';   // staff portal
+  // Phase 3 — Hostess
+  | 'hostessLedger';
 
 export type FlagMap = Record<FeatureKey, boolean>;
 
 const DEFAULTS: FlagMap = {
   // Phase 1
-  otRules:        false,
-  // Phase 2
   payroll:        false,
   tips:           false,
   tipsHistory:    false,
   paySummary:     false,
-  // Phase 3
-  messagingAdmin: false,
+  // Phase 2
   announcements:  false,
-  messagingStaff: false,
+  // Phase 3
+  hostessLedger:  false,
 };
 
 @Injectable({ providedIn: 'root' })

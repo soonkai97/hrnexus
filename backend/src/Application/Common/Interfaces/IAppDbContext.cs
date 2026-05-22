@@ -22,5 +22,8 @@ public interface IAppDbContext
     DbSet<PushSubscription>   PushSubscriptions   { get; }
     DbSet<StaffMessage>       StaffMessages        { get; }
     DbSet<FeatureFlag>        FeatureFlags         { get; }
+    DbSet<HostessEntry>       HostessEntries       { get; }
+    DbSet<HostessExpense>     HostessExpenses      { get; }
+    DbSet<HostessLoan>        HostessLoans         { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

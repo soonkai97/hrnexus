@@ -26,17 +26,15 @@ export class FeatureFlagsComponent {
   private readonly translate = inject(TranslateService);
 
   readonly features: FeatureDef[] = [
-    // ── Phase 1 — Operations ─────────────────────────────────────────────────
-    { key: 'otRules',        icon: 'pi pi-stopwatch', phase: 1, label: 'features.otRules.label',         description: 'features.otRules.desc'         },
-    // ── Phase 2 — Finance & Reports ──────────────────────────────────────────
-    { key: 'payroll',        icon: 'pi pi-wallet',    phase: 2, label: 'features.payroll.label',         description: 'features.payroll.desc'         },
-    { key: 'tips',           icon: 'pi pi-dollar',    phase: 2, label: 'features.tips.label',            description: 'features.tips.desc'            },
-    { key: 'paySummary',     icon: 'pi pi-chart-line',phase: 2, label: 'features.paySummary.label',      description: 'features.paySummary.desc'      },
-    { key: 'tipsHistory',    icon: 'pi pi-history',   phase: 2, label: 'features.tipsHistory.label',     description: 'features.tipsHistory.desc'     },
-    // ── Phase 3 — Communication ──────────────────────────────────────────────
-    { key: 'messagingAdmin', icon: 'pi pi-comments',  phase: 3, label: 'features.messagingAdmin.label',  description: 'features.messagingAdmin.desc'  },
-    { key: 'announcements',  icon: 'pi pi-megaphone', phase: 3, label: 'features.announcements.label',   description: 'features.announcements.desc'   },
-    { key: 'messagingStaff', icon: 'pi pi-comments',  phase: 3, label: 'features.messagingStaff.label',  description: 'features.messagingStaff.desc'  },
+    // ── Phase 1 — Finance & Reports ──────────────────────────────────────────
+    { key: 'payroll',        icon: 'pi pi-wallet',    phase: 1, label: 'features.payroll.label',         description: 'features.payroll.desc'         },
+    { key: 'tips',           icon: 'pi pi-dollar',    phase: 1, label: 'features.tips.label',            description: 'features.tips.desc'            },
+    { key: 'paySummary',     icon: 'pi pi-chart-line',phase: 1, label: 'features.paySummary.label',      description: 'features.paySummary.desc'      },
+    { key: 'tipsHistory',    icon: 'pi pi-history',   phase: 1, label: 'features.tipsHistory.label',     description: 'features.tipsHistory.desc'     },
+    // ── Phase 2 — Communication ──────────────────────────────────────────────
+    { key: 'announcements',  icon: 'pi pi-megaphone',  phase: 2, label: 'features.announcements.label',   description: 'features.announcements.desc'   },
+    // ── Phase 3 — Hostess ────────────────────────────────────────────────────
+    { key: 'hostessLedger',  icon: 'pi pi-book',       phase: 3, label: 'features.hostessLedger.label',   description: 'features.hostessLedger.desc'   },
   ];
 
   readonly phases = [1, 2, 3];

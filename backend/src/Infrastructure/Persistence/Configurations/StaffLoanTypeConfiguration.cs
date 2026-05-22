@@ -15,6 +15,11 @@ public class StaffLoanTypeConfiguration : IEntityTypeConfiguration<StaffLoanType
         b.Property(e => e.DisplayOrder).IsRequired();
         b.Property(e => e.IsActive).IsRequired();
         b.Property(e => e.IsSystem).IsRequired();
+        b.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.CreatedBy).HasMaxLength(100);
+        b.Property(e => e.ModifiedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.ModifiedBy).HasMaxLength(100);
+
         b.HasIndex(e => e.Key).IsUnique().HasDatabaseName("IX_StaffLoanTypes_Key");
     }
 }

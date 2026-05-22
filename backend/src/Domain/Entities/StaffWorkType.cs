@@ -1,3 +1,5 @@
+using NightclubWorkforce.Domain.Common;
+
 namespace NightclubWorkforce.Domain.Entities;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace NightclubWorkforce.Domain.Entities;
 /// AutoCalc — venue earnings = units × rate.
 /// HasPrivate — private gross/net fields are relevant for this type.
 /// </summary>
-public sealed class StaffWorkType
+public sealed class StaffWorkType : IHasAudit
 {
     public Guid   Id           { get; private set; }
     public string Key          { get; private set; } = string.Empty;   // e.g. "VENUECLOCK"
@@ -14,6 +16,12 @@ public sealed class StaffWorkType
     public bool   HasPrivate   { get; private set; }
     public int    DisplayOrder { get; private set; }
     public bool   IsActive     { get; private set; }
+
+    // ── Audit (set automatically by AppDbContext) ──────────────────────────────────
+    public DateTime  CreatedAt  { get; private set; }
+    public string    CreatedBy  { get; private set; } = string.Empty;
+    public DateTime? ModifiedAt { get; private set; }
+    public string?   ModifiedBy { get; private set; }
 
     private StaffWorkType() { }
 

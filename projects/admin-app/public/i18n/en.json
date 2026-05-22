@@ -281,6 +281,8 @@
     "cost":             "Cost",
     "status":           "Status",
     "flag":             "Flag",
+    "edited":           "Edited",
+    "editedTooltip":    "This shift was edited after it was first logged.",
     "noShiftsInPeriod": "No shifts in selected period.",
     "payrollTitle":     "Payroll Export",
     "payrollDesc":      "Download a monthly pay summary CSV for all active staff — includes regular hours, overtime (1.5×), tips, and approved leave days.",
@@ -313,7 +315,15 @@
     "ledgerDownloadCsv":     "Download CSV",
     "selected":              "selected",
     "applySettle":           "Settle Selected",
-    "settling":              "Settling…"
+    "settling":              "Settling…",
+    "editShift":             "Edit Shift",
+    "shiftDate":             "Date",
+    "shiftStartTime":        "Start Time",
+    "shiftEndTime":          "End Time",
+    "shiftNotes":            "Notes",
+    "shiftNotesPlaceholder": "Optional notes…",
+    "selectRole":            "— Select role —",
+    "selectLocation":        "— Select location —"
   },
   "tips": {
     "title":              "Tips Pool",

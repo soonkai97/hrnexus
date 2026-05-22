@@ -57,6 +57,21 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
         catch (KeyNotFoundException ex)   { return NotFound(new { error = ex.Message }); }
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateWorkLogRequest req, CancellationToken ct)
+    {
+        var isPrivileged = User.IsInRole("Admin") || User.IsInRole("Manager");
+        try
+        {
+            await mediator.Send(new UpdateWorkLogCommand(id, CallerId, isPrivileged, req.RoleName, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes), ct);
+            return NoContent();
+        }
+        catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
+        catch (KeyNotFoundException ex)       { return NotFound(new { error = ex.Message }); }
+        catch (InvalidOperationException ex)  { return BadRequest(new { error = ex.Message }); }
+        catch (UnauthorizedAccessException)   { return Forbid(); }
+    }
+
     [HttpPut("{id:guid}/end")]
     public async Task<IActionResult> End(Guid id, [FromBody] EndWorkLogRequest req, CancellationToken ct)
     {
@@ -112,5 +127,6 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
 
 public record StartWorkLogRequest(string RoleName, string LocationId, string StartTime, string? Notes);
 public record ManualWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
+public record UpdateWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
 public record EndWorkLogRequest(string EndTime);
 public record GetAllWorkLogsParams(DateTime? From, DateTime? To, Guid? EmployeeId, int Page = 1, int PageSize = 10);

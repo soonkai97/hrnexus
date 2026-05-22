@@ -151,7 +151,8 @@
     "history":          "History",
     "noHistory":        "No shifts logged yet.",
     "delete":           "🗑 Delete",
-    "manual":           "Manual"
+    "manual":           "Manual",
+    "edited":           "Edited"
   },
   "common": {
     "loading": "Loading…",

@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Common;
 using NightclubWorkforce.Domain.Entities;
 using NightclubWorkforce.Infrastructure.Persistence.Configurations;
 
 namespace NightclubWorkforce.Infrastructure.Persistence;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options)
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUser)
     : DbContext(options), IAppDbContext
 {
     public DbSet<Staff>            Staff             => Set<Staff>();
@@ -60,5 +62,52 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         mb.ApplyConfiguration(new StaffExpenseCategoryConfiguration());
         mb.ApplyConfiguration(new StaffLoanTypeConfiguration());
         SeedData.Seed(mb);
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
+    {
+        var now  = DateTime.UtcNow;
+        var user = currentUser.UserName ?? "System";
+
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            if (entry.Entity is IHasAudit)
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    // Only stamp if not already set by the domain factory method
+                    TrySet(entry, "CreatedAt",  now,  overwrite: false);
+                    TrySet(entry, "CreatedBy",  user, overwrite: false);
+                }
+                if (entry.State is EntityState.Modified or EntityState.Added)
+                {
+                    TrySet(entry, "ModifiedAt", now);
+                    TrySet(entry, "ModifiedBy", user);
+                }
+            }
+
+            // Soft delete: intercept EF Remove() and convert to IsDeleted flag
+            if (entry.Entity is ISoftDelete && entry.State == EntityState.Deleted)
+            {
+                entry.State = EntityState.Modified;
+                TrySet(entry, "IsDeleted", true);
+                TrySet(entry, "DeletedAt", now);
+                TrySet(entry, "DeletedBy", user);
+            }
+        }
+
+        return await base.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Sets a mapped EF Core property by name without requiring a concrete C# property accessor.
+    /// When <paramref name="overwrite"/> is false, skips if the property already has a non-default value.
+    /// </summary>
+    private static void TrySet(EntityEntry entry, string name, object value, bool overwrite = true)
+    {
+        var prop = entry.Properties.FirstOrDefault(p => p.Metadata.Name == name);
+        if (prop == null) return;
+        if (!overwrite && prop.CurrentValue is not (null or "" or (DateTime { Ticks: 0 }))) return;
+        prop.CurrentValue = value;
     }
 }

@@ -1,8 +1,9 @@
+using NightclubWorkforce.Domain.Common;
 using NightclubWorkforce.Domain.Constants;
 
 namespace NightclubWorkforce.Domain.Entities;
 
-public class Staff
+public class Staff : IHasAudit, ISoftDelete
 {
     public Guid   Id               { get; private set; }
     public string StaffId          { get; private set; } = default!;
@@ -18,7 +19,14 @@ public class Staff
     /// <summary>Computed role names derived from RoleEntries. Not stored directly.</summary>
     public List<string> Roles => RoleEntries.Select(r => r.Role).ToList();
     public bool   IsActive         { get; private set; }
-    public DateTime CreatedAt      { get; private set; }
+    public DateTime  CreatedAt   { get; private set; }
+    public string    CreatedBy   { get; private set; } = string.Empty;
+    public DateTime? ModifiedAt  { get; private set; }
+    public string?   ModifiedBy  { get; private set; }
+    public bool      IsDeleted   { get; private set; }
+    public DateTime? DeletedAt   { get; private set; }
+    public string?   DeletedBy   { get; private set; }
+
     public string? PhoneNumber       { get; private set; }
     public string? IcNo               { get; private set; }   // Malaysian IC number
     public string? PassportNo         { get; private set; }   // Overseas passport number
@@ -118,12 +126,17 @@ public class Staff
         SetRoles(roles);
     }
 
-    /// <summary>Replaces all role assignments with the supplied list (uppercase-normalised).</summary>
+    /// <summary>Replaces all role assignments with the supplied list (uppercase-normalised).
+    /// Mutates the collection in place — removes only roles being dropped and adds only new roles —
+    /// so the EF Core change tracker never holds two instances with the same composite key.
+    /// </summary>
     private void SetRoles(IEnumerable<string> roles)
     {
-        RoleEntries.Clear();
-        foreach (var r in roles)
-            RoleEntries.Add(new StaffRole { EmployeeId = Id, Role = r.Trim().ToUpperInvariant() });
+        var incoming = roles.Select(r => r.Trim().ToUpperInvariant()).ToHashSet();
+        RoleEntries.RemoveAll(re => !incoming.Contains(re.Role));
+        var existing = RoleEntries.Select(re => re.Role).ToHashSet();
+        foreach (var role in incoming.Where(r => !existing.Contains(r)))
+            RoleEntries.Add(new StaffRole { EmployeeId = Id, Role = role });
     }
 
 }

@@ -1,0 +1,473 @@
+using Microsoft.EntityFrameworkCore;
+using NightclubWorkforce.Application.Admin.Commands;
+using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Application.Leave.Commands;
+using NightclubWorkforce.Application.Tests.Infrastructure;
+using E = NightclubWorkforce.Domain.Entities;
+using Xunit;
+
+namespace NightclubWorkforce.Application.Tests;
+
+/// <summary>
+/// Handler-level tests for Leave commands:
+/// CancelLeave, UpsertLeave (admin), DeleteLeave, UpsertLeaveEntitlement.
+/// Guards business rules around leave status, balances, date ranges, and overlap.
+/// </summary>
+public class LeaveCommandTests
+{
+    // ── Stubs ─────────────────────────────────────────────────────────────────
+
+    private sealed class NullNotificationHub : INotificationHub
+    {
+        public Task SendToUserAsync(Guid id, NotificationPayload p, CancellationToken ct = default) => Task.CompletedTask;
+        public Task BroadcastLiveStatsAsync(LiveStatsDto s, CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class NullPushSvc : IPushNotificationService
+    {
+        public Task SendAsync(Guid id, string t, string b, string? u = null, CancellationToken ct = default) => Task.CompletedTask;
+        public Task SendToManyAsync(IEnumerable<Guid> ids, string t, string b, string? u = null, CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class NullAuditService : IAuditService
+    {
+        public Task LogAsync(string et, string ei, string a, Guid? pid, string pn, string? c = null, CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class StubDateTimeProvider : IDateTimeProvider
+    {
+        private readonly DateTime _now;
+        public StubDateTimeProvider(DateTime? now = null) => _now = now ?? DateTime.UtcNow;
+        public DateTime UtcNow => _now;
+        public DateOnly TodayUtc => DateOnly.FromDateTime(_now);
+        public TimeZoneInfo VenueTimeZone => TimeZoneInfo.Utc;
+        public DateTime LocalNow => _now;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static TestDbContext CreateDb()
+    {
+        var opts = new DbContextOptionsBuilder<TestDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        return new TestDbContext(opts);
+    }
+
+    private static E.Staff MakeStaff(string id = "S001")
+        => E.Staff.Create(id, "Alice", "Wong", "alice@test.com", "hash",
+            new List<string> { "BARTENDER" });
+
+    private static E.LeaveRequest MakeLeave(Guid empId, string status = "pending",
+        DateTime? start = null, DateTime? end = null)
+    {
+        var s = start ?? DateTime.UtcNow.Date;
+        var e = end   ?? DateTime.UtcNow.Date.AddDays(2);
+        var leave = E.LeaveRequest.Create(empId, "annual", s, e, null);
+        if (status != "pending")
+            leave.Update("annual", s, e, null, status);
+        return leave;
+    }
+
+    // ── CancelLeaveCommand ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task CancelLeave_ThrowsKeyNotFound_WhenLeaveNotFoundOrWrongEmployee()
+    {
+        await using var db = CreateDb();
+        var dt = new StubDateTimeProvider();
+        var handler = new CancelLeaveCommandHandler(db, dt);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            handler.Handle(new CancelLeaveCommand(Guid.NewGuid(), Guid.NewGuid()),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CancelLeave_ThrowsInvalidOperation_WhenLeaveRejected()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var leave = MakeLeave(staff.Id, status: "rejected");
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new CancelLeaveCommandHandler(db, dt);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CancelLeave_ThrowsInvalidOperation_WhenLeaveAlreadyEnded()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var yesterday = DateTime.UtcNow.Date.AddDays(-2);
+        var leave = E.LeaveRequest.Create(staff.Id, "annual", yesterday, yesterday, null);
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        // "Now" is today, leave ended yesterday
+        var dt = new StubDateTimeProvider();
+        var handler = new CancelLeaveCommandHandler(db, dt);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CancelLeave_Succeeds_SetsCancelledStatus_ForPendingLeave()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var tomorrow = DateTime.UtcNow.Date.AddDays(1);
+        var leave = E.LeaveRequest.Create(staff.Id, "annual", tomorrow, tomorrow.AddDays(2), null);
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new CancelLeaveCommandHandler(db, dt);
+        await handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None);
+
+        var updated = await db.LeaveRequests.FirstAsync(l => l.Id == leave.Id);
+        Assert.Equal("cancelled", updated.Status);
+
+        // Audit log should be created
+        Assert.Equal(1, await db.AuditLogs.CountAsync());
+    }
+
+    [Fact]
+    public async Task CancelLeave_Succeeds_ForApprovedLeave_CreatesAuditLog()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var tomorrow = DateTime.UtcNow.Date.AddDays(1);
+        var leave = MakeLeave(staff.Id, status: "approved", start: tomorrow, end: tomorrow.AddDays(2));
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new CancelLeaveCommandHandler(db, dt);
+        await handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None);
+
+        var updated = await db.LeaveRequests.FirstAsync(l => l.Id == leave.Id);
+        Assert.Equal("cancelled", updated.Status);
+        var auditLog = await db.AuditLogs.FirstAsync();
+        Assert.Equal("WithdrawnApproved", auditLog.Action);
+    }
+
+    // ── UpsertLeaveCommand ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task UpsertLeave_ThrowsArgument_WhenInvalidLeaveType()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "INVALID",
+            DateTime.UtcNow, DateTime.UtcNow.AddDays(1), null, "pending");
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeave_ThrowsArgument_WhenStartAfterEnd()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var tomorrow = DateTime.UtcNow.AddDays(1);
+        var yesterday = DateTime.UtcNow.AddDays(-1);
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "annual",
+            tomorrow, yesterday, null, "pending");
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeave_ThrowsArgument_WhenDurationExceeds60Days()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var start = DateTime.UtcNow;
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "annual",
+            start, start.AddDays(61), null, "pending");
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeave_ThrowsArgument_WhenMoreThan1YearInAdvance()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var now = new DateTime(2026, 1, 1);
+        var dt = new StubDateTimeProvider(now);
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        // Start is > 1 year in future from dt.LocalNow
+        var farFuture = now.AddYears(1).AddDays(2);
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "annual",
+            farFuture, farFuture.AddDays(1), null, "pending");
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeave_ThrowsInvalidOperation_WhenInsufficientAnnualBalance()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        // Set entitlement to 2 days only
+        var ent = E.LeaveEntitlement.Create(staff.Id, DateTime.UtcNow.Year, annualDays: 2, sickDays: 14);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        // Request 5 days
+        var start = DateTime.UtcNow.AddDays(1);
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "annual",
+            start, start.AddDays(4), null, "pending");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeave_ThrowsInvalidOperation_WhenOverlapExists()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var existingLeave = E.LeaveRequest.Create(staff.Id, "annual",
+            DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(10), null);
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(existingLeave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        // Overlapping range
+        var start = DateTime.UtcNow.AddDays(7);
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "unpaid",
+            start, start.AddDays(2), null, "pending");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Create_Succeeds_ForUnpaidLeave()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var start = DateTime.UtcNow.AddDays(1);
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "unpaid",
+            start, start.AddDays(2), "reason", "pending");
+
+        var leaveId = await handler.Handle(cmd, CancellationToken.None);
+
+        Assert.NotEqual(Guid.Empty, leaveId);
+        var created = await db.LeaveRequests.FirstAsync(l => l.Id == leaveId);
+        Assert.Equal("unpaid", created.LeaveType);
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Update_Succeeds_ChangesStatus()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var start = DateTime.UtcNow.AddDays(5);
+        var leave = E.LeaveRequest.Create(staff.Id, "annual", start, start.AddDays(1), null);
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(leave.Id, staff.Id, "annual",
+            start, start.AddDays(1), null, "approved");
+
+        await handler.Handle(cmd, CancellationToken.None);
+
+        var updated = await db.LeaveRequests.FirstAsync(l => l.Id == leave.Id);
+        Assert.Equal("approved", updated.Status);
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Update_ThrowsKeyNotFound_WhenLeaveNotFound()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(Guid.NewGuid(), staff.Id, "annual",
+            DateTime.UtcNow, DateTime.UtcNow.AddDays(1), null, "approved");
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
+    }
+
+    // ── DeleteLeaveCommand ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task DeleteLeave_ThrowsKeyNotFound_WhenLeaveNotFound()
+    {
+        await using var db = CreateDb();
+        var handler = new DeleteLeaveCommandHandler(db);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            handler.Handle(new DeleteLeaveCommand(Guid.NewGuid()), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task DeleteLeave_Succeeds_RemovesLeave()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var leave = MakeLeave(staff.Id);
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new DeleteLeaveCommandHandler(db);
+        await handler.Handle(new DeleteLeaveCommand(leave.Id), CancellationToken.None);
+
+        Assert.Equal(0, await db.LeaveRequests.CountAsync());
+    }
+
+    // ── UpsertLeaveEntitlementCommand ─────────────────────────────────────────
+
+    [Fact]
+    public async Task UpsertLeaveEntitlement_ThrowsArgument_WhenNegativeDays()
+    {
+        await using var db = CreateDb();
+        var handler = new UpsertLeaveEntitlementCommandHandler(db);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 2026, -1, 14),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeaveEntitlement_ThrowsArgument_WhenDaysExceed365()
+    {
+        await using var db = CreateDb();
+        var handler = new UpsertLeaveEntitlementCommandHandler(db);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 2026, 366, 14),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeaveEntitlement_ThrowsArgument_WhenYearTooOld()
+    {
+        await using var db = CreateDb();
+        var handler = new UpsertLeaveEntitlementCommandHandler(db);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 1999, 14, 14),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeaveEntitlement_Create_Succeeds()
+    {
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var handler = new UpsertLeaveEntitlementCommandHandler(db);
+
+        await handler.Handle(new UpsertLeaveEntitlementCommand(empId, 2026, 21, 10),
+            CancellationToken.None);
+
+        var ent = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == empId);
+        Assert.Equal(21, ent.AnnualDays);
+        Assert.Equal(10, ent.SickDays);
+    }
+
+    [Fact]
+    public async Task UpsertLeaveEntitlement_Update_Succeeds_WhenEntitlementExists()
+    {
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var existing = E.LeaveEntitlement.Create(empId, 2026, 14, 14);
+        db.LeaveEntitlements.Add(existing);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new UpsertLeaveEntitlementCommandHandler(db);
+        await handler.Handle(new UpsertLeaveEntitlementCommand(empId, 2026, 20, 7),
+            CancellationToken.None);
+
+        var updated = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == empId);
+        Assert.Equal(20, updated.AnnualDays);
+        Assert.Equal(7, updated.SickDays);
+    }
+}

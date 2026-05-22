@@ -23,7 +23,7 @@ public class GetStaffListQueryHandler(IAppDbContext db)
         var query = db.Staff.AsQueryable();
 
         if (req.ExcludeAdmins)
-            query = query.Where(e => !e.RoleEntries.Any(r => r.Role == "admin"));
+            query = query.Where(e => !e.RoleEntries.Any(r => r.Role == "ADMIN"));
 
         if (!string.IsNullOrWhiteSpace(req.Search))
         {
@@ -32,7 +32,7 @@ public class GetStaffListQueryHandler(IAppDbContext db)
             query = query.Where(e => (e.FirstName + " " + e.LastName).ToLower().Contains(s)
                                   || e.Email.Contains(s)
                                   || e.StaffId.ToLower().Contains(s)
-                                  || e.RoleEntries.Any(r => r.Role.Contains(s)));
+                                  || e.RoleEntries.Any(r => r.Role.ToLower().Contains(s)));
         }
 
         var total = await query.CountAsync(ct);

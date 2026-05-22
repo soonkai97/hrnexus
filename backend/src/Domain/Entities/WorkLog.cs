@@ -1,6 +1,8 @@
+using NightclubWorkforce.Domain.Common;
+
 namespace NightclubWorkforce.Domain.Entities;
 
-public class WorkLog
+public class WorkLog : IHasAudit, ISoftDelete
 {
     public Guid      Id               { get; private set; }
     public Guid      EmployeeId       { get; private set; }
@@ -13,7 +15,15 @@ public class WorkLog
     public bool      IsManualEntry    { get; private set; }
     public string?   Notes            { get; private set; }
     public decimal   HourlyRateSnapshot { get; private set; }
+    public bool      IsEdited         { get; private set; }
+    public DateTime? EditedAt         { get; private set; }
     public DateTime  CreatedAt        { get; private set; }
+    public string    CreatedBy        { get; private set; } = string.Empty;
+    public DateTime? ModifiedAt       { get; private set; }
+    public string?   ModifiedBy       { get; private set; }
+    public bool      IsDeleted        { get; private set; }
+    public DateTime? DeletedAt        { get; private set; }
+    public string?   DeletedBy        { get; private set; }
     public Staff?    Employee         { get; private set; }
 
     private WorkLog() { }
@@ -52,4 +62,18 @@ public class WorkLog
     };
 
     public void End(string endTime) => EndTime = endTime;
+
+    public void Update(string roleName, string locationId, string locationName,
+        DateOnly workDate, string startTime, string endTime, string? notes)
+    {
+        RoleName     = roleName.Trim().ToUpperInvariant();
+        LocationId   = locationId;
+        LocationName = locationName;
+        WorkDate     = workDate;
+        StartTime    = startTime;
+        EndTime      = endTime;
+        Notes        = notes;
+        IsEdited     = true;
+        EditedAt     = DateTime.UtcNow;
+    }
 }

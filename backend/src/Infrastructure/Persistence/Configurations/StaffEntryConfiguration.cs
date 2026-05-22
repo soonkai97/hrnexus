@@ -18,7 +18,11 @@ public class StaffEntryConfiguration : IEntityTypeConfiguration<StaffEntry>
         b.Property(e => e.Settlement).IsRequired().HasMaxLength(50);
         b.Property(e => e.Notes).HasMaxLength(500);
         b.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
-        b.Property(e => e.UpdatedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.CreatedBy).HasMaxLength(100);
+        b.Property(e => e.ModifiedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.ModifiedBy).HasMaxLength(100);
+        b.Property(e => e.DeletedAt).HasColumnType("timestamp with time zone");
+        b.Property(e => e.DeletedBy).HasMaxLength(100);
 
         b.HasOne(e => e.Staff).WithMany().HasForeignKey(e => e.StaffId).OnDelete(DeleteBehavior.Restrict);
         b.HasQueryFilter(e => !e.IsDeleted);

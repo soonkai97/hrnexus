@@ -45,16 +45,16 @@ public class LeaveRequestDomainTests
         Assert.NotEqual(a.Id, b.Id);
     }
 
-    // ── SetStatus ─────────────────────────────────────────────────────────────
+    // ── Update status ─────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData("APPROVED", "approved")]
     [InlineData("Rejected", "rejected")]
     [InlineData("PENDING",  "pending")]
-    public void SetStatus_AlwaysLowerCases(string input, string expected)
+    public void Update_Status_AlwaysLowerCases(string input, string expected)
     {
         var leave = MakeLeave();
-        leave.SetStatus(input);
+        leave.Update(leave.LeaveType, leave.StartDate, leave.EndDate, leave.Notes, input);
         Assert.Equal(expected, leave.Status);
     }
 
@@ -111,7 +111,7 @@ public class LeaveRequestDomainTests
     public void AutoReject_CanBeCalledOnApprovedLeave()
     {
         var leave = MakeLeave();
-        leave.SetStatus("approved");
+        leave.Update(leave.LeaveType, leave.StartDate, leave.EndDate, leave.Notes, "approved");
         leave.AutoReject("No-show override");
         Assert.Equal("rejected", leave.Status);
     }

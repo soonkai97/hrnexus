@@ -1,10 +1,12 @@
+using NightclubWorkforce.Domain.Common;
+
 namespace NightclubWorkforce.Domain.Entities;
 
 /// <summary>
 /// Records a single night's work for a staff member — clock hours, table runs, overnight booking, etc.
 /// VenueEarnings is what the house tracks; PrivateGross/PrivateNet is what the staff personally keeps.
 /// </summary>
-public sealed class StaffEntry
+public sealed class StaffEntry : IHasAudit, ISoftDelete
 {
     public Guid     Id            { get; private set; }
     public Guid     StaffId       { get; private set; }
@@ -24,9 +26,13 @@ public sealed class StaffEntry
     /// <summary>SETTLED | PENDING | NOTCOLLECTED | COMP | BANKIN</summary>
     public string   Settlement    { get; private set; } = string.Empty;
     public string?  Notes         { get; private set; }
-    public bool     IsDeleted     { get; private set; }
-    public DateTime CreatedAt     { get; private set; }
-    public DateTime UpdatedAt     { get; private set; }
+    public bool      IsDeleted   { get; private set; }
+    public DateTime  CreatedAt   { get; private set; }
+    public string    CreatedBy   { get; private set; } = string.Empty;
+    public DateTime? ModifiedAt  { get; private set; }
+    public string?   ModifiedBy  { get; private set; }
+    public DateTime? DeletedAt   { get; private set; }
+    public string?   DeletedBy   { get; private set; }
 
     public Staff? Staff { get; private set; }
 
@@ -59,7 +65,7 @@ public sealed class StaffEntry
             Notes         = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim(),
             IsDeleted     = false,
             CreatedAt     = DateTime.UtcNow,
-            UpdatedAt     = DateTime.UtcNow,
+            ModifiedAt     = DateTime.UtcNow,
         };
     }
 
@@ -83,19 +89,19 @@ public sealed class StaffEntry
         PrivateNet    = privateNet;
         Settlement    = settlement.Trim().ToUpperInvariant();
         Notes         = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
-        UpdatedAt     = DateTime.UtcNow;
+        ModifiedAt     = DateTime.UtcNow;
     }
 
     /// <summary>Updates only the settlement status — used by bulk-settle operations.</summary>
     public void Settle(string settlement)
     {
         Settlement = settlement.Trim().ToUpperInvariant();
-        UpdatedAt  = DateTime.UtcNow;
+        ModifiedAt  = DateTime.UtcNow;
     }
 
     public void Delete()
     {
         IsDeleted = true;
-        UpdatedAt = DateTime.UtcNow;
+        ModifiedAt = DateTime.UtcNow;
     }
 }

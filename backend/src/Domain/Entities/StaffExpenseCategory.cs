@@ -1,16 +1,24 @@
+using NightclubWorkforce.Domain.Common;
+
 namespace NightclubWorkforce.Domain.Entities;
 
 /// <summary>
 /// Admin-managed deduction/expense category (e.g. MEAL, TRANSPORT, PENALTY).
 /// Used as a lookup for StaffExpense.Category.
 /// </summary>
-public sealed class StaffExpenseCategory
+public sealed class StaffExpenseCategory : IHasAudit
 {
     public Guid   Id           { get; private set; }
     public string Key          { get; private set; } = string.Empty;   // e.g. "MEAL"
     public string Label        { get; private set; } = string.Empty;   // e.g. "Meal Subsidy"
     public int    DisplayOrder { get; private set; }
     public bool   IsActive     { get; private set; }
+
+    // ── Audit (set automatically by AppDbContext) ──────────────────────────────────
+    public DateTime  CreatedAt  { get; private set; }
+    public string    CreatedBy  { get; private set; } = string.Empty;
+    public DateTime? ModifiedAt { get; private set; }
+    public string?   ModifiedBy { get; private set; }
 
     private StaffExpenseCategory() { }
 

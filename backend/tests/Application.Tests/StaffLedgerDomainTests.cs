@@ -79,7 +79,7 @@ public class StaffLedgerDomainTests
     public void StaffExpense_Update_ChangesAmount()
     {
         var expense = StaffExpense.Create(SomeStaff(), 2025, 6, "MEAL", 50m, null);
-        expense.Update(2025, 6, "MEAL", 75m, "Updated");
+        expense.Update("MEAL", 75m, "Updated");
         Assert.Equal(75m, expense.Amount);
         Assert.Equal("Updated", expense.Notes);
     }

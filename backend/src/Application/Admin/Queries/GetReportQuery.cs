@@ -64,18 +64,24 @@ public record DateReportRow(
 );
 
 public record ShiftDetailRow(
-    Guid     Id,
-    string   StaffId,
-    string   StaffName,
-    string   Role,
-    string   LocationName,
-    DateTime ClockedIn,
+    Guid      Id,
+    string    StaffId,
+    string    StaffName,
+    string    Role,
+    string    LocationId,
+    string    LocationName,
+    string    WorkDate,    // yyyy-MM-dd
+    string    StartTime,   // HH:mm
+    string?   EndTime,     // HH:mm (null = active)
+    string?   Notes,
+    bool      IsEdited,
+    DateTime  ClockedIn,
     DateTime? ClockedOut,
-    decimal  Hours,
-    decimal  Cost,
-    string   Status,
-    bool     IsOvertime,
-    decimal  OtThreshold
+    decimal   Hours,
+    decimal   Cost,
+    string    Status,
+    bool      IsOvertime,
+    decimal   OtThreshold
 );
 
 public class GetReportQueryHandler(IAppDbContext db)
@@ -123,7 +129,11 @@ public class GetReportQueryHandler(IAppDbContext db)
             return new ShiftDetailRow(
                 w.Id,
                 w.Employee?.StaffId ?? "", w.Employee?.FullName ?? "Unknown",
-                w.RoleName, w.LocationName,
+                w.RoleName,
+                w.LocationId, w.LocationName,
+                w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndTime,
+                w.Notes,
+                w.IsEdited,
                 startDt, endDt, hours, cost, "Complete", hours > otThreshold,
                 otThreshold);
         }).ToList();

@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 export interface WorkLogDto {
   id: string;
   roleName: string;
+  locationId: string;
   locationName: string;
   workDate: string;      // yyyy-MM-dd
   startTime: string;     // HH:mm
@@ -13,7 +14,17 @@ export interface WorkLogDto {
   cost: number;
   isActive: boolean;
   isManualEntry: boolean;
+  isEdited: boolean;
   notes: string | null;
+}
+
+export interface UpdateWorkLogRequest {
+  roleName: string;
+  locationId: string;
+  workDate: string;    // yyyy-MM-dd
+  startTime: string;   // HH:mm
+  endTime: string;     // HH:mm
+  notes?: string | null;
 }
 
 export interface PagedResult<T> {
@@ -59,6 +70,10 @@ export class WorkLogService {
 
   end(id: string, endTime: string): Observable<void> {
     return this.http.put<void>(`/api/worklogs/${id}/end`, { endTime });
+  }
+
+  update(id: string, req: UpdateWorkLogRequest): Observable<void> {
+    return this.http.put<void>(`/api/worklogs/${id}`, req);
   }
 
   delete(id: string): Observable<void> {

@@ -16,7 +16,7 @@ public class GetAllWorkLogsQueryHandler(IAppDbContext db, IDateTimeProvider dt) 
 {
     public async Task<PagedResult<WorkLogDto>> Handle(GetAllWorkLogsQuery req, CancellationToken ct)
     {
-        var query = db.WorkLogs.Include(w => w.Employee).AsQueryable();
+        var query = db.WorkLogs.AsQueryable();
 
         if (req.EmployeeId.HasValue)
             query = query.Where(w => w.EmployeeId == req.EmployeeId.Value);
@@ -40,9 +40,9 @@ public class GetAllWorkLogsQueryHandler(IAppDbContext db, IDateTimeProvider dt) 
             var isActive = w.EndTime == null;
             var endHhMm  = w.EndTime ?? $"{dt.LocalNow.Hour:D2}:{dt.LocalNow.Minute:D2}";
             var hours    = CalcHours(w.StartTime, endHhMm);
-            return new WorkLogDto(w.Id, w.RoleName, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"),
+            return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"),
                 w.StartTime, w.EndTime, Math.Round(hours, 2),
-                Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.Notes);
+                Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
         }).ToList();
 
         return new PagedResult<WorkLogDto>(items, total);

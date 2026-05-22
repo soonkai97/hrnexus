@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { WorkLogService, WorkLogDto, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PickerOnlyDirective, PagedResult, todayLocalString } from 'shared-lib';
+import { WorkLogService, WorkLogDto, UpdateWorkLogRequest, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PickerOnlyDirective, PagedResult, todayLocalString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -97,6 +97,12 @@ export class LogShiftComponent implements OnInit {
 
   // Error
   formError = signal('');
+
+  // ── Edit ─────────────────────────────────────────────────────────────────────
+  editingLogId = signal<string | null>(null);
+  editSaving   = signal(false);
+  editError    = signal('');
+  editForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endTime: '', notes: '' };
 
   ngOnInit(): void {
     this.locationStore.load();
@@ -223,6 +229,53 @@ export class LogShiftComponent implements OnInit {
       error: (e) => {
         this.formError.set(e?.error?.error ?? 'Failed to log shift.');
         this.submitting.set(false);
+      },
+    });
+  }
+
+  // ── Edit ─────────────────────────────────────────────────────────────────────
+
+  openEditLog(wl: WorkLogDto): void {
+    this.editForm = {
+      roleName:   wl.roleName,
+      locationId: wl.locationId,
+      workDate:   wl.workDate,
+      startTime:  wl.startTime,
+      endTime:    wl.endTime ?? '',
+      notes:      wl.notes ?? '',
+    };
+    this.editError.set('');
+    this.editingLogId.set(wl.id);
+  }
+
+  cancelEdit(): void { this.editingLogId.set(null); }
+
+  saveEdit(): void {
+    const id = this.editingLogId();
+    if (!id) return;
+    if (!this.editForm.roleName || !this.editForm.locationId || !this.editForm.workDate || !this.editForm.startTime || !this.editForm.endTime) {
+      this.editError.set('Please fill in all required fields.'); return;
+    }
+    const [sh, sm] = this.editForm.startTime.split(':').map(Number);
+    const [eh, em] = this.editForm.endTime.split(':').map(Number);
+    const durationMins = (eh * 60 + em) >= (sh * 60 + sm)
+      ? (eh * 60 + em) - (sh * 60 + sm)
+      : (eh * 60 + em) + 1440 - (sh * 60 + sm);
+    if (durationMins === 0) { this.editError.set('End time must differ from start time.'); return; }
+    if (durationMins > 1440) { this.editError.set('A single shift cannot exceed 24 hours.'); return; }
+
+    this.editSaving.set(true);
+    this.editError.set('');
+    this.workLogSvc.update(id, { ...this.editForm, notes: this.editForm.notes || null }).subscribe({
+      next: () => {
+        this.editSaving.set(false);
+        this.editingLogId.set(null);
+        this.toast.success('Shift updated.');
+        this.loadHistory();
+      },
+      error: (e) => {
+        this.editError.set(e?.error?.error ?? 'Failed to update shift.');
+        this.editSaving.set(false);
       },
     });
   }

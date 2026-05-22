@@ -44,15 +44,6 @@ export class MyLeaveComponent implements OnInit {
   }));
   readonly todayLocal = toLocalDateString(new Date());
 
-  /** 30-minute interval time options (00:00 – 23:30) displayed in 12-hour format */
-  readonly timeOptions = Array.from({ length: 48 }, (_, i) => {
-    const h = Math.floor(i / 2);
-    const m = i % 2 === 0 ? '00' : '30';
-    const value = `${String(h).padStart(2, '0')}:${m}`;
-    const period = h < 12 ? 'AM' : 'PM';
-    const dh = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return { label: `${String(dh).padStart(2, '0')}:${m} ${period}`, value };
-  });
 
   records     = signal<LeaveRecord[]>([]);
   balance     = signal<LeaveBalance | null>(null);

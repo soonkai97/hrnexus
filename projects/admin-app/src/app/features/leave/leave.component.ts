@@ -70,15 +70,6 @@ export class LeaveComponent implements OnInit {
   savingEntitlement  = signal(false);
   entitlementForm    = { year: new Date().getFullYear(), annualHours: 112, sickHours: 112 };
 
-  /** 30-minute interval time options displayed in 12-hour format */
-  readonly timeOptions = Array.from({ length: 48 }, (_, i) => {
-    const h = Math.floor(i / 2);
-    const m = i % 2 === 0 ? '00' : '30';
-    const value = `${String(h).padStart(2, '0')}:${m}`;
-    const period = h < 12 ? 'AM' : 'PM';
-    const dh = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return { label: `${String(dh).padStart(2, '0')}:${m} ${period}`, value };
-  });
 
   readonly currentYear = new Date().getFullYear();
   readonly leaveTypes: string[] = [...LEAVE_TYPES];

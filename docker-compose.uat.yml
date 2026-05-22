@@ -1,0 +1,17 @@
+# docker-compose.uat.yml — UAT environment overrides
+#
+# Usage (on the UAT server):
+#   docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d --build
+#
+# This override rewrites CORS so the API accepts requests from the public
+# UAT URLs (IP address or DuckDNS hostname) instead of the prod subdomains.
+# Set UAT_HOST in your .env file on the server.
+
+services:
+  api:
+    environment:
+      # Replace subdomain-based origins with the actual UAT access URLs
+      Cors__AllowedOrigins__0: "http://${UAT_HOST}"        # admin app (port 80)
+      Cors__AllowedOrigins__1: "http://${UAT_HOST}:8081"   # staff app (port 8081)
+      Cors__AllowedOrigins__2: ""
+      Cors__AllowedOrigins__3: ""

@@ -25,7 +25,11 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
     [Authorize(Roles = "Manager,Admin")]
     public async Task<IActionResult> Create([FromBody] UpsertLocationBody body, CancellationToken ct)
     {
-        var loc = Location.Create(body.Name);
+        var name = body.Name.Trim().ToUpperInvariant();
+        if (string.IsNullOrEmpty(name)) return BadRequest(new { error = "Location name is required." });
+        if (await db.Locations.AnyAsync(l => l.Name == name, ct))
+            return Conflict(new { error = $"Location '{name}' already exists." });
+        var loc = Location.Create(name);
         db.Locations.Add(loc);
         await db.SaveChangesAsync(ct);
         return CreatedAtAction(nameof(List), new { }, new { loc.Id });
@@ -37,7 +41,11 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
     {
         var loc = await db.Locations.FindAsync([id], ct);
         if (loc is null) return NotFound();
-        loc.Update(body.Name);
+        var name = body.Name.Trim().ToUpperInvariant();
+        if (string.IsNullOrEmpty(name)) return BadRequest(new { error = "Location name is required." });
+        if (await db.Locations.AnyAsync(l => l.Name == name && l.Id != id, ct))
+            return Conflict(new { error = $"Location '{name}' already exists." });
+        loc.Update(name);
         await db.SaveChangesAsync(ct);
         return NoContent();
     }

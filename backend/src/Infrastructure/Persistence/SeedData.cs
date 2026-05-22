@@ -15,7 +15,7 @@ public static class SeedData
         NightclubWorkforce.Application.Common.Interfaces.IPasswordHasher hasher)
     {
         // Seed default locations — use name as uniqueness key; IDs are UUIDs
-        var defaultLocationNames = new[] { "Main Bar", "VIP Lounge", "Main Stage", "Entrance" };
+        var defaultLocationNames = new[] { "MAIN BAR", "VIP LOUNGE", "MAIN STAGE", "ENTRANCE" };
         foreach (var name in defaultLocationNames)
         {
             if (!await db.Locations.AnyAsync(l => l.Name == name))

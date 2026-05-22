@@ -68,7 +68,8 @@ export class ShellComponent {
     { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar'                                  },
     { path: '/tips',           labelKey: 'nav.tips',           icon: 'pi pi-dollar',    featureFlag: 'tips'             },
     { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    featureFlag: 'payroll'          },
-    { path: '/hostess-ledger', labelKey: 'nav.hostessLedger',  icon: 'pi pi-book',      featureFlag: 'hostessLedger'    },
+    { path: '/staff-ledger',   labelKey: 'nav.staffLedger',   icon: 'pi pi-book',         featureFlag: 'staffLedger' },
+    { path: '/staff-settings', labelKey: 'nav.staffSettings', icon: 'pi pi-sliders-h',  featureFlag: 'staffLedger' },
     { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker'                                },
     { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card'                                    },
   ];

@@ -3,7 +3,7 @@ import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthService, StaffService, StaffDetail, LangService } from 'shared-lib';
+import { AuthService, StaffManagementService, StaffDetail, LangService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -18,7 +18,7 @@ import { SelectButton } from 'primeng/selectbutton';
 })
 export class AccountComponent implements OnInit {
   private readonly auth     = inject(AuthService);
-  private readonly staffSvc = inject(StaffService);
+  private readonly staffSvc = inject(StaffManagementService);
   readonly lang             = inject(LangService);
 
   readonly langOptions = [

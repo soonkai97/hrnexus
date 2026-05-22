@@ -33,8 +33,8 @@ export class FeatureFlagsComponent {
     { key: 'tipsHistory',    icon: 'pi pi-history',   phase: 1, label: 'features.tipsHistory.label',     description: 'features.tipsHistory.desc'     },
     // ── Phase 2 — Communication ──────────────────────────────────────────────
     { key: 'announcements',  icon: 'pi pi-megaphone',  phase: 2, label: 'features.announcements.label',   description: 'features.announcements.desc'   },
-    // ── Phase 3 — Hostess ────────────────────────────────────────────────────
-    { key: 'hostessLedger',  icon: 'pi pi-book',       phase: 3, label: 'features.hostessLedger.label',   description: 'features.hostessLedger.desc'   },
+    // ── Phase 3 — Staff Ledger ───────────────────────────────────────────────
+    { key: 'staffLedger',  icon: 'pi pi-book',       phase: 3, label: 'features.staffLedger.label',   description: 'features.staffLedger.desc'   },
   ];
 
   readonly phases = [1, 2, 3];

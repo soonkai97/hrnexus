@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ProfileComponent } from './profile.component';
-import { AuthService, StaffService, ToastService, PushService, LangService } from 'shared-lib';
+import { AuthService, StaffManagementService, ToastService, PushService, LangService } from 'shared-lib';
 
 /**
  * ProfileComponent — staff profile view with push notification toggle.
@@ -77,7 +77,7 @@ describe('ProfileComponent', () => {
         provideRouter([]),
         provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,   useValue: mockAuth },
-        { provide: StaffService,  useValue: mockStaffSvc },
+        { provide: StaffManagementService,  useValue: mockStaffSvc },
         { provide: ToastService,  useValue: mockToastSvc },
         { provide: PushService,   useValue: mockPushSvc },
         { provide: LangService,   useValue: mockLangSvc },

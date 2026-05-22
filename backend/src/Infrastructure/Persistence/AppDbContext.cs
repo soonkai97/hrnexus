@@ -25,9 +25,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<PushSubscription>     PushSubscriptions   => Set<PushSubscription>();
     public DbSet<StaffMessage>       StaffMessages        => Set<StaffMessage>();
     public DbSet<FeatureFlag>        FeatureFlags         => Set<FeatureFlag>();
-    public DbSet<HostessEntry>       HostessEntries       => Set<HostessEntry>();
-    public DbSet<HostessExpense>     HostessExpenses      => Set<HostessExpense>();
-    public DbSet<HostessLoan>        HostessLoans         => Set<HostessLoan>();
+    public DbSet<StaffEntry>       StaffEntries       => Set<StaffEntry>();
+    public DbSet<StaffExpense>     StaffExpenses      => Set<StaffExpense>();
+    public DbSet<StaffLoan>        StaffLoans         => Set<StaffLoan>();
+    public DbSet<StaffWorkType>         StaffWorkTypes         => Set<StaffWorkType>();
+    public DbSet<StaffSettlement>       StaffSettlements       => Set<StaffSettlement>();
+    public DbSet<StaffExpenseCategory>  StaffExpenseCategories => Set<StaffExpenseCategory>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -48,9 +51,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         mb.ApplyConfiguration(new TipsAllocationConfiguration());
         mb.ApplyConfiguration(new StaffMessageConfiguration());
         mb.ApplyConfiguration(new FeatureFlagConfiguration());
-        mb.ApplyConfiguration(new HostessEntryConfiguration());
-        mb.ApplyConfiguration(new HostessExpenseConfiguration());
-        mb.ApplyConfiguration(new HostessLoanConfiguration());
+        mb.ApplyConfiguration(new StaffEntryConfiguration());
+        mb.ApplyConfiguration(new StaffExpenseConfiguration());
+        mb.ApplyConfiguration(new StaffLoanConfiguration());
+        mb.ApplyConfiguration(new StaffWorkTypeConfiguration());
+        mb.ApplyConfiguration(new StaffSettlementConfiguration());
+        mb.ApplyConfiguration(new StaffExpenseCategoryConfiguration());
         SeedData.Seed(mb);
     }
 }

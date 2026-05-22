@@ -233,6 +233,11 @@ namespace NightclubWorkforce.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Locations_Name_Active")
+                        .HasFilter("\"IsDeleted\" = false");
+
                     b.ToTable("Locations");
                 });
 
@@ -449,6 +454,177 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("Staff", (string)null);
                 });
 
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("EntryDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<decimal>("PrivateGross")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal>("PrivateNet")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<string>("Settlement")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("VenueEarnings")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal>("VenueRate")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal>("VenueUnits")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<string>("WorkType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StaffId", "EntryDate")
+                        .HasDatabaseName("IX_StaffEntries_StaffId_EntryDate");
+
+                    b.ToTable("StaffEntries");
+                });
+
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffExpense", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StaffId", "Year", "Month")
+                        .HasDatabaseName("IX_StaffExpenses_StaffId_YearMonth");
+
+                    b.ToTable("StaffExpenses");
+                });
+
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffExpenseCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("IX_StaffExpenseCategories_Key");
+
+                    b.ToTable("StaffExpenseCategories");
+                });
+
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffLoan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly>("LoanDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("LoanType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Purpose")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StaffId", "LoanDate")
+                        .HasDatabaseName("IX_StaffLoans_StaffId_LoanDate");
+
+                    b.ToTable("StaffLoans");
+                });
+
             modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -507,6 +683,79 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.HasKey("EmployeeId", "Role");
 
                     b.ToTable("StaffRoles", (string)null);
+                });
+
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffSettlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("IX_StaffSettlements_Key");
+
+                    b.ToTable("StaffSettlements");
+                });
+
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffWorkType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AutoCalc")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("HasPrivate")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("IX_StaffWorkTypes_Key");
+
+                    b.ToTable("StaffWorkTypes");
                 });
 
             modelBuilder.Entity("NightclubWorkforce.Domain.Entities.TipsAllocationRecord", b =>
@@ -691,6 +940,39 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffEntry", b =>
+                {
+                    b.HasOne("NightclubWorkforce.Domain.Entities.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Staff");
+                });
+
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffExpense", b =>
+                {
+                    b.HasOne("NightclubWorkforce.Domain.Entities.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Staff");
+                });
+
+            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffLoan", b =>
+                {
+                    b.HasOne("NightclubWorkforce.Domain.Entities.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("NightclubWorkforce.Domain.Entities.StaffRole", b =>

@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AccountComponent } from './account.component';
-import { AuthService, StaffService, LangService } from 'shared-lib';
+import { AuthService, StaffManagementService, LangService } from 'shared-lib';
 
 /**
  * AccountComponent — admin account profile page.
@@ -50,7 +50,7 @@ describe('AccountComponent', () => {
         provideRouter([]),
         provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,  useValue: mockAuth },
-        { provide: StaffService, useValue: mockStaffSvc },
+        { provide: StaffManagementService, useValue: mockStaffSvc },
         { provide: LangService,  useValue: mockLangSvc },
         MessageService,
         ConfirmationService,

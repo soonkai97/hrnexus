@@ -31,7 +31,7 @@
       "urls": ["/api/roster/**"],
       "cacheConfig": {
         "maxSize": 20,
-        "maxAge": "1h",
+        "maxAge": "10m",
         "timeout": "5s",
         "strategy": "freshness"
       }

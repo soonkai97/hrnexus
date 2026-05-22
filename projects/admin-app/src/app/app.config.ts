@@ -36,7 +36,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([jwtInterceptor])),
     provideNoAutofill(),
     provideTranslateService({ defaultLanguage: 'en' }),
-    ...provideTranslateHttpLoader({ prefix: '/i18n/', suffix: `.json?v=${Date.now()}` }),
+    ...provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
     providePrimeNG({
       theme: {
         preset: NightCrewTheme,

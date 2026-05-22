@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hostess Ledger — Full Interactive Demo</title>
+<style>
+:root {
+  --bg-void:#0a0a0f; --bg-base:#0f0f1a; --bg-surface:#16162a;
+  --bg-raised:#1e1e35; --bg-hover:#252540;
+  --border:rgba(255,255,255,0.08); --border-glow:rgba(168,85,247,0.35);
+  --text-primary:#e8e8f0; --text-secondary:#a0a0b8; --text-muted:#60607a;
+  --neon-purple:#a855f7; --neon-pink:#ec4899; --neon-green:#22c55e;
+  --neon-amber:#f59e0b; --neon-blue:#3b82f6; --neon-red:#ef4444;
+  --r-sm:8px; --r-md:12px; --r-lg:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-base);color:var(--text-primary);font-size:14px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── NAV STEPPER ── */
+.stepper{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:0;overflow-x:auto;flex-shrink:0}
+.step{display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;white-space:nowrap;font-size:12px;font-weight:600;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s}
+.step:hover{color:var(--text-primary)}
+.step.active{color:var(--neon-purple);border-bottom-color:var(--neon-purple)}
+.step.done{color:var(--neon-green)}
+.step .num{width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.step.done .num{background:var(--neon-green);border-color:var(--neon-green);color:#000}
+.step-arrow{color:var(--text-muted);font-size:12px;padding:0 4px}
+
+/* ── SCREENS ── */
+.screen{display:none;flex:1;overflow:hidden}
+.screen.active{display:flex}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--bg-surface);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--neon-purple),var(--neon-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:200px;min-width:200px;background:var(--bg-surface);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
+.main{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.rpanel{width:260px;min-width:260px;background:var(--bg-surface);border-left:1px solid var(--border);overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+
+/* ── SIDEBAR ── */
+.sb-hdr{padding:12px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);border-bottom:1px solid var(--border)}
+.sb-item{display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.sb-item:hover{background:var(--bg-raised)}
+.sb-item.active{background:rgba(168,85,247,.12);border-left-color:var(--neon-purple)}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.sb-info{flex:1;min-width:0}
+.sb-name{font-size:13px;font-weight:600}
+.sb-id{font-size:10px;color:var(--text-muted)}
+.sb-net{font-size:11px;font-weight:700}
+
+/* ── CARDS ── */
+.card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden}
+.card-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-raised)}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse}
+th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);background:var(--bg-raised);white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid var(--border);font-size:12px;vertical-align:middle}
+tr:hover td{background:var(--bg-hover)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.blue{color:var(--neon-blue);font-weight:600}
+.green{color:var(--neon-green);font-weight:700}
+.red{color:var(--neon-red)}
+.amber{color:var(--neon-amber)}
+.muted{color:var(--text-muted)}
+tfoot td{background:var(--bg-raised);font-weight:700;border-top:2px solid var(--border)}
+
+/* ── BADGES ── */
+.wt{display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap}
+.wt-clock{background:rgba(59,130,246,.15);color:#60a5fa}
+.wt-table{background:rgba(245,158,11,.15);color:#fbbf24}
+.wt-overnight{background:rgba(168,85,247,.2);color:#c084fc}
+.wt-private{background:rgba(34,197,94,.15);color:#4ade80}
+.wt-ot{background:rgba(236,72,153,.15);color:#f472b6}
+.wt-self{background:rgba(239,68,68,.1);color:#f87171}
+.wt-rest{background:rgba(255,255,255,.05);color:var(--text-muted)}
+.settle{display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
+.s-ok{background:rgba(34,197,94,.12);color:#4ade80}
+.s-pend{background:rgba(245,158,11,.12);color:#fbbf24}
+.s-comp{background:rgba(168,85,247,.12);color:#c084fc}
+.new-row td{background:rgba(168,85,247,.06);border-top:2px solid rgba(168,85,247,.3)}
+.new-row td:first-child::before{content:'NEW';font-size:9px;background:var(--neon-purple);color:#fff;padding:1px 5px;border-radius:4px;margin-right:4px}
+
+/* ── RIGHT PANEL ── */
+.rcard{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--r-md);padding:14px}
+.rcard-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.rrow:last-child{border-bottom:none}
+.net-box{background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.05));border:1px solid rgba(34,197,94,.25);border-radius:var(--r-sm);padding:14px;text-align:center}
+.net-lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.net-val{font-size:22px;font-weight:800;color:var(--neon-green)}
+
+/* ── DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;backdrop-filter:blur(3px)}
+.drawer-overlay.open{display:block}
+.drawer{position:fixed;top:0;right:-440px;width:420px;height:100%;background:var(--bg-surface);border-left:1px solid var(--border);z-index:201;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+.drawer.open{right:0}
+.drawer-hdr{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg-raised);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.drawer-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.drawer-footer{padding:14px 20px;border-top:1px solid var(--border);background:var(--bg-raised);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+/* ── FORM ELEMENTS ── */
+.field{display:flex;flex-direction:column;gap:5px}
+.field-row{display:grid;gap:10px}
+.fc2{grid-template-columns:1fr 1fr}
+.fc3{grid-template-columns:1fr 1fr 1fr}
+label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
+label .req{color:var(--neon-purple)}
+.inp{background:var(--bg-void);border:1px solid var(--border);color:var(--text-primary);padding:8px 11px;border-radius:var(--r-sm);font-size:13px;outline:none;width:100%}
+.inp:focus{border-color:var(--neon-purple)}
+.inp-blue{color:var(--neon-blue);font-weight:600}
+.inp-green{color:var(--neon-green);font-weight:700}
+.inp-amber{color:var(--neon-amber)}
+.sel{background:var(--bg-void);border:1px solid var(--border);color:var(--text-primary);padding:8px 11px;border-radius:var(--r-sm);font-size:13px;outline:none;width:100%;cursor:pointer}
+.type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.tbn{padding:8px 4px;border-radius:7px;border:1px solid var(--border);background:var(--bg-raised);color:var(--text-secondary);font-size:10px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tbn .ico{font-size:15px}
+.tbn:hover{border-color:var(--neon-purple);color:var(--text-primary)}
+.tbn.sel-overnight{background:rgba(168,85,247,.2);border-color:var(--neon-purple);color:#c084fc}
+.tbn.sel-clock{background:rgba(59,130,246,.15);border-color:var(--neon-blue);color:#60a5fa}
+.calc-box{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;display:flex;flex-direction:column;gap:7px}
+.calc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)}
+.crow{display:flex;justify-content:space-between;font-size:12px}
+.cdiv{height:1px;background:var(--border)}
+.cnet{display:flex;justify-content:space-between;font-size:14px;font-weight:800}
+.settle-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.sbn{padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:var(--bg-raised);font-size:10px;font-weight:600;cursor:pointer;text-align:center;color:var(--text-muted);transition:all .15s}
+.sbn.active{background:rgba(34,197,94,.12);border-color:var(--neon-green);color:#4ade80}
+.hint{font-size:10px;color:var(--text-muted)}
+.note-box{background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--text-secondary);line-height:1.6}
+.success-flash{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:var(--r-sm);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;color:#4ade80;font-weight:600}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:linear-gradient(135deg,var(--neon-purple),#7c3aed);color:#fff;box-shadow:0 0 10px rgba(168,85,247,.3)}
+.btn-primary:hover{box-shadow:0 0 18px rgba(168,85,247,.5);transform:translateY(-1px)}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text-secondary)}
+.btn-secondary:hover{border-color:var(--neon-purple);color:var(--text-primary)}
+.btn-ghost{background:transparent;border:none;color:var(--neon-purple);font-size:13px;font-weight:600;cursor:pointer;padding:8px 10px}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px}
+.btn-icon{background:transparent;border:1px solid var(--border);color:var(--text-muted);width:28px;height:28px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.btn-icon:hover{border-color:var(--neon-purple);color:var(--text-primary)}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg-raised);border:1px solid rgba(168,85,247,.3);border-radius:20px;padding:4px 10px 4px 5px}
+.chip-av{width:22px;height:22px;border-radius:50%;background:rgba(168,85,247,.2);color:#c084fc;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.chip-name{font-size:12px;font-weight:600;color:var(--neon-purple)}
+.filter-bar{display:flex;gap:6px}
+.fchip{padding:4px 11px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-raised);color:var(--text-muted);transition:all .15s}
+.fchip:hover,.fchip.active{background:rgba(168,85,247,.15);border-color:var(--neon-purple);color:var(--neon-purple)}
+
+/* ── DEDUCTIONS SCREEN ── */
+.ded-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
+.ded-item:last-child{border-bottom:none}
+.ded-icon{width:36px;height:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ded-info{flex:1}
+.ded-name{font-size:13px;font-weight:600}
+.ded-note{font-size:11px;color:var(--text-muted)}
+.ded-amt{font-size:14px;font-weight:700;color:var(--neon-red)}
+
+/* ── TOTAL LEDGER TABLE ── */
+.ledger-screen{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.rank-1{color:var(--neon-purple);font-weight:800}
+.rank-2{color:var(--neon-blue);font-weight:700}
+.rank-3{color:var(--neon-amber);font-weight:700}
+.payout-bar{height:6px;background:var(--bg-raised);border-radius:3px;overflow:hidden;margin-top:4px}
+.payout-fill{height:100%;background:linear-gradient(90deg,var(--neon-purple),var(--neon-green));border-radius:3px}
+
+/* ── LOAN SCREEN ── */
+.loan-type-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.loan-type-btn{padding:12px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--bg-raised);cursor:pointer;text-align:center;transition:all .15s}
+.loan-type-btn.active-borrow{background:rgba(239,68,68,.1);border-color:var(--neon-red);color:var(--neon-red)}
+.loan-type-btn.active-return{background:rgba(34,197,94,.1);border-color:var(--neon-green);color:var(--neon-green)}
+.loan-type-btn .lico{font-size:22px;margin-bottom:4px}
+.loan-type-btn .ltitle{font-size:13px;font-weight:700}
+.loan-type-btn .lsub{font-size:11px;opacity:.7}
+.loan-history{display:flex;flex-direction:column;gap:0}
+.lhrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.lhrow:last-child{border-bottom:none}
+.lhdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.lhinfo{flex:1}
+.lhpurpose{font-size:12px;font-weight:600}
+.lhdate{font-size:10px;color:var(--text-muted)}
+.lhamt{font-size:13px;font-weight:700}
+.balance-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:var(--r-sm);padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+</style>
+</head>
+<body>
+
+<!-- STEPPER NAV -->
+<div class="stepper">
+  <div class="step done" onclick="showScreen(1)"><div class="num">✓</div> Main Ledger</div>
+  <div class="step-arrow">›</div>
+  <div class="step active" onclick="showScreen(2)"><div class="num">2</div> Add Entry</div>
+  <div class="step-arrow">›</div>
+  <div class="step" onclick="showScreen(3)"><div class="num">3</div> After Save</div>
+  <div class="step-arrow">›</div>
+  <div class="step" onclick="showScreen(4)"><div class="num">4</div> Add 2nd Entry</div>
+  <div class="step-arrow">›</div>
+  <div class="step" onclick="showScreen(5)"><div class="num">5</div> Record Loan</div>
+  <div class="step-arrow">›</div>
+  <div class="step" onclick="showScreen(6)"><div class="num">6</div> Deductions</div>
+  <div class="step-arrow">›</div>
+  <div class="step" onclick="showScreen(7)"><div class="num">7</div> 总账 Summary</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 1 — MAIN LEDGER (before adding anything)
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="s1">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="topbar">
+      <div class="topbar-title">✦ Hostess Ledger</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="background:var(--bg-raised);border:1px solid var(--border);padding:6px 12px;border-radius:var(--r-sm);font-size:12px;cursor:pointer">📅 April 2026 ▾</div>
+        <button class="btn btn-primary" onclick="showScreen(2)">＋ Add Entry</button>
+      </div>
+    </div>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sb-hdr">Hostesses</div>
+        <div class="sb-item active">
+          <div class="av" style="background:rgba(168,85,247,.2);color:#c084fc">老虎</div>
+          <div class="sb-info"><div class="sb-name">老虎</div><div class="sb-id">#33</div></div>
+          <div class="sb-net green">+5,505</div>
+        </div>
+        <div class="sb-item"><div class="av" style="background:rgba(236,72,153,.2);color:#f472b6">AVA</div><div class="sb-info"><div class="sb-name">AVA</div><div class="sb-id">#35</div></div><div class="sb-net green">+6,210</div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(34,197,94,.2);color:#4ade80">ELY</div><div class="sb-info"><div class="sb-name">ELLY</div><div class="sb-id">#36</div></div><div class="sb-net amber">−1,425</div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(59,130,246,.2);color:#93c5fd">MIM</div><div class="sb-info"><div class="sb-name">MIMI</div><div class="sb-id">#37</div></div><div class="sb-net green">+8,340</div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(245,158,11,.2);color:#fcd34d">NIN</div><div class="sb-info"><div class="sb-name">NINI</div><div class="sb-id">#38</div></div><div class="sb-net green">+7,120</div></div>
+        <div style="height:1px;background:var(--border);margin:6px 0"></div>
+        <div class="sb-item" onclick="showScreen(7)" style="color:var(--neon-amber)"><span>📊</span><span style="font-size:12px;font-weight:600">总账 Summary</span></div>
+      </div>
+      <div class="main">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="av" style="background:rgba(168,85,247,.2);color:#c084fc;width:38px;height:38px;font-size:12px">#33老虎</div>
+            <div><div style="font-size:16px;font-weight:700">#33 老虎 — April 2026</div><div style="font-size:11px;color:var(--text-muted)">SAIGON · 12 entries so far this month</div></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="showScreen(5)">🔄 Add Loan</button>
+            <button class="btn btn-secondary btn-sm" onclick="showScreen(6)">📋 Deductions</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="fchip active">All</div><div class="fchip">写钟</div><div class="fchip">跑台</div><div class="fchip">包夜</div><div class="fchip">私工</div><div class="fchip amber">⏳ Pending</div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Daily Entries</div><div style="font-size:11px;color:var(--text-muted)">Apr 1 – Apr 30 · <button class="btn btn-primary btn-sm" onclick="showScreen(2)">＋ Add Entry</button></div></div>
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th>Description</th><th style="text-align:right">Units</th><th style="text-align:right">Rate</th><th style="text-align:right">Venue Earn.</th><th style="text-align:right">Priv. Gross</th><th style="text-align:right">Priv. Net</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="muted">1 Apr</td><td><span class="wt wt-clock">写钟</span></td><td>SAIGON — 3 hrs</td><td class="num">3 hrs</td><td class="num">60</td><td class="num blue">180</td><td class="num muted">—</td><td class="num muted">—</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted"></td><td><span class="wt wt-table">跑台</span></td><td>SAIGON — 1 table</td><td class="num">1 tbl</td><td class="num">25</td><td class="num blue">25</td><td class="num muted">—</td><td class="num muted">—</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted">1 Apr</td><td><span class="wt wt-private">私工</span></td><td>jun — 7 hrs</td><td class="num">7 hrs</td><td class="num">50</td><td class="num blue">350</td><td class="num muted">700</td><td class="num green">+350</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted">8 Apr</td><td><span class="wt wt-overnight">包夜</span></td><td>迷城 — 晓晓 8 hrs</td><td class="num">4 hrs</td><td class="num">100</td><td class="num blue">400</td><td class="num muted">975</td><td class="num green">+575</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted">14 Apr</td><td><span class="wt wt-rest">休息</span></td><td>Day off (俊发达)</td><td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td><td>—</td></tr>
+              <tr><td class="muted">21 Apr</td><td><span class="wt wt-clock">写钟</span></td><td>SAIGON — 6 hrs</td><td class="num">6 hrs</td><td class="num">60</td><td class="num blue">360</td><td class="num muted">—</td><td class="num muted">—</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted">22 Apr</td><td><span class="wt wt-overnight">包夜</span></td><td>三爷朋友N — 8 hrs</td><td class="num">4 hrs</td><td class="num">100</td><td class="num blue">400</td><td class="num muted">1,180</td><td class="num green">+780</td><td><span class="settle s-pend">⏳ Pending</span></td></tr>
+            </tbody>
+            <tfoot><tr><td colspan="5" class="muted" style="font-size:11px">Apr totals so far</td><td class="num blue">1,715</td><td class="num muted">2,855</td><td class="num green">+1,705</td><td></td></tr></tfoot>
+          </table>
+        </div>
+        <div style="text-align:center;padding:8px;color:var(--text-muted);font-size:12px">👆 Click <strong style="color:var(--neon-purple)">＋ Add Entry</strong> to record tonight's entries for 30 Apr</div>
+      </div>
+      <div class="rpanel">
+        <div class="net-box"><div class="net-lbl">Net Payout — Apr 2026</div><div class="net-val">RM 5,505</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">After deductions &amp; loans</div></div>
+        <div class="rcard"><div class="rcard-title">💰 Earnings</div><div class="rrow"><span style="color:var(--text-secondary)">Venue</span><span class="blue">RM 1,715</span></div><div class="rrow"><span style="color:var(--text-secondary)">Private net</span><span class="green">RM 1,705</span></div><div class="rrow" style="border:none;padding-top:8px"><span style="font-weight:700">Gross</span><span style="font-size:14px;font-weight:800">RM 3,420</span></div></div>
+        <div class="rcard"><div class="rcard-title">📋 Deductions</div><div class="rrow"><span style="color:var(--text-secondary)">Utilities</span><span class="red">−RM 1,200</span></div><div class="rrow"><span style="color:var(--text-secondary)">Phone</span><span class="red">−RM 95</span></div><div class="rrow"><span style="color:var(--text-secondary)">Internet</span><span class="red">−RM 100</span></div><div class="rrow" style="border:none"><span style="color:var(--text-secondary)">Water</span><span class="red">−RM 30</span></div></div>
+        <div class="rcard"><div class="rcard-title">⏳ Pending</div><div class="rrow"><span style="color:var(--text-secondary)">Entries</span><span class="amber">1 entry</span></div><div class="rrow" style="border:none"><span style="color:var(--text-secondary)">Amount</span><span class="amber">RM 780</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 2 — ENTRY FORM (包夜 selected, 30 Apr)
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="s2">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="topbar">
+      <div class="topbar-title">✦ Hostess Ledger</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="background:var(--bg-raised);border:1px solid var(--border);padding:6px 12px;border-radius:var(--r-sm);font-size:12px">📅 April 2026</div>
+      </div>
+    </div>
+    <div class="layout">
+      <!-- same sidebar -->
+      <div class="sidebar">
+        <div class="sb-hdr">Hostesses</div>
+        <div class="sb-item active"><div class="av" style="background:rgba(168,85,247,.2);color:#c084fc">老虎</div><div class="sb-info"><div class="sb-name">老虎</div><div class="sb-id">#33</div></div><div class="sb-net green">+5,505</div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(236,72,153,.2);color:#f472b6">AVA</div><div class="sb-info"><div class="sb-name">AVA</div><div class="sb-id">#35</div></div><div class="sb-net green">+6,210</div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(34,197,94,.2);color:#4ade80">ELY</div><div class="sb-info"><div class="sb-name">ELLY</div><div class="sb-id">#36</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(59,130,246,.2);color:#93c5fd">MIM</div><div class="sb-info"><div class="sb-name">MIMI</div><div class="sb-id">#37</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(245,158,11,.2);color:#fcd34d">NIN</div><div class="sb-info"><div class="sb-name">NINI</div><div class="sb-id">#38</div></div></div>
+      </div>
+      <!-- dim main content behind drawer -->
+      <div style="flex:1;overflow:hidden;position:relative">
+        <div style="opacity:.3;pointer-events:none;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:16px;font-weight:700">#33 老虎 — April 2026</div>
+          <div class="card"><div class="card-hdr"><div class="card-title">Daily Entries</div></div><div style="padding:30px;text-align:center;color:var(--text-muted);font-size:13px">Table behind drawer...</div></div>
+        </div>
+        <!-- DRAWER -->
+        <div style="position:absolute;top:0;right:0;width:400px;height:100%;background:var(--bg-surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:-8px 0 24px rgba(0,0,0,.4)">
+          <div class="drawer-hdr">
+            <div class="drawer-title">＋ Add Entry <div class="chip"><div class="chip-av">老虎</div><div class="chip-name">#33 老虎</div></div></div>
+            <button class="btn-icon" onclick="showScreen(1)">✕</button>
+          </div>
+          <div class="drawer-body">
+            <div class="field">
+              <label><span class="req">*</span> Work Type</label>
+              <div class="type-grid">
+                <div class="tbn"><span class="ico">🕐</span>写钟<br>Clock</div>
+                <div class="tbn"><span class="ico">🍾</span>跑台<br>Table</div>
+                <div class="tbn sel-overnight"><span class="ico">🌙</span>包夜<br>Overnight</div>
+                <div class="tbn"><span class="ico">🤝</span>私工<br>Private</div>
+                <div class="tbn"><span class="ico">⏱</span>加时<br>OT</div>
+                <div class="tbn"><span class="ico">💸</span>自写<br>Self</div>
+                <div class="tbn"><span class="ico">😴</span>休息<br>Rest</div>
+                <div class="tbn"><span class="ico">🥚</span>吃蛋<br>Slow</div>
+              </div>
+            </div>
+            <div class="field-row fc2">
+              <div class="field"><label><span class="req">*</span> Date</label><input class="inp" value="30/4" /></div>
+              <div class="field"><label><span class="req">*</span> Location</label><select class="sel"><option selected>SAIGON</option><option>迷城</option><option>1616</option></select></div>
+            </div>
+            <div class="field"><label>Customer / Referred By</label><input class="inp" value="三爷朋友N" /><div class="hint">ℹ Name shown in description</div></div>
+            <div class="field-row fc2">
+              <div class="field"><label><span class="req">*</span> Booking Hrs</label><input class="inp" value="8" /><div class="hint">Total booking duration</div></div>
+              <div class="field"><label><span class="req">*</span> Private Hrs</label><input class="inp inp-amber" value="4" /><div class="hint">Actual hrs with customer</div></div>
+            </div>
+            <div class="field-row fc2">
+              <div class="field"><label><span class="req">*</span> Rate (RM)</label><input class="inp inp-blue" value="100" /></div>
+              <div class="field"><label><span class="req">*</span> Priv. Gross (RM)</label><input class="inp" value="1180" /></div>
+            </div>
+            <div class="calc-box">
+              <div class="calc-title">⚡ Auto-calculated</div>
+              <div class="crow"><span style="color:var(--text-secondary)">Venue earnings (4 × RM100)</span><span class="blue">RM 400</span></div>
+              <div class="crow"><span style="color:var(--text-secondary)">Private gross</span><span style="color:var(--text-secondary)">RM 1,180</span></div>
+              <div class="cdiv"></div>
+              <div class="cnet"><span style="color:var(--text-secondary)">Private net (hostess keeps)</span><span class="green">RM 780</span></div>
+            </div>
+            <div class="field"><label>Settlement</label>
+              <div class="settle-grid">
+                <div class="sbn">✓ Cleared</div><div class="sbn active">⏳ Pending</div><div class="sbn">🎁 Comp</div><div class="sbn">🏦 BankIn</div>
+              </div>
+            </div>
+            <div class="field"><label>Notes</label><input class="inp" placeholder="Optional..." /></div>
+          </div>
+          <div class="drawer-footer">
+            <button class="btn btn-secondary" onclick="showScreen(1)">Cancel</button>
+            <button class="btn btn-ghost" onclick="showScreen(3)">Save &amp; Add Another →</button>
+            <button class="btn btn-primary" onclick="showScreen(3)">Save Entry</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 3 — AFTER SAVE (entry appears, success flash)
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="s3">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="topbar"><div class="topbar-title">✦ Hostess Ledger</div><div style="display:flex;gap:8px"><div style="background:var(--bg-raised);border:1px solid var(--border);padding:6px 12px;border-radius:var(--r-sm);font-size:12px">📅 April 2026</div><button class="btn btn-primary" onclick="showScreen(4)">＋ Add Entry</button></div></div>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sb-hdr">Hostesses</div>
+        <div class="sb-item active"><div class="av" style="background:rgba(168,85,247,.2);color:#c084fc">老虎</div><div class="sb-info"><div class="sb-name">老虎</div><div class="sb-id">#33</div></div><div class="sb-net green">+6,285</div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(236,72,153,.2);color:#f472b6">AVA</div><div class="sb-info"><div class="sb-name">AVA</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(59,130,246,.2);color:#93c5fd">MIM</div><div class="sb-info"><div class="sb-name">MIMI</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(245,158,11,.2);color:#fcd34d">NIN</div><div class="sb-info"><div class="sb-name">NINI</div></div></div>
+        <div style="height:1px;background:var(--border);margin:6px 0"></div>
+        <div class="sb-item" onclick="showScreen(7)" style="color:var(--neon-amber)"><span>📊</span><span style="font-size:12px;font-weight:600">总账</span></div>
+      </div>
+      <div class="main">
+        <div class="success-flash">✅ Entry saved — 包夜 (三爷朋友N) on 30/4 added. Net: <strong>+RM 780</strong> &nbsp;·&nbsp; Status: Pending</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px"><div class="av" style="background:rgba(168,85,247,.2);color:#c084fc;width:38px;height:38px;font-size:12px">#33老虎</div><div><div style="font-size:16px;font-weight:700">#33 老虎 — April 2026</div><div style="font-size:11px;color:var(--text-muted)">SAIGON · 13 entries · 1 pending</div></div></div>
+          <div style="display:flex;gap:6px"><button class="btn btn-secondary btn-sm" onclick="showScreen(5)">🔄 Add Loan</button><button class="btn btn-secondary btn-sm" onclick="showScreen(6)">📋 Deductions</button></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Daily Entries</div><button class="btn btn-primary btn-sm" onclick="showScreen(4)">＋ Add Entry</button></div>
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th>Description</th><th style="text-align:right">Units</th><th style="text-align:right">Rate</th><th style="text-align:right">Venue Earn.</th><th style="text-align:right">Priv. Gross</th><th style="text-align:right">Priv. Net</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="muted">1 Apr</td><td><span class="wt wt-clock">写钟</span></td><td>SAIGON — 3 hrs</td><td class="num">3 hrs</td><td class="num">60</td><td class="num blue">180</td><td class="num muted">—</td><td class="num muted">—</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted">1 Apr</td><td><span class="wt wt-private">私工</span></td><td>jun — 7 hrs</td><td class="num">7 hrs</td><td class="num">50</td><td class="num blue">350</td><td class="num muted">700</td><td class="num green">+350</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted">8 Apr</td><td><span class="wt wt-overnight">包夜</span></td><td>迷城 — 晓晓 8 hrs</td><td class="num">4 hrs</td><td class="num">100</td><td class="num blue">400</td><td class="num muted">975</td><td class="num green">+575</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted">21 Apr</td><td><span class="wt wt-clock">写钟</span></td><td>SAIGON — 6 hrs</td><td class="num">6 hrs</td><td class="num">60</td><td class="num blue">360</td><td class="num muted">—</td><td class="num muted">—</td><td><span class="settle s-ok">✓</span></td></tr>
+              <tr><td class="muted">22 Apr</td><td><span class="wt wt-overnight">包夜</span></td><td>三爷朋友N — 8 hrs</td><td class="num">4 hrs</td><td class="num">100</td><td class="num blue">400</td><td class="num muted">1,180</td><td class="num green">+780</td><td><span class="settle s-pend">⏳ Pending</span></td></tr>
+              <tr class="new-row"><td class="muted">30 Apr</td><td><span class="wt wt-overnight">包夜</span></td><td>SAIGON — 三爷朋友N 8 hrs</td><td class="num">4 hrs</td><td class="num">100</td><td class="num blue">400</td><td class="num muted">1,180</td><td class="num green">+780</td><td><span class="settle s-pend">⏳ Pending</span></td></tr>
+            </tbody>
+            <tfoot><tr><td colspan="5" class="muted" style="font-size:11px">Apr totals</td><td class="num blue">2,115</td><td class="num muted">4,035</td><td class="num green">+2,485</td><td></td></tr></tfoot>
+          </table>
+        </div>
+        <div style="text-align:center;padding:8px;color:var(--text-muted);font-size:12px">👆 Click <strong style="color:var(--neon-purple)">＋ Add Entry</strong> to add 写钟 clock hours for the same night</div>
+      </div>
+      <div class="rpanel">
+        <div class="net-box"><div class="net-lbl">Net Payout — Apr 2026</div><div class="net-val">RM 6,285</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">Updated after new entry</div></div>
+        <div class="rcard"><div class="rcard-title">💰 Earnings</div><div class="rrow"><span style="color:var(--text-secondary)">Venue</span><span class="blue">RM 2,115</span></div><div class="rrow"><span style="color:var(--text-secondary)">Private net</span><span class="green">RM 2,485</span></div><div class="rrow" style="border:none;padding-top:8px"><span style="font-weight:700">Gross</span><span style="font-size:14px;font-weight:800">RM 4,600</span></div></div>
+        <div class="rcard"><div class="rcard-title">⏳ Pending</div><div class="rrow"><span style="color:var(--text-secondary)">Entries</span><span class="amber">2 entries</span></div><div class="rrow" style="border:none"><span style="color:var(--text-secondary)">Amount</span><span class="amber">RM 1,560</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 4 — ADD 2ND ENTRY (写钟 Clock, same night)
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="s4">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="topbar"><div class="topbar-title">✦ Hostess Ledger</div></div>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sb-hdr">Hostesses</div>
+        <div class="sb-item active"><div class="av" style="background:rgba(168,85,247,.2);color:#c084fc">老虎</div><div class="sb-info"><div class="sb-name">老虎</div><div class="sb-id">#33</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(236,72,153,.2);color:#f472b6">AVA</div><div class="sb-info"><div class="sb-name">AVA</div></div></div>
+      </div>
+      <div style="flex:1;overflow:hidden;position:relative">
+        <div style="opacity:.25;pointer-events:none;padding:16px"><div style="font-size:16px;font-weight:700">#33 老虎 — April 2026</div></div>
+        <div style="position:absolute;top:0;right:0;width:400px;height:100%;background:var(--bg-surface);border-left:1px solid var(--border);display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.4)">
+          <div class="drawer-hdr">
+            <div class="drawer-title">＋ Add Entry <div class="chip"><div class="chip-av">老虎</div><div class="chip-name">#33 老虎</div></div></div>
+            <button class="btn-icon" onclick="showScreen(3)">✕</button>
+          </div>
+          <div class="drawer-body">
+            <div class="note-box" style="background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.2)">✅ Previous entry saved. Date <strong style="color:var(--neon-green)">30/4</strong> kept — just change the type below.</div>
+            <div class="field">
+              <label><span class="req">*</span> Work Type</label>
+              <div class="type-grid">
+                <div class="tbn sel-clock"><span class="ico">🕐</span>写钟<br>Clock</div>
+                <div class="tbn"><span class="ico">🍾</span>跑台<br>Table</div>
+                <div class="tbn"><span class="ico">🌙</span>包夜<br>Overnight</div>
+                <div class="tbn"><span class="ico">🤝</span>私工<br>Private</div>
+                <div class="tbn"><span class="ico">⏱</span>加时<br>OT</div>
+                <div class="tbn"><span class="ico">💸</span>自写<br>Self</div>
+                <div class="tbn"><span class="ico">😴</span>休息<br>Rest</div>
+                <div class="tbn"><span class="ico">🥚</span>吃蛋<br>Slow</div>
+              </div>
+            </div>
+            <div class="field-row fc2">
+              <div class="field"><label><span class="req">*</span> Date</label><input class="inp" value="30/4" style="border-color:rgba(168,85,247,.4)" /></div>
+              <div class="field"><label><span class="req">*</span> Location</label><select class="sel"><option selected>SAIGON</option></select></div>
+            </div>
+            <div class="field-row fc2">
+              <div class="field"><label><span class="req">*</span> Hours Worked</label><input class="inp" value="5" /></div>
+              <div class="field"><label><span class="req">*</span> Rate (RM/hr)</label><input class="inp inp-blue" value="60" /></div>
+            </div>
+            <div class="calc-box">
+              <div class="calc-title">⚡ Auto-calculated</div>
+              <div class="cnet"><span style="color:var(--text-secondary)">Venue earnings (5 × RM60)</span><span class="blue">RM 300</span></div>
+            </div>
+            <div class="note-box">💡 写钟 goes entirely to venue record. No private earnings.</div>
+            <div class="field"><label>Settlement</label>
+              <div class="settle-grid"><div class="sbn active">✓ Cleared</div><div class="sbn">⏳ Pending</div><div class="sbn">🎁 Comp</div><div class="sbn">🏦 BankIn</div></div>
+            </div>
+          </div>
+          <div class="drawer-footer">
+            <button class="btn btn-secondary" onclick="showScreen(3)">Cancel</button>
+            <button class="btn btn-primary" onclick="showScreen(5)">Save Entry → Next: Loan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 5 — RECORD LOAN (借/还)
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="s5">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="topbar"><div class="topbar-title">✦ Hostess Ledger</div><button class="btn btn-secondary btn-sm" onclick="showScreen(6)" style="margin-left:auto">Next: Deductions →</button></div>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sb-hdr">Hostesses</div>
+        <div class="sb-item active"><div class="av" style="background:rgba(168,85,247,.2);color:#c084fc">老虎</div><div class="sb-info"><div class="sb-name">老虎</div><div class="sb-id">#33</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(236,72,153,.2);color:#f472b6">AVA</div><div class="sb-info"><div class="sb-name">AVA</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(59,130,246,.2);color:#93c5fd">MIM</div><div class="sb-info"><div class="sb-name">MIMI</div></div></div>
+      </div>
+      <div class="main" style="max-width:540px">
+        <div style="display:flex;align-items:center;gap:10px"><div class="av" style="background:rgba(168,85,247,.2);color:#c084fc;width:36px;height:36px;font-size:11px">#33老虎</div><div><div style="font-size:16px;font-weight:700">Loan Tracker — #33 老虎</div><div style="font-size:11px;color:var(--text-muted)">Borrow / Return cash advances</div></div></div>
+
+        <div class="card" style="padding:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Add New Entry</div>
+          <div class="loan-type-row" style="margin-bottom:14px">
+            <div class="loan-type-btn active-borrow"><div class="lico">💸</div><div class="ltitle">借 Borrow</div><div class="lsub">Give cash advance</div></div>
+            <div class="loan-type-btn"><div class="lico">💰</div><div class="ltitle">还 Return</div><div class="lsub">Staff returns money</div></div>
+          </div>
+          <div class="field-row fc2" style="margin-bottom:12px">
+            <div class="field"><label><span class="req">*</span> Date</label><input class="inp" value="30/4" /></div>
+            <div class="field"><label><span class="req">*</span> Amount (RM)</label><input class="inp red" value="8000" style="color:var(--neon-red);font-weight:700" /></div>
+          </div>
+          <div class="field" style="margin-bottom:12px"><label><span class="req">*</span> Purpose</label><input class="inp" value="借现金给俊" /></div>
+          <div class="field" style="margin-bottom:14px"><label>Notes</label><input class="inp" placeholder="Optional..." /></div>
+          <div class="balance-box" style="margin-bottom:14px">
+            <div><div style="font-size:11px;color:var(--text-muted)">Running balance after this entry</div><div style="font-size:12px;color:var(--text-secondary)">Previous: −RM 0 &nbsp;+&nbsp; Borrow RM 8,000</div></div>
+            <div style="font-size:18px;font-weight:800;color:var(--neon-red)">−RM 8,000</div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn-secondary">Cancel</button>
+            <button class="btn btn-primary" onclick="showScreen(6)">Save Loan Entry</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">📜 Loan History — April 2026</div></div>
+          <div style="padding:14px 16px">
+            <div class="loan-history">
+              <div class="lhrow"><div class="lhdot" style="background:var(--neon-red)"></div><div class="lhinfo"><div class="lhpurpose">借现金给俊</div><div class="lhdate">1 Apr · Cash advance</div></div><span class="lhamt red">−RM 8,000</span></div>
+              <div class="lhrow"><div class="lhdot" style="background:var(--neon-green)"></div><div class="lhinfo"><div class="lhpurpose">jun还钱 (returned)</div><div class="lhdate">8 Apr</div></div><span class="lhamt green">+RM 8,000</span></div>
+              <div class="lhrow"><div class="lhdot" style="background:var(--neon-amber)"></div><div class="lhinfo"><div class="lhpurpose">3月还欠 (March outstanding)</div><div class="lhdate">1 Apr</div></div><span class="lhamt amber" style="font-size:11px">Settled ✓</span></div>
+            </div>
+            <div class="balance-box" style="margin-top:12px">
+              <div style="font-size:12px;color:var(--text-secondary)">Current net balance</div>
+              <div style="font-size:16px;font-weight:800;color:var(--neon-green)">RM 0 (clear)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="rpanel">
+        <div class="rcard"><div class="rcard-title">🔄 Loans Summary</div><div class="rrow"><span style="color:var(--text-secondary)">Total borrowed</span><span class="red">−RM 8,000</span></div><div class="rrow"><span style="color:var(--text-secondary)">Total returned</span><span class="green">+RM 8,000</span></div><div class="rrow" style="border:none"><span style="font-weight:700">Balance</span><span class="green" style="font-size:14px;font-weight:800">RM 0</span></div></div>
+        <div class="rcard"><div class="rcard-title">💡 How it works</div><div style="font-size:12px;color:var(--text-secondary);line-height:1.7">借 (Borrow) = manager gives cash to hostess. Deducted from payout.<br><br>还 (Return) = hostess pays back. Added to payout.<br><br>Balance shown in monthly summary.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 6 — MONTHLY DEDUCTIONS
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="s6">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="topbar"><div class="topbar-title">✦ Hostess Ledger</div><div style="display:flex;gap:8px;margin-left:auto"><button class="btn btn-secondary btn-sm" onclick="showScreen(1)">← Back to Ledger</button><button class="btn btn-primary btn-sm" onclick="showScreen(7)">View 总账 Summary →</button></div></div>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sb-hdr">Hostesses</div>
+        <div class="sb-item active"><div class="av" style="background:rgba(168,85,247,.2);color:#c084fc">老虎</div><div class="sb-info"><div class="sb-name">老虎</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(236,72,153,.2);color:#f472b6">AVA</div><div class="sb-info"><div class="sb-name">AVA</div></div></div>
+        <div class="sb-item"><div class="av" style="background:rgba(34,197,94,.2);color:#4ade80">ELY</div><div class="sb-info"><div class="sb-name">ELLY</div></div></div>
+        <div style="height:1px;background:var(--border);margin:6px 0"></div>
+        <div class="sb-item" onclick="showScreen(7)" style="color:var(--neon-amber)"><span>📊</span><span style="font-size:12px;font-weight:600">总账</span></div>
+      </div>
+      <div class="main" style="max-width:580px">
+        <div style="font-size:16px;font-weight:700">Monthly Deductions — April 2026</div>
+        <div class="note-box">📋 These fixed expenses are deducted from each hostess's monthly payout. Edit amounts as needed, then click Apply to All.</div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Fixed Monthly Expenses</div><div style="font-size:11px;color:var(--text-muted)">Applied to all hostesses</div></div>
+          <div style="padding:4px 16px">
+            <div class="ded-item"><div class="ded-icon" style="background:rgba(59,130,246,.15)">⚡</div><div class="ded-info"><div class="ded-name">Electricity / Water</div><div class="ded-note">电费/水费 — shared utilities</div></div><div style="display:flex;align-items:center;gap:8px"><input class="inp" value="1200" style="width:80px;text-align:right;color:var(--neon-red)" /><span style="color:var(--text-muted);font-size:12px">RM</span></div></div>
+            <div class="ded-item"><div class="ded-icon" style="background:rgba(168,85,247,.15)">📱</div><div class="ded-info"><div class="ded-name">Phone Bill</div><div class="ded-note">电话费</div></div><div style="display:flex;align-items:center;gap:8px"><input class="inp" value="95" style="width:80px;text-align:right;color:var(--neon-red)" /><span style="color:var(--text-muted);font-size:12px">RM</span></div></div>
+            <div class="ded-item"><div class="ded-icon" style="background:rgba(34,197,94,.15)">🌐</div><div class="ded-info"><div class="ded-name">Internet</div><div class="ded-note">上网</div></div><div style="display:flex;align-items:center;gap:8px"><input class="inp" value="100" style="width:80px;text-align:right;color:var(--neon-red)" /><span style="color:var(--text-muted);font-size:12px">RM</span></div></div>
+            <div class="ded-item"><div class="ded-icon" style="background:rgba(245,158,11,.15)">💧</div><div class="ded-info"><div class="ded-name">Water Dispenser</div><div class="ded-note">水机</div></div><div style="display:flex;align-items:center;gap:8px"><input class="inp" value="30" style="width:80px;text-align:right;color:var(--neon-red)" /><span style="color:var(--text-muted);font-size:12px">RM</span></div></div>
+          </div>
+          <div style="padding:12px 16px;background:var(--bg-raised);display:flex;align-items:center;justify-content:space-between;border-top:2px solid var(--border)">
+            <div><div style="font-size:12px;color:var(--text-muted)">Total per hostess</div><div style="font-size:18px;font-weight:800;color:var(--neon-red)">−RM 1,425</div></div>
+            <button class="btn btn-primary" onclick="showScreen(7)">✓ Apply to All Hostesses</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Per-hostess Extra Deductions</div><button class="btn btn-secondary btn-sm">＋ Add</button></div>
+          <div style="padding:14px 16px">
+            <div class="ded-item"><div class="ded-icon" style="background:rgba(239,68,68,.1)">🔖</div><div class="ded-info"><div class="ded-name">护照 — Passport fee (NINI #38)</div><div class="ded-note">One-time deduction · 3 Apr</div></div><div class="ded-amt">−RM 500</div></div>
+            <div class="ded-item" style="border-bottom:none"><div class="ded-icon" style="background:rgba(168,85,247,.1)">🍳</div><div class="ded-info"><div class="ded-name">早餐 — Breakfast (AVA #35)</div><div class="ded-note">23 Apr</div></div><div class="ded-amt">−RM 20</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="rpanel">
+        <div class="rcard"><div class="rcard-title">📊 Impact Preview</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">After applying RM 1,425 deductions:</div>
+          <div class="rrow"><span style="color:var(--text-secondary)">老虎 gross</span><span>RM 7,100</span></div>
+          <div class="rrow"><span style="color:var(--text-secondary)">Deductions</span><span class="red">−RM 1,425</span></div>
+          <div class="rrow"><span style="font-weight:700">Net payout</span><span class="green" style="font-size:14px;font-weight:800">RM 5,675</span></div>
+        </div>
+        <div class="rcard"><div class="rcard-title">11 Hostesses · Total</div>
+          <div class="rrow"><span style="color:var(--text-secondary)">Total deducted</span><span class="red">−RM 15,675</span></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px">(RM 1,425 × 11 hostesses)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 7 — 总账 SUMMARY
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="s7">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="topbar"><div class="topbar-title">✦ Hostess Ledger — 总账 Summary</div><div style="display:flex;gap:8px;margin-left:auto"><div style="background:var(--bg-raised);border:1px solid var(--border);padding:6px 12px;border-radius:var(--r-sm);font-size:12px">📅 April 2026</div><button class="btn btn-secondary btn-sm" onclick="showScreen(1)">← Back</button><button class="btn btn-primary btn-sm">⬇ Export Excel</button></div></div>
+    <div class="ledger-screen">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;text-align:center"><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total Hostesses</div><div style="font-size:24px;font-weight:800;color:var(--neon-purple)">11</div></div>
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;text-align:center"><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total Venue Earn.</div><div style="font-size:24px;font-weight:800;color:var(--neon-blue)">RM 28,450</div></div>
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;text-align:center"><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total Private Net</div><div style="font-size:24px;font-weight:800;color:var(--neon-green)">RM 52,130</div></div>
+        <div style="background:var(--bg-surface);border:1px solid rgba(245,158,11,.3);border-radius:var(--r-md);padding:14px;text-align:center"><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Pending Collection</div><div style="font-size:24px;font-weight:800;color:var(--neon-amber)">RM 9,230</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Per-Hostess Breakdown — April 2026</div></div>
+        <table class="ledger-table">
+          <thead><tr><th>#</th><th>Hostess</th><th style="text-align:right">Venue Earn.</th><th style="text-align:right">Priv. Net</th><th style="text-align:right">Gross</th><th style="text-align:right">Deductions</th><th style="text-align:right">Loans</th><th style="text-align:right">Net Payout</th><th>⏳ Pending</th><th style="text-align:center">Payout Bar</th></tr></thead>
+          <tbody>
+            <tr><td class="rank-1">🥇 1</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(59,130,246,.2);color:#93c5fd;width:24px;height:24px;font-size:9px">MIM</div><div><div style="font-size:12px;font-weight:600">MIMI</div><div style="font-size:10px;color:var(--text-muted)">#37</div></div></div></td><td class="num blue">3,180</td><td class="num green">8,340</td><td class="num" style="font-weight:700">11,520</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num rank-1">RM 10,095</td><td class="num amber">RM 600</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:100%"></div></div></td></tr>
+            <tr><td class="rank-2">🥈 2</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(245,158,11,.2);color:#fcd34d;width:24px;height:24px;font-size:9px">JEN</div><div><div style="font-size:12px;font-weight:600">JENNY</div><div style="font-size:10px;color:var(--text-muted)">#87</div></div></div></td><td class="num blue">2,940</td><td class="num green">6,780</td><td class="num" style="font-weight:700">9,720</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num rank-2">RM 8,295</td><td class="num amber">RM 1,180</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:82%"></div></div></td></tr>
+            <tr><td class="rank-3">🥉 3</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(245,158,11,.2);color:#fbbf24;width:24px;height:24px;font-size:9px">NIN</div><div><div style="font-size:12px;font-weight:600">NINI</div><div style="font-size:10px;color:var(--text-muted)">#38</div></div></div></td><td class="num blue">3,460</td><td class="num green">5,310</td><td class="num" style="font-weight:700">8,770</td><td class="num red">−1,925</td><td class="num muted">0</td><td class="num rank-3">RM 6,845</td><td class="num amber">RM 600</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:68%"></div></div></td></tr>
+            <tr><td class="muted">4</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(236,72,153,.2);color:#f472b6;width:24px;height:24px;font-size:9px">AVA</div><div><div style="font-size:12px;font-weight:600">AVA</div><div style="font-size:10px;color:var(--text-muted)">#35</div></div></div></td><td class="num blue">2,780</td><td class="num green">4,870</td><td class="num" style="font-weight:700">7,650</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num green" style="font-weight:700">RM 6,225</td><td class="num muted">—</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:62%"></div></div></td></tr>
+            <tr><td class="muted">5</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(168,85,247,.2);color:#c084fc;width:24px;height:24px;font-size:9px">老虎</div><div><div style="font-size:12px;font-weight:600">老虎</div><div style="font-size:10px;color:var(--text-muted)">#33</div></div></div></td><td class="num blue">2,415</td><td class="num green">4,685</td><td class="num" style="font-weight:700">7,100</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num green" style="font-weight:700">RM 5,675</td><td class="num amber">RM 1,560</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:56%"></div></div></td></tr>
+            <tr><td class="muted">6</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(34,197,94,.2);color:#86efac;width:24px;height:24px;font-size:9px">XIA</div><div><div style="font-size:12px;font-weight:600">XIAOV</div><div style="font-size:10px;color:var(--text-muted)">#89</div></div></div></td><td class="num blue">2,100</td><td class="num green">4,300</td><td class="num" style="font-weight:700">6,400</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num green" style="font-weight:700">RM 4,975</td><td class="num muted">—</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:49%"></div></div></td></tr>
+            <tr><td class="muted">7</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(168,85,247,.15);color:#a78bfa;width:24px;height:24px;font-size:9px">YNG</div><div><div style="font-size:12px;font-weight:600">YING</div><div style="font-size:10px;color:var(--text-muted)">#81</div></div></div></td><td class="num blue">2,500</td><td class="num green">3,140</td><td class="num" style="font-weight:700">5,640</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num green" style="font-weight:700">RM 4,215</td><td class="num amber">RM 200</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:42%"></div></div></td></tr>
+            <tr><td class="muted">8</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(59,130,246,.15);color:#93c5fd;width:24px;height:24px;font-size:9px">MIA</div><div><div style="font-size:12px;font-weight:600">MIA</div><div style="font-size:10px;color:var(--text-muted)">—</div></div></div></td><td class="num blue">1,980</td><td class="num green">3,100</td><td class="num" style="font-weight:700">5,080</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num green" style="font-weight:700">RM 3,655</td><td class="num muted">—</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:36%"></div></div></td></tr>
+            <tr><td class="muted">9</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(168,85,247,.15);color:#d8b4fe;width:24px;height:24px;font-size:9px">LNA</div><div><div style="font-size:12px;font-weight:600">LINA</div><div style="font-size:10px;color:var(--text-muted)">—</div></div></div></td><td class="num blue">1,820</td><td class="num green">2,980</td><td class="num" style="font-weight:700">4,800</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num green" style="font-weight:700">RM 3,375</td><td class="num muted">—</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:33%"></div></div></td></tr>
+            <tr><td class="muted">10</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(236,72,153,.15);color:#fb7185;width:24px;height:24px;font-size:9px">NAN</div><div><div style="font-size:12px;font-weight:600">NANA</div><div style="font-size:10px;color:var(--text-muted)">#88</div></div></div></td><td class="num blue">1,340</td><td class="num green">2,500</td><td class="num" style="font-weight:700">3,840</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num green" style="font-weight:700">RM 2,415</td><td class="num muted">—</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:24%"></div></div></td></tr>
+            <tr><td class="muted">11</td><td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="background:rgba(34,197,94,.2);color:#4ade80;width:24px;height:24px;font-size:9px">ELY</div><div><div style="font-size:12px;font-weight:600">ELLY</div><div style="font-size:10px;color:var(--text-muted)">#36</div></div></div></td><td class="num blue">0</td><td class="num muted">0</td><td class="num" style="font-weight:700;color:var(--text-muted)">0</td><td class="num red">−1,425</td><td class="num muted">0</td><td class="num red" style="font-weight:700">−RM 1,425</td><td class="num muted">—</td><td><div class="payout-bar" style="min-width:80px"><div class="payout-fill" style="width:0%"></div></div></td></tr>
+          </tbody>
+          <tfoot><tr><td colspan="2" class="muted" style="font-size:11px">April 2026 Totals</td><td class="num blue">24,515</td><td class="num green">45,005</td><td class="num" style="font-weight:800">69,520</td><td class="num red">−15,675</td><td class="num muted">0</td><td class="num green" style="font-size:15px;font-weight:800">RM 54,845</td><td class="num amber">RM 4,140</td><td></td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s' + n).classList.add('active');
+  document.querySelectorAll('.step').forEach((s, i) => {
+    s.classList.remove('active', 'done');
+    if (i + 1 < n) s.classList.add('done');
+    if (i + 1 === n) s.classList.add('active');
+  });
+}
+showScreen(1);
+</script>
+</body>
+</html>

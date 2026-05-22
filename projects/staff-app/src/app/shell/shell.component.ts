@@ -77,8 +77,6 @@ export class ShellComponent {
     { path: '/tips-history',  labelKey: 'nav.tipsHistory',   icon: 'pi pi-dollar',    featureFlag: 'tipsHistory'     },
     { path: '/my-leave',      labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                  },
     { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'   },
-    { path: '/notifications', labelKey: 'nav.notifications', icon: 'pi pi-bell'                                      },
-    { path: '/messaging',     labelKey: 'nav.messaging',     icon: 'pi pi-comments',  featureFlag: 'messagingStaff'  },
   ];
 
   navItems = computed(() => {

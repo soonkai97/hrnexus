@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hostess Entry Form — UI Mockup</title>
+<style>
+  :root {
+    --bg-void:    #0a0a0f;
+    --bg-base:    #0f0f1a;
+    --bg-surface: #16162a;
+    --bg-raised:  #1e1e35;
+    --bg-hover:   #252540;
+    --border:     rgba(255,255,255,0.08);
+    --text-primary:   #e8e8f0;
+    --text-secondary: #a0a0b8;
+    --text-muted:     #60607a;
+    --neon-purple: #a855f7;
+    --neon-green:  #22c55e;
+    --neon-amber:  #f59e0b;
+    --neon-blue:   #3b82f6;
+    --neon-red:    #ef4444;
+    --neon-pink:   #ec4899;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-size: 14px;
+    padding: 24px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  h1 { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+
+  /* ── PANEL WRAPPER ── */
+  .panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    width: 380px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-raised);
+  }
+  .panel-title {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-close {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .panel-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .panel-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    background: var(--bg-raised);
+  }
+
+  /* ── WORK TYPE SELECTOR ── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .type-btn {
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .type-btn .icon { font-size: 16px; }
+  .type-btn:hover { border-color: var(--neon-purple); color: var(--text-primary); }
+  .type-btn.active-clock    { background: rgba(59,130,246,0.15);  border-color: #3b82f6; color: #60a5fa; }
+  .type-btn.active-table    { background: rgba(245,158,11,0.15);  border-color: #f59e0b; color: #fbbf24; }
+  .type-btn.active-overnight{ background: rgba(168,85,247,0.2);   border-color: #a855f7; color: #c084fc; }
+  .type-btn.active-private  { background: rgba(34,197,94,0.15);   border-color: #22c55e; color: #4ade80; }
+  .type-btn.active-ot       { background: rgba(236,72,153,0.15);  border-color: #ec4899; color: #f472b6; }
+  .type-btn.active-self     { background: rgba(239,68,68,0.1);    border-color: #ef4444; color: #f87171; }
+  .type-btn.active-rest     { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); color: var(--text-secondary); }
+
+  /* ── FORM FIELDS ── */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-row { display: grid; gap: 12px; }
+  .field-row.col2 { grid-template-columns: 1fr 1fr; }
+  .field-row.col3 { grid-template-columns: 1fr 1fr 1fr; }
+  label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  label .req { color: var(--neon-purple); }
+  .input {
+    background: var(--bg-void);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  .input:focus { border-color: var(--neon-purple); box-shadow: 0 0 0 2px rgba(168,85,247,0.1); }
+  .input-green { color: var(--neon-green); font-weight: 700; }
+  .input-blue  { color: var(--neon-blue);  font-weight: 600; }
+  .input-amber { color: var(--neon-amber); }
+  .select {
+    background: var(--bg-void);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2360607a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+  .select:focus { border-color: var(--neon-purple); }
+
+  /* ── AUTO-CALC PREVIEW ── */
+  .calc-box {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .calc-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+  .calc-label { color: var(--text-secondary); }
+  .calc-val-blue  { color: var(--neon-blue);  font-weight: 600; font-variant-numeric: tabular-nums; }
+  .calc-val-green { color: var(--neon-green); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .calc-val-red   { color: var(--neon-red);   font-weight: 600; font-variant-numeric: tabular-nums; }
+  .calc-divider { height: 1px; background: var(--border); }
+  .calc-net {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 800;
+    padding-top: 2px;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── SETTLEMENT TOGGLE ── */
+  .settle-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .settle-btn {
+    padding: 7px 4px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .settle-btn.active { background: rgba(34,197,94,0.12); border-color: #22c55e; color: #4ade80; }
+  .settle-btn:hover  { border-color: var(--text-muted); color: var(--text-primary); }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+    border: none; color: #fff;
+    padding: 9px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 0 12px rgba(168,85,247,0.3);
+  }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn-ghost {
+    background: transparent;
+    border: none;
+    color: var(--neon-purple);
+    padding: 9px 12px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* ── HOSTESS CHIP ── */
+  .hostess-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-raised);
+    border: 1px solid rgba(168,85,247,0.3);
+    border-radius: 24px;
+    padding: 5px 12px 5px 5px;
+    width: fit-content;
+  }
+  .hostess-chip-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(168,85,247,0.2);
+    color: #c084fc;
+    font-size: 10px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hostess-chip-name { font-size: 13px; font-weight: 600; color: var(--neon-purple); }
+
+  /* ── HINT ── */
+  .hint { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+  .hint-green { color: rgba(34,197,94,0.7); }
+
+  /* ── SAVE+ADD BADGE ── */
+  .save-add-label {
+    display: flex; flex-direction: column; align-items: flex-start;
+  }
+  .save-add-label span:first-child { font-size: 13px; font-weight: 600; }
+  .save-add-label span:last-child  { font-size: 10px; opacity: 0.7; }
+
+  /* ── TABS ── */
+  .tab-bar { display: flex; gap: 2px; background: var(--bg-void); padding: 4px; border-radius: 10px; }
+  .tab {
+    flex: 1; padding: 7px 0; text-align: center;
+    font-size: 12px; font-weight: 600;
+    border-radius: 7px; cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .tab.active { background: var(--bg-surface); color: var(--text-primary); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+  /* ── NOTE BOX ── */
+  .note-box {
+    background: rgba(168,85,247,0.06);
+    border: 1px solid rgba(168,85,247,0.2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+
+  /* Page label */
+  .page-label {
+    width: 100%;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--neon-purple);
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(168,85,247,0.2);
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     FORM 1 — 包夜 OVERNIGHT (most complex)
+     ════════════════════════════════════ -->
+<div>
+  <div class="page-label">Form State A — 包夜 Overnight (most fields)</div>
+  <div class="panel" style="width:380px">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span>＋</span>
+        <span>Add Entry</span>
+        <div class="hostess-chip">
+          <div class="hostess-chip-avatar">老虎</div>
+          <div class="hostess-chip-name">#33 老虎</div>
+        </div>
+      </div>
+      <button class="panel-close">✕</button>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- Work type selector -->
+      <div class="field">
+        <label><span class="req">*</span> Work Type</label>
+        <div class="type-grid">
+          <div class="type-btn"><span class="icon">🕐</span>写钟<br>Clock</div>
+          <div class="type-btn"><span class="icon">🍾</span>跑台<br>Table</div>
+          <div class="type-btn active-overnight"><span class="icon">🌙</span>包夜<br>Overnight</div>
+          <div class="type-btn"><span class="icon">🤝</span>私工<br>Private</div>
+          <div class="type-btn"><span class="icon">⏱</span>加时<br>OT</div>
+          <div class="type-btn"><span class="icon">💸</span>自写<br>Self-ded.</div>
+          <div class="type-btn"><span class="icon">😴</span>休息<br>Rest</div>
+          <div class="type-btn"><span class="icon">🥚</span>吃蛋<br>Slow</div>
+        </div>
+      </div>
+
+      <!-- Date + Location -->
+      <div class="field-row col2">
+        <div class="field">
+          <label><span class="req">*</span> Date</label>
+          <input class="input" type="text" value="30/4" />
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> Location</label>
+          <select class="select">
+            <option selected>SAIGON</option>
+            <option>迷城</option>
+            <option>1616</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Referrer (overnight / private only) -->
+      <div class="field">
+        <label>Customer / Referred By</label>
+        <input class="input" type="text" placeholder="e.g. william, 三爷朋友, jun" value="三爷朋友N" />
+        <div class="hint">ℹ Name shown in description. Optional.</div>
+      </div>
+
+      <!-- Units specific to overnight -->
+      <div class="field-row col2">
+        <div class="field">
+          <label><span class="req">*</span> Booking (hrs)</label>
+          <input class="input" type="number" value="8" />
+          <div class="hint">Total booking duration</div>
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> Private Hrs</label>
+          <input class="input input-amber" type="number" value="4" />
+          <div class="hint">Actual hours with customer</div>
+        </div>
+      </div>
+
+      <!-- Rate -->
+      <div class="field-row col2">
+        <div class="field">
+          <label><span class="req">*</span> Rate (RM/unit)</label>
+          <input class="input input-blue" type="number" value="100" />
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> Private Gross (RM)</label>
+          <input class="input" type="number" value="1180" placeholder="Total customer paid" />
+        </div>
+      </div>
+
+      <!-- AUTO-CALC PREVIEW -->
+      <div class="calc-box">
+        <div class="calc-title">⚡ Auto-calculated</div>
+        <div class="calc-row">
+          <span class="calc-label">Venue earnings (4 hrs × RM 100)</span>
+          <span class="calc-val-blue">RM 400</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Private gross</span>
+          <span class="calc-label">RM 1,180</span>
+        </div>
+        <div class="calc-divider"></div>
+        <div class="calc-net">
+          <span style="color:var(--text-secondary)">Private net (hostess keeps)</span>
+          <span class="calc-val-green">RM 780</span>
+        </div>
+      </div>
+
+      <!-- Settlement -->
+      <div class="field">
+        <label>Settlement Status</label>
+        <div class="settle-grid">
+          <div class="settle-btn active">✓ Cleared</div>
+          <div class="settle-btn">⏳ Pending</div>
+          <div class="settle-btn">🎁 Comp</div>
+          <div class="settle-btn">🏦 BankIn</div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="field">
+        <label>Notes</label>
+        <input class="input" type="text" placeholder="Optional remark..." />
+      </div>
+
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn-secondary">Cancel</button>
+      <button class="btn-primary" style="background:var(--bg-raised);border:1px solid var(--border);color:var(--text-secondary);box-shadow:none">
+        <div class="save-add-label">
+          <span>Save &amp; Add Another</span>
+          <span>Keep date, clear rest</span>
+        </div>
+      </button>
+      <button class="btn-primary">
+        <div class="save-add-label">
+          <span>Save Entry</span>
+          <span>Then close</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     FORM 2 — 写钟 CLOCK (simple)
+     ════════════════════════════════════ -->
+<div>
+  <div class="page-label">Form State B — 写钟 Clock (simple)</div>
+  <div class="panel" style="width:340px">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span>＋</span>
+        <span>Add Entry</span>
+        <div class="hostess-chip">
+          <div class="hostess-chip-avatar">AVA</div>
+          <div class="hostess-chip-name">#35 AVA</div>
+        </div>
+      </div>
+      <button class="panel-close">✕</button>
+    </div>
+
+    <div class="panel-body">
+      <div class="field">
+        <label><span class="req">*</span> Work Type</label>
+        <div class="type-grid">
+          <div class="type-btn active-clock"><span class="icon">🕐</span>写钟<br>Clock</div>
+          <div class="type-btn"><span class="icon">🍾</span>跑台<br>Table</div>
+          <div class="type-btn"><span class="icon">🌙</span>包夜<br>Overnight</div>
+          <div class="type-btn"><span class="icon">🤝</span>私工<br>Private</div>
+          <div class="type-btn"><span class="icon">⏱</span>加时<br>OT</div>
+          <div class="type-btn"><span class="icon">💸</span>自写<br>Self-ded.</div>
+          <div class="type-btn"><span class="icon">😴</span>休息<br>Rest</div>
+          <div class="type-btn"><span class="icon">🥚</span>吃蛋<br>Slow</div>
+        </div>
+      </div>
+
+      <div class="field-row col2">
+        <div class="field">
+          <label><span class="req">*</span> Date</label>
+          <input class="input" type="text" value="30/4" />
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> Location</label>
+          <select class="select"><option selected>SAIGON</option><option>迷城</option></select>
+        </div>
+      </div>
+
+      <div class="field-row col2">
+        <div class="field">
+          <label><span class="req">*</span> Hours Worked</label>
+          <input class="input" type="number" value="3" />
+        </div>
+        <div class="field">
+          <label><span class="req">*</span> Rate (RM/hr)</label>
+          <input class="input input-blue" type="number" value="60" />
+        </div>
+      </div>
+
+      <div class="calc-box">
+        <div class="calc-title">⚡ Auto-calculated</div>
+        <div class="calc-net">
+          <span style="color:var(--text-secondary)">Venue earnings (3 hrs × RM 60)</span>
+          <span class="calc-val-blue">RM 180</span>
+        </div>
+      </div>
+
+      <div class="note-box">
+        💡 <span>No private earnings for 写钟 — this goes entirely to venue record.</span>
+      </div>
+
+      <div class="field">
+        <label>Settlement Status</label>
+        <div class="settle-grid">
+          <div class="settle-btn active">✓ Cleared</div>
+          <div class="settle-btn">⏳ Pending</div>
+          <div class="settle-btn">🎁 Comp</div>
+          <div class="settle-btn">🏦 BankIn</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button class="btn-secondary">Cancel</button>
+      <button class="btn-ghost">Save &amp; Add Another</button>
+      <button class="btn-primary">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     FORM 3 — END-OF-NIGHT BATCH ENTRY
+     ════════════════════════════════════ -->
+<div style="flex-basis:100%;margin-top:8px">
+  <div class="page-label">Form State C — End-of-Night Batch (manager enters multiple hostesses at once)</div>
+
+  <div class="panel" style="width:720px;max-width:100%">
+    <div class="panel-header">
+      <div class="panel-title">
+        📋 Tonight's Entries
+        <span style="font-size:12px;color:var(--text-muted);font-weight:400">— Thursday 30/4/2026</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="tab-bar" style="width:200px">
+          <div class="tab active">By Hostess</div>
+          <div class="tab">By Type</div>
+        </div>
+        <button class="panel-close">✕</button>
+      </div>
+    </div>
+
+    <div class="panel-body" style="gap:20px">
+
+      <div class="note-box" style="background:rgba(34,197,94,0.06);border-color:rgba(34,197,94,0.2)">
+        ✅ <span>Date is <strong style="color:var(--neon-green)">30 Apr 2026</strong> — pre-filled from today. Add one or more entries per hostess, then save all at once.</span>
+      </div>
+
+      <!-- HOSTESS BLOCK: 老虎 -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:30px;height:30px;border-radius:50%;background:rgba(168,85,247,0.2);color:#c084fc;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">老虎</div>
+            <span style="font-weight:700">#33 老虎</span>
+          </div>
+          <button style="background:transparent;border:1px dashed rgba(168,85,247,0.3);color:var(--neon-purple);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer">＋ Add line</button>
+        </div>
+
+        <!-- Entry row 1 -->
+        <div style="display:grid;grid-template-columns:100px 90px auto 70px 70px 80px 28px;gap:6px;align-items:end;margin-bottom:6px">
+          <div class="field">
+            <label style="font-size:10px">Type</label>
+            <select class="select" style="padding:6px 8px;font-size:12px">
+              <option>🕐 写钟</option>
+              <option selected>🌙 包夜</option>
+              <option>🍾 跑台</option>
+              <option>🤝 私工</option>
+              <option>⏱ 加时</option>
+              <option>💸 自写</option>
+            </select>
+          </div>
+          <div class="field">
+            <label style="font-size:10px">Location</label>
+            <select class="select" style="padding:6px 8px;font-size:12px"><option selected>SAIGON</option></select>
+          </div>
+          <div class="field">
+            <label style="font-size:10px">Referrer</label>
+            <input class="input" style="padding:6px 10px;font-size:12px" type="text" value="三爷朋友N" />
+          </div>
+          <div class="field">
+            <label style="font-size:10px">Priv Hrs</label>
+            <input class="input input-amber" style="padding:6px 10px;font-size:12px;text-align:right" type="number" value="4" />
+          </div>
+          <div class="field">
+            <label style="font-size:10px">Rate</label>
+            <input class="input input-blue" style="padding:6px 10px;font-size:12px;text-align:right" type="number" value="100" />
+          </div>
+          <div class="field">
+            <label style="font-size:10px">Priv Gross</label>
+            <input class="input" style="padding:6px 10px;font-size:12px;text-align:right" type="number" value="1180" />
+          </div>
+          <button class="panel-close" style="margin-top:18px">✕</button>
+        </div>
+
+        <!-- Entry row 2 -->
+        <div style="display:grid;grid-template-columns:100px 90px auto 70px 70px 80px 28px;gap:6px;align-items:end">
+          <div class="field">
+            <select class="select" style="padding:6px 8px;font-size:12px"><option selected>🕐 写钟</option></select>
+          </div>
+          <div class="field">
+            <select class="select" style="padding:6px 8px;font-size:12px"><option selected>SAIGON</option></select>
+          </div>
+          <div class="field">
+            <input class="input" style="padding:6px 10px;font-size:12px" type="text" placeholder="Referrer (opt.)" />
+          </div>
+          <div class="field">
+            <input class="input" style="padding:6px 10px;font-size:12px;text-align:right;color:var(--text-muted)" type="number" placeholder="—" disabled />
+          </div>
+          <div class="field">
+            <input class="input input-blue" style="padding:6px 10px;font-size:12px;text-align:right" type="number" value="60" />
+          </div>
+          <div class="field">
+            <input class="input" style="padding:6px 10px;font-size:12px;text-align:right" type="number" value="5" placeholder="hrs" />
+          </div>
+          <button class="panel-close" style="margin-top:0px">✕</button>
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--border)"></div>
+
+      <!-- HOSTESS BLOCK: MIMI -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:30px;height:30px;border-radius:50%;background:rgba(59,130,246,0.2);color:#93c5fd;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">MIM</div>
+            <span style="font-weight:700">#37 MIMI</span>
+          </div>
+          <button style="background:transparent;border:1px dashed rgba(168,85,247,0.3);color:var(--neon-purple);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer">＋ Add line</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:100px 90px auto 70px 70px 80px 28px;gap:6px;align-items:end">
+          <div class="field">
+            <select class="select" style="padding:6px 8px;font-size:12px"><option selected>🤝 私工</option></select>
+          </div>
+          <div class="field">
+            <select class="select" style="padding:6px 8px;font-size:12px"><option selected>SAIGON</option></select>
+          </div>
+          <div class="field">
+            <input class="input" style="padding:6px 10px;font-size:12px" type="text" value="alan" />
+          </div>
+          <div class="field">
+            <input class="input input-amber" style="padding:6px 10px;font-size:12px;text-align:right" type="number" value="4" />
+          </div>
+          <div class="field">
+            <input class="input input-blue" style="padding:6px 10px;font-size:12px;text-align:right" type="number" value="50" />
+          </div>
+          <div class="field">
+            <input class="input" style="padding:6px 10px;font-size:12px;text-align:right" type="number" value="1000" />
+          </div>
+          <button class="panel-close">✕</button>
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--border)"></div>
+
+      <!-- Add another hostess -->
+      <button style="width:100%;background:transparent;border:1px dashed rgba(168,85,247,0.25);color:var(--text-muted);padding:10px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        ＋ Add another hostess to tonight
+      </button>
+
+      <!-- Batch summary preview -->
+      <div class="calc-box" style="background:rgba(168,85,247,0.05);border-color:rgba(168,85,247,0.2)">
+        <div class="calc-title" style="color:var(--neon-purple)">Tonight's batch preview (30/4)</div>
+        <div class="calc-row">
+          <span class="calc-label">老虎 — 包夜 + 写钟</span>
+          <span class="calc-val-green">+RM 1,130 net</span>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">MIMI — 私工</span>
+          <span class="calc-val-green">+RM 600 net</span>
+        </div>
+        <div class="calc-divider"></div>
+        <div class="calc-net">
+          <span style="color:var(--text-secondary)">Total entries: 3 &nbsp;|&nbsp; 2 hostesses</span>
+          <span class="calc-val-green">+RM 1,730 net</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-footer" style="justify-content:space-between">
+      <div style="font-size:12px;color:var(--text-muted)">All entries will be marked <strong style="color:var(--neon-amber)">Pending</strong> — mark settled when cash received</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-secondary">Cancel</button>
+        <button class="btn-primary">💾 Save All 3 Entries</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>

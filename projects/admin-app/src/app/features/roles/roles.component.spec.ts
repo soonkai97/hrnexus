@@ -86,11 +86,11 @@ describe('RolesComponent', () => {
       expect(mockStaffStore.createRole).not.toHaveBeenCalled();
     });
 
-    it('calls createRole with the trimmed name and rate', () => {
+    it('calls createRole with the trimmed uppercased name and rate', () => {
       component.newRoleName = '  bartender  ';
       component.newRoleRate = 15;
       component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('bartender', 15);
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15);
     });
 
     it('shows success toast after creating a role', () => {

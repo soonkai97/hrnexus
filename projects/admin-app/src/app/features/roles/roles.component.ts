@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
-import { DecimalPipe, TitleCasePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { StaffStore, ConfirmService, ToastService } from 'shared-lib';
@@ -15,7 +15,7 @@ import { Message } from 'primeng/message';
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
+  imports: [DecimalPipe, FormsModule, TranslatePipe,
     Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Message],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
@@ -54,7 +54,7 @@ export class RolesComponent implements OnInit {
   cancel(): void { this.showForm.set(false); this.error.set(''); }
 
   addRole(): void {
-    const name = this.newRoleName.trim();
+    const name = this.newRoleName.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
     this.error.set('');

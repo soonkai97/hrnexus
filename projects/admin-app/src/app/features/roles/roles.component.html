@@ -45,7 +45,7 @@
       <ng-template pTemplate="body" let-role>
         <tr>
           <td>
-            <p-tag [value]="role.name | titlecase" severity="info" />
+            <p-tag [value]="role.name" severity="info" />
           </td>
           <td>
             @if (editingRateName() === role.name) {

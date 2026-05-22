@@ -12,11 +12,11 @@ public class CreateRoleCommandHandler(IAppDbContext db)
 {
     public async Task Handle(CreateRoleCommand req, CancellationToken ct)
     {
-        var name = req.Name.ToLower().Trim();
+        var name = req.Name.Trim().ToUpperInvariant();
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Role name cannot be empty.");
 
         var exists = await db.Roles.AnyAsync(r => r.Name == name, ct);
-        if (exists) throw new InvalidOperationException($"Role '{req.Name.Trim()}' already exists.");
+        if (exists) throw new InvalidOperationException($"Role '{name}' already exists.");
 
         db.Roles.Add(Role.Create(name, hourlyRate: req.HourlyRate));
         await db.SaveChangesAsync(ct);

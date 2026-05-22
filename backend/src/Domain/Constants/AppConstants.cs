@@ -10,9 +10,9 @@ public static class AppConstants
     // ── Roles ──────────────────────────────────────────────────────────────────
     public static class Roles
     {
-        public const string Admin    = "admin";
-        public const string Manager  = "manager";
-        public const string Employee = "employee";
+        public const string Admin    = "ADMIN";
+        public const string Manager  = "MANAGER";
+        public const string Employee = "EMPLOYEE";
 
         /// <summary>JWT claim value for the highest-privilege tier.</summary>
         public const string AdminClaim   = "Admin";

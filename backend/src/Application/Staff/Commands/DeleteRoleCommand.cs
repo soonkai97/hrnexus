@@ -11,7 +11,7 @@ public class DeleteRoleCommandHandler(IAppDbContext db)
 {
     public async Task Handle(DeleteRoleCommand req, CancellationToken ct)
     {
-        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == req.Name.ToLower(), ct)
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == req.Name.Trim().ToUpperInvariant(), ct)
             ?? throw new KeyNotFoundException($"Role '{req.Name}' not found.");
 
         if (role.IsSystem)

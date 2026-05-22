@@ -118,12 +118,12 @@ public class Staff
         SetRoles(roles);
     }
 
-    /// <summary>Replaces all role assignments with the supplied list (lowercase-normalised).</summary>
+    /// <summary>Replaces all role assignments with the supplied list (uppercase-normalised).</summary>
     private void SetRoles(IEnumerable<string> roles)
     {
         RoleEntries.Clear();
         foreach (var r in roles)
-            RoleEntries.Add(new StaffRole { EmployeeId = Id, Role = r.ToLowerInvariant() });
+            RoleEntries.Add(new StaffRole { EmployeeId = Id, Role = r.Trim().ToUpperInvariant() });
     }
 
 }

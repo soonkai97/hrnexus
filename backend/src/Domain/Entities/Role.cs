@@ -11,7 +11,7 @@ public class Role
 
     public static Role Create(string name, bool isSystem = false, decimal hourlyRate = 0) => new()
     {
-        Name       = name.ToLower(),
+        Name       = name.Trim().ToUpperInvariant(),
         IsSystem   = isSystem,
         HourlyRate = hourlyRate,
         CreatedAt  = DateTime.UtcNow,

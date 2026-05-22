@@ -9,6 +9,7 @@
       <p-tab value="workTypes">{{ 'staffSettings.workTypes' | translate }}</p-tab>
       <p-tab value="expenseCategories">{{ 'staffSettings.expenseCategories' | translate }}</p-tab>
       <p-tab value="settlements">{{ 'staffSettings.settlements' | translate }}</p-tab>
+      <p-tab value="loanTypes">{{ 'staffSettings.loanTypes' | translate }}</p-tab>
     </p-tablist>
 
     <p-tabpanels>
@@ -259,6 +260,100 @@
                 <div class="list-row-actions">
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditSt(item)" />
                   <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeSt(item)" />
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-list">{{ 'staffSettings.noItems' | translate }}</div>
+            }
+          </div>
+
+        </div>
+      </p-tabpanel>
+
+      <!-- ── Loan Types ────────────────────────────────────────────────── -->
+      <p-tabpanel value="loanTypes">
+        <div class="tab-panel">
+
+          <div class="tab-panel-actions">
+            @if (ltError()) {
+              <p-message severity="error" [text]="ltError()" styleClass="flex-1" />
+            }
+            <p-button icon="pi pi-plus" [label]="'common.add' | translate"
+              severity="primary" (click)="openAddLt()" class="ms-auto" />
+          </div>
+
+          <!-- Add / Edit form -->
+          @if (showLtForm()) {
+            <div class="inline-form">
+              <p-divider />
+              <h3 class="form-title">{{ editingLt() ? ('staffSettings.editLoanType' | translate) : ('staffSettings.addLoanType' | translate) }}</h3>
+
+              <div class="form-row">
+                <div class="field">
+                  <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
+                  <input pInputText [(ngModel)]="ltForm.key" placeholder="CASH_ADVANCE"
+                         [disabled]="!!editingLt()" maxlength="50" />
+                </div>
+                <div class="field">
+                  <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
+                  <input pInputText [(ngModel)]="ltForm.label" placeholder="Cash Advance" maxlength="100" />
+                </div>
+                <div class="field field-sm">
+                  <label>{{ 'staffSettings.order' | translate }}</label>
+                  <p-inputnumber [(ngModel)]="ltForm.displayOrder" [min]="0" [max]="999" [showButtons]="true" />
+                </div>
+              </div>
+
+              <div class="form-row flags-row">
+                @if (!editingLt()) {
+                  <div class="field" style="max-width: 220px">
+                    <label>{{ 'staffSettings.direction' | translate }}</label>
+                    <p-select
+                      [(ngModel)]="ltForm.isAdvance"
+                      [options]="loanDirectionOpts"
+                      optionLabel="label"
+                      optionValue="value"
+                      appendTo="body" />
+                  </div>
+                }
+                @if (editingLt()) {
+                  <div class="flag-field">
+                    <p-checkbox [(ngModel)]="ltForm.isActive" [binary]="true" inputId="lt-active" />
+                    <label for="lt-active">{{ 'common.active' | translate }}</label>
+                  </div>
+                }
+              </div>
+
+              <div class="form-actions d-flex gap-2 justify-content-end">
+                <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelLt()" />
+                <p-button [label]="savingLt() ? ('common.saving' | translate) : (editingLt() ? ('common.update' | translate) : ('common.create' | translate))"
+                          severity="primary" (click)="saveLt()"
+                          [disabled]="savingLt() || !ltForm.key.trim() || !ltForm.label.trim()"
+                          [loading]="savingLt()" />
+              </div>
+              <p-divider />
+            </div>
+          }
+
+          <!-- List -->
+          <div class="item-list">
+            @for (item of loanTypes(); track item.id) {
+              <div class="list-row" [class.inactive]="!item.isActive">
+                <div class="list-row-info">
+                  <span class="list-key">{{ item.key }}</span>
+                  <span class="list-label">{{ item.label }}</span>
+                  <span class="list-badges">
+                    @if (item.isAdvance) { <span class="badge badge-advance">Advance</span> }
+                    @else { <span class="badge badge-repayment">Repayment</span> }
+                    @if (item.isSystem)  { <span class="badge badge-system">System</span> }
+                    @if (!item.isActive) { <span class="badge badge-inactive">Inactive</span> }
+                  </span>
+                </div>
+                <div class="list-row-order">{{ item.displayOrder }}</div>
+                <div class="list-row-actions">
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditLt(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeLt(item)"
+                            [disabled]="item.isSystem" />
                 </div>
               </div>
             } @empty {

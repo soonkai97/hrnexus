@@ -92,10 +92,11 @@ export class StaffLedgerComponent implements OnInit {
   loanForm: UpsertLoanRequest = this.emptyLoanForm();
 
   // ── Constants ─────────────────────────────────────────────────────────────────
-  readonly LOAN_TYPES = [
-    { label: 'Advance (Cash Out)', value: 'ADVANCE' },
-    { label: 'Repayment',          value: 'REPAYMENT' },
-  ];
+  readonly loanTypeOptions = computed(() =>
+    this.configSvc.loanTypes()
+      .filter(lt => lt.isActive)
+      .map(lt => ({ label: lt.label, value: lt.key }))
+  );
 
   // ── Computed summary ─────────────────────────────────────────────────────────
   totalVenue      = computed(() => this.entries().reduce((s, e) => s + e.venueEarnings, 0));
@@ -103,8 +104,14 @@ export class StaffLedgerComponent implements OnInit {
   entryCount      = computed(() => this.entries().length);
 
   totalExpenses  = computed(() => this.expenses().reduce((s, e) => s + e.amount, 0));
-  netAdvances    = computed(() => this.loans().filter(l => l.loanType === 'ADVANCE').reduce((s, l) => s + l.amount, 0));
-  netRepayments  = computed(() => this.loans().filter(l => l.loanType === 'REPAYMENT').reduce((s, l) => s + l.amount, 0));
+  netAdvances   = computed(() => {
+    const keys = new Set(this.configSvc.loanTypes().filter(lt => lt.isAdvance).map(lt => lt.key));
+    return this.loans().filter(l => keys.has(l.loanType)).reduce((s, l) => s + l.amount, 0);
+  });
+  netRepayments = computed(() => {
+    const keys = new Set(this.configSvc.loanTypes().filter(lt => !lt.isAdvance).map(lt => lt.key));
+    return this.loans().filter(l => keys.has(l.loanType)).reduce((s, l) => s + l.amount, 0);
+  });
   netLoanBalance = computed(() => this.netAdvances() - this.netRepayments());
   netPayout      = computed(() => this.totalVenue() + this.totalPrivateNet() - this.totalExpenses());
 
@@ -114,6 +121,7 @@ export class StaffLedgerComponent implements OnInit {
     this.configSvc.loadWorkTypes();
     this.configSvc.loadSettlements();
     this.configSvc.loadExpenseCategories();
+    this.configSvc.loadLoanTypes();
   }
 
   // ── Filter actions ────────────────────────────────────────────────────────────
@@ -472,7 +480,7 @@ export class StaffLedgerComponent implements OnInit {
   }
 
   loanTypeLabel(key: string): string {
-    return this.LOAN_TYPES.find(t => t.value === key)?.label ?? key;
+    return this.configSvc.loanTypes().find(lt => lt.key === key)?.label ?? key;
   }
 
   private emptyForm(): UpsertEntryRequest {
@@ -509,7 +517,7 @@ export class StaffLedgerComponent implements OnInit {
     return {
       staffId:  this.selectedStaffId() ?? '',
       loanDate: toLocalDateString(new Date()),
-      loanType: 'ADVANCE',
+      loanType: this.configSvc.loanTypes().find(lt => lt.isActive)?.key ?? 'ADVANCE',
       amount:   0,
       purpose:  null,
     };

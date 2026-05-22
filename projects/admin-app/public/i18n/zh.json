@@ -504,7 +504,14 @@
     "severity":             "颜色",
     "autoCalc":             "自动计算（单位 × 单价）",
     "hasPrivate":           "包含私人字段",
-    "noItems":              "暂无数据。"
+    "noItems":              "暂无数据。",
+    "loanTypes":            "借支类型",
+    "addLoanType":          "添加借支类型",
+    "editLoanType":         "编辑借支类型",
+    "direction":            "类型方向",
+    "advance":              "借支（支出）",
+    "repayment":            "还款（收入）",
+    "systemType":           "系统"
   },
   "account": {
     "title":            "我的账户",

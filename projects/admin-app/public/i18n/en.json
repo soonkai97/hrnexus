@@ -505,7 +505,14 @@
     "severity":             "Colour",
     "autoCalc":             "Auto-calc (units × rate)",
     "hasPrivate":           "Has private fields",
-    "noItems":              "No items yet."
+    "noItems":              "No items yet.",
+    "loanTypes":            "Loan Types",
+    "addLoanType":          "Add Loan Type",
+    "editLoanType":         "Edit Loan Type",
+    "direction":            "Direction",
+    "advance":              "Advance (Cash Out)",
+    "repayment":            "Repayment (Cash In)",
+    "systemType":           "System"
   },
   "account": {
     "title":            "My Account",

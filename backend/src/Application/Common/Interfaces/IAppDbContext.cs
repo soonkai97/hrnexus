@@ -28,5 +28,6 @@ public interface IAppDbContext
     DbSet<StaffWorkType>         StaffWorkTypes          { get; }
     DbSet<StaffSettlement>       StaffSettlements        { get; }
     DbSet<StaffExpenseCategory>  StaffExpenseCategories  { get; }
+    DbSet<StaffLoanType>         StaffLoanTypes          { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

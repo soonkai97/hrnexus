@@ -8,6 +8,8 @@ import {
   UpsertSettlementRequest,
   StaffExpenseCategoryDto,
   UpsertExpenseCategoryRequest,
+  StaffLoanTypeDto,
+  UpsertLoanTypeRequest,
 } from '../models/staff-ledger.model';
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +19,7 @@ export class StaffConfigService {
   readonly workTypes         = signal<StaffWorkTypeDto[]>([]);
   readonly settlements       = signal<StaffSettlementDto[]>([]);
   readonly expenseCategories = signal<StaffExpenseCategoryDto[]>([]);
+  readonly loanTypes         = signal<StaffLoanTypeDto[]>([]);
 
   // ── Work Types ──────────────────────────────────────────────────────────────
 
@@ -93,6 +96,32 @@ export class StaffConfigService {
   deleteExpenseCategory(id: string): Observable<void> {
     return this.http.delete<void>(`/api/staff-config/expense-categories/${id}`).pipe(
       tap(() => this.loadExpenseCategories()),
+    );
+  }
+
+  // ── Loan Types ──────────────────────────────────────────────────────────────
+
+  loadLoanTypes(): void {
+    this.http.get<StaffLoanTypeDto[]>('/api/staff-config/loan-types').subscribe({
+      next: (data) => this.loanTypes.set(data),
+    });
+  }
+
+  createLoanType(req: UpsertLoanTypeRequest): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>('/api/staff-config/loan-types', req).pipe(
+      tap(() => this.loadLoanTypes()),
+    );
+  }
+
+  updateLoanType(id: string, req: UpsertLoanTypeRequest): Observable<void> {
+    return this.http.put<void>(`/api/staff-config/loan-types/${id}`, req).pipe(
+      tap(() => this.loadLoanTypes()),
+    );
+  }
+
+  deleteLoanType(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/staff-config/loan-types/${id}`).pipe(
+      tap(() => this.loadLoanTypes()),
     );
   }
 }

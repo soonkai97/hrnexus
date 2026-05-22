@@ -16,7 +16,7 @@ export type Settlement =
   | 'COMP'           // comped — complimentary / waived
   | 'PENDING';       // (blank in Excel) — awaiting settlement
 
-export type LoanType = 'ADVANCE' | 'REPAYMENT';
+export type LoanType = string;  // dynamic — configured via StaffLoanTypes in staff-settings
 
 export const WORK_TYPE_LABELS: Record<WorkType, string> = {
   VENUECLOCK:   '写钟',
@@ -208,6 +208,24 @@ export interface StaffExpenseCategoryDto {
 export interface UpsertExpenseCategoryRequest {
   key: string;
   label: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface StaffLoanTypeDto {
+  id: string;
+  key: string;
+  label: string;
+  isAdvance: boolean;
+  displayOrder: number;
+  isActive: boolean;
+  isSystem: boolean;
+}
+
+export interface UpsertLoanTypeRequest {
+  key: string;
+  label: string;
+  isAdvance: boolean;
   displayOrder: number;
   isActive: boolean;
 }

@@ -43,16 +43,18 @@ export class LocationsComponent implements OnInit {
   cancel(): void     { this.showForm.set(false); this.editing.set(null); }
 
   save(): void {
-    if (!this.form.name) return;
+    const name = this.form.name.trim().toUpperCase();
+    if (!name) return;
     this.saving.set(true);
     this.error.set('');
+    const dto: UpsertLocationDto = { name };
     const done = () => { this.saving.set(false); this.showForm.set(false); this.editing.set(null); this.toast.success('Location saved.'); };
     const fail = (e: any) => { const msg = e?.error?.error ?? 'Save failed.'; this.error.set(msg); this.toast.error(msg); this.saving.set(false); };
     const editingId = this.editing()?.id;
     if (editingId) {
-      this.store.update(editingId, this.form).subscribe({ next: done, error: fail });
+      this.store.update(editingId, dto).subscribe({ next: done, error: fail });
     } else {
-      this.store.create(this.form).subscribe({ next: done, error: fail });
+      this.store.create(dto).subscribe({ next: done, error: fail });
     }
   }
 

@@ -84,6 +84,13 @@ describe('LocationsComponent', () => {
       expect(mockLocationStore.create).not.toHaveBeenCalled();
       expect(mockLocationStore.update).not.toHaveBeenCalled();
     });
+
+    it('does nothing when form.name is only whitespace', () => {
+      component.form.name = '   ';
+      component.save();
+      expect(mockLocationStore.create).not.toHaveBeenCalled();
+      expect(mockLocationStore.update).not.toHaveBeenCalled();
+    });
   });
 
   // ── save() — create path ──────────────────────────────────────────────────────
@@ -96,7 +103,7 @@ describe('LocationsComponent', () => {
 
     it('calls store.create when no location is being edited', () => {
       component.save();
-      expect(mockLocationStore.create).toHaveBeenCalledWith({ name: 'VIP Lounge' });
+      expect(mockLocationStore.create).toHaveBeenCalledWith({ name: 'VIP LOUNGE' });
     });
 
     it('does NOT call store.update on the create path', () => {
@@ -133,7 +140,7 @@ describe('LocationsComponent', () => {
 
     it('calls store.update with the editing location id and new form data', () => {
       component.save();
-      expect(mockLocationStore.update).toHaveBeenCalledWith('loc-1', { name: 'Main Bar Renamed' });
+      expect(mockLocationStore.update).toHaveBeenCalledWith('loc-1', { name: 'MAIN BAR RENAMED' });
     });
 
     it('does NOT call store.create on the update path', () => {

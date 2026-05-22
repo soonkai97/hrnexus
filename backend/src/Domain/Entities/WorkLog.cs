@@ -23,7 +23,7 @@ public class WorkLog
     {
         Id                 = Guid.NewGuid(),
         EmployeeId         = employeeId,
-        RoleName           = roleName.ToLowerInvariant(),
+        RoleName           = roleName.Trim().ToUpperInvariant(),
         LocationId         = locationId,
         LocationName       = locationName,
         WorkDate           = workDate,
@@ -39,7 +39,7 @@ public class WorkLog
     {
         Id                 = Guid.NewGuid(),
         EmployeeId         = employeeId,
-        RoleName           = roleName.ToLowerInvariant(),
+        RoleName           = roleName.Trim().ToUpperInvariant(),
         LocationId         = locationId,
         LocationName       = locationName,
         WorkDate           = workDate,

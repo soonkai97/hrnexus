@@ -68,10 +68,7 @@
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
-          <p-select [options]="timeOptions" [(ngModel)]="form.startTime"
-            optionLabel="label" optionValue="value"
-            [placeholder]="'leave.selectTime' | translate"
-            styleClass="w-full" />
+          <input pInputText type="time" [(ngModel)]="form.startTime" class="w-full" />
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
@@ -83,10 +80,7 @@
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
-          <p-select [options]="timeOptions" [(ngModel)]="form.endTime"
-            optionLabel="label" optionValue="value"
-            [placeholder]="'leave.selectTime' | translate"
-            styleClass="w-full" />
+          <input pInputText type="time" [(ngModel)]="form.endTime" class="w-full" />
         </div>
 
         @if (calcHours > 0) {

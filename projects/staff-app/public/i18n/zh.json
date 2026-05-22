@@ -73,7 +73,6 @@
     "startTime":  "开始时间",
     "endDate":    "结束日期",
     "endTime":    "结束时间",
-    "selectTime": "选择时间",
     "duration":   "请假",
     "notesLabel": "备注",
     "optional":   "可选",

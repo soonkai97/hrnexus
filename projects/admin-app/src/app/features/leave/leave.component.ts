@@ -184,12 +184,31 @@ export class LeaveComponent implements OnInit {
     startTime: null, endTime: null, hours: null, notes: null, status: 'approved',
   };
 
+  /** Separate Date bindings for the time-only pickers (UpsertLeaveRequest uses string | null). */
+  startTimeDate: Date | null = null;
+  endTimeDate:   Date | null = null;
+
+  private toTimeStr(d: Date): string {
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  private parseTime(t: string): Date {
+    const [h, m] = t.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  }
+
   /** Auto-calculated hours from the form's date+time range. */
   get calcHours(): number {
-    const { startDate, startTime, endDate, endTime } = this.form;
-    if (!startDate || !startTime || !endDate || !endTime) return 0;
-    const start = new Date(`${startDate}T${startTime}`);
-    const end   = new Date(`${endDate}T${endTime}`);
+    const { startDate, endDate } = this.form;
+    const st = this.startTimeDate;
+    const et = this.endTimeDate;
+    if (!startDate || !st || !endDate || !et) return 0;
+    const start = new Date(startDate);
+    start.setHours(st.getHours(), st.getMinutes(), 0, 0);
+    const end = new Date(endDate);
+    end.setHours(et.getHours(), et.getMinutes(), 0, 0);
     const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     return Math.round(h * 10) / 10;
   }
@@ -336,6 +355,8 @@ export class LeaveComponent implements OnInit {
       endDate:   toLocalDateString(new Date()),
       startTime: null, endTime: null, hours: null,
       notes: null, status: 'approved' };
+    this.startTimeDate = null;
+    this.endTimeDate   = null;
     this.editing.set(null);
     this.formError.set('');
     this.showForm.set(true);
@@ -347,6 +368,8 @@ export class LeaveComponent implements OnInit {
       startDate: r.startDate, endDate: r.endDate,
       startTime: r.startTime, endTime: r.endTime, hours: r.hours,
       notes: r.notes, status: r.status as any };
+    this.startTimeDate = r.startTime ? this.parseTime(r.startTime) : null;
+    this.endTimeDate   = r.endTime   ? this.parseTime(r.endTime)   : null;
     this.editing.set(r.id);
     this.formError.set('');
     this.showForm.set(true);
@@ -356,6 +379,10 @@ export class LeaveComponent implements OnInit {
   cancelForm(): void { this.showForm.set(false); this.editing.set(null); }
 
   save(): void {
+    // Sync Date pickers → form string fields
+    this.form.startTime = this.startTimeDate ? this.toTimeStr(this.startTimeDate) : null;
+    this.form.endTime   = this.endTimeDate   ? this.toTimeStr(this.endTimeDate)   : null;
+
     if (!this.form.employeeId || !this.form.startDate || !this.form.endDate) {
       this.formError.set('Please fill in all required fields.'); return;
     }

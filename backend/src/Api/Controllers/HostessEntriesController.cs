@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Common.Interfaces;
+using NightclubWorkforce.Domain.Constants;
 using NightclubWorkforce.Domain.Entities;
 
 namespace NightclubWorkforce.Api.Controllers;
 
 [ApiController]
 [Route("api/hostess-entries")]
-[Authorize(Roles = "manager,admin")]
+[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
 public class HostessEntriesController(IAppDbContext db) : ControllerBase
 {
     // ── Entries ───────────────────────────────────────────────────────────────

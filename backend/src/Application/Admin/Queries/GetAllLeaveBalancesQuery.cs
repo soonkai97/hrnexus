@@ -7,17 +7,17 @@ namespace NightclubWorkforce.Application.Admin.Queries;
 public record GetAllLeaveBalancesQuery(int? Year) : IRequest<List<StaffLeaveBalanceDto>>;
 
 public record StaffLeaveBalanceDto(
-    Guid   EmployeeId,
-    string StaffId,
-    string FullName,
-    int    Year,
-    int    AnnualEntitlement,
-    double AnnualUsed,
-    double AnnualRemaining,
-    int    SickEntitlement,
-    double SickUsed,
-    double SickRemaining,
-    double UnpaidUsed);
+    Guid    EmployeeId,
+    string  StaffId,
+    string  FullName,
+    int     Year,
+    decimal AnnualEntitlement,
+    decimal AnnualUsed,
+    decimal AnnualRemaining,
+    decimal SickEntitlement,
+    decimal SickUsed,
+    decimal SickRemaining,
+    decimal UnpaidUsed);
 
 public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider dt)
     : IRequestHandler<GetAllLeaveBalancesQuery, List<StaffLeaveBalanceDto>>
@@ -39,24 +39,18 @@ public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider
 
         var staffIds = staff.Select(s => s.Id).ToList();
 
-        // Custom entitlements for this year (if none exists, defaults of 14/14 apply)
         var entitlements = await db.LeaveEntitlements
             .Where(e => staffIds.Contains(e.EmployeeId) && e.Year == year)
             .ToDictionaryAsync(e => e.EmployeeId, ct);
 
-        // All pending + approved leave for this year across all staff
-        // (same logic as balance enforcement so display matches enforcement)
         var leaves = await db.LeaveRequests
             .Where(l => staffIds.Contains(l.EmployeeId)
                      && l.Status != "rejected"
                      && l.Status != "cancelled"
                      && l.StartDate >= startOfYear
                      && l.StartDate <= endOfYear)
-            .Select(l => new { l.EmployeeId, l.LeaveType, l.StartDate, l.EndDate })
+            .Select(l => new { l.EmployeeId, l.LeaveType, l.Hours })
             .ToListAsync(ct);
-
-        static double CalcDays(DateTime start, DateTime end) =>
-            (end.Date - start.Date).TotalDays + 1;
 
         var byEmployee = leaves
             .GroupBy(l => l.EmployeeId)
@@ -65,13 +59,13 @@ public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider
         return staff.Select(s =>
         {
             var ent       = entitlements.GetValueOrDefault(s.Id);
-            var annualEnt = ent?.AnnualDays ?? 14;
-            var sickEnt   = ent?.SickDays   ?? 14;
+            var annualEnt = ent?.AnnualHours ?? 0m;
+            var sickEnt   = ent?.SickHours   ?? 0m;
 
             var emp        = byEmployee.GetValueOrDefault(s.Id);
-            var annualUsed = emp?.Where(l => l.LeaveType == "annual").Sum(l => CalcDays(l.StartDate, l.EndDate)) ?? 0;
-            var sickUsed   = emp?.Where(l => l.LeaveType == "sick"  ).Sum(l => CalcDays(l.StartDate, l.EndDate)) ?? 0;
-            var unpaidUsed = emp?.Where(l => l.LeaveType == "unpaid" ).Sum(l => CalcDays(l.StartDate, l.EndDate)) ?? 0;
+            var annualUsed = emp?.Where(l => l.LeaveType == "annual").Sum(l => l.Hours ?? 0m) ?? 0m;
+            var sickUsed   = emp?.Where(l => l.LeaveType == "sick"  ).Sum(l => l.Hours ?? 0m) ?? 0m;
+            var unpaidUsed = emp?.Where(l => l.LeaveType == "unpaid" ).Sum(l => l.Hours ?? 0m) ?? 0m;
 
             return new StaffLeaveBalanceDto(
                 s.Id,

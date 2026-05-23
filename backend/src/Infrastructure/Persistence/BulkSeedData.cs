@@ -172,13 +172,13 @@ public static class BulkSeedData
             var leave = LeaveRequest.Create(empId, type,
                 DateTime.SpecifyKind(start, DateTimeKind.Utc),
                 DateTime.SpecifyKind(end,   DateTimeKind.Utc),
-                notes: null);
+                null, null, null, null);
 
             if (status != "pending")
                 leave.Update(type,
                     DateTime.SpecifyKind(start, DateTimeKind.Utc),
                     DateTime.SpecifyKind(end,   DateTimeKind.Utc),
-                    null, status);
+                    null, null, null, null, status);
 
             db.LeaveRequests.Add(leave);
         }

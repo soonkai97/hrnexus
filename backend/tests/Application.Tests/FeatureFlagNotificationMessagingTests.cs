@@ -505,8 +505,8 @@ public class FeatureFlagNotificationMessagingTests
         var workDateDt = DateTime.SpecifyKind(workDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
 
         var leave = E.LeaveRequest.Create(staff.Id, "annual",
-            workDateDt, workDateDt, null);
-        leave.Update("annual", workDateDt, workDateDt, null, "approved");
+            workDateDt, workDateDt, null, null, null, null);
+        leave.Update("annual", workDateDt, workDateDt, null, null, null, null, "approved");
 
         var loc = E.Location.Create("Main");
         var role = MakeRole("bartender");

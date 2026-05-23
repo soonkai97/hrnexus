@@ -71,6 +71,7 @@ public class AdminController(IMediator mediator) : ControllerBase
             var id = await mediator.Send(new UpsertLeaveCommand(
                 null, body.EmployeeId, body.LeaveType,
                 body.StartDate, body.EndDate,
+                body.StartTime, body.EndTime, body.Hours,
                 body.Notes, body.Status ?? "approved"), ct);
             return Ok(new { id });
         }
@@ -86,6 +87,7 @@ public class AdminController(IMediator mediator) : ControllerBase
             await mediator.Send(new UpsertLeaveCommand(
                 id, body.EmployeeId, body.LeaveType,
                 body.StartDate, body.EndDate,
+                body.StartTime, body.EndTime, body.Hours,
                 body.Notes, body.Status ?? "approved"), ct);
             return NoContent();
         }
@@ -130,7 +132,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         try
         {
             await mediator.Send(new UpsertLeaveEntitlementCommand(
-                employeeId, body.Year, body.AnnualDays, body.SickDays), ct);
+                employeeId, body.Year, body.AnnualHours, body.SickHours), ct);
             return NoContent();
         }
         catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
@@ -269,7 +271,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 }
 
-public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? Notes, string? Status);
-public record LeaveEntitlementBody(int Year, int AnnualDays, int SickDays);
+public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status);
+public record LeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record UpsertOvertimeRuleBody(Guid? Id, string Role, decimal ThresholdHours, decimal Multiplier, bool? IsActive);
 public record DistributeTipsBody(Guid LocationId, string LocationName, DateTime ShiftDate, decimal TotalAmount, string? SplitMethod);

@@ -16,7 +16,7 @@ public class LeaveRequestDomainTests
             Guid.NewGuid(), "annual",
             DateTime.UtcNow.AddDays(5),
             DateTime.UtcNow.AddDays(7),
-            notes);
+            null, null, null, notes);
 
     // ── Create defaults ───────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ public class LeaveRequestDomainTests
     {
         var leave = LeaveRequest.Create(
             Guid.NewGuid(), "ANNUAL",
-            DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(2), null);
+            DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(2), null, null, null, null);
         Assert.Equal("annual", leave.LeaveType);
     }
 
@@ -54,7 +54,7 @@ public class LeaveRequestDomainTests
     public void Update_Status_AlwaysLowerCases(string input, string expected)
     {
         var leave = MakeLeave();
-        leave.Update(leave.LeaveType, leave.StartDate, leave.EndDate, leave.Notes, input);
+        leave.Update(leave.LeaveType, leave.StartDate, leave.EndDate, leave.StartTime, leave.EndTime, leave.Hours, leave.Notes, input);
         Assert.Equal(expected, leave.Status);
     }
 
@@ -111,7 +111,7 @@ public class LeaveRequestDomainTests
     public void AutoReject_CanBeCalledOnApprovedLeave()
     {
         var leave = MakeLeave();
-        leave.Update(leave.LeaveType, leave.StartDate, leave.EndDate, leave.Notes, "approved");
+        leave.Update(leave.LeaveType, leave.StartDate, leave.EndDate, leave.StartTime, leave.EndTime, leave.Hours, leave.Notes, "approved");
         leave.AutoReject("No-show override");
         Assert.Equal("rejected", leave.Status);
     }

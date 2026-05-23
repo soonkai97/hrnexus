@@ -362,8 +362,8 @@ public class AdminQueryPushTests
         db.Staff.Add(staff);
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
-        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "annual", start, start, null));
-        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "sick",   start, start, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "annual", start, start, null, null, null, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "sick",   start, start, null, null, null, null));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -385,8 +385,8 @@ public class AdminQueryPushTests
         db.Staff.AddRange(staff1, staff2);
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
-        db.LeaveRequests.Add(E.LeaveRequest.Create(staff1.Id, "annual", start, start, null));
-        db.LeaveRequests.Add(E.LeaveRequest.Create(staff2.Id, "annual", start, start, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff1.Id, "annual", start, start, null, null, null, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff2.Id, "annual", start, start, null, null, null, null));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -407,9 +407,9 @@ public class AdminQueryPushTests
         db.Staff.Add(staff);
 
         var start   = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
-        var pending  = E.LeaveRequest.Create(staff.Id, "annual", start, start, null);
-        var approved = E.LeaveRequest.Create(staff.Id, "annual", start, start, null);
-        approved.Update("annual", start, start, null, "approved");
+        var pending  = E.LeaveRequest.Create(staff.Id, "annual", start, start, null, null, null, null);
+        var approved = E.LeaveRequest.Create(staff.Id, "annual", start, start, null, null, null, null);
+        approved.Update("annual", start, start, null, null, null, null, "approved");
 
         db.LeaveRequests.AddRange(pending, approved);
         await db.SaveChangesAsync();
@@ -432,9 +432,9 @@ public class AdminQueryPushTests
         db.Staff.Add(staff);
 
         var start    = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
-        var approved = E.LeaveRequest.Create(staff.Id, "annual", start, start, null);
-        approved.Update("annual", start, start, null, "approved");
-        var pending  = E.LeaveRequest.Create(staff.Id, "sick", start, start, null);
+        var approved = E.LeaveRequest.Create(staff.Id, "annual", start, start, null, null, null, null);
+        approved.Update("annual", start, start, null, null, null, null, "approved");
+        var pending  = E.LeaveRequest.Create(staff.Id, "sick", start, start, null, null, null, null);
 
         db.LeaveRequests.AddRange(approved, pending);
         await db.SaveChangesAsync();
@@ -459,7 +459,7 @@ public class AdminQueryPushTests
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
         var end   = new DateTime(2025, 6, 3, 0, 0, 0, DateTimeKind.Utc);
-        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "annual", start, end, "Holiday"));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "annual", start, end, "09:00", "17:00", 24m, "Holiday"));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -473,7 +473,9 @@ public class AdminQueryPushTests
         Assert.Equal("annual", dto.LeaveType);
         Assert.Equal("2025-06-01", dto.StartDate);
         Assert.Equal("2025-06-03", dto.EndDate);
-        Assert.Equal(3m, dto.Days); // 3 days inclusive
+        Assert.Equal(24m, dto.Hours); // explicit hours stored
+        Assert.Equal("09:00", dto.StartTime);
+        Assert.Equal("17:00", dto.EndTime);
         Assert.Equal("Holiday", dto.Notes);
     }
 
@@ -485,9 +487,9 @@ public class AdminQueryPushTests
         db.Staff.Add(staff);
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
-        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "sick",   start, start, null));
-        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "annual", start, start, null));
-        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "unpaid", start, start, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "sick",   start, start, null, null, null, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "annual", start, start, null, null, null, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "unpaid", start, start, null, null, null, null));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -512,10 +514,10 @@ public class AdminQueryPushTests
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
 
         // Insert newer pending first to verify the sort is not insertion order
-        var newer = E.LeaveRequest.Create(staff.Id, "annual", start, start, null);
+        var newer = E.LeaveRequest.Create(staff.Id, "annual", start, start, null, null, null, null);
         await db.SaveChangesAsync(); // flush so CreatedAt timestamps differ
 
-        var older = E.LeaveRequest.Create(staff.Id, "sick", start, start, null);
+        var older = E.LeaveRequest.Create(staff.Id, "sick", start, start, null, null, null, null);
         db.LeaveRequests.AddRange(newer, older);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -549,13 +551,13 @@ public class AdminQueryPushTests
         var result = await handler.Handle(new GetLeaveBalanceQuery(empId, 2025), CancellationToken.None);
 
         Assert.Equal(2025,  result.Year);
-        Assert.Equal(14,    result.AnnualEntitlement);
-        Assert.Equal(0d,    result.AnnualUsed);
-        Assert.Equal(14d,   result.AnnualRemaining);
-        Assert.Equal(14,    result.SickEntitlement);
-        Assert.Equal(0d,    result.SickUsed);
-        Assert.Equal(14d,   result.SickRemaining);
-        Assert.Equal(0d,    result.UnpaidUsed);
+        Assert.Equal(0m,    result.AnnualEntitlement);   // 0 = not yet set
+        Assert.Equal(0m,    result.AnnualUsed);
+        Assert.Equal(0m,    result.AnnualRemaining);
+        Assert.Equal(0m,    result.SickEntitlement);     // 0 = not yet set
+        Assert.Equal(0m,    result.SickUsed);
+        Assert.Equal(0m,    result.SickRemaining);
+        Assert.Equal(0m,    result.UnpaidUsed);
     }
 
     [Fact]
@@ -563,7 +565,7 @@ public class AdminQueryPushTests
     {
         await using var db = CreateDb();
         var empId          = Guid.NewGuid();
-        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(empId, 2025, annualDays: 20, sickDays: 10));
+        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(empId, 2025, annualHours: 20m, sickHours: 10m));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -572,8 +574,8 @@ public class AdminQueryPushTests
 
         var result = await handler.Handle(new GetLeaveBalanceQuery(empId, 2025), CancellationToken.None);
 
-        Assert.Equal(20, result.AnnualEntitlement);
-        Assert.Equal(10, result.SickEntitlement);
+        Assert.Equal(20m, result.AnnualEntitlement);
+        Assert.Equal(10m, result.SickEntitlement);
     }
 
     [Fact]
@@ -582,10 +584,11 @@ public class AdminQueryPushTests
         await using var db = CreateDb();
         var empId          = Guid.NewGuid();
 
-        // 2 days annual leave (pending, counts towards balance)
+        // 16 hours annual leave (pending, counts towards balance)
         var start = new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
         var end   = new DateTime(2025, 3, 2, 0, 0, 0, DateTimeKind.Utc);
-        db.LeaveRequests.Add(E.LeaveRequest.Create(empId, "annual", start, end, null));
+        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(empId, 2025, annualHours: 80m, sickHours: 40m));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(empId, "annual", start, end, null, null, 16m, null));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -594,8 +597,8 @@ public class AdminQueryPushTests
 
         var result = await handler.Handle(new GetLeaveBalanceQuery(empId, 2025), CancellationToken.None);
 
-        Assert.Equal(2d,  result.AnnualUsed);
-        Assert.Equal(12d, result.AnnualRemaining);
+        Assert.Equal(16m, result.AnnualUsed);
+        Assert.Equal(64m, result.AnnualRemaining);
     }
 
     [Fact]
@@ -605,8 +608,9 @@ public class AdminQueryPushTests
         var empId          = Guid.NewGuid();
 
         var start    = new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
-        var rejected = E.LeaveRequest.Create(empId, "annual", start, start, null);
-        rejected.Update("annual", start, start, null, "rejected");
+        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(empId, 2025, annualHours: 40m, sickHours: 20m));
+        var rejected = E.LeaveRequest.Create(empId, "annual", start, start, null, null, 8m, null);
+        rejected.Update("annual", start, start, null, null, 8m, null, "rejected");
         db.LeaveRequests.Add(rejected);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -616,8 +620,8 @@ public class AdminQueryPushTests
 
         var result = await handler.Handle(new GetLeaveBalanceQuery(empId, 2025), CancellationToken.None);
 
-        Assert.Equal(0d,  result.AnnualUsed);
-        Assert.Equal(14d, result.AnnualRemaining);
+        Assert.Equal(0m,  result.AnnualUsed);
+        Assert.Equal(40m, result.AnnualRemaining);
     }
 
     [Fact]
@@ -676,11 +680,12 @@ public class AdminQueryPushTests
         var staff = MakeStaff("S001");
         db.Staff.Add(staff);
 
-        // 3 days annual leave approved
+        // 24 hours annual leave approved
         var start    = new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
         var end      = new DateTime(2025, 3, 3, 0, 0, 0, DateTimeKind.Utc);
-        var approved = E.LeaveRequest.Create(staff.Id, "annual", start, end, null);
-        approved.Update("annual", start, end, null, "approved");
+        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 80m, sickHours: 40m));
+        var approved = E.LeaveRequest.Create(staff.Id, "annual", start, end, null, null, 24m, null);
+        approved.Update("annual", start, end, null, null, 24m, null, "approved");
         db.LeaveRequests.Add(approved);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -691,8 +696,8 @@ public class AdminQueryPushTests
         var result = await handler.Handle(new GetAllLeaveBalancesQuery(2025), CancellationToken.None);
 
         Assert.Single(result);
-        Assert.Equal(3d,  result[0].AnnualUsed);
-        Assert.Equal(11d, result[0].AnnualRemaining);
+        Assert.Equal(24m, result[0].AnnualUsed);
+        Assert.Equal(56m, result[0].AnnualRemaining);
     }
 
     // ═════════════════════════════════════════════════════════════════════════

@@ -40,6 +40,7 @@ public class LeaveController(IMediator mediator) : ControllerBase
             var id = await mediator.Send(new UpsertLeaveCommand(
                 null, EmployeeId, body.LeaveType,
                 body.StartDate, body.EndDate,
+                body.StartTime, body.EndTime, body.Hours,
                 body.Notes, "pending"), ct);
             return Ok(new { id });
         }
@@ -74,4 +75,7 @@ public record ApplyLeaveBody(
     string   LeaveType,
     DateTime StartDate,
     DateTime EndDate,
+    string?  StartTime,
+    string?  EndTime,
+    decimal? Hours,
     string?  Notes);

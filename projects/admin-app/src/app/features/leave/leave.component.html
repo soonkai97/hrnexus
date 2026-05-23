@@ -373,14 +373,22 @@
             <p-progressbar class="bal-bar"
               [value]="b.annualEntitlement > 0 ? (b.annualUsed / b.annualEntitlement) * 100 : 0"
               [showValue]="false" styleClass="bal-bar-annual" />
-            <span class="bal-row-nums"><strong>{{ b.annualRemaining }}</strong>/{{ b.annualEntitlement }}h</span>
+            @if (b.annualEntitlement > 0) {
+              <span class="bal-row-nums"><strong>{{ b.annualRemaining }}</strong>/{{ b.annualEntitlement }}h</span>
+            } @else {
+              <span class="bal-row-nums bal-not-set">{{ 'leave.notSet' | translate }}</span>
+            }
           </div>
           <div class="bal-row">
             <span class="bal-row-label">{{ 'leave.sickLeave' | translate }}</span>
             <p-progressbar class="bal-bar"
               [value]="b.sickEntitlement > 0 ? (b.sickUsed / b.sickEntitlement) * 100 : 0"
               [showValue]="false" styleClass="bal-bar-sick" />
-            <span class="bal-row-nums"><strong>{{ b.sickRemaining }}</strong>/{{ b.sickEntitlement }}h</span>
+            @if (b.sickEntitlement > 0) {
+              <span class="bal-row-nums"><strong>{{ b.sickRemaining }}</strong>/{{ b.sickEntitlement }}h</span>
+            } @else {
+              <span class="bal-row-nums bal-not-set">{{ 'leave.notSet' | translate }}</span>
+            }
           </div>
           <div class="bal-row">
             <span class="bal-row-label">{{ 'leave.unpaidLeave' | translate }}</span>

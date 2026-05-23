@@ -12,6 +12,9 @@ public record UpsertLeaveCommand(
     string   LeaveType,
     DateTime StartDate,
     DateTime EndDate,
+    string?  StartTime,    // HH:mm
+    string?  EndTime,      // HH:mm
+    decimal? Hours,        // total duration in hours
     string?  Notes,
     string   Status) : IRequest<Guid>;
 
@@ -32,9 +35,11 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         if (req.StartDate > req.EndDate)
             throw new ArgumentException("StartDate must be on or before EndDate.");
 
-        var durationDays = (int)((req.EndDate.Date - req.StartDate.Date).TotalDays + 1);
-        if (durationDays > 60)
-            throw new ArgumentException("Leave duration cannot exceed 60 days in a single request.");
+        if (req.Hours is null or <= 0)
+            throw new ArgumentException("Hours must be a positive value.");
+
+        if (req.Hours > 720)
+            throw new ArgumentException("Leave duration cannot exceed 720 hours (30 days) in a single request.");
 
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
@@ -52,23 +57,30 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             var entitlement = await db.LeaveEntitlements
                 .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
 
-            int entitlementDays = leaveTypeLower == AppConstants.Leave.Annual
-                ? (entitlement?.AnnualDays ?? 14)
-                : (entitlement?.SickDays   ?? 14);
+            // 0 means entitlement not set — reject immediately
+            decimal entitlementHours = leaveTypeLower == AppConstants.Leave.Annual
+                ? (entitlement?.AnnualHours ?? 0m)
+                : (entitlement?.SickHours   ?? 0m);
 
-            var usedDays = await db.LeaveRequests
+            if (entitlementHours <= 0)
+                throw new InvalidOperationException(
+                    $"No {leaveTypeLower} leave entitlement has been set for {year}. Please contact your manager.");
+
+            var usedHours = await db.LeaveRequests
                 .Where(l => l.EmployeeId == req.EmployeeId
                          && l.LeaveType  == leaveTypeLower
                          && l.StartDate.Year == year
                          && l.Status != AppConstants.Leave.Rejected
                          && l.Status != AppConstants.Leave.Cancelled
                          && l.Id != (req.Id ?? Guid.Empty))
-                .SumAsync(l => (int)((l.EndDate.Date - l.StartDate.Date).TotalDays + 1), ct);
+                .SumAsync(l => l.Hours ?? 0m, ct);
 
-            var remaining = entitlementDays - usedDays;
-            if (usedDays + durationDays > entitlementDays)
+            if (usedHours + req.Hours > entitlementHours)
+            {
+                var remaining = Math.Max(0, entitlementHours - usedHours);
                 throw new InvalidOperationException(
-                    $"Insufficient {leaveTypeLower} leave balance. {remaining} day(s) remaining.");
+                    $"Insufficient {leaveTypeLower} leave balance. {remaining:0.##}h remaining.");
+            }
         }
 
         var start = DateTime.SpecifyKind(req.StartDate.Date, DateTimeKind.Utc);
@@ -93,6 +105,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 
             var prevStatus = existing.Status;
             existing.Update(req.LeaveType, req.StartDate, req.EndDate,
+                req.StartTime, req.EndTime, req.Hours,
                 req.Notes, req.Status);
             await db.SaveChangesAsync(ct);
 
@@ -113,16 +126,19 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         else
         {
             var leave = LeaveRequest.Create(req.EmployeeId, req.LeaveType,
-                req.StartDate, req.EndDate, req.Notes);
+                req.StartDate, req.EndDate,
+                req.StartTime, req.EndTime, req.Hours,
+                req.Notes);
             // Apply status immediately if not default
             if (!req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
                 leave.Update(req.LeaveType, req.StartDate, req.EndDate,
+                    req.StartTime, req.EndTime, req.Hours,
                     req.Notes, req.Status);
             db.LeaveRequests.Add(leave);
             await db.SaveChangesAsync(ct);
 
             await audit.LogAsync("LeaveRequest", leave.Id.ToString(), "Created",
-                req.EmployeeId, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd}", ct);
+                req.EmployeeId, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({req.Hours:0.##}h)", ct);
 
             // Notify managers of new pending leave
             if (req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
@@ -139,7 +155,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                     var notif = Notification.Create(mgr.Id,
                         "New Leave Request",
                         $"{emp?.FullName ?? "An employee"} applied for {req.LeaveType} leave " +
-                        $"({req.StartDate:MMM d} – {req.EndDate:MMM d}).",
+                        $"({req.StartDate:MMM d} – {req.EndDate:MMM d}, {req.Hours:0.##}h).",
                         AppConstants.NotificationType.LeavePending, leave.Id.ToString());
                     db.Notifications.Add(notif);
                     await notifHub.SendToUserAsync(mgr.Id, ToPayload(notif), ct);

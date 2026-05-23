@@ -61,9 +61,9 @@ public class LeaveOverlapTests
     private static async Task SeedLeave(TestDbContext db, Guid employeeId,
         DateTime start, DateTime end, string status = "approved", Guid? id = null)
     {
-        var leave = LeaveRequest.Create(employeeId, "annual", start, end, null);
+        var leave = LeaveRequest.Create(employeeId, "annual", start, end, null, null, null, null);
         if (status != "pending")
-            leave.Update(leave.LeaveType, start, end, null, status);
+            leave.Update(leave.LeaveType, start, end, null, null, null, null, status);
         if (id.HasValue)
         {
             // Overwrite the random Id via reflection so we can reference it in update tests
@@ -85,8 +85,8 @@ public class LeaveOverlapTests
         var empId = Guid.NewGuid();
 
         var result = await handler.Handle(
-            new UpsertLeaveCommand(null, empId, "sick",
-                Utc(2025, 6, 1), Utc(2025, 6, 5), null, "pending"),
+            new UpsertLeaveCommand(null, empId, "unpaid",
+                Utc(2025, 6, 1), Utc(2025, 6, 5), null, null, 8m, null, "pending"),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result);
@@ -104,8 +104,8 @@ public class LeaveOverlapTests
         var handler = CreateHandler(db);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(
-                new UpsertLeaveCommand(null, empId, "sick",
-                    Utc(2025, 6, 1), Utc(2025, 6, 5), null, "pending"),
+                new UpsertLeaveCommand(null, empId, "unpaid",
+                    Utc(2025, 6, 1), Utc(2025, 6, 5), null, null, 8m, null, "pending"),
                 CancellationToken.None));
     }
 
@@ -121,8 +121,8 @@ public class LeaveOverlapTests
         var handler = CreateHandler(db);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(
-                new UpsertLeaveCommand(null, empId, "sick",
-                    Utc(2025, 6, 8), Utc(2025, 6, 15), null, "pending"),
+                new UpsertLeaveCommand(null, empId, "unpaid",
+                    Utc(2025, 6, 8), Utc(2025, 6, 15), null, null, 8m, null, "pending"),
                 CancellationToken.None));
     }
 
@@ -138,8 +138,8 @@ public class LeaveOverlapTests
         var handler = CreateHandler(db);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(
-                new UpsertLeaveCommand(null, empId, "sick",
-                    Utc(2025, 6, 1), Utc(2025, 6, 7), null, "pending"),
+                new UpsertLeaveCommand(null, empId, "unpaid",
+                    Utc(2025, 6, 1), Utc(2025, 6, 7), null, null, 8m, null, "pending"),
                 CancellationToken.None));
     }
 
@@ -155,8 +155,8 @@ public class LeaveOverlapTests
         var handler = CreateHandler(db);
         // Starts the day after existing ends — should pass
         var result = await handler.Handle(
-            new UpsertLeaveCommand(null, empId, "sick",
-                Utc(2025, 6, 6), Utc(2025, 6, 10), null, "pending"),
+            new UpsertLeaveCommand(null, empId, "unpaid",
+                Utc(2025, 6, 6), Utc(2025, 6, 10), null, null, 8m, null, "pending"),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result);
@@ -174,8 +174,8 @@ public class LeaveOverlapTests
 
         var handler = CreateHandler(db);
         var result = await handler.Handle(
-            new UpsertLeaveCommand(null, empId, "sick",
-                Utc(2025, 6, 1), Utc(2025, 6, 10), null, "pending"),
+            new UpsertLeaveCommand(null, empId, "unpaid",
+                Utc(2025, 6, 1), Utc(2025, 6, 10), null, null, 8m, null, "pending"),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result);
@@ -193,8 +193,8 @@ public class LeaveOverlapTests
 
         var handler = CreateHandler(db);
         var result = await handler.Handle(
-            new UpsertLeaveCommand(null, empB, "sick",
-                Utc(2025, 6, 1), Utc(2025, 6, 10), null, "pending"),
+            new UpsertLeaveCommand(null, empB, "unpaid",
+                Utc(2025, 6, 1), Utc(2025, 6, 10), null, null, 8m, null, "pending"),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result);
@@ -211,8 +211,8 @@ public class LeaveOverlapTests
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(
-                new UpsertLeaveCommand(null, empId, "sick",
-                    Utc(2025, 6, 10), Utc(2025, 6, 1), null, "pending"),
+                new UpsertLeaveCommand(null, empId, "unpaid",
+                    Utc(2025, 6, 10), Utc(2025, 6, 1), null, null, 8m, null, "pending"),
                 CancellationToken.None));
     }
 
@@ -230,8 +230,8 @@ public class LeaveOverlapTests
         var handler = CreateHandler(db);
         // Update same record: extend end date (same start, later end)
         var result = await handler.Handle(
-            new UpsertLeaveCommand(leaveId, empId, "annual",
-                Utc(2025, 6, 1), Utc(2025, 6, 10), null, "approved"),
+            new UpsertLeaveCommand(leaveId, empId, "unpaid",
+                Utc(2025, 6, 1), Utc(2025, 6, 10), null, null, 8m, null, "approved"),
             CancellationToken.None);
 
         Assert.Equal(leaveId, result);

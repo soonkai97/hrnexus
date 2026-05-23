@@ -6,20 +6,20 @@ using NightclubWorkforce.Domain.Entities;
 namespace NightclubWorkforce.Application.Admin.Commands;
 
 public record UpsertLeaveEntitlementCommand(
-    Guid EmployeeId,
-    int  Year,
-    int  AnnualDays,
-    int  SickDays) : IRequest;
+    Guid    EmployeeId,
+    int     Year,
+    decimal AnnualHours,
+    decimal SickHours) : IRequest;
 
 public class UpsertLeaveEntitlementCommandHandler(IAppDbContext db)
     : IRequestHandler<UpsertLeaveEntitlementCommand>
 {
     public async Task Handle(UpsertLeaveEntitlementCommand req, CancellationToken ct)
     {
-        if (req.AnnualDays < 0 || req.SickDays < 0)
-            throw new ArgumentException("Leave entitlement days cannot be negative.");
-        if (req.AnnualDays > 365 || req.SickDays > 365)
-            throw new ArgumentException("Leave entitlement days cannot exceed 365.");
+        if (req.AnnualHours < 0 || req.SickHours < 0)
+            throw new ArgumentException("Leave entitlement hours cannot be negative.");
+        if (req.AnnualHours > 8760 || req.SickHours > 8760)
+            throw new ArgumentException("Leave entitlement hours cannot exceed 8760 (one year).");
         if (req.Year < 2000 || req.Year > DateTime.UtcNow.Year + 2)
             throw new ArgumentException("Leave entitlement year is out of valid range.");
 
@@ -28,12 +28,12 @@ public class UpsertLeaveEntitlementCommandHandler(IAppDbContext db)
 
         if (ent is null)
         {
-            ent = LeaveEntitlement.Create(req.EmployeeId, req.Year, req.AnnualDays, req.SickDays);
+            ent = LeaveEntitlement.Create(req.EmployeeId, req.Year, req.AnnualHours, req.SickHours);
             db.LeaveEntitlements.Add(ent);
         }
         else
         {
-            ent.Update(req.AnnualDays, req.SickDays);
+            ent.Update(req.AnnualHours, req.SickHours);
         }
 
         await db.SaveChangesAsync(ct);

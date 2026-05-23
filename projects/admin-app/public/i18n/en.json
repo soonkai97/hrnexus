@@ -233,7 +233,8 @@
     "overdue":            "Overdue",
     "overdueSection":     "overdue pending leave(s) need review",
     "overdueDesc":        "These leaves ended without being actioned — approve, reject, or mark as no-show.",
-    "markNoShow":         "No-Show"
+    "markNoShow":         "No-Show",
+    "notSet":             "Not set"
   },
   "reports": {
     "title":            "Reports",

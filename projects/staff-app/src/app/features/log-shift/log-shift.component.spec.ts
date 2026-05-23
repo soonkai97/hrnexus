@@ -511,6 +511,46 @@ describe('LogShiftComponent', () => {
     });
   });
 
+  // ── openEditLog() / cancelEdit() ─────────────────────────────────────────────
+
+  describe('openEditLog()', () => {
+    it('sets editingLogId so the edit form appears for this card and hides Edit/Delete buttons', () => {
+      const wl = makeLog({ id: 'log-42', isActive: false });
+      component.openEditLog(wl);
+      expect(component.editingLogId()).toBe('log-42');
+    });
+
+    it('lowercases roleName so the p-select option matches — API returns uppercase but JWT options are lowercase', () => {
+      const wl = makeLog({ roleName: 'BARTENDER', isActive: false });
+      component.openEditLog(wl);
+      expect(component.editForm.roleName).toBe('bartender');
+    });
+
+    it('populates all other editForm fields verbatim from the log', () => {
+      const wl = makeLog({ id: 'log-1', roleName: 'BARTENDER', locationId: 'loc-2', workDate: '2026-05-01', startTime: '20:00', endTime: '23:00', notes: 'busy night', isActive: false });
+      component.openEditLog(wl);
+      expect(component.editForm.locationId).toBe('loc-2');
+      expect(component.editForm.workDate).toBe('2026-05-01');
+      expect(component.editForm.startTime).toBe('20:00');
+      expect(component.editForm.endTime).toBe('23:00');
+      expect(component.editForm.notes).toBe('busy night');
+    });
+
+    it('clears editError so stale errors from a previous edit attempt are not shown', () => {
+      component.editError.set('previous error');
+      component.openEditLog(makeLog({ isActive: false }));
+      expect(component.editError()).toBe('');
+    });
+  });
+
+  describe('cancelEdit()', () => {
+    it('clears editingLogId so the edit form closes and Edit/Delete buttons reappear', () => {
+      component.openEditLog(makeLog({ id: 'log-42', isActive: false }));
+      component.cancelEdit();
+      expect(component.editingLogId()).toBeNull();
+    });
+  });
+
   // ── setMode() ────────────────────────────────────────────────────────────────
 
   describe('setMode()', () => {

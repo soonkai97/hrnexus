@@ -466,3 +466,152 @@ p.text-center { color: $text-muted; }
 
 // ── Emergency leave calendar chip ─────────────────────────────────────────────
 .cal-leave-emergency { background: rgba(251,191,36,0.15); color: $neon-amber; }
+
+// ── Item 3: Bulk select action bar ────────────────────────────────────────────
+.bulk-action-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; flex-wrap: wrap;
+  background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2);
+  border-radius: $radius-sm; padding: 0.6rem 1rem; margin-bottom: 0.75rem;
+}
+.bulk-action-bar-left  { display: flex; align-items: center; gap: 0.65rem; }
+.bulk-action-bar-right { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+.bulk-selected-count {
+  font-size: 0.82rem; font-weight: 600; color: $neon-purple;
+}
+
+.bulk-rej-input {
+  height: 2rem; font-size: 0.82rem;
+  border: 1px solid $border-subtle; border-radius: $radius-sm;
+  background: $bg-raised; color: $text-primary; padding: 0 0.65rem;
+  min-width: 180px; flex: 1 1 180px; max-width: 300px;
+  &:focus { outline: none; border-color: $neon-purple; }
+}
+
+// ── Item 3: Selected card highlight ───────────────────────────────────────────
+.leave-card-selected {
+  border: 1px solid rgba(168,85,247,0.4) !important;
+  background: rgba(168,85,247,0.04) !important;
+}
+
+// ── Item 1: Inline rejection reason form ──────────────────────────────────────
+.leave-rejection-reason {
+  font-size: 0.8rem; color: $danger;
+  background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.18);
+  border-radius: $radius-sm; padding: 0.35rem 0.7rem; margin-top: 0.35rem;
+  display: flex; align-items: center; gap: 0.4rem;
+  i { font-size: 0.75rem; flex-shrink: 0; }
+}
+
+.leave-reject-form {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding-top: 0.65rem; margin-top: 0.5rem;
+  border-top: 1px solid $border-subtle;
+}
+.leave-reject-label {
+  font-size: 0.78rem; color: $text-muted;
+}
+.leave-reject-input {
+  height: 2rem; font-size: 0.85rem;
+  border: 1px solid rgba(239,68,68,0.3); border-radius: $radius-sm;
+  background: rgba(239,68,68,0.04); color: $text-primary; padding: 0 0.65rem;
+  &:focus { outline: none; border-color: $danger; }
+}
+.leave-reject-btns {
+  display: flex; gap: 0.4rem; justify-content: flex-end;
+}
+
+// ── Item 5: Carry-over input group ────────────────────────────────────────────
+.carry-over-group { flex-shrink: 0; }
+.carry-over-input { width: 80px; }
+:host :deep(.carry-over-input .p-inputnumber-input) { width: 80px; font-size: 0.82rem; padding: 0.3rem 0.5rem; }
+
+// ── Item 6: Emergency chip in staff balance list ──────────────────────────────
+.bal-chip-emergency {
+  background: rgba(251,191,36,0.1); color: $neon-amber;
+  border: 1px solid rgba(251,191,36,0.28);
+}
+
+// ── Item 9: Carry-over notes ──────────────────────────────────────────────────
+.bal-carryover-note {
+  display: block; font-size: 0.68rem; color: $neon-purple; font-weight: 400; margin-top: 0.1rem;
+}
+.bal-chip-carryover {
+  font-size: 0.65rem; font-weight: 700; margin-left: 0.2rem;
+  color: $neon-purple; opacity: 0.75;
+}
+
+// ── Item 12: Pattern warning badge in staff rows ──────────────────────────────
+.pattern-warning-badge {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-size: 0.65rem; font-weight: 700;
+  background: rgba(251,191,36,0.12); color: #fbbf24;
+  border: 1px solid rgba(251,191,36,0.35);
+  border-radius: 999px; padding: 0.1rem 0.45rem;
+  white-space: nowrap; cursor: default;
+  i { font-size: 0.6rem; }
+}
+
+// ── Item 12: Pattern warning panel ───────────────────────────────────────────
+.pattern-warning-list { display: flex; flex-direction: column; gap: 0; }
+
+.pattern-warning-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; flex-wrap: wrap;
+  padding: 0.65rem 0; border-bottom: 1px solid $border-subtle;
+  cursor: pointer; transition: background $transition-fast;
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba(251,191,36,0.04); margin: 0 -1.25rem; padding: 0.65rem 1.25rem; }
+}
+.pw-info { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.pw-name { font-size: 0.875rem; font-weight: 600; color: $text-primary; }
+.pw-id   { font-size: 0.72rem; color: $text-muted; }
+.pw-stats { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.pw-count {
+  font-size: 0.85rem; font-weight: 800; color: #fbbf24;
+  background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);
+  border-radius: $radius-sm; padding: 0.15rem 0.5rem;
+}
+.pw-hours { font-size: 0.78rem; color: $text-muted; }
+
+// ── Item 11: Leave summary table ──────────────────────────────────────────────
+.leave-summary-table {
+  overflow-x: auto; margin-top: 0.5rem;
+}
+.ls-header, .ls-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.8fr) repeat(5, 1fr) 1fr;
+  gap: 0.25rem;
+  align-items: center;
+}
+.ls-header {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: $text-muted;
+  padding: 0.35rem 0; border-bottom: 2px solid $border-subtle;
+}
+.ls-row {
+  padding: 0.5rem 0; border-bottom: 1px solid $border-subtle; cursor: pointer;
+  transition: background $transition-fast;
+  font-size: 0.82rem;
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba(168,85,247,0.04); margin: 0 -1.25rem; padding: 0.5rem 1.25rem; }
+}
+.ls-name-col {
+  display: flex; flex-direction: column; gap: 0.1rem;
+}
+.ls-fullname { font-weight: 600; color: $text-primary; }
+.ls-sid      { font-size: 0.7rem; color: $text-muted; }
+.ls-data-col {
+  text-align: right; color: $text-secondary; font-size: 0.82rem;
+}
+.ls-total-col { font-weight: 700; color: $text-primary; }
+.ls-emergency-val { color: $neon-amber; }
+.ls-noshow-val    { color: $danger; }
+.ls-empty {
+  text-align: center; color: $text-muted; font-size: 0.85rem;
+  padding: 1rem 0;
+}
+.summary-year-label {
+  font-size: 0.82rem; color: $text-muted; font-weight: 600;
+}

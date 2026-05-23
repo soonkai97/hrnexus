@@ -26,6 +26,7 @@ public record LeaveDto(
     string?  EndTime,
     decimal  Hours,
     string?  Notes,
+    string?  RejectionReason,
     string   Status,
     string   CreatedAt);
 
@@ -73,6 +74,7 @@ public class GetLeaveQueryHandler(IAppDbContext db)
             l.EndTime,
             l.Hours ?? 0m,
             l.Notes,
+            l.RejectionReason,
             l.Status,
             l.CreatedAt.ToString("yyyy-MM-dd HH:mm"))).ToList();
 

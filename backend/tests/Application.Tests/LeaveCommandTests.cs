@@ -1089,4 +1089,395 @@ public class LeaveCommandTests
         Assert.Equal(0, count);
         Assert.Equal(0, await db.LeaveEntitlements.CountAsync(e => e.Year == 2026));
     }
+
+    // ── Item 1: RejectionReason stored / cleared via UpsertLeaveCommand ──────
+
+    [Fact]
+    public async Task UpsertLeave_Update_StoresRejectionReason_WhenStatusIsRejected()
+    {
+        // Manager rejects a pending request and provides a reason.
+        // The reason must be persisted so staff can see why it was denied.
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var today = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var ent   = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 40m, sickHours: 14m);
+        var leave = E.LeaveRequest.Create(staff.Id, "annual", today, today, null, null, 8m, null);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(
+            leave.Id, staff.Id, "annual", today, today,
+            null, null, 8m, null, "rejected", "Insufficient annual leave balance.");
+
+        await handler.Handle(cmd, CancellationToken.None);
+
+        var updated = await db.LeaveRequests.FindAsync(leave.Id);
+        Assert.Equal("rejected",                         updated!.Status);
+        Assert.Equal("Insufficient annual leave balance.", updated.RejectionReason);
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Update_ClearsRejectionReason_WhenStatusIsNotRejected()
+    {
+        // Manager re-approves a previously rejected leave.
+        // The rejection reason must be cleared so it is no longer shown to staff.
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var today = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var ent   = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 40m, sickHours: 14m);
+        var leave = E.LeaveRequest.Create(staff.Id, "annual", today, today, null, null, 8m, null);
+        leave.Update("annual", today, today, null, null, 8m, null, "rejected", "Old reason");
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(
+            leave.Id, staff.Id, "annual", today, today,
+            null, null, 8m, null, "approved", null);
+
+        await handler.Handle(cmd, CancellationToken.None);
+
+        var updated = await db.LeaveRequests.FindAsync(leave.Id);
+        Assert.Equal("approved", updated!.Status);
+        Assert.Null(updated.RejectionReason);  // must be cleared, not retained
+    }
+
+    // ── Item 5: CarryOverHours field tracked by AddCarryOver() ───────────────
+
+    [Fact]
+    public async Task CarryOverLeaveEntitlement_SetsCarryOverHours_OnEntitlement()
+    {
+        // CarryOverHours on the target-year entitlement must reflect exactly
+        // how much was carried over, so the balance screen can display it.
+        await using var db = CreateDb();
+        var staff   = MakeStaff();
+        var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
+        var ent2026 = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m);
+        // Used 30h → 10h remaining → carry-over = 10h (under the 14h cap)
+        var usedLeave = E.LeaveRequest.Create(staff.Id, "annual",
+            new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2025, 3, 5, 0, 0, 0, DateTimeKind.Utc),
+            null, null, 30m, null);
+        usedLeave.Update("annual",
+            new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2025, 3, 5, 0, 0, 0, DateTimeKind.Utc),
+            null, null, 30m, null, "approved");
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent2025);
+        db.LeaveEntitlements.Add(ent2026);
+        db.LeaveRequests.Add(usedLeave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
+        await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+
+        var updated2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
+        Assert.Equal(10m, updated2026.CarryOverHours);  // tracked separately from AnnualHours delta
+    }
+
+    // ── Item 3: BulkUpdateLeaveStatusCommand ─────────────────────────────────
+
+    [Fact]
+    public async Task BulkUpdateLeaveStatus_ReturnsZero_WhenIdsListIsEmpty()
+    {
+        await using var db = CreateDb();
+        var handler = new BulkUpdateLeaveStatusCommandHandler(
+            db, new NullNotificationHub(), new NullPushSvc(), new NullAuditService());
+
+        var count = await handler.Handle(
+            new BulkUpdateLeaveStatusCommand([], "approved"), CancellationToken.None);
+
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
+    public async Task BulkUpdateLeaveStatus_ThrowsArgument_WhenStatusIsNotApprovedOrRejected()
+    {
+        // Only approved/rejected are valid bulk targets — prevent managers from
+        // bulk-cancelling records they don't own.
+        await using var db = CreateDb();
+        var handler = new BulkUpdateLeaveStatusCommandHandler(
+            db, new NullNotificationHub(), new NullPushSvc(), new NullAuditService());
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(
+                new BulkUpdateLeaveStatusCommand([Guid.NewGuid()], "cancelled"),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task BulkUpdateLeaveStatus_ThrowsArgument_WhenMoreThan100Ids()
+    {
+        // Cap prevents accidentally approving an unbounded set in one API call.
+        await using var db = CreateDb();
+        var handler = new BulkUpdateLeaveStatusCommandHandler(
+            db, new NullNotificationHub(), new NullPushSvc(), new NullAuditService());
+
+        var ids = Enumerable.Range(0, 101).Select(_ => Guid.NewGuid()).ToList();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(
+                new BulkUpdateLeaveStatusCommand(ids, "approved"),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task BulkUpdateLeaveStatus_SkipsAlreadyResolvedRecords_OnlyUpdatesPending()
+    {
+        // Already-approved/rejected records must not be double-processed.
+        await using var db = CreateDb();
+        var staff   = MakeStaff();
+        var pending  = MakeLeave(staff.Id, "pending");
+        var approved = MakeLeave(staff.Id, "approved");
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(pending);
+        db.LeaveRequests.Add(approved);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new BulkUpdateLeaveStatusCommandHandler(
+            db, new NullNotificationHub(), new NullPushSvc(), new NullAuditService());
+
+        var count = await handler.Handle(
+            new BulkUpdateLeaveStatusCommand([pending.Id, approved.Id], "approved"),
+            CancellationToken.None);
+
+        // Only the pending record should have been updated
+        Assert.Equal(1, count);
+        var stillApproved = await db.LeaveRequests.FindAsync(approved.Id);
+        Assert.Equal("approved", stillApproved!.Status);  // unchanged
+    }
+
+    [Fact]
+    public async Task BulkUpdateLeaveStatus_ApprovesPendingRecords_AndReturnsCount()
+    {
+        await using var db = CreateDb();
+        var staff  = MakeStaff();
+        var leave1 = MakeLeave(staff.Id, "pending");
+        var leave2 = MakeLeave(staff.Id, "pending");
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave1);
+        db.LeaveRequests.Add(leave2);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new BulkUpdateLeaveStatusCommandHandler(
+            db, new NullNotificationHub(), new NullPushSvc(), new NullAuditService());
+
+        var count = await handler.Handle(
+            new BulkUpdateLeaveStatusCommand([leave1.Id, leave2.Id], "approved"),
+            CancellationToken.None);
+
+        Assert.Equal(2, count);
+        var l1 = await db.LeaveRequests.FindAsync(leave1.Id);
+        var l2 = await db.LeaveRequests.FindAsync(leave2.Id);
+        Assert.Equal("approved", l1!.Status);
+        Assert.Equal("approved", l2!.Status);
+    }
+
+    [Fact]
+    public async Task BulkUpdateLeaveStatus_StoresRejectionReason_WhenRejectingWithReason()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var leave = MakeLeave(staff.Id, "pending");
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new BulkUpdateLeaveStatusCommandHandler(
+            db, new NullNotificationHub(), new NullPushSvc(), new NullAuditService());
+
+        await handler.Handle(
+            new BulkUpdateLeaveStatusCommand([leave.Id], "rejected", "No balance remaining"),
+            CancellationToken.None);
+
+        var updated = await db.LeaveRequests.FindAsync(leave.Id);
+        Assert.Equal("rejected",              updated!.Status);
+        Assert.Equal("No balance remaining",  updated.RejectionReason);
+    }
+
+    // ── Item 11: GetLeaveSummaryQuery ─────────────────────────────────────────
+
+    [Fact]
+    public async Task GetLeaveSummary_ReturnsEmpty_WhenNoActiveStaff()
+    {
+        await using var db = CreateDb();
+        var dt = new StubDateTimeProvider(new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc));
+        var handler = new GetLeaveSummaryQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetLeaveSummaryQuery(2026), CancellationToken.None);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetLeaveSummary_GroupsByEmployee_SumsHoursByLeaveType()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff("S001");
+        var yr    = 2026;
+        var jan   = new DateTime(yr, 1, 15, 0, 0, 0, DateTimeKind.Utc);
+
+        var annualLeave = E.LeaveRequest.Create(staff.Id, "annual", jan, jan, null, null, 8m, null);
+        annualLeave.Update("annual", jan, jan, null, null, 8m, null, "approved");
+        var sickLeave = E.LeaveRequest.Create(staff.Id, "sick", jan.AddDays(10), jan.AddDays(10), null, null, 4m, null);
+        sickLeave.Update("sick", jan.AddDays(10), jan.AddDays(10), null, null, 4m, null, "approved");
+
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(annualLeave);
+        db.LeaveRequests.Add(sickLeave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider(new DateTime(yr, 5, 1, 0, 0, 0, DateTimeKind.Utc));
+        var handler = new GetLeaveSummaryQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetLeaveSummaryQuery(yr), CancellationToken.None);
+
+        Assert.Single(result);
+        Assert.Equal(8m,  result[0].AnnualUsed);
+        Assert.Equal(4m,  result[0].SickUsed);
+        Assert.Equal(12m, result[0].TotalUsed);
+    }
+
+    [Fact]
+    public async Task GetLeaveSummary_ExcludesRejectedAndCancelledLeaves()
+    {
+        // Only approved/pending leave counts toward consumed leave hours in the summary.
+        await using var db = CreateDb();
+        var staff = MakeStaff("S001");
+        var yr    = 2026;
+        var jan   = new DateTime(yr, 1, 15, 0, 0, 0, DateTimeKind.Utc);
+
+        var approvedLeave  = E.LeaveRequest.Create(staff.Id, "annual", jan, jan, null, null, 8m, null);
+        approvedLeave.Update("annual", jan, jan, null, null, 8m, null, "approved");
+        var rejectedLeave  = E.LeaveRequest.Create(staff.Id, "annual", jan.AddDays(5), jan.AddDays(5), null, null, 8m, null);
+        rejectedLeave.Update("annual", jan.AddDays(5), jan.AddDays(5), null, null, 8m, null, "rejected");
+        var cancelledLeave = E.LeaveRequest.Create(staff.Id, "annual", jan.AddDays(10), jan.AddDays(10), null, null, 8m, null);
+        cancelledLeave.Update("annual", jan.AddDays(10), jan.AddDays(10), null, null, 8m, null, "cancelled");
+
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(approvedLeave);
+        db.LeaveRequests.Add(rejectedLeave);
+        db.LeaveRequests.Add(cancelledLeave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider(new DateTime(yr, 5, 1, 0, 0, 0, DateTimeKind.Utc));
+        var handler = new GetLeaveSummaryQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetLeaveSummaryQuery(yr), CancellationToken.None);
+
+        Assert.Single(result);
+        Assert.Equal(8m, result[0].AnnualUsed);  // only the approved one
+        Assert.Equal(8m, result[0].TotalUsed);
+    }
+
+    // ── Item 12: GetLeavePatternWarningsQuery ─────────────────────────────────
+
+    [Fact]
+    public async Task GetLeavePatternWarnings_ReturnsEmpty_WhenNoFrequentSickLeave()
+    {
+        // Staff with fewer than 3 sick leaves in 90 days must not be flagged.
+        await using var db = CreateDb();
+        var staff  = MakeStaff("S001");
+        var today  = new DateTime(2026, 5, 23, 0, 0, 0, DateTimeKind.Utc);
+        var recent = today.AddDays(-10);
+
+        var sick1 = E.LeaveRequest.Create(staff.Id, "sick", recent, recent, null, null, 8m, null);
+        sick1.Update("sick", recent, recent, null, null, 8m, null, "approved");
+        var sick2 = E.LeaveRequest.Create(staff.Id, "sick", recent.AddDays(-5), recent.AddDays(-5), null, null, 8m, null);
+        sick2.Update("sick", recent.AddDays(-5), recent.AddDays(-5), null, null, 8m, null, "approved");
+
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(sick1);
+        db.LeaveRequests.Add(sick2);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider(today);
+        var handler = new GetLeavePatternWarningsQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetLeavePatternWarningsQuery(), CancellationToken.None);
+
+        // 2 sick leaves < threshold of 3 → no warning
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetLeavePatternWarnings_FlagsEmployees_With3OrMoreSickLeavesInWindow()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff("S001");
+        var today = new DateTime(2026, 5, 23, 0, 0, 0, DateTimeKind.Utc);
+
+        // 3 sick leaves all within the 90-day window
+        for (var i = 0; i < 3; i++)
+        {
+            var d = today.AddDays(-(i * 10));
+            var sick = E.LeaveRequest.Create(staff.Id, "sick", d, d, null, null, 8m, null);
+            sick.Update("sick", d, d, null, null, 8m, null, "approved");
+            db.LeaveRequests.Add(sick);
+        }
+
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider(today);
+        var handler = new GetLeavePatternWarningsQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetLeavePatternWarningsQuery(), CancellationToken.None);
+
+        Assert.Single(result);
+        Assert.Equal(staff.Id, result[0].EmployeeId);
+        Assert.Equal(3,        result[0].SickLeaveCount);
+        Assert.Equal(24m,      result[0].SickLeaveHours);
+    }
+
+    [Fact]
+    public async Task GetLeavePatternWarnings_DoesNotFlagSickLeaves_OutsideThe90DayWindow()
+    {
+        // A sick-leave history older than 90 days must not trigger a warning today.
+        await using var db = CreateDb();
+        var staff = MakeStaff("S001");
+        var today = new DateTime(2026, 5, 23, 0, 0, 0, DateTimeKind.Utc);
+
+        // 3 sick leaves but all older than 90 days
+        for (var i = 0; i < 3; i++)
+        {
+            var d = today.AddDays(-(100 + i));
+            var sick = E.LeaveRequest.Create(staff.Id, "sick", d, d, null, null, 8m, null);
+            sick.Update("sick", d, d, null, null, 8m, null, "approved");
+            db.LeaveRequests.Add(sick);
+        }
+
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider(today);
+        var handler = new GetLeavePatternWarningsQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetLeavePatternWarningsQuery(), CancellationToken.None);
+
+        // All 3 are outside the 90-day window → no warning
+        Assert.Empty(result);
+    }
 }

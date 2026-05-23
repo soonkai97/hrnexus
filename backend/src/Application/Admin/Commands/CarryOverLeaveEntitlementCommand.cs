@@ -75,10 +75,13 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
             if (carryOver <= 0m) continue;
 
             if (toMap.TryGetValue(empId, out var te))
-                te.Update(te.AnnualHours + carryOver, te.SickHours);
+                te.AddCarryOver(carryOver);
             else
-                db.LeaveEntitlements.Add(
-                    LeaveEntitlement.Create(empId, req.ToYear, carryOver, 0m));
+            {
+                var newEnt = LeaveEntitlement.Create(empId, req.ToYear, 0m, 0m);
+                newEnt.AddCarryOver(carryOver);
+                db.LeaveEntitlements.Add(newEnt);
+            }
 
             count++;
         }

@@ -15,6 +15,7 @@ public record StaffLeaveBalanceDto(
     decimal AnnualUsed,        // annual + emergency combined
     decimal AnnualRemaining,
     decimal EmergencyUsed,     // emergency portion within AnnualUsed
+    decimal CarryOverHours,    // hours carried over from the previous year
     decimal SickEntitlement,
     decimal SickUsed,
     decimal SickRemaining,
@@ -60,8 +61,9 @@ public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider
         return staff.Select(s =>
         {
             var ent       = entitlements.GetValueOrDefault(s.Id);
-            var annualEnt = ent?.AnnualHours ?? 0m;
-            var sickEnt   = ent?.SickHours   ?? 0m;
+            var annualEnt = ent?.AnnualHours   ?? 0m;
+            var sickEnt   = ent?.SickHours     ?? 0m;
+            var carryOver = ent?.CarryOverHours ?? 0m;
 
             var emp        = byEmployee.GetValueOrDefault(s.Id);
             // Annual + emergency both draw from the annual pool
@@ -76,7 +78,7 @@ public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider
                 $"{s.FirstName} {s.LastName}",
                 year,
                 annualEnt, annualUsed, Math.Max(0, annualEnt - annualUsed),
-                emergencyUsed,
+                emergencyUsed, carryOver,
                 sickEnt,   sickUsed,   Math.Max(0, sickEnt   - sickUsed),
                 unpaidUsed);
         }).ToList();

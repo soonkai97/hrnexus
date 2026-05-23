@@ -111,7 +111,19 @@
       "emergency": "Emergency Leave",
       "no-show":   "No-Show"
     },
-    "incEmergency": "inc. emergency"
+    "incEmergency":      "inc. emergency",
+    "incCarryOver":      "inc. carry-over",
+    "rejectionReason":   "Reason",
+    "calendarView":      "Calendar",
+    "calendarListView":  "List",
+    "calDayMon":         "Mon",
+    "calDayTue":         "Tue",
+    "calDayWed":         "Wed",
+    "calDayThu":         "Thu",
+    "calDayFri":         "Fri",
+    "calDaySat":         "Sat",
+    "calDaySun":         "Sun",
+    "calendarEmpty":     "No leave on this day."
   },
   "profile": {
     "title":           "Profile",

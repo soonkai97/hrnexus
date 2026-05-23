@@ -1,4 +1,4 @@
-﻿<div class="p-3 p-md-4">
+<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
     <div class="d-flex gap-2">
@@ -7,7 +7,7 @@
     </div>
   </div>
 
-  <!-- ── Filter bar (always visible) ───────────────────────────────────────── -->
+  <!-- ── Filter bar ─────────────────────────────────────────────────────────── -->
   <p-card styleClass="filter-bar">
     <div class="filter-row d-flex flex-wrap gap-2 align-items-end">
       <div class="field filter-staff">
@@ -20,21 +20,13 @@
       </div>
       <div class="field filter-date">
         <label>{{ 'leave.fromLabel' | translate }}</label>
-        <p-datepicker [(ngModel)]="filterFrom"
-          dateFormat="yy-mm-dd"
-          dataType="string"
-          [showIcon]="true"
-          styleClass="w-full"
-          (ngModelChange)="load(1)" />
+        <p-datepicker [(ngModel)]="filterFrom" dateFormat="yy-mm-dd" dataType="string"
+          [showIcon]="true" styleClass="w-full" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-date">
         <label>{{ 'leave.toLabel' | translate }}</label>
-        <p-datepicker [(ngModel)]="filterTo"
-          dateFormat="yy-mm-dd"
-          dataType="string"
-          [showIcon]="true"
-          styleClass="w-full"
-          (ngModelChange)="load(1)" />
+        <p-datepicker [(ngModel)]="filterTo" dateFormat="yy-mm-dd" dataType="string"
+          [showIcon]="true" styleClass="w-full" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-status">
         <label>{{ 'leave.statusLabel' | translate }}</label>
@@ -64,7 +56,7 @@
     </div>
   </p-card>
 
-  <!-- ── Page tabs ─────────────────────────────────────────────────────────── -->
+  <!-- ── Page tabs ──────────────────────────────────────────────────────────── -->
   <p-tabs [value]="tab()" (valueChange)="tab.set($any($event))">
     <p-tablist>
       <p-tab value="records">
@@ -73,7 +65,7 @@
           <span class="tab-badge">{{ totalPendingCount() }}</span>
         }
       </p-tab>
-      <p-tab value="balances">{{ 'leave.balancesTab' | translate }}</p-tab>
+      <p-tab value="balances" (click)="loadLeaveSummary()">{{ 'leave.balancesTab' | translate }}</p-tab>
     </p-tablist>
   </p-tabs>
 
@@ -133,6 +125,7 @@
                 <span class="form-balance-pill form-balance-annual" [class.form-balance-low]="fb.annualRemaining <= 8">
                   <i class="pi pi-sun"></i> {{ fb.annualRemaining }}h annual left
                   @if (fb.emergencyUsed > 0) { <small>(inc. {{ fb.emergencyUsed }}h emergency)</small> }
+                  @if (fb.carryOverHours > 0) { <small>(inc. {{ fb.carryOverHours }}h carry-over)</small> }
                 </span>
                 <span class="form-balance-pill form-balance-sick" [class.form-balance-low]="fb.sickRemaining <= 8">
                   <i class="pi pi-heart"></i> {{ fb.sickRemaining }}h sick left
@@ -147,12 +140,8 @@
           </div>
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
-            <p-datepicker [(ngModel)]="form.startDate"
-              dateFormat="yy-mm-dd"
-              dataType="string"
-              [showIcon]="true"
-              styleClass="w-full"
-              (ngModelChange)="onStartDateChange($event)" />
+            <p-datepicker [(ngModel)]="form.startDate" dateFormat="yy-mm-dd" dataType="string"
+              [showIcon]="true" styleClass="w-full" (ngModelChange)="onStartDateChange($event)" />
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'leave.startTime' | translate }}</label>
@@ -160,11 +149,8 @@
           </div>
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
-            <p-datepicker [(ngModel)]="form.endDate"
-              dateFormat="yy-mm-dd"
-              dataType="string"
-              [showIcon]="true"
-              styleClass="w-full" />
+            <p-datepicker [(ngModel)]="form.endDate" dateFormat="yy-mm-dd" dataType="string"
+              [showIcon]="true" styleClass="w-full" />
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'leave.endTime' | translate }}</label>
@@ -188,6 +174,13 @@
             <label>{{ 'leave.notesLabel' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="form.notes" placeholder="e.g. Doctor's note provided" />
           </div>
+          @if (form.status === 'rejected') {
+            <div class="col-12 field">
+              <label>{{ 'leave.rejectionReason' | translate }}</label>
+              <input pInputText type="text" [(ngModel)]="form.rejectionReason"
+                [placeholder]="'leave.rejectionReasonPlaceholder' | translate" />
+            </div>
+          }
         </div>
         @if (formError()) { <p-message severity="error" [text]="formError()" /> }
         <div class="form-actions d-flex gap-3 justify-content-end">
@@ -198,13 +191,52 @@
       </p-card>
     }
 
-    <!-- View toggle -->
-    <p-tabs [value]="viewMode()" (valueChange)="switchView($any($event))">
-      <p-tablist>
-        <p-tab value="table">Table</p-tab>
-        <p-tab value="calendar">Calendar</p-tab>
-      </p-tablist>
-    </p-tabs>
+    <!-- View toggle + bulk mode toggle (item 3) -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+      <p-tabs [value]="viewMode()" (valueChange)="switchView($any($event))">
+        <p-tablist>
+          <p-tab value="table">Table</p-tab>
+          <p-tab value="calendar">Calendar</p-tab>
+        </p-tablist>
+      </p-tabs>
+      @if (viewMode() === 'table') {
+        <p-button
+          [icon]="bulkSelecting() ? 'pi pi-times' : 'pi pi-check-square'"
+          [label]="bulkSelecting() ? ('leave.clearSelection' | translate) : 'Bulk Select'"
+          [severity]="bulkSelecting() ? 'danger' : 'secondary'"
+          [outlined]="true" size="small"
+          (click)="toggleBulkMode()" />
+      }
+    </div>
+
+    <!-- Bulk action bar (item 3) -->
+    @if (bulkSelecting() && viewMode() === 'table') {
+      <div class="bulk-action-bar">
+        <div class="bulk-action-bar-left">
+          <p-checkbox [ngModel]="allVisibleSelected()" (ngModelChange)="toggleSelectAll()" [binary]="true" />
+          <span class="bulk-selected-count">
+            {{ selectedCount() }} {{ 'leave.selected' | translate }}
+          </span>
+        </div>
+        <div class="bulk-action-bar-right">
+          <input pInputText type="text"
+            [ngModel]="bulkRejReason()"
+            (ngModelChange)="bulkRejReason.set($event)"
+            [placeholder]="'leave.rejectionReasonPlaceholder' | translate"
+            class="bulk-rej-input" />
+          <p-button icon="pi pi-check" [label]="'leave.bulkApprove' | translate" severity="success"
+            [outlined]="true" size="small"
+            [disabled]="selectedCount() === 0 || bulkStatusSaving()"
+            [loading]="bulkStatusSaving()"
+            (click)="bulkApproveSelected()" />
+          <p-button icon="pi pi-times" [label]="'leave.bulkReject' | translate" severity="danger"
+            [outlined]="true" size="small"
+            [disabled]="selectedCount() === 0 || bulkStatusSaving()"
+            [loading]="bulkStatusSaving()"
+            (click)="bulkRejectSelected()" />
+        </div>
+      </div>
+    }
 
     <!-- Calendar view -->
     @if (viewMode() === 'calendar') {
@@ -267,9 +299,8 @@
               } @else {
                 <div class="cal-day-list">
                   @for (r of selectedCalDayLeaves(); track r.id) {
-                    <div class="cal-day-row"
-                         [class.cal-day-row-locked]="r.status !== 'pending'"
-                         (click)="r.status === 'pending' ? startEdit(r) : null">
+                    <!-- Item 7: all statuses open edit, not just pending -->
+                    <div class="cal-day-row" (click)="startEdit(r)">
                       <div class="cal-day-row-left">
                         <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                         @if (r.status === 'pending' && r.endDate < todayIso) {
@@ -279,7 +310,8 @@
                         <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                       </div>
                       <div class="cal-day-row-right">
-                        <p-tag [value]="r.status | titlecase" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
+                        <!-- Item 10: statusSeverity() for correct cancelled colour -->
+                        <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
                         @if (r.status === 'pending') {
                           <p-button icon="pi pi-check" label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
                           <p-button icon="pi pi-times" label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
@@ -325,20 +357,30 @@
       } @else {
         <div class="leave-list">
           @for (r of records(); track r.id) {
-            <p-card styleClass="leave-card" [class.leave-card-overdue]="r.status === 'pending' && r.endDate < todayIso">
+            <p-card styleClass="leave-card"
+              [class.leave-card-overdue]="r.status === 'pending' && r.endDate < todayIso"
+              [class.leave-card-selected]="bulkSelecting() && selectedIds().has(r.id)">
               <div class="leave-top">
                 <div class="leave-top-left">
+                  <!-- Item 3: bulk select checkbox (pending only) -->
+                  @if (bulkSelecting() && r.status === 'pending') {
+                    <p-checkbox
+                      [ngModel]="selectedIds().has(r.id)"
+                      (ngModelChange)="toggleSelect(r.id)"
+                      [binary]="true"
+                      (click)="$event.stopPropagation()" />
+                  }
                   <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                   @if (r.status === 'pending' && r.endDate < todayIso) {
                     <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                   }
                 </div>
                 <div class="leave-top-right">
-                  <p-tag [value]="r.status | titlecase" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
-                  @if (r.status === 'pending') {
-                    <p-button label="Edit" [text]="true" severity="secondary" styleClass="lc-icon-btn" (click)="startEdit(r)" />
-                  }
-                  <p-button label="Delete" [text]="true" severity="danger" styleClass="lc-icon-btn lc-icon-danger" (click)="remove(r.id)" />
+                  <!-- Item 10: use statusSeverity() for correct cancelled colour -->
+                  <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
+                  <!-- Item 7: edit for ALL statuses -->
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="lc-icon-btn" (click)="startEdit(r)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" styleClass="lc-icon-btn lc-icon-danger" (click)="remove(r.id)" />
                 </div>
               </div>
               <div class="leave-staff">
@@ -350,11 +392,34 @@
                 <span class="leave-days-pill">{{ r.hours }}h</span>
               </div>
               @if (r.notes) { <div class="leave-notes">{{ r.notes }}</div> }
-              @if (r.status === 'pending') {
-                <div class="leave-actions">
-                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+              <!-- Item 1: show rejection reason when present -->
+              @if (r.rejectionReason) {
+                <div class="leave-rejection-reason">
+                  <i class="pi pi-info-circle"></i> {{ 'leave.rejectionReason' | translate }}: {{ r.rejectionReason }}
                 </div>
+              }
+              <!-- Item 1: approve/reject with inline rejection form -->
+              @if (r.status === 'pending') {
+                @if (rejectingId() === r.id) {
+                  <!-- Inline rejection reason entry -->
+                  <div class="leave-reject-form">
+                    <span class="leave-reject-label">{{ 'leave.enterRejectionReason' | translate }}</span>
+                    <input pInputText type="text"
+                      [ngModel]="rejectionInput()"
+                      (ngModelChange)="rejectionInput.set($event)"
+                      [placeholder]="'leave.rejectionReasonPlaceholder' | translate"
+                      class="leave-reject-input" />
+                    <div class="leave-reject-btns">
+                      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" size="small" (click)="cancelReject()" />
+                      <p-button icon="pi pi-times" [label]="'common.rejected' | translate" severity="danger" size="small" (click)="confirmReject(r.id)" />
+                    </div>
+                  </div>
+                } @else {
+                  <div class="leave-actions">
+                    <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
+                    <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                  </div>
+                }
               }
             </p-card>
           }
@@ -394,6 +459,10 @@
                 <strong>{{ b.annualRemaining }}</strong>/{{ b.annualEntitlement }}h
                 @if (b.emergencyUsed > 0) {
                   <small class="bal-emergency-note">(inc. {{ b.emergencyUsed }}h {{ 'leave.emergency' | translate }})</small>
+                }
+                <!-- Item 9: carry-over note in individual balance -->
+                @if (b.carryOverHours > 0) {
+                  <small class="bal-carryover-note">(inc. {{ b.carryOverHours }}h {{ 'leave.incCarryOver' | translate }})</small>
                 }
               </span>
             } @else {
@@ -450,8 +519,14 @@
         </div>
         <p-button icon="pi pi-copy" [label]="'leave.bulkApply' | translate" severity="secondary" [outlined]="true" size="small"
           [loading]="bulkSaving()" (click)="bulkApplyEntitlement()" />
-        <p-button icon="pi pi-sync" [label]="'leave.carryOver' | translate" severity="secondary" [outlined]="true" size="small"
-          [loading]="carryOverSaving()" (click)="carryOver()" />
+        <!-- Item 5: configurable carry-over max hours input -->
+        <div class="carry-over-group d-flex align-items-center gap-2">
+          <p-inputnumber [(ngModel)]="carryOverMaxHours" [min]="1" [max]="200" suffix="h"
+            [pTooltip]="'leave.carryOverMaxHours' | translate" tooltipPosition="top"
+            styleClass="carry-over-input" />
+          <p-button icon="pi pi-sync" [label]="'leave.carryOver' | translate" severity="secondary" [outlined]="true" size="small"
+            [loading]="carryOverSaving()" (click)="carryOver()" />
+        </div>
       </div>
       @if (allBalancesLoading()) {
         <div class="d-flex flex-column gap-2 mt-2">
@@ -471,19 +546,121 @@
           @for (b of allBalances(); track b.employeeId) {
             <div class="staff-bal-row" (click)="filterEmployeeId = b.employeeId; load()">
               <div class="staff-bal-name">
-                <span class="staff-bal-fullname">{{ b.fullName }}</span>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="staff-bal-fullname">{{ b.fullName }}</span>
+                  <!-- Item 12: pattern warning badge -->
+                  @if (patternWarningFor(b.employeeId); as w) {
+                    <span class="pattern-warning-badge"
+                      [pTooltip]="w.sickLeaveCount + ' ' + ('leave.patternWarningDesc' | translate)"
+                      tooltipPosition="top">
+                      <i class="pi pi-exclamation-triangle"></i> {{ 'leave.patternWarning' | translate }}
+                    </span>
+                  }
+                </div>
                 <span class="staff-bal-id">{{ b.staffId }}</span>
               </div>
               <div class="staff-bal-chips">
                 <span class="bal-chip" [class.bal-chip-warn]="b.annualRemaining <= 24" [class.bal-chip-ok]="b.annualRemaining > 24">
                   <i class="pi pi-sun"></i> {{ b.annualRemaining }}h
+                  <!-- Item 9: carry-over indicator -->
+                  @if (b.carryOverHours > 0) {
+                    <small class="bal-chip-carryover" [pTooltip]="b.carryOverHours + 'h carry-over included'" tooltipPosition="top">⟳{{ b.carryOverHours }}</small>
+                  }
                 </span>
                 <span class="bal-chip" [class.bal-chip-warn]="b.sickRemaining <= 24" [class.bal-chip-ok]="b.sickRemaining > 24">
                   <i class="pi pi-heart"></i> {{ b.sickRemaining }}h
                 </span>
-                @if (b.unpaidUsed > 0) {
-                  <span class="bal-chip bal-chip-unpaid"><i class="pi pi-exclamation-triangle"></i> {{ b.unpaidUsed }}h</span>
+                <!-- Item 6: emergency chip when emergency leave was used -->
+                @if (b.emergencyUsed > 0) {
+                  <span class="bal-chip bal-chip-emergency">
+                    <i class="pi pi-bolt"></i> {{ b.emergencyUsed }}h emg.
+                  </span>
                 }
+                @if (b.unpaidUsed > 0) {
+                  <span class="bal-chip bal-chip-unpaid"><i class="pi pi-exclamation-triangle"></i> {{ b.unpaidUsed }}h unpaid</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </p-card>
+
+    <!-- Item 11: Leave summary report -->
+    <p-card styleClass="nc-card mt-3">
+      <div class="section-title d-flex align-items-center gap-3 flex-wrap">
+        <span>{{ 'leave.summaryTitle' | translate }}</span>
+        <p-button icon="pi pi-refresh" [text]="true" severity="secondary" size="small"
+          [loading]="leaveSummaryLoading()" (click)="loadLeaveSummary()" />
+        <span class="summary-year-label">{{ balanceYear() }}</span>
+      </div>
+      @if (leaveSummaryLoading()) {
+        <div class="d-flex flex-column gap-2">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="d-flex align-items-center gap-3 py-1">
+              <p-skeleton width="25%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="10%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="10%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="10%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="10%" height="0.7rem" borderRadius="4px" />
+              <p-skeleton width="10%" height="0.7rem" borderRadius="4px" />
+            </div>
+          }
+        </div>
+      } @else if (leaveSummary().length === 0) {
+        <p class="ls-empty">{{ 'leave.noSummaryData' | translate }}</p>
+      } @else {
+        <div class="leave-summary-table">
+          <div class="ls-header">
+            <span class="ls-name-col">{{ 'leave.staffCol' | translate }}</span>
+            <span class="ls-data-col">{{ 'leave.summaryAnnual' | translate }}</span>
+            <span class="ls-data-col">{{ 'leave.summarySick' | translate }}</span>
+            <span class="ls-data-col">{{ 'leave.summaryEmergency' | translate }}</span>
+            <span class="ls-data-col">{{ 'leave.summaryUnpaid' | translate }}</span>
+            <span class="ls-data-col">{{ 'leave.summaryNoShow' | translate }}</span>
+            <span class="ls-data-col ls-total-col">{{ 'leave.summaryTotal' | translate }}</span>
+          </div>
+          @for (s of leaveSummary(); track s.employeeId) {
+            <div class="ls-row" (click)="filterEmployeeId = s.employeeId; tab.set('records'); load()">
+              <div class="ls-name-col">
+                <span class="ls-fullname">{{ s.fullName }}</span>
+                <span class="ls-sid">{{ s.staffId }}</span>
+              </div>
+              <span class="ls-data-col">{{ s.annualUsed > 0 ? s.annualUsed + 'h' : '—' }}</span>
+              <span class="ls-data-col">{{ s.sickUsed > 0 ? s.sickUsed + 'h' : '—' }}</span>
+              <span class="ls-data-col ls-emergency-val">{{ s.emergencyUsed > 0 ? s.emergencyUsed + 'h' : '—' }}</span>
+              <span class="ls-data-col">{{ s.unpaidUsed > 0 ? s.unpaidUsed + 'h' : '—' }}</span>
+              <span class="ls-data-col ls-noshow-val">{{ s.noShowUsed > 0 ? s.noShowUsed + 'h' : '—' }}</span>
+              <span class="ls-data-col ls-total-col">{{ s.totalUsed }}h</span>
+            </div>
+          }
+        </div>
+      }
+    </p-card>
+
+    <!-- Item 12: Sick-leave pattern warnings -->
+    <p-card styleClass="nc-card mt-3">
+      <div class="section-title d-flex align-items-center gap-2 flex-wrap">
+        <i class="pi pi-exclamation-triangle" style="color:#fbbf24"></i>
+        <span>{{ 'leave.patternWarning' | translate }}</span>
+      </div>
+      @if (patternLoading()) {
+        <div class="d-flex flex-column gap-2">
+          @for (i of [1,2]; track i) { <p-skeleton height="2.5rem" borderRadius="6px" /> }
+        </div>
+      } @else if (patternWarnings().length === 0) {
+        <p class="ls-empty">{{ 'leave.noPatternWarnings' | translate }}</p>
+      } @else {
+        <div class="pattern-warning-list">
+          @for (w of patternWarnings(); track w.employeeId) {
+            <div class="pattern-warning-row" (click)="filterEmployeeId = w.employeeId; tab.set('records'); load()">
+              <div class="pw-info">
+                <span class="pw-name">{{ w.fullName }}</span>
+                <span class="pw-id">{{ w.staffId }}</span>
+              </div>
+              <div class="pw-stats">
+                <span class="pw-count">{{ w.sickLeaveCount }}×</span>
+                <span class="pw-hours">{{ w.sickLeaveHours }}h — {{ 'leave.patternWarningDesc' | translate }}</span>
               </div>
             </div>
           }

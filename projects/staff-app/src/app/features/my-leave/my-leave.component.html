@@ -1,4 +1,4 @@
-﻿<div class="p-3 p-md-4">
+<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
   </div>
@@ -18,6 +18,10 @@
           {{ b.annualUsed }}{{ 'leave.hrs' | translate }} {{ 'leave.used' | translate }}
           @if (b.emergencyUsed > 0) {
             <span class="bal-emergency">({{ 'leave.incEmergency' | translate }}: {{ b.emergencyUsed }}{{ 'leave.hrs' | translate }})</span>
+          }
+          <!-- Item 9: carry-over note -->
+          @if (b.carryOverHours > 0) {
+            <span class="bal-carryover">({{ 'leave.incCarryOver' | translate }}: {{ b.carryOverHours }}{{ 'leave.hrs' | translate }})</span>
           }
         </div>
       </div>
@@ -129,61 +133,179 @@
   <!-- ═══════════════════════════ HISTORY VIEW ════════════════════════════════ -->
   @if (view() === 'history') {
 
-    <!-- Preset leave-type filter chips -->
-    <div class="d-flex gap-2 flex-wrap mb-3">
-      @for (p of presetTypes; track p.value) {
+    <!-- Filter chips + Item 8: calendar/list toggle -->
+    <div class="history-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+      <div class="d-flex gap-2 flex-wrap">
+        @for (p of presetTypes; track p.value) {
+          <p-button
+            [label]="p.label"
+            size="small"
+            [outlined]="filterLeaveType() !== p.value"
+            [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'secondary' : 'primary'"
+            (click)="filterLeaveType.set(p.value)" />
+        }
+      </div>
+      <!-- Item 8: view toggle -->
+      <div class="d-flex gap-1">
         <p-button
-          [label]="p.label"
+          icon="pi pi-list"
+          [label]="'leave.calendarListView' | translate"
+          [severity]="historyView() === 'list' ? 'primary' : 'secondary'"
+          [outlined]="historyView() !== 'list'"
           size="small"
-          [outlined]="filterLeaveType() !== p.value"
-          [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'secondary' : 'primary'"
-          (click)="filterLeaveType.set(p.value)" />
-      }
+          (click)="historyView.set('list'); selectedCalDay.set(null)" />
+        <p-button
+          icon="pi pi-calendar"
+          [label]="'leave.calendarView' | translate"
+          [severity]="historyView() === 'calendar' ? 'primary' : 'secondary'"
+          [outlined]="historyView() !== 'calendar'"
+          size="small"
+          (click)="historyView.set('calendar')" />
+      </div>
     </div>
 
-    @if (loading()) {
-      <div class="leave-list">
-        @for (i of [1,2,3,4]; track i) {
-          <p-card styleClass="leave-card">
-            <div class="d-flex justify-content-between align-items-start gap-3">
-              <div class="d-flex flex-column gap-1 flex-fill">
-                <p-skeleton width="45%" height="0.75rem" borderRadius="4px" />
-                <p-skeleton width="60%" height="0.65rem" borderRadius="4px" />
-              </div>
-              <p-skeleton width="64px" height="1.4rem" borderRadius="6px" />
-            </div>
-          </p-card>
-        }
-      </div>
-    } @else if (filteredRecords().length === 0) {
-      <p-card styleClass="empty-state">
-        <div class="empty-inner">
-          <span><i class="pi pi-sun"></i></span>
-          <p>{{ 'leave.noLeave' | translate }}</p>
+    <!-- ── Item 8: Calendar view ─────────────────────────────────────────── -->
+    @if (historyView() === 'calendar') {
+      <p-card styleClass="form-card">
+        <!-- Calendar navigation -->
+        <div class="staff-cal-nav">
+          <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" (click)="prevCalMonth()" />
+          <span class="staff-cal-month">{{ calMonthName() }}</span>
+          <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" (click)="nextCalMonth()" />
         </div>
-      </p-card>
-    } @else {
-      <div class="leave-list">
-        @for (r of filteredRecords(); track r.id) {
-          <p-card styleClass="leave-card">
-            <div class="leave-top">
-              <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'emergency' ? 'warn' : 'secondary'" />
-              <p-tag [value]="('leave.status.' + r.status) | translate" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
-            </div>
-            <div class="leave-dates">
-              {{ r.startDate }}@if (r.startTime) { {{ r.startTime | amPm }}} – {{ r.endDate }}@if (r.endTime) { {{ r.endTime | amPm }}}
-              <span class="leave-days">{{ r.hours }}{{ 'leave.hrs' | translate }}</span>
-            </div>
-            @if (r.notes) {
-              <div class="leave-notes">{{ r.notes }}</div>
+
+        @if (loading()) {
+          <div class="staff-cal-skeleton">
+            @for (i of [1,2,3,4,5,6,7]; track i) { <p-skeleton height="1.4rem" borderRadius="4px" /> }
+            @for (i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]; track i) {
+              <p-skeleton height="3rem" borderRadius="4px" />
             }
-            <div class="leave-meta">{{ 'leave.submittedOn' | translate }} {{ r.createdAt }}</div>
-            @if ((r.status === 'pending' || r.status === 'approved') && r.endDate >= todayLocal) {
-              <p-button [label]="'leave.cancel' | translate" severity="danger" size="small" [text]="true" (click)="cancel(r)" />
+          </div>
+        } @else {
+          <!-- Day-of-week header -->
+          <div class="staff-cal-grid">
+            @for (d of calDayKeys; track d) {
+              <div class="staff-cal-dow">{{ d | translate }}</div>
             }
-          </p-card>
+            <!-- Leading blanks -->
+            @for (_ of leadingBlanks(); track $index) {
+              <div class="staff-cal-cell staff-cal-blank"></div>
+            }
+            <!-- Day cells -->
+            @for (day of calDays(); track day.iso) {
+              <div class="staff-cal-cell"
+                   [class.staff-cal-weekend]="day.isWeekend"
+                   [class.staff-cal-today]="day.iso === todayIso"
+                   [class.staff-cal-selected]="day.iso === selectedCalDay()"
+                   [class.staff-cal-has-leave]="day.leaves.length > 0"
+                   (click)="selectCalDay(day.iso)">
+                <span class="staff-cal-day-num">{{ day.day }}</span>
+                @if (day.leaves.length > 0) {
+                  <div class="staff-cal-dots">
+                    @for (r of day.leaves.slice(0, 3); track r.id) {
+                      <span class="staff-cal-dot" [class]="'staff-cal-dot-' + r.leaveType"></span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Legend -->
+          <div class="staff-cal-legend">
+            @for (t of leaveTypes; track t) {
+              <span class="staff-cal-legend-item">
+                <span class="staff-cal-dot" [class]="'staff-cal-dot-' + t"></span>
+                {{ t | titlecase }}
+              </span>
+            }
+          </div>
+
+          <!-- Selected day detail -->
+          @if (selectedCalDay()) {
+            <div class="staff-cal-detail">
+              <div class="staff-cal-detail-header">
+                <span>{{ selectedCalDay() | date:'EEEE, dd MMM yyyy' }}</span>
+                <p-button icon="pi pi-times" [text]="true" severity="secondary" size="small" (click)="selectedCalDay.set(null)" />
+              </div>
+              @if (selectedCalDayLeaves().length === 0) {
+                <p class="staff-cal-empty">{{ 'leave.calendarEmpty' | translate }}</p>
+              } @else {
+                <div class="staff-cal-day-list">
+                  @for (r of selectedCalDayLeaves(); track r.id) {
+                    <div class="staff-cal-day-row">
+                      <p-tag [value]="('leave.type.' + r.leaveType) | translate"
+                        [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'emergency' ? 'warn' : 'secondary'" />
+                      <p-tag [value]="('leave.status.' + r.status) | translate"
+                        [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : r.status === 'cancelled' ? 'secondary' : 'danger'" />
+                      <span class="staff-cal-day-hours">{{ r.hours }}{{ 'leave.hrs' | translate }}</span>
+                      @if (r.rejectionReason) {
+                        <span class="staff-cal-rejection">{{ r.rejectionReason }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
         }
-      </div>
+      </p-card>
+    }
+
+    <!-- ── List view ─────────────────────────────────────────────────────── -->
+    @if (historyView() === 'list') {
+      @if (loading()) {
+        <div class="leave-list">
+          @for (i of [1,2,3,4]; track i) {
+            <p-card styleClass="leave-card">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="d-flex flex-column gap-1 flex-fill">
+                  <p-skeleton width="45%" height="0.75rem" borderRadius="4px" />
+                  <p-skeleton width="60%" height="0.65rem" borderRadius="4px" />
+                </div>
+                <p-skeleton width="64px" height="1.4rem" borderRadius="6px" />
+              </div>
+            </p-card>
+          }
+        </div>
+      } @else if (filteredRecords().length === 0) {
+        <p-card styleClass="empty-state">
+          <div class="empty-inner">
+            <span><i class="pi pi-sun"></i></span>
+            <p>{{ 'leave.noLeave' | translate }}</p>
+          </div>
+        </p-card>
+      } @else {
+        <div class="leave-list">
+          @for (r of filteredRecords(); track r.id) {
+            <p-card styleClass="leave-card">
+              <div class="leave-top">
+                <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'emergency' ? 'warn' : 'secondary'" />
+                <!-- Item 10: use correct severity for cancelled -->
+                <p-tag [value]="('leave.status.' + r.status) | translate"
+                  [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : r.status === 'cancelled' ? 'secondary' : 'danger'" />
+              </div>
+              <div class="leave-dates">
+                {{ r.startDate }}@if (r.startTime) { {{ r.startTime | amPm }}} – {{ r.endDate }}@if (r.endTime) { {{ r.endTime | amPm }}}
+                <span class="leave-days">{{ r.hours }}{{ 'leave.hrs' | translate }}</span>
+              </div>
+              @if (r.notes) {
+                <div class="leave-notes">{{ r.notes }}</div>
+              }
+              <!-- Item 1: show rejection reason if present -->
+              @if (r.rejectionReason) {
+                <div class="leave-rejection-reason">
+                  <i class="pi pi-info-circle"></i> {{ 'leave.rejectionReason' | translate }}: {{ r.rejectionReason }}
+                </div>
+              }
+              <div class="leave-meta">{{ 'leave.submittedOn' | translate }} {{ r.createdAt }}</div>
+              @if ((r.status === 'pending' || r.status === 'approved') && r.endDate >= todayLocal) {
+                <p-button [label]="'leave.cancel' | translate" severity="danger" size="small" [text]="true" (click)="cancel(r)" />
+              }
+            </p-card>
+          }
+        </div>
+      }
     }
 
   }

@@ -90,7 +90,19 @@
       "emergency": "紧急假",
       "no-show":   "缺勤"
     },
-    "incEmergency": "含紧急假"
+    "incEmergency":      "含紧急假",
+    "incCarryOver":      "含结转",
+    "rejectionReason":   "原因",
+    "calendarView":      "日历",
+    "calendarListView":  "列表",
+    "calDayMon":         "一",
+    "calDayTue":         "二",
+    "calDayWed":         "三",
+    "calDayThu":         "四",
+    "calDayFri":         "五",
+    "calDaySat":         "六",
+    "calDaySun":         "日",
+    "calendarEmpty":     "当天无请假记录。"
   },
   "profile": {
     "title":           "个人资料",

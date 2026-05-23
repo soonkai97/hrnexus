@@ -156,6 +156,10 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                         .HasPrecision(8, 2)
                         .HasColumnType("numeric(8,2)");
 
+                    b.Property<decimal>("CarryOverHours")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid");
 
@@ -203,6 +207,10 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("RejectionReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 

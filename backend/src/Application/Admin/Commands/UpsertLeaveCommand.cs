@@ -7,16 +7,17 @@ using NightclubWorkforce.Domain.Entities;
 namespace NightclubWorkforce.Application.Admin.Commands;
 
 public record UpsertLeaveCommand(
-    Guid?    Id,           // null = create, non-null = update
+    Guid?    Id,              // null = create, non-null = update
     Guid     EmployeeId,
     string   LeaveType,
     DateTime StartDate,
     DateTime EndDate,
-    string?  StartTime,    // HH:mm
-    string?  EndTime,      // HH:mm
-    decimal? Hours,        // total duration in hours
+    string?  StartTime,       // HH:mm
+    string?  EndTime,         // HH:mm
+    decimal? Hours,           // total duration in hours
     string?  Notes,
-    string   Status) : IRequest<Guid>;
+    string   Status,
+    string?  RejectionReason = null) : IRequest<Guid>;
 
 public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifHub,
     IPushNotificationService pushSvc, IAuditService audit, IDateTimeProvider dt)
@@ -36,7 +37,10 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         if (req.StartDate > req.EndDate)
             throw new ArgumentException("StartDate must be on or before EndDate.");
 
-        // Annual leave must be applied at least 3 days in advance (new requests only)
+        // Annual leave must be applied at least 3 days in advance (new requests only).
+        // The guard is intentionally skipped for updates (req.Id.HasValue = true) so managers
+        // can backdate or correct existing annual leave records without hitting this constraint.
+        // Staff self-submissions always create new records, so the guard always fires for them.
         if (!req.Id.HasValue
             && req.LeaveType.Equals(AppConstants.Leave.Annual, StringComparison.OrdinalIgnoreCase)
             && req.StartDate.Date < dt.LocalNow.Date.AddDays(AppConstants.Leave.AnnualLeaveAdvanceDays))
@@ -123,7 +127,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             var prevStatus = existing.Status;
             existing.Update(req.LeaveType, req.StartDate, req.EndDate,
                 req.StartTime, req.EndTime, req.Hours,
-                req.Notes, req.Status);
+                req.Notes, req.Status, req.RejectionReason);
             await db.SaveChangesAsync(ct);
 
             // Notify employee when status transitions to approved / rejected

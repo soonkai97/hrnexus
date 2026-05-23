@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { LeaveBalance, LeaveRecord, StaffLeaveBalance, UpsertLeaveRequest } from '../models';
+import { LeaveBalance, LeavePatternWarning, LeaveRecord, LeaveSummary, StaffLeaveBalance, UpsertLeaveRequest } from '../models';
 
 export interface LeavePagedResult {
   items: LeaveRecord[];
@@ -54,6 +54,23 @@ export class LeaveService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`/api/admin/leave/${id}`);
+  }
+
+  /** Admin: bulk approve or reject a list of pending leave requests. */
+  bulkUpdateStatus(ids: string[], status: 'approved' | 'rejected', rejectionReason?: string): Observable<{ count: number }> {
+    return this.http.post<{ count: number }>('/api/admin/leave/bulk-status',
+      { ids, status, rejectionReason: rejectionReason ?? null });
+  }
+
+  /** Admin: aggregated leave usage summary per employee for a year. */
+  getSummary(year?: number): Observable<LeaveSummary[]> {
+    const q = year ? `?year=${year}` : '';
+    return this.http.get<LeaveSummary[]>(`/api/admin/leave/summary${q}`);
+  }
+
+  /** Admin: employees with frequent sick leave (3+ times in rolling 90 days). */
+  getPatternWarnings(): Observable<LeavePatternWarning[]> {
+    return this.http.get<LeavePatternWarning[]>('/api/admin/leave/pattern-warnings');
   }
 
   // ─── Employee-facing endpoints ───────────────────────────────────────────────

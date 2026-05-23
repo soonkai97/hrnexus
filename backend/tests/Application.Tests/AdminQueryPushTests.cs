@@ -369,7 +369,7 @@ public class AdminQueryPushTests
 
         var handler = new GetLeaveQueryHandler(db);
         var result  = await handler.Handle(
-            new GetLeaveQuery(null, null, null, null, 1, 50),
+            new GetLeaveQuery(null, null, null, null, null, 1, 50),
             CancellationToken.None);
 
         Assert.Equal(2, result.Total);
@@ -442,7 +442,7 @@ public class AdminQueryPushTests
 
         var handler = new GetLeaveQueryHandler(db);
         var result  = await handler.Handle(
-            new GetLeaveQuery(null, null, null, null, 1, 50),
+            new GetLeaveQuery(null, null, null, null, null, 1, 50),
             CancellationToken.None);
 
         Assert.Equal(2, result.Items.Count);
@@ -465,7 +465,7 @@ public class AdminQueryPushTests
 
         var handler = new GetLeaveQueryHandler(db);
         var result  = await handler.Handle(
-            new GetLeaveQuery(null, null, null, null, 1, 50),
+            new GetLeaveQuery(null, null, null, null, null, 1, 50),
             CancellationToken.None);
 
         var dto = result.Items[0];
@@ -475,6 +475,63 @@ public class AdminQueryPushTests
         Assert.Equal("2025-06-03", dto.EndDate);
         Assert.Equal(3m, dto.Days); // 3 days inclusive
         Assert.Equal("Holiday", dto.Notes);
+    }
+
+    [Fact]
+    public async Task GetLeave_FiltersBy_LeaveType_ReturnsOnlySick()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff("S001");
+        db.Staff.Add(staff);
+
+        var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "sick",   start, start, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "annual", start, start, null));
+        db.LeaveRequests.Add(E.LeaveRequest.Create(staff.Id, "unpaid", start, start, null));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new GetLeaveQueryHandler(db);
+        var result  = await handler.Handle(
+            new GetLeaveQuery(null, null, null, null, "sick", 1, 50),
+            CancellationToken.None);
+
+        Assert.Equal(1, result.Total);
+        Assert.All(result.Items, item => Assert.Equal("sick", item.LeaveType));
+    }
+
+    [Fact]
+    public async Task GetLeave_PendingItems_OrderedBy_CreatedAt_Ascending()
+    {
+        // Oldest application (earliest CreatedAt) must appear first so managers
+        // review leave in the order it was submitted — fairness requirement.
+        await using var db = CreateDb();
+        var staff = MakeStaff("S001");
+        db.Staff.Add(staff);
+
+        var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        // Insert newer pending first to verify the sort is not insertion order
+        var newer = E.LeaveRequest.Create(staff.Id, "annual", start, start, null);
+        await db.SaveChangesAsync(); // flush so CreatedAt timestamps differ
+
+        var older = E.LeaveRequest.Create(staff.Id, "sick", start, start, null);
+        db.LeaveRequests.AddRange(newer, older);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new GetLeaveQueryHandler(db);
+        var result  = await handler.Handle(
+            new GetLeaveQuery(null, null, null, "pending", null, 1, 50),
+            CancellationToken.None);
+
+        // Both are pending; the one created first (older.CreatedAt < newer.CreatedAt) must be first
+        Assert.Equal(2, result.Items.Count);
+        var first  = result.Items[0];
+        var second = result.Items[1];
+        Assert.True(
+            DateTime.Parse(first.CreatedAt) <= DateTime.Parse(second.CreatedAt),
+            "Pending leave records must be ordered oldest-created-first");
     }
 
     // ═════════════════════════════════════════════════════════════════════════

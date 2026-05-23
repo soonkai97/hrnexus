@@ -29,6 +29,7 @@ export class LeaveService {
     dateFrom?: string;
     dateTo?: string;
     status?: string;
+    leaveType?: string;
     page?: number;
     pageSize?: number;
   } = {}): Observable<LeavePagedResult> {
@@ -37,6 +38,7 @@ export class LeaveService {
     if (params.dateFrom)   p = p.set('dateFrom',   params.dateFrom);
     if (params.dateTo)     p = p.set('dateTo',     params.dateTo);
     if (params.status)     p = p.set('status',     params.status);
+    if (params.leaveType)  p = p.set('leaveType',  params.leaveType);
     if (params.page)       p = p.set('page',       params.page.toString());
     if (params.pageSize)   p = p.set('pageSize',   params.pageSize.toString());
     return this.http.get<LeavePagedResult>('/api/admin/leave', { params: p });

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe } from 'shared-lib';
@@ -51,6 +51,19 @@ export class MyLeaveComponent implements OnInit {
   saving      = signal(false);
   formError   = signal('');
   view        = signal<'apply' | 'history'>('apply');
+
+  filterLeaveType = signal('');
+  filteredRecords = computed(() => {
+    const type = this.filterLeaveType();
+    return type ? this.records().filter(r => r.leaveType === type) : this.records();
+  });
+
+  readonly presetTypes = [
+    { label: 'All',    value: '' },
+    { label: 'Sick',   value: 'sick' },
+    { label: 'Annual', value: 'annual' },
+    { label: 'Unpaid', value: 'unpaid' },
+  ];
 
   form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: Date | null; endTime: Date | null; notes: string } = {
     leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '',

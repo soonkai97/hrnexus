@@ -41,6 +41,17 @@
           [showClear]="!!filterStatus" styleClass="w-full" />
       </div>
     </div>
+    <!-- Preset leave-type filter chips -->
+    <div class="preset-filter-row d-flex align-items-center gap-2 flex-wrap mt-2">
+      @for (p of presetTypes; track p.value) {
+        <p-button
+          [label]="p.label"
+          size="small"
+          [outlined]="filterLeaveType !== p.value"
+          [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'secondary' : 'primary'"
+          (click)="setTypeFilter(p.value)" />
+      }
+    </div>
     <div class="summary-row d-flex align-items-center gap-2 flex-wrap">
       @for (t of leaveTypes; track t) {
         <span class="summary-pill" [attr.data-type]="t">

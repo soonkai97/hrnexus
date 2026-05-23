@@ -116,6 +116,18 @@
   <!-- ═══════════════════════════ HISTORY VIEW ════════════════════════════════ -->
   @if (view() === 'history') {
 
+    <!-- Preset leave-type filter chips -->
+    <div class="d-flex gap-2 flex-wrap mb-3">
+      @for (p of presetTypes; track p.value) {
+        <p-button
+          [label]="p.label"
+          size="small"
+          [outlined]="filterLeaveType() !== p.value"
+          [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'secondary' : 'primary'"
+          (click)="filterLeaveType.set(p.value)" />
+      }
+    </div>
+
     @if (loading()) {
       <div class="leave-list">
         @for (i of [1,2,3,4]; track i) {
@@ -130,7 +142,7 @@
           </p-card>
         }
       </div>
-    } @else if (records().length === 0) {
+    } @else if (filteredRecords().length === 0) {
       <p-card styleClass="empty-state">
         <div class="empty-inner">
           <span><i class="pi pi-sun"></i></span>
@@ -139,7 +151,7 @@
       </p-card>
     } @else {
       <div class="leave-list">
-        @for (r of records(); track r.id) {
+        @for (r of filteredRecords(); track r.id) {
           <p-card styleClass="leave-card">
             <div class="leave-top">
               <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'no-show' ? 'warn' : 'secondary'" />

@@ -51,10 +51,10 @@ public class GetLeaveQueryHandler(IAppDbContext db)
         if (!string.IsNullOrEmpty(req.LeaveType))
             query = query.Where(l => l.LeaveType == req.LeaveType.ToLowerInvariant());
 
-        // Pending first; within each group newest submission first
+        // Pending first; within each group oldest submission first (first applied = first reviewed)
         query = query
             .OrderByDescending(l => l.Status == "pending")
-            .ThenByDescending(l => l.CreatedAt);
+            .ThenBy(l => l.CreatedAt);
 
         var total = await query.CountAsync(ct);
         var page  = Math.Max(1, req.Page);

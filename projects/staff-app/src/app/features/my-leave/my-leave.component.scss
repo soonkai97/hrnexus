@@ -19,6 +19,7 @@
 .bal-sep       { color: $text-muted; font-size: 1rem; }
 .bal-total     { color: $text-muted; font-size: 0.85rem; }
 .bal-used      { font-size: 0.72rem; color: $text-muted; }
+.bal-emergency { font-size: 0.65rem; color: #fbbf24; display: block; margin-top: 0.1rem; }
 
 .tab-count {
   background: rgba(168,85,247,0.25);

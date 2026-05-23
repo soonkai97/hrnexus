@@ -138,6 +138,32 @@ public class AdminController(IMediator mediator) : ControllerBase
         catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
+    /// <summary>Set the same entitlement for all active staff for a given year.</summary>
+    [HttpPost("leave-balance/bulk")]
+    public async Task<IActionResult> BulkSetLeaveBalance([FromBody] BulkLeaveEntitlementBody body, CancellationToken ct)
+    {
+        try
+        {
+            var count = await mediator.Send(
+                new BulkUpsertLeaveEntitlementCommand(body.Year, body.AnnualHours, body.SickHours), ct);
+            return Ok(new { count });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    /// <summary>Carry over unused annual leave from one year to the next for all active staff.</summary>
+    [HttpPost("leave-balance/carry-over")]
+    public async Task<IActionResult> CarryOverLeave([FromBody] CarryOverBody body, CancellationToken ct)
+    {
+        try
+        {
+            var count = await mediator.Send(
+                new CarryOverLeaveEntitlementCommand(body.FromYear, body.ToYear, body.MaxCarryOver ?? 14m), ct);
+            return Ok(new { count });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
     // ── Overtime Rules ────────────────────────────────────────────────────────
 
     [HttpGet("overtime-rules")]
@@ -273,5 +299,7 @@ public class AdminController(IMediator mediator) : ControllerBase
 
 public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status);
 public record LeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
+public record BulkLeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
+public record CarryOverBody(int FromYear, int ToYear, decimal? MaxCarryOver);
 public record UpsertOvertimeRuleBody(Guid? Id, string Role, decimal ThresholdHours, decimal Multiplier, bool? IsActive);
 public record DistributeTipsBody(Guid LocationId, string LocationName, DateTime ShiftDate, decimal TotalAmount, string? SplitMethod);

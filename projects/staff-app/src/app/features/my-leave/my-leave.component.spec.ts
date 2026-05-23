@@ -376,6 +376,71 @@ describe('MyLeaveComponent', () => {
     });
   });
 
+  // ── minStartDate / minEndDate (Item 3 — min date enforcement) ───────────────
+
+  describe('minStartDate', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('returns today+3 days for annual leave so staff book in advance', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 4, 23, 12, 0, 0)); // 2026-05-23
+      component.form.leaveType = 'annual';
+      const min = component.minStartDate;
+      const expected = new Date(2026, 4, 26); // +3 days
+      expected.setHours(0, 0, 0, 0);
+      expect(min.getFullYear()).toBe(expected.getFullYear());
+      expect(min.getMonth()).toBe(expected.getMonth());
+      expect(min.getDate()).toBe(expected.getDate());
+    });
+
+    it('returns today for sick leave so staff can log current illness', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 4, 23, 12, 0, 0)); // 2026-05-23
+      component.form.leaveType = 'sick';
+      const min = component.minStartDate;
+      expect(min.getFullYear()).toBe(2026);
+      expect(min.getMonth()).toBe(4);    // May
+      expect(min.getDate()).toBe(23);
+    });
+
+    it('returns today for emergency leave so staff can log urgent absence', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 4, 23, 12, 0, 0));
+      component.form.leaveType = 'emergency';
+      const min = component.minStartDate;
+      expect(min.getDate()).toBe(23);
+    });
+
+    it('returns today for unpaid leave', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 4, 23, 12, 0, 0));
+      component.form.leaveType = 'unpaid';
+      const min = component.minStartDate;
+      expect(min.getDate()).toBe(23);
+    });
+  });
+
+  describe('minEndDate', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('returns the startDate value when startDate is set — end cannot be before start', () => {
+      component.form.startDate = '2026-06-10';
+      const min = component.minEndDate;
+      expect(min.getFullYear()).toBe(2026);
+      expect(min.getMonth()).toBe(5);   // June
+      expect(min.getDate()).toBe(10);
+    });
+
+    it('falls back to minStartDate when startDate is empty', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 4, 23, 12, 0, 0));
+      component.form.startDate = '';
+      component.form.leaveType = 'sick';
+      const min = component.minEndDate;
+      expect(min.getDate()).toBe(23);   // today, same as minStartDate for sick
+    });
+  });
+
   // ── onStartDateChange() ──────────────────────────────────────────────────────
 
   describe('onStartDateChange()', () => {

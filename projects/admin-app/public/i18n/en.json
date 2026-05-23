@@ -234,7 +234,12 @@
     "overdueSection":     "overdue pending leave(s) need review",
     "overdueDesc":        "These leaves ended without being actioned — approve, reject, or mark as no-show.",
     "markNoShow":         "No-Show",
-    "notSet":             "Not set"
+    "notSet":             "Not set",
+    "exportCsv":          "Export CSV",
+    "bulkApply":          "Apply to All Staff",
+    "carryOver":          "Carry Over Unused Leave",
+    "emergency":          "emergency",
+    "incEmergency":       "inc. emergency"
   },
   "reports": {
     "title":            "Reports",

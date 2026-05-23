@@ -33,8 +33,9 @@ export interface UpsertLeaveRequest {
 export interface LeaveBalance {
   year: number;
   annualEntitlement: number;
-  annualUsed: number;
+  annualUsed: number;        // annual + emergency combined
   annualRemaining: number;
+  emergencyUsed: number;     // emergency portion within annualUsed
   sickEntitlement: number;
   sickUsed: number;
   sickRemaining: number;
@@ -47,8 +48,9 @@ export interface StaffLeaveBalance {
   fullName: string;
   year: number;
   annualEntitlement: number;
-  annualUsed: number;
+  annualUsed: number;        // annual + emergency combined
   annualRemaining: number;
+  emergencyUsed: number;     // emergency portion within annualUsed
   sickEntitlement: number;
   sickUsed: number;
   sickRemaining: number;

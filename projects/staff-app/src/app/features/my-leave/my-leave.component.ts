@@ -39,10 +39,32 @@ export class MyLeaveComponent implements OnInit {
 
   readonly leaveTypes = LEAVE_TYPES;
   readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({
-    label: t.charAt(0).toUpperCase() + t.slice(1),
+    label: t === 'annual' ? 'Annual' : t === 'sick' ? 'Sick' : t === 'unpaid' ? 'Unpaid' : 'Emergency',
     value: t,
   }));
   readonly todayLocal = toLocalDateString(new Date());
+
+  /** Item 3: Minimum selectable start date. Annual needs 3 days advance; others allow today. */
+  get minStartDate(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (this.form.leaveType === 'annual') {
+      const d = new Date(today);
+      d.setDate(d.getDate() + 3);
+      return d;
+    }
+    return today;
+  }
+
+  /** Item 3: Minimum end date — same as start date (or today if not yet set). */
+  get minEndDate(): Date {
+    if (this.form.startDate) {
+      const d = new Date(this.form.startDate);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+    return this.minStartDate;
+  }
 
 
   records     = signal<LeaveRecord[]>([]);

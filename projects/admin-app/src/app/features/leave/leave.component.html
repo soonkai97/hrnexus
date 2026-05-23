@@ -1,7 +1,10 @@
 ﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
-    <p-button icon="pi pi-plus" [label]="'leave.recordLeave' | translate" severity="primary" (click)="openAdd(); tab.set('records')" />
+    <div class="d-flex gap-2">
+      <p-button icon="pi pi-download" [label]="'leave.exportCsv' | translate" severity="secondary" [outlined]="true" (click)="exportCsv()" />
+      <p-button icon="pi pi-plus" [label]="'leave.recordLeave' | translate" severity="primary" (click)="openAdd(); tab.set('records')" />
+    </div>
   </div>
 
   <!-- ── Filter bar (always visible) ───────────────────────────────────────── -->
@@ -122,7 +125,20 @@
               optionLabel="fullName" optionValue="id"
               [placeholder]="'leave.selectOption' | translate"
               [filter]="true" filterPlaceholder="Search staff…"
-              [disabled]="!!editing()" styleClass="w-full" />
+              [disabled]="!!editing()" styleClass="w-full"
+              (ngModelChange)="onFormEmployeeChange($event)" />
+            @if (formBalance()) {
+              @let fb = formBalance()!;
+              <div class="form-balance-hint">
+                <span class="form-balance-pill form-balance-annual" [class.form-balance-low]="fb.annualRemaining <= 8">
+                  <i class="pi pi-sun"></i> {{ fb.annualRemaining }}h annual left
+                  @if (fb.emergencyUsed > 0) { <small>(inc. {{ fb.emergencyUsed }}h emergency)</small> }
+                </span>
+                <span class="form-balance-pill form-balance-sick" [class.form-balance-low]="fb.sickRemaining <= 8">
+                  <i class="pi pi-heart"></i> {{ fb.sickRemaining }}h sick left
+                </span>
+              </div>
+            }
           </div>
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
@@ -374,7 +390,12 @@
               [value]="b.annualEntitlement > 0 ? (b.annualUsed / b.annualEntitlement) * 100 : 0"
               [showValue]="false" styleClass="bal-bar-annual" />
             @if (b.annualEntitlement > 0) {
-              <span class="bal-row-nums"><strong>{{ b.annualRemaining }}</strong>/{{ b.annualEntitlement }}h</span>
+              <span class="bal-row-nums">
+                <strong>{{ b.annualRemaining }}</strong>/{{ b.annualEntitlement }}h
+                @if (b.emergencyUsed > 0) {
+                  <small class="bal-emergency-note">(inc. {{ b.emergencyUsed }}h {{ 'leave.emergency' | translate }})</small>
+                }
+              </span>
             } @else {
               <span class="bal-row-nums bal-not-set">{{ 'leave.notSet' | translate }}</span>
             }
@@ -420,7 +441,18 @@
 
     <!-- All-staff balance overview -->
     <p-card styleClass="nc-card">
-      <div class="section-title">{{ 'leave.balanceOverview' | translate }} — {{ currentYear }}</div>
+      <div class="section-title d-flex align-items-center gap-3 flex-wrap">
+        <span>{{ 'leave.balanceOverview' | translate }}</span>
+        <div class="year-nav d-flex align-items-center gap-1">
+          <p-button icon="pi pi-chevron-left" [text]="true" severity="secondary" size="small" (click)="prevBalanceYear()" />
+          <span class="year-nav-label">{{ balanceYear() }}</span>
+          <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" size="small" (click)="nextBalanceYear()" />
+        </div>
+        <p-button icon="pi pi-copy" [label]="'leave.bulkApply' | translate" severity="secondary" [outlined]="true" size="small"
+          [loading]="bulkSaving()" (click)="bulkApplyEntitlement()" />
+        <p-button icon="pi pi-sync" [label]="'leave.carryOver' | translate" severity="secondary" [outlined]="true" size="small"
+          [loading]="carryOverSaving()" (click)="carryOver()" />
+      </div>
       @if (allBalancesLoading()) {
         <div class="d-flex flex-column gap-2 mt-2">
           @for (i of [1,2,3,4,5]; track i) {

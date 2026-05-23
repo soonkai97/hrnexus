@@ -9,8 +9,9 @@ public record GetLeaveBalanceQuery(Guid EmployeeId, int? Year) : IRequest<LeaveB
 public record LeaveBalanceDto(
     int     Year,
     decimal AnnualEntitlement,
-    decimal AnnualUsed,
+    decimal AnnualUsed,        // annual + emergency combined (both draw from the annual pool)
     decimal AnnualRemaining,
+    decimal EmergencyUsed,     // emergency portion within AnnualUsed, shown separately for clarity
     decimal SickEntitlement,
     decimal SickUsed,
     decimal SickRemaining,
@@ -41,13 +42,16 @@ public class GetLeaveBalanceQueryHandler(IAppDbContext db, IDateTimeProvider dt)
             .Select(l => new { l.LeaveType, l.Hours })
             .ToListAsync(ct);
 
-        var annualUsed = countedLeaves.Where(l => l.LeaveType == "annual").Sum(l => l.Hours ?? 0m);
-        var sickUsed   = countedLeaves.Where(l => l.LeaveType == "sick"  ).Sum(l => l.Hours ?? 0m);
-        var unpaidUsed = countedLeaves.Where(l => l.LeaveType == "unpaid" ).Sum(l => l.Hours ?? 0m);
+        // Annual + emergency both count against the annual pool
+        var annualUsed    = countedLeaves.Where(l => l.LeaveType == "annual" || l.LeaveType == "emergency").Sum(l => l.Hours ?? 0m);
+        var emergencyUsed = countedLeaves.Where(l => l.LeaveType == "emergency").Sum(l => l.Hours ?? 0m);
+        var sickUsed      = countedLeaves.Where(l => l.LeaveType == "sick"  ).Sum(l => l.Hours ?? 0m);
+        var unpaidUsed    = countedLeaves.Where(l => l.LeaveType == "unpaid" ).Sum(l => l.Hours ?? 0m);
 
         return new LeaveBalanceDto(
             year,
             annualEnt, annualUsed, Math.Max(0, annualEnt - annualUsed),
+            emergencyUsed,
             sickEnt,   sickUsed,   Math.Max(0, sickEnt   - sickUsed),
             unpaidUsed);
     }

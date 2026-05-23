@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NightclubWorkforce.Application.Admin.Commands;
+using NightclubWorkforce.Application.Admin.Queries;
 using NightclubWorkforce.Application.Common.Interfaces;
 using NightclubWorkforce.Application.Leave.Commands;
 using NightclubWorkforce.Application.Tests.Infrastructure;
@@ -685,5 +686,407 @@ public class LeaveCommandTests
         var updated = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == empId);
         Assert.Equal(20m, updated.AnnualHours);
         Assert.Equal(7m, updated.SickHours);
+    }
+
+    // ── Item 1: Sick leave auto-approve ───────────────────────────────────────
+
+    [Fact]
+    public async Task UpsertLeave_Sick_IsAutoApproved_WhenSubmittedAsPending()
+    {
+        // Staff self-reports sick leave → it must be auto-approved, not left pending
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var today = DateTime.UtcNow;
+        var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 40m);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "sick",
+            today, today, null, null, 8m, null, "pending");
+
+        var leaveId = await handler.Handle(cmd, CancellationToken.None);
+
+        var leave = await db.LeaveRequests.FirstAsync(l => l.Id == leaveId);
+        Assert.Equal("approved", leave.Status);
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Sick_NotifiesManagers_WhenAutoApproved()
+    {
+        // When sick leave is auto-approved, managers should receive a notification
+        await using var db = CreateDb();
+        var staff   = MakeStaff("S001");
+        var manager = E.Staff.Create("M001", "Bob", "Manager", "bob@test.com", "hash",
+            new List<string> { "MANAGER" });
+        var today = DateTime.UtcNow;
+        var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 40m);
+        db.Staff.Add(staff);
+        db.Staff.Add(manager);
+        db.LeaveEntitlements.Add(ent);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "sick",
+            today, today, null, null, 8m, null, "pending");
+
+        await handler.Handle(cmd, CancellationToken.None);
+
+        // Manager should have received a sick-leave notification
+        var mgNotif = await db.Notifications
+            .FirstOrDefaultAsync(n => n.EmployeeId == manager.Id);
+        Assert.NotNull(mgNotif);
+        Assert.Contains("sick", mgNotif.Title, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Sick_AdminCanSetApprovedDirectly_WithoutAutoApproveLogic()
+    {
+        // Admin setting sick status to 'approved' directly — should not double-notify employee
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var today = DateTime.UtcNow;
+        var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 40m);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        // Admin creates sick with status 'approved' directly (not pending)
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "sick",
+            today, today, null, null, 8m, null, "approved");
+
+        var leaveId = await handler.Handle(cmd, CancellationToken.None);
+
+        var leave = await db.LeaveRequests.FirstAsync(l => l.Id == leaveId);
+        Assert.Equal("approved", leave.Status);
+        // No employee notification created (was not auto-approved from pending)
+        Assert.Equal(0, await db.Notifications.CountAsync());
+    }
+
+    // ── Item 2: Manager notified for emergency leave ──────────────────────────
+
+    [Fact]
+    public async Task UpsertLeave_Emergency_NotifiesManagers_WhenAutoApproved()
+    {
+        // Emergency leave submitted as pending → auto-approve AND notify managers
+        await using var db = CreateDb();
+        var staff   = MakeStaff("S001");
+        var manager = E.Staff.Create("M001", "Carol", "Manager", "carol@test.com", "hash",
+            new List<string> { "MANAGER" });
+        var today = DateTime.UtcNow;
+        var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 14m);
+        db.Staff.Add(staff);
+        db.Staff.Add(manager);
+        db.LeaveEntitlements.Add(ent);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "emergency",
+            today, today, null, null, 4m, null, "pending");
+
+        await handler.Handle(cmd, CancellationToken.None);
+
+        // Manager should have received an emergency-leave notification
+        var mgNotif = await db.Notifications
+            .FirstOrDefaultAsync(n => n.EmployeeId == manager.Id);
+        Assert.NotNull(mgNotif);
+        Assert.Contains("emergency", mgNotif.Title, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // ── Item 8: GetLeaveBalanceQuery — emergencyUsed + combined annualUsed ────
+
+    [Fact]
+    public async Task GetLeaveBalance_IncludesEmergency_InAnnualUsed()
+    {
+        // Emergency hours must be counted against the annual pool in the balance query
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var year  = 2026;
+        var jan1  = new DateTime(year, 1, 15, 0, 0, 0, DateTimeKind.Utc);
+        var ent   = E.LeaveEntitlement.Create(staff.Id, year, annualHours: 40m, sickHours: 14m);
+        var annualLeave = E.LeaveRequest.Create(staff.Id, "annual", jan1, jan1, null, null, 8m, null);
+        annualLeave.Update("annual", jan1, jan1, null, null, 8m, null, "approved");
+        var emergencyLeave = E.LeaveRequest.Create(staff.Id, "emergency", jan1.AddDays(1), jan1.AddDays(1), null, null, 4m, null);
+        emergencyLeave.Update("emergency", jan1.AddDays(1), jan1.AddDays(1), null, null, 4m, null, "approved");
+
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        db.LeaveRequests.Add(annualLeave);
+        db.LeaveRequests.Add(emergencyLeave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider(new DateTime(year, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+        var handler = new GetLeaveBalanceQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetLeaveBalanceQuery(staff.Id, year), CancellationToken.None);
+
+        // annualUsed = 8h annual + 4h emergency = 12h
+        Assert.Equal(12m, result.AnnualUsed);
+        Assert.Equal(28m, result.AnnualRemaining);  // 40 - 12
+        Assert.Equal(4m,  result.EmergencyUsed);    // only emergency hours
+    }
+
+    [Fact]
+    public async Task GetLeaveBalance_EmergencyUsed_IsZero_WhenNoEmergencyLeave()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var year  = 2026;
+        var jan1  = new DateTime(year, 1, 15, 0, 0, 0, DateTimeKind.Utc);
+        var ent   = E.LeaveEntitlement.Create(staff.Id, year, annualHours: 40m, sickHours: 14m);
+        var annualLeave = E.LeaveRequest.Create(staff.Id, "annual", jan1, jan1, null, null, 8m, null);
+        annualLeave.Update("annual", jan1, jan1, null, null, 8m, null, "approved");
+
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        db.LeaveRequests.Add(annualLeave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider(new DateTime(year, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+        var handler = new GetLeaveBalanceQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetLeaveBalanceQuery(staff.Id, year), CancellationToken.None);
+
+        Assert.Equal(8m, result.AnnualUsed);
+        Assert.Equal(0m, result.EmergencyUsed);
+    }
+
+    // ── Item 5: BulkUpsertLeaveEntitlementCommand ─────────────────────────────
+
+    [Fact]
+    public async Task BulkUpsertLeaveEntitlement_ThrowsArgument_WhenNegativeHours()
+    {
+        await using var db = CreateDb();
+        var handler = new BulkUpsertLeaveEntitlementCommandHandler(db);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new BulkUpsertLeaveEntitlementCommand(2026, -1m, 14m),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task BulkUpsertLeaveEntitlement_ReturnsZero_WhenNoActiveStaff()
+    {
+        await using var db = CreateDb();
+        var handler = new BulkUpsertLeaveEntitlementCommandHandler(db);
+
+        var count = await handler.Handle(
+            new BulkUpsertLeaveEntitlementCommand(2026, 112m, 56m), CancellationToken.None);
+
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
+    public async Task BulkUpsertLeaveEntitlement_CreatesEntitlements_ForAllActiveStaff()
+    {
+        await using var db = CreateDb();
+        var s1 = MakeStaff("S001");
+        var s2 = E.Staff.Create("S002", "Bob", "Lee", "bob@test.com", "hash", new List<string> { "BARTENDER" });
+        db.Staff.Add(s1);
+        db.Staff.Add(s2);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new BulkUpsertLeaveEntitlementCommandHandler(db);
+        var count = await handler.Handle(
+            new BulkUpsertLeaveEntitlementCommand(2026, 112m, 56m), CancellationToken.None);
+
+        Assert.Equal(2, count);
+        var entitlements = await db.LeaveEntitlements.Where(e => e.Year == 2026).ToListAsync();
+        Assert.Equal(2, entitlements.Count);
+        Assert.All(entitlements, e =>
+        {
+            Assert.Equal(112m, e.AnnualHours);
+            Assert.Equal(56m,  e.SickHours);
+        });
+    }
+
+    [Fact]
+    public async Task BulkUpsertLeaveEntitlement_UpdatesExistingEntitlements()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var existing = E.LeaveEntitlement.Create(staff.Id, 2026, 40m, 20m);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(existing);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new BulkUpsertLeaveEntitlementCommandHandler(db);
+        await handler.Handle(new BulkUpsertLeaveEntitlementCommand(2026, 112m, 56m),
+            CancellationToken.None);
+
+        var updated = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
+        Assert.Equal(112m, updated.AnnualHours);
+        Assert.Equal(56m,  updated.SickHours);
+    }
+
+    [Fact]
+    public async Task BulkUpsertLeaveEntitlement_IgnoresInactiveStaff()
+    {
+        await using var db = CreateDb();
+        var active   = MakeStaff("S001");
+        var inactive = E.Staff.Create("S002", "Jane", "Doe", "jane@test.com", "hash", new List<string> { "BARTENDER" });
+        inactive.Deactivate();
+        db.Staff.Add(active);
+        db.Staff.Add(inactive);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new BulkUpsertLeaveEntitlementCommandHandler(db);
+        var count = await handler.Handle(
+            new BulkUpsertLeaveEntitlementCommand(2026, 112m, 56m), CancellationToken.None);
+
+        Assert.Equal(1, count);
+        Assert.Equal(1, await db.LeaveEntitlements.CountAsync());
+    }
+
+    // ── Item 6: CarryOverLeaveEntitlementCommand ──────────────────────────────
+
+    [Fact]
+    public async Task CarryOverLeaveEntitlement_ThrowsArgument_WhenFromYearNotBeforeToYear()
+    {
+        await using var db = CreateDb();
+        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new CarryOverLeaveEntitlementCommand(2026, 2025),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CarryOverLeaveEntitlement_ThrowsArgument_WhenMaxCarryOverNegative()
+    {
+        await using var db = CreateDb();
+        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, -1m),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CarryOverLeaveEntitlement_CarriesOverUnusedLeave()
+    {
+        // Staff has 40h annual for 2025, used 30h → 10h remaining → carry-over up to 14h = 10h
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
+        var ent2026 = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m);
+        var usedLeave = E.LeaveRequest.Create(staff.Id, "annual",
+            new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2025, 3, 5, 0, 0, 0, DateTimeKind.Utc),
+            null, null, 30m, null);
+        usedLeave.Update("annual",
+            new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2025, 3, 5, 0, 0, 0, DateTimeKind.Utc),
+            null, null, 30m, null, "approved");
+
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent2025);
+        db.LeaveEntitlements.Add(ent2026);
+        db.LeaveRequests.Add(usedLeave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
+        var count = await handler.Handle(
+            new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+
+        Assert.Equal(1, count);
+        var updated2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
+        Assert.Equal(90m, updated2026.AnnualHours);   // 80 base + 10 carry-over (remaining was 10)
+    }
+
+    [Fact]
+    public async Task CarryOverLeaveEntitlement_CapsAtMaxCarryOver()
+    {
+        // Staff has 40h for 2025, used 0h → 40h remaining → capped at 14h
+        await using var db = CreateDb();
+        var staff   = MakeStaff();
+        var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
+        var ent2026 = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent2025);
+        db.LeaveEntitlements.Add(ent2026);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
+        await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+
+        var updated2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
+        Assert.Equal(94m, updated2026.AnnualHours);   // 80 + 14 (capped)
+    }
+
+    [Fact]
+    public async Task CarryOverLeaveEntitlement_CreatesNewEntitlement_WhenToYearHasNone()
+    {
+        // Staff has entitlement for 2025 but none for 2026 → creates new with carry-over only
+        await using var db = CreateDb();
+        var staff   = MakeStaff();
+        var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent2025);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
+        var count = await handler.Handle(
+            new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+
+        Assert.Equal(1, count);
+        var new2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
+        Assert.Equal(14m, new2026.AnnualHours);  // carry-over (all 40 → capped at 14)
+        Assert.Equal(0m,  new2026.SickHours);
+    }
+
+    [Fact]
+    public async Task CarryOverLeaveEntitlement_SkipsEmployee_WhenNoRemainingLeave()
+    {
+        // Staff used all their leave → nothing to carry over → returns 0
+        await using var db = CreateDb();
+        var staff   = MakeStaff();
+        var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
+        var usedLeave = E.LeaveRequest.Create(staff.Id, "annual",
+            new DateTime(2025, 1, 10, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2025, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+            null, null, 40m, null);
+        usedLeave.Update("annual",
+            new DateTime(2025, 1, 10, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2025, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+            null, null, 40m, null, "approved");
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent2025);
+        db.LeaveRequests.Add(usedLeave);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
+        var count = await handler.Handle(
+            new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+
+        Assert.Equal(0, count);
+        Assert.Equal(0, await db.LeaveEntitlements.CountAsync(e => e.Year == 2026));
     }
 }

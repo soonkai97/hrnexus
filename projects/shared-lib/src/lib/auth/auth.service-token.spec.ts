@@ -118,7 +118,7 @@ describe('AuthService — evictStaleTokens()', () => {
   it('removes mock-* tokens on construction so dev leftovers never reach production guards', () => {
     // Seed a mock token BEFORE constructing the service
     localStorage.setItem(ACCESS_TOKEN_KEY, 'mock-dev-token');
-    localStorage.setItem(USER_KEY, JSON.stringify(fakeUser(['admin'])));
+    localStorage.setItem(USER_KEY, JSON.stringify(fakeUser(['ADMIN'])));
 
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideRouter([])],
@@ -132,7 +132,7 @@ describe('AuthService — evictStaleTokens()', () => {
   it('leaves real JWT tokens untouched', () => {
     const jwt = makeJwt(3600);
     localStorage.setItem(ACCESS_TOKEN_KEY, jwt);
-    localStorage.setItem(USER_KEY, JSON.stringify(fakeUser(['employee'])));
+    localStorage.setItem(USER_KEY, JSON.stringify(fakeUser(['BARTENDER'])));
 
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideRouter([])],

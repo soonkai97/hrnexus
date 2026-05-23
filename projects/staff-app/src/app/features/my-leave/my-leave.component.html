@@ -56,6 +56,12 @@
             optionLabel="label"
             optionValue="value"
             styleClass="w-full" />
+          @if (form.leaveType === 'emergency') {
+            <p-message severity="info" text="Emergency leave is auto-approved. Use this for urgent same-day or short-notice requests." styleClass="mt-2" />
+          }
+          @if (form.leaveType === 'annual') {
+            <small style="color:var(--p-text-muted-color)">Annual leave must be applied at least 3 days in advance.</small>
+          }
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
@@ -154,7 +160,7 @@
         @for (r of filteredRecords(); track r.id) {
           <p-card styleClass="leave-card">
             <div class="leave-top">
-              <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'no-show' ? 'warn' : 'secondary'" />
+              <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : (r.leaveType === 'no-show' || r.leaveType === 'emergency') ? 'warn' : 'secondary'" />
               <p-tag [value]="('leave.status.' + r.status) | translate" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
             </div>
             <div class="leave-dates">

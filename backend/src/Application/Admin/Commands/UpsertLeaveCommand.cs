@@ -28,12 +28,23 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         {
             AppConstants.Leave.Sick, AppConstants.Leave.Annual,
             AppConstants.Leave.Unpaid, AppConstants.Leave.NoShow,
+            AppConstants.Leave.Emergency,
         };
         if (!validTypes.Contains(req.LeaveType, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException($"Invalid leave type '{req.LeaveType}'.");
 
         if (req.StartDate > req.EndDate)
             throw new ArgumentException("StartDate must be on or before EndDate.");
+
+        // Annual leave must be applied at least 3 days in advance (new requests only)
+        if (!req.Id.HasValue
+            && req.LeaveType.Equals(AppConstants.Leave.Annual, StringComparison.OrdinalIgnoreCase)
+            && req.StartDate.Date < dt.LocalNow.Date.AddDays(AppConstants.Leave.AnnualLeaveAdvanceDays))
+        {
+            throw new ArgumentException(
+                $"Annual leave must be applied at least {AppConstants.Leave.AnnualLeaveAdvanceDays} days in advance. " +
+                "For urgent or same-day requests, please select Emergency Leave instead.");
+        }
 
         if (req.Hours is null or <= 0)
             throw new ArgumentException("Hours must be a positive value.");
@@ -44,10 +55,11 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
 
-        // Balance enforcement for annual/sick leave (skip when rejecting or cancelling)
+        // Balance enforcement for annual/sick leave (skip when rejecting, cancelling, or emergency)
         var isRejectedOrCancelled = req.Status.Equals(AppConstants.Leave.Rejected,  StringComparison.OrdinalIgnoreCase)
                                  || req.Status.Equals(AppConstants.Leave.Cancelled, StringComparison.OrdinalIgnoreCase);
-        if (!isRejectedOrCancelled &&
+        var isEmergency = req.LeaveType.Equals(AppConstants.Leave.Emergency, StringComparison.OrdinalIgnoreCase);
+        if (!isRejectedOrCancelled && !isEmergency &&
             (req.LeaveType.Equals(AppConstants.Leave.Annual, StringComparison.OrdinalIgnoreCase) ||
              req.LeaveType.Equals(AppConstants.Leave.Sick,   StringComparison.OrdinalIgnoreCase)))
         {
@@ -125,23 +137,35 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         }
         else
         {
+            // Emergency leave is always auto-approved (urgent — no manager action needed)
+            var resolvedStatus = isEmergency && req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase)
+                ? AppConstants.Leave.Approved
+                : req.Status;
+
             var leave = LeaveRequest.Create(req.EmployeeId, req.LeaveType,
                 req.StartDate, req.EndDate,
                 req.StartTime, req.EndTime, req.Hours,
                 req.Notes);
-            // Apply status immediately if not default
-            if (!req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
+            // Apply status immediately if not default pending
+            if (!resolvedStatus.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
                 leave.Update(req.LeaveType, req.StartDate, req.EndDate,
                     req.StartTime, req.EndTime, req.Hours,
-                    req.Notes, req.Status);
+                    req.Notes, resolvedStatus);
             db.LeaveRequests.Add(leave);
             await db.SaveChangesAsync(ct);
 
             await audit.LogAsync("LeaveRequest", leave.Id.ToString(), "Created",
                 req.EmployeeId, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({req.Hours:0.##}h)", ct);
 
-            // Notify managers of new pending leave
-            if (req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
+            // Notify employee that emergency leave was auto-approved
+            if (isEmergency)
+            {
+                await CreateAndSendNotification(req.EmployeeId, leave.Id,
+                    AppConstants.Leave.Approved, req.LeaveType, req.StartDate, req.EndDate, ct);
+            }
+
+            // Notify managers of new pending leave (non-emergency only)
+            if (resolvedStatus.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
             {
                 var managers = await db.Staff
                     .Where(e => e.IsActive &&

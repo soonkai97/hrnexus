@@ -32,10 +32,14 @@ public static class AppConstants
         public const string Cancelled = "cancelled";
 
         // Type values
-        public const string Sick   = "sick";
-        public const string Annual = "annual";
-        public const string Unpaid = "unpaid";
-        public const string NoShow = "no-show";
+        public const string Sick      = "sick";
+        public const string Annual    = "annual";
+        public const string Unpaid    = "unpaid";
+        public const string NoShow    = "no-show";
+        public const string Emergency = "emergency";
+
+        /// <summary>Number of calendar days ahead that annual leave must be applied.</summary>
+        public const int AnnualLeaveAdvanceDays = 3;
     }
 
     // ── Notification types ─────────────────────────────────────────────────────

@@ -77,7 +77,8 @@ await using (var scope = app.Services.CreateAsyncScope())
     var hasher = scope.ServiceProvider.GetRequiredService<NightclubWorkforce.Application.Common.Interfaces.IPasswordHasher>();
     await db.Database.MigrateAsync();
     await NightclubWorkforce.Infrastructure.Persistence.SeedData.SeedDemoUsersAsync(db, hasher);
-    await NightclubWorkforce.Infrastructure.Persistence.BulkSeedData.SeedAsync(db, hasher);
+    // BulkSeedData disabled — dev/demo bulk records removed; real data only
+    // await NightclubWorkforce.Infrastructure.Persistence.BulkSeedData.SeedAsync(db, hasher);
 }
 
 if (app.Environment.IsDevelopment())

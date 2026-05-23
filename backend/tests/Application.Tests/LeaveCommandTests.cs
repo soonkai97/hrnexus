@@ -63,9 +63,9 @@ public class LeaveCommandTests
     {
         var s = start ?? DateTime.UtcNow.Date;
         var e = end   ?? DateTime.UtcNow.Date.AddDays(2);
-        var leave = E.LeaveRequest.Create(empId, "annual", s, e, null);
+        var leave = E.LeaveRequest.Create(empId, "annual", s, e, null, null, null, null);
         if (status != "pending")
-            leave.Update("annual", s, e, null, status);
+            leave.Update("annual", s, e, null, null, null, null, status);
         return leave;
     }
 
@@ -107,7 +107,7 @@ public class LeaveCommandTests
         await using var db = CreateDb();
         var staff = MakeStaff();
         var yesterday = DateTime.UtcNow.Date.AddDays(-2);
-        var leave = E.LeaveRequest.Create(staff.Id, "annual", yesterday, yesterday, null);
+        var leave = E.LeaveRequest.Create(staff.Id, "annual", yesterday, yesterday, null, null, null, null);
         db.Staff.Add(staff);
         db.LeaveRequests.Add(leave);
         await db.SaveChangesAsync();
@@ -127,7 +127,7 @@ public class LeaveCommandTests
         await using var db = CreateDb();
         var staff = MakeStaff();
         var tomorrow = DateTime.UtcNow.Date.AddDays(1);
-        var leave = E.LeaveRequest.Create(staff.Id, "annual", tomorrow, tomorrow.AddDays(2), null);
+        var leave = E.LeaveRequest.Create(staff.Id, "annual", tomorrow, tomorrow.AddDays(2), null, null, null, null);
         db.Staff.Add(staff);
         db.LeaveRequests.Add(leave);
         await db.SaveChangesAsync();
@@ -182,7 +182,7 @@ public class LeaveCommandTests
             new NullPushSvc(), new NullAuditService(), dt);
 
         var cmd = new UpsertLeaveCommand(null, staff.Id, "INVALID",
-            DateTime.UtcNow, DateTime.UtcNow.AddDays(1), null, "pending");
+            DateTime.UtcNow, DateTime.UtcNow.AddDays(1), null, null, null, null, "pending");
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(cmd, CancellationToken.None));
@@ -204,14 +204,14 @@ public class LeaveCommandTests
         var tomorrow = DateTime.UtcNow.AddDays(1);
         var yesterday = DateTime.UtcNow.AddDays(-1);
         var cmd = new UpsertLeaveCommand(null, staff.Id, "annual",
-            tomorrow, yesterday, null, "pending");
+            tomorrow, yesterday, null, null, null, null, "pending");
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(cmd, CancellationToken.None));
     }
 
     [Fact]
-    public async Task UpsertLeave_ThrowsArgument_WhenDurationExceeds60Days()
+    public async Task UpsertLeave_ThrowsArgument_WhenHoursExceed720()
     {
         await using var db = CreateDb();
         var staff = MakeStaff();
@@ -225,7 +225,7 @@ public class LeaveCommandTests
 
         var start = DateTime.UtcNow;
         var cmd = new UpsertLeaveCommand(null, staff.Id, "annual",
-            start, start.AddDays(61), null, "pending");
+            start, start.AddDays(30), null, null, 721m, null, "pending");
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(cmd, CancellationToken.None));
@@ -248,7 +248,7 @@ public class LeaveCommandTests
         // Start is > 1 year in future from dt.LocalNow
         var farFuture = now.AddYears(1).AddDays(2);
         var cmd = new UpsertLeaveCommand(null, staff.Id, "annual",
-            farFuture, farFuture.AddDays(1), null, "pending");
+            farFuture, farFuture.AddDays(1), null, null, 8m, null, "pending");
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(cmd, CancellationToken.None));
@@ -259,8 +259,8 @@ public class LeaveCommandTests
     {
         await using var db = CreateDb();
         var staff = MakeStaff();
-        // Set entitlement to 2 days only
-        var ent = E.LeaveEntitlement.Create(staff.Id, DateTime.UtcNow.Year, annualDays: 2, sickDays: 14);
+        // Set entitlement to 2 hours only
+        var ent = E.LeaveEntitlement.Create(staff.Id, DateTime.UtcNow.Year, annualHours: 2m, sickHours: 14m);
         db.Staff.Add(staff);
         db.LeaveEntitlements.Add(ent);
         await db.SaveChangesAsync();
@@ -270,10 +270,10 @@ public class LeaveCommandTests
         var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
             new NullPushSvc(), new NullAuditService(), dt);
 
-        // Request 5 days
+        // Request 5 hours (exceeds 2h entitlement)
         var start = DateTime.UtcNow.AddDays(1);
         var cmd = new UpsertLeaveCommand(null, staff.Id, "annual",
-            start, start.AddDays(4), null, "pending");
+            start, start.AddDays(1), null, null, 5m, null, "pending");
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(cmd, CancellationToken.None));
@@ -285,7 +285,7 @@ public class LeaveCommandTests
         await using var db = CreateDb();
         var staff = MakeStaff();
         var existingLeave = E.LeaveRequest.Create(staff.Id, "annual",
-            DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(10), null);
+            DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(10), null, null, null, null);
         db.Staff.Add(staff);
         db.LeaveRequests.Add(existingLeave);
         await db.SaveChangesAsync();
@@ -298,7 +298,7 @@ public class LeaveCommandTests
         // Overlapping range
         var start = DateTime.UtcNow.AddDays(7);
         var cmd = new UpsertLeaveCommand(null, staff.Id, "unpaid",
-            start, start.AddDays(2), null, "pending");
+            start, start.AddDays(2), null, null, 8m, null, "pending");
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(cmd, CancellationToken.None));
@@ -319,7 +319,7 @@ public class LeaveCommandTests
 
         var start = DateTime.UtcNow.AddDays(1);
         var cmd = new UpsertLeaveCommand(null, staff.Id, "unpaid",
-            start, start.AddDays(2), "reason", "pending");
+            start, start.AddDays(2), null, null, 8m, "reason", "pending");
 
         var leaveId = await handler.Handle(cmd, CancellationToken.None);
 
@@ -334,9 +334,12 @@ public class LeaveCommandTests
         await using var db = CreateDb();
         var staff = MakeStaff();
         var start = DateTime.UtcNow.AddDays(5);
-        var leave = E.LeaveRequest.Create(staff.Id, "annual", start, start.AddDays(1), null);
+        var leave = E.LeaveRequest.Create(staff.Id, "annual", start, start.AddDays(1), null, null, 8m, null);
+        // Entitlement required — handler checks balance before the FindAsync lookup
+        var ent = E.LeaveEntitlement.Create(staff.Id, start.Year, annualHours: 40m, sickHours: 40m);
         db.Staff.Add(staff);
         db.LeaveRequests.Add(leave);
+        db.LeaveEntitlements.Add(ent);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -345,7 +348,7 @@ public class LeaveCommandTests
             new NullPushSvc(), new NullAuditService(), dt);
 
         var cmd = new UpsertLeaveCommand(leave.Id, staff.Id, "annual",
-            start, start.AddDays(1), null, "approved");
+            start, start.AddDays(1), null, null, 8m, null, "approved");
 
         await handler.Handle(cmd, CancellationToken.None);
 
@@ -366,8 +369,10 @@ public class LeaveCommandTests
         var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
             new NullPushSvc(), new NullAuditService(), dt);
 
+        // Use "rejected" status — balance check is skipped for rejections, so the
+        // handler reaches the FindAsync lookup and throws KeyNotFoundException.
         var cmd = new UpsertLeaveCommand(Guid.NewGuid(), staff.Id, "annual",
-            DateTime.UtcNow, DateTime.UtcNow.AddDays(1), null, "approved");
+            DateTime.UtcNow, DateTime.UtcNow.AddDays(1), null, null, 8m, null, "rejected");
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             handler.Handle(cmd, CancellationToken.None));
@@ -405,24 +410,24 @@ public class LeaveCommandTests
     // ── UpsertLeaveEntitlementCommand ─────────────────────────────────────────
 
     [Fact]
-    public async Task UpsertLeaveEntitlement_ThrowsArgument_WhenNegativeDays()
+    public async Task UpsertLeaveEntitlement_ThrowsArgument_WhenNegativeHours()
     {
         await using var db = CreateDb();
         var handler = new UpsertLeaveEntitlementCommandHandler(db);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 2026, -1, 14),
+            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 2026, -1m, 14m),
                 CancellationToken.None));
     }
 
     [Fact]
-    public async Task UpsertLeaveEntitlement_ThrowsArgument_WhenDaysExceed365()
+    public async Task UpsertLeaveEntitlement_ThrowsArgument_WhenHoursExceed8760()
     {
         await using var db = CreateDb();
         var handler = new UpsertLeaveEntitlementCommandHandler(db);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 2026, 366, 14),
+            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 2026, 8761m, 14m),
                 CancellationToken.None));
     }
 
@@ -433,7 +438,7 @@ public class LeaveCommandTests
         var handler = new UpsertLeaveEntitlementCommandHandler(db);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 1999, 14, 14),
+            handler.Handle(new UpsertLeaveEntitlementCommand(Guid.NewGuid(), 1999, 14m, 14m),
                 CancellationToken.None));
     }
 
@@ -444,12 +449,12 @@ public class LeaveCommandTests
         var empId = Guid.NewGuid();
         var handler = new UpsertLeaveEntitlementCommandHandler(db);
 
-        await handler.Handle(new UpsertLeaveEntitlementCommand(empId, 2026, 21, 10),
+        await handler.Handle(new UpsertLeaveEntitlementCommand(empId, 2026, 21m, 10m),
             CancellationToken.None);
 
         var ent = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == empId);
-        Assert.Equal(21, ent.AnnualDays);
-        Assert.Equal(10, ent.SickDays);
+        Assert.Equal(21m, ent.AnnualHours);
+        Assert.Equal(10m, ent.SickHours);
     }
 
     [Fact]
@@ -457,17 +462,17 @@ public class LeaveCommandTests
     {
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
-        var existing = E.LeaveEntitlement.Create(empId, 2026, 14, 14);
+        var existing = E.LeaveEntitlement.Create(empId, 2026, 14m, 14m);
         db.LeaveEntitlements.Add(existing);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
         var handler = new UpsertLeaveEntitlementCommandHandler(db);
-        await handler.Handle(new UpsertLeaveEntitlementCommand(empId, 2026, 20, 7),
+        await handler.Handle(new UpsertLeaveEntitlementCommand(empId, 2026, 20m, 7m),
             CancellationToken.None);
 
         var updated = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == empId);
-        Assert.Equal(20, updated.AnnualDays);
-        Assert.Equal(7, updated.SickDays);
+        Assert.Equal(20m, updated.AnnualHours);
+        Assert.Equal(7m, updated.SickHours);
     }
 }

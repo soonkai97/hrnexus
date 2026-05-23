@@ -277,16 +277,16 @@ public class RemainingQueryTests
         db.WorkLogs.Add(MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 5), "18:00", "23:00", 20m));
         var annualLeave = E.LeaveRequest.Create(emp.Id, "annual",
             new DateTime(2026, 5, 20, 0, 0, 0, DateTimeKind.Utc),
-            new DateTime(2026, 5, 20, 23, 59, 59, DateTimeKind.Utc), null);
+            new DateTime(2026, 5, 20, 23, 59, 59, DateTimeKind.Utc), null, null, null, null);
         annualLeave.Update("annual",
             new DateTime(2026, 5, 20, 0, 0, 0, DateTimeKind.Utc),
-            new DateTime(2026, 5, 20, 23, 59, 59, DateTimeKind.Utc), null, "approved");
+            new DateTime(2026, 5, 20, 23, 59, 59, DateTimeKind.Utc), null, null, null, null, "approved");
         var unpaidLeave = E.LeaveRequest.Create(emp.Id, "unpaid",
             new DateTime(2026, 5, 21, 0, 0, 0, DateTimeKind.Utc),
-            new DateTime(2026, 5, 21, 23, 59, 59, DateTimeKind.Utc), null);
+            new DateTime(2026, 5, 21, 23, 59, 59, DateTimeKind.Utc), null, null, null, null);
         unpaidLeave.Update("unpaid",
             new DateTime(2026, 5, 21, 0, 0, 0, DateTimeKind.Utc),
-            new DateTime(2026, 5, 21, 23, 59, 59, DateTimeKind.Utc), null, "approved");
+            new DateTime(2026, 5, 21, 23, 59, 59, DateTimeKind.Utc), null, null, null, null, "approved");
         db.LeaveRequests.AddRange(annualLeave, unpaidLeave);
         await db.SaveChangesAsync();
 

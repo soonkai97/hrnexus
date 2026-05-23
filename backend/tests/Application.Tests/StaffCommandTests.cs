@@ -490,7 +490,7 @@ public class StaffCommandTests
         var staff = MakeStaff();
         db.Staff.Add(staff);
         var leave = E.LeaveRequest.Create(staff.Id, "annual",
-            DateTime.UtcNow, DateTime.UtcNow.AddDays(2), null);
+            DateTime.UtcNow, DateTime.UtcNow.AddDays(2), null, null, null, null);
         db.LeaveRequests.Add(leave);
         await db.SaveChangesAsync();
 

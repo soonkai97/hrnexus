@@ -22,7 +22,9 @@ public record LeaveDto(
     string   LeaveType,
     string   StartDate,
     string   EndDate,
-    decimal  Days,
+    string?  StartTime,
+    string?  EndTime,
+    decimal  Hours,
     string?  Notes,
     string   Status,
     string   CreatedAt);
@@ -67,7 +69,9 @@ public class GetLeaveQueryHandler(IAppDbContext db)
             l.LeaveType,
             l.StartDate.ToString("yyyy-MM-dd"),
             l.EndDate.ToString("yyyy-MM-dd"),
-            (decimal)((l.EndDate.Date - l.StartDate.Date).TotalDays + 1),
+            l.StartTime,
+            l.EndTime,
+            l.Hours ?? 0m,
             l.Notes,
             l.Status,
             l.CreatedAt.ToString("yyyy-MM-dd HH:mm"))).ToList();

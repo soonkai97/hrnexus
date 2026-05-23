@@ -157,6 +157,7 @@
 .bal-row-label { font-size: 0.75rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em; }
 .bal-bar       { flex: 1; }
 .bal-row-nums  { font-size: 0.8rem; color: $text-secondary; text-align: right; strong { color: $text-primary; } }
+.bal-not-set   { font-size: 0.75rem; color: #fbbf24; font-style: italic; }
 
 // PrimeNG progressbar overrides for balance bars
 :host :deep(.bal-bar .p-progressbar) {

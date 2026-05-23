@@ -467,8 +467,8 @@ public class WorkLogCommandTests
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
         var today = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
-        var leave = E.LeaveRequest.Create(empId, "annual", today, today.AddDays(2), null);
-        leave.Update("annual", today, today.AddDays(2), null, "approved");
+        var leave = E.LeaveRequest.Create(empId, "annual", today, today.AddDays(2), null, null, null, null);
+        leave.Update("annual", today, today.AddDays(2), null, null, null, null, "approved");
         db.LeaveRequests.Add(leave);
         await db.SaveChangesAsync();
 

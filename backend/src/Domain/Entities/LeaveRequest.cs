@@ -9,6 +9,9 @@ public class LeaveRequest
     public string   LeaveType  { get; private set; } = default!; // sick | annual | unpaid | no-show
     public DateTime StartDate  { get; private set; }
     public DateTime EndDate    { get; private set; }
+    public string?  StartTime  { get; private set; }  // HH:mm, nullable
+    public string?  EndTime    { get; private set; }  // HH:mm, nullable
+    public decimal? Hours      { get; private set; }  // explicit hours, null for pre-migration records
     public string?  Notes           { get; private set; }
     public string   Status          { get; private set; } = default!; // pending | approved | rejected
     public DateTime CreatedAt       { get; private set; }
@@ -18,7 +21,9 @@ public class LeaveRequest
     private LeaveRequest() { }
 
     public static LeaveRequest Create(Guid employeeId, string leaveType,
-        DateTime startDate, DateTime endDate, string? notes) =>
+        DateTime startDate, DateTime endDate,
+        string? startTime, string? endTime, decimal? hours,
+        string? notes) =>
         new()
         {
             Id         = Guid.NewGuid(),
@@ -26,17 +31,24 @@ public class LeaveRequest
             LeaveType  = leaveType.ToLower(),
             StartDate  = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc),
             EndDate    = DateTime.SpecifyKind(endDate.Date,   DateTimeKind.Utc),
+            StartTime  = startTime,
+            EndTime    = endTime,
+            Hours      = hours,
             Notes      = notes,
             Status     = AppConstants.Leave.Pending,
             CreatedAt  = DateTime.UtcNow,
         };
 
     public void Update(string leaveType, DateTime startDate, DateTime endDate,
+        string? startTime, string? endTime, decimal? hours,
         string? notes, string status)
     {
         LeaveType = leaveType.ToLower();
         StartDate = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc);
         EndDate   = DateTime.SpecifyKind(endDate.Date,   DateTimeKind.Utc);
+        StartTime = startTime;
+        EndTime   = endTime;
+        Hours     = hours;
         Notes     = notes;
         Status    = status.ToLower();
     }

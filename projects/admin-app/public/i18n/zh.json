@@ -232,7 +232,8 @@
     "overdue":            "已过期",
     "overdueSection":     "条过期待审批请假需处理",
     "overdueDesc":        "以下请假已结束但未审批，请批准、拒绝或标记为缺勤。",
-    "markNoShow":         "标记缺勤"
+    "markNoShow":         "标记缺勤",
+    "notSet":             "未设置"
   },
   "reports": {
     "title":            "报告",

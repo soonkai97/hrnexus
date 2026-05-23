@@ -152,14 +152,16 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AnnualDays")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("AnnualHours")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
 
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("SickDays")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("SickHours")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
 
                     b.Property<int>("Year")
                         .HasColumnType("integer");
@@ -187,6 +189,14 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("EndTime")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
+
+                    b.Property<decimal?>("Hours")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("numeric(8,2)");
+
                     b.Property<string>("LeaveType")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -198,6 +208,10 @@ namespace NightclubWorkforce.Infrastructure.Migrations
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("StartTime")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
 
                     b.Property<string>("Status")
                         .IsRequired()

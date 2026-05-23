@@ -34,7 +34,7 @@ public class GetStaffByIdQueryHandler(IAppDbContext db)
 
         return new StaffDetailDto(
             emp.Id, emp.StaffId, emp.FirstName, emp.LastName, emp.FullName, emp.Email,
-            emp.Roles.Select(r => r.ToLower()).ToList(),
+            emp.Roles.ToList(),
             emp.IsActive, emp.PhoneNumber,
             emp.IcNo, emp.PassportNo,
             emp.DateOfBirth?.ToString("yyyy-MM-dd"), emp.Age,

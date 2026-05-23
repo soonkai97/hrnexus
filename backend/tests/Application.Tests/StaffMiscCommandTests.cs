@@ -270,7 +270,7 @@ public class StaffMiscCommandTests
         Assert.Equal(staff.Id, dto.Id);
         Assert.Equal("S002", dto.StaffId);
         Assert.Equal("Bob Lee", dto.FullName);
-        Assert.Contains("manager", dto.Roles);
+        Assert.Contains("MANAGER", dto.Roles);
         Assert.Equal("900101-01-1234", dto.IcNo);
     }
 

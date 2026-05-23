@@ -37,7 +37,7 @@ public class UpsertAnnouncementCommandHandler(IAppDbContext db,
             var roles = req.TargetRoles.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             foreach (var roleName in roles)
             {
-                var exists = await db.Roles.FindAsync([roleName.ToLowerInvariant()], ct);
+                var exists = await db.Roles.FindAsync([roleName.ToUpperInvariant()], ct);
                 if (exists is null)
                     throw new ArgumentException($"Role '{roleName}' does not exist in the system.");
             }

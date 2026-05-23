@@ -36,8 +36,8 @@ public class ForgotPasswordCommandHandler(
         // Filter managers/admins directly in SQL via the normalised StaffRoles table.
         var adminsAndManagers = await db.Staff
             .Where(e => e.IsActive &&
-                (e.RoleEntries.Any(r => r.Role == "admin") ||
-                 e.RoleEntries.Any(r => r.Role == "manager")))
+                (e.RoleEntries.Any(r => r.Role == "ADMIN") ||
+                 e.RoleEntries.Any(r => r.Role == "MANAGER")))
             .ToListAsync(ct);
 
         var title   = "🔐 Password Reset Request";

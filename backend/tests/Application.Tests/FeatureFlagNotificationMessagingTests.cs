@@ -43,17 +43,8 @@ public class FeatureFlagNotificationMessagingTests
         => E.Staff.Create(staffId, "Alice", "Wong", "alice@test.com", "hash",
             new List<string> { "BARTENDER" });
 
-    /// <summary>
-    /// Seeds a Role whose Name PK matches what CreateManualWorkLog will search for.
-    /// The handler calls FindAsync([req.RoleName.ToLowerInvariant()]), so the Name
-    /// stored in DB must be lowercase. Role.Create() uppercases — override via reflection.
-    /// </summary>
-    private static E.Role MakeRole(string name = "bartender", decimal rate = 20m)
-    {
-        var role = E.Role.Create(name, hourlyRate: rate);
-        typeof(E.Role).GetProperty(nameof(E.Role.Name))!.SetValue(role, name.ToLowerInvariant());
-        return role;
-    }
+    private static E.Role MakeRole(string name = "bartender", decimal rate = 20m) =>
+        E.Role.Create(name, hourlyRate: rate);
 
     // ── UpdateFeatureFlagsCommand ─────────────────────────────────────────────
 
@@ -518,7 +509,6 @@ public class FeatureFlagNotificationMessagingTests
         leave.Update("annual", workDateDt, workDateDt, null, "approved");
 
         var loc = E.Location.Create("Main");
-        // Handler does FindAsync([roleName.ToLowerInvariant()]) — role Name must be lowercase
         var role = MakeRole("bartender");
         db.Staff.Add(staff);
         db.LeaveRequests.Add(leave);
@@ -541,7 +531,6 @@ public class FeatureFlagNotificationMessagingTests
         await using var db = CreateDb();
         var staff = MakeStaff();
         var loc = E.Location.Create("Main");
-        // Handler does FindAsync([roleName.ToLowerInvariant()]) — role Name must be lowercase
         var role = MakeRole("bartender");
         var workDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
         var existingLog = E.WorkLog.CreateManual(staff.Id, "BARTENDER", loc.Id, "MAIN",
@@ -568,7 +557,6 @@ public class FeatureFlagNotificationMessagingTests
         await using var db = CreateDb();
         var staff = MakeStaff();
         var loc = E.Location.Create("Main Hall");
-        // Handler does FindAsync([roleName.ToLowerInvariant()]) — role Name must be lowercase
         var role = MakeRole("bartender", rate: 20m);
         db.Staff.Add(staff);
         db.Locations.Add(loc);

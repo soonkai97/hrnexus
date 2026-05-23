@@ -809,20 +809,12 @@ public class MyFeatureTests
 | `StubTokenService` | `ITokenService` — always returns a fixed token/refresh pair |
 | `StubDateTimeProvider` | `IDateTimeProvider` — exposes a mutable `DateTime _now` field |
 
-### Critical gotcha — Role.Name primary key casing
-`Role.Create(name)` stores `Name = name.Trim().ToUpperInvariant()`.  
-Handlers that look up roles call `db.Roles.FindAsync([roleName.ToLowerInvariant()])`.  
-This means a normal `db.Roles.Add(E.Role.Create("BARTENDER"))` is **never found** by the handler.
+### Role.Name primary key casing — canonical form is UPPERCASE
+`Role.Create(name)` stores `Name = name.Trim().ToUpperInvariant()`. All handlers query roles using `.ToUpperInvariant()` to match. In tests, `E.Role.Create("bartender")` already produces `Name = "BARTENDER"` — no reflection workaround needed:
 
-**Fix**: use reflection to force the stored Name to lowercase, matching what the handler queries:
 ```csharp
-private static E.Role MakeRole(string name = "bartender", decimal rate = 20m)
-{
-    var role = E.Role.Create(name, hourlyRate: rate);
-    // Force Name to lowercase so FindAsync([name.ToLowerInvariant()]) finds it
-    typeof(E.Role).GetProperty(nameof(E.Role.Name))!.SetValue(role, name.ToLowerInvariant());
-    return role;
-}
+private static E.Role MakeRole(string name = "bartender", decimal rate = 20m) =>
+    E.Role.Create(name, hourlyRate: rate);   // Name stored as "BARTENDER" — matches handler queries
 ```
 
 ### TDD cycle for backend

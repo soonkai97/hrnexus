@@ -215,7 +215,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         if (body.HourlyRate < 0)
             return BadRequest(new { error = "Hourly rate cannot be negative." });
-        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == name.ToLower(), ct);
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == name.ToUpperInvariant(), ct);
         if (role is null) return NotFound(new { error = "Role not found." });
         role.SetRate(body.HourlyRate);
         await db.SaveChangesAsync(ct);

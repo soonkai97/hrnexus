@@ -35,12 +35,12 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location {req.LocationId} not found.");
 
-        var role = await db.Roles.FindAsync([req.RoleName.ToLowerInvariant()], ct)
+        var role = await db.Roles.FindAsync([req.RoleName.ToUpperInvariant()], ct)
             ?? throw new KeyNotFoundException($"Role {req.RoleName} not found.");
 
         // Verify the employee is actually assigned this role (prevents rate fraud)
         var isAssigned = await db.Staff
-            .AnyAsync(s => s.Id == req.EmployeeId && s.RoleEntries.Any(r => r.Role == req.RoleName.ToLowerInvariant()), ct);
+            .AnyAsync(s => s.Id == req.EmployeeId && s.RoleEntries.Any(r => r.Role == req.RoleName.ToUpperInvariant()), ct);
         if (!isAssigned)
             throw new InvalidOperationException($"You are not assigned the role '{req.RoleName}'.");
 

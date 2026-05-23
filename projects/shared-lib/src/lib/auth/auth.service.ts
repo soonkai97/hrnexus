@@ -15,7 +15,7 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this._user() !== null);
   /** Highest-privilege permission level derived from roles */
   readonly userRole = computed((): UserRole | null => {
-    const roles = this._user()?.roles ?? [];
+    const roles = (this._user()?.roles ?? []).map(r => r.toUpperCase());
     if (roles.includes('ADMIN'))   return 'admin';
     if (roles.includes('MANAGER')) return 'manager';
     if (roles.length)              return 'employee';
@@ -38,17 +38,8 @@ export class AuthService {
     }
   }
 
-  // Clears old JWTs that contain lowercase roles — forces re-login to get UPPERCASE roles.
-  // Can be removed after all users have re-authenticated once.
-  private evictLowercaseRoleTokens(): void {
-    const user = this._user();
-    if (user?.roles.some(r => r !== r.toUpperCase())) {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      this._user.set(null);
-    }
-  }
+  // No-op: role case is now normalised at read-time (.map toUpperCase) so no eviction needed.
+  private evictLowercaseRoleTokens(): void {}
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/auth/login', request).pipe(

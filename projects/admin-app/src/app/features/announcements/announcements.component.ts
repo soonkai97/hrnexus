@@ -65,7 +65,7 @@ export class AnnouncementsComponent implements OnInit {
   // Live DB roles — empty selection means "All roles" (sends * to API).
   roleOptions = computed(() =>
     this.staffStore.roles().map(r => ({
-      label: r.name.charAt(0).toUpperCase() + r.name.slice(1).toLowerCase(),
+      label: r.name,
       value: r.name,
     }))
   );

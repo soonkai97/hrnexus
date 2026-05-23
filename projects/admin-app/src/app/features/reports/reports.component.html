@@ -172,7 +172,7 @@
               <tr>
                 <td class="td-muted mono">{{ e.staffId }}</td>
                 <td class="td-name">{{ e.name }}</td>
-                <td><p-tag [value]="e.role | titlecase" severity="info" /></td>
+                <td><p-tag [value]="e.role" severity="info" /></td>
                 <td class="td-muted">{{ e.shifts }}</td>
                 <td class="td-muted">{{ e.hours }}h</td>
                 <td class="td-muted">{{ e.avgHoursPerShift }}h</td>
@@ -236,7 +236,7 @@
             </ng-template>
             <ng-template pTemplate="body" let-ro>
               <tr>
-                <td><p-tag [value]="ro.role | titlecase" severity="info" /></td>
+                <td><p-tag [value]="ro.role" severity="info" /></td>
                 <td class="td-muted">{{ ro.staffCount }}</td>
                 <td class="td-muted">{{ ro.shifts }}</td>
                 <td class="td-muted">{{ ro.hours }}h</td>
@@ -302,7 +302,7 @@
               <tr>
                 <td class="td-muted mono">{{ s.staffId }}</td>
                 <td class="td-name">{{ s.staffName }}</td>
-                <td><p-tag [value]="s.role | titlecase" severity="info" /></td>
+                <td><p-tag [value]="s.role" severity="info" /></td>
                 <td class="td-muted">{{ s.locationName }}</td>
                 <td class="td-muted">{{ s.clockedIn | date:'dd/MM h:mm a' }}</td>
                 <td class="td-muted">{{ s.clockedOut ? (s.clockedOut | date:'dd/MM h:mm a') : '—' }}</td>

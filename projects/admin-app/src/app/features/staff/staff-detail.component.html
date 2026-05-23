@@ -46,7 +46,7 @@
           </div>
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.roles' | translate }}</label>
             <div class="d-flex flex-wrap gap-1">
-              @for (r of s.roles; track r) { <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" /> }
+              @for (r of s.roles; track r) { <p-tag [value]="r" severity="info" styleClass="mr-1" /> }
             </div>
           </div>
         </div>
@@ -152,7 +152,7 @@
             <ng-template pTemplate="body" let-wl>
               <tr>
                 <td>{{ wl.workDate }}</td>
-                <td>{{ wl.roleName | titlecase }}</td>
+                <td>{{ wl.roleName }}</td>
                 <td>{{ wl.locationName }}</td>
                 <td>{{ wl.startTime | amPm }}</td>
                 <td>{{ wl.endTime | amPm }}</td>

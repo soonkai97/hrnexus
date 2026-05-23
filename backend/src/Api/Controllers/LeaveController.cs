@@ -23,7 +23,7 @@ public class LeaveController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetMine(CancellationToken ct)
     {
         // Use a large page size to return all records — staff don't need pagination on their own history
-        var result = await mediator.Send(new GetLeaveQuery(EmployeeId, null, null, null, 1, 200), ct);
+        var result = await mediator.Send(new GetLeaveQuery(EmployeeId, null, null, null, null, 1, 200), ct);
         return Ok(result.Items);
     }
 

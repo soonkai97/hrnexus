@@ -52,13 +52,14 @@ public class AdminController(IMediator mediator) : ControllerBase
         [FromQuery] DateTime? dateFrom   = null,
         [FromQuery] DateTime? dateTo     = null,
         [FromQuery] string?   status     = null,
+        [FromQuery] string?   leaveType  = null,
         [FromQuery] int       page       = 1,
         [FromQuery] int       pageSize   = 10,
         CancellationToken ct = default)
     {
         if (pageSize > AppConstants.Limits.MaxPageSize) pageSize = AppConstants.Limits.MaxPageSize;
         var result = await mediator.Send(
-            new GetLeaveQuery(employeeId, dateFrom, dateTo, status, page, pageSize), ct);
+            new GetLeaveQuery(employeeId, dateFrom, dateTo, status, leaveType, page, pageSize), ct);
         return Ok(result);
     }
 

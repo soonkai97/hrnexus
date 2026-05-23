@@ -58,6 +58,20 @@ export class LeaveComponent implements OnInit {
   filterFrom       = '';
   filterTo         = '';
   filterStatus     = '';
+  filterLeaveType  = '';
+
+  readonly presetTypes = [
+    { label: 'All',    value: '' },
+    { label: 'Sick',   value: 'sick' },
+    { label: 'Annual', value: 'annual' },
+    { label: 'Unpaid', value: 'unpaid' },
+  ];
+
+  setTypeFilter(type: string): void {
+    this.filterLeaveType = type;
+    if (this.viewMode() === 'calendar') this.loadCalRecords();
+    else this.load();
+  }
 
   /** Overdue pending leaves (loaded separately, all pages) */
   overdueLeaves    = signal<LeaveRecord[]>([]);
@@ -135,7 +149,7 @@ export class LeaveComponent implements OnInit {
     this.selectedCalDay.set(null);
     this.loading.set(true);
     // Calendar only shows one month — 200 is a safe upper bound
-    this.leaveSvc.getAll({ dateFrom: from, dateTo: to, status: this.filterStatus || undefined, page: 1, pageSize: 200 }).subscribe({
+    this.leaveSvc.getAll({ dateFrom: from, dateTo: to, status: this.filterStatus || undefined, leaveType: this.filterLeaveType || undefined, page: 1, pageSize: 200 }).subscribe({
       next:  r  => { this.records.set(r?.items ?? []); this.loading.set(false); },
       error: () => { this.toast.error('Failed to load leave records.'); this.loading.set(false); },
     });
@@ -260,9 +274,10 @@ export class LeaveComponent implements OnInit {
     this.currentPage.set(page);
     this.leaveSvc.getAll({
       employeeId: this.filterEmployeeId || undefined,
-      dateFrom:   this.filterFrom   || undefined,
-      dateTo:     this.filterTo     || undefined,
-      status:     this.filterStatus || undefined,
+      dateFrom:   this.filterFrom       || undefined,
+      dateTo:     this.filterTo         || undefined,
+      status:     this.filterStatus     || undefined,
+      leaveType:  this.filterLeaveType  || undefined,
       page,
       pageSize:   this.pageSize,
     }).subscribe({

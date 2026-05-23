@@ -9,9 +9,10 @@ public record GetLeaveQuery(
     Guid?     EmployeeId,
     DateTime? DateFrom,
     DateTime? DateTo,
-    string?   Status   = null,
-    int       Page     = 1,
-    int       PageSize = 10) : IRequest<PagedResult<LeaveDto>>;
+    string?   Status    = null,
+    string?   LeaveType = null,
+    int       Page      = 1,
+    int       PageSize  = 10) : IRequest<PagedResult<LeaveDto>>;
 
 public record LeaveDto(
     Guid     Id,
@@ -45,10 +46,13 @@ public class GetLeaveQueryHandler(IAppDbContext db)
         if (!string.IsNullOrEmpty(req.Status))
             query = query.Where(l => l.Status == req.Status);
 
-        // Pending records always surface first, then newest start date
+        if (!string.IsNullOrEmpty(req.LeaveType))
+            query = query.Where(l => l.LeaveType == req.LeaveType.ToLowerInvariant());
+
+        // Pending first; within pending oldest CreatedAt first (first-applied = first-reviewed)
         query = query
             .OrderBy(l => l.Status == "pending" ? 0 : 1)
-            .ThenByDescending(l => l.StartDate);
+            .ThenBy(l => l.CreatedAt);
 
         var total = await query.CountAsync(ct);
         var page  = Math.Max(1, req.Page);

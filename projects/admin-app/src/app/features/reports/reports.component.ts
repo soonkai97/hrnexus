@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import {
@@ -29,7 +29,7 @@ import { InputText } from 'primeng/inputtext';
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, TranslatePipe,
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe,
     Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
     Tabs, TabList, Tab, MultiSelect, Select, Skeleton, Dialog, InputText],
   templateUrl: './reports.component.html',

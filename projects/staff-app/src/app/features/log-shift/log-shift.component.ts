@@ -64,7 +64,7 @@ export class LogShiftComponent implements OnInit {
   });
 
   readonly myRoleOptions = computed(() =>
-    this.myRoles().map(r => ({ label: r.toUpperCase(), value: r }))
+    this.myRoles().map(r => ({ label: r.charAt(0).toUpperCase() + r.slice(1), value: r }))
   );
 
   readonly locationOptions = computed(() =>

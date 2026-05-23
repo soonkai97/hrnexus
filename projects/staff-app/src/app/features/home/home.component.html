@@ -146,7 +146,7 @@
       <p-card styleClass="recent-list">
         @for (s of recentShifts(); track s.id) {
           <div class="recent-row">
-            <div class="recent-date">{{ s.workDate | date:'EEE, d MMM' }}</div>
+            <div class="recent-date">{{ s.workDate | date:'EEE, dd/MM' }}</div>
             <div class="recent-role">
               <span>{{ s.roleName | uppercase }}</span>
               <span class="recent-time">{{ s.startTime | amPm }}@if (s.endTime) { – {{ s.endTime | amPm }}}</span>

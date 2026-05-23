@@ -55,32 +55,37 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
 
-        // Balance enforcement for annual/sick leave (skip when rejecting, cancelling, or emergency)
+        // Balance enforcement: annual + emergency share the annual pool; sick has its own pool
         var isRejectedOrCancelled = req.Status.Equals(AppConstants.Leave.Rejected,  StringComparison.OrdinalIgnoreCase)
                                  || req.Status.Equals(AppConstants.Leave.Cancelled, StringComparison.OrdinalIgnoreCase);
-        var isEmergency = req.LeaveType.Equals(AppConstants.Leave.Emergency, StringComparison.OrdinalIgnoreCase);
-        if (!isRejectedOrCancelled && !isEmergency &&
-            (req.LeaveType.Equals(AppConstants.Leave.Annual, StringComparison.OrdinalIgnoreCase) ||
-             req.LeaveType.Equals(AppConstants.Leave.Sick,   StringComparison.OrdinalIgnoreCase)))
+        var isEmergency        = req.LeaveType.Equals(AppConstants.Leave.Emergency, StringComparison.OrdinalIgnoreCase);
+        var isAnnualOrEmergency = req.LeaveType.Equals(AppConstants.Leave.Annual,   StringComparison.OrdinalIgnoreCase) || isEmergency;
+        var isSick              = req.LeaveType.Equals(AppConstants.Leave.Sick,     StringComparison.OrdinalIgnoreCase);
+
+        if (!isRejectedOrCancelled && (isAnnualOrEmergency || isSick))
         {
             var year = req.StartDate.Year;
-            var leaveTypeLower = req.LeaveType.ToLowerInvariant();
 
             var entitlement = await db.LeaveEntitlements
                 .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
 
-            // 0 means entitlement not set — reject immediately
-            decimal entitlementHours = leaveTypeLower == AppConstants.Leave.Annual
+            // Emergency draws from the annual pool
+            decimal entitlementHours = isAnnualOrEmergency
                 ? (entitlement?.AnnualHours ?? 0m)
                 : (entitlement?.SickHours   ?? 0m);
 
+            var poolName = isAnnualOrEmergency ? "annual" : "sick";
+
             if (entitlementHours <= 0)
                 throw new InvalidOperationException(
-                    $"No {leaveTypeLower} leave entitlement has been set for {year}. Please contact your manager.");
+                    $"No {poolName} leave entitlement has been set for {year}. Please contact your manager.");
 
+            // Count annual + emergency together against the annual pool
             var usedHours = await db.LeaveRequests
                 .Where(l => l.EmployeeId == req.EmployeeId
-                         && l.LeaveType  == leaveTypeLower
+                         && (isAnnualOrEmergency
+                             ? (l.LeaveType == AppConstants.Leave.Annual || l.LeaveType == AppConstants.Leave.Emergency)
+                             : l.LeaveType == AppConstants.Leave.Sick)
                          && l.StartDate.Year == year
                          && l.Status != AppConstants.Leave.Rejected
                          && l.Status != AppConstants.Leave.Cancelled
@@ -91,7 +96,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             {
                 var remaining = Math.Max(0, entitlementHours - usedHours);
                 throw new InvalidOperationException(
-                    $"Insufficient {leaveTypeLower} leave balance. {remaining:0.##}h remaining.");
+                    $"Insufficient {poolName} leave balance. {remaining:0.##}h remaining.");
             }
         }
 

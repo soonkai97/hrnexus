@@ -467,7 +467,10 @@ public class LeaveCommandTests
         // Emergency leave submitted with "pending" must be stored as "approved"
         await using var db = CreateDb();
         var staff = MakeStaff();
+        var today = DateTime.UtcNow;
+        var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 14m);
         db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -475,7 +478,6 @@ public class LeaveCommandTests
         var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
             new NullPushSvc(), new NullAuditService(), dt);
 
-        var today = DateTime.UtcNow;
         var cmd = new UpsertLeaveCommand(null, staff.Id, "emergency",
             today, today, null, null, 8m, "urgent family matter", "pending");
 
@@ -487,12 +489,65 @@ public class LeaveCommandTests
     }
 
     [Fact]
-    public async Task UpsertLeave_Emergency_SkipsBalanceCheck_NoEntitlementNeeded()
+    public async Task UpsertLeave_Emergency_DeductsFromAnnualBalance()
     {
-        // Emergency leave bypasses entitlement checks — no annual/sick quota consumed
+        // Emergency leave uses the annual entitlement pool — both types count together
         await using var db = CreateDb();
         var staff = MakeStaff();
-        // No entitlement seeded — would block annual or sick leave
+        var today = DateTime.UtcNow;
+        // Entitlement: 10h annual. Existing annual leave: 6h. Emergency request: 4h → exact fit.
+        var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 10m, sickHours: 14m);
+        var existingAnnual = E.LeaveRequest.Create(staff.Id, "annual", today.AddDays(5), today.AddDays(5), null, null, 6m, null);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        db.LeaveRequests.Add(existingAnnual);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        // 4h emergency + 6h annual = 10h (exactly at limit — should succeed)
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "emergency",
+            today, today, null, null, 4m, null, "pending");
+
+        var leaveId = await handler.Handle(cmd, CancellationToken.None);
+        Assert.NotEqual(Guid.Empty, leaveId);
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Emergency_ThrowsWhenAnnualBalanceExceeded()
+    {
+        // Emergency leave is blocked when the annual entitlement pool is exhausted
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var today = DateTime.UtcNow;
+        // Only 2h annual remaining; requesting 8h emergency → blocked
+        var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 2m, sickHours: 14m);
+        db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt = new StubDateTimeProvider();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), new NullAuditService(), dt);
+
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "emergency",
+            today, today, null, null, 8m, null, "pending");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Emergency_ThrowsWhenNoAnnualEntitlementSet()
+    {
+        // Emergency leave is blocked when no annual entitlement has been configured
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        // No entitlement seeded at all
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -505,9 +560,8 @@ public class LeaveCommandTests
         var cmd = new UpsertLeaveCommand(null, staff.Id, "emergency",
             today, today, null, null, 8m, null, "pending");
 
-        // Should succeed even with no entitlement
-        var leaveId = await handler.Handle(cmd, CancellationToken.None);
-        Assert.NotEqual(Guid.Empty, leaveId);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(cmd, CancellationToken.None));
     }
 
     [Fact]
@@ -516,16 +570,18 @@ public class LeaveCommandTests
         // Emergency leave is not subject to the annual 3-day advance rule
         await using var db = CreateDb();
         var staff = MakeStaff();
+        var now = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        var ent = E.LeaveEntitlement.Create(staff.Id, now.Year, annualHours: 40m, sickHours: 14m);
         db.Staff.Add(staff);
+        db.LeaveEntitlements.Add(ent);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var now = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
-        var dt  = new StubDateTimeProvider(now);
+        var dt = new StubDateTimeProvider(now);
         var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
             new NullPushSvc(), new NullAuditService(), dt);
 
-        // Same day — would fail for annual
+        // Same day — would fail for annual but is fine for emergency
         var cmd = new UpsertLeaveCommand(null, staff.Id, "emergency",
             now, now, null, null, 4m, null, "pending");
 

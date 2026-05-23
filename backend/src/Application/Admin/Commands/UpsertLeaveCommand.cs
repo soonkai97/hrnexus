@@ -142,8 +142,10 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         }
         else
         {
-            // Emergency leave is always auto-approved (urgent — no manager action needed)
-            var resolvedStatus = isEmergency && req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase)
+            // Sick and emergency leave submitted as pending are auto-approved instantly
+            var wasPendingAutoApproved = (isSick || isEmergency)
+                && req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase);
+            var resolvedStatus = wasPendingAutoApproved
                 ? AppConstants.Leave.Approved
                 : req.Status;
 
@@ -162,14 +164,38 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             await audit.LogAsync("LeaveRequest", leave.Id.ToString(), "Created",
                 req.EmployeeId, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({req.Hours:0.##}h)", ct);
 
-            // Notify employee that emergency leave was auto-approved
-            if (isEmergency)
+            // Notify employee when sick/emergency leave is auto-approved
+            if (wasPendingAutoApproved)
             {
                 await CreateAndSendNotification(req.EmployeeId, leave.Id,
                     AppConstants.Leave.Approved, req.LeaveType, req.StartDate, req.EndDate, ct);
             }
 
-            // Notify managers of new pending leave (non-emergency only)
+            // Notify managers when sick leave is self-reported or emergency leave is taken
+            if (wasPendingAutoApproved)
+            {
+                var managers = await db.Staff
+                    .Where(e => e.IsActive &&
+                        (e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager) ||
+                         e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Admin)))
+                    .ToListAsync(ct);
+
+                var emp = await db.Staff.FindAsync([req.EmployeeId], ct);
+                var notifTitle = isSick ? "Sick Leave Reported" : "Emergency Leave Taken";
+                var notifMsg = isSick
+                    ? $"{emp?.FullName ?? "An employee"} has reported sick leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {req.Hours:0.##}h)."
+                    : $"{emp?.FullName ?? "An employee"} has taken emergency leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {req.Hours:0.##}h).";
+                foreach (var mgr in managers)
+                {
+                    var notif = Notification.Create(mgr.Id, notifTitle, notifMsg,
+                        AppConstants.NotificationType.LeavePending, leave.Id.ToString());
+                    db.Notifications.Add(notif);
+                    await notifHub.SendToUserAsync(mgr.Id, ToPayload(notif), ct);
+                }
+                await db.SaveChangesAsync(ct);
+            }
+
+            // Notify managers of new pending leave (annual, unpaid, no-show)
             if (resolvedStatus.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
             {
                 var managers = await db.Staff
@@ -184,7 +210,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                     var notif = Notification.Create(mgr.Id,
                         "New Leave Request",
                         $"{emp?.FullName ?? "An employee"} applied for {req.LeaveType} leave " +
-                        $"({req.StartDate:MMM d} – {req.EndDate:MMM d}, {req.Hours:0.##}h).",
+                        $"({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {req.Hours:0.##}h).",
                         AppConstants.NotificationType.LeavePending, leave.Id.ToString());
                     db.Notifications.Add(notif);
                     await notifHub.SendToUserAsync(mgr.Id, ToPayload(notif), ct);

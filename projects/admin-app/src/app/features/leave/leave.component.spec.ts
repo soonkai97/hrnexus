@@ -36,6 +36,7 @@ function makeRecord(overrides: Partial<LeaveRecord> = {}): LeaveRecord {
 
 const fakeBalance = {
   year: 2026, annualEntitlement: 14, annualUsed: 2, annualRemaining: 12,
+  emergencyUsed: 0,
   sickEntitlement: 14, sickUsed: 0, sickRemaining: 14, unpaidUsed: 0,
 };
 
@@ -45,13 +46,15 @@ describe('LeaveComponent', () => {
   let component: LeaveComponent;
 
   let mockLeaveSvc: {
-    getAll:          ReturnType<typeof vi.fn>;
-    create:          ReturnType<typeof vi.fn>;
-    update:          ReturnType<typeof vi.fn>;
-    delete:          ReturnType<typeof vi.fn>;
-    getBalance:      ReturnType<typeof vi.fn>;
-    getAllBalances:   ReturnType<typeof vi.fn>;
-    setEntitlement:  ReturnType<typeof vi.fn>;
+    getAll:               ReturnType<typeof vi.fn>;
+    create:               ReturnType<typeof vi.fn>;
+    update:               ReturnType<typeof vi.fn>;
+    delete:               ReturnType<typeof vi.fn>;
+    getBalance:           ReturnType<typeof vi.fn>;
+    getAllBalances:        ReturnType<typeof vi.fn>;
+    setEntitlement:       ReturnType<typeof vi.fn>;
+    bulkSetEntitlement:   ReturnType<typeof vi.fn>;
+    carryOverEntitlement: ReturnType<typeof vi.fn>;
   };
   let mockStaffStore: {
     staff:     ReturnType<typeof vi.fn>;
@@ -60,18 +63,20 @@ describe('LeaveComponent', () => {
     totalCount: ReturnType<typeof vi.fn>;
     loadStaff: ReturnType<typeof vi.fn>;
   };
-  let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
+  let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn>; warning: ReturnType<typeof vi.fn> };
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockLeaveSvc = {
-      getAll:         vi.fn().mockReturnValue(of({ items: [], total: 0 })),
-      create:         vi.fn().mockReturnValue(of({ id: 'new-r' })),
-      update:         vi.fn().mockReturnValue(of(undefined)),
-      delete:         vi.fn().mockReturnValue(of(undefined)),
-      getBalance:     vi.fn().mockReturnValue(of(fakeBalance)),
-      getAllBalances:  vi.fn().mockReturnValue(of([])),
-      setEntitlement: vi.fn().mockReturnValue(of(undefined)),
+      getAll:               vi.fn().mockReturnValue(of({ items: [], total: 0 })),
+      create:               vi.fn().mockReturnValue(of({ id: 'new-r' })),
+      update:               vi.fn().mockReturnValue(of(undefined)),
+      delete:               vi.fn().mockReturnValue(of(undefined)),
+      getBalance:           vi.fn().mockReturnValue(of(fakeBalance)),
+      getAllBalances:        vi.fn().mockReturnValue(of([])),
+      setEntitlement:       vi.fn().mockReturnValue(of(undefined)),
+      bulkSetEntitlement:   vi.fn().mockReturnValue(of({ count: 3 })),
+      carryOverEntitlement: vi.fn().mockReturnValue(of({ count: 2 })),
     };
     mockStaffStore = {
       staff:      vi.fn().mockReturnValue([]),
@@ -80,7 +85,7 @@ describe('LeaveComponent', () => {
       totalCount: vi.fn().mockReturnValue(0),
       loadStaff:  vi.fn(),
     };
-    mockToastSvc   = { success: vi.fn(), error: vi.fn() };
+    mockToastSvc   = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
 
     await TestBed.configureTestingModule({
@@ -502,6 +507,153 @@ describe('LeaveComponent', () => {
       mockLeaveSvc.setEntitlement.mockReturnValue(throwError(() => new Error('Network')));
       component.saveEntitlement();
       expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to update entitlement.');
+    });
+  });
+
+  // ── Item 4: onFormEmployeeChange() ────────────────────────────────────────────
+
+  describe('onFormEmployeeChange()', () => {
+    it('loads and sets formBalance when employee is selected', () => {
+      component.onFormEmployeeChange('emp-1');
+      expect(mockLeaveSvc.getBalance).toHaveBeenCalledWith('emp-1');
+      expect(component.formBalance()).toEqual(fakeBalance);
+    });
+
+    it('clears formBalance when employee is deselected (empty string)', () => {
+      component.formBalance.set(fakeBalance);
+      component.onFormEmployeeChange('');
+      expect(component.formBalance()).toBeNull();
+      expect(mockLeaveSvc.getBalance).not.toHaveBeenCalledWith('');
+    });
+
+    it('clears formBalance when getBalance fails', () => {
+      component.formBalance.set(fakeBalance);
+      mockLeaveSvc.getBalance.mockReturnValue(throwError(() => new Error('Network')));
+      component.onFormEmployeeChange('emp-1');
+      expect(component.formBalance()).toBeNull();
+    });
+  });
+
+  // ── Item 5: bulkApplyEntitlement() ────────────────────────────────────────────
+
+  describe('bulkApplyEntitlement()', () => {
+    it('calls bulkSetEntitlement with entitlementForm values when user confirms', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.entitlementForm = { year: 2026, annualHours: 112, sickHours: 56 };
+      component.bulkApplyEntitlement();
+      expect(mockLeaveSvc.bulkSetEntitlement).toHaveBeenCalledWith(2026, 112, 56);
+    });
+
+    it('shows success toast with count on success', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.bulkApplyEntitlement();
+      expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('3'));
+    });
+
+    it('does NOT call bulkSetEntitlement when user cancels', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(false));
+      component.bulkApplyEntitlement();
+      expect(mockLeaveSvc.bulkSetEntitlement).not.toHaveBeenCalled();
+    });
+
+    it('shows error toast when bulkSetEntitlement fails', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      mockLeaveSvc.bulkSetEntitlement.mockReturnValue(
+        throwError(() => ({ error: { error: 'Year out of range.' } })));
+      component.bulkApplyEntitlement();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Year out of range.');
+    });
+  });
+
+  // ── Item 6: carryOver() ───────────────────────────────────────────────────────
+
+  describe('carryOver()', () => {
+    it('calls carryOverEntitlement with fromYear = balanceYear - 1 and toYear = balanceYear', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.balanceYear.set(2026);
+      component.carryOver();
+      expect(mockLeaveSvc.carryOverEntitlement).toHaveBeenCalledWith(2025, 2026, 14);
+    });
+
+    it('shows success toast with count on success', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.carryOver();
+      expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('2'));
+    });
+
+    it('does NOT call carryOverEntitlement when user cancels', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(false));
+      component.carryOver();
+      expect(mockLeaveSvc.carryOverEntitlement).not.toHaveBeenCalled();
+    });
+
+    it('shows error toast on failure', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      mockLeaveSvc.carryOverEntitlement.mockReturnValue(throwError(() => new Error('Server error')));
+      component.carryOver();
+      expect(mockToastSvc.error).toHaveBeenCalled();
+    });
+  });
+
+  // ── Item 10: exportCsv() ──────────────────────────────────────────────────────
+
+  describe('exportCsv()', () => {
+    it('calls getAll with current filter params and pageSize 1000', () => {
+      component.filterEmployeeId = 'emp-1';
+      component.filterStatus     = 'approved';
+      component.exportCsv();
+      expect(mockLeaveSvc.getAll).toHaveBeenCalledWith(expect.objectContaining({
+        employeeId: 'emp-1',
+        status:     'approved',
+        pageSize:   1000,
+      }));
+    });
+
+    it('shows warning toast when there are no records to export', () => {
+      mockLeaveSvc.getAll.mockReturnValue(of({ items: [], total: 0 }));
+      component.exportCsv();
+      expect(mockToastSvc.warning).toHaveBeenCalledWith('No records to export.');
+    });
+
+    it('shows success toast with record count when export succeeds', () => {
+      const records = [makeRecord(), makeRecord({ id: 'r2' })];
+      mockLeaveSvc.getAll.mockReturnValue(of({ items: records, total: 2 }));
+      component.exportCsv();
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Exported 2 records.');
+    });
+
+    it('shows error toast when getAll fails', () => {
+      mockLeaveSvc.getAll.mockReturnValue(throwError(() => new Error('Network')));
+      component.exportCsv();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Export failed.');
+    });
+  });
+
+  // ── Item 12: prevBalanceYear() / nextBalanceYear() ────────────────────────────
+
+  describe('prevBalanceYear() / nextBalanceYear()', () => {
+    it('prevBalanceYear() decrements balanceYear by 1', () => {
+      component.balanceYear.set(2026);
+      component.prevBalanceYear();
+      expect(component.balanceYear()).toBe(2025);
+    });
+
+    it('nextBalanceYear() increments balanceYear by 1', () => {
+      component.balanceYear.set(2026);
+      component.nextBalanceYear();
+      expect(component.balanceYear()).toBe(2027);
+    });
+
+    it('prevBalanceYear() triggers a balance reload', () => {
+      const callsBefore = mockLeaveSvc.getAllBalances.mock.calls.length;
+      component.prevBalanceYear();
+      expect(mockLeaveSvc.getAllBalances.mock.calls.length).toBeGreaterThan(callsBefore);
+    });
+
+    it('nextBalanceYear() triggers a balance reload', () => {
+      const callsBefore = mockLeaveSvc.getAllBalances.mock.calls.length;
+      component.nextBalanceYear();
+      expect(mockLeaveSvc.getAllBalances.mock.calls.length).toBeGreaterThan(callsBefore);
     });
   });
 });

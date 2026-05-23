@@ -14,7 +14,12 @@
           <span class="bal-sep">/</span>
           <span class="bal-total">{{ b.annualEntitlement }}{{ 'leave.hrs' | translate }}</span>
         </div>
-        <div class="bal-used">{{ b.annualUsed }}{{ 'leave.hrs' | translate }} {{ 'leave.used' | translate }}</div>
+        <div class="bal-used">
+          {{ b.annualUsed }}{{ 'leave.hrs' | translate }} {{ 'leave.used' | translate }}
+          @if (b.emergencyUsed > 0) {
+            <span class="bal-emergency">({{ 'leave.incEmergency' | translate }}: {{ b.emergencyUsed }}{{ 'leave.hrs' | translate }})</span>
+          }
+        </div>
       </div>
       <div class="bal-card sick">
         <div class="bal-label">{{ 'leave.sick' | translate }}</div>
@@ -69,6 +74,7 @@
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
+            [minDate]="minStartDate"
             styleClass="w-full"
             (ngModelChange)="onStartDateChange($event)" />
         </div>
@@ -82,6 +88,7 @@
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
+            [minDate]="minEndDate"
             styleClass="w-full" />
         </div>
         <div class="field">
@@ -160,7 +167,7 @@
         @for (r of filteredRecords(); track r.id) {
           <p-card styleClass="leave-card">
             <div class="leave-top">
-              <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : (r.leaveType === 'no-show' || r.leaveType === 'emergency') ? 'warn' : 'secondary'" />
+              <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'emergency' ? 'warn' : 'secondary'" />
               <p-tag [value]="('leave.status.' + r.status) | translate" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />
             </div>
             <div class="leave-dates">

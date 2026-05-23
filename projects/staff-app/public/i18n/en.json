@@ -105,10 +105,13 @@
       "cancelled": "Cancelled"
     },
     "type": {
-      "annual": "Annual Leave",
-      "sick":   "Sick Leave",
-      "unpaid": "Unpaid Leave"
-    }
+      "annual":    "Annual Leave",
+      "sick":      "Sick Leave",
+      "unpaid":    "Unpaid Leave",
+      "emergency": "Emergency Leave",
+      "no-show":   "No-Show"
+    },
+    "incEmergency": "inc. emergency"
   },
   "profile": {
     "title":           "Profile",

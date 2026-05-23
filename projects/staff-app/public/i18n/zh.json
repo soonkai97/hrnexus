@@ -84,10 +84,13 @@
       "cancelled": "已撤销"
     },
     "type": {
-      "annual": "年假",
-      "sick":   "病假",
-      "unpaid": "无薪假"
-    }
+      "annual":    "年假",
+      "sick":      "病假",
+      "unpaid":    "无薪假",
+      "emergency": "紧急假",
+      "no-show":   "缺勤"
+    },
+    "incEmergency": "含紧急假"
   },
   "profile": {
     "title":           "个人资料",

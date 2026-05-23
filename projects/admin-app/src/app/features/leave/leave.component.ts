@@ -79,11 +79,17 @@ export class LeaveComponent implements OnInit {
   overdueExpanded  = signal(true);
 
   staffBalance       = signal<LeaveBalance | null>(null);
+  formBalance        = signal<LeaveBalance | null>(null);   // item 4: balance shown in the add/edit form
   allBalances        = signal<StaffLeaveBalance[]>([]);
   allBalancesLoading = signal(false);
   editingEntitlement = signal(false);
   savingEntitlement  = signal(false);
+  bulkSaving         = signal(false);
+  carryOverSaving    = signal(false);
   entitlementForm    = { year: new Date().getFullYear(), annualHours: 112, sickHours: 112 };
+
+  /** Item 12: Year used for the Balances overview (allows browsing prev/next years). */
+  balanceYear = signal(new Date().getFullYear());
 
 
   readonly currentYear = new Date().getFullYear();
@@ -290,9 +296,15 @@ export class LeaveComponent implements OnInit {
       error: () => { this.toast.error('Failed to load leave records.'); this.loading.set(false); },
     });
 
+    this.loadBalances();
+  }
+
+  /** Load balance data for the Balances tab (uses balanceYear). */
+  loadBalances(): void {
+    const year = this.balanceYear();
     if (this.filterEmployeeId) {
       this.allBalances.set([]);
-      this.leaveSvc.getBalance(this.filterEmployeeId).subscribe({
+      this.leaveSvc.getBalance(this.filterEmployeeId, year).subscribe({
         next: b => {
           this.staffBalance.set(b);
           this.entitlementForm = { year: b.year, annualHours: b.annualEntitlement, sickHours: b.sickEntitlement };
@@ -302,12 +314,15 @@ export class LeaveComponent implements OnInit {
     } else {
       this.staffBalance.set(null);
       this.allBalancesLoading.set(true);
-      this.leaveSvc.getAllBalances().subscribe({
+      this.leaveSvc.getAllBalances(year).subscribe({
         next:  b  => { this.allBalances.set(b); this.allBalancesLoading.set(false); },
         error: () => { this.allBalances.set([]); this.allBalancesLoading.set(false); },
       });
     }
   }
+
+  prevBalanceYear(): void { this.balanceYear.update(y => y - 1); this.loadBalances(); }
+  nextBalanceYear(): void { this.balanceYear.update(y => y + 1); this.loadBalances(); }
 
   toggleEntitlementEdit(): void { this.editingEntitlement.update(v => !v); }
 
@@ -327,6 +342,102 @@ export class LeaveComponent implements OnInit {
         this.load();
       },
       error: () => { this.toast.error('Failed to update entitlement.'); this.savingEntitlement.set(false); },
+    });
+  }
+
+  /** Item 5: Apply the same entitlement to all active staff. */
+  bulkApplyEntitlement(): void {
+    const { year, annualHours, sickHours } = this.entitlementForm;
+    this.confirmSvc.confirm({
+      title:        'Apply to All Staff',
+      message:      `Set ${annualHours}h annual + ${sickHours}h sick leave for ALL active staff for ${year}? Existing entitlements will be overwritten.`,
+      confirmLabel: 'Apply to All',
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.bulkSaving.set(true);
+      this.leaveSvc.bulkSetEntitlement(year, annualHours, sickHours).subscribe({
+        next: r => {
+          this.bulkSaving.set(false);
+          this.toast.success(`Entitlements applied to ${r.count} staff members.`);
+          this.loadBalances();
+        },
+        error: (e: any) => {
+          this.toast.error(e?.error?.error ?? 'Bulk apply failed.');
+          this.bulkSaving.set(false);
+        },
+      });
+    });
+  }
+
+  /** Item 6: Carry over unused annual leave from previous year. */
+  carryOver(): void {
+    const fromYear = this.balanceYear() - 1;
+    const toYear   = this.balanceYear();
+    const maxHours = 14;
+    this.confirmSvc.confirm({
+      title:        'Carry Over Unused Leave',
+      message:      `Carry over unused annual leave from ${fromYear} → ${toYear} for all active staff? Up to ${maxHours}h per person will be added to their ${toYear} annual entitlement.`,
+      confirmLabel: 'Carry Over',
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.carryOverSaving.set(true);
+      this.leaveSvc.carryOverEntitlement(fromYear, toYear, maxHours).subscribe({
+        next: r => {
+          this.carryOverSaving.set(false);
+          this.toast.success(`Carry-over applied for ${r.count} staff members.`);
+          this.loadBalances();
+        },
+        error: (e: any) => {
+          this.toast.error(e?.error?.error ?? 'Carry-over failed.');
+          this.carryOverSaving.set(false);
+        },
+      });
+    });
+  }
+
+  /** Item 4: When admin selects an employee in the form, load their current balance. */
+  onFormEmployeeChange(empId: string): void {
+    if (!empId) { this.formBalance.set(null); return; }
+    this.leaveSvc.getBalance(empId).subscribe({
+      next:  b  => this.formBalance.set(b),
+      error: () => this.formBalance.set(null),
+    });
+  }
+
+  /** Item 10: Export current filtered records as CSV (fetches up to 1000 records). */
+  exportCsv(): void {
+    this.leaveSvc.getAll({
+      employeeId: this.filterEmployeeId || undefined,
+      dateFrom:   this.filterFrom       || undefined,
+      dateTo:     this.filterTo         || undefined,
+      status:     this.filterStatus     || undefined,
+      leaveType:  this.filterLeaveType  || undefined,
+      page: 1, pageSize: 1000,
+    }).subscribe({
+      next: r => {
+        const rows = r?.items ?? [];
+        if (rows.length === 0) { this.toast.warning('No records to export.'); return; }
+        const escape = (v: string | number | null | undefined) => {
+          const s = String(v ?? '');
+          return s.includes(',') || s.includes('"') || s.includes('\n')
+            ? `"${s.replace(/"/g, '""')}"` : s;
+        };
+        const header = 'Staff ID,Name,Leave Type,Start Date,End Date,Hours,Status,Notes,Created At';
+        const body = rows.map(r =>
+          [r.staffId, r.staffName, r.leaveType, r.startDate, r.endDate,
+           r.hours, r.status, r.notes ?? '', r.createdAt]
+          .map(escape).join(',')
+        ).join('\n');
+        const blob = new Blob([header + '\n' + body], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement('a');
+        a.href = url;
+        a.download = `leave-export-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.toast.success(`Exported ${rows.length} records.`);
+      },
+      error: () => this.toast.error('Export failed.'),
     });
   }
 
@@ -374,6 +485,7 @@ export class LeaveComponent implements OnInit {
       notes: null, status: 'approved' };
     this.startTimeDate = null;
     this.endTimeDate   = null;
+    this.formBalance.set(null);
     this.editing.set(null);
     this.formError.set('');
     this.showForm.set(true);
@@ -389,11 +501,17 @@ export class LeaveComponent implements OnInit {
     this.endTimeDate   = r.endTime   ? this.parseTime(r.endTime)   : null;
     this.editing.set(r.id);
     this.formError.set('');
+    this.formBalance.set(null);
+    // Load balance for the employee being edited
+    this.leaveSvc.getBalance(r.employeeId).subscribe({
+      next:  b  => this.formBalance.set(b),
+      error: () => {},
+    });
     this.showForm.set(true);
     this.scrollToForm();
   }
 
-  cancelForm(): void { this.showForm.set(false); this.editing.set(null); }
+  cancelForm(): void { this.showForm.set(false); this.editing.set(null); this.formBalance.set(null); }
 
   save(): void {
     // Sync Date pickers → form string fields

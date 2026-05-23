@@ -98,4 +98,16 @@ export class LeaveService {
     return this.http.put<void>(`/api/admin/leave-balance/${employeeId}`,
       { year, annualHours, sickHours });
   }
+
+  /** Admin: apply the same entitlement to all active staff for a given year. */
+  bulkSetEntitlement(year: number, annualHours: number, sickHours: number): Observable<{ count: number }> {
+    return this.http.post<{ count: number }>('/api/admin/leave-balance/bulk',
+      { year, annualHours, sickHours });
+  }
+
+  /** Admin: carry over unused annual leave from one year to the next (capped at maxCarryOver hours). */
+  carryOverEntitlement(fromYear: number, toYear: number, maxCarryOver: number): Observable<{ count: number }> {
+    return this.http.post<{ count: number }>('/api/admin/leave-balance/carry-over',
+      { fromYear, toYear, maxCarryOver });
+  }
 }

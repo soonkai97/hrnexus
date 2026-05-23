@@ -233,7 +233,12 @@
     "overdueSection":     "条过期待审批请假需处理",
     "overdueDesc":        "以下请假已结束但未审批，请批准、拒绝或标记为缺勤。",
     "markNoShow":         "标记缺勤",
-    "notSet":             "未设置"
+    "notSet":             "未设置",
+    "exportCsv":          "导出 CSV",
+    "bulkApply":          "应用至所有员工",
+    "carryOver":          "结转未用假期",
+    "emergency":          "紧急",
+    "incEmergency":       "含紧急假"
   },
   "reports": {
     "title":            "报告",

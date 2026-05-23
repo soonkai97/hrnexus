@@ -64,10 +64,9 @@ export class ShellComponent {
 
   userRoleLabel = computed(() => {
     const roles = this.auth.user()?.roles ?? [];
-    if (roles.includes('manager')) return 'Manager';
-    if (roles.includes('admin'))   return 'Admin';
-    if (roles.length > 0)          return roles[0].charAt(0).toUpperCase() + roles[0].slice(1);
-    return 'Staff';
+    if (roles.includes('MANAGER')) return 'Manager';
+    if (roles.includes('ADMIN'))   return 'Admin';
+    return roles[0] ?? 'Staff';
   });
 
   private readonly allNavItems: NavItem[] = [

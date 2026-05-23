@@ -37,7 +37,7 @@
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.phone' | translate }}</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.icNo' | translate }}</label><div>{{ s.icNo ?? '—' }}</div></div>
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.passport' | translate }}</label><div>{{ s.passportNo ?? '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'mediumDate') : '—' }}</div></div>
+          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'dd/MM/yyyy') : '—' }}</div></div>
           <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.status' | translate }}</label>
             <div>
               @if (s.isActive) { <p-tag [value]="'common.active' | translate" severity="success" /> }

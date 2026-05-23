@@ -82,7 +82,7 @@
             <td><p-tag [value]="item.targetRoles" severity="info" /></td>
             <td class="col-muted">{{ item.readCount }}</td>
             <td class="col-muted">{{ item.createdByName }}</td>
-            <td class="col-muted">{{ item.expiresAt ? (item.expiresAt | date:'mediumDate') : '—' }}</td>
+            <td class="col-muted">{{ item.expiresAt ? (item.expiresAt | date:'dd/MM/yyyy') : '—' }}</td>
             <td>
               <p-tag [value]="item.isActive ? ('common.active' | translate) : ('announcements.expired' | translate)"
                      [severity]="item.isActive ? 'success' : 'secondary'" />

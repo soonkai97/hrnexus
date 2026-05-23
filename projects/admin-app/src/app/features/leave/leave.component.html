@@ -94,7 +94,7 @@
                 <div class="overdue-row-info">
                   <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                   <span class="overdue-staff">{{ r.staffName }}</span>
-                  <span class="overdue-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.hours }}h</span>
+                  <span class="overdue-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                 </div>
                 <div class="overdue-row-actions">
                   <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
@@ -243,7 +243,7 @@
           @if (selectedCalDay()) {
             <div class="cal-day-panel">
               <div class="cal-day-panel-header">
-                <span class="cal-day-panel-title">{{ selectedCalDay() | date:'EEEE, MMMM d, yyyy' }}</span>
+                <span class="cal-day-panel-title">{{ selectedCalDay() | date:'EEEE, dd/MM/yyyy' }}</span>
                 <p-button label="Close" [text]="true" severity="secondary" (click)="selectedCalDay.set(null)" />
               </div>
               @if (selectedCalDayLeaves().length === 0) {
@@ -260,7 +260,7 @@
                           <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
                         <span class="cal-day-staff-name">{{ r.staffName }}</span>
-                        <span class="cal-day-dates">{{ r.startDate | date:'MMM d' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'MMM d') : '' }} · {{ r.hours }}h</span>
+                        <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                       </div>
                       <div class="cal-day-row-right">
                         <p-tag [value]="r.status | titlecase" [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : 'danger'" />

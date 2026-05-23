@@ -60,7 +60,7 @@ export class LogShiftComponent implements OnInit {
   // Only show roles assigned to the current staff member
   readonly myRoles = computed(() => {
     const assigned = this.auth.user()?.roles ?? [];
-    return assigned.filter(r => r !== 'ADMIN' && r !== 'MANAGER');
+    return assigned.filter(r => r.toUpperCase() !== 'ADMIN' && r.toUpperCase() !== 'MANAGER');
   });
 
   readonly myRoleOptions = computed(() =>

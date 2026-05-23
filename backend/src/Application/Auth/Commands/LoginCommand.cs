@@ -45,7 +45,7 @@ public class LoginCommandHandler(IAppDbContext db, IPasswordHasher hasher, IToke
 
         return new LoginResult(access, refresh, 3600,
             new UserDto(employee.Id, employee.StaffId, employee.FullName, employee.Email,
-                employee.Roles.Select(r => r.ToLower()).ToList()),
+                employee.Roles.ToList()),
             employee.MustChangePassword);
     }
 }

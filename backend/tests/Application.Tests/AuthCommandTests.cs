@@ -136,7 +136,7 @@ public class AuthCommandTests
         var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
 
         Assert.Equal("stub-access", result.AccessToken);
-        Assert.Contains("bartender", result.User.Roles);
+        Assert.Contains("BARTENDER", result.User.Roles);
     }
 
     [Fact]

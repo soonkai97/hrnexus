@@ -152,9 +152,9 @@ describe('LogShiftComponent', () => {
 
   describe('myRoles computed', () => {
     it('filters out admin and manager roles — non-scheduling roles should not appear in role select', () => {
-      mockAuth.user = () => ({ roles: ['employee', 'manager', 'admin', 'bartender'] } as any);
+      mockAuth.user = () => ({ roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'BARTENDER'] } as any);
       const fresh = TestBed.createComponent(LogShiftComponent).componentInstance;
-      expect(fresh.myRoles()).toEqual(['employee', 'bartender']);
+      expect(fresh.myRoles()).toEqual(['EMPLOYEE', 'BARTENDER']);
     });
 
     it('returns empty array when user has no roles', () => {

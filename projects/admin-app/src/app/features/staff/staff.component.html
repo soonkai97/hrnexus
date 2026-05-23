@@ -133,7 +133,7 @@
           <td>
             <span class="p-column-title">{{ 'staff.roleCol' | translate }}</span>
             @for (r of s.roles; track r) {
-              <p-tag [value]="r | titlecase" severity="info" styleClass="mr-1" />
+              <p-tag [value]="r" severity="info" styleClass="mr-1" />
             }
           </td>
           <td class="td-muted"><span class="p-column-title">{{ 'staff.phone' | translate }}</span>{{ s.phoneNumber || '—' }}</td>

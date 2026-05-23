@@ -29,23 +29,23 @@ describe('AuthService — userRole and hasRole', () => {
 
   it('resolves to employee for any non-admin/non-manager role', () => {
     // A bartender, server, etc. has job-specific roles that aren't admin/manager
-    (service as any)._user.set(fakeUser(['bartender']));
+    (service as any)._user.set(fakeUser(['BARTENDER']));
     expect(service.userRole()).toBe('employee');
   });
 
   it('resolves to manager when roles contains manager', () => {
-    (service as any)._user.set(fakeUser(['manager']));
+    (service as any)._user.set(fakeUser(['MANAGER']));
     expect(service.userRole()).toBe('manager');
   });
 
   it('resolves to admin when roles contains admin', () => {
-    (service as any)._user.set(fakeUser(['admin']));
+    (service as any)._user.set(fakeUser(['ADMIN']));
     expect(service.userRole()).toBe('admin');
   });
 
   it('admin takes precedence over manager when staff holds both roles', () => {
     // Highest privilege wins — access decisions must not accidentally downgrade
-    (service as any)._user.set(fakeUser(['manager', 'admin']));
+    (service as any)._user.set(fakeUser(['MANAGER', 'ADMIN']));
     expect(service.userRole()).toBe('admin');
   });
 
@@ -63,7 +63,7 @@ describe('AuthService — userRole and hasRole', () => {
   });
 
   it('returns true only for the resolved permission level', () => {
-    (service as any)._user.set(fakeUser(['manager']));
+    (service as any)._user.set(fakeUser(['MANAGER']));
     expect(service.hasRole('manager')).toBe(true);
     expect(service.hasRole('admin')).toBe(false);
     expect(service.hasRole('employee')).toBe(false);
@@ -71,12 +71,12 @@ describe('AuthService — userRole and hasRole', () => {
 
   it('returns true when one of multiple supplied roles matches', () => {
     // Admin and manager UIs both call hasRole('admin', 'manager') to gate shared views
-    (service as any)._user.set(fakeUser(['manager']));
+    (service as any)._user.set(fakeUser(['MANAGER']));
     expect(service.hasRole('admin', 'manager')).toBe(true);
   });
 
   it('returns false when none of multiple supplied roles match', () => {
-    (service as any)._user.set(fakeUser(['bartender']));
+    (service as any)._user.set(fakeUser(['BARTENDER']));
     expect(service.hasRole('admin', 'manager')).toBe(false);
   });
 
@@ -87,7 +87,7 @@ describe('AuthService — userRole and hasRole', () => {
   });
 
   it('is true once a user is loaded into the signal', () => {
-    (service as any)._user.set(fakeUser(['employee']));
+    (service as any)._user.set(fakeUser(['BARTENDER']));
     expect(service.isAuthenticated()).toBe(true);
   });
 });

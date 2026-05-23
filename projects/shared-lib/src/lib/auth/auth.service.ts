@@ -16,8 +16,8 @@ export class AuthService {
   /** Highest-privilege permission level derived from roles */
   readonly userRole = computed((): UserRole | null => {
     const roles = this._user()?.roles ?? [];
-    if (roles.includes('admin'))   return 'admin';
-    if (roles.includes('manager')) return 'manager';
+    if (roles.includes('ADMIN'))   return 'admin';
+    if (roles.includes('MANAGER')) return 'manager';
     if (roles.length)              return 'employee';
     return null;
   });

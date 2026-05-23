@@ -92,7 +92,7 @@
             <tr>
               <td class="td-muted mono">{{ s.staffId }}</td>
               <td class="td-name">{{ s.name }}</td>
-              <td><p-tag [value]="s.role | titlecase" severity="info" /></td>
+              <td><p-tag [value]="s.role" severity="info" /></td>
               <td class="td-muted">{{ s.locationName }}</td>
               <td class="td-muted">{{ s.clockedInAt | date:'h:mm a' }}</td>
               <td class="td-muted">{{ formatMinutes(s.minutesOnShift) }}</td>
@@ -119,7 +119,7 @@
         <ng-template pTemplate="body" let-a>
           <tr [class.row-new]="a.isNew">
             <td class="td-name">{{ a.staffName }}</td>
-            <td><p-tag [value]="a.role | titlecase" severity="info" /></td>
+            <td><p-tag [value]="a.role" severity="info" /></td>
             <td class="td-muted">{{ a.locationName }}</td>
             <td class="td-muted">{{ a.timestamp | date:'h:mm a' }}</td>
             <td>

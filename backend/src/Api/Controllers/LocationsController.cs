@@ -16,6 +16,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
     public async Task<IActionResult> List(CancellationToken ct)
     {
         var list = await db.Locations
+            .OrderBy(l => l.Name)
             .Select(l => new LocationDto(l.Id, l.Name, l.ImagePath))
             .ToListAsync(ct);
         return Ok(list);

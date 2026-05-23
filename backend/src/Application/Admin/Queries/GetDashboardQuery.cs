@@ -105,7 +105,7 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
                 return new ActiveStaffDto(
                     w.Employee!.StaffId,
                     w.Employee.FullName,
-                    w.Employee.RolesDisplay,
+                    w.RoleName,
                     w.LocationName,
                     clockedInUtc,
                     minutesOnShift);
@@ -116,8 +116,8 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var recent = todayLogs
             .Take(30)
             .Select(w => new RecentEventDto(
-                w.Employee?.FullName     ?? "Unknown",
-                w.Employee?.RolesDisplay ?? "",
+                w.Employee?.FullName ?? "Unknown",
+                w.RoleName,
                 w.LocationName,
                 LocalShiftToUtc(w.WorkDate, w.StartTime),
                 w.EndTime == null ? "shift-started" : "shift-ended"))

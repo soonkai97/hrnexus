@@ -36,7 +36,7 @@ describe('AdminLoginComponent', () => {
 
   beforeEach(async () => {
     mockAuth = {
-      login:  vi.fn().mockReturnValue(of({ user: { roles: ['admin'] }, mustChangePassword: false })),
+      login:  vi.fn().mockReturnValue(of({ user: { roles: ['ADMIN'] }, mustChangePassword: false })),
       logout: vi.fn(),
     };
     mockRouter = { navigate: vi.fn() };
@@ -118,13 +118,13 @@ describe('AdminLoginComponent', () => {
     });
 
     it('navigates to /dashboard when login succeeds and no forced password change', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['admin'] }, mustChangePassword: false }));
+      mockAuth.login.mockReturnValue(of({ user: { roles: ['ADMIN'] }, mustChangePassword: false }));
       component.submit();
       expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/auth/set-password']);
     });
 
     it('does not clear loading when mustChangePassword=true — the router navigates away instead', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['admin'] }, mustChangePassword: true }));
+      mockAuth.login.mockReturnValue(of({ user: { roles: ['ADMIN'] }, mustChangePassword: true }));
       component.submit();
       // In the mustChangePassword path the component navigates away without setting loading=false
       expect(component.loading()).toBe(true);
@@ -139,19 +139,19 @@ describe('AdminLoginComponent', () => {
     });
 
     it('calls auth.logout() when the logged-in user is not admin or manager', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['employee'] }, mustChangePassword: false }));
+      mockAuth.login.mockReturnValue(of({ user: { roles: ['BARTENDER'] }, mustChangePassword: false }));
       component.submit();
       expect(mockAuth.logout).toHaveBeenCalled();
     });
 
     it('sets access-denied error when user has employee role only', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['employee'] }, mustChangePassword: false }));
+      mockAuth.login.mockReturnValue(of({ user: { roles: ['BARTENDER'] }, mustChangePassword: false }));
       component.submit();
       expect(component.error()).toContain('Access denied');
     });
 
     it('clears loading after rejecting a non-admin user', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['employee'] }, mustChangePassword: false }));
+      mockAuth.login.mockReturnValue(of({ user: { roles: ['BARTENDER'] }, mustChangePassword: false }));
       component.submit();
       expect(component.loading()).toBe(false);
     });

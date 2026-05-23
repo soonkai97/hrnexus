@@ -191,10 +191,10 @@ public class GetStaffListQueryTests
         var result = await CreateHandler(db).Handle(
             new GetStaffListQuery(), CancellationToken.None);
 
-        // Roles must be normalised to lower-case so role comparisons are consistent
+        // Roles are returned as stored (UPPERCASE) so they match multiselect option values
         var dto = result.Items[0];
-        Assert.Contains("bartender", dto.Roles);
-        Assert.Contains("manager", dto.Roles);
+        Assert.Contains("BARTENDER", dto.Roles);
+        Assert.Contains("MANAGER", dto.Roles);
     }
 
     [Fact]

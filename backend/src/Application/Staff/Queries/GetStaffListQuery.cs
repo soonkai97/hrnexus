@@ -48,7 +48,7 @@ public class GetStaffListQueryHandler(IAppDbContext db)
 
         var items = employees.Select(e => new StaffDto(
             e.Id, e.StaffId, e.FirstName, e.LastName, e.FullName, e.Email,
-            e.Roles.Select(r => r.ToLower()).ToList(),
+            e.Roles.ToList(),
             e.IsActive, e.PhoneNumber,
             e.IcNo, e.PassportNo,
             e.DateOfBirth?.ToString("yyyy-MM-dd"), e.Age)).ToList();

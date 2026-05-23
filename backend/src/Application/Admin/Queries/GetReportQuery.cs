@@ -107,7 +107,7 @@ public class GetReportQueryHandler(IAppDbContext db)
 
         if (req.Roles?.Count > 0)
         {
-            var roles = req.Roles.Select(r => r.ToLowerInvariant()).ToList();
+            var roles = req.Roles.Select(r => r.ToUpperInvariant()).ToList();
             query = query.Where(w => roles.Contains(w.RoleName));
         }
 

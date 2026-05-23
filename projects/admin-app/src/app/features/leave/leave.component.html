@@ -517,17 +517,30 @@
           <span class="year-nav-label">{{ balanceYear() }}</span>
           <p-button icon="pi pi-chevron-right" [text]="true" severity="secondary" size="small" (click)="nextBalanceYear()" />
         </div>
-        <p-button icon="pi pi-copy" [label]="'leave.bulkApply' | translate" severity="secondary" [outlined]="true" size="small"
-          [loading]="bulkSaving()" (click)="bulkApplyEntitlement()" />
-        <!-- Item 5: configurable carry-over max hours input -->
-        <div class="carry-over-group d-flex align-items-center gap-2">
-          <p-inputnumber [(ngModel)]="carryOverMaxHours" [min]="1" [max]="200" suffix="h"
-            [pTooltip]="'leave.carryOverMaxHours' | translate" tooltipPosition="top"
-            styleClass="carry-over-input" />
-          <p-button icon="pi pi-sync" [label]="'leave.carryOver' | translate" severity="secondary" [outlined]="true" size="small"
-            [loading]="carryOverSaving()" (click)="carryOver()" />
-        </div>
+        <p-button icon="pi pi-users" [label]="'leave.bulkApply' | translate" severity="secondary" [outlined]="true" size="small"
+          (click)="showBulkEntForm.update(v => !v)" />
       </div>
+
+      <!-- Bulk entitlement config panel -->
+      @if (showBulkEntForm()) {
+        <div class="bulk-ent-panel">
+          <span class="bulk-ent-label">Set annual leave entitlement for <strong>all active staff</strong> in {{ balanceYear() }}:</span>
+          <div class="bulk-ent-fields d-flex align-items-center gap-3 flex-wrap mt-2">
+            <div class="field m-0">
+              <label>{{ 'leave.annualHours' | translate }}</label>
+              <p-inputnumber [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" />
+            </div>
+            <div class="field m-0">
+              <label>{{ 'leave.sickHours' | translate }}</label>
+              <p-inputnumber [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" />
+            </div>
+            <p-button icon="pi pi-check" [label]="bulkSaving() ? ('common.saving' | translate) : 'Apply to All Staff'"
+              severity="primary" [loading]="bulkSaving()" [disabled]="bulkSaving()"
+              (click)="bulkApplyEntitlement()" />
+            <p-button label="Cancel" [text]="true" severity="secondary" (click)="showBulkEntForm.set(false)" />
+          </div>
+        </div>
+      }
       @if (allBalancesLoading()) {
         <div class="d-flex flex-column gap-2 mt-2">
           @for (i of [1,2,3,4,5]; track i) {

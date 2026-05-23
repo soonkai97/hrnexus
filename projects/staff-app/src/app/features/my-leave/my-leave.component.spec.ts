@@ -32,19 +32,20 @@ function dateStr(offsetDays: number): string {
 
 function makeRecord(overrides: Partial<LeaveRecord> = {}): LeaveRecord {
   return {
-    id:         'r1',
-    employeeId: 'e1',
-    staffId:    'NC001',
-    staffName:  'Test User',
-    leaveType:  'annual',
-    startDate:  '2026-06-01',
-    endDate:    '2026-06-05',
-    startTime:  '18:00',
-    endTime:    '02:00',
-    hours:      8,
-    notes:      null,
-    status:     'pending',
-    createdAt:  '2026-05-01T00:00:00Z',
+    id:              'r1',
+    employeeId:      'e1',
+    staffId:         'NC001',
+    staffName:       'Test User',
+    leaveType:       'annual',
+    startDate:       '2026-06-01',
+    endDate:         '2026-06-05',
+    startTime:       '18:00',
+    endTime:         '02:00',
+    hours:           8,
+    notes:           null,
+    status:          'pending',
+    createdAt:       '2026-05-01T00:00:00Z',
+    rejectionReason: null,
     ...overrides,
   };
 }
@@ -68,6 +69,7 @@ describe('MyLeaveComponent', () => {
       getMine:      vi.fn().mockReturnValue(of([])),
       getMyBalance: vi.fn().mockReturnValue(of({
         year: 2026, annualEntitlement: 14, annualUsed: 2, annualRemaining: 12,
+        emergencyUsed: 0, carryOverHours: 0,
         sickEntitlement: 14, sickUsed: 0, sickRemaining: 14, unpaidUsed: 0,
       })),
       apply:  vi.fn().mockReturnValue(of({ id: 'new-id' })),
@@ -460,6 +462,131 @@ describe('MyLeaveComponent', () => {
       component.form.endDate = '2026-07-20';
       component.onStartDateChange('2026-07-15');
       expect(component.form.endDate).toBe('2026-07-20');
+    });
+  });
+
+  // ── Item 8: historyView signal ────────────────────────────────────────────────
+
+  describe('historyView signal', () => {
+    it('initialises to "list" so the list view is shown by default', () => {
+      expect(component.historyView()).toBe('list');
+    });
+  });
+
+  // ── Item 8: prevCalMonth() / nextCalMonth() ───────────────────────────────────
+
+  describe('prevCalMonth() / nextCalMonth()', () => {
+    it('prevCalMonth() decrements the month within the same year', () => {
+      component.calMonth.set(5); // June
+      component.calYear.set(2026);
+      component.prevCalMonth();
+      expect(component.calMonth()).toBe(4); // May
+      expect(component.calYear()).toBe(2026);
+    });
+
+    it('prevCalMonth() wraps from January (0) to December (11) and decrements the year', () => {
+      component.calMonth.set(0); // January
+      component.calYear.set(2026);
+      component.prevCalMonth();
+      expect(component.calMonth()).toBe(11); // December
+      expect(component.calYear()).toBe(2025);
+    });
+
+    it('nextCalMonth() increments the month within the same year', () => {
+      component.calMonth.set(5); // June
+      component.calYear.set(2026);
+      component.nextCalMonth();
+      expect(component.calMonth()).toBe(6); // July
+      expect(component.calYear()).toBe(2026);
+    });
+
+    it('nextCalMonth() wraps from December (11) to January (0) and increments the year', () => {
+      component.calMonth.set(11); // December
+      component.calYear.set(2026);
+      component.nextCalMonth();
+      expect(component.calMonth()).toBe(0); // January
+      expect(component.calYear()).toBe(2027);
+    });
+
+    it('prevCalMonth() resets selectedCalDay to null so stale day detail is cleared', () => {
+      component.selectedCalDay.set('2026-06-15');
+      component.calMonth.set(5);
+      component.prevCalMonth();
+      expect(component.selectedCalDay()).toBeNull();
+    });
+
+    it('nextCalMonth() resets selectedCalDay to null', () => {
+      component.selectedCalDay.set('2026-06-15');
+      component.calMonth.set(5);
+      component.nextCalMonth();
+      expect(component.selectedCalDay()).toBeNull();
+    });
+  });
+
+  // ── Item 8: selectCalDay() ────────────────────────────────────────────────────
+
+  describe('selectCalDay()', () => {
+    it('sets selectedCalDay to the given ISO string when no day is selected', () => {
+      component.selectedCalDay.set(null);
+      component.selectCalDay('2026-06-10');
+      expect(component.selectedCalDay()).toBe('2026-06-10');
+    });
+
+    it('clears selectedCalDay when the same day is selected again (toggle behaviour)', () => {
+      component.selectedCalDay.set('2026-06-10');
+      component.selectCalDay('2026-06-10');
+      expect(component.selectedCalDay()).toBeNull();
+    });
+
+    it('switches to a different day when a new day is selected', () => {
+      component.selectedCalDay.set('2026-06-10');
+      component.selectCalDay('2026-06-15');
+      expect(component.selectedCalDay()).toBe('2026-06-15');
+    });
+  });
+
+  // ── Item 8: calDays computed ──────────────────────────────────────────────────
+
+  describe('calDays computed', () => {
+    it('generates one entry per day in the current month', () => {
+      component.calYear.set(2026);
+      component.calMonth.set(1); // February 2026 — 28 days
+      expect(component.calDays().length).toBe(28);
+    });
+
+    it('generates 30 entries for a month with 30 days', () => {
+      component.calYear.set(2026);
+      component.calMonth.set(3); // April 2026 — 30 days
+      expect(component.calDays().length).toBe(30);
+    });
+
+    it('each entry has the correct iso, day, and isWeekend properties', () => {
+      component.calYear.set(2026);
+      component.calMonth.set(0); // January 2026 — day 1 is a Thursday
+      const days = component.calDays();
+      expect(days[0].iso).toBe('2026-01-01');
+      expect(days[0].day).toBe(1);
+      expect(days[0].isWeekend).toBe(false); // Thursday
+    });
+
+    it('marks Saturday and Sunday as isWeekend = true', () => {
+      component.calYear.set(2026);
+      component.calMonth.set(0); // January 2026: 3rd is Saturday, 4th is Sunday
+      const days = component.calDays();
+      expect(days[2].isWeekend).toBe(true);  // Jan 3 — Saturday
+      expect(days[3].isWeekend).toBe(true);  // Jan 4 — Sunday
+    });
+
+    it('populates leaves for a day when records span that date', () => {
+      component.calYear.set(2026);
+      component.calMonth.set(5); // June 2026
+      const record = makeRecord({ startDate: '2026-06-01', endDate: '2026-06-05', status: 'approved' });
+      component.records.set([record]);
+      const days = component.calDays();
+      // June 1–5 should have the record; June 6 should not
+      expect(days[0].leaves.length).toBe(1);  // Jun 1
+      expect(days[4].leaves.length).toBe(1);  // Jun 5
+      expect(days[5].leaves.length).toBe(0);  // Jun 6
     });
   });
 });

@@ -12,9 +12,10 @@ public class LeaveRequest
     public string?  StartTime  { get; private set; }  // HH:mm, nullable
     public string?  EndTime    { get; private set; }  // HH:mm, nullable
     public decimal? Hours      { get; private set; }  // explicit hours, null for pre-migration records
-    public string?  Notes           { get; private set; }
-    public string   Status          { get; private set; } = default!; // pending | approved | rejected
-    public DateTime CreatedAt       { get; private set; }
+    public string?  Notes            { get; private set; }
+    public string?  RejectionReason  { get; private set; }  // set by manager when rejecting
+    public string   Status           { get; private set; } = default!; // pending | approved | rejected | cancelled
+    public DateTime CreatedAt        { get; private set; }
 
     public Staff Employee { get; private set; } = default!;
 
@@ -41,16 +42,19 @@ public class LeaveRequest
 
     public void Update(string leaveType, DateTime startDate, DateTime endDate,
         string? startTime, string? endTime, decimal? hours,
-        string? notes, string status)
+        string? notes, string status, string? rejectionReason = null)
     {
-        LeaveType = leaveType.ToLower();
-        StartDate = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc);
-        EndDate   = DateTime.SpecifyKind(endDate.Date,   DateTimeKind.Utc);
-        StartTime = startTime;
-        EndTime   = endTime;
-        Hours     = hours;
-        Notes     = notes;
-        Status    = status.ToLower();
+        LeaveType       = leaveType.ToLower();
+        StartDate       = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc);
+        EndDate         = DateTime.SpecifyKind(endDate.Date,   DateTimeKind.Utc);
+        StartTime       = startTime;
+        EndTime         = endTime;
+        Hours           = hours;
+        Notes           = notes;
+        Status          = status.ToLower();
+        RejectionReason = status.Equals(AppConstants.Leave.Rejected, StringComparison.OrdinalIgnoreCase)
+            ? rejectionReason
+            : null;  // clear rejection reason when status is no longer rejected
     }
 
     public void Cancel() => Status = AppConstants.Leave.Cancelled;

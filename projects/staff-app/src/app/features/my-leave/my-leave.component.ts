@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { DatePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe } from 'shared-lib';
@@ -18,7 +19,8 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 @Component({
   selector: 'app-my-leave',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, AmPmPipe, Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton],
+  imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe, AmPmPipe,
+    Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })
@@ -43,6 +45,13 @@ export class MyLeaveComponent implements OnInit {
     value: t,
   }));
   readonly todayLocal = toLocalDateString(new Date());
+  readonly todayIso   = toLocalDateString(new Date());
+
+  /** Item 8: calendar day-of-week header keys */
+  readonly calDayKeys = [
+    'leave.calDayMon','leave.calDayTue','leave.calDayWed',
+    'leave.calDayThu','leave.calDayFri','leave.calDaySat','leave.calDaySun',
+  ];
 
   /** Item 3: Minimum selectable start date. Annual needs 3 days advance; others allow today. */
   get minStartDate(): Date {
@@ -65,7 +74,6 @@ export class MyLeaveComponent implements OnInit {
     }
     return this.minStartDate;
   }
-
 
   records     = signal<LeaveRecord[]>([]);
   balance     = signal<LeaveBalance | null>(null);
@@ -91,6 +99,66 @@ export class MyLeaveComponent implements OnInit {
   form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: Date | null; endTime: Date | null; notes: string } = {
     leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '',
   };
+
+  // ── Item 8: Calendar view state ───────────────────────────────────────────
+  /** Toggle between list and calendar in History tab */
+  historyView = signal<'list' | 'calendar'>('list');
+
+  calYear  = signal(new Date().getFullYear());
+  calMonth = signal(new Date().getMonth());
+
+  calMonthName = computed(() =>
+    new Date(this.calYear(), this.calMonth(), 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }));
+
+  calDays = computed(() => {
+    const year  = this.calYear();
+    const month = this.calMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const recs  = this.filteredRecords();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const day  = i + 1;
+      const date = new Date(Date.UTC(year, month, day));
+      const iso  = date.toISOString().slice(0, 10);
+      const leaves = recs.filter(r => {
+        const from = r.startDate.slice(0, 10);
+        const to   = r.endDate.slice(0, 10);
+        return iso >= from && iso <= to;
+      });
+      return { day, iso, isWeekend: date.getUTCDay() === 0 || date.getUTCDay() === 6, leaves };
+    });
+  });
+
+  leadingBlanks = computed(() => {
+    const d = new Date(this.calYear(), this.calMonth(), 1).getDay();
+    return Array(d === 0 ? 6 : d - 1).fill(0);
+  });
+
+  selectedCalDay = signal<string | null>(null);
+  selectedCalDayLeaves = computed(() => {
+    const iso = this.selectedCalDay();
+    if (!iso) return [];
+    return this.filteredRecords().filter(r => {
+      const from = r.startDate.slice(0, 10);
+      const to   = r.endDate.slice(0, 10);
+      return iso >= from && iso <= to;
+    });
+  });
+
+  prevCalMonth(): void {
+    if (this.calMonth() === 0) { this.calMonth.set(11); this.calYear.update(y => y - 1); }
+    else                         this.calMonth.update(m => m - 1);
+    this.selectedCalDay.set(null);
+  }
+
+  nextCalMonth(): void {
+    if (this.calMonth() === 11) { this.calMonth.set(0); this.calYear.update(y => y + 1); }
+    else                          this.calMonth.update(m => m + 1);
+    this.selectedCalDay.set(null);
+  }
+
+  selectCalDay(iso: string): void {
+    this.selectedCalDay.set(this.selectedCalDay() === iso ? null : iso);
+  }
 
   /** Auto-calculated hours from date+time range. Returns 0 if any field is missing. */
   get calcHours(): number {

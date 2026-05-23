@@ -72,7 +72,7 @@ public class AdminController(IMediator mediator) : ControllerBase
                 null, body.EmployeeId, body.LeaveType,
                 body.StartDate, body.EndDate,
                 body.StartTime, body.EndTime, body.Hours,
-                body.Notes, body.Status ?? "approved"), ct);
+                body.Notes, body.Status ?? "approved", body.RejectionReason), ct);
             return Ok(new { id });
         }
         catch (ArgumentException ex)        { return BadRequest(new { error = ex.Message }); }
@@ -88,7 +88,7 @@ public class AdminController(IMediator mediator) : ControllerBase
                 id, body.EmployeeId, body.LeaveType,
                 body.StartDate, body.EndDate,
                 body.StartTime, body.EndTime, body.Hours,
-                body.Notes, body.Status ?? "approved"), ct);
+                body.Notes, body.Status ?? "approved", body.RejectionReason), ct);
             return NoContent();
         }
         catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }
@@ -163,6 +163,34 @@ public class AdminController(IMediator mediator) : ControllerBase
         }
         catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
     }
+
+    /// <summary>Bulk approve or reject a list of pending leave requests.</summary>
+    [HttpPost("leave/bulk-status")]
+    public async Task<IActionResult> BulkUpdateLeaveStatus(
+        [FromBody] BulkUpdateLeaveStatusBody body, CancellationToken ct)
+    {
+        try
+        {
+            var count = await mediator.Send(
+                new BulkUpdateLeaveStatusCommand(body.Ids, body.Status, body.RejectionReason), ct);
+            return Ok(new { count });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    /// <summary>Aggregated leave usage summary for all active staff for a given year.</summary>
+    [HttpGet("leave/summary")]
+    public async Task<IActionResult> GetLeaveSummary(
+        [FromQuery] int? year = null, CancellationToken ct = default)
+    {
+        var result = await mediator.Send(new GetLeaveSummaryQuery(year), ct);
+        return Ok(result);
+    }
+
+    /// <summary>Staff with frequent sick leave (3+ requests in rolling 90 days).</summary>
+    [HttpGet("leave/pattern-warnings")]
+    public async Task<IActionResult> GetLeavePatternWarnings(CancellationToken ct) =>
+        Ok(await mediator.Send(new GetLeavePatternWarningsQuery(), ct));
 
     // ── Overtime Rules ────────────────────────────────────────────────────────
 
@@ -297,7 +325,8 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 }
 
-public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status);
+public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status, string? RejectionReason = null);
+public record BulkUpdateLeaveStatusBody(List<Guid> Ids, string Status, string? RejectionReason = null);
 public record LeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record BulkLeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record CarryOverBody(int FromYear, int ToYear, decimal? MaxCarryOver);

@@ -30,13 +30,14 @@ function makeRecord(overrides: Partial<LeaveRecord> = {}): LeaveRecord {
     leaveType: 'annual', startDate: '2026-06-01', endDate: '2026-06-05',
     startTime: '18:00', endTime: '02:00', hours: 8,
     notes: null, status: 'pending', createdAt: '2026-05-01T00:00:00Z',
+    rejectionReason: null,
     ...overrides,
   };
 }
 
 const fakeBalance = {
   year: 2026, annualEntitlement: 14, annualUsed: 2, annualRemaining: 12,
-  emergencyUsed: 0,
+  emergencyUsed: 0, carryOverHours: 0,
   sickEntitlement: 14, sickUsed: 0, sickRemaining: 14, unpaidUsed: 0,
 };
 
@@ -55,6 +56,9 @@ describe('LeaveComponent', () => {
     setEntitlement:       ReturnType<typeof vi.fn>;
     bulkSetEntitlement:   ReturnType<typeof vi.fn>;
     carryOverEntitlement: ReturnType<typeof vi.fn>;
+    bulkUpdateStatus:     ReturnType<typeof vi.fn>;
+    getSummary:           ReturnType<typeof vi.fn>;
+    getPatternWarnings:   ReturnType<typeof vi.fn>;
   };
   let mockStaffStore: {
     staff:     ReturnType<typeof vi.fn>;
@@ -77,6 +81,9 @@ describe('LeaveComponent', () => {
       setEntitlement:       vi.fn().mockReturnValue(of(undefined)),
       bulkSetEntitlement:   vi.fn().mockReturnValue(of({ count: 3 })),
       carryOverEntitlement: vi.fn().mockReturnValue(of({ count: 2 })),
+      bulkUpdateStatus:     vi.fn().mockReturnValue(of({ count: 2 })),
+      getSummary:           vi.fn().mockReturnValue(of([])),
+      getPatternWarnings:   vi.fn().mockReturnValue(of([])),
     };
     mockStaffStore = {
       staff:      vi.fn().mockReturnValue([]),
@@ -299,10 +306,11 @@ describe('LeaveComponent', () => {
       expect(mockToastSvc.success).toHaveBeenCalledWith('Leave approved.');
     });
 
-    it('shows success toast with the new status after rejection', () => {
+    it('routes rejection through startReject() — sets rejectingId instead of calling update directly', () => {
       component.records.set([makeRecord({ id: 'r1' })]);
       component.quickStatus('r1', 'rejected');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave rejected.');
+      expect(component.rejectingId()).toBe('r1');
+      expect(mockLeaveSvc.update).not.toHaveBeenCalled();
     });
 
     it('shows error toast when status update fails', () => {
@@ -654,6 +662,378 @@ describe('LeaveComponent', () => {
       const callsBefore = mockLeaveSvc.getAllBalances.mock.calls.length;
       component.nextBalanceYear();
       expect(mockLeaveSvc.getAllBalances.mock.calls.length).toBeGreaterThan(callsBefore);
+    });
+
+    it('prevBalanceYear() also loads the leave summary for the new year', () => {
+      component.balanceYear.set(2026);
+      component.prevBalanceYear();
+      expect(mockLeaveSvc.getSummary).toHaveBeenCalledWith(2025);
+    });
+
+    it('nextBalanceYear() also loads the leave summary for the new year', () => {
+      component.balanceYear.set(2026);
+      component.nextBalanceYear();
+      expect(mockLeaveSvc.getSummary).toHaveBeenCalledWith(2027);
+    });
+  });
+
+  // ── Item 10: statusSeverity() ─────────────────────────────────────────────────
+
+  describe('statusSeverity()', () => {
+    it('returns "success" for approved', () => {
+      expect(component.statusSeverity('approved')).toBe('success');
+    });
+
+    it('returns "warn" for pending', () => {
+      expect(component.statusSeverity('pending')).toBe('warn');
+    });
+
+    it('returns "danger" for rejected', () => {
+      expect(component.statusSeverity('rejected')).toBe('danger');
+    });
+
+    it('returns "secondary" for cancelled — distinguishes cancellation from rejection visually', () => {
+      expect(component.statusSeverity('cancelled')).toBe('secondary');
+    });
+
+    it('returns "secondary" as fallback for unknown status strings', () => {
+      expect(component.statusSeverity('unknown-status')).toBe('secondary');
+    });
+  });
+
+  // ── Item 1: startReject() / cancelReject() / confirmReject() ─────────────────
+
+  describe('startReject() / cancelReject() / confirmReject()', () => {
+    it('startReject() sets rejectingId to the record id — opens inline rejection form', () => {
+      const r = makeRecord({ id: 'r-rej' });
+      component.startReject(r);
+      expect(component.rejectingId()).toBe('r-rej');
+    });
+
+    it('startReject() clears any stale rejection input from a previous attempt', () => {
+      component.rejectionInput.set('old reason');
+      component.startReject(makeRecord());
+      expect(component.rejectionInput()).toBe('');
+    });
+
+    it('cancelReject() clears rejectingId so the inline form disappears', () => {
+      component.rejectingId.set('r1');
+      component.cancelReject();
+      expect(component.rejectingId()).toBeNull();
+    });
+
+    it('cancelReject() also clears rejectionInput', () => {
+      component.rejectionInput.set('some reason');
+      component.cancelReject();
+      expect(component.rejectionInput()).toBe('');
+    });
+
+    it('confirmReject() calls leaveSvc.update with status "rejected" and the entered reason', () => {
+      component.records.set([makeRecord({ id: 'r1' })]);
+      component.rejectingId.set('r1');
+      component.rejectionInput.set('No annual leave balance');
+      component.confirmReject('r1');
+      expect(mockLeaveSvc.update).toHaveBeenCalledWith('r1', expect.objectContaining({
+        status: 'rejected',
+        rejectionReason: 'No annual leave balance',
+      }));
+    });
+
+    it('confirmReject() clears rejectingId immediately before calling update', () => {
+      component.records.set([makeRecord({ id: 'r1' })]);
+      component.rejectingId.set('r1');
+      component.confirmReject('r1');
+      expect(component.rejectingId()).toBeNull();
+    });
+
+    it('confirmReject() shows success toast after update completes', () => {
+      component.records.set([makeRecord({ id: 'r1' })]);
+      component.confirmReject('r1');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave rejected.');
+    });
+  });
+
+  // ── Item 3: bulk selection ────────────────────────────────────────────────────
+
+  describe('bulk selection', () => {
+    it('toggleBulkMode() enables bulk-select mode', () => {
+      component.bulkSelecting.set(false);
+      component.toggleBulkMode();
+      expect(component.bulkSelecting()).toBe(true);
+    });
+
+    it('toggleBulkMode() clears selectedIds and reason when turning off', () => {
+      component.bulkSelecting.set(true);
+      component.selectedIds.set(new Set(['r1', 'r2']));
+      component.bulkRejReason.set('N/A');
+      component.toggleBulkMode();
+      expect(component.selectedIds().size).toBe(0);
+      expect(component.bulkRejReason()).toBe('');
+    });
+
+    it('toggleSelect() adds an id to selectedIds when not already selected', () => {
+      component.toggleSelect('r1');
+      expect(component.selectedIds().has('r1')).toBe(true);
+    });
+
+    it('toggleSelect() removes an id from selectedIds when already selected', () => {
+      component.selectedIds.set(new Set(['r1']));
+      component.toggleSelect('r1');
+      expect(component.selectedIds().has('r1')).toBe(false);
+    });
+
+    it('toggleSelectAll() selects all pending records — skips non-pending', () => {
+      component.records.set([
+        makeRecord({ id: 'r1', status: 'pending' }),
+        makeRecord({ id: 'r2', status: 'pending' }),
+        makeRecord({ id: 'r3', status: 'approved' }),
+      ]);
+      component.toggleSelectAll();
+      expect(component.selectedIds().has('r1')).toBe(true);
+      expect(component.selectedIds().has('r2')).toBe(true);
+      expect(component.selectedIds().has('r3')).toBe(false);
+    });
+
+    it('toggleSelectAll() deselects all pending records when all are already selected', () => {
+      component.records.set([
+        makeRecord({ id: 'r1', status: 'pending' }),
+        makeRecord({ id: 'r2', status: 'pending' }),
+      ]);
+      component.selectedIds.set(new Set(['r1', 'r2']));
+      component.toggleSelectAll();
+      expect(component.selectedIds().has('r1')).toBe(false);
+      expect(component.selectedIds().has('r2')).toBe(false);
+    });
+
+    it('allVisibleSelected() returns true when all pending records are selected', () => {
+      component.records.set([makeRecord({ id: 'r1', status: 'pending' })]);
+      component.selectedIds.set(new Set(['r1']));
+      expect(component.allVisibleSelected()).toBe(true);
+    });
+
+    it('allVisibleSelected() returns false when no pending records are selected', () => {
+      component.records.set([makeRecord({ id: 'r1', status: 'pending' })]);
+      component.selectedIds.set(new Set());
+      expect(component.allVisibleSelected()).toBe(false);
+    });
+  });
+
+  // ── Item 3: bulkApproveSelected() ────────────────────────────────────────────
+
+  describe('bulkApproveSelected()', () => {
+    it('does nothing when selectedIds is empty — avoids spurious API call', () => {
+      component.selectedIds.set(new Set());
+      component.bulkApproveSelected();
+      expect(mockConfirmSvc.confirm).not.toHaveBeenCalled();
+    });
+
+    it('calls leaveSvc.bulkUpdateStatus with status "approved" for selected ids', () => {
+      component.selectedIds.set(new Set(['r1', 'r2']));
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.bulkApproveSelected();
+      expect(mockLeaveSvc.bulkUpdateStatus).toHaveBeenCalledWith(
+        expect.arrayContaining(['r1', 'r2']), 'approved',
+      );
+    });
+
+    it('shows success toast with count after bulk approval', () => {
+      component.selectedIds.set(new Set(['r1']));
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      mockLeaveSvc.bulkUpdateStatus.mockReturnValue(of({ count: 1 }));
+      component.bulkApproveSelected();
+      expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('1'));
+    });
+
+    it('clears selectedIds after successful bulk approval', () => {
+      component.selectedIds.set(new Set(['r1']));
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.bulkApproveSelected();
+      expect(component.selectedIds().size).toBe(0);
+    });
+
+    it('does NOT call bulkUpdateStatus when user cancels the confirm dialog', () => {
+      component.selectedIds.set(new Set(['r1']));
+      mockConfirmSvc.confirm.mockReturnValue(of(false));
+      component.bulkApproveSelected();
+      expect(mockLeaveSvc.bulkUpdateStatus).not.toHaveBeenCalled();
+    });
+
+    it('shows error toast when bulkUpdateStatus fails', () => {
+      component.selectedIds.set(new Set(['r1']));
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      mockLeaveSvc.bulkUpdateStatus.mockReturnValue(
+        throwError(() => ({ error: { error: 'Bulk approve failed.' } })));
+      component.bulkApproveSelected();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Bulk approve failed.');
+    });
+  });
+
+  // ── Item 3: bulkRejectSelected() ─────────────────────────────────────────────
+
+  describe('bulkRejectSelected()', () => {
+    it('does nothing when selectedIds is empty', () => {
+      component.selectedIds.set(new Set());
+      component.bulkRejectSelected();
+      expect(mockConfirmSvc.confirm).not.toHaveBeenCalled();
+    });
+
+    it('calls leaveSvc.bulkUpdateStatus with status "rejected" and the entered reason', () => {
+      component.selectedIds.set(new Set(['r1']));
+      component.bulkRejReason.set('No balance');
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.bulkRejectSelected();
+      expect(mockLeaveSvc.bulkUpdateStatus).toHaveBeenCalledWith(['r1'], 'rejected', 'No balance');
+    });
+
+    it('passes undefined reason when bulkRejReason is blank', () => {
+      component.selectedIds.set(new Set(['r1']));
+      component.bulkRejReason.set('');
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.bulkRejectSelected();
+      expect(mockLeaveSvc.bulkUpdateStatus).toHaveBeenCalledWith(['r1'], 'rejected', undefined);
+    });
+
+    it('shows success toast with count on success', () => {
+      component.selectedIds.set(new Set(['r1']));
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      mockLeaveSvc.bulkUpdateStatus.mockReturnValue(of({ count: 1 }));
+      component.bulkRejectSelected();
+      expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('1'));
+    });
+
+    it('does NOT call bulkUpdateStatus when user cancels', () => {
+      component.selectedIds.set(new Set(['r1']));
+      mockConfirmSvc.confirm.mockReturnValue(of(false));
+      component.bulkRejectSelected();
+      expect(mockLeaveSvc.bulkUpdateStatus).not.toHaveBeenCalled();
+    });
+
+    it('shows error toast when bulkUpdateStatus fails', () => {
+      component.selectedIds.set(new Set(['r1']));
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      mockLeaveSvc.bulkUpdateStatus.mockReturnValue(
+        throwError(() => ({ error: { error: 'Bulk reject failed.' } })));
+      component.bulkRejectSelected();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Bulk reject failed.');
+    });
+  });
+
+  // ── Item 15: markNoShow() calls loadBalances() ────────────────────────────────
+
+  describe('markNoShow()', () => {
+    it('calls leaveSvc.update with leaveType "no-show" and status "approved"', () => {
+      const r = makeRecord({ id: 'r1', leaveType: 'annual' });
+      component.markNoShow(r);
+      expect(mockLeaveSvc.update).toHaveBeenCalledWith('r1', expect.objectContaining({
+        leaveType: 'no-show',
+        status: 'approved',
+      }));
+    });
+
+    it('calls loadBalances() after success — item 15: balances must refresh after no-show', () => {
+      mockLeaveSvc.update.mockReturnValue(of(undefined));
+      const callsBefore = mockLeaveSvc.getAllBalances.mock.calls.length;
+      component.markNoShow(makeRecord());
+      expect(mockLeaveSvc.getAllBalances.mock.calls.length).toBeGreaterThan(callsBefore);
+    });
+
+    it('shows success toast "Marked as no-show." after update succeeds', () => {
+      component.markNoShow(makeRecord());
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Marked as no-show.');
+    });
+
+    it('shows error toast when update fails', () => {
+      mockLeaveSvc.update.mockReturnValue(throwError(() => new Error('Network')));
+      component.markNoShow(makeRecord());
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Update failed.');
+    });
+  });
+
+  // ── Item 12: patternWarningFor() ─────────────────────────────────────────────
+
+  describe('patternWarningFor()', () => {
+    it('returns undefined when no pattern warning exists for the employee', () => {
+      component.patternWarnings.set([]);
+      expect(component.patternWarningFor('emp-1')).toBeUndefined();
+    });
+
+    it('returns the matching warning when an employee has ≥3 sick leaves in 90 days', () => {
+      const warning = { employeeId: 'emp-1', staffId: 'NC001', fullName: 'Jane Doe', sickLeaveCount: 4, sickLeaveHours: 32 };
+      component.patternWarnings.set([warning]);
+      expect(component.patternWarningFor('emp-1')).toEqual(warning);
+    });
+
+    it('returns undefined when the warning belongs to a different employee', () => {
+      const warning = { employeeId: 'emp-2', staffId: 'NC002', fullName: 'John Smith', sickLeaveCount: 3, sickLeaveHours: 24 };
+      component.patternWarnings.set([warning]);
+      expect(component.patternWarningFor('emp-1')).toBeUndefined();
+    });
+  });
+
+  // ── Item 11: loadLeaveSummary() ───────────────────────────────────────────────
+
+  describe('loadLeaveSummary()', () => {
+    it('calls leaveSvc.getSummary with the current balanceYear', () => {
+      component.balanceYear.set(2025);
+      component.loadLeaveSummary();
+      expect(mockLeaveSvc.getSummary).toHaveBeenCalledWith(2025);
+    });
+
+    it('populates leaveSummary signal with the fetched data', () => {
+      const summary = [{
+        employeeId: 'e1', staffId: 'NC001', fullName: 'Jane Doe',
+        year: 2026, annualUsed: 8, sickUsed: 4, emergencyUsed: 0,
+        unpaidUsed: 0, noShowUsed: 0, totalUsed: 12,
+      }];
+      mockLeaveSvc.getSummary.mockReturnValue(of(summary));
+      component.loadLeaveSummary();
+      expect(component.leaveSummary()).toEqual(summary);
+    });
+
+    it('sets leaveSummaryLoading to false after loading completes', () => {
+      component.loadLeaveSummary();
+      expect(component.leaveSummaryLoading()).toBe(false);
+    });
+  });
+
+  // ── Item 12: loadPatternWarnings() ───────────────────────────────────────────
+
+  describe('loadPatternWarnings()', () => {
+    it('calls leaveSvc.getPatternWarnings to detect frequent sick-leave patterns', () => {
+      component.loadPatternWarnings();
+      expect(mockLeaveSvc.getPatternWarnings).toHaveBeenCalled();
+    });
+
+    it('populates patternWarnings signal with the fetched data', () => {
+      const warnings = [{
+        employeeId: 'e1', staffId: 'NC001', fullName: 'Jane Doe',
+        sickLeaveCount: 3, sickLeaveHours: 24,
+      }];
+      mockLeaveSvc.getPatternWarnings.mockReturnValue(of(warnings));
+      component.loadPatternWarnings();
+      expect(component.patternWarnings()).toEqual(warnings);
+    });
+
+    it('sets patternLoading to false after loading completes', () => {
+      component.loadPatternWarnings();
+      expect(component.patternLoading()).toBe(false);
+    });
+  });
+
+  // ── Item 5: carryOverMaxHours default ────────────────────────────────────────
+
+  describe('carryOverMaxHours', () => {
+    it('defaults to 14 hours — one standard work-week carry-over cap', () => {
+      expect(component.carryOverMaxHours).toBe(14);
+    });
+  });
+
+  // ── Item 4: presetTypes includes no-show ─────────────────────────────────────
+
+  describe('presetTypes', () => {
+    it('includes a "no-show" type filter entry for the Records tab', () => {
+      const types = component.presetTypes.map(p => p.value);
+      expect(types).toContain('no-show');
     });
   });
 });

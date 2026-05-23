@@ -2,7 +2,11 @@ import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } fr
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString } from 'shared-lib';
+import {
+  LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance,
+  LeaveSummary, LeavePatternWarning,
+  LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
+} from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { ProgressBar } from 'primeng/progressbar';
@@ -16,16 +20,17 @@ import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
+import { Checkbox } from 'primeng/checkbox';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show', 'emergency'] as const;
-const STATUSES    = ['approved', 'pending', 'rejected'] as const;
+const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
 
 @Component({
   selector: 'app-leave',
   standalone: true,
   imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe,
-    Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule, Message, Select, Skeleton, DatePicker,
-    Tabs, TabList, Tab, Paginator],
+    Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
+    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
@@ -66,6 +71,7 @@ export class LeaveComponent implements OnInit {
     { label: 'Annual',    value: 'annual' },
     { label: 'Unpaid',    value: 'unpaid' },
     { label: 'Emergency', value: 'emergency' },
+    { label: 'No-Show',   value: 'no-show' },   // item 4
   ];
 
   setTypeFilter(type: string): void {
@@ -79,7 +85,7 @@ export class LeaveComponent implements OnInit {
   overdueExpanded  = signal(true);
 
   staffBalance       = signal<LeaveBalance | null>(null);
-  formBalance        = signal<LeaveBalance | null>(null);   // item 4: balance shown in the add/edit form
+  formBalance        = signal<LeaveBalance | null>(null);
   allBalances        = signal<StaffLeaveBalance[]>([]);
   allBalancesLoading = signal(false);
   editingEntitlement = signal(false);
@@ -88,9 +94,118 @@ export class LeaveComponent implements OnInit {
   carryOverSaving    = signal(false);
   entitlementForm    = { year: new Date().getFullYear(), annualHours: 112, sickHours: 112 };
 
-  /** Item 12: Year used for the Balances overview (allows browsing prev/next years). */
+  /** Item 5: configurable carry-over max (hours) */
+  carryOverMaxHours = 14;
+
+  /** Item 12: year used for the Balances overview */
   balanceYear = signal(new Date().getFullYear());
 
+  /** Item 11: leave summary + pattern warnings */
+  leaveSummary         = signal<LeaveSummary[]>([]);
+  leaveSummaryLoading  = signal(false);
+  patternWarnings      = signal<LeavePatternWarning[]>([]);
+  patternLoading       = signal(false);
+
+  /** Item 3: bulk selection */
+  bulkSelecting    = signal(false);
+  selectedIds      = signal<Set<string>>(new Set());
+  bulkRejReason    = signal('');
+  bulkStatusSaving = signal(false);
+
+  selectedCount = computed(() => this.selectedIds().size);
+  allVisibleSelected = computed(() => {
+    const ids = this.selectedIds();
+    const pending = this.records().filter(r => r.status === 'pending');
+    return pending.length > 0 && pending.every(r => ids.has(r.id));
+  });
+
+  toggleBulkMode(): void {
+    this.bulkSelecting.update(v => !v);
+    if (!this.bulkSelecting()) { this.selectedIds.set(new Set()); this.bulkRejReason.set(''); }
+  }
+
+  toggleSelectAll(): void {
+    const pending = this.records().filter(r => r.status === 'pending');
+    if (this.allVisibleSelected()) {
+      const next = new Set(this.selectedIds());
+      pending.forEach(r => next.delete(r.id));
+      this.selectedIds.set(next);
+    } else {
+      const next = new Set(this.selectedIds());
+      pending.forEach(r => next.add(r.id));
+      this.selectedIds.set(next);
+    }
+  }
+
+  toggleSelect(id: string): void {
+    const next = new Set(this.selectedIds());
+    if (next.has(id)) next.delete(id); else next.add(id);
+    this.selectedIds.set(next);
+  }
+
+  bulkApproveSelected(): void {
+    const ids = [...this.selectedIds()];
+    if (!ids.length) return;
+    this.confirmSvc.confirm({
+      title: `Approve ${ids.length} Leave Request(s)`,
+      message: `Approve all ${ids.length} selected leave request(s)?`,
+      confirmLabel: 'Approve All',
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.bulkStatusSaving.set(true);
+      this.leaveSvc.bulkUpdateStatus(ids, 'approved').subscribe({
+        next: r => {
+          this.bulkStatusSaving.set(false);
+          this.toast.success(`${r.count} leave request(s) approved.`);
+          this.selectedIds.set(new Set());
+          this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
+        },
+        error: (e: any) => { this.toast.error(e?.error?.error ?? 'Bulk approve failed.'); this.bulkStatusSaving.set(false); },
+      });
+    });
+  }
+
+  bulkRejectSelected(): void {
+    const ids = [...this.selectedIds()];
+    if (!ids.length) return;
+    const reason = this.bulkRejReason().trim() || undefined;
+    this.confirmSvc.confirm({
+      title: `Reject ${ids.length} Leave Request(s)`,
+      message: `Reject all ${ids.length} selected leave request(s)?${reason ? ` Reason: "${reason}"` : ''}`,
+      confirmLabel: 'Reject All',
+      danger: true,
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.bulkStatusSaving.set(true);
+      this.leaveSvc.bulkUpdateStatus(ids, 'rejected', reason).subscribe({
+        next: r => {
+          this.bulkStatusSaving.set(false);
+          this.toast.success(`${r.count} leave request(s) rejected.`);
+          this.selectedIds.set(new Set()); this.bulkRejReason.set('');
+          this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
+        },
+        error: (e: any) => { this.toast.error(e?.error?.error ?? 'Bulk reject failed.'); this.bulkStatusSaving.set(false); },
+      });
+    });
+  }
+
+  /** Item 1: inline rejection-reason flow */
+  rejectingId     = signal<string | null>(null);
+  rejectionInput  = signal('');
+
+  startReject(r: LeaveRecord): void {
+    this.rejectingId.set(r.id);
+    this.rejectionInput.set('');
+  }
+
+  cancelReject(): void { this.rejectingId.set(null); this.rejectionInput.set(''); }
+
+  confirmReject(id: string): void {
+    const reason = this.rejectionInput().trim() || undefined;
+    this.rejectingId.set(null);
+    this.rejectionInput.set('');
+    this._doQuickStatus(id, 'rejected', reason);
+  }
 
   readonly currentYear = new Date().getFullYear();
   readonly leaveTypes: string[] = [...LEAVE_TYPES];
@@ -112,7 +227,7 @@ export class LeaveComponent implements OnInit {
   // ── Calendar view ────────────────────────────────────────────────────────
   viewMode    = signal<'table' | 'calendar'>('table');
   calYear     = signal(new Date().getFullYear());
-  calMonth    = signal(new Date().getMonth()); // 0-based
+  calMonth    = signal(new Date().getMonth());
 
   calMonthName = computed(() =>
     new Date(this.calYear(), this.calMonth(), 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }));
@@ -155,7 +270,6 @@ export class LeaveComponent implements OnInit {
     const to    = fmt(new Date(Date.UTC(year, month + 1, 0)));
     this.selectedCalDay.set(null);
     this.loading.set(true);
-    // Calendar only shows one month — 200 is a safe upper bound
     this.leaveSvc.getAll({ dateFrom: from, dateTo: to, status: this.filterStatus || undefined, leaveType: this.filterLeaveType || undefined, page: 1, pageSize: 200 }).subscribe({
       next:  r  => { this.records.set(r?.items ?? []); this.loading.set(false); },
       error: () => { this.toast.error('Failed to load leave records.'); this.loading.set(false); },
@@ -164,7 +278,6 @@ export class LeaveComponent implements OnInit {
 
   readonly todayIso = toLocalDateString(new Date());
 
-  /** Calendar day detail panel */
   selectedCalDay = signal<string | null>(null);
   selectedCalDayLeaves = computed(() => {
     const iso = this.selectedCalDay();
@@ -185,9 +298,8 @@ export class LeaveComponent implements OnInit {
     this.startEdit(r);
   }
 
-  /** Number of blank cells before day 1 (Monday-based grid). */
   leadingBlanks = computed(() => {
-    const d = new Date(this.calYear(), this.calMonth(), 1).getDay(); // 0=Sun
+    const d = new Date(this.calYear(), this.calMonth(), 1).getDay();
     return Array(d === 0 ? 6 : d - 1).fill(0);
   });
 
@@ -195,17 +307,18 @@ export class LeaveComponent implements OnInit {
     this.viewMode.set(mode);
     if (mode === 'calendar') this.loadCalRecords();
   }
+
   readonly statuses: string[] = [...STATUSES];
   readonly statusOptions = STATUSES.map(s => ({
-    label: s.charAt(0).toUpperCase() + s.slice(1),
+    label: s === 'cancelled' ? 'Cancelled' : s.charAt(0).toUpperCase() + s.slice(1),
     value: s,
   }));
+
   form: UpsertLeaveRequest = {
     employeeId: '', leaveType: 'sick', startDate: '', endDate: '',
     startTime: null, endTime: null, hours: null, notes: null, status: 'approved',
   };
 
-  /** Separate Date bindings for the time-only pickers (UpsertLeaveRequest uses string | null). */
   startTimeDate: Date | null = null;
   endTimeDate:   Date | null = null;
 
@@ -220,7 +333,6 @@ export class LeaveComponent implements OnInit {
     return d;
   }
 
-  /** Auto-calculated hours from the form's date+time range. */
   get calcHours(): number {
     const { startDate, endDate } = this.form;
     const st = this.startTimeDate;
@@ -245,6 +357,7 @@ export class LeaveComponent implements OnInit {
     this.load();
     this.refreshPendingCount();
     this.loadOverdue();
+    this.loadPatternWarnings();
   }
 
   loadOverdue(): void {
@@ -264,12 +377,15 @@ export class LeaveComponent implements OnInit {
       notes: r.notes, status: 'approved',
     };
     this.leaveSvc.update(r.id, req).subscribe({
-      next:  () => { this.load(); this.loadOverdue(); this.refreshPendingCount(); this.toast.success('Marked as no-show.'); },
+      next:  () => {
+        this.load(); this.loadOverdue(); this.refreshPendingCount();
+        this.loadBalances();   // item 15
+        this.toast.success('Marked as no-show.');
+      },
       error: () => this.toast.error('Update failed.'),
     });
   }
 
-  /** Fetch the true total-pending count independent of pagination. */
   refreshPendingCount(): void {
     this.leaveSvc.getAll({ status: 'pending', pageSize: 1 }).subscribe({
       next: r => this.totalPendingCount.set(r?.total ?? 0),
@@ -299,7 +415,6 @@ export class LeaveComponent implements OnInit {
     this.loadBalances();
   }
 
-  /** Load balance data for the Balances tab (uses balanceYear). */
   loadBalances(): void {
     const year = this.balanceYear();
     if (this.filterEmployeeId) {
@@ -321,8 +436,26 @@ export class LeaveComponent implements OnInit {
     }
   }
 
-  prevBalanceYear(): void { this.balanceYear.update(y => y - 1); this.loadBalances(); }
-  nextBalanceYear(): void { this.balanceYear.update(y => y + 1); this.loadBalances(); }
+  /** Item 11: load leave summary for Balances tab */
+  loadLeaveSummary(): void {
+    this.leaveSummaryLoading.set(true);
+    this.leaveSvc.getSummary(this.balanceYear()).subscribe({
+      next:  s => { this.leaveSummary.set(s); this.leaveSummaryLoading.set(false); },
+      error: () => this.leaveSummaryLoading.set(false),
+    });
+  }
+
+  /** Item 12: load sick-leave pattern warnings */
+  loadPatternWarnings(): void {
+    this.patternLoading.set(true);
+    this.leaveSvc.getPatternWarnings().subscribe({
+      next:  w => { this.patternWarnings.set(w); this.patternLoading.set(false); },
+      error: () => this.patternLoading.set(false),
+    });
+  }
+
+  prevBalanceYear(): void { this.balanceYear.update(y => y - 1); this.loadBalances(); this.loadLeaveSummary(); }
+  nextBalanceYear(): void { this.balanceYear.update(y => y + 1); this.loadBalances(); this.loadLeaveSummary(); }
 
   toggleEntitlementEdit(): void { this.editingEntitlement.update(v => !v); }
 
@@ -345,7 +478,6 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  /** Item 5: Apply the same entitlement to all active staff. */
   bulkApplyEntitlement(): void {
     const { year, annualHours, sickHours } = this.entitlementForm;
     this.confirmSvc.confirm({
@@ -369,11 +501,11 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  /** Item 6: Carry over unused annual leave from previous year. */
+  /** Item 5+6: carry-over with configurable max hours */
   carryOver(): void {
     const fromYear = this.balanceYear() - 1;
     const toYear   = this.balanceYear();
-    const maxHours = 14;
+    const maxHours = this.carryOverMaxHours;
     this.confirmSvc.confirm({
       title:        'Carry Over Unused Leave',
       message:      `Carry over unused annual leave from ${fromYear} → ${toYear} for all active staff? Up to ${maxHours}h per person will be added to their ${toYear} annual entitlement.`,
@@ -395,7 +527,6 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  /** Item 4: When admin selects an employee in the form, load their current balance. */
   onFormEmployeeChange(empId: string): void {
     if (!empId) { this.formBalance.set(null); return; }
     this.leaveSvc.getBalance(empId).subscribe({
@@ -404,7 +535,6 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  /** Item 10: Export current filtered records as CSV (fetches up to 1000 records). */
   exportCsv(): void {
     this.leaveSvc.getAll({
       employeeId: this.filterEmployeeId || undefined,
@@ -422,10 +552,10 @@ export class LeaveComponent implements OnInit {
           return s.includes(',') || s.includes('"') || s.includes('\n')
             ? `"${s.replace(/"/g, '""')}"` : s;
         };
-        const header = 'Staff ID,Name,Leave Type,Start Date,End Date,Hours,Status,Notes,Created At';
-        const body = rows.map(r =>
-          [r.staffId, r.staffName, r.leaveType, r.startDate, r.endDate,
-           r.hours, r.status, r.notes ?? '', r.createdAt]
+        const header = 'Staff ID,Name,Leave Type,Start Date,End Date,Hours,Status,Notes,Rejection Reason,Created At';
+        const body = rows.map(row =>
+          [row.staffId, row.staffName, row.leaveType, row.startDate, row.endDate,
+           row.hours, row.status, row.notes ?? '', row.rejectionReason ?? '', row.createdAt]
           .map(escape).join(',')
         ).join('\n');
         const blob = new Blob([header + '\n' + body], { type: 'text/csv;charset=utf-8;' });
@@ -441,17 +571,27 @@ export class LeaveComponent implements OnInit {
     });
   }
 
+  /** Item 15: quickStatus now also reloads balances */
   quickStatus(id: string, status: 'approved' | 'rejected'): void {
+    if (status === 'rejected') { this.startReject(this.records().find(r => r.id === id)!); return; }
+    this._doQuickStatus(id, status);
+  }
+
+  private _doQuickStatus(id: string, status: 'approved' | 'rejected', rejectionReason?: string): void {
     const r = this.records().find(r => r.id === id);
     if (!r) return;
     const req: UpsertLeaveRequest = {
       employeeId: r.employeeId, leaveType: r.leaveType as any,
       startDate: r.startDate, endDate: r.endDate,
       startTime: r.startTime, endTime: r.endTime, hours: r.hours,
-      notes: r.notes, status,
+      notes: r.notes, status, rejectionReason: rejectionReason ?? null,
     };
     this.leaveSvc.update(id, req).subscribe({
-      next:  () => { this.load(); this.loadOverdue(); this.refreshPendingCount(); this.toast.success(`Leave ${status}.`); },
+      next:  () => {
+        this.load(); this.loadOverdue(); this.refreshPendingCount();
+        this.loadBalances();  // item 15
+        this.toast.success(`Leave ${status}.`);
+      },
       error: () => this.toast.error('Update failed.'),
     });
   }
@@ -467,10 +607,26 @@ export class LeaveComponent implements OnInit {
     return map[type] ?? 'secondary';
   }
 
+  /** Item 10: cancelled maps to 'secondary', not 'danger' */
+  statusSeverity(status: string): 'success' | 'warn' | 'danger' | 'secondary' {
+    const map: Record<string, 'success' | 'warn' | 'danger' | 'secondary'> = {
+      approved:  'success',
+      pending:   'warn',
+      rejected:  'danger',
+      cancelled: 'secondary',
+    };
+    return map[status] ?? 'secondary';
+  }
+
   countByType(type: string): number {
     return this.records()
       .filter(r => r.leaveType === type && r.status === 'approved')
       .reduce((s, r) => s + r.hours, 0);
+  }
+
+  /** Item 12: check if an employee has a pattern warning */
+  patternWarningFor(employeeId: string): LeavePatternWarning | undefined {
+    return this.patternWarnings().find(w => w.employeeId === employeeId);
   }
 
   private scrollToForm(): void {
@@ -496,13 +652,13 @@ export class LeaveComponent implements OnInit {
     this.form = { employeeId: r.employeeId, leaveType: r.leaveType as any,
       startDate: r.startDate, endDate: r.endDate,
       startTime: r.startTime, endTime: r.endTime, hours: r.hours,
-      notes: r.notes, status: r.status as any };
+      notes: r.notes, status: r.status as any,
+      rejectionReason: r.rejectionReason };
     this.startTimeDate = r.startTime ? this.parseTime(r.startTime) : null;
     this.endTimeDate   = r.endTime   ? this.parseTime(r.endTime)   : null;
     this.editing.set(r.id);
     this.formError.set('');
     this.formBalance.set(null);
-    // Load balance for the employee being edited
     this.leaveSvc.getBalance(r.employeeId).subscribe({
       next:  b  => this.formBalance.set(b),
       error: () => {},
@@ -514,14 +670,12 @@ export class LeaveComponent implements OnInit {
   cancelForm(): void { this.showForm.set(false); this.editing.set(null); this.formBalance.set(null); }
 
   save(): void {
-    // Sync Date pickers → form string fields
     this.form.startTime = this.startTimeDate ? this.toTimeStr(this.startTimeDate) : null;
     this.form.endTime   = this.endTimeDate   ? this.toTimeStr(this.endTimeDate)   : null;
 
     if (!this.form.employeeId || !this.form.startDate || !this.form.endDate) {
       this.formError.set('Please fill in all required fields.'); return;
     }
-    // When times are provided, validate the range; otherwise require manual hours
     if (this.form.startTime && this.form.endTime) {
       const h = this.calcHours;
       if (h <= 0) { this.formError.set('End date/time must be after start date/time.'); return; }
@@ -534,17 +688,18 @@ export class LeaveComponent implements OnInit {
     const fail = (e: any) => { this.formError.set(e?.error?.error ?? 'Save failed.'); this.saving.set(false); };
     if (id) {
       this.leaveSvc.update(id, this.form).subscribe({
-        next: () => { this.saving.set(false); this.cancelForm(); this.load(); this.loadOverdue(); this.refreshPendingCount(); this.toast.success('Leave saved.'); },
+        next: () => {
+          this.saving.set(false); this.cancelForm();
+          this.load(); this.loadOverdue(); this.refreshPendingCount();
+          this.toast.success('Leave saved.');
+        },
         error: fail,
       });
     } else {
       this.leaveSvc.create(this.form).subscribe({
-        next: (res) => {
-          this.saving.set(false);
-          this.cancelForm();
-          this.load();
-          this.loadOverdue();
-          this.refreshPendingCount();
+        next: () => {
+          this.saving.set(false); this.cancelForm();
+          this.load(); this.loadOverdue(); this.refreshPendingCount();
           this.toast.success('Leave saved.');
         },
         error: fail,
@@ -552,13 +707,16 @@ export class LeaveComponent implements OnInit {
     }
   }
 
-
   remove(id: string): void {
     this.confirmSvc.confirm({ title: 'Delete Leave Record', message: 'Remove this leave record? This cannot be undone.', confirmLabel: 'Delete', danger: true })
       .subscribe(ok => {
         if (!ok) return;
         this.leaveSvc.delete(id).subscribe({
-          next:  () => { this.load(); this.loadOverdue(); this.refreshPendingCount(); this.toast.success('Leave deleted.'); },
+          next:  () => {
+            this.load(); this.loadOverdue(); this.refreshPendingCount();
+            this.loadBalances();   // item 15
+            this.toast.success('Leave deleted.');
+          },
           error: () => this.toast.error('Delete failed.'),
         });
       });

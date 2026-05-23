@@ -6,8 +6,9 @@ public class LeaveEntitlement
     public Guid    Id         { get; private set; }
     public Guid    EmployeeId { get; private set; }
     public int     Year       { get; private set; }
-    public decimal AnnualHours { get; private set; }  // entitlement in hours; 0 = not yet set
-    public decimal SickHours   { get; private set; }  // entitlement in hours; 0 = not yet set
+    public decimal AnnualHours   { get; private set; }  // entitlement in hours; 0 = not yet set
+    public decimal SickHours     { get; private set; }  // entitlement in hours; 0 = not yet set
+    public decimal CarryOverHours { get; private set; } // hours added from previous year's carry-over
 
     public Staff Employee { get; private set; } = default!;
 
@@ -25,5 +26,13 @@ public class LeaveEntitlement
     {
         AnnualHours = annualHours;
         SickHours   = sickHours;
+        // CarryOverHours is intentionally NOT reset here — it is only set by AddCarryOver().
+    }
+
+    /// <summary>Add carry-over hours (accumulated from a prior-year rollover operation).</summary>
+    public void AddCarryOver(decimal hours)
+    {
+        AnnualHours   += hours;
+        CarryOverHours += hours;
     }
 }

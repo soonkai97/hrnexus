@@ -16,20 +16,33 @@ export class AuthService {
   /** Highest-privilege permission level derived from roles */
   readonly userRole = computed((): UserRole | null => {
     const roles = this._user()?.roles ?? [];
-    if (roles.some(r => r.toUpperCase() === 'ADMIN'))   return 'admin';
-    if (roles.some(r => r.toUpperCase() === 'MANAGER')) return 'manager';
+    if (roles.includes('ADMIN'))   return 'admin';
+    if (roles.includes('MANAGER')) return 'manager';
     if (roles.length)              return 'employee';
     return null;
   });
 
   constructor(private http: HttpClient, private router: Router) {
     this.evictStaleTokens();
+    this.evictLowercaseRoleTokens();
   }
 
   // Clears any leftover mock tokens that can't pass real JWT validation
   private evictStaleTokens(): void {
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (token && token.startsWith('mock-')) {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      this._user.set(null);
+    }
+  }
+
+  // Clears old JWTs that contain lowercase roles — forces re-login to get UPPERCASE roles.
+  // Can be removed after all users have re-authenticated once.
+  private evictLowercaseRoleTokens(): void {
+    const user = this._user();
+    if (user?.roles.some(r => r !== r.toUpperCase())) {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_KEY);

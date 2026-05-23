@@ -237,7 +237,7 @@ export class LogShiftComponent implements OnInit {
 
   openEditLog(wl: WorkLogDto): void {
     this.editForm = {
-      roleName:   wl.roleName,
+      roleName:   wl.roleName.toLowerCase(),
       locationId: wl.locationId,
       workDate:   wl.workDate,
       startTime:  wl.startTime,

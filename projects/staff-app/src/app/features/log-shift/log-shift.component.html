@@ -239,12 +239,14 @@
               </div>
             }
 
-            <div class="d-flex gap-1">
-              <p-button [label]="'common.edit' | translate" [text]="true" severity="secondary" size="small"
-                (click)="openEditLog(wl)" />
-              <p-button [label]="'logShift.delete' | translate" [text]="true" severity="danger" size="small"
-                (click)="deleteLog(wl.id)" />
-            </div>
+            @if (editingLogId() !== wl.id) {
+              <div class="d-flex gap-1">
+                <p-button [label]="'common.edit' | translate" [text]="true" severity="secondary" size="small"
+                  (click)="openEditLog(wl)" />
+                <p-button [label]="'logShift.delete' | translate" [text]="true" severity="danger" size="small"
+                  (click)="deleteLog(wl.id)" />
+              </div>
+            }
           </p-card>
         }
       </div>

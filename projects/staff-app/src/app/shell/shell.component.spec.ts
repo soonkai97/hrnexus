@@ -30,7 +30,7 @@ describe('ShellComponent (staff-app)', () => {
   let mockNotifSvc:        { unreadCount: ReturnType<typeof vi.fn> };
   let mockAnnouncementSvc: { getMine: ReturnType<typeof vi.fn> };
 
-  function createComponent(userRoles: string[] = ['employee'], fullName = 'Jane Doe') {
+  function createComponent(userRoles: string[] = ['BARTENDER'], fullName = 'Jane Doe') {
     mockAuth.user.mockReturnValue({ fullName, roles: userRoles });
     return TestBed.createComponent(ShellComponent).componentInstance;
   }
@@ -85,7 +85,7 @@ describe('ShellComponent (staff-app)', () => {
     });
 
     it('caps initials at 2 characters for multi-word names', () => {
-      const c = createComponent(['employee'], 'Alice Mary Smith');
+      const c = createComponent(['BARTENDER'], 'Alice Mary Smith');
       expect(c.initials()).toBe('AM');
     });
   });
@@ -94,18 +94,18 @@ describe('ShellComponent (staff-app)', () => {
 
   describe('userRoleLabel computed', () => {
     it('returns "Manager" for manager role', () => {
-      const c = createComponent(['manager']);
+      const c = createComponent(['MANAGER']);
       expect(c.userRoleLabel()).toBe('Manager');
     });
 
     it('returns "Admin" for admin role', () => {
-      const c = createComponent(['admin']);
+      const c = createComponent(['ADMIN']);
       expect(c.userRoleLabel()).toBe('Admin');
     });
 
-    it('returns title-cased first role for other roles', () => {
-      const c = createComponent(['employee']);
-      expect(c.userRoleLabel()).toBe('Employee');
+    it('returns the role name as-is for other roles', () => {
+      const c = createComponent(['BARTENDER']);
+      expect(c.userRoleLabel()).toBe('BARTENDER');
     });
 
     it('returns "Staff" when user has no roles', () => {

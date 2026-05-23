@@ -55,9 +55,9 @@ export class ShellComponent {
 
   userRoleLabel = computed(() => {
     const roles = this.auth.user()?.roles ?? [];
-    if (roles.includes('admin'))   return 'Admin';
-    if (roles.includes('manager')) return 'Manager';
-    return roles[0] ? roles[0].charAt(0).toUpperCase() + roles[0].slice(1) : 'Staff';
+    if (roles.includes('ADMIN'))   return 'Admin';
+    if (roles.includes('MANAGER')) return 'Manager';
+    return roles[0] ?? 'Staff';
   });
 
   private readonly allNavItems: NavItem[] = [
@@ -77,7 +77,7 @@ export class ShellComponent {
   navItems = computed(() => {
     const flags   = this.featureSvc.flags();
     const roles   = this.auth.user()?.roles ?? [];
-    const isAdmin = roles.includes('admin');
+    const isAdmin = roles.includes('ADMIN');
 
     return this.allNavItems.filter(item =>
       (!item.featureFlag || flags[item.featureFlag]) &&

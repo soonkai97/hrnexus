@@ -55,8 +55,7 @@ describe('LeaveComponent', () => {
     getAllBalances:        ReturnType<typeof vi.fn>;
     setEntitlement:       ReturnType<typeof vi.fn>;
     bulkSetEntitlement:   ReturnType<typeof vi.fn>;
-    carryOverEntitlement: ReturnType<typeof vi.fn>;
-    bulkUpdateStatus:     ReturnType<typeof vi.fn>;
+      bulkUpdateStatus:     ReturnType<typeof vi.fn>;
     getSummary:           ReturnType<typeof vi.fn>;
     getPatternWarnings:   ReturnType<typeof vi.fn>;
   };
@@ -80,7 +79,6 @@ describe('LeaveComponent', () => {
       getAllBalances:        vi.fn().mockReturnValue(of([])),
       setEntitlement:       vi.fn().mockReturnValue(of(undefined)),
       bulkSetEntitlement:   vi.fn().mockReturnValue(of({ count: 3 })),
-      carryOverEntitlement: vi.fn().mockReturnValue(of({ count: 2 })),
       bulkUpdateStatus:     vi.fn().mockReturnValue(of({ count: 2 })),
       getSummary:           vi.fn().mockReturnValue(of([])),
       getPatternWarnings:   vi.fn().mockReturnValue(of([])),
@@ -558,6 +556,13 @@ describe('LeaveComponent', () => {
       expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('3'));
     });
 
+    it('closes the bulk entitlement panel on success', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.showBulkEntForm.set(true);
+      component.bulkApplyEntitlement();
+      expect(component.showBulkEntForm()).toBe(false);
+    });
+
     it('does NOT call bulkSetEntitlement when user cancels', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(false));
       component.bulkApplyEntitlement();
@@ -570,36 +575,6 @@ describe('LeaveComponent', () => {
         throwError(() => ({ error: { error: 'Year out of range.' } })));
       component.bulkApplyEntitlement();
       expect(mockToastSvc.error).toHaveBeenCalledWith('Year out of range.');
-    });
-  });
-
-  // ── Item 6: carryOver() ───────────────────────────────────────────────────────
-
-  describe('carryOver()', () => {
-    it('calls carryOverEntitlement with fromYear = balanceYear - 1 and toYear = balanceYear', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(true));
-      component.balanceYear.set(2026);
-      component.carryOver();
-      expect(mockLeaveSvc.carryOverEntitlement).toHaveBeenCalledWith(2025, 2026, 14);
-    });
-
-    it('shows success toast with count on success', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(true));
-      component.carryOver();
-      expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('2'));
-    });
-
-    it('does NOT call carryOverEntitlement when user cancels', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(false));
-      component.carryOver();
-      expect(mockLeaveSvc.carryOverEntitlement).not.toHaveBeenCalled();
-    });
-
-    it('shows error toast on failure', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(true));
-      mockLeaveSvc.carryOverEntitlement.mockReturnValue(throwError(() => new Error('Server error')));
-      component.carryOver();
-      expect(mockToastSvc.error).toHaveBeenCalled();
     });
   });
 
@@ -1017,14 +992,6 @@ describe('LeaveComponent', () => {
     it('sets patternLoading to false after loading completes', () => {
       component.loadPatternWarnings();
       expect(component.patternLoading()).toBe(false);
-    });
-  });
-
-  // ── Item 5: carryOverMaxHours default ────────────────────────────────────────
-
-  describe('carryOverMaxHours', () => {
-    it('defaults to 14 hours — one standard work-week carry-over cap', () => {
-      expect(component.carryOverMaxHours).toBe(14);
     });
   });
 

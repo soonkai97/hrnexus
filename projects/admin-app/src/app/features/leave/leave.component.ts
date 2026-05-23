@@ -91,11 +91,8 @@ export class LeaveComponent implements OnInit {
   editingEntitlement = signal(false);
   savingEntitlement  = signal(false);
   bulkSaving         = signal(false);
-  carryOverSaving    = signal(false);
   entitlementForm    = { year: new Date().getFullYear(), annualHours: 112, sickHours: 112 };
-
-  /** Item 5: configurable carry-over max (hours) */
-  carryOverMaxHours = 14;
+  showBulkEntForm    = signal(false);
 
   /** Item 12: year used for the Balances overview */
   balanceYear = signal(new Date().getFullYear());
@@ -490,38 +487,13 @@ export class LeaveComponent implements OnInit {
       this.leaveSvc.bulkSetEntitlement(year, annualHours, sickHours).subscribe({
         next: r => {
           this.bulkSaving.set(false);
+          this.showBulkEntForm.set(false);
           this.toast.success(`Entitlements applied to ${r.count} staff members.`);
           this.loadBalances();
         },
         error: (e: any) => {
           this.toast.error(e?.error?.error ?? 'Bulk apply failed.');
           this.bulkSaving.set(false);
-        },
-      });
-    });
-  }
-
-  /** Item 5+6: carry-over with configurable max hours */
-  carryOver(): void {
-    const fromYear = this.balanceYear() - 1;
-    const toYear   = this.balanceYear();
-    const maxHours = this.carryOverMaxHours;
-    this.confirmSvc.confirm({
-      title:        'Carry Over Unused Leave',
-      message:      `Carry over unused annual leave from ${fromYear} → ${toYear} for all active staff? Up to ${maxHours}h per person will be added to their ${toYear} annual entitlement.`,
-      confirmLabel: 'Carry Over',
-    }).subscribe(ok => {
-      if (!ok) return;
-      this.carryOverSaving.set(true);
-      this.leaveSvc.carryOverEntitlement(fromYear, toYear, maxHours).subscribe({
-        next: r => {
-          this.carryOverSaving.set(false);
-          this.toast.success(`Carry-over applied for ${r.count} staff members.`);
-          this.loadBalances();
-        },
-        error: (e: any) => {
-          this.toast.error(e?.error?.error ?? 'Carry-over failed.');
-          this.carryOverSaving.set(false);
         },
       });
     });

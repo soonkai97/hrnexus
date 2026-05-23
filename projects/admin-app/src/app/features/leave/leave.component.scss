@@ -179,6 +179,19 @@
   font-size: 0.95rem; font-weight: 700; color: $text-primary; margin-bottom: 1rem;
 }
 
+// ── Bulk entitlement panel ────────────────────────────────────────────────────
+.bulk-ent-panel {
+  background: rgba(168,85,247,0.06);
+  border: 1px solid rgba(168,85,247,0.2);
+  border-radius: $radius-md;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.bulk-ent-label { font-size: 0.85rem; color: $text-secondary; }
+.bulk-ent-input { width: 90px; }
+.bulk-ent-fields .field { display: flex; flex-direction: column; gap: 0.3rem; }
+.bulk-ent-fields label { font-size: 0.75rem; font-weight: 600; color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em; }
+
 .staff-balance-list { display: flex; flex-direction: column; gap: 0; }
 
 .staff-bal-row {

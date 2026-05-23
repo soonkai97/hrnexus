@@ -28,7 +28,7 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location {req.LocationId} not found.");
 
-        var role = await db.Roles.FindAsync([req.RoleName.ToLowerInvariant()], ct)
+        var role = await db.Roles.FindAsync([req.RoleName.ToUpperInvariant()], ct)
             ?? throw new KeyNotFoundException($"Role {req.RoleName} not found.");
 
         // Check for approved leave covering this date

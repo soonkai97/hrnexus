@@ -69,18 +69,8 @@ public class WorkLogCommandTests
         return loc;
     }
 
-    /// <summary>
-    /// Seeds a Role whose Name PK matches exactly what StartWorkLogCommand will search for.
-    /// StartWorkLogCommand calls FindAsync([req.RoleName.ToLowerInvariant()]), so the Name
-    /// stored in the DB must be lowercase. Role.Create() uppercases — we override via reflection.
-    /// </summary>
-    private static E.Role MakeRole(string name = "bartender", decimal rate = 50m)
-    {
-        var role = E.Role.Create(name, hourlyRate: rate);
-        // Force the PK to the lowercase form the handler will query
-        typeof(E.Role).GetProperty(nameof(E.Role.Name))!.SetValue(role, name.ToLowerInvariant());
-        return role;
-    }
+    private static E.Role MakeRole(string name = "bartender", decimal rate = 50m) =>
+        E.Role.Create(name, hourlyRate: rate);
 
     private static UpdateWorkLogCommandHandler UpdateHandler(IAppDbContext db) =>
         new(db);
@@ -543,21 +533,11 @@ public class WorkLogCommandTests
                 CancellationToken.None));
     }
 
-    /// <summary>
-    /// Seeds a Staff whose Id matches empId and whose role assignment uses the exact lowercase
-    /// string the StartWorkLogCommand handler will compare against
-    /// (handler: r.Role == req.RoleName.ToLowerInvariant()).
-    /// Staff.Create uppercases roles, so we patch StaffRole.Role via reflection.
-    /// </summary>
-    private static E.Staff MakeStaffWithLowercaseRole(Guid empId, string role = "bartender")
+    private static E.Staff MakeStaffWithRole(Guid empId, string role = "bartender")
     {
         var staff = E.Staff.Create("S001", "Alice", "Wong", "s001@test.com", "hash",
             new List<string> { role }, dateOfBirth: new DateTime(1990, 1, 1));
         typeof(E.Staff).GetProperty(nameof(E.Staff.Id))!.SetValue(staff, empId);
-        // Patch each StaffRole.Role to lowercase (SetRoles uppercases by default).
-        // StaffRole.Role has a public setter so no reflection needed.
-        foreach (var sr in staff.RoleEntries)
-            sr.Role = role.ToLowerInvariant();
         return staff;
     }
 
@@ -570,7 +550,7 @@ public class WorkLogCommandTests
         db.Locations.Add(loc);
         var role = MakeRole("bartender", 50m);
         db.Roles.Add(role);
-        db.Staff.Add(MakeStaffWithLowercaseRole(empId));
+        db.Staff.Add(MakeStaffWithRole(empId));
         await db.SaveChangesAsync();
 
         var handler = StartHandler(db);
@@ -589,7 +569,7 @@ public class WorkLogCommandTests
         db.Locations.Add(loc);
         var role = MakeRole("bartender", 50m);
         db.Roles.Add(role);
-        db.Staff.Add(MakeStaffWithLowercaseRole(empId));
+        db.Staff.Add(MakeStaffWithRole(empId));
         await db.SaveChangesAsync();
 
         var handler = StartHandler(db);

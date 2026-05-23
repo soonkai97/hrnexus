@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, signal, computed, inject, ElementRef, ViewChild } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -28,7 +27,7 @@ import { Skeleton } from 'primeng/skeleton';
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [TitleCasePipe, FormsModule, RouterLink, TranslatePipe,
+  imports: [FormsModule, RouterLink, TranslatePipe,
     Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
     MultiSelect, Menu, Paginator, Skeleton],
   templateUrl: './staff.component.html',

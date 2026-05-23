@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -17,7 +17,7 @@ import { Paginator } from 'primeng/paginator';
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe,
+  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe,
     Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Paginator],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',

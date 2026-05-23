@@ -1,5 +1,4 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -12,7 +11,7 @@ import { SelectButton } from 'primeng/selectbutton';
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [TitleCasePipe, RouterLink, FormsModule, TranslatePipe, Button, Card, Tag, SelectButton],
+  imports: [RouterLink, FormsModule, TranslatePipe, Button, Card, Tag, SelectButton],
   templateUrl: './account.component.html',
   styleUrl:    './account.component.scss',
 })

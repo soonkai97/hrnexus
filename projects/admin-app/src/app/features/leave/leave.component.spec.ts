@@ -347,6 +347,9 @@ describe('LeaveComponent', () => {
     it('returns "warn" for no-show', () => {
       expect(component.leaveTypeSeverity('no-show')).toBe('warn');
     });
+    it('returns "warn" for emergency leave', () => {
+      expect(component.leaveTypeSeverity('emergency')).toBe('warn');
+    });
     it('returns "secondary" as default for unknown types', () => {
       expect(component.leaveTypeSeverity('unknown-type')).toBe('secondary');
     });

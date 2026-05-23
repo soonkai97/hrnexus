@@ -17,7 +17,7 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 
-const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show'] as const;
+const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show', 'emergency'] as const;
 const STATUSES    = ['approved', 'pending', 'rejected'] as const;
 
 @Component({
@@ -61,10 +61,11 @@ export class LeaveComponent implements OnInit {
   filterLeaveType  = '';
 
   readonly presetTypes = [
-    { label: 'All',    value: '' },
-    { label: 'Sick',   value: 'sick' },
-    { label: 'Annual', value: 'annual' },
-    { label: 'Unpaid', value: 'unpaid' },
+    { label: 'All',       value: '' },
+    { label: 'Sick',      value: 'sick' },
+    { label: 'Annual',    value: 'annual' },
+    { label: 'Unpaid',    value: 'unpaid' },
+    { label: 'Emergency', value: 'emergency' },
   ];
 
   setTypeFilter(type: string): void {
@@ -350,6 +351,7 @@ export class LeaveComponent implements OnInit {
       sick:      'danger',
       unpaid:    'secondary',
       'no-show': 'warn',
+      emergency: 'warn',
     };
     return map[type] ?? 'secondary';
   }

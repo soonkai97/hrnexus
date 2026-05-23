@@ -1,4 +1,4 @@
-export type LeaveType   = 'sick' | 'annual' | 'unpaid' | 'no-show';
+export type LeaveType   = 'sick' | 'annual' | 'unpaid' | 'no-show' | 'emergency';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected';
 
 export interface LeaveRecord {

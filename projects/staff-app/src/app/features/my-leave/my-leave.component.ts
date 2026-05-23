@@ -12,7 +12,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 import { SelectButton } from 'primeng/selectbutton';
 
-const LEAVE_TYPES = ['sick', 'annual', 'unpaid'] as const;
+const LEAVE_TYPES = ['annual', 'sick', 'unpaid', 'emergency'] as const;
 type StaffLeaveType = typeof LEAVE_TYPES[number];
 
 @Component({
@@ -59,10 +59,11 @@ export class MyLeaveComponent implements OnInit {
   });
 
   readonly presetTypes = [
-    { label: 'All',    value: '' },
-    { label: 'Sick',   value: 'sick' },
-    { label: 'Annual', value: 'annual' },
-    { label: 'Unpaid', value: 'unpaid' },
+    { label: 'All',       value: '' },
+    { label: 'Annual',    value: 'annual' },
+    { label: 'Sick',      value: 'sick' },
+    { label: 'Unpaid',    value: 'unpaid' },
+    { label: 'Emergency', value: 'emergency' },
   ];
 
   form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: Date | null; endTime: Date | null; notes: string } = {

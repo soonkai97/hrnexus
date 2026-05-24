@@ -9,7 +9,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import Aura from '@primeuix/themes/aura';
 import { definePreset } from '@primeuix/themes';
 
-const NightCrewTheme = definePreset(Aura, {
+const HRNexusTheme = definePreset(Aura, {
   semantic: {
     primary: {
       50:  '{violet.50}',
@@ -44,7 +44,7 @@ export const appConfig: ApplicationConfig = {
     ...provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
     providePrimeNG({
       theme: {
-        preset: NightCrewTheme,
+        preset: HRNexusTheme,
         options: { darkModeSelector: '[data-theme="dark"]' },
       },
     }),

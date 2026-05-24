@@ -116,6 +116,12 @@
 
 // ── Form elements ─────────────────────────────────────────────────────────────
 
+// Uppercase typed Staff ID but keep placeholder in normal case
+#login-staff-id {
+  text-transform: uppercase;
+  &::placeholder { text-transform: none; }
+}
+
 .btn-primary { width: 100%; margin-top: 0.5rem; }
 
 .forgot-link {

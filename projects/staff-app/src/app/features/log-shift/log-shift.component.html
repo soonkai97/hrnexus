@@ -134,6 +134,9 @@
               <input pInputText type="time" [(ngModel)]="manualForm.endTime" class="w-full" />
             </div>
           </div>
+          @if (manualForm.endTime && manualForm.startTime && manualForm.endTime < manualForm.startTime) {
+            <small class="overnight-hint"><i class="pi pi-moon"></i> {{ 'logShift.overnightHint' | translate }}</small>
+          }
           <div class="field">
             <label>{{ 'logShift.notesLabel' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="manualForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
@@ -182,7 +185,7 @@
             </div>
             <div class="history-mid d-flex flex-wrap gap-3">
               <span><i class="pi pi-map-marker"></i> {{ wl.locationName }}</span>
-              <span><i class="pi pi-clock"></i> {{ wl.startTime | amPm }} – {{ wl.endTime | amPm }}</span>
+              <span><i class="pi pi-clock"></i> {{ wl.startTime | amPm }} – {{ wl.endTime | amPm }}@if (wl.endTime && wl.endTime < wl.startTime) {<span class="overnight-badge">+1</span>}</span>
               <span class="h-hours"><i class="pi pi-stopwatch"></i> {{ wl.hours | number:'1.1-1' }}h</span>
               @if (wl.isManualEntry) { <p-tag [value]="'logShift.manual' | translate" severity="secondary" /> }
               @if (wl.isEdited) { <p-tag [value]="'logShift.edited' | translate" severity="warn" /> }

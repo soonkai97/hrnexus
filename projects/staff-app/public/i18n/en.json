@@ -167,7 +167,8 @@
     "noHistory":        "No shifts logged yet.",
     "delete":           "🗑 Delete",
     "manual":           "Manual",
-    "edited":           "Edited"
+    "edited":           "Edited",
+    "overnightHint":    "If end time is before start time, the shift spans midnight."
   },
   "common": {
     "loading": "Loading…",

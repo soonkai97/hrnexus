@@ -1,6 +1,6 @@
 {
-  "name": "Nightclub Staff",
-  "short_name": "Staff App",
+  "name": "HRNexus Staff",
+  "short_name": "HRNexus",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

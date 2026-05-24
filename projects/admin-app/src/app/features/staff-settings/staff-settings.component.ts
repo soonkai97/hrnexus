@@ -20,7 +20,6 @@ import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
 import { Checkbox } from 'primeng/checkbox';
 import { Tag } from 'primeng/tag';
-import { Card } from 'primeng/card';
 import { Divider } from 'primeng/divider';
 import { Message } from 'primeng/message';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
@@ -46,7 +45,7 @@ type SeverityValue = 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'con
   standalone: true,
   imports: [
     FormsModule, TranslatePipe,
-    Button, InputText, InputNumber, Select, Checkbox, Tag, Card, Divider, Message,
+    Button, InputText, InputNumber, Select, Checkbox, Tag, Divider, Message,
     Tabs, TabList, Tab, TabPanels, TabPanel,
   ],
   templateUrl: './staff-settings.component.html',

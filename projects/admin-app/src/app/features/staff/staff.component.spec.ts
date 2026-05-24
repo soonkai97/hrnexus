@@ -112,6 +112,7 @@ describe('StaffComponent', () => {
       component.newStaff.firstName   = 'Alice';
       component.newStaff.lastName    = 'Tan';
       component.newStaff.email       = 'alice@test.com';
+      component.newStaff.password    = 'Password1!';   // ≥8 chars required by isFormValid
       component.newStaff.icNo        = 'IC99999';
       component.newStaff.passportNo  = null;
       component.newStaff.dateOfBirth = '1995-06-15';
@@ -428,10 +429,11 @@ describe('StaffComponent', () => {
     });
 
     it('closeForm() resets newStaff to defaults', () => {
-      component.newStaff.staffId = 'NC123';
+      component.newStaff.staffId   = 'NC123';
+      component.newStaff.password  = 'SomePass1!';
       component.closeForm();
       expect(component.newStaff.staffId).toBe('');
-      expect(component.newStaff.password).toBe('password123');
+      expect(component.newStaff.password).toBe('');   // password cleared on close
     });
   });
 

@@ -31,7 +31,6 @@ export class ProfileComponent implements OnInit {
   profile      = signal<StaffDetail | null>(null);
   pushEnabled  = signal(false);
   pushLoading  = signal(false);
-  loggingOut   = signal(false);
 
   initials = computed(() => {
     const u = this.auth.user();
@@ -96,8 +95,6 @@ export class ProfileComponent implements OnInit {
   }
 
   logout(): void {
-    this.loggingOut.set(true);
-    // Small delay so the loading state is visible before the page unmounts
-    setTimeout(() => this.auth.logout(), 300);
+    this.auth.logout();
   }
 }

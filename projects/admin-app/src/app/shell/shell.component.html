@@ -23,7 +23,9 @@
 
     <nav class="sidebar-nav">
       @for (item of navItems(); track item.path) {
-        <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-item"
+           [pTooltip]="collapsed() ? (item.labelKey | translate) : ''"
+           tooltipPosition="right">
           <span class="nav-icon"><i [class]="item.icon"></i></span>
           @if (!collapsed()) {
             <span class="nav-label">{{ item.labelKey | translate }}</span>

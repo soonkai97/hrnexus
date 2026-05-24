@@ -146,7 +146,8 @@
     "noHistory":        "暂无班次记录。",
     "delete":           "🗑 删除",
     "manual":           "手动",
-    "edited":           "已修改"
+    "edited":           "已修改",
+    "overnightHint":    "若结束时间早于开始时间，表示班次跨越午夜。"
   },
   "common": {
     "loading": "加载中…",

@@ -170,6 +170,10 @@
     "edited":           "已修改",
     "overnightHint":    "若结束时间早于开始时间，表示班次跨越午夜。"
   },
+  "polling": {
+    "leaveApproved": "您的请假申请已获批准。",
+    "leaveRejected":  "您的请假申请已被拒绝。"
+  },
   "common": {
     "loading": "加载中…",
     "save":    "保存",

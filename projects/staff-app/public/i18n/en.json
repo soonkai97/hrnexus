@@ -170,6 +170,10 @@
     "edited":           "Edited",
     "overnightHint":    "If end time is before start time, the shift spans midnight."
   },
+  "polling": {
+    "leaveApproved": "Your leave request has been approved.",
+    "leaveRejected":  "Your leave request has been rejected."
+  },
   "common": {
     "loading": "Loading…",
     "save":    "Save",

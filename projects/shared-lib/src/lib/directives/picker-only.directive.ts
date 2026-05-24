@@ -1,7 +1,8 @@
-import { Directive, ElementRef, HostListener, inject } from '@angular/core';
+import { Directive, ElementRef, HostListener, inject, OnInit } from '@angular/core';
 
 /**
  * Automatically applied to every <input type="date"> and <input type="time">.
+ * - Sets inputmode="none" so mobile OSes never show the software keyboard.
  * - Clicking anywhere on the input immediately opens the native picker.
  * - Keyboard input is blocked to prevent invalid values being typed manually.
  */
@@ -9,8 +10,13 @@ import { Directive, ElementRef, HostListener, inject } from '@angular/core';
   selector: 'input[type=date], input[type=time]',
   standalone: true,
 })
-export class PickerOnlyDirective {
+export class PickerOnlyDirective implements OnInit {
   private readonly el = inject(ElementRef<HTMLInputElement>);
+
+  ngOnInit(): void {
+    // Suppress the mobile soft keyboard — the native date/time picker handles input
+    this.el.nativeElement.setAttribute('inputmode', 'none');
+  }
 
   @HostListener('click')
   onClick(): void {

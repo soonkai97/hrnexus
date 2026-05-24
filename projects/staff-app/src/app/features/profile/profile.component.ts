@@ -27,10 +27,11 @@ export class ProfileComponent implements OnInit {
     { label: '中文',    value: 'zh' },
   ];
 
-  user     = computed(() => this.auth.user());
-  profile  = signal<StaffDetail | null>(null);
+  user         = computed(() => this.auth.user());
+  profile      = signal<StaffDetail | null>(null);
   pushEnabled  = signal(false);
   pushLoading  = signal(false);
+  loggingOut   = signal(false);
 
   initials = computed(() => {
     const u = this.auth.user();
@@ -53,6 +54,19 @@ export class ProfileComponent implements OnInit {
   }
 
   async togglePush(): Promise<void> {
+    // iOS Safari requires the PWA to be installed to the home screen for push notifications
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = ('standalone' in navigator) && (navigator as any).standalone;
+    if (isIos && !isStandalone) {
+      this.toast.warning('To enable notifications on iPhone, add this app to your Home Screen first.');
+      return;
+    }
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      this.toast.error('Push notifications are not supported in this browser.');
+      return;
+    }
+
     this.pushLoading.set(true);
     try {
       const reg = await navigator.serviceWorker.ready;
@@ -63,9 +77,9 @@ export class ProfileComponent implements OnInit {
         this.pushEnabled.set(false);
       } else {
         const keyRes = await this.pushSvc.getPublicKey().toPromise();
-        if (!keyRes?.publicKey) { this.toast.error('Push not configured.'); return; }
+        if (!keyRes?.publicKey) { this.toast.error('Push notifications are not configured on this server.'); return; }
         const sub = await this.pushSvc.requestPermission(keyRes.publicKey);
-        if (!sub) { this.toast.error('Permission denied.'); return; }
+        if (!sub) { this.toast.error('Notification permission denied.'); return; }
         const json = sub.toJSON();
         await this.pushSvc.subscribe({
           endpoint: json.endpoint!,
@@ -75,11 +89,15 @@ export class ProfileComponent implements OnInit {
         this.pushEnabled.set(true);
       }
     } catch (e) {
-      this.toast.error('Push notification error.');
+      this.toast.error('Could not enable notifications. Please try again.');
     } finally {
       this.pushLoading.set(false);
     }
   }
 
-  logout(): void { this.auth.logout(); }
+  logout(): void {
+    this.loggingOut.set(true);
+    // Small delay so the loading state is visible before the page unmounts
+    setTimeout(() => this.auth.logout(), 300);
+  }
 }

@@ -109,6 +109,7 @@
       <p-button
         [label]="'profile.signOut' | translate"
         severity="danger"
+        [loading]="loggingOut()"
         (click)="logout()" />
     </div>
   }

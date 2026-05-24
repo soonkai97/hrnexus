@@ -98,6 +98,8 @@ export class LogShiftComponent implements OnInit {
   // Error
   formError = signal('');
 
+  deletingId = signal<string | null>(null);
+
   // ── Edit ─────────────────────────────────────────────────────────────────────
   editingLogId = signal<string | null>(null);
   editSaving   = signal(false);
@@ -285,9 +287,10 @@ export class LogShiftComponent implements OnInit {
   deleteLog(id: string): void {
     this.confirmSvc.confirm({ title: 'Delete Shift Log', message: 'Are you sure you want to remove this shift record? This cannot be undone.', confirmLabel: 'Delete', danger: true }).subscribe(ok => {
       if (!ok) return;
+      this.deletingId.set(id);
       this.workLogSvc.delete(id).subscribe({
-        next: () => { this.loadHistory(); this.toast.success('Log removed.'); },
-        error: () => this.toast.error('Failed to delete.'),
+        next: () => { this.deletingId.set(null); this.loadHistory(); this.toast.success('Log removed.'); },
+        error: () => { this.deletingId.set(null); this.toast.error('Failed to delete.'); },
       });
     });
   }

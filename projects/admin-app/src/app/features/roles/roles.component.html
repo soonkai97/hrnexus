@@ -79,6 +79,7 @@
             <span class="p-column-title">{{ 'roles.actionsCol' | translate }}</span>
             @if (!role.isSystem) {
               <p-button icon="pi pi-trash" [label]="'roles.deleteRole' | translate" [text]="true" severity="danger"
+                        [loading]="deletingRole() === role.name" [disabled]="!!deletingRole()"
                         (click)="deleteRole(role.name)" />
             }
           </td>

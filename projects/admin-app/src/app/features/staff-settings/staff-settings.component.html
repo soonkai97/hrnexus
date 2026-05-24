@@ -92,7 +92,9 @@
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditWt(item)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeWt(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                    [loading]="deletingWtId() === item.id" [disabled]="!!deletingWtId()"
+                    (click)="removeWt(item)" />
                 </div>
               </div>
             } @empty {
@@ -166,7 +168,9 @@
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditEc(item)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeEc(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                    [loading]="deletingEcId() === item.id" [disabled]="!!deletingEcId()"
+                    (click)="removeEc(item)" />
                 </div>
               </div>
             } @empty {
@@ -259,7 +263,9 @@
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditSt(item)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeSt(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                    [loading]="deletingStId() === item.id" [disabled]="!!deletingStId()"
+                    (click)="removeSt(item)" />
                 </div>
               </div>
             } @empty {
@@ -352,8 +358,9 @@
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditLt(item)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (click)="removeLt(item)"
-                            [disabled]="item.isSystem" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                    [loading]="deletingLtId() === item.id" [disabled]="item.isSystem || !!deletingLtId()"
+                    (click)="removeLt(item)" />
                 </div>
               </div>
             } @empty {

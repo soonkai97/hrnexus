@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FeatureFlagService, FeatureKey, ToastService } from 'shared-lib';
@@ -21,9 +21,11 @@ interface FeatureDef {
   styleUrl: './feature-flags.component.scss',
 })
 export class FeatureFlagsComponent {
-  readonly featureSvc = inject(FeatureFlagService);
+  readonly featureSvc  = inject(FeatureFlagService);
   private readonly toast     = inject(ToastService);
   private readonly translate = inject(TranslateService);
+
+  togglingAll = signal(false);
 
   readonly features: FeatureDef[] = [
     // ── Phase 1 — Finance & Reports ──────────────────────────────────────────
@@ -59,16 +61,18 @@ export class FeatureFlagsComponent {
   }
 
   enableAll(): void {
+    this.togglingAll.set(true);
     this.featureSvc.enableAll().subscribe({
-      next:  () => this.toast.success(this.translate.instant('features.allEnabled')),
-      error: () => this.toast.error(this.translate.instant('features.enableAllFailed')),
+      next:  () => { this.togglingAll.set(false); this.toast.success(this.translate.instant('features.allEnabled')); },
+      error: () => { this.togglingAll.set(false); this.toast.error(this.translate.instant('features.enableAllFailed')); },
     });
   }
 
   disableAll(): void {
+    this.togglingAll.set(true);
     this.featureSvc.disableAll().subscribe({
-      next:  () => this.toast.success(this.translate.instant('features.allDisabled')),
-      error: () => this.toast.error(this.translate.instant('features.disableAllFailed')),
+      next:  () => { this.togglingAll.set(false); this.toast.success(this.translate.instant('features.allDisabled')); },
+      error: () => { this.togglingAll.set(false); this.toast.error(this.translate.instant('features.disableAllFailed')); },
     });
   }
 }

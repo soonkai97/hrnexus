@@ -302,7 +302,9 @@
               }
               <div class="leave-meta">{{ 'leave.submittedOn' | translate }} {{ r.createdAt }}</div>
               @if ((r.status === 'pending' || r.status === 'approved') && r.endDate >= todayLocal) {
-                <p-button [label]="'leave.cancel' | translate" severity="danger" size="small" [text]="true" (click)="cancel(r)" />
+                <p-button [label]="'leave.cancel' | translate" severity="danger" size="small" [text]="true"
+                  [loading]="cancellingId() === r.id" [disabled]="!!cancellingId()"
+                  (click)="cancel(r)" />
               }
             </p-card>
           }

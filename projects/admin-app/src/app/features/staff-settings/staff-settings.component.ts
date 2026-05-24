@@ -64,6 +64,12 @@ export class StaffSettingsComponent implements OnInit {
   readonly loanDirectionOpts = LOAN_DIRECTION_OPTIONS;
   readonly severityOpts      = SEVERITY_OPTIONS;
 
+  // ── Deleting state ────────────────────────────────────────────────────────
+  deletingWtId = signal<string | null>(null);
+  deletingEcId = signal<string | null>(null);
+  deletingStId = signal<string | null>(null);
+  deletingLtId = signal<string | null>(null);
+
   // ── Work type form ────────────────────────────────────────────────────────
   showWtForm  = signal(false);
   editingWt   = signal<StaffWorkTypeDto | null>(null);
@@ -138,9 +144,10 @@ export class StaffSettingsComponent implements OnInit {
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
+      this.deletingWtId.set(item.id);
       this.configSvc.deleteWorkType(item.id).subscribe({
-        next:  () => this.toast.success('Work type deleted.'),
-        error: (e) => this.toast.error(e?.error?.error ?? 'Delete failed.'),
+        next:  () => { this.deletingWtId.set(null); this.toast.success('Work type deleted.'); },
+        error: (e) => { this.deletingWtId.set(null); this.toast.error(e?.error?.error ?? 'Delete failed.'); },
       });
     });
   }
@@ -184,9 +191,10 @@ export class StaffSettingsComponent implements OnInit {
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
+      this.deletingStId.set(item.id);
       this.configSvc.deleteSettlement(item.id).subscribe({
-        next:  () => this.toast.success('Settlement deleted.'),
-        error: (e) => this.toast.error(e?.error?.error ?? 'Delete failed.'),
+        next:  () => { this.deletingStId.set(null); this.toast.success('Settlement deleted.'); },
+        error: (e) => { this.deletingStId.set(null); this.toast.error(e?.error?.error ?? 'Delete failed.'); },
       });
     });
   }
@@ -230,9 +238,10 @@ export class StaffSettingsComponent implements OnInit {
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
+      this.deletingEcId.set(item.id);
       this.configSvc.deleteExpenseCategory(item.id).subscribe({
-        next:  () => this.toast.success('Category deleted.'),
-        error: (e) => this.toast.error(e?.error?.error ?? 'Delete failed.'),
+        next:  () => { this.deletingEcId.set(null); this.toast.success('Category deleted.'); },
+        error: (e) => { this.deletingEcId.set(null); this.toast.error(e?.error?.error ?? 'Delete failed.'); },
       });
     });
   }
@@ -277,9 +286,10 @@ export class StaffSettingsComponent implements OnInit {
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
+      this.deletingLtId.set(item.id);
       this.configSvc.deleteLoanType(item.id).subscribe({
-        next:  () => this.toast.success('Loan type deleted.'),
-        error: (e) => this.toast.error(e?.error?.error ?? 'Delete failed.'),
+        next:  () => { this.deletingLtId.set(null); this.toast.success('Loan type deleted.'); },
+        error: (e) => { this.deletingLtId.set(null); this.toast.error(e?.error?.error ?? 'Delete failed.'); },
       });
     });
   }

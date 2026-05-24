@@ -21,9 +21,9 @@ public static class SeedData
                 db.Roles.Add(Role.Create(roleName, isSystem: true));
 
         // Seed the single default admin account
-        if (!await db.Staff.AnyAsync(e => e.StaffId == "HRAdmin"))
+        if (!await db.Staff.AnyAsync(e => e.StaffId == "HRADMIN"))
             db.Staff.Add(Staff.Create(
-                "HRAdmin", "HR", "Admin", "admin@hrnexus.com",
+                "HRADMIN", "HR", "Admin", "admin@hrnexus.com",
                 hasher.Hash("Admin@1234"),
                 new List<string> { "ADMIN" },
                 null, null, null, null));

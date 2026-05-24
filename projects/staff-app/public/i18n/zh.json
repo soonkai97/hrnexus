@@ -1,6 +1,7 @@
 {
   "nav": {
     "clockIn":       "打卡",
+    "home":          "主页",
     "logShift":      "记录班次",
     "pay":           "薪资",
     "leave":         "请假",
@@ -8,6 +9,26 @@
     "tipsHistory":   "小费记录",
     "announcements": "公告",
     "more":          "更多"
+  },
+  "home": {
+    "goodMorning":         "早上好",
+    "goodAfternoon":       "下午好",
+    "goodEvening":         "晚上好",
+    "unreadAnnouncements": "条未读公告",
+    "manageShift":         "管理班次",
+    "notClockedIn":        "您尚未打卡。",
+    "logShift":            "记录班次",
+    "annualLeave":         "年假余额",
+    "sickLeave":           "病假余额",
+    "used":                "已用",
+    "grossPay":            "应发工资",
+    "thisMonth":           "本月",
+    "totalHours":          "总工时",
+    "overtime":            "加班",
+    "recentShifts":        "近期班次",
+    "viewAllShifts":       "查看全部班次",
+    "noRecentShifts":      "暂无班次记录，点击「记录班次」开始。",
+    "dataUnavailable":     "暂无数据"
   },
   "announcements": {
     "subtitle":        "了解最新场地通知",

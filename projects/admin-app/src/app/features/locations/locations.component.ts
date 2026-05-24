@@ -25,10 +25,11 @@ export class LocationsComponent implements OnInit {
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
-  showForm  = signal(false);
-  editing   = signal<Location | null>(null);
-  saving    = signal(false);
-  error     = signal('');
+  showForm   = signal(false);
+  editing    = signal<Location | null>(null);
+  saving     = signal(false);
+  error      = signal('');
+  deletingId = signal<string | null>(null);
 
   form: UpsertLocationDto = { name: '' };
 
@@ -66,9 +67,10 @@ export class LocationsComponent implements OnInit {
       danger: true,
     }).subscribe(confirmed => {
       if (!confirmed) return;
+      this.deletingId.set(id);
       this.store.remove(id).subscribe({
-        next: () => this.toast.success('Location deleted.'),
-        error: (e) => { const msg = e?.error?.error ?? 'Delete failed.'; this.error.set(msg); this.toast.error(msg); },
+        next: () => { this.deletingId.set(null); this.toast.success('Location deleted.'); },
+        error: (e) => { this.deletingId.set(null); const msg = e?.error?.error ?? 'Delete failed.'; this.error.set(msg); this.toast.error(msg); },
       });
     });
   }

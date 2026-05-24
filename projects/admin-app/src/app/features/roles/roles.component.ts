@@ -30,11 +30,12 @@ export class RolesComponent implements OnInit {
   readonly roles   = this.store.roles;
   readonly loading = this.store.loading;
 
-  showForm = signal(false);
+  showForm    = signal(false);
   newRoleName = '';
   newRoleRate = 0;
-  saving = signal(false);
-  error  = signal('');
+  saving      = signal(false);
+  error       = signal('');
+  deletingRole = signal<string | null>(null);
 
   // Inline rate editing state
   editingRateName  = signal<string | null>(null);
@@ -102,9 +103,10 @@ export class RolesComponent implements OnInit {
       danger: true,
     }).subscribe(confirmed => {
       if (!confirmed) return;
+      this.deletingRole.set(name);
       this.store.deleteRole(name).subscribe({
-        next: () => this.toast.success('Role deleted.'),
-        error: (e) => this.error.set(e?.error?.error ?? 'Failed to delete role.'),
+        next: () => { this.deletingRole.set(null); this.toast.success('Role deleted.'); },
+        error: (e) => { this.deletingRole.set(null); this.error.set(e?.error?.error ?? 'Failed to delete role.'); },
       });
     });
   }

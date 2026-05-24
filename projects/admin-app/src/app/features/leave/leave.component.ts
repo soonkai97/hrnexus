@@ -186,6 +186,9 @@ export class LeaveComponent implements OnInit {
     });
   }
 
+  processingId    = signal<string | null>(null);
+  deletingLeaveId = signal<string | null>(null);
+
   /** Item 1: inline rejection-reason flow */
   rejectingId     = signal<string | null>(null);
   rejectionInput  = signal('');
@@ -373,13 +376,15 @@ export class LeaveComponent implements OnInit {
       startTime: r.startTime, endTime: r.endTime, hours: r.hours,
       notes: r.notes, status: 'approved',
     };
+    this.processingId.set(r.id);
     this.leaveSvc.update(r.id, req).subscribe({
       next:  () => {
+        this.processingId.set(null);
         this.load(); this.loadOverdue(); this.refreshPendingCount();
         this.loadBalances();   // item 15
         this.toast.success('Marked as no-show.');
       },
-      error: () => this.toast.error('Update failed.'),
+      error: () => { this.processingId.set(null); this.toast.error('Update failed.'); },
     });
   }
 
@@ -558,13 +563,15 @@ export class LeaveComponent implements OnInit {
       startTime: r.startTime, endTime: r.endTime, hours: r.hours,
       notes: r.notes, status, rejectionReason: rejectionReason ?? null,
     };
+    this.processingId.set(id);
     this.leaveSvc.update(id, req).subscribe({
       next:  () => {
+        this.processingId.set(null);
         this.load(); this.loadOverdue(); this.refreshPendingCount();
         this.loadBalances();  // item 15
         this.toast.success(`Leave ${status}.`);
       },
-      error: () => this.toast.error('Update failed.'),
+      error: () => { this.processingId.set(null); this.toast.error('Update failed.'); },
     });
   }
 
@@ -683,13 +690,15 @@ export class LeaveComponent implements OnInit {
     this.confirmSvc.confirm({ title: 'Delete Leave Record', message: 'Remove this leave record? This cannot be undone.', confirmLabel: 'Delete', danger: true })
       .subscribe(ok => {
         if (!ok) return;
+        this.deletingLeaveId.set(id);
         this.leaveSvc.delete(id).subscribe({
           next:  () => {
+            this.deletingLeaveId.set(null);
             this.load(); this.loadOverdue(); this.refreshPendingCount();
             this.loadBalances();   // item 15
             this.toast.success('Leave deleted.');
           },
-          error: () => this.toast.error('Delete failed.'),
+          error: () => { this.deletingLeaveId.set(null); this.toast.error('Delete failed.'); },
         });
       });
   }

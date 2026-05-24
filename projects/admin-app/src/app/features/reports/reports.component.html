@@ -30,6 +30,7 @@
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
+            [readonlyInput]="true"
             styleClass="w-full" />
         </div>
         <div class="field">
@@ -38,6 +39,7 @@
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
+            [readonlyInput]="true"
             styleClass="w-full" />
         </div>
 
@@ -372,7 +374,7 @@
         <div class="field">
           <label><span class="req">*</span> {{ 'reports.shiftDate' | translate }}</label>
           <p-datepicker [(ngModel)]="editShiftForm.workDate" dateFormat="yy-mm-dd"
-            dataType="string" [showIcon]="true" styleClass="w-full" appendTo="body" />
+            dataType="string" [showIcon]="true" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
         </div>
         <div class="row g-2">
           <div class="col-6 field">

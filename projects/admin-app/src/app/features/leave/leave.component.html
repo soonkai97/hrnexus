@@ -21,12 +21,12 @@
       <div class="field filter-date">
         <label>{{ 'leave.fromLabel' | translate }}</label>
         <p-datepicker [(ngModel)]="filterFrom" dateFormat="yy-mm-dd" dataType="string"
-          [showIcon]="true" styleClass="w-full" (ngModelChange)="load(1)" />
+          [showIcon]="true" [readonlyInput]="true" styleClass="w-full" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-date">
         <label>{{ 'leave.toLabel' | translate }}</label>
         <p-datepicker [(ngModel)]="filterTo" dateFormat="yy-mm-dd" dataType="string"
-          [showIcon]="true" styleClass="w-full" (ngModelChange)="load(1)" />
+          [showIcon]="true" [readonlyInput]="true" styleClass="w-full" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-status">
         <label>{{ 'leave.statusLabel' | translate }}</label>
@@ -92,9 +92,15 @@
                   <span class="overdue-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                 </div>
                 <div class="overdue-row-actions">
-                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject overdue-action-btn" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
-                  <p-button [label]="'leave.markNoShow' | translate" severity="warn" [outlined]="true" (click)="markNoShow(r)" />
+                  <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary"
+                    [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                    (click)="quickStatus(r.id, 'approved')" />
+                  <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject overdue-action-btn" severity="danger"
+                    [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                    (click)="quickStatus(r.id, 'rejected')" />
+                  <p-button [label]="'leave.markNoShow' | translate" severity="warn" [outlined]="true"
+                    [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                    (click)="markNoShow(r)" />
                 </div>
               </div>
             }
@@ -141,20 +147,20 @@
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
             <p-datepicker [(ngModel)]="form.startDate" dateFormat="yy-mm-dd" dataType="string"
-              [showIcon]="true" styleClass="w-full" (ngModelChange)="onStartDateChange($event)" />
+              [showIcon]="true" [readonlyInput]="true" styleClass="w-full" (ngModelChange)="onStartDateChange($event)" />
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'leave.startTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="startTimeDate" [timeOnly]="true" hourFormat="12" styleClass="w-full" appendTo="body" />
+            <p-datepicker [(ngModel)]="startTimeDate" [timeOnly]="true" hourFormat="12" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
           </div>
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
             <p-datepicker [(ngModel)]="form.endDate" dateFormat="yy-mm-dd" dataType="string"
-              [showIcon]="true" styleClass="w-full" />
+              [showIcon]="true" [readonlyInput]="true" styleClass="w-full" />
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'leave.endTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="endTimeDate" [timeOnly]="true" hourFormat="12" styleClass="w-full" appendTo="body" />
+            <p-datepicker [(ngModel)]="endTimeDate" [timeOnly]="true" hourFormat="12" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
           </div>
           <div class="col-12 col-md-6 field">
             @if (calcHours > 0) {
@@ -313,8 +319,12 @@
                         <!-- Item 10: statusSeverity() for correct cancelled colour -->
                         <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
                         @if (r.status === 'pending') {
-                          <p-button icon="pi pi-check" label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary" (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
-                          <p-button icon="pi pi-times" label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger" (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
+                          <p-button icon="pi pi-check" label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary"
+                            [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                            (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
+                          <p-button icon="pi pi-times" label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger"
+                            [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                            (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
                           <span class="cal-day-edit-hint"><i class="pi pi-pencil"></i></span>
                         }
                       </div>
@@ -380,7 +390,9 @@
                   <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
                   <!-- Item 7: edit for ALL statuses -->
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="lc-icon-btn" (click)="startEdit(r)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger" styleClass="lc-icon-btn lc-icon-danger" (click)="remove(r.id)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" styleClass="lc-icon-btn lc-icon-danger"
+                    [loading]="deletingLeaveId() === r.id" [disabled]="!!deletingLeaveId()"
+                    (click)="remove(r.id)" />
                 </div>
               </div>
               <div class="leave-staff">
@@ -416,8 +428,12 @@
                   </div>
                 } @else {
                   <div class="leave-actions">
-                    <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary" (click)="quickStatus(r.id, 'approved')" />
-                    <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger" (click)="quickStatus(r.id, 'rejected')" />
+                    <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve" severity="primary"
+                      [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                      (click)="quickStatus(r.id, 'approved')" />
+                    <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject" severity="danger"
+                      [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                      (click)="quickStatus(r.id, 'rejected')" />
                   </div>
                 }
               }

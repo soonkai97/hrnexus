@@ -100,6 +100,7 @@
               dateFormat="yy-mm-dd"
               dataType="string"
               [showIcon]="true"
+              [readonlyInput]="true"
               styleClass="w-full" />
           </div>
           <div class="field">
@@ -247,6 +248,7 @@
                 <p-button [label]="'common.edit' | translate" [text]="true" severity="secondary" size="small"
                   (click)="openEditLog(wl)" />
                 <p-button [label]="'logShift.delete' | translate" [text]="true" severity="danger" size="small"
+                  [loading]="deletingId() === wl.id" [disabled]="!!deletingId()"
                   (click)="deleteLog(wl.id)" />
               </div>
             }

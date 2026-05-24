@@ -5,8 +5,10 @@
       <p class="mt-1">{{ 'features.subtitle' | translate }}</p>
     </div>
     <div class="d-flex gap-3">
-      <p-button [label]="'features.disableAll' | translate" [text]="true" severity="secondary" (click)="disableAll()" />
-      <p-button [label]="'features.enableAll' | translate" severity="primary" (click)="enableAll()" />
+      <p-button [label]="'features.disableAll' | translate" [text]="true" severity="secondary"
+        [loading]="togglingAll()" [disabled]="togglingAll()" (click)="disableAll()" />
+      <p-button [label]="'features.enableAll' | translate" severity="primary"
+        [loading]="togglingAll()" [disabled]="togglingAll()" (click)="enableAll()" />
     </div>
   </div>
 

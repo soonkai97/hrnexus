@@ -75,12 +75,13 @@ export class MyLeaveComponent implements OnInit {
     return this.minStartDate;
   }
 
-  records     = signal<LeaveRecord[]>([]);
-  balance     = signal<LeaveBalance | null>(null);
-  loading     = signal(false);
-  saving      = signal(false);
-  formError   = signal('');
-  view        = signal<'apply' | 'history'>('apply');
+  records      = signal<LeaveRecord[]>([]);
+  balance      = signal<LeaveBalance | null>(null);
+  loading      = signal(false);
+  saving       = signal(false);
+  formError    = signal('');
+  view         = signal<'apply' | 'history'>('apply');
+  cancellingId = signal<string | null>(null);
 
   filterLeaveType = signal('');
   filteredRecords = computed(() => {
@@ -258,9 +259,11 @@ export class MyLeaveComponent implements OnInit {
       danger:       true,
     }).subscribe((confirmed: boolean) => {
       if (!confirmed) return;
+      this.cancellingId.set(r.id);
       this.leaveSvc.cancel(r.id).subscribe({
-        next:  () => { this.load(); this.toast.success('Leave request withdrawn.'); },
+        next:  () => { this.cancellingId.set(null); this.load(); this.toast.success('Leave request withdrawn.'); },
         error: (e: any) => {
+          this.cancellingId.set(null);
           const msg: string = e?.error?.error ?? e?.error?.message ?? '';
           this.toast.error(
             msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('cancel')

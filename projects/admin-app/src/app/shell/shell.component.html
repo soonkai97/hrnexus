@@ -36,27 +36,6 @@
       }
     </nav>
 
-    <div class="sidebar-footer">
-      @if (user()) {
-        <div class="user-row">
-          <a routerLink="/profile" class="user-avatar" [title]="'account.title' | translate">{{ initials() }}</a>
-          @if (!collapsed()) {
-            <a routerLink="/profile" class="user-info">
-              <span class="user-name">{{ user()!.fullName.split(' ')[0] }}</span>
-              <span class="user-role">{{ userRoleLabel() }}</span>
-            </a>
-            <p-button
-              icon="pi pi-power-off"
-              [label]="'shell.signOut' | translate"
-              [text]="true"
-              severity="secondary"
-              size="small"
-              [title]="'shell.signOut' | translate"
-              (onClick)="logout()" />
-          }
-        </div>
-      }
-    </div>
   </aside>
 
   <!-- Main -->
@@ -74,7 +53,6 @@
       <div class="topbar-right">
         @if (user()) {
           <nc-notification-bell />
-          <span class="topbar-user">{{ user()!.fullName }}</span>
           <nc-theme-toggle />
           <p-button
             icon="pi pi-globe"
@@ -85,6 +63,10 @@
             [pTooltip]="lang.current() === 'en' ? 'Switch to 中文' : 'Switch to English'"
             [attr.aria-label]="lang.current() === 'en' ? 'Switch to Chinese' : 'Switch to English'"
             (onClick)="lang.toggle()" />
+          <button class="topbar-avatar" (click)="avatarMenu.toggle($event)" [attr.title]="user()!.fullName">
+            {{ initials() }}
+          </button>
+          <p-menu #avatarMenu [model]="avatarMenuItems()" [popup]="true" appendTo="body" />
         }
       </div>
     </header>

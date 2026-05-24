@@ -295,7 +295,8 @@ export class LeaveComponent implements OnInit {
 
   openCalLeave(r: LeaveRecord, event: Event): void {
     event.stopPropagation();
-    this.startEdit(r);
+    // Select the day to reveal the detail panel — do not jump straight into edit
+    this.selectedCalDay.set(r.startDate.slice(0, 10));
   }
 
   leadingBlanks = computed(() => {

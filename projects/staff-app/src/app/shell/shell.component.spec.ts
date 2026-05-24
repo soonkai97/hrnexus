@@ -154,6 +154,31 @@ describe('ShellComponent (staff-app)', () => {
     });
   });
 
+  // ── avatarMenuItems computed ──────────────────────────────────────────────────
+
+  describe('avatarMenuItems computed', () => {
+    it('shows the signed-in user full name as a disabled header item', () => {
+      const c = createComponent();
+      const header = c.avatarMenuItems()[0];
+      expect(header.label).toBe('Jane Doe');
+      expect(header.disabled).toBe(true);
+    });
+
+    it('includes a Profile item linking to /profile', () => {
+      const c = createComponent();
+      const profile = c.avatarMenuItems().find((i: any) => i.label === 'Profile');
+      expect(profile).toBeDefined();
+      expect(profile.routerLink).toBe('/profile');
+    });
+
+    it('includes a Sign Out item with a command callback', () => {
+      const c = createComponent();
+      const signOut = c.avatarMenuItems().find((i: any) => i.label === 'Sign Out');
+      expect(signOut).toBeDefined();
+      expect(typeof signOut.command).toBe('function');
+    });
+  });
+
   // ── toggleSidebar() ───────────────────────────────────────────────────────────
 
   describe('toggleSidebar()', () => {

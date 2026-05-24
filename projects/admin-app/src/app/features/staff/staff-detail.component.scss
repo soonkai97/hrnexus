@@ -1,5 +1,17 @@
 @use 'styles/theme' as *;
 
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: $text-muted;
+  text-decoration: none;
+  margin-bottom: 0.35rem;
+  transition: color $transition-fast;
+  &:hover { color: $neon-purple; }
+}
+
 // Auto-fill grid used for info panels (profile details, edit form sections)
 .detail-info-grid {
   display: grid;

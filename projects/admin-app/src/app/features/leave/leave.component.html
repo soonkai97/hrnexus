@@ -298,8 +298,7 @@
               } @else {
                 <div class="cal-day-list">
                   @for (r of selectedCalDayLeaves(); track r.id) {
-                    <!-- Item 7: all statuses open edit, not just pending -->
-                    <div class="cal-day-row" (click)="startEdit(r)">
+                    <div class="cal-day-row">
                       <div class="cal-day-row-left">
                         <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                         @if (r.status === 'pending' && r.endDate < todayIso) {
@@ -309,17 +308,18 @@
                         <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                       </div>
                       <div class="cal-day-row-right">
-                        <!-- Item 10: statusSeverity() for correct cancelled colour -->
                         <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
                         @if (r.status === 'pending') {
                           <p-button icon="pi pi-check" label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary"
                             [loading]="processingId() === r.id" [disabled]="!!processingId()"
-                            (click)="$event.stopPropagation(); quickStatus(r.id, 'approved')" />
+                            (click)="quickStatus(r.id, 'approved')" />
                           <p-button icon="pi pi-times" label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger"
                             [loading]="processingId() === r.id" [disabled]="!!processingId()"
-                            (click)="$event.stopPropagation(); quickStatus(r.id, 'rejected')" />
-                          <span class="cal-day-edit-hint"><i class="pi pi-pencil"></i></span>
+                            (click)="quickStatus(r.id, 'rejected')" />
                         }
+                        <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small"
+                          [pTooltip]="'leave.editLeave' | translate" tooltipPosition="left"
+                          (click)="startEdit(r)" />
                       </div>
                     </div>
                   }

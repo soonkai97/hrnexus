@@ -18,9 +18,6 @@ import { AuthService, LangService } from 'shared-lib';
  *    wastes a round-trip and may expose form state.
  *  - The staff portal redirects to /home on success (not /dashboard) — a wrong
  *    redirect would leave staff on a 404 page after login.
- *  - mustChangePassword flow redirects to /auth/set-password — bypassing this
- *    means staff with temporary passwords can access features without setting a
- *    permanent password, which violates the security policy.
  *  - The error message distinguishes "admin portal" misuse from wrong credentials.
  */
 
@@ -46,7 +43,6 @@ describe('LoginComponent (staff-app)', () => {
         provideHttpClient(),
         provideRouter([
           { path: 'home', component: StubComponent },
-          { path: 'auth/set-password', component: StubComponent },
         ]),
         provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService, useValue: mockAuth },

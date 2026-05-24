@@ -1,23 +1,31 @@
-# docker-compose.uat.yml — UAT environment overrides
+# docker-compose.uat.yml — UAT / production environment overrides
 #
-# Usage (on the UAT server):
+# Usage (on the server):
 #   docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d --build
 #
-# This override rewrites CORS so the API accepts requests from the public
-# UAT URLs (IP address or DuckDNS hostname) instead of the prod subdomains.
-# Set UAT_HOST in your .env file on the server.
+# This overlay:
+#   - Exposes ports 80/443 (admin) and 8081/8443 (staff) on the host
+#   - Mounts the Let's Encrypt certs from the host into nginx
+#   - Rewrites CORS so the API accepts both HTTP and HTTPS origins
+#
+# Required .env file on the server:
+#   DOMAIN=hrnexus.duckdns.org
+#   UAT_HOST=hrnexus.duckdns.org
+#   JWT_SECRET=<random-long-string-min-32-chars>
 
 services:
   web:
     ports:
-      - "80:80"       # expose port 80 directly on the UAT server (runs as root)
-      - "8081:8081"
-      - "443:443"
+      - "80:80"       # admin HTTP  → redirects to HTTPS
+      - "443:443"     # admin HTTPS
+      - "8081:8081"   # staff HTTP  → redirects to HTTPS
+      - "8443:8443"   # staff HTTPS (PWA)
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # Let's Encrypt certs from host
 
   api:
     environment:
-      # Replace subdomain-based origins with the actual UAT access URLs
-      Cors__AllowedOrigins__0: "http://${UAT_HOST}"        # admin app (port 80)
-      Cors__AllowedOrigins__1: "http://${UAT_HOST}:8081"   # staff app (port 8081)
-      Cors__AllowedOrigins__2: ""
-      Cors__AllowedOrigins__3: ""
+      Cors__AllowedOrigins__0: "http://${UAT_HOST}"           # admin HTTP  (redirect only)
+      Cors__AllowedOrigins__1: "http://${UAT_HOST}:8081"      # staff HTTP  (redirect only)
+      Cors__AllowedOrigins__2: "https://${UAT_HOST}"          # admin HTTPS
+      Cors__AllowedOrigins__3: "https://${UAT_HOST}:8443"     # staff HTTPS

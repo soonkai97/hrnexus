@@ -50,7 +50,12 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "projects/staff-app/ngsw-config.json"
+              "serviceWorker": "projects/staff-app/ngsw-config.json",
+              "optimization": {
+                "scripts": true,
+                "styles": { "minify": true, "inlineCritical": true },
+                "fonts": { "inline": false }
+              }
             },
             "development": {
               "optimization": false,
@@ -124,7 +129,12 @@
                   "maximumError": "20kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": { "minify": true, "inlineCritical": true },
+                "fonts": { "inline": false }
+              }
             },
             "development": {
               "optimization": false,

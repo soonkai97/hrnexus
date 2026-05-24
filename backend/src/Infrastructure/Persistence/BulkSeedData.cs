@@ -14,9 +14,9 @@ public static class BulkSeedData
 
     public static async Task SeedAsync(AppDbContext db, IPasswordHasher hasher)
     {
-        // Skip entirely if bulk data already exists (saves 100+ DB queries on subsequent startups)
-        if (await db.WorkLogs.CountAsync() >= 50)
-            return;
+        // Bulk sample data disabled — admin creates real staff through the app
+        await Task.CompletedTask;
+        return;
 
         // ── 1. Extra locations ──────────────────────────────────────────────────
         var extraLocations = new[]

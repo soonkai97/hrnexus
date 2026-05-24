@@ -63,14 +63,15 @@ export class StaffComponent implements OnInit, OnDestroy {
   staffMenuItems   = signal<MenuItem[]>([]);
 
   newStaff: RegisterStaffRequest = {
-    staffId: '', firstName: '', lastName: '', email: '', password: 'password123', roles: [],
+    staffId: '', firstName: '', lastName: '', email: '', password: '', roles: [],
     phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: '',
   };
+
+  showNewStaffPwd = signal(false);
 
   // Reset password modal state
   resetPassTarget = signal<{ id: string; name: string } | null>(null);
   newPassword     = '';
-  showNewPassword = false;
   savingReset     = signal(false);
 
   /** Mirrors the required-field checks in saveStaff() so Save can be disabled upfront. */
@@ -80,7 +81,15 @@ export class StaffComponent implements OnInit, OnDestroy {
       !!this.newStaff.lastName?.trim() &&
       !!this.newStaff.email?.trim() &&
       !!(this.newStaff.icNo?.trim() || this.newStaff.passportNo?.trim()) &&
-      !!this.newStaff.dateOfBirth;
+      !!this.newStaff.dateOfBirth &&
+      (this.newStaff.password?.length ?? 0) >= 8;
+  }
+
+  generateNewStaffPassword(): void {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+    this.newStaff.password = Array.from({ length: 10 }, () =>
+      chars[Math.floor(Math.random() * chars.length)]).join('');
+    this.showNewStaffPwd.set(true);
   }
 
   availableRoles = computed(() => {
@@ -152,7 +161,8 @@ export class StaffComponent implements OnInit, OnDestroy {
   closeForm(): void {
     this.showForm.set(false);
     this.error.set('');
-    this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: 'password123',
+    this.showNewStaffPwd.set(false);
+    this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: '',
       roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: '' };
   }
 
@@ -184,9 +194,10 @@ export class StaffComponent implements OnInit, OnDestroy {
     this.error.set('');
     this.staffStore.register(this.newStaff).subscribe({
       next: () => {
-        this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: 'password123',
+        this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: '',
           roles: [], phoneNumber: '',
           icNo: null, passportNo: null, dateOfBirth: '' };
+        this.showNewStaffPwd.set(false);
         this.saving.set(false);
         this.showForm.set(false);
         this.toast.success('Staff registered.');
@@ -247,8 +258,7 @@ export class StaffComponent implements OnInit, OnDestroy {
 
   openResetPassword(s: Staff): void {
     this.resetPassTarget.set({ id: s.id, name: s.fullName ?? `${s.firstName} ${s.lastName}` });
-    this.newPassword     = '';
-    this.showNewPassword = false;
+    this.newPassword = '';
   }
 
   closeResetPassword(): void { this.resetPassTarget.set(null); }
@@ -257,7 +267,6 @@ export class StaffComponent implements OnInit, OnDestroy {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
     this.newPassword = Array.from({ length: 10 }, () =>
       chars[Math.floor(Math.random() * chars.length)]).join('');
-    this.showNewPassword = true;
   }
 
   saveResetPassword(): void {

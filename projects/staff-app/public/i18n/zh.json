@@ -57,7 +57,9 @@
     "tempPasswordInfo":"您正在使用临时密码，请设置新密码以继续。",
     "forgotDesc":     "请输入您的员工编号，系统将通知经理为您重置密码。",
     "requestSent":    "您的申请已发送给经理。",
-    "requestSentHint":"他们将联系您并提供新密码，请等待他们与您联系。"
+    "requestSentHint":"他们将联系您并提供新密码，请等待他们与您联系。",
+    "minCharsHint":        "至少 8 个字符",
+    "confirmPasswordHint": "再次输入新密码"
   },
 "pay": {
     "title":         "薪资概览",

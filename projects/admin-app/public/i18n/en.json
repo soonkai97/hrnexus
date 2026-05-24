@@ -116,6 +116,7 @@
     "rolesHint":          "(select all that apply)",
     "selectRoles":        "Select role(s)…",
     "phoneNumber":        "Phone Number",
+    "initialPassword":    "Initial Password",
     "hourlyRate":         "Hourly Rate (RM)",
     "icNo":               "IC No",
     "icNoHint":           "(Malaysian)",

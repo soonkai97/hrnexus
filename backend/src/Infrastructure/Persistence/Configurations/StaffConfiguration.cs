@@ -39,7 +39,6 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
 
         // Computed properties — not mapped to columns.
         b.Ignore(e => e.Roles);
-        b.Ignore(e => e.RolesDisplay);
         b.Ignore(e => e.FullName);
         b.Ignore(e => e.Age);
         b.Ignore(e => e.PermissionLevel);

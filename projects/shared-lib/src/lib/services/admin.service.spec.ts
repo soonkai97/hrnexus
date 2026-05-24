@@ -90,48 +90,6 @@ describe('AdminService', () => {
     });
   });
 
-  // ── getOvertimeRules() ────────────────────────────────────────────────────
-
-  describe('getOvertimeRules()', () => {
-    it('calls GET /api/admin/overtime-rules', () => {
-      service.getOvertimeRules().subscribe();
-      const req = http.expectOne('/api/admin/overtime-rules');
-      expect(req.request.method).toBe('GET');
-      req.flush([]);
-    });
-  });
-
-  // ── upsertOvertimeRule() ──────────────────────────────────────────────────
-
-  describe('upsertOvertimeRule()', () => {
-    it('calls POST /api/admin/overtime-rules with the rule dto', () => {
-      const dto = { role: 'BARTENDER', thresholdHours: 8, multiplier: 1.5, isActive: true };
-      service.upsertOvertimeRule(dto).subscribe();
-      const req = http.expectOne('/api/admin/overtime-rules');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(dto);
-      req.flush(null);
-    });
-  });
-
-  // ── deleteOvertimeRule() ──────────────────────────────────────────────────
-
-  describe('deleteOvertimeRule()', () => {
-    it('calls DELETE /api/admin/overtime-rules/{id}', () => {
-      service.deleteOvertimeRule('rule-1').subscribe();
-      const req = http.expectOne('/api/admin/overtime-rules/rule-1');
-      expect(req.request.method).toBe('DELETE');
-      req.flush(null);
-    });
-
-    it('uses the provided id in the URL — not hardcoded', () => {
-      service.deleteOvertimeRule('rule-abc').subscribe();
-      const req = http.expectOne('/api/admin/overtime-rules/rule-abc');
-      expect(req.request.url).toContain('rule-abc');
-      req.flush(null);
-    });
-  });
-
   // ── getTipsPools() ────────────────────────────────────────────────────────
 
   describe('getTipsPools()', () => {

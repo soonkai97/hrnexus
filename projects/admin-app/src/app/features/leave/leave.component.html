@@ -47,13 +47,6 @@
           (click)="setTypeFilter(p.value)" />
       }
     </div>
-    <div class="summary-row d-flex align-items-center gap-2 flex-wrap">
-      @for (t of leaveTypes; track t) {
-        <span class="summary-pill" [attr.data-type]="t">
-          {{ t | titlecase }}: <strong>{{ countByType(t) }}h</strong>
-        </span>
-      }
-    </div>
   </p-card>
 
   <!-- ── Page tabs ──────────────────────────────────────────────────────────── -->

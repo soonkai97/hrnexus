@@ -57,7 +57,9 @@
     "tempPasswordInfo":"You're using a temporary password. Please set a new password to continue.",
     "forgotDesc":     "Enter your Staff ID and your manager will be notified to reset your password.",
     "requestSent":    "Your request has been sent to your manager.",
-    "requestSentHint":"They will contact you with a new password. Please wait for them to reach out."
+    "requestSentHint":"They will contact you with a new password. Please wait for them to reach out.",
+    "minCharsHint":        "Min. 8 characters",
+    "confirmPasswordHint": "Re-enter new password"
   },
 "pay": {
     "title":         "Pay Summary",

@@ -50,6 +50,24 @@
           <input pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" maxlength="20" />
         </div>
         <div class="col-12 col-md-6 field">
+          <label><span class="req">*</span> {{ 'staff.initialPassword' | translate }}</label>
+          <div class="pwd-wrap">
+            <input pInputText [type]="showNewStaffPwd() ? 'text' : 'password'"
+                   [(ngModel)]="newStaff.password"
+                   [placeholder]="showNewStaffPwd() ? 'Min. 8 characters' : ''"
+                   autocomplete="new-password" class="w-full" />
+            <span class="eye-btn" role="button" tabindex="0"
+                  [attr.aria-label]="showNewStaffPwd() ? 'Hide' : 'Show'"
+                  (click)="showNewStaffPwd.set(!showNewStaffPwd())"
+                  (keydown.enter)="showNewStaffPwd.set(!showNewStaffPwd())">
+              <i [class]="showNewStaffPwd() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+            </span>
+          </div>
+          <p-button label="Generate" [text]="true" severity="secondary" size="small"
+                    styleClass="gen-btn mt-1" (click)="generateNewStaffPassword()" />
+          <small style="color:var(--p-text-muted-color)">Staff can change this on first login.</small>
+        </div>
+        <div class="col-12 col-md-6 field">
           <label>{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
           <input pInputText type="text" [(ngModel)]="newStaff.icNo" placeholder="e.g. 990101-01-1234" />
         </div>

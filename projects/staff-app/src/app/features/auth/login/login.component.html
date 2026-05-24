@@ -9,7 +9,7 @@
 
   <div class="login-card">
     <div class="brand">
-      <span class="brand-icon"><i class="pi pi-bolt"></i></span>
+      <span class="brand-icon"><i class="pi pi-user"></i></span>
       <h1 class="brand-name">HRNexus</h1>
       <p class="brand-sub">{{ 'auth.staffPortal' | translate }}</p>
     </div>
@@ -17,7 +17,7 @@
     <div [formGroup]="form">
       <div class="field">
         <label for="login-staff-id">{{ 'auth.staffId' | translate }}</label>
-        <input id="login-staff-id" pInputText type="text" formControlName="staffId" placeholder="NC1001"
+        <input id="login-staff-id" pInputText type="text" formControlName="staffId" placeholder="Your Staff ID"
                class="w-full" readonly autocomplete="off" style="text-transform:uppercase"
                (mousedown)="removeReadonly($event)"
                (touchstart)="removeReadonly($event)"

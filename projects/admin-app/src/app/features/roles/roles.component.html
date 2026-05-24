@@ -45,9 +45,11 @@
       <ng-template pTemplate="body" let-role>
         <tr>
           <td>
+            <span class="p-column-title">{{ 'roles.roleNameCol' | translate }}</span>
             <p-tag [value]="role.name" severity="info" />
           </td>
           <td>
+            <span class="p-column-title">Hourly Rate (RM)</span>
             @if (editingRateName() === role.name) {
               <!-- Inline rate editor -->
               <div class="d-flex gap-1 align-items-center">
@@ -59,13 +61,14 @@
               </div>
             } @else {
               <span class="d-inline-flex align-items-center gap-2">
-                {{ role.hourlyRate | number:'1.2-2' }}
+                RM {{ role.hourlyRate | number:'1.2-2' }}/hr
                 <p-button icon="pi pi-pencil" label="Edit" [text]="true" severity="secondary" styleClass="btn-sm"
                           (click)="startEditRate(role.name, role.hourlyRate)" />
               </span>
             }
           </td>
           <td>
+            <span class="p-column-title">{{ 'roles.typeCol' | translate }}</span>
             @if (role.isSystem) {
               <p-tag [value]="'roles.system' | translate" severity="success" />
             } @else {
@@ -73,6 +76,7 @@
             }
           </td>
           <td>
+            <span class="p-column-title">{{ 'roles.actionsCol' | translate }}</span>
             @if (!role.isSystem) {
               <p-button icon="pi pi-trash" [label]="'roles.deleteRole' | translate" [text]="true" severity="danger"
                         (click)="deleteRole(role.name)" />

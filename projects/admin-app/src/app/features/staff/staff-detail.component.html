@@ -115,7 +115,7 @@
       <div class="d-flex align-items-center gap-3 mb-3">
         <h3 class="m-0">{{ 'staffDetail.workLogHistory' | translate }}</h3>
         @if (totalLogs() > 0) {
-          <span style="color:var(--p-text-muted-color);font-size:.85rem">{{ totalLogs() }} {{ 'common.of' | translate }} {{ totalLogs() }}</span>
+          <span style="color:var(--p-text-muted-color);font-size:.85rem">{{ totalLogs() }} {{ 'common.records' | translate }}</span>
         }
       </div>
       @if (workLogsLoading()) {

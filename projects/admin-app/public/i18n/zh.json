@@ -28,6 +28,8 @@
     "filter":    "筛选",
     "apply":     "应用",
     "loading":   "加载中…",
+    "of":        "共",
+    "records":   "条记录",
     "noData":    "所选筛选条件无数据。",
     "active":    "在职",
     "inactive":  "已停用",

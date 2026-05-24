@@ -28,6 +28,8 @@
     "filter":    "Filter",
     "apply":     "Apply",
     "loading":   "Loading…",
+    "of":        "of",
+    "records":   "records",
     "noData":    "No data for selected filters.",
     "active":    "Active",
     "inactive":  "Inactive",

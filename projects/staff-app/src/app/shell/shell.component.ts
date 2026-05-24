@@ -62,9 +62,7 @@ export class ShellComponent {
     });
 
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(e => {
-      if (typeof window !== 'undefined' && window.innerWidth < 769) {
-        this.collapsed.set(true);
-      }
+      this.collapsed.set(true);
       this.refreshUnread();
       // Clear leave badge when the user opens My Leave
       if ((e as NavigationEnd).urlAfterRedirects.startsWith('/my-leave')) {

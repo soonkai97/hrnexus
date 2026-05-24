@@ -7,6 +7,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
+import { Menu } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
 
 const LEAVE_SNAPSHOT_KEY = 'nc_leave_status_snapshot';
@@ -21,7 +23,7 @@ interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: 
     RouterOutlet, RouterLink, RouterLinkActive,
     ToastComponent, ConfirmDialogComponent,
     NotificationBellComponent, ThemeToggleComponent,
-    TranslatePipe, Button, BadgeModule, TooltipModule,
+    TranslatePipe, Button, BadgeModule, TooltipModule, Menu,
   ],
   templateUrl: './shell.component.html',
   styleUrl:    './shell.component.scss',
@@ -150,6 +152,14 @@ export class ShellComponent {
     const flags = this.featureSvc.flags();
     return this.allNavItems.filter(item => !item.featureFlag || flags[item.featureFlag]);
   });
+
+  readonly avatarMenuItems = computed<MenuItem[]>(() => [
+    { label: this.user()?.fullName ?? '', disabled: true },
+    { separator: true },
+    { label: 'Profile', icon: 'pi pi-user', routerLink: '/profile' },
+    { separator: true },
+    { label: 'Sign Out', icon: 'pi pi-power-off', command: () => this.logout() },
+  ]);
 
   toggleSidebar(): void { this.collapsed.update(v => !v); }
   logout(): void { this.signalR.stopConnection(); this.auth.logout(); }

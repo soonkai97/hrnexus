@@ -1,11 +1,9 @@
 ﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <div>
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a routerLink="/staff" class="bc-link">{{ 'nav.staff' | translate }}</a>
-        <i class="pi pi-chevron-right bc-sep" aria-hidden="true"></i>
-        <span class="bc-current">{{ staff()?.fullName ?? '…' }}</span>
-      </nav>
+      <a routerLink="/staff" class="back-link">
+        <i class="pi pi-arrow-left"></i> {{ 'nav.staff' | translate }}
+      </a>
       <h1 class="page-title">{{ staff()?.fullName ?? '…' }}</h1>
       <span class="page-sub">{{ staff()?.staffId }}</span>
     </div>

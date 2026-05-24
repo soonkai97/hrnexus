@@ -449,6 +449,25 @@ describe('LeaveComponent', () => {
     });
   });
 
+  // ── openCalLeave() ────────────────────────────────────────────────────────────
+
+  describe('openCalLeave()', () => {
+    it('selects the record start date as the calendar day (view mode, no edit form)', () => {
+      const r = makeRecord({ startDate: '2026-07-10' });
+      const fakeEvent = { stopPropagation: vi.fn() } as unknown as Event;
+      component.openCalLeave(r, fakeEvent);
+      expect(component.selectedCalDay()).toBe('2026-07-10');
+      expect(component.showForm()).toBe(false);
+    });
+
+    it('calls stopPropagation to prevent day-cell click from also firing', () => {
+      const r = makeRecord({ startDate: '2026-07-10' });
+      const fakeEvent = { stopPropagation: vi.fn() } as unknown as Event;
+      component.openCalLeave(r, fakeEvent);
+      expect(fakeEvent.stopPropagation).toHaveBeenCalled();
+    });
+  });
+
   // ── Calendar navigation ───────────────────────────────────────────────────────
 
   describe('prevCalMonth() / nextCalMonth()', () => {

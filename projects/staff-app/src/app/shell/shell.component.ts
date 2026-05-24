@@ -1,11 +1,16 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
-import { TranslatePipe } from '@ngx-translate/core';
+import { interval } from 'rxjs';
+import { filter, startWith } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
+
+const LEAVE_SNAPSHOT_KEY = 'nc_leave_status_snapshot';
+const POLL_INTERVAL_MS   = 60_000;
 
 interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: FeatureKey; }
 
@@ -29,22 +34,41 @@ export class ShellComponent {
   readonly featureSvc              = inject(FeatureFlagService);
   private readonly announcementSvc = inject(AnnouncementService);
   readonly notifSvc                = inject(NotificationService);
+  private readonly leaveSvc        = inject(LeaveService);
+  private readonly toast           = inject(ToastService);
+  private readonly translate       = inject(TranslateService);
 
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
   unreadAnnouncements = signal(0);
   unreadNotifications = computed(() => this.notifSvc.unreadCount());
+  leaveChangeCount    = signal(0);
 
   constructor() {
     this.featureSvc.load().subscribe(() => { this.refreshUnread(); });
     this.lang.syncFromApi();
     this.signalR.startConnection();
 
-    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+    // Background poll: refresh announcement badge + detect leave status changes
+    interval(POLL_INTERVAL_MS).pipe(
+      startWith(0),
+      takeUntilDestroyed(),
+      filter(() => !!this.auth.user()),
+    ).subscribe(() => {
+      this.refreshUnread();
+      this.checkLeaveChanges();
+    });
+
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(e => {
       if (typeof window !== 'undefined' && window.innerWidth < 769) {
         this.collapsed.set(true);
       }
       this.refreshUnread();
+      // Clear leave badge when the user opens My Leave
+      if ((e as NavigationEnd).urlAfterRedirects.startsWith('/my-leave')) {
+        this.leaveChangeCount.set(0);
+        this.syncLeaveSnapshot();
+      }
     });
   }
 
@@ -53,6 +77,50 @@ export class ShellComponent {
     this.announcementSvc.getMine().subscribe(list =>
       this.unreadAnnouncements.set(list.filter(a => !a.isRead).length)
     );
+  }
+
+  /** Compare live leave records against the stored snapshot; toast on status changes. */
+  private checkLeaveChanges(): void {
+    this.leaveSvc.getMine().subscribe({
+      next: records => {
+        let snapshot: Record<string, string> = {};
+        try {
+          const raw = localStorage.getItem(LEAVE_SNAPSHOT_KEY);
+          snapshot = raw ? JSON.parse(raw) : {};
+        } catch { snapshot = {}; }
+
+        let newChanges = 0;
+        records.forEach(r => {
+          const prev = snapshot[r.id];
+          if (prev === 'pending') {
+            if (r.status === 'approved') {
+              this.toast.success(this.translate.instant('polling.leaveApproved'));
+              newChanges++;
+            } else if (r.status === 'rejected') {
+              this.toast.error(this.translate.instant('polling.leaveRejected'));
+              newChanges++;
+            }
+          }
+          snapshot[r.id] = r.status;
+        });
+
+        try { localStorage.setItem(LEAVE_SNAPSHOT_KEY, JSON.stringify(snapshot)); } catch { /* quota */ }
+        if (newChanges > 0) this.leaveChangeCount.update(n => n + newChanges);
+      },
+      error: () => { /* silent — background poll */ },
+    });
+  }
+
+  /** Silently update snapshot without showing toasts (called after user visits My Leave). */
+  private syncLeaveSnapshot(): void {
+    this.leaveSvc.getMine().subscribe({
+      next: records => {
+        const snapshot: Record<string, string> = {};
+        records.forEach(r => snapshot[r.id] = r.status);
+        try { localStorage.setItem(LEAVE_SNAPSHOT_KEY, JSON.stringify(snapshot)); } catch { /* quota */ }
+      },
+      error: () => {},
+    });
   }
 
   user = computed(() => this.auth.user());

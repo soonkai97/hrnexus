@@ -36,28 +36,28 @@ describe('ThemeService', () => {
   // ── Initial state ──────────────────────────────────────────────────────────
 
   describe('initial state', () => {
-    it('defaults to "dark" when no value is stored in localStorage', () => {
+    it('defaults to "light" when no value is stored in localStorage', () => {
       const service = setup();
-      expect(service.theme()).toBe('dark');
-    });
-
-    it('restores the persisted theme from localStorage on construction', () => {
-      const service = setup('light');
       expect(service.theme()).toBe('light');
     });
 
-    it('applies data-theme attribute to <html> on construction', () => {
-      setup();
-      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    it('restores the persisted theme from localStorage on construction', () => {
+      const service = setup('dark');
+      expect(service.theme()).toBe('dark');
     });
 
-    it('adds nc-light class to <body> when localStorage contains "light"', () => {
-      setup('light');
+    it('applies data-theme="light" to <html> on construction when no stored value', () => {
+      setup();
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    });
+
+    it('adds nc-light class to <body> when theme is "light" (default)', () => {
+      setup();
       expect(document.body.classList.contains('nc-light')).toBe(true);
     });
 
-    it('does not add nc-light class to <body> when theme is "dark"', () => {
-      setup();
+    it('does not add nc-light class to <body> when localStorage contains "dark"', () => {
+      setup('dark');
       expect(document.body.classList.contains('nc-light')).toBe(false);
     });
   });
@@ -65,25 +65,25 @@ describe('ThemeService', () => {
   // ── toggle() ──────────────────────────────────────────────────────────────
 
   describe('toggle()', () => {
-    it('switches from "dark" to "light"', () => {
+    it('switches from "light" to "dark"', () => {
       const service = setup();
-      expect(service.theme()).toBe('dark');
-      service.toggle();
       expect(service.theme()).toBe('light');
+      service.toggle();
+      expect(service.theme()).toBe('dark');
     });
 
-    it('switches from "light" back to "dark"', () => {
-      const service = setup('light');
+    it('switches from "dark" back to "light"', () => {
+      const service = setup('dark');
       service.toggle();
-      expect(service.theme()).toBe('dark');
+      expect(service.theme()).toBe('light');
     });
 
     it('alternates theme on each successive toggle call', () => {
       const service = setup();
-      service.toggle(); // dark → light
       service.toggle(); // light → dark
       service.toggle(); // dark → light
-      expect(service.theme()).toBe('light');
+      service.toggle(); // light → dark
+      expect(service.theme()).toBe('dark');
     });
 
     it('persists the toggled theme to localStorage', () => {
@@ -91,7 +91,7 @@ describe('ThemeService', () => {
       service.toggle();
       // Run effects synchronously
       TestBed.flushEffects();
-      expect(localStorage.getItem('nc-theme')).toBe('light');
+      expect(localStorage.getItem('nc-theme')).toBe('dark');
     });
   });
 });

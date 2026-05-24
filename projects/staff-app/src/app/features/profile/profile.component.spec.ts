@@ -172,13 +172,15 @@ describe('ProfileComponent', () => {
       mockReg = { pushManager: { getSubscription: vi.fn().mockResolvedValue(mockSub) } };
       Object.defineProperty(navigator, 'serviceWorker', {
         value: { ready: Promise.resolve(mockReg) },
-        configurable: true,
-        writable: true,
+        configurable: true, writable: true,
       });
+      // jsdom doesn't have PushManager — stub it so the guard doesn't return early
+      Object.defineProperty(window, 'PushManager', { value: {}, configurable: true, writable: true });
     });
 
     afterEach(() => {
       try { delete (navigator as any).serviceWorker; } catch { /* non-configurable — leave it */ }
+      try { delete (window as any).PushManager; } catch { /* leave it */ }
     });
 
     it('calls unsubscribe() on the existing push subscription', async () => {
@@ -214,14 +216,16 @@ describe('ProfileComponent', () => {
       mockReg = { pushManager: { getSubscription: vi.fn().mockResolvedValue(null) } };
       Object.defineProperty(navigator, 'serviceWorker', {
         value: { ready: Promise.resolve(mockReg) },
-        configurable: true,
-        writable: true,
+        configurable: true, writable: true,
       });
+      // jsdom doesn't have PushManager — stub it so the guard doesn't return early
+      Object.defineProperty(window, 'PushManager', { value: {}, configurable: true, writable: true });
       mockPushSvc.requestPermission.mockResolvedValue(mockSub);
     });
 
     afterEach(() => {
       try { delete (navigator as any).serviceWorker; } catch { /* leave it */ }
+      try { delete (window as any).PushManager; } catch { /* leave it */ }
     });
 
     it('fetches the VAPID public key before subscribing', async () => {
@@ -255,14 +259,14 @@ describe('ProfileComponent', () => {
     it('shows error toast and does not subscribe when publicKey is missing', async () => {
       mockPushSvc.getPublicKey.mockReturnValue(of({ publicKey: '' }));
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Push not configured.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Push notifications are not configured on this server.');
       expect(mockPushSvc.subscribe).not.toHaveBeenCalled();
     });
 
     it('shows error toast and does not subscribe when permission is denied (requestPermission returns null)', async () => {
       mockPushSvc.requestPermission.mockResolvedValue(null);
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Permission denied.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Notification permission denied.');
       expect(mockPushSvc.subscribe).not.toHaveBeenCalled();
     });
   });
@@ -273,18 +277,19 @@ describe('ProfileComponent', () => {
     beforeEach(() => {
       Object.defineProperty(navigator, 'serviceWorker', {
         value: { ready: Promise.reject(new Error('SW error')) },
-        configurable: true,
-        writable: true,
+        configurable: true, writable: true,
       });
+      Object.defineProperty(window, 'PushManager', { value: {}, configurable: true, writable: true });
     });
 
     afterEach(() => {
       try { delete (navigator as any).serviceWorker; } catch { /* leave it */ }
+      try { delete (window as any).PushManager; } catch { /* leave it */ }
     });
 
     it('shows push error toast when an exception is thrown', async () => {
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Push notification error.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Could not enable notifications. Please try again.');
     });
 
     it('clears pushLoading even when an exception is thrown — finally block', async () => {

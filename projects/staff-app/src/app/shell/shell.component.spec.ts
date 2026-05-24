@@ -168,14 +168,14 @@ describe('ShellComponent (staff-app)', () => {
       const c = createComponent();
       const profile = c.avatarMenuItems().find((i: any) => i.label === 'Profile');
       expect(profile).toBeDefined();
-      expect(profile.routerLink).toBe('/profile');
+      expect(profile!.routerLink).toBe('/profile');
     });
 
     it('includes a Sign Out item with a command callback', () => {
       const c = createComponent();
       const signOut = c.avatarMenuItems().find((i: any) => i.label === 'Sign Out');
       expect(signOut).toBeDefined();
-      expect(typeof signOut.command).toBe('function');
+      expect(typeof signOut!.command).toBe('function');
     });
   });
 

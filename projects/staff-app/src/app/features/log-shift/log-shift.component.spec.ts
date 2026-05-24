@@ -520,10 +520,10 @@ describe('LogShiftComponent', () => {
       expect(component.editingLogId()).toBe('log-42');
     });
 
-    it('lowercases roleName so the p-select option matches — API returns uppercase but JWT options are lowercase', () => {
+    it('uppercases roleName so the p-select option matches — roles are stored in uppercase', () => {
       const wl = makeLog({ roleName: 'BARTENDER', isActive: false });
       component.openEditLog(wl);
-      expect(component.editForm.roleName).toBe('bartender');
+      expect(component.editForm.roleName).toBe('BARTENDER');
     });
 
     it('populates all other editForm fields verbatim from the log', () => {

@@ -8,6 +8,12 @@
 # Set UAT_HOST in your .env file on the server.
 
 services:
+  web:
+    ports:
+      - "80:80"       # expose port 80 directly on the UAT server (runs as root)
+      - "8081:8081"
+      - "443:443"
+
   api:
     environment:
       # Replace subdomain-based origins with the actual UAT access URLs

@@ -112,14 +112,6 @@ export interface ReportFilters {
   roles?:         string[];
 }
 
-export interface OvertimeRuleDto {
-  id:             string;
-  role:           string;
-  thresholdHours: number;
-  multiplier:     number;
-  isActive:       boolean;
-}
-
 export interface TipsPoolDto { id: string; locationName: string; shiftDate: string; totalAmount: number; splitMethod: string; isDistributed: boolean; staffCount: number; createdAt: string; }
 export interface TipsAllocation { employeeId: string; fullName: string; amount: number; hoursWorked: number; }
 export interface TipsExcludedStaff { employeeId: string; fullName: string; reason: string; }
@@ -168,18 +160,6 @@ export class AdminService {
     return this.http.get('/api/admin/payroll/export',
       { params: new HttpParams().set('year', year).set('month', month), responseType: 'blob' }
     );
-  }
-
-  getOvertimeRules(): Observable<OvertimeRuleDto[]> {
-    return this.http.get<OvertimeRuleDto[]>('/api/admin/overtime-rules');
-  }
-
-  upsertOvertimeRule(dto: Partial<OvertimeRuleDto>): Observable<void> {
-    return this.http.post<void>('/api/admin/overtime-rules', dto);
-  }
-
-  deleteOvertimeRule(id: string): Observable<void> {
-    return this.http.delete<void>(`/api/admin/overtime-rules/${id}`);
   }
 
   getTipsPools(dateFrom?: string, dateTo?: string): Observable<TipsPoolDto[]> {

@@ -2,8 +2,10 @@
 
 
 .balance-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 0.75rem; margin-bottom: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 .bal-card {
   background: $bg-raised;
@@ -19,7 +21,7 @@
 .bal-sep       { color: $text-muted; font-size: 1rem; }
 .bal-total     { color: $text-muted; font-size: 0.85rem; }
 .bal-used      { font-size: 0.72rem; color: $text-muted; }
-.bal-emergency { font-size: 0.65rem; color: #fbbf24; display: block; margin-top: 0.1rem; }
+.bal-emergency { font-size: 0.65rem; color: #fbbf24; }
 
 .tab-count {
   background: rgba(168,85,247,0.25);
@@ -98,8 +100,7 @@
 
 .leave-dates { font-size: 0.85rem; color: $text-secondary; display: flex; align-items: center; gap: 0.5rem; }
 .leave-days  {
-  font-weight: 700; color: $neon-purple; font-size: 0.82rem;
-  background: rgba(168,85,247,0.1); border-radius: $radius-pill; padding: 0.1rem 0.5rem;
+  font-weight: 600; color: $text-muted; font-size: 0.82rem;
 }
 .period-tag {
   font-size: 0.72rem; font-weight: 700; color: #fbbf24;
@@ -131,7 +132,7 @@
 
 // ── Item 9: Carry-over note ────────────────────────────────────────────────
 .bal-carryover {
-  font-size: 0.65rem; color: $neon-purple; display: block; margin-top: 0.1rem;
+  font-size: 0.65rem; color: $neon-purple;
 }
 
 // ── Item 1: Rejection reason in leave card ─────────────────────────────────
@@ -237,9 +238,17 @@
   display: block; width: 100%; margin-top: 0.2rem;
 }
 
+@media (max-width: 600px) {
+  .balance-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .bal-card   { padding: 0.75rem; }
+  .bal-remaining { font-size: 1.4rem; }
+}
+
 @media (max-width: 480px) {
   .form-grid  { grid-template-columns: 1fr; }
-  .balance-grid { grid-template-columns: 1fr; }
   .form-card  { padding: 1rem; }
   .leave-dates { flex-wrap: wrap; }
   .cert-row  { flex-direction: column; align-items: flex-start; }

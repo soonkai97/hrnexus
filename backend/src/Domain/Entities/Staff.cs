@@ -70,8 +70,6 @@ public class Staff : IHasAudit, ISoftDelete
         return emp;
     }
 
-    public void UpdateStaffId(string staffId) => StaffId = staffId.Trim().ToUpperInvariant();
-
     // Maps roles to JWT permission level — highest privilege wins
     public string PermissionLevel
     {
@@ -82,9 +80,6 @@ public class Staff : IHasAudit, ISoftDelete
             return "Employee";
         }
     }
-
-    // Comma-separated roles for display / logging
-    public string RolesDisplay => string.Join(", ", Roles);
 
     public void SetRefreshToken(string token, DateTime expiry)
     {

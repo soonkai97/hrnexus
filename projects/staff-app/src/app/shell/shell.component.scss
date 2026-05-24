@@ -301,9 +301,8 @@
     animation: slide-in-sidebar 0.2s ease both;
   }
 
-  // dim overlay behind the sidebar when open
-  .shell:not(.collapsed)::after {
-    content: '';
+  // Clickable backdrop rendered by @if in template (replaces ::after pseudo-element)
+  .sidebar-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.5);

@@ -26,7 +26,7 @@
               <div class="feature-name">{{ feat.label | translate }}</div>
               <div class="feature-desc">{{ feat.description | translate }}</div>
             </div>
-            <p-toggleswitch [ngModel]="isEnabled(feat.key)" (ngModelChange)="toggle(feat.key)" />
+            <p-toggleswitch [ngModel]="isEnabled(feat.key)" [disabled]="togglingAll()" (ngModelChange)="toggle(feat.key)" />
           </div>
         }
       </div>

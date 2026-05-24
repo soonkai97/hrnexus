@@ -211,7 +211,7 @@
                   <div class="col-12 field">
                     <label><span class="req">*</span> {{ 'logShift.date' | translate }}</label>
                     <p-datepicker [(ngModel)]="editForm.workDate" dateFormat="yy-mm-dd"
-                      dataType="string" [showIcon]="true" styleClass="w-full" />
+                      dataType="string" [showIcon]="true" [readonlyInput]="true" styleClass="w-full" />
                   </div>
                   <div class="col-6 field">
                     <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>

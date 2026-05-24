@@ -42,9 +42,7 @@ export class ShellComponent {
     this.signalR.startConnection();
 
     this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
-      if (typeof window !== 'undefined' && window.innerWidth < 769) {
-        this.collapsed.set(true);
-      }
+      this.collapsed.set(true);
     });
   }
 

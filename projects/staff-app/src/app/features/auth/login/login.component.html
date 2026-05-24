@@ -18,7 +18,7 @@
       <div class="field">
         <label for="login-staff-id">{{ 'auth.staffId' | translate }}</label>
         <input id="login-staff-id" pInputText type="text" formControlName="staffId" placeholder="Your Staff ID"
-               class="w-full" readonly autocomplete="off" style="text-transform:uppercase"
+               class="w-full" readonly autocomplete="off"
                (mousedown)="removeReadonly($event)"
                (touchstart)="removeReadonly($event)"
                (keydown)="removeReadonly($event)" />
@@ -27,7 +27,7 @@
         <label for="login-password">{{ 'auth.password' | translate }}</label>
         <div class="pwd-wrap">
           <input id="login-password" pInputText [type]="showPwd() ? 'text' : 'password'" formControlName="password"
-                 class="w-full" readonly autocomplete="new-password"
+                 class="w-full" placeholder="Your password" readonly autocomplete="new-password"
                  (mousedown)="removeReadonly($event)"
                  (touchstart)="removeReadonly($event)"
                  (keydown)="removeReadonly($event)"

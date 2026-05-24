@@ -49,11 +49,7 @@ export class AdminLoginComponent {
           this.loading.set(false);
           return;
         }
-        if (res.mustChangePassword) {
-          this.router.navigate(['/auth/set-password']);
-        } else {
-          this.router.navigate(['/dashboard']);
-        }
+        this.router.navigate(['/dashboard']);
       },
       error: (e: any) => {
         const raw = e?.error;

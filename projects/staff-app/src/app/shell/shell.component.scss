@@ -169,6 +169,12 @@
     .nav-icon { filter: none; }
     .nav-indicator { transform: scaleY(1); }
   }
+
+  .shell.collapsed & {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 // ── Footer ────────────────────────────────────────────────────────────────────

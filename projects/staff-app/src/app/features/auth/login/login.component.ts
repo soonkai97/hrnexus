@@ -41,12 +41,8 @@ export class LoginComponent {
     this.loading.set(true);
     this.error.set('');
     this.auth.login({ ...this.form.value, portal: 'staff' }).subscribe({
-      next: (res) => {
-        if (res.mustChangePassword) {
-          this.router.navigate(['/auth/set-password']);
-        } else {
-          this.router.navigate(['/home']);
-        }
+      next: () => {
+        this.router.navigate(['/home']);
       },
       error: (e: any) => {
         const raw = e?.error;

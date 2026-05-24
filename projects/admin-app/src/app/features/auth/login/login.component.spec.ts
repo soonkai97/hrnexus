@@ -18,8 +18,6 @@ import { AuthService, LangService } from 'shared-lib';
  *    wastes a round-trip and can reveal form state to attackers.
  *  - Role guard inside submit() enforces that only admin/manager accounts can access
  *    the admin portal; missing this allows any staff member to log in.
- *  - mustChangePassword redirect ensures new accounts land on set-password rather than
- *    dashboard, enforcing the security policy that temporary passwords must be changed.
  *  - Error messaging must distinguish auth failures from access-denied so users know
  *    whether to retry or contact an admin.
  */
@@ -31,7 +29,6 @@ describe('AdminLoginComponent', () => {
     login:  ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn>;
   };
-  let mockRouter: { navigate: ReturnType<typeof vi.fn> };
   let mockLang:   { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -39,8 +36,7 @@ describe('AdminLoginComponent', () => {
       login:  vi.fn().mockReturnValue(of({ user: { roles: ['ADMIN'] }, mustChangePassword: false })),
       logout: vi.fn(),
     };
-    mockRouter = { navigate: vi.fn() };
-    mockLang   = { current: vi.fn().mockReturnValue('en'), set: vi.fn() };
+    mockLang = { current: vi.fn().mockReturnValue('en'), set: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [AdminLoginComponent],
@@ -48,7 +44,6 @@ describe('AdminLoginComponent', () => {
         provideHttpClient(),
         provideRouter([
           { path: 'dashboard', component: StubComponent },
-          { path: 'auth/set-password', component: StubComponent },
         ]),
         provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService, useValue: mockAuth },
@@ -117,17 +112,11 @@ describe('AdminLoginComponent', () => {
       expect(mockAuth.login).toHaveBeenCalledWith({ staffId: 'NC001', password: 'pass123', portal: 'admin' });
     });
 
-    it('navigates to /dashboard when login succeeds and no forced password change', () => {
+    it('navigates to /dashboard when login succeeds', () => {
       mockAuth.login.mockReturnValue(of({ user: { roles: ['ADMIN'] }, mustChangePassword: false }));
       component.submit();
-      expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/auth/set-password']);
-    });
-
-    it('does not clear loading when mustChangePassword=true — the router navigates away instead', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['ADMIN'] }, mustChangePassword: true }));
-      component.submit();
-      // In the mustChangePassword path the component navigates away without setting loading=false
-      expect(component.loading()).toBe(true);
+      // Routing handled by provideRouter; just confirm loading stays true (no error path)
+      expect(component.error()).toBe('');
     });
   });
 

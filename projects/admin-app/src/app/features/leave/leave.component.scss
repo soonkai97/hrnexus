@@ -590,11 +590,14 @@ p.text-center { color: $text-muted; }
 
 // ── Item 11: Leave summary table ──────────────────────────────────────────────
 .leave-summary-table {
-  overflow-x: auto; margin-top: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; // smooth scrolling on iOS Safari
+  margin-top: 0.5rem;
 }
 .ls-header, .ls-row {
   display: grid;
   grid-template-columns: minmax(140px, 1.8fr) repeat(5, 1fr) 1fr;
+  min-width: 480px; // force scroll on narrow screens instead of squishing columns
   gap: 0.25rem;
   align-items: center;
 }

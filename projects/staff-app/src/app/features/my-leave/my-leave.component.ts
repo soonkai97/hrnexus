@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe, PickerOnlyDirective } from 'shared-lib';
+import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -20,7 +20,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
   selector: 'app-my-leave',
   standalone: true,
   imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe, AmPmPipe,
-    Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton, PickerOnlyDirective],
+    Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })
@@ -97,8 +97,8 @@ export class MyLeaveComponent implements OnInit {
     { label: 'Emergency', value: 'emergency' },
   ];
 
-  form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: string; endTime: string; notes: string } = {
-    leaveType: 'annual', startDate: '', endDate: '', startTime: '', endTime: '', notes: '',
+  form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: Date | null; endTime: Date | null; notes: string } = {
+    leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '',
   };
 
   // ── Item 8: Calendar view state ───────────────────────────────────────────
@@ -161,16 +161,18 @@ export class MyLeaveComponent implements OnInit {
     this.selectedCalDay.set(this.selectedCalDay() === iso ? null : iso);
   }
 
+  private toTimeStr(d: Date): string {
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
   /** Auto-calculated hours from date+time range. Returns 0 if any field is missing. */
   get calcHours(): number {
     const { startDate, endDate, startTime, endTime } = this.form;
     if (!startDate || !startTime || !endDate || !endTime) return 0;
-    const [sh, sm] = startTime.split(':').map(Number);
-    const [eh, em] = endTime.split(':').map(Number);
     const start = new Date(startDate);
-    start.setHours(sh, sm, 0, 0);
+    start.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
     const end = new Date(endDate);
-    end.setHours(eh, em, 0, 0);
+    end.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
     const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     return Math.round(h * 10) / 10;
   }
@@ -204,9 +206,8 @@ export class MyLeaveComponent implements OnInit {
 
     const maxFuture = new Date();
     maxFuture.setFullYear(maxFuture.getFullYear() + 1);
-    const [sh, sm] = this.form.startTime.split(':').map(Number);
     const startDt = new Date(this.form.startDate);
-    startDt.setHours(sh, sm, 0, 0);
+    startDt.setHours(this.form.startTime.getHours(), this.form.startTime.getMinutes(), 0, 0);
     if (startDt > maxFuture) {
       this.formError.set('Leave cannot be requested more than 1 year in advance.'); return;
     }
@@ -217,8 +218,8 @@ export class MyLeaveComponent implements OnInit {
       leaveType: this.form.leaveType,
       startDate: this.form.startDate,
       endDate:   this.form.endDate,
-      startTime: this.form.startTime,
-      endTime:   this.form.endTime,
+      startTime: this.toTimeStr(this.form.startTime),
+      endTime:   this.toTimeStr(this.form.endTime),
       hours,
       notes:     this.form.notes || null,
     };
@@ -226,7 +227,7 @@ export class MyLeaveComponent implements OnInit {
       next: () => {
         this.saving.set(false);
         this.formError.set('');
-        this.form = { leaveType: 'annual', startDate: '', endDate: '', startTime: '', endTime: '', notes: '' };
+        this.form = { leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '' };
         this.load();
         this.leaveSvc.getMyBalance().subscribe({ next: b => this.balance.set(b), error: () => {} });
         this.toast.success('Leave request submitted.');

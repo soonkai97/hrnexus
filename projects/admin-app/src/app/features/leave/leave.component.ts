@@ -5,7 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import {
   LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance,
   LeaveSummary, LeavePatternWarning,
-  LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString, PickerOnlyDirective,
+  LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
@@ -30,7 +30,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
   standalone: true,
   imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
-    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, PickerOnlyDirective],
+    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
@@ -320,15 +320,29 @@ export class LeaveComponent implements OnInit {
     startTime: null, endTime: null, hours: null, notes: null, status: 'approved',
   };
 
+  /** Intermediary Date bindings for the time pickers — converted to string on save(). */
+  startTimeDate: Date | null = null;
+  endTimeDate:   Date | null = null;
+
+  private toTimeStr(d: Date): string {
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  private parseTime(t: string | null | undefined): Date | null {
+    if (!t) return null;
+    const [h, m] = t.split(':').map(Number);
+    const d = new Date(); d.setHours(h, m, 0, 0); return d;
+  }
+
   get calcHours(): number {
-    const { startDate, endDate, startTime, endTime } = this.form;
-    if (!startDate || !startTime || !endDate || !endTime) return 0;
-    const [sh, sm] = startTime.split(':').map(Number);
-    const [eh, em] = endTime.split(':').map(Number);
+    const { startDate, endDate } = this.form;
+    const st = this.startTimeDate;
+    const et = this.endTimeDate;
+    if (!startDate || !st || !endDate || !et) return 0;
     const start = new Date(startDate);
-    start.setHours(sh, sm, 0, 0);
+    start.setHours(st.getHours(), st.getMinutes(), 0, 0);
     const end = new Date(endDate);
-    end.setHours(eh, em, 0, 0);
+    end.setHours(et.getHours(), et.getMinutes(), 0, 0);
     const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     return Math.round(h * 10) / 10;
   }
@@ -605,6 +619,8 @@ export class LeaveComponent implements OnInit {
       endDate:   toLocalDateString(new Date()),
       startTime: null, endTime: null, hours: null,
       notes: null, status: 'approved' };
+    this.startTimeDate = null;
+    this.endTimeDate   = null;
     this.formBalance.set(null);
     this.editing.set(null);
     this.formError.set('');
@@ -618,6 +634,8 @@ export class LeaveComponent implements OnInit {
       startTime: r.startTime, endTime: r.endTime, hours: r.hours,
       notes: r.notes, status: r.status as any,
       rejectionReason: r.rejectionReason };
+    this.startTimeDate = this.parseTime(r.startTime);
+    this.endTimeDate   = this.parseTime(r.endTime);
     this.editing.set(r.id);
     this.formError.set('');
     this.formBalance.set(null);
@@ -629,11 +647,17 @@ export class LeaveComponent implements OnInit {
     this.scrollToForm();
   }
 
-  cancelForm(): void { this.showForm.set(false); this.editing.set(null); this.formBalance.set(null); }
+  cancelForm(): void {
+    this.showForm.set(false);
+    this.editing.set(null);
+    this.formBalance.set(null);
+    this.startTimeDate = null;
+    this.endTimeDate   = null;
+  }
 
   save(): void {
-    this.form.startTime = this.form.startTime || null;
-    this.form.endTime   = this.form.endTime   || null;
+    this.form.startTime = this.startTimeDate ? this.toTimeStr(this.startTimeDate) : null;
+    this.form.endTime   = this.endTimeDate   ? this.toTimeStr(this.endTimeDate)   : null;
 
     if (!this.form.employeeId || !this.form.startDate || !this.form.endDate) {
       this.formError.set('Please fill in all required fields.'); return;

@@ -81,11 +81,18 @@
             [readonlyInput]="true"
             [minDate]="minStartDate"
             styleClass="w-full"
+            appendTo="body"
             (ngModelChange)="onStartDateChange($event)" />
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
-          <input pInputText type="time" [(ngModel)]="form.startTime" class="w-full" />
+          <p-datepicker [(ngModel)]="form.startTime"
+            [timeOnly]="true"
+            [showButtonBar]="true"
+            [readonlyInput]="true"
+            placeholder="Select time"
+            appendTo="body"
+            styleClass="w-full" />
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
@@ -95,11 +102,18 @@
             [showIcon]="true"
             [readonlyInput]="true"
             [minDate]="minEndDate"
-            styleClass="w-full" />
+            styleClass="w-full"
+            appendTo="body" />
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
-          <input pInputText type="time" [(ngModel)]="form.endTime" class="w-full" />
+          <p-datepicker [(ngModel)]="form.endTime"
+            [timeOnly]="true"
+            [showButtonBar]="true"
+            [readonlyInput]="true"
+            placeholder="Select time"
+            appendTo="body"
+            styleClass="w-full" />
         </div>
 
         @if (calcHours > 0) {

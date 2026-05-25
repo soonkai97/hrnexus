@@ -60,7 +60,15 @@ public static class DependencyInjection
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connStr)));
+            .UsePostgreSqlStorage(
+                o => o.UseNpgsqlConnection(connStr),
+                new PostgreSqlStorageOptions
+                {
+                    // Run the expiration manager hourly (default is 30 min — keep that)
+                    // Succeeded jobs auto-expire after 24h (Hangfire default)
+                    // This ensures the cleanup sweep happens regularly
+                    JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                }));
         services.AddHangfireServer();
         services.AddScoped<ShiftJobs>();
 
@@ -115,5 +123,8 @@ public static class DependencyInjection
 
         jobs.AddOrUpdate<ShiftJobs>("auto-reject-overdue-leave",
             j => j.AutoRejectOverdueLeaveAsync(), "0 2 * * *"); // 02:00 UTC daily
+
+        jobs.AddOrUpdate<ShiftJobs>("cleanup-hangfire-jobs",
+            j => j.CleanupOldJobsAsync(), "0 4 * * 0"); // Sun 04:00 UTC weekly
     }
 }

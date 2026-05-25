@@ -188,7 +188,7 @@ describe('LeaveComponent', () => {
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-05';
       component.form.hours      = null;
-      // startTimeDate/endTimeDate are null by default → no auto-calculated hours
+      // form.startTime/endTime are null by default → no auto-calculated hours
       component.save();
       expect(component.formError()).toBe('Please enter start/end times or specify hours manually.');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
@@ -199,8 +199,8 @@ describe('LeaveComponent', () => {
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-01';
       component.form.hours      = null;
-      component.startTimeDate   = new Date(2026, 5, 1, 18, 0); // 18:00
-      component.endTimeDate     = new Date(2026, 5, 1, 10, 0); // 10:00 — before start
+      component.form.startTime  = '18:00';
+      component.form.endTime    = '10:00'; // before start
       component.save();
       expect(component.formError()).toBe('End date/time must be after start date/time.');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
@@ -217,8 +217,8 @@ describe('LeaveComponent', () => {
         startTime: null, endTime: null, hours: 8,
         notes: null, status: 'approved',
       };
-      component.startTimeDate = null;
-      component.endTimeDate   = null;
+      component.form.startTime = null;
+      component.form.endTime   = null;
       component.editing.set(null);
     });
 
@@ -261,8 +261,8 @@ describe('LeaveComponent', () => {
         startTime: null, endTime: null, hours: 8,
         notes: null, status: 'approved',
       };
-      component.startTimeDate = null;
-      component.endTimeDate   = null;
+      component.form.startTime = null;
+      component.form.endTime   = null;
       component.editing.set('r-existing');
     });
 

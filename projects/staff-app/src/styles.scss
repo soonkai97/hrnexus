@@ -307,6 +307,11 @@ input[type="time"] {
 // (typically specificity 0,2,0). These !important rules restore the correct
 // border-radius so compound inputs connect visually to their adjacent controls.
 
+// Cap the datepicker panel width so it doesn't stretch full-page-width on mobile.
+.p-datepicker-panel {
+  max-width: 320px !important;
+}
+
 // DatePicker with showIcon (iconDisplay='button', the default):
 // The text input must have no right border-radius to connect visually with the
 // calendar trigger button (.p-datepicker-dropdown).

@@ -143,8 +143,8 @@ describe('MyLeaveComponent', () => {
     it('blocks submission and sets error when startDate is missing', () => {
       component.form.startDate  = '';
       component.form.endDate    = '2026-06-05';
-      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
-      component.form.endTime    = new Date(2026, 5, 5, 18, 0);
+      component.form.startTime  = '10:00';
+      component.form.endTime    = '18:00';
       component.submit();
       expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
@@ -153,8 +153,8 @@ describe('MyLeaveComponent', () => {
     it('blocks submission and sets error when endDate is missing', () => {
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '';
-      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
-      component.form.endTime    = new Date(2026, 5, 1, 18, 0);
+      component.form.startTime  = '10:00';
+      component.form.endTime    = '18:00';
       component.submit();
       expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
@@ -163,8 +163,8 @@ describe('MyLeaveComponent', () => {
     it('blocks submission when startTime is missing', () => {
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-05';
-      component.form.startTime  = null;
-      component.form.endTime    = new Date(2026, 5, 5, 18, 0);
+      component.form.startTime  = '';
+      component.form.endTime    = '18:00';
       component.submit();
       expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
@@ -173,8 +173,8 @@ describe('MyLeaveComponent', () => {
     it('blocks submission when end time is before start time on same date — inverted time range', () => {
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-01';
-      component.form.startTime  = new Date(2026, 5, 1, 18, 0);
-      component.form.endTime    = new Date(2026, 5, 1, 10, 0); // earlier on same date
+      component.form.startTime  = '18:00';
+      component.form.endTime    = '10:00'; // earlier on same date
       component.submit();
       expect(component.formError()).toBe('End date/time must be after start date/time.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
@@ -183,8 +183,8 @@ describe('MyLeaveComponent', () => {
     it('blocks submission when duration exceeds 720 hours — single requests are capped at 30 days', () => {
       component.form.startDate  = dateStr(0);
       component.form.endDate    = dateStr(31); // 31 days = 744h > 720h cap
-      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
-      component.form.endTime    = new Date(2026, 5, 1, 10, 0);
+      component.form.startTime  = '10:00';
+      component.form.endTime    = '10:00';
       component.submit();
       expect(component.formError()).toBe('Leave duration cannot exceed 720 hours (30 days) in a single request.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
@@ -193,8 +193,8 @@ describe('MyLeaveComponent', () => {
     it('blocks submission when start date is more than 1 year in advance', () => {
       component.form.startDate  = dateStr(400);
       component.form.endDate    = dateStr(401);
-      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
-      component.form.endTime    = new Date(2026, 5, 1, 18, 0);
+      component.form.startTime  = '10:00';
+      component.form.endTime    = '18:00';
       component.submit();
       expect(component.formError()).toBe('Leave cannot be requested more than 1 year in advance.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
@@ -215,8 +215,8 @@ describe('MyLeaveComponent', () => {
     beforeEach(() => {
       component.form.startDate  = dateStr(1);
       component.form.endDate    = dateStr(2);
-      component.form.startTime  = new Date(2026, 5, 1, 10, 0);  // 10:00 AM
-      component.form.endTime    = new Date(2026, 5, 2, 18, 0);  // 18:00 PM next day → 32h
+      component.form.startTime  = '10:00';  // 10:00 AM
+      component.form.endTime    = '18:00';  // 18:00 PM next day → 32h
       component.form.leaveType  = 'annual';
       component.form.notes      = 'Family trip';
     });
@@ -247,8 +247,8 @@ describe('MyLeaveComponent', () => {
       component.submit();
       expect(component.form.startDate).toBe('');
       expect(component.form.endDate).toBe('');
-      expect(component.form.startTime).toBeNull();
-      expect(component.form.endTime).toBeNull();
+      expect(component.form.startTime).toBe('');
+      expect(component.form.endTime).toBe('');
       expect(component.form.notes).toBe('');
       expect(component.form.leaveType).toBe('annual');
     });
@@ -281,8 +281,8 @@ describe('MyLeaveComponent', () => {
     beforeEach(() => {
       component.form.startDate = dateStr(1);
       component.form.endDate   = dateStr(2);
-      component.form.startTime = new Date(2026, 5, 1, 10, 0);
-      component.form.endTime   = new Date(2026, 5, 2, 18, 0);
+      component.form.startTime = '10:00';
+      component.form.endTime   = '18:00';
     });
 
     it('shows the API error message in formError so staff know why it failed', () => {

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -24,7 +24,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })
-export class MyLeaveComponent implements OnInit {
+export class MyLeaveComponent implements OnInit, AfterViewInit {
   private readonly leaveSvc  = inject(LeaveService);
   private readonly toast     = inject(ToastService);
   private readonly confirm   = inject(ConfirmService);
@@ -177,6 +177,14 @@ export class MyLeaveComponent implements OnInit {
 
   private toTimeStr(d: Date): string {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  ngAfterViewInit(): void {
+    // Suppress mobile keyboard on time-only pickers — readonlyInput breaks the
+    // value display so we use inputmode="none" via the DOM instead.
+    ['leaveStartTime', 'leaveEndTime'].forEach(id =>
+      document.getElementById(id)?.setAttribute('inputmode', 'none'),
+    );
   }
 
   ngOnInit(): void {

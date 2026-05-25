@@ -6,6 +6,12 @@
 
 set -euo pipefail
 
+# Load credentials from .env
+ENV_FILE="/root/hrnexus/.env"
+if [ -f "$ENV_FILE" ]; then
+  set -a; source "$ENV_FILE"; set +a
+fi
+
 if [ -z "${1:-}" ]; then
     echo "Usage: $0 <backup-file.sql.gz>"
     echo "Available backups:"

@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, roleGuard, featureFlagGuard } from 'shared-lib';
 import { ShellComponent } from './shell/shell.component';
-import { featurePinGuard } from './features/feature-flags/feature-pin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -27,14 +26,6 @@ export const routes: Routes = [
       { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
       { path: 'staff-ledger',   canActivate: [featureFlagGuard('staffLedger', '/dashboard')], loadComponent: () => import('./features/staff-ledger/staff-ledger.component').then(m => m.StaffLedgerComponent) },
       { path: 'staff-settings', loadComponent: () => import('./features/staff-settings/staff-settings.component').then(m => m.StaffSettingsComponent) },
-      {
-        path: 'features',
-        canActivate: [roleGuard('admin')],
-        children: [
-          { path: '',       canActivate: [featurePinGuard], loadComponent: () => import('./features/feature-flags/feature-flags.component').then(m => m.FeatureFlagsComponent) },
-          { path: 'unlock', loadComponent: () => import('./features/feature-flags/unlock/feature-pin-entry.component').then(m => m.FeaturePinEntryComponent) },
-        ],
-      },
       { path: 'account',       loadChildren:  () => import('./features/account/account.routes').then(m => m.ACCOUNT_ROUTES) },
     ],
   },

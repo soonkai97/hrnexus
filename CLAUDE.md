@@ -61,7 +61,6 @@ projects/
 │       ├── roles/
 │       ├── locations/
 │       ├── announcements/
-│       ├── feature-flags/
 │       ├── staff-ledger/         # per-staff earnings ledger (featureFlag: staffLedger)
 │       ├── staff-settings/       # work types & settlements config (featureFlag: staffLedger)
 │       └── account/
@@ -81,7 +80,7 @@ projects/
     ├── models/                   # DTOs and interfaces
     ├── services/                 # HTTP services + LangService + ToastService + ConfirmService
     ├── stores/                   # signal-based state (StaffStore, LocationStore, …)
-    ├── guards/                   # authGuard, roleGuard, featureFlagGuard, featurePinGuard
+    ├── guards/                   # authGuard, roleGuard, featureFlagGuard
     ├── auth/                     # AuthService + jwtInterceptor
     ├── pipes/                    # AmPmPipe
     ├── directives/               # PickerOnlyDirective
@@ -130,10 +129,8 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /staff-ledger          authGuard + roleGuard + featureFlagGuard('staffLedger', '/dashboard')
 /staff-settings        authGuard + roleGuard (work types & settlements admin)
 /roles, /locations     same
-/features/unlock       featurePinGuard
-/features              featurePinGuard + admin-only
 /profile               redirectTo: '/account'
-/auth/**               login, forgot-password, set-password (public)
+/auth/**               login, forgot-password (public)
 ```
 
 **Staff routes (selected):**
@@ -151,7 +148,6 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 - `authGuard` — checks `auth.isAuthenticated() && auth.hasValidToken()`
 - `roleGuard(...roles)` — checks `auth.userRole()` is one of the given roles
 - `featureFlagGuard(key, fallback)` — triggers `featureSvc.load()` on fresh load; falls back to `fallback` route if disabled
-- `featurePinGuard` — checks `sessionStorage['nc_feature_token']`
 
 ---
 
@@ -188,7 +184,6 @@ login(req: LoginRequest): Observable<AuthResponse>
 logout(): void                           // clears localStorage, navigates to /auth/login
 refreshToken(): Observable<AuthResponse>
 changePassword(req): Observable
-forceChangePassword(pwd: string): Observable   // mustChangePassword flow
 forgotPassword(staffId: string): Observable<{ found: boolean }>
 hasRole(...roles: string[]): boolean
 hasValidToken(): boolean                 // checks JWT exp claim
@@ -199,12 +194,6 @@ getAccessToken(): string | null
 - `localStorage['access_token']` — JWT
 - `localStorage['refresh_token']`
 - `localStorage['auth_user']` — JSON of `AuthUser`
-- `sessionStorage['nc_feature_token']` — feature-flags PIN unlock token
-
-**mustChangePassword flow:**
-1. Login endpoint returns `{ mustChangePassword: true }` in `AuthResponse`
-2. Auth service stores it; login component redirects to `/auth/set-password`
-3. `SetPasswordBase` (shared-lib base class) handles form + `forceChangePassword()` call + redirect
 
 **jwtInterceptor** (`shared-lib/src/lib/auth/jwt.interceptor.ts`):
 - Attaches `Authorization: Bearer {token}` to every request
@@ -226,10 +215,8 @@ flags = signal<Record<FeatureKey, boolean>>(defaults)   // all false by default
 loaded = signal(false)
 
 // Methods
-load(): void                    // GET /api/feature-flags (called by guard + shell)
+load(): Observable<void>        // GET /api/feature-flags (called by guard + shell)
 isEnabled(key): boolean
-toggle(key): Observable         // PUT /api/feature-flags  (admin only)
-enableAll() / disableAll()
 ```
 
 To check a flag in a component:
@@ -262,9 +249,9 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 | `ToastService` | `success/error/warning/info(msg)` |
 | `ConfirmService` | `confirm(opts) → Observable<boolean>` |
 | `ThemeService` | Dark/light toggle |
-| `FeatureFlagService` | Feature flag queries + toggle |
+| `FeatureFlagService` | Feature flag queries (`load`, `isEnabled`) |
 
-**Guards:** `authGuard`, `roleGuard`, `featureFlagGuard`, `featurePinGuard`
+**Guards:** `authGuard`, `roleGuard`, `featureFlagGuard`
 
 **Components:**
 - `ToastComponent` (`<nc-toast />`) — mount once in each app shell
@@ -980,11 +967,8 @@ provideRouter([
 Known components that navigate and require stub routes:
 | Component | Routes needed |
 |---|---|
-| admin-app `LoginComponent` | `dashboard`, `auth/set-password` |
-| admin-app `SetPasswordComponent` | `dashboard` |
-| admin-app `FeaturePinEntryComponent` | `features` |
-| staff-app `LoginComponent` | `home`, `auth/set-password` |
-| staff-app `SetPasswordComponent` | `home` |
+| admin-app `LoginComponent` | `dashboard` |
+| staff-app `LoginComponent` | `home` |
 
 ---
 

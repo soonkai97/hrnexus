@@ -11,7 +11,6 @@
     "payroll":       "薪资报表",
     "staffLedger":   "员工账本",
     "staffSettings": "员工设置",
-    "features":        "功能管理",
     "account":         "我的账户"
   },
   "shell": {
@@ -432,27 +431,6 @@
     "expired":          "已过期",
     "editBtn":          "编辑",
     "deleteBtn":        "删除"
-  },
-  "features": {
-    "title":          "功能管理",
-    "subtitle":       "启用或禁用两个门户的可选功能，更改立即生效。",
-    "disableAll":     "全部禁用",
-    "enableAll":      "全部启用",
-    "phase":          "阶段",
-    "phase1Label":    "财务与报告",
-    "phase2Label":    "沟通协作",
-    "phase3Label":    "员工管理",
-    "payroll":        { "label": "工资摘要",              "desc": "按员工生成月度工资明细，支持CSV导出。" },
-    "tips":           { "label": "小费池（管理端）",      "desc": "管理并分配各班次及员工之间的小费池。" },
-    "paySummary":     { "label": "薪资摘要（员工端）",    "desc": "让员工按周期查看自己的收入摘要。" },
-    "tipsHistory":    { "label": "小费记录（员工端）",    "desc": "向员工展示其每月小费分配历史。" },
-    "announcements":  { "label": "公告",                  "desc": "发布面向全体或特定员工的团队公告。" },
-    "staffLedger":    { "label": "员工账本",              "desc": "记录及追踪员工的收入、扣款、借款及月度结算。" },
-    "toggleFailed":    "保存失败，请重试。",
-    "allEnabled":      "所有功能已启用。",
-    "allDisabled":     "所有功能已禁用。",
-    "enableAllFailed": "启用所有功能失败。",
-    "disableAllFailed":"禁用所有功能失败。"
   },
   "staffLedger": {
     "title":             "员工账本",

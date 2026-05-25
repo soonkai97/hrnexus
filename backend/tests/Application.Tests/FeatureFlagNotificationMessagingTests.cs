@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
-using HRNexus.Application.FeatureFlags.Commands;
 using HRNexus.Application.FeatureFlags.Queries;
 using HRNexus.Application.Messaging.Commands;
 using HRNexus.Application.Notifications.Commands;
@@ -14,7 +13,7 @@ namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Handler-level tests for:
-/// - FeatureFlags (UpdateFeatureFlags, GetFeatureFlags)
+/// - FeatureFlags (GetFeatureFlags)
 /// - Notifications (MarkNotificationsRead, GetNotifications)
 /// - Messaging (SendMessage, MarkMessageRead)
 /// - WorkLog (CreateManualWorkLog)
@@ -45,75 +44,6 @@ public class FeatureFlagNotificationMessagingTests
 
     private static E.Role MakeRole(string name = "bartender", decimal rate = 20m) =>
         E.Role.Create(name, hourlyRate: rate);
-
-    // ── UpdateFeatureFlagsCommand ─────────────────────────────────────────────
-
-    [Fact]
-    public async Task UpdateFeatureFlags_ThrowsArgument_WhenUnknownKeySupplied()
-    {
-        await using var db = CreateDb();
-        var handler = new UpdateFeatureFlagsHandler(db);
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new UpdateFeatureFlagsCommand(new Dictionary<string, bool>
-            {
-                ["unknownFlag"] = true,
-            }), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task UpdateFeatureFlags_Create_Succeeds_WhenFlagDoesNotExist()
-    {
-        await using var db = CreateDb();
-        var handler = new UpdateFeatureFlagsHandler(db);
-
-        await handler.Handle(new UpdateFeatureFlagsCommand(new Dictionary<string, bool>
-        {
-            ["tips"] = true,
-        }), CancellationToken.None);
-
-        var flag = await db.FeatureFlags.FindAsync(new object[] { "tips" });
-        Assert.NotNull(flag);
-        Assert.True(flag.IsEnabled);
-    }
-
-    [Fact]
-    public async Task UpdateFeatureFlags_Update_Succeeds_WhenFlagAlreadyExists()
-    {
-        await using var db = CreateDb();
-        db.FeatureFlags.Add(E.FeatureFlag.Create("payroll", true));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new UpdateFeatureFlagsHandler(db);
-        await handler.Handle(new UpdateFeatureFlagsCommand(new Dictionary<string, bool>
-        {
-            ["payroll"] = false,
-        }), CancellationToken.None);
-
-        var flag = await db.FeatureFlags.FindAsync(new object[] { "payroll" });
-        Assert.NotNull(flag);
-        Assert.False(flag.IsEnabled);
-    }
-
-    [Fact]
-    public async Task UpdateFeatureFlags_AcceptsAllKnownKeys()
-    {
-        await using var db = CreateDb();
-        var handler = new UpdateFeatureFlagsHandler(db);
-
-        await handler.Handle(new UpdateFeatureFlagsCommand(new Dictionary<string, bool>
-        {
-            ["tips"]          = true,
-            ["tipsHistory"]   = true,
-            ["payroll"]       = false,
-            ["paySummary"]    = false,
-            ["announcements"] = true,
-            ["staffLedger"]   = false,
-        }), CancellationToken.None);
-
-        Assert.Equal(6, await db.FeatureFlags.CountAsync());
-    }
 
     // ── GetFeatureFlagsQuery ──────────────────────────────────────────────────
 

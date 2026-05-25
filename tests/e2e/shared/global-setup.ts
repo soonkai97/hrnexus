@@ -3,7 +3,7 @@
  *
  * Feature flags are managed via the database for E2E tests.
  * To enable all flags in the test environment:
- *   docker exec nightclub-workforce-postgres-1 psql -U ncuser -d nightclub_workforce \
+ *   docker exec hrnexus-postgres-1 psql -h localhost -U hrnexus -d hrnexus_db \
  *     -c 'UPDATE "FeatureFlags" SET "IsEnabled" = true, "UpdatedAt" = NOW();'
  *
  * The global setup is intentionally a no-op here — flag state is pre-set in

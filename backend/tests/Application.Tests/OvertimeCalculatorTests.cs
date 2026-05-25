@@ -136,7 +136,7 @@ public class OvertimeCalculatorTests
     }
 
     [Fact]
-    public void Calculate_NightclubShift_MidnightCrossover()
+    public void Calculate_OvernightShift_MidnightCrossover()
     {
         // 22:00 → 04:00 = 6 hours, below 8h threshold
         var hours = OvertimeCalculator.CalcHours("22:00", "04:00");

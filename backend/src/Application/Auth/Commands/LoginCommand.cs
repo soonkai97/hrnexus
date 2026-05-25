@@ -12,7 +12,7 @@ namespace HRNexus.Application.Auth.Commands;
 /// </summary>
 public record LoginCommand(string StaffId, string Password, string? Portal = null) : IRequest<LoginResult>;
 
-public record LoginResult(string AccessToken, string RefreshToken, int ExpiresIn, UserDto User, bool MustChangePassword);
+public record LoginResult(string AccessToken, string RefreshToken, int ExpiresIn, UserDto User);
 
 public record UserDto(Guid Id, string StaffId, string FullName, string Email, List<string> Roles);
 
@@ -45,7 +45,6 @@ public class LoginCommandHandler(IAppDbContext db, IPasswordHasher hasher, IToke
 
         return new LoginResult(access, refresh, 3600,
             new UserDto(employee.Id, employee.StaffId, employee.FullName, employee.Email,
-                employee.Roles.ToList()),
-            employee.MustChangePassword);
+                employee.Roles.ToList()));
     }
 }

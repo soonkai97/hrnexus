@@ -122,23 +122,9 @@ public class AuthController(IMediator mediator) : ControllerBase
         catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
-    [HttpPost("force-change-password")]
-    [Authorize]
-    public async Task<IActionResult> ForceChangePassword([FromBody] ForceChangePasswordBody body, CancellationToken ct)
-    {
-        var employeeId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        try
-        {
-            await mediator.Send(new ForceChangePasswordCommand(employeeId, body.NewPassword), ct);
-            return NoContent();
-        }
-        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
-    }
-
 }
 
 public record ChangePasswordBody(string CurrentPassword, string NewPassword);
 public record UpdateProfileBody(string? PhoneNumber);
 public record UpdateLanguageBody(string Language);
 public record ForgotPasswordBody(string StaffId);
-public record ForceChangePasswordBody(string NewPassword);

@@ -153,29 +153,6 @@ public class StaffDomainTests
         Assert.True(staff.IsActive);
     }
 
-    // ── MustChangePassword ────────────────────────────────────────────────────
-
-    [Fact]
-    public void SetMustChangePassword_SetsFlag()
-    {
-        // After setting the flag the staff member must be forced to change their password on next login.
-        var staff = MakeStaff();
-        staff.SetMustChangePassword();
-
-        Assert.True(staff.MustChangePassword);
-    }
-
-    [Fact]
-    public void ClearMustChangePassword_ClearsFlag()
-    {
-        // Once the password is changed the flag must be cleared so the redirect loop stops.
-        var staff = MakeStaff();
-        staff.SetMustChangePassword();
-        staff.ClearMustChangePassword();
-
-        Assert.False(staff.MustChangePassword);
-    }
-
     // ── UpdateDetails ─────────────────────────────────────────────────────────
 
     [Fact]

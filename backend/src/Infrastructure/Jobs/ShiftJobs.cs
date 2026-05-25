@@ -212,25 +212,33 @@ public class ShiftJobs(
     /// Runs weekly on Sunday at 04:00 UTC.
     /// </summary>
     [AutomaticRetry(Attempts = 1)]
-    public Task CleanupOldJobsAsync()
+    public async Task CleanupOldJobsAsync()
     {
-        var monitoring = JobStorage.Current.GetMonitoringApi();
-        var client     = new BackgroundJobClient(JobStorage.Current);
-        var cutoff     = DateTime.UtcNow.AddDays(-7);
+        // ── Hangfire: delete failed job records older than 7 days ─────────────
+        var monitoring  = JobStorage.Current.GetMonitoringApi();
+        var client      = new BackgroundJobClient(JobStorage.Current);
+        var jobCutoff   = DateTime.UtcNow.AddDays(-7);
 
-        var failed = monitoring.FailedJobs(0, 1000);
-        int count  = 0;
+        var failed     = monitoring.FailedJobs(0, 1000);
+        int jobsDeleted = 0;
 
         foreach (var (id, data) in failed)
         {
-            if (data.FailedAt.HasValue && data.FailedAt.Value < cutoff)
+            if (data.FailedAt.HasValue && data.FailedAt.Value < jobCutoff)
             {
                 client.Delete(id);
-                count++;
+                jobsDeleted++;
             }
         }
 
-        logger.LogInformation("Hangfire cleanup: deleted {Count} failed job(s) older than 7 days", count);
-        return Task.CompletedTask;
+        // ── Notifications: delete records older than 90 days ──────────────────
+        var notifCutoff  = dateTime.UtcNow.AddDays(-90);
+        int notifsDeleted = await db.Notifications
+            .Where(n => n.CreatedAt < notifCutoff)
+            .ExecuteDeleteAsync();
+
+        logger.LogInformation(
+            "Weekly cleanup: {Jobs} failed Hangfire job(s), {Notifs} notification(s) older than 90 days removed",
+            jobsDeleted, notifsDeleted);
     }
 }

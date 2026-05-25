@@ -1,11 +1,11 @@
 #!/bin/bash
 # HRNexus — Let's Encrypt certificate renewal
 # Certbot --standalone needs port 80 free, so we stop/start the web container.
-# Cron: 0 3 1 */2 * root /root/nightclub-workforce/scripts/renew-cert.sh >> /var/log/hrnexus-renew.log 2>&1
+# Cron: 0 3 1 */2 * root /root/hrnexus/scripts/renew-cert.sh >> /var/log/hrnexus-renew.log 2>&1
 
 set -euo pipefail
 
-COMPOSE_DIR="/root/nightclub-workforce"
+COMPOSE_DIR="/root/hrnexus"
 COMPOSE_CMD="docker compose -f docker-compose.yml -f docker-compose.uat.yml"
 
 echo "[$(date '+%F %T')] Starting certificate renewal..."

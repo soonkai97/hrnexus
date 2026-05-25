@@ -1,12 +1,12 @@
 #!/bin/bash
 # HRNexus — keep DuckDNS pointing at this server's public IP.
 # Reads DUCKDNS_TOKEN from the .env file — never hardcodes the token.
-# Cron: */5 * * * * /root/nightclub-workforce/scripts/update-duckdns.sh >> /var/log/hrnexus-duckdns.log 2>&1
+# Cron: */5 * * * * /root/hrnexus/scripts/update-duckdns.sh >> /var/log/hrnexus-duckdns.log 2>&1
 
 set -euo pipefail
 
 DOMAIN="hrnexus"
-ENV_FILE="/root/nightclub-workforce/.env"
+ENV_FILE="/root/hrnexus/.env"
 
 TOKEN=$(grep "^DUCKDNS_TOKEN=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '[:space:]')
 

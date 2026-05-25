@@ -310,6 +310,7 @@ input[type="time"] {
 // Cap the datepicker panel width so it doesn't stretch full-page-width on mobile.
 .p-datepicker-panel {
   max-width: 320px !important;
+  min-width: 0 !important;   // override PrimeNG inline min-width (which matches input width)
 }
 
 // DatePicker with showIcon (iconDisplay='button', the default):

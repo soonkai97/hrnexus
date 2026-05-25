@@ -31,6 +31,7 @@
             dataType="string"
             [showIcon]="true"
             [showOnFocus]="false"
+            [readonlyInput]="true"
             styleClass="w-full"
             appendTo="body" />
         </div>
@@ -41,6 +42,7 @@
             dataType="string"
             [showIcon]="true"
             [showOnFocus]="false"
+            [readonlyInput]="true"
             styleClass="w-full"
             appendTo="body" />
         </div>
@@ -373,20 +375,20 @@
         <div class="field">
           <label><span class="req">*</span> {{ 'reports.shiftDate' | translate }}</label>
           <p-datepicker [(ngModel)]="editShiftForm.workDate" dateFormat="yy-mm-dd"
-            dataType="string" [showIcon]="true" [showOnFocus]="false" styleClass="w-full" appendTo="body" />
+            dataType="string" [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
         </div>
         <div class="row g-2">
           <div class="col-6 field">
             <label><span class="req">*</span> {{ 'reports.shiftStartTime' | translate }}</label>
             <p-datepicker [(ngModel)]="editShiftStartTimeDate" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
-              [readonlyInput]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
+              [readonlyInput]="true" [showOnFocus]="false" placeholder="Select time" appendTo="body" styleClass="w-full" />
           </div>
           <div class="col-6 field">
             <label><span class="req">*</span> {{ 'reports.shiftEndTime' | translate }}</label>
             <p-datepicker [(ngModel)]="editShiftEndTimeDate" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
-              [readonlyInput]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
+              [readonlyInput]="true" [showOnFocus]="false" placeholder="Select time" appendTo="body" styleClass="w-full" />
           </div>
         </div>
         <div class="field">

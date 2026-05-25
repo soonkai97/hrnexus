@@ -21,12 +21,12 @@
       <div class="field filter-date">
         <label>{{ 'leave.fromLabel' | translate }}</label>
         <p-datepicker [(ngModel)]="filterFrom" dateFormat="yy-mm-dd" dataType="string"
-          [showIcon]="true" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
+          [showIcon]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-date">
         <label>{{ 'leave.toLabel' | translate }}</label>
         <p-datepicker [(ngModel)]="filterTo" dateFormat="yy-mm-dd" dataType="string"
-          [showIcon]="true" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
+          [showIcon]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-status">
         <label>{{ 'leave.statusLabel' | translate }}</label>
@@ -140,13 +140,13 @@
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
             <p-datepicker [(ngModel)]="form.startDate" dateFormat="yy-mm-dd" dataType="string"
-              [showIcon]="true" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="onStartDateChange($event)" />
+              [showIcon]="true" styleClass="w-full" appendTo="body" (ngModelChange)="onStartDateChange($event)" />
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'leave.startTime' | translate }}</label>
             <p-datepicker [(ngModel)]="startTimeDate"
               [timeOnly]="true"
-              [showButtonBar]="true"
+              [hourFormat]="'12'"
               [readonlyInput]="true"
               placeholder="Select time"
               appendTo="body"
@@ -155,13 +155,13 @@
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
             <p-datepicker [(ngModel)]="form.endDate" dateFormat="yy-mm-dd" dataType="string"
-              [showIcon]="true" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+              [showIcon]="true" styleClass="w-full" appendTo="body" />
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'leave.endTime' | translate }}</label>
             <p-datepicker [(ngModel)]="endTimeDate"
               [timeOnly]="true"
-              [showButtonBar]="true"
+              [hourFormat]="'12'"
               [readonlyInput]="true"
               placeholder="Select time"
               appendTo="body"

@@ -84,6 +84,21 @@ export class ReportsComponent implements OnInit {
   editShiftError   = signal('');
   editingShift     = signal<ShiftDetailRow | null>(null);
   editShiftForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endTime: '', notes: '' };
+  editShiftStartTimeDate: Date | null = null; // UI binding
+  editShiftEndTimeDate:   Date | null = null; // UI binding
+
+  private toTimeStr(d: Date): string {
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  private parseTime(t: string): Date | null {
+    if (!t) return null;
+    const [h, m] = t.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  }
 
   openEditShift(s: ShiftDetailRow): void {
     this.editShiftForm = {
@@ -94,6 +109,8 @@ export class ReportsComponent implements OnInit {
       endTime:    s.endTime ?? '',
       notes:      s.notes ?? '',
     };
+    this.editShiftStartTimeDate = this.parseTime(s.startTime);
+    this.editShiftEndTimeDate   = this.parseTime(s.endTime ?? '');
     this.editShiftError.set('');
     this.editingShift.set(s);
     this.editShiftVisible.set(true);
@@ -102,17 +119,21 @@ export class ReportsComponent implements OnInit {
   cancelEditShift(): void {
     this.editShiftVisible.set(false);
     this.editingShift.set(null);
+    this.editShiftStartTimeDate = null;
+    this.editShiftEndTimeDate   = null;
   }
 
   saveEditShift(): void {
     const s = this.editingShift();
     if (!s) return;
     if (!this.editShiftForm.roleName || !this.editShiftForm.locationId ||
-        !this.editShiftForm.workDate || !this.editShiftForm.startTime || !this.editShiftForm.endTime) {
+        !this.editShiftForm.workDate || !this.editShiftStartTimeDate || !this.editShiftEndTimeDate) {
       this.editShiftError.set('Please fill in all required fields.'); return;
     }
-    const [sh, sm] = this.editShiftForm.startTime.split(':').map(Number);
-    const [eh, em] = this.editShiftForm.endTime.split(':').map(Number);
+    const startTime = this.toTimeStr(this.editShiftStartTimeDate);
+    const endTime   = this.toTimeStr(this.editShiftEndTimeDate);
+    const [sh, sm] = startTime.split(':').map(Number);
+    const [eh, em] = endTime.split(':').map(Number);
     const durationMins = (eh * 60 + em) >= (sh * 60 + sm)
       ? (eh * 60 + em) - (sh * 60 + sm)
       : (eh * 60 + em) + 1440 - (sh * 60 + sm);
@@ -121,11 +142,13 @@ export class ReportsComponent implements OnInit {
 
     this.editShiftSaving.set(true);
     this.editShiftError.set('');
-    this.workLogSvc.update(s.id, { ...this.editShiftForm, notes: this.editShiftForm.notes || null }).subscribe({
+    this.workLogSvc.update(s.id, { ...this.editShiftForm, startTime, endTime, notes: this.editShiftForm.notes || null }).subscribe({
       next: () => {
         this.editShiftSaving.set(false);
         this.editShiftVisible.set(false);
         this.editingShift.set(null);
+        this.editShiftStartTimeDate = null;
+        this.editShiftEndTimeDate   = null;
         this.toast.success('Shift updated.');
         this.runReport();
       },

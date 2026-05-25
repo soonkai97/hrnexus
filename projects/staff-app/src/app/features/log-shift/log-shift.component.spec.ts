@@ -186,7 +186,7 @@ describe('LogShiftComponent', () => {
     it('calls start() with correct payload when form is valid', () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
-      component.liveForm.startTime  = '20:00';
+      component.liveFormStartTime   = new Date(2026, 4, 17, 20, 0); // 20:00
       component.liveForm.notes      = 'Late shift';
       component.startShift();
       expect(mockWorkLogSvc.start).toHaveBeenCalledWith({
@@ -340,8 +340,8 @@ describe('LogShiftComponent', () => {
       component.manualForm.roleName   = 'bartender';
       component.manualForm.locationId = 'loc-1';
       component.manualForm.workDate   = '2026-05-17';
-      component.manualForm.startTime  = '18:00';
-      component.manualForm.endTime    = '23:00';
+      component.manualFormStartTime   = new Date(2026, 4, 17, 18, 0); // 18:00
+      component.manualFormEndTime     = new Date(2026, 4, 17, 23, 0); // 23:00
     }
 
     it('sets formError when roleName is missing', () => {
@@ -368,14 +368,14 @@ describe('LogShiftComponent', () => {
 
     it('sets formError when startTime is missing', () => {
       fillManualForm();
-      component.manualForm.startTime = '';
+      component.manualFormStartTime = null;
       component.submitManual();
       expect(component.formError()).toBe('Please fill in all fields.');
     });
 
     it('sets formError when endTime is missing', () => {
       fillManualForm();
-      component.manualForm.endTime = '';
+      component.manualFormEndTime = null;
       component.submitManual();
       expect(component.formError()).toBe('Please fill in all fields.');
     });
@@ -405,8 +405,8 @@ describe('LogShiftComponent', () => {
 
     it('sets formError when start and end times are identical — zero-duration shifts are invalid', () => {
       fillManualForm();
-      component.manualForm.startTime = '08:00';
-      component.manualForm.endTime   = '08:00';
+      component.manualFormStartTime = new Date(2026, 4, 17, 8, 0);  // 08:00
+      component.manualFormEndTime   = new Date(2026, 4, 17, 8, 0);  // 08:00 — same
       component.submitManual();
       expect(component.formError()).toBe('End time must be different from start time.');
       expect(mockWorkLogSvc.createManual).not.toHaveBeenCalled();
@@ -414,8 +414,8 @@ describe('LogShiftComponent', () => {
 
     it('supports overnight shifts (startTime > endTime) without blocking submission', () => {
       fillManualForm();
-      component.manualForm.startTime = '22:00';
-      component.manualForm.endTime   = '06:00'; // next day — duration 8h, < 24h
+      component.manualFormStartTime = new Date(2026, 4, 17, 22, 0); // 22:00
+      component.manualFormEndTime   = new Date(2026, 4, 17, 6, 0);  // 06:00 — next day
       component.submitManual();
       expect(mockWorkLogSvc.createManual).toHaveBeenCalled();
     });
@@ -431,8 +431,8 @@ describe('LogShiftComponent', () => {
       component.submitManual();
       expect(component.manualForm.roleName).toBe('');
       expect(component.manualForm.locationId).toBe('');
-      expect(component.manualForm.startTime).toBe('');
-      expect(component.manualForm.endTime).toBe('');
+      expect(component.manualFormStartTime).toBeNull();
+      expect(component.manualFormEndTime).toBeNull();
     });
 
     it('reloads history after success so the new entry appears in the list', () => {

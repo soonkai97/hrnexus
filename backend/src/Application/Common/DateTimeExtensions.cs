@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Application.Common;
+﻿namespace HRNexus.Application.Common;
 
 /// <summary>
 /// Helpers to avoid DateTime Kind=Unspecified errors with PostgreSQL timestamptz columns.

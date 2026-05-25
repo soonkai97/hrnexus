@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Hosting;
-using NightclubWorkforce.Application.Common.Interfaces;
+﻿using Microsoft.AspNetCore.Hosting;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Infrastructure.Files;
+namespace HRNexus.Infrastructure.Files;
 
 public class LocalFileStorage(IWebHostEnvironment env) : IFileStorage
 {

@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Domain.Entities;
+﻿namespace HRNexus.Domain.Entities;
 
 /// <summary>Per-employee annual leave entitlement for a given calendar year (values in hours).</summary>
 public class LeaveEntitlement

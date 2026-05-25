@@ -1,6 +1,6 @@
-# Nightclub Workforce Management System
+# HRNexus — Workforce Management System
 
-Internal web application for managing nightclub staff — attendance, leave, earnings, and payout tracking.
+Internal web application for managing venue staff — attendance, leave, earnings, and payout tracking.
 
 **Stack:** Angular 21 (standalone components, signals) · ASP.NET Core 10 · Entity Framework Core · SignalR · PostgreSQL 17
 
@@ -9,7 +9,7 @@ Internal web application for managing nightclub staff — attendance, leave, ear
 ## Architecture
 
 ```
-nightclub-workforce/
+hrnexus/
 ├── backend/                         # ASP.NET Core 10 Web API
 │   └── src/
 │       ├── Api/Controllers/         # REST endpoints

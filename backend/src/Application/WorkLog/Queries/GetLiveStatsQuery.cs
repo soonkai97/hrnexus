@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.WorkLog.Queries;
+namespace HRNexus.Application.WorkLog.Queries;
 
 /// <summary>
 /// Lightweight query: returns the four numbers needed for the dashboard live-stats broadcast.

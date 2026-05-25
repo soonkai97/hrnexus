@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Staff.Commands;
+namespace HRNexus.Application.Staff.Commands;
 
 public record CreateRoleCommand(string Name, decimal HourlyRate = 0) : IRequest;
 

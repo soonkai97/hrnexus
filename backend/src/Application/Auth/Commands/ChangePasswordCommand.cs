@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Auth.Commands;
+namespace HRNexus.Application.Auth.Commands;
 
 public record ChangePasswordCommand(Guid EmployeeId, string CurrentPassword, string NewPassword) : IRequest;
 

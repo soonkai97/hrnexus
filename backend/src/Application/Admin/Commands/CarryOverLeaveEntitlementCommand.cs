@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Admin.Commands;
+namespace HRNexus.Application.Admin.Commands;
 
 /// <summary>
 /// Carries over unused annual leave hours from one year to the next for all active staff.

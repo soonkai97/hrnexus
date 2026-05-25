@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Domain.Common;
+﻿namespace HRNexus.Domain.Common;
 
 /// <summary>
 /// Marker interface. Entities that implement this have CreatedAt, CreatedBy,

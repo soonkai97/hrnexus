@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace NightclubWorkforce.Infrastructure.Migrations
+namespace HRNexus.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class AddAnnouncements : Migration

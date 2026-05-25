@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using E = NightclubWorkforce.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common.Interfaces;
+using E = HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Tests.Infrastructure;
+namespace HRNexus.Application.Tests.Infrastructure;
 
 /// <summary>
 /// Lightweight in-memory DbContext used only in unit tests.

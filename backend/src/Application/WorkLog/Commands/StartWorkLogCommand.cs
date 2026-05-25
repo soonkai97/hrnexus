@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Application.WorkLog.Queries;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.WorkLog.Queries;
 
-namespace NightclubWorkforce.Application.WorkLog.Commands;
+namespace HRNexus.Application.WorkLog.Commands;
 
 public record StartWorkLogCommand(Guid EmployeeId, string RoleName, string LocationId, string StartTime, string? Notes) : IRequest<Guid>;
 

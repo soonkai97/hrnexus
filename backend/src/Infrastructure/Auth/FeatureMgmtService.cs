@@ -1,12 +1,12 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Infrastructure.Auth;
+namespace HRNexus.Infrastructure.Auth;
 
 public class FeatureMgmtService(IConfiguration config, IPasswordHasher hasher) : IFeatureMgmtService
 {

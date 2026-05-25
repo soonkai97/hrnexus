@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY . .
-RUN dotnet publish src/Api/NightclubWorkforce.Api.csproj -c Release -o /publish
+RUN dotnet publish src/Api/HRNexus.Api.csproj -c Release -o /publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
@@ -9,4 +9,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 COPY --from=build /publish .
 RUN mkdir -p wwwroot/uploads/locations logs
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "NightclubWorkforce.Api.dll"]
+ENTRYPOINT ["dotnet", "HRNexus.Api.dll"]

@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Notifications.Queries;
+namespace HRNexus.Application.Notifications.Queries;
 
 public record GetNotificationsQuery(Guid EmployeeId, bool UnreadOnly = false)
     : IRequest<List<NotificationDto>>;

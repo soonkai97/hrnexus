@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Notifications.Commands;
+namespace HRNexus.Application.Notifications.Commands;
 
 /// <summary>Mark one or all notifications as read for an employee.</summary>
 public record MarkNotificationsReadCommand(

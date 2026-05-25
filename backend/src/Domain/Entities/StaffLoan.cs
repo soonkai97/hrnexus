@@ -1,6 +1,6 @@
-using NightclubWorkforce.Domain.Common;
+﻿using HRNexus.Domain.Common;
 
-namespace NightclubWorkforce.Domain.Entities;
+namespace HRNexus.Domain.Entities;
 
 /// <summary>
 /// Records a cash advance (借) or repayment (还) for a staff member.

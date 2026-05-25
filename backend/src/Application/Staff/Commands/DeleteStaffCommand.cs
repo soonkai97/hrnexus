@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Staff.Commands;
+namespace HRNexus.Application.Staff.Commands;
 
 public record DeleteStaffCommand(Guid Id) : IRequest;
 

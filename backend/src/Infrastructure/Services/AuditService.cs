@@ -1,7 +1,7 @@
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Entities;
+﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Infrastructure.Services;
+namespace HRNexus.Infrastructure.Services;
 
 public class AuditService(IAppDbContext db) : IAuditService
 {

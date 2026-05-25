@@ -1,7 +1,7 @@
-using System.Text.Json;
-using NightclubWorkforce.Application.Common;
+﻿using System.Text.Json;
+using HRNexus.Application.Common;
 
-namespace NightclubWorkforce.Api.Middleware;
+namespace HRNexus.Api.Middleware;
 
 public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
 {

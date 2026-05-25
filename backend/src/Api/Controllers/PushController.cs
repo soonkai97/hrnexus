@@ -1,11 +1,11 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using NightclubWorkforce.Application.Push;
+using HRNexus.Application.Push;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/push")]

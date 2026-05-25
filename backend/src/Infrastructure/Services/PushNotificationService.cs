@@ -1,12 +1,12 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 using System.Text.Json;
 using WebPush;
-using DomainPushSub = NightclubWorkforce.Domain.Entities.PushSubscription;
+using DomainPushSub = HRNexus.Domain.Entities.PushSubscription;
 
-namespace NightclubWorkforce.Infrastructure.Services;
+namespace HRNexus.Infrastructure.Services;
 
 public class PushNotificationService(
     IAppDbContext db,

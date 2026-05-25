@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Domain.Entities;
+﻿namespace HRNexus.Domain.Entities;
 
 /// <summary>In-app message between staff and managers.</summary>
 public class StaffMessage

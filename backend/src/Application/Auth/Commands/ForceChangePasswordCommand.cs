@@ -1,7 +1,7 @@
-using MediatR;
-using NightclubWorkforce.Application.Common.Interfaces;
+﻿using MediatR;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Auth.Commands;
+namespace HRNexus.Application.Auth.Commands;
 
 /// <summary>
 /// Sets a new password without requiring the old one.

@@ -1,11 +1,11 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NightclubWorkforce.Application.FeatureFlags.Commands;
-using NightclubWorkforce.Application.FeatureFlags.Queries;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.FeatureFlags.Commands;
+using HRNexus.Application.FeatureFlags.Queries;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/feature-flags")]

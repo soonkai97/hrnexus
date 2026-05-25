@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Application.Common.Interfaces;
+﻿namespace HRNexus.Application.Common.Interfaces;
 
 public interface IPushNotificationService
 {

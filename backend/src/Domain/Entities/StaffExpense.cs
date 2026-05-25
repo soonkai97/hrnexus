@@ -1,6 +1,6 @@
-using NightclubWorkforce.Domain.Common;
+﻿using HRNexus.Domain.Common;
 
-namespace NightclubWorkforce.Domain.Entities;
+namespace HRNexus.Domain.Entities;
 
 /// <summary>
 /// Monthly deduction applied to a staff member's payout (uniform, transport, fines, etc.).

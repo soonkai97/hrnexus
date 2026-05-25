@@ -1,15 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Common.Interfaces;
+namespace HRNexus.Application.Common.Interfaces;
 
 public interface IAppDbContext
 {
-    DbSet<NightclubWorkforce.Domain.Entities.Staff>    Staff      { get; }
-    DbSet<NightclubWorkforce.Domain.Entities.StaffRole> StaffRoles { get; }
+    DbSet<HRNexus.Domain.Entities.Staff>    Staff      { get; }
+    DbSet<HRNexus.Domain.Entities.StaffRole> StaffRoles { get; }
     DbSet<Location>         Locations         { get; }
     DbSet<Role>             Roles             { get; }
-    DbSet<NightclubWorkforce.Domain.Entities.WorkLog> WorkLogs { get; }
+    DbSet<HRNexus.Domain.Entities.WorkLog> WorkLogs { get; }
     DbSet<LeaveRequest>     LeaveRequests     { get; }
     DbSet<LeaveEntitlement> LeaveEntitlements { get; }
     DbSet<Notification>       Notifications       { get; }

@@ -1,14 +1,14 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Application.WorkLog.Commands;
-using NightclubWorkforce.Application.WorkLog.Queries;
-using NightclubWorkforce.Domain.Constants;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.WorkLog.Commands;
+using HRNexus.Application.WorkLog.Queries;
+using HRNexus.Domain.Constants;
 using System.Security.Claims;
-using NightclubWorkforce.Api.Filters;
+using HRNexus.Api.Filters;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/worklogs")]

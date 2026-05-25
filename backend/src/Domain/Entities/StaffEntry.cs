@@ -1,6 +1,6 @@
-using NightclubWorkforce.Domain.Common;
+﻿using HRNexus.Domain.Common;
 
-namespace NightclubWorkforce.Domain.Entities;
+namespace HRNexus.Domain.Entities;
 
 /// <summary>
 /// Records a single night's work for a staff member — clock hours, table runs, overnight booking, etc.

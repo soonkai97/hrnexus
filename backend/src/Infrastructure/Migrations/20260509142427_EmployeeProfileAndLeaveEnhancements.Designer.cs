@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NightclubWorkforce.Infrastructure.Persistence;
+using HRNexus.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace NightclubWorkforce.Infrastructure.Migrations
+namespace HRNexus.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260509142427_EmployeeProfileAndLeaveEnhancements")]
@@ -25,7 +25,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.ClockLog", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.ClockLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,7 +80,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("ClockLogs");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.Employee", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.Employee", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -153,7 +153,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.EmployeeRole", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.EmployeeRole", b =>
                 {
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid");
@@ -167,7 +167,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("EmployeeRoles", (string)null);
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.LeaveEntitlement", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.LeaveEntitlement", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -193,7 +193,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("LeaveEntitlements");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.LeaveRequest", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.LeaveRequest", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -241,7 +241,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("LeaveRequests");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.Location", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.Location", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(50)
@@ -264,7 +264,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("Locations");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.Notification", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -307,7 +307,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.QrCodeRecord", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.QrCodeRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -345,7 +345,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("QrCodes");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.Role", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.Role", b =>
                 {
                     b.Property<string>("Name")
                         .HasMaxLength(50)
@@ -362,7 +362,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.RosterEntry", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.RosterEntry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -415,9 +415,9 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("RosterEntries");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.ClockLog", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.ClockLog", b =>
                 {
-                    b.HasOne("NightclubWorkforce.Domain.Entities.Employee", "Employee")
+                    b.HasOne("HRNexus.Domain.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -426,18 +426,18 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.EmployeeRole", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.EmployeeRole", b =>
                 {
-                    b.HasOne("NightclubWorkforce.Domain.Entities.Employee", null)
+                    b.HasOne("HRNexus.Domain.Entities.Employee", null)
                         .WithMany("RoleEntries")
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.LeaveEntitlement", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.LeaveEntitlement", b =>
                 {
-                    b.HasOne("NightclubWorkforce.Domain.Entities.Employee", "Employee")
+                    b.HasOne("HRNexus.Domain.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -446,9 +446,9 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.LeaveRequest", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.LeaveRequest", b =>
                 {
-                    b.HasOne("NightclubWorkforce.Domain.Entities.Employee", "Employee")
+                    b.HasOne("HRNexus.Domain.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -457,9 +457,9 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.Notification", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.Notification", b =>
                 {
-                    b.HasOne("NightclubWorkforce.Domain.Entities.Employee", "Employee")
+                    b.HasOne("HRNexus.Domain.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -468,9 +468,9 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.RosterEntry", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.RosterEntry", b =>
                 {
-                    b.HasOne("NightclubWorkforce.Domain.Entities.Employee", "Employee")
+                    b.HasOne("HRNexus.Domain.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -479,7 +479,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.Employee", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.Employee", b =>
                 {
                     b.Navigation("RoleEntries");
                 });

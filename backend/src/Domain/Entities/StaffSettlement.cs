@@ -1,6 +1,6 @@
-using NightclubWorkforce.Domain.Common;
+﻿using HRNexus.Domain.Common;
 
-namespace NightclubWorkforce.Domain.Entities;
+namespace HRNexus.Domain.Entities;
 
 /// <summary>
 /// Admin-managed settlement status (e.g. SETTLED, PENDING) with PrimeNG severity for UI colouring.

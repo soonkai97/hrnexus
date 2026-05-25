@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Domain.Constants;
+﻿namespace HRNexus.Domain.Constants;
 
 /// <summary>
 /// Central registry of magic strings and numeric limits used across the application.

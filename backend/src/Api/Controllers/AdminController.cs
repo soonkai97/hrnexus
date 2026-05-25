@@ -1,14 +1,14 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NightclubWorkforce.Application.Admin.Commands;
-using NightclubWorkforce.Application.Admin.Queries;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Domain.Constants;
+using HRNexus.Application.Admin.Commands;
+using HRNexus.Application.Admin.Queries;
+using HRNexus.Application.Common;
+using HRNexus.Domain.Constants;
 using System.Security.Claims;
-using NightclubWorkforce.Api.Filters;
+using HRNexus.Api.Filters;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/admin")]

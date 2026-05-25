@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Announcements.Queries;
+namespace HRNexus.Application.Announcements.Queries;
 
 /// <summary>Admin query — returns a paged list of announcements with read-receipt counts.</summary>
 public record GetAllAnnouncementsQuery(

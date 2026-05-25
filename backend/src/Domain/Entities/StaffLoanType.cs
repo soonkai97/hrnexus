@@ -1,6 +1,6 @@
-using NightclubWorkforce.Domain.Common;
+﻿using HRNexus.Domain.Common;
 
-namespace NightclubWorkforce.Domain.Entities;
+namespace HRNexus.Domain.Entities;
 
 /// <summary>
 /// Configurable loan type (e.g. ADVANCE, REPAYMENT, PETTY_CASH).

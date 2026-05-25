@@ -1,7 +1,7 @@
-using MediatR;
-using NightclubWorkforce.Application.Common.Interfaces;
+﻿using MediatR;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Announcements.Commands;
+namespace HRNexus.Application.Announcements.Commands;
 
 /// <summary>Permanently delete an announcement and its read receipts.</summary>
 public record DeleteAnnouncementCommand(Guid Id) : IRequest;

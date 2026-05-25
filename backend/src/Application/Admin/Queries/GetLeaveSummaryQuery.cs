@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Admin.Queries;
+namespace HRNexus.Application.Admin.Queries;
 
 public record GetLeaveSummaryQuery(int? Year) : IRequest<List<LeaveSummaryDto>>;
 

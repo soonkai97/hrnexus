@@ -14,7 +14,7 @@ fi
 BACKUP_DIR="/opt/hrnexus/backups"
 DB_CONTAINER="hrnexus-postgres-1"
 DB_USER="${POSTGRES_USER:-ncuser}"
-DB_NAME="${POSTGRES_DB:-nightclub_workforce}"
+DB_NAME="${POSTGRES_DB:-hr_nexus}"
 KEEP_DAYS=7
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/hrnexus_${TIMESTAMP}.sql.gz"

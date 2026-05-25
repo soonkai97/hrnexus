@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Domain.Entities;
+﻿namespace HRNexus.Domain.Entities;
 
 public class FeatureFlag
 {

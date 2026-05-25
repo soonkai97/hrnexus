@@ -781,11 +781,11 @@ dotnet test                                         # run everything
 ### Boilerplate
 ```csharp
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Infrastructure.Persistence;
+using HRNexus.Infrastructure.Persistence;
 using Xunit;
-using E = NightclubWorkforce.Domain.Entities;
+using E = HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 public class MyFeatureTests
 {

@@ -1,11 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Auth.Commands;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Application.Tests.Infrastructure;
-using E = NightclubWorkforce.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Auth.Commands;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Tests.Infrastructure;
+using E = HRNexus.Domain.Entities;
 using Xunit;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Handler-level tests for Auth commands — Login, ChangePassword, ForgotPassword,

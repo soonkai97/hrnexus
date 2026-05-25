@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Api.Filters;
+﻿namespace HRNexus.Api.Filters;
 
 /// <summary>
 /// Marks a controller or action as requiring one or more feature flags to be enabled.

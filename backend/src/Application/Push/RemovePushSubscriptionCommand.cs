@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Push;
+namespace HRNexus.Application.Push;
 
 public record RemovePushSubscriptionCommand(
     Guid   EmployeeId,

@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Admin.Queries;
+namespace HRNexus.Application.Admin.Queries;
 
 /// <summary>
 /// Returns active staff who have taken sick leave 3 or more times in the rolling 90-day window.

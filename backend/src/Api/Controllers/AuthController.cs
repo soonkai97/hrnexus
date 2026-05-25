@@ -1,13 +1,13 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Auth.Commands;
-using NightclubWorkforce.Application.Staff.Commands;
-using NightclubWorkforce.Application.Staff.Queries;
+using HRNexus.Application.Auth.Commands;
+using HRNexus.Application.Staff.Commands;
+using HRNexus.Application.Staff.Queries;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
@@ -81,7 +81,7 @@ public class AuthController(IMediator mediator) : ControllerBase
     [HttpGet("language")]
     [Authorize]
     public async Task<IActionResult> GetLanguage(
-        [FromServices] NightclubWorkforce.Application.Common.Interfaces.IAppDbContext db,
+        [FromServices] HRNexus.Application.Common.Interfaces.IAppDbContext db,
         CancellationToken ct)
     {
         var employeeId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Staff.Queries;
+namespace HRNexus.Application.Staff.Queries;
 
 public record GetStaffListQuery(
     string? Search       = null,

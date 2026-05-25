@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Staff.Queries;
+namespace HRNexus.Application.Staff.Queries;
 
 public record GetRolesQuery : IRequest<List<RoleDto>>;
 

@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Admin.Queries;
+namespace HRNexus.Application.Admin.Queries;
 
 /// <summary>Returns CSV-ready payroll rows for all active employees in a given month.</summary>
 public record GetPayrollExportQuery(int Year, int Month) : IRequest<PayrollExportResult>;

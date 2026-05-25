@@ -317,29 +317,40 @@ input[type="time"] {
   min-width: 0 !important;
 }
 
-// DatePicker with showIcon (iconDisplay='button', the default):
-// The text input must have no right border-radius to connect visually with the
-// calendar trigger button (.p-datepicker-dropdown).
-.p-datepicker:has(.p-datepicker-dropdown) .p-datepicker-input {
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-// The calendar trigger button sits OUTSIDE the input (unlike p-select-dropdown
-// which is inside the container). Give it matching border on 3 sides, remove
-// the left border to avoid a double-line seam with the input, and remove the
-// left border-radius so it connects flush with the input's right edge.
-.p-datepicker:has(.p-datepicker-dropdown) .p-datepicker-dropdown {
-  border: 1px solid $border-subtle !important;
-  border-left: none !important;
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-  background: $bg-raised !important;
-  padding: 0 0.7rem !important;
-  outline: none !important;
-  box-shadow: none !important;
-  color: $text-muted !important;
-  cursor: pointer !important;
-  &:hover { background: rgba(168,85,247,0.07) !important; }
+// DatePicker: transparent full-field button overlay.
+// [showOnFocus]="false" is set on every datepicker to stop the panel from
+// re-opening when hideOverlay() programmatically focuses the input after an
+// outside-click close. The side-effect: onInputClick() no longer opens the
+// panel, so only the icon button would be clickable.
+// Fix: position the button absolutely over the entire field with a transparent
+// background. Clicking anywhere on the field (text area or icon) hits the
+// button and toggles the overlay. The icon floats on the right inside the
+// transparent overlay; input text shows through underneath.
+.p-datepicker:has(.p-datepicker-dropdown) {
+  position: relative !important;
+
+  .p-datepicker-input {
+    padding-right: 2.5rem !important; // room for the floating icon
+    cursor: pointer !important;
+  }
+
+  .p-datepicker-dropdown {
+    position: absolute !important;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding: 0 0.7rem !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: $text-muted !important;
+    cursor: pointer !important;
+    &:enabled:hover { color: $text-primary !important; }
+  }
 }
 
 // Password with toggleMask: the input must have no right border-radius so the

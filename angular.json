@@ -130,6 +130,7 @@
                 }
               ],
               "outputHashing": "all",
+              "serviceWorker": "projects/admin-app/ngsw-config.json",
               "optimization": {
                 "scripts": true,
                 "styles": { "minify": true, "inlineCritical": true },

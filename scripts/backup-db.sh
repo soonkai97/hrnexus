@@ -6,7 +6,7 @@
 set -euo pipefail
 
 BACKUP_DIR="/opt/hrnexus/backups"
-DB_CONTAINER="nightclub-workforce-postgres-1"
+DB_CONTAINER="hrnexus-postgres-1"
 DB_USER="${POSTGRES_USER:-ncuser}"
 DB_NAME="${POSTGRES_DB:-nightclub_workforce}"
 KEEP_DAYS=7

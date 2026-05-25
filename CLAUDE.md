@@ -893,14 +893,14 @@ Set-Location backend
 dotnet test
 ```
 
-### Baseline — as of 2026-05-22 (0 gaps, all green)
+### Baseline — as of 2026-05-25 (0 gaps, all green)
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 25 | 360 | ✅ |
-| admin-app components | 22 | 685 | ✅ |
-| staff-app components | 12 | 245 | ✅ |
-| backend Application.Tests | — | 401 | ✅ |
+| shared-lib (services + stores + guards + auth) | 25 | 347 | ✅ |
+| admin-app components | 18 | 692 | ✅ |
+| staff-app components | 12 | 274 | ✅ |
+| backend Application.Tests | — | 432 | ✅ |
 
 **Wrapper-component rule**: `change-password-page.component.spec.ts` in both apps intentionally has 1 smoke test — the component is a pure template wrapper around shared-lib's `ChangePasswordComponent`; all logic lives in shared-lib and is tested there.
 

@@ -14,6 +14,10 @@
 #   JWT_SECRET=<random-long-string-min-32-chars>
 
 services:
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"   # localhost-only — accessible via SSH tunnel, not public
+
   web:
     ports:
       - "80:80"       # admin HTTP  → redirects to HTTPS

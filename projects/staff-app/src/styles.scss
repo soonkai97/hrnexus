@@ -308,8 +308,13 @@ input[type="time"] {
 // border-radius so compound inputs connect visually to their adjacent controls.
 
 // Cap the datepicker panel width so it doesn't stretch full-page-width on mobile.
+// min-width: 0 overrides PrimeNG's inline min-width (set equal to the input field
+// width). Without this, the invisible extra panel width absorbs clicks that appear
+// "outside" the calendar visually but hit the DOM panel — preventing click-outside
+// from closing the popup.
 .p-datepicker-panel {
   max-width: 320px !important;
+  min-width: 0 !important;
 }
 
 // DatePicker with showIcon (iconDisplay='button', the default):

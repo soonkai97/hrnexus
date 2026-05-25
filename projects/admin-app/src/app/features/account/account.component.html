@@ -52,6 +52,17 @@
       </a>
     </p-card>
 
+    <!-- Push Notifications -->
+    <p-card styleClass="action-card">
+      <h3 class="card-heading"><i class="pi pi-bell"></i> {{ 'account.pushTitle' | translate }}</h3>
+      <p class="card-sub">{{ 'account.pushDesc' | translate }}</p>
+      <p-button
+        [label]="pushEnabled() ? ('account.disableNotif' | translate) : ('account.enableNotif' | translate)"
+        [severity]="pushEnabled() ? 'secondary' : 'primary'"
+        [loading]="pushLoading()"
+        (click)="togglePush()" />
+    </p-card>
+
     <!-- Language -->
     <p-card styleClass="lang-card">
       <h3 class="card-heading"><i class="pi pi-globe"></i> {{ 'account.language' | translate }}</h3>

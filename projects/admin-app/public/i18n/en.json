@@ -570,6 +570,10 @@
     "changePasswordTitle": "Change Password",
     "language":         "Language",
     "signOut":          "Sign Out",
-    "back":             "Back"
+    "back":             "Back",
+    "pushTitle":        "Push Notifications",
+    "pushDesc":         "Receive alerts when staff have open shifts or new leave requests, even when this tab is in the background.",
+    "enableNotif":      "Enable Notifications",
+    "disableNotif":     "Disable Notifications"
   }
 }

@@ -25,7 +25,7 @@ services:
 
   api:
     environment:
-      Cors__AllowedOrigins__0: "http://${UAT_HOST}"           # admin HTTP  (redirect only)
-      Cors__AllowedOrigins__1: "http://${UAT_HOST}:8081"      # staff HTTP  (redirect only)
-      Cors__AllowedOrigins__2: "https://${UAT_HOST}"          # admin HTTPS
-      Cors__AllowedOrigins__3: "https://${UAT_HOST}:8443"     # staff HTTPS
+      Cors__AllowedOrigins__0: "https://${UAT_HOST}"          # admin HTTPS
+      Cors__AllowedOrigins__1: "https://${UAT_HOST}:8443"    # staff HTTPS
+      Cors__AllowedOrigins__2: ""
+      Cors__AllowedOrigins__3: ""

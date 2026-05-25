@@ -217,15 +217,18 @@ table { min-width: 480px; }
 // The global table/th/td rules above are scoped for admin data tables.
 // PrimeNG's datepicker calendar is also rendered as a <table> inside
 // .p-datepicker-panel and must NOT inherit these data-table styles or the
-// calendar grid becomes 480 px wide, cells get huge padding, and rows get
-// horizontal dividers — making the popup look completely broken.
+// calendar grid becomes 480 px wide, and rows get horizontal dividers —
+// making the popup look completely broken.
+// NOTE: Do NOT override th/td padding here — PrimeNG uses class selectors
+// (.p-datepicker-weekday-cell / .p-datepicker-day-cell) that already win
+// over global th/td via higher specificity. Adding padding:0 !important
+// would zero out PrimeNG's own cell padding, making the calendar too tight.
 .p-datepicker-panel {
   max-width: 320px !important;   // prevent the calendar from stretching full-page-width
   min-width: 0 !important;       // override PrimeNG inline min-width (which matches input width)
   table    { min-width: 0 !important; width: auto !important; }
   thead tr { background: transparent !important; }
   th {
-    padding: 0 !important;
     text-align: center !important;
     text-transform: none !important;
     letter-spacing: normal !important;
@@ -235,7 +238,6 @@ table { min-width: 480px; }
     border-bottom: none !important;
   }
   td {
-    padding: 0 !important;
     border-bottom: none !important;
     font-size: inherit !important;
     color: inherit !important;

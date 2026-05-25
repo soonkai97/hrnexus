@@ -220,6 +220,7 @@ table { min-width: 480px; }
 // calendar grid becomes 480 px wide, cells get huge padding, and rows get
 // horizontal dividers — making the popup look completely broken.
 .p-datepicker-panel {
+  max-width: 320px !important;   // prevent the calendar from stretching full-page-width
   table    { min-width: 0 !important; width: auto !important; }
   thead tr { background: transparent !important; }
   th {

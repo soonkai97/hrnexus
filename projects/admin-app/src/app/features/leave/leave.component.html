@@ -144,7 +144,7 @@
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'leave.startTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="startTimeDate" [timeOnly]="true" hourFormat="12" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+            <input pInputText type="time" [(ngModel)]="form.startTime" class="w-full" />
           </div>
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
@@ -153,7 +153,7 @@
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'leave.endTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="endTimeDate" [timeOnly]="true" hourFormat="12" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+            <input pInputText type="time" [(ngModel)]="form.endTime" class="w-full" />
           </div>
           <div class="col-12 col-md-6 field">
             @if (calcHours > 0) {

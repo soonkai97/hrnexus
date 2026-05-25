@@ -1,7 +1,9 @@
 ﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'roles.title' | translate }}</h1>
-    <p-button icon="pi pi-plus" [label]="'roles.addNewRole' | translate" severity="primary" (click)="openAdd()" />
+    @if (isAdmin()) {
+      <p-button icon="pi pi-plus" [label]="'roles.addNewRole' | translate" severity="primary" (click)="openAdd()" />
+    }
   </div>
 
   <!-- Add new role form -->
@@ -50,8 +52,8 @@
           </td>
           <td>
             <span class="p-column-title">Hourly Rate (RM)</span>
-            @if (editingRateName() === role.name) {
-              <!-- Inline rate editor -->
+            @if (isAdmin() && editingRateName() === role.name) {
+              <!-- Inline rate editor (admin only) -->
               <div class="d-flex gap-1 align-items-center">
                 <p-inputnumber [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
                                [min]="0" [step]="0.50" styleClass="rate-input"
@@ -62,8 +64,10 @@
             } @else {
               <span class="d-inline-flex align-items-center gap-2">
                 RM {{ role.hourlyRate | number:'1.2-2' }}/hr
-                <p-button icon="pi pi-pencil" label="Edit" [text]="true" severity="secondary" styleClass="btn-sm"
-                          (click)="startEditRate(role.name, role.hourlyRate)" />
+                @if (isAdmin()) {
+                  <p-button icon="pi pi-pencil" label="Edit" [text]="true" severity="secondary" styleClass="btn-sm"
+                            (click)="startEditRate(role.name, role.hourlyRate)" />
+                }
               </span>
             }
           </td>
@@ -77,7 +81,7 @@
           </td>
           <td>
             <span class="p-column-title">{{ 'roles.actionsCol' | translate }}</span>
-            @if (!role.isSystem) {
+            @if (isAdmin() && !role.isSystem) {
               <p-button icon="pi pi-trash" [label]="'roles.deleteRole' | translate" [text]="true" severity="danger"
                         [loading]="deletingRole() === role.name" [disabled]="!!deletingRole()"
                         (click)="deleteRole(role.name)" />

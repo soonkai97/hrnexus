@@ -78,7 +78,6 @@
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
-            [readonlyInput]="true"
             [minDate]="minStartDate"
             styleClass="w-full"
             appendTo="body"
@@ -88,7 +87,7 @@
           <label><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
           <p-datepicker [(ngModel)]="form.startTime"
             [timeOnly]="true"
-            [showButtonBar]="true"
+            [hourFormat]="'12'"
             [readonlyInput]="true"
             placeholder="Select time"
             appendTo="body"
@@ -100,7 +99,6 @@
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
-            [readonlyInput]="true"
             [minDate]="minEndDate"
             styleClass="w-full"
             appendTo="body" />
@@ -109,7 +107,7 @@
           <label><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
           <p-datepicker [(ngModel)]="form.endTime"
             [timeOnly]="true"
-            [showButtonBar]="true"
+            [hourFormat]="'12'"
             [readonlyInput]="true"
             placeholder="Select time"
             appendTo="body"

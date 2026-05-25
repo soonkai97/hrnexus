@@ -14,7 +14,7 @@ if [ -z "${1:-}" ]; then
 fi
 
 BACKUP_FILE="$1"
-DB_CONTAINER="nightclub-workforce-postgres-1"
+DB_CONTAINER="hrnexus-postgres-1"
 DB_USER="${POSTGRES_USER:-ncuser}"
 DB_NAME="${POSTGRES_DB:-nightclub_workforce}"
 

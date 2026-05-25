@@ -226,7 +226,7 @@ table { min-width: 480px; }
 .p-datepicker-panel {
   max-width: 320px !important;   // prevent the calendar from stretching full-page-width
   min-width: 0 !important;       // override PrimeNG inline min-width (which matches input width)
-  table    { min-width: 0 !important; width: auto !important; }
+  table    { min-width: 0 !important; }
   thead tr { background: transparent !important; }
   th {
     text-align: center !important;

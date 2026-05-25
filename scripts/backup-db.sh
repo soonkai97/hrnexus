@@ -5,6 +5,12 @@
 
 set -euo pipefail
 
+# Load credentials from .env
+ENV_FILE="/root/hrnexus/.env"
+if [ -f "$ENV_FILE" ]; then
+  set -a; source "$ENV_FILE"; set +a
+fi
+
 BACKUP_DIR="/opt/hrnexus/backups"
 DB_CONTAINER="hrnexus-postgres-1"
 DB_USER="${POSTGRES_USER:-ncuser}"

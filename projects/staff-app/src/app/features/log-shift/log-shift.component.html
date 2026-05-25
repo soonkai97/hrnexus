@@ -31,6 +31,7 @@
           <div class="end-panel">
             <label class="field-label">{{ 'logShift.endTime' | translate }}</label>
             <p-datepicker [(ngModel)]="endTimeDate" [timeOnly]="true" [hourFormat]="'12'"
+              [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
             <div class="d-flex gap-2 mt-2">
               <p-button [label]="'logShift.endShift' | translate" severity="primary" [loading]="submitting()" (click)="confirmEnd()" />
@@ -80,6 +81,7 @@
           <div class="field">
             <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
             <p-datepicker [(ngModel)]="liveFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
+              [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
           </div>
           <div class="field">
@@ -131,11 +133,13 @@
             <div class="col-6 field">
               <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
               <p-datepicker [(ngModel)]="manualFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
+                [showIcon]="true" icon="pi pi-clock"
                 [readonlyInput]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
             </div>
             <div class="col-6 field">
               <label><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
               <p-datepicker [(ngModel)]="manualFormEndTime" [timeOnly]="true" [hourFormat]="'12'"
+                [showIcon]="true" icon="pi pi-clock"
                 [readonlyInput]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
             </div>
           </div>
@@ -224,11 +228,13 @@
                   <div class="col-6 field">
                     <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
                     <p-datepicker [(ngModel)]="editFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
+                      [showIcon]="true" icon="pi pi-clock"
                       [readonlyInput]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
                   </div>
                   <div class="col-6 field">
                     <label><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
                     <p-datepicker [(ngModel)]="editFormEndTime" [timeOnly]="true" [hourFormat]="'12'"
+                      [showIcon]="true" icon="pi pi-clock"
                       [readonlyInput]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
                   </div>
                   <div class="col-12 field">

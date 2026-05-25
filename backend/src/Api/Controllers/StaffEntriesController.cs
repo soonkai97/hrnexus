@@ -1,11 +1,11 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Constants;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/staff-entries")]

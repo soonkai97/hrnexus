@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -15,7 +15,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Application\NightclubWorkforce.Application.csproj" />
-    <ProjectReference Include="..\..\src\Domain\NightclubWorkforce.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Application\HRNexus.Application.csproj" />
+    <ProjectReference Include="..\..\src\Domain\HRNexus.Domain.csproj" />
   </ItemGroup>
 </Project>

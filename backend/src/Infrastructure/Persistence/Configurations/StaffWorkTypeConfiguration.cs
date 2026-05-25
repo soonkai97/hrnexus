@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Infrastructure.Persistence.Configurations;
+namespace HRNexus.Infrastructure.Persistence.Configurations;
 
 public class StaffWorkTypeConfiguration : IEntityTypeConfiguration<StaffWorkType>
 {

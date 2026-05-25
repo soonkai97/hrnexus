@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Messaging.Queries;
+namespace HRNexus.Application.Messaging.Queries;
 
 public record MessageDto(Guid Id, Guid SenderId, string SenderName, bool SenderIsAdmin, Guid? RecipientId, string? RecipientName, string Content, DateTime SentAt, DateTime? ReadAt);
 
@@ -11,7 +11,7 @@ public class GetInboxHandler(IAppDbContext db) : IRequestHandler<GetInboxQuery, 
 {
     public async Task<List<MessageDto>> Handle(GetInboxQuery req, CancellationToken ct)
     {
-        IQueryable<NightclubWorkforce.Domain.Entities.StaffMessage> q;
+        IQueryable<HRNexus.Domain.Entities.StaffMessage> q;
         if (req.IsAdmin)
             // Admins see: messages sent TO them (recipientId = userId) OR messages from staff with no specific recipient (recipientId = null, senderIsAdmin = false)
             q = db.StaffMessages.Where(m => m.RecipientId == req.UserId || (m.RecipientId == null && !m.SenderIsAdmin));

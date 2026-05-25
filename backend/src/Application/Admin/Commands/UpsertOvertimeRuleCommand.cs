@@ -1,8 +1,8 @@
-using MediatR;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Entities;
+﻿using MediatR;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Admin.Commands;
+namespace HRNexus.Application.Admin.Commands;
 
 public record UpsertOvertimeRuleCommand(
     Guid?   Id,

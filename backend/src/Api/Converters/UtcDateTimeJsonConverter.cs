@@ -1,7 +1,7 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace NightclubWorkforce.Api.Converters;
+namespace HRNexus.Api.Converters;
 
 /// <summary>
 /// Forces every DateTime read from a JSON body to Kind=Utc so that Npgsql can write it

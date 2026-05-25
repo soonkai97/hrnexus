@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Announcements.Queries;
-using NightclubWorkforce.Application.Tests.Infrastructure;
-using NightclubWorkforce.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Announcements.Queries;
+using HRNexus.Application.Tests.Infrastructure;
+using HRNexus.Domain.Entities;
 using Xunit;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Tests for GetAllAnnouncementsQueryHandler — verifies pagination and read-receipt counting.

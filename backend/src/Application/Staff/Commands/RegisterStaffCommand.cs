@@ -1,10 +1,10 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Staff.Commands;
+namespace HRNexus.Application.Staff.Commands;
 
 public record RegisterStaffCommand(
     string        StaffId,
@@ -49,7 +49,7 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
         if (emailTaken)
             throw new InvalidOperationException($"Email '{req.Email}' is already registered.");
 
-        var employee = NightclubWorkforce.Domain.Entities.Staff.Create(normalizedId, req.FirstName, req.LastName, req.Email,
+        var employee = HRNexus.Domain.Entities.Staff.Create(normalizedId, req.FirstName, req.LastName, req.Email,
             hasher.Hash(req.Password), req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),
             req.IcNo, req.PassportNo, req.DateOfBirth);

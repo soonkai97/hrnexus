@@ -1,12 +1,12 @@
-using Hangfire;
+﻿using Hangfire;
 using Hangfire.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Constants;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Infrastructure.Jobs;
+namespace HRNexus.Infrastructure.Jobs;
 
 public class ShiftJobs(
     IAppDbContext            db,

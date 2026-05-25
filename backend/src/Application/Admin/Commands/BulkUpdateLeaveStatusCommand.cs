@@ -1,10 +1,10 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Constants;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Admin.Commands;
+namespace HRNexus.Application.Admin.Commands;
 
 /// <summary>
 /// Bulk-update the status of a list of leave requests (e.g. approve or reject many at once).

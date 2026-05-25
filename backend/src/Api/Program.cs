@@ -1,15 +1,15 @@
-using Hangfire;
+﻿using Hangfire;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using NightclubWorkforce.Api.Converters;
-using NightclubWorkforce.Api.Filters;
-using NightclubWorkforce.Api.Middleware;
-using NightclubWorkforce.Api.ModelBinders;
-using NightclubWorkforce.Application.Auth.Commands;
-using NightclubWorkforce.Infrastructure;
-using NightclubWorkforce.Infrastructure.Hubs;
-using NightclubWorkforce.Infrastructure.Persistence;
+using HRNexus.Api.Converters;
+using HRNexus.Api.Filters;
+using HRNexus.Api.Middleware;
+using HRNexus.Api.ModelBinders;
+using HRNexus.Application.Auth.Commands;
+using HRNexus.Infrastructure;
+using HRNexus.Infrastructure.Hubs;
+using HRNexus.Infrastructure.Persistence;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -17,7 +17,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .WriteTo.File("logs/nightclub-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+    .WriteTo.File("logs/hrnexus-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,7 +40,7 @@ builder.Services.AddControllers(o =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "NightclubWorkforce API", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "HRNexus API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new()
     {
         Name   = "Authorization",
@@ -74,11 +74,11 @@ Directory.CreateDirectory(Path.Combine(app.Environment.WebRootPath ?? "wwwroot",
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var db     = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var hasher = scope.ServiceProvider.GetRequiredService<NightclubWorkforce.Application.Common.Interfaces.IPasswordHasher>();
+    var hasher = scope.ServiceProvider.GetRequiredService<HRNexus.Application.Common.Interfaces.IPasswordHasher>();
     await db.Database.MigrateAsync();
-    await NightclubWorkforce.Infrastructure.Persistence.SeedData.SeedDemoUsersAsync(db, hasher);
+    await HRNexus.Infrastructure.Persistence.SeedData.SeedDemoUsersAsync(db, hasher);
     // BulkSeedData disabled — dev/demo bulk records removed; real data only
-    // await NightclubWorkforce.Infrastructure.Persistence.BulkSeedData.SeedAsync(db, hasher);
+    // await HRNexus.Infrastructure.Persistence.BulkSeedData.SeedAsync(db, hasher);
 }
 
 if (app.Environment.IsDevelopment())

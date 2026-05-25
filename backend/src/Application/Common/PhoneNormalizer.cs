@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Application.Common;
+﻿namespace HRNexus.Application.Common;
 
 /// <summary>
 /// Converts Malaysian phone numbers to E.164 format (+601X...) so they are

@@ -1,6 +1,6 @@
-using NightclubWorkforce.Domain.Constants;
+﻿using HRNexus.Domain.Constants;
 
-namespace NightclubWorkforce.Domain.Entities;
+namespace HRNexus.Domain.Entities;
 
 public class LeaveRequest
 {

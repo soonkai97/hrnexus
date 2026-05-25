@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,16 +7,16 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Infrastructure.Auth;
-using NightclubWorkforce.Infrastructure.Hubs;
-using NightclubWorkforce.Infrastructure.Jobs;
-using NightclubWorkforce.Infrastructure.Persistence;
-using NightclubWorkforce.Infrastructure.Files;
-using NightclubWorkforce.Infrastructure.Services;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Infrastructure.Auth;
+using HRNexus.Infrastructure.Hubs;
+using HRNexus.Infrastructure.Jobs;
+using HRNexus.Infrastructure.Persistence;
+using HRNexus.Infrastructure.Files;
+using HRNexus.Infrastructure.Services;
 
-namespace NightclubWorkforce.Infrastructure;
+namespace HRNexus.Infrastructure;
 
 public static class DependencyInjection
 {

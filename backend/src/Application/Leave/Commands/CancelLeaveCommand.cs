@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Leave.Commands;
+namespace HRNexus.Application.Leave.Commands;
 
 public record CancelLeaveCommand(Guid LeaveId, Guid EmployeeId) : IRequest;
 

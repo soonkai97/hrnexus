@@ -7,7 +7,7 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB:       ${POSTGRES_DB:-nightclub_workforce}
+      POSTGRES_DB:       ${POSTGRES_DB:-hr_nexus}
       POSTGRES_USER:     ${POSTGRES_USER:-ncuser}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ncpassword}
     volumes:
@@ -15,7 +15,7 @@ services:
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ncuser} -d ${POSTGRES_DB:-nightclub_workforce}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ncuser} -d ${POSTGRES_DB:-hr_nexus}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,15 +29,15 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      Jwt__Key: "${JWT_SECRET:-NightclubWorkforce_Dev_Secret_Change_In_Production_Min32Chars}"
-      Jwt__Issuer: nightclub-workforce
-      Jwt__Audience: nightclub-workforce-clients
+      Jwt__Key: "${JWT_SECRET:-HRNexus_Dev_Secret_Change_In_Production_Min32Chars}"
+      Jwt__Issuer: hrnexus
+      Jwt__Audience: hrnexus-clients
       Cors__AllowedOrigins__0: "http://admin.${DOMAIN}"
       Cors__AllowedOrigins__1: "http://staff.${DOMAIN}"
       Cors__AllowedOrigins__2: "https://admin.${DOMAIN}"
       Cors__AllowedOrigins__3: "https://staff.${DOMAIN}"
       # Override connection string so the API reaches postgres by service name
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-nightclub_workforce};Username=${POSTGRES_USER:-ncuser};Password=${POSTGRES_PASSWORD:-ncpassword}"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-hr_nexus};Username=${POSTGRES_USER:-ncuser};Password=${POSTGRES_PASSWORD:-ncpassword}"
       # Feature management PIN (bcrypt hash of the unlock PIN)
       # Bcrypt hashes contain $ signs — must be hardcoded here with $$ escaping, NOT via .env
       # To change: generate hash with htpasswd -bnBC 12 "" YOUR_PIN | tr -d ':\n' | sed 's/$2y/$2a/'

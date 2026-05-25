@@ -1,10 +1,10 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Constants;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Messaging.Commands;
+namespace HRNexus.Application.Messaging.Commands;
 
 public record SendMessageCommand(Guid SenderId, string SenderName, bool SenderIsAdmin, Guid? RecipientId, string? RecipientName, string Content) : IRequest<Guid>;
 public class SendMessageHandler(IAppDbContext db, INotificationHub notifHub) : IRequestHandler<SendMessageCommand, Guid>

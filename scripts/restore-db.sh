@@ -22,7 +22,7 @@ fi
 BACKUP_FILE="$1"
 DB_CONTAINER="hrnexus-postgres-1"
 DB_USER="${POSTGRES_USER:-ncuser}"
-DB_NAME="${POSTGRES_DB:-nightclub_workforce}"
+DB_NAME="${POSTGRES_DB:-hr_nexus}"
 
 if [ ! -f "$BACKUP_FILE" ]; then
     echo "ERROR: File not found: $BACKUP_FILE"

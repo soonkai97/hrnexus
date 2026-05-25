@@ -1,11 +1,11 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NightclubWorkforce.Application.Notifications.Commands;
-using NightclubWorkforce.Application.Notifications.Queries;
+using HRNexus.Application.Notifications.Commands;
+using HRNexus.Application.Notifications.Queries;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/notifications")]

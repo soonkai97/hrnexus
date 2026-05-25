@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Infrastructure.Persistence;
+namespace HRNexus.Infrastructure.Persistence;
 
 /// <summary>
 /// Seeds realistic bulk test data (50+ rows per table).

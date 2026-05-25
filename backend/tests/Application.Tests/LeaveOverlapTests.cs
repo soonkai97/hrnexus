@@ -1,11 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Admin.Commands;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Application.Tests.Infrastructure;
-using NightclubWorkforce.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Admin.Commands;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Tests.Infrastructure;
+using HRNexus.Domain.Entities;
 using Xunit;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Tests for UpsertLeaveCommand overlap detection logic.

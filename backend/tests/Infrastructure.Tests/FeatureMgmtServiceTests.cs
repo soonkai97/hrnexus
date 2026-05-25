@@ -1,13 +1,13 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Infrastructure.Auth;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Infrastructure.Auth;
 using Xunit;
 
-namespace NightclubWorkforce.Infrastructure.Tests;
+namespace HRNexus.Infrastructure.Tests;
 
 /// <summary>
 /// Unit tests for FeatureMgmtService.

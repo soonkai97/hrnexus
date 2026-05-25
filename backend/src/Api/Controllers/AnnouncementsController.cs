@@ -1,13 +1,13 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NightclubWorkforce.Application.Announcements.Commands;
-using NightclubWorkforce.Application.Announcements.Queries;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Api.Filters;
+using HRNexus.Application.Announcements.Commands;
+using HRNexus.Application.Announcements.Queries;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Api.Filters;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/announcements")]

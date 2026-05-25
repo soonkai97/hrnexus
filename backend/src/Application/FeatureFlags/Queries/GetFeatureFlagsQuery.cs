@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.FeatureFlags.Queries;
+namespace HRNexus.Application.FeatureFlags.Queries;
 
 public record GetFeatureFlagsQuery : IRequest<Dictionary<string, bool>>;
 

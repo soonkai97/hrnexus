@@ -1,7 +1,7 @@
-using E = NightclubWorkforce.Domain.Entities;
+﻿using E = HRNexus.Domain.Entities;
 using Xunit;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Domain entity tests for the Staff aggregate — creation, role/permission logic,

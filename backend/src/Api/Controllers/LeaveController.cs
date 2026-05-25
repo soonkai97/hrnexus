@@ -1,14 +1,14 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NightclubWorkforce.Application.Admin.Commands;
-using NightclubWorkforce.Application.Admin.Queries;
-using NightclubWorkforce.Application.Leave.Commands;
-using NightclubWorkforce.Application.Notifications.Commands;
-using NightclubWorkforce.Application.Notifications.Queries;
+using HRNexus.Application.Admin.Commands;
+using HRNexus.Application.Admin.Queries;
+using HRNexus.Application.Leave.Commands;
+using HRNexus.Application.Notifications.Commands;
+using HRNexus.Application.Notifications.Queries;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 /// <summary>Employee-facing leave endpoints (authenticated, any role).</summary>
 [ApiController]

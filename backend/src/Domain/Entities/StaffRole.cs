@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Domain.Entities;
+﻿namespace HRNexus.Domain.Entities;
 
 /// <summary>
 /// One row per role assignment for an employee.

@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace NightclubWorkforce.Api.ModelBinders;
+namespace HRNexus.Api.ModelBinders;
 
 /// <summary>
 /// Binds [FromQuery] / [FromRoute] DateTime parameters as Kind=Utc.

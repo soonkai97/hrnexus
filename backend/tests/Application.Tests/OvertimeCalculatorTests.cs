@@ -1,8 +1,8 @@
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Domain.Entities;
+﻿using HRNexus.Application.Common;
+using HRNexus.Domain.Entities;
 using Xunit;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 public class OvertimeCalculatorTests
 {
@@ -12,7 +12,7 @@ public class OvertimeCalculatorTests
     [InlineData("09:00", "17:00", 8.0)]
     [InlineData("09:00", "09:00", 24.0)]   // full 24-hour shift
     [InlineData("22:00", "02:00", 4.0)]    // midnight crossing
-    [InlineData("23:00", "06:00", 7.0)]    // nightclub overnight
+    [InlineData("23:00", "06:00", 7.0)]    // overnight shift
     [InlineData("18:00", "00:00", 6.0)]    // ends exactly at midnight
     [InlineData("00:00", "04:30", 4.5)]    // starts at midnight
     public void CalcHours_ReturnsCorrectDuration(string start, string end, double expected)

@@ -1,7 +1,7 @@
-using NightclubWorkforce.Domain.Entities;
+﻿using HRNexus.Domain.Entities;
 using Xunit;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Domain entity tests for staff configuration types.

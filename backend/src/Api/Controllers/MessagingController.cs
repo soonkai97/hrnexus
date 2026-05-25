@@ -1,12 +1,12 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NightclubWorkforce.Application.Messaging.Commands;
-using NightclubWorkforce.Application.Messaging.Queries;
-using NightclubWorkforce.Api.Filters;
+using HRNexus.Application.Messaging.Commands;
+using HRNexus.Application.Messaging.Queries;
+using HRNexus.Api.Filters;
 
-namespace NightclubWorkforce.Api.Controllers;
+namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/messages")]

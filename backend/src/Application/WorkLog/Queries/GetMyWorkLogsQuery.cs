@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.WorkLog.Queries;
+namespace HRNexus.Application.WorkLog.Queries;
 
 public record GetMyWorkLogsQuery(Guid EmployeeId, int Page = 1, int PageSize = 10) : IRequest<PagedResult<WorkLogDto>>;
 
@@ -27,7 +27,7 @@ public class GetMyWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetMy
         return new PagedResult<WorkLogDto>(logs.Select(ToDto).ToList(), total);
     }
 
-    private static WorkLogDto ToDto(NightclubWorkforce.Domain.Entities.WorkLog w)
+    private static WorkLogDto ToDto(HRNexus.Domain.Entities.WorkLog w)
     {
         var isActive = w.EndTime == null;
         var hours    = isActive ? 0m : CalcHours(w.StartTime, w.EndTime!);

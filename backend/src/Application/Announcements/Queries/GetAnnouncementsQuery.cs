@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Announcements.Queries;
+namespace HRNexus.Application.Announcements.Queries;
 
 /// <summary>Staff query — returns active announcements visible to the caller's roles, with IsRead flag.</summary>
 public record GetAnnouncementsQuery(Guid EmployeeId, List<string> Roles) : IRequest<List<AnnouncementDto>>;

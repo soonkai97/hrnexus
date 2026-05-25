@@ -1,7 +1,7 @@
-using MediatR;
-using NightclubWorkforce.Application.Common.Interfaces;
+﻿using MediatR;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Staff.Commands;
+namespace HRNexus.Application.Staff.Commands;
 
 public record ActivateStaffCommand(Guid Id) : IRequest;
 public record DeactivateStaffCommand(Guid Id) : IRequest;

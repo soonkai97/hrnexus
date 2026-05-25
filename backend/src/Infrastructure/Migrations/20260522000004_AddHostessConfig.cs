@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using NightclubWorkforce.Infrastructure.Persistence;
+using HRNexus.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace NightclubWorkforce.Infrastructure.Migrations
+namespace HRNexus.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260522000004_AddHostessConfig")]

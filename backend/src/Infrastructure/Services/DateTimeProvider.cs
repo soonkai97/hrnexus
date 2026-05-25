@@ -1,8 +1,8 @@
-using Microsoft.Extensions.Options;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Application.Common.Interfaces;
+﻿using Microsoft.Extensions.Options;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Infrastructure.Services;
+namespace HRNexus.Infrastructure.Services;
 
 public class DateTimeProvider : IDateTimeProvider
 {

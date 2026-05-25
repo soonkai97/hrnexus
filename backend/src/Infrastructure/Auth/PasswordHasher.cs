@@ -1,6 +1,6 @@
-using NightclubWorkforce.Application.Common.Interfaces;
+﻿using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Infrastructure.Auth;
+namespace HRNexus.Infrastructure.Auth;
 
 public class PasswordHasher : IPasswordHasher
 {

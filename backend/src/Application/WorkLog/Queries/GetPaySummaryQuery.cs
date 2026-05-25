@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.WorkLog.Queries;
+namespace HRNexus.Application.WorkLog.Queries;
 
 public record GetPaySummaryQuery(Guid EmployeeId, DateOnly PeriodStart, DateOnly PeriodEnd) : IRequest<PaySummaryDto>;
 

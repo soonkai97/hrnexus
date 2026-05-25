@@ -1,12 +1,12 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Admin.Queries;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Application.Tests.Infrastructure;
-using NightclubWorkforce.Application.WorkLog.Queries;
-using E = NightclubWorkforce.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Admin.Queries;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Tests.Infrastructure;
+using HRNexus.Application.WorkLog.Queries;
+using E = HRNexus.Domain.Entities;
 using Xunit;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Tests for three handlers that were not covered by previous test files:

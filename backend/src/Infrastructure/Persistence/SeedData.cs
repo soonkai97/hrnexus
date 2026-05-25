@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Infrastructure.Persistence;
+namespace HRNexus.Infrastructure.Persistence;
 
 public static class SeedData
 {
@@ -12,7 +12,7 @@ public static class SeedData
     }
 
     public static async Task SeedDemoUsersAsync(AppDbContext db,
-        NightclubWorkforce.Application.Common.Interfaces.IPasswordHasher hasher)
+        HRNexus.Application.Common.Interfaces.IPasswordHasher hasher)
     {
         // Seed system roles required for authentication guards
         var systemRoles = new[] { "MANAGER", "ADMIN" };

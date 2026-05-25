@@ -1,8 +1,8 @@
-using MediatR;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Application.WorkLog.Queries;
+﻿using MediatR;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.WorkLog.Queries;
 
-namespace NightclubWorkforce.Application.WorkLog.Commands;
+namespace HRNexus.Application.WorkLog.Commands;
 
 public record EndWorkLogCommand(Guid Id, Guid EmployeeId, string EndTime) : IRequest;
 
@@ -20,7 +20,7 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
         if (log.EndTime != null) throw new InvalidOperationException("Shift already ended.");
 
         // Validate end time produces a non-zero duration (guard against identical start/end)
-        var hours = NightclubWorkforce.Application.Common.OvertimeCalculator.CalcHours(log.StartTime, req.EndTime);
+        var hours = HRNexus.Application.Common.OvertimeCalculator.CalcHours(log.StartTime, req.EndTime);
         if (hours <= 0)
             throw new ArgumentException("End time must be different from the shift start time.");
 

@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace NightclubWorkforce.Infrastructure.Migrations
+namespace HRNexus.Infrastructure.Migrations
 {
     /// <summary>
     /// Drops ShiftTemplateEntries and ShiftTemplates which were re-created by

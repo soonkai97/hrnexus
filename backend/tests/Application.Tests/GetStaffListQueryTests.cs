@@ -1,10 +1,10 @@
-using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Staff.Queries;
-using NightclubWorkforce.Application.Tests.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Staff.Queries;
+using HRNexus.Application.Tests.Infrastructure;
 using Xunit;
-using E = NightclubWorkforce.Domain.Entities;
+using E = HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Tests;
+namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Tests for GetStaffListQueryHandler — verifies pagination, search, and ExcludeAdmins filtering.

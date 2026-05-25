@@ -1,7 +1,7 @@
-using MediatR;
-using NightclubWorkforce.Application.Common.Interfaces;
+﻿using MediatR;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Admin.Commands;
+namespace HRNexus.Application.Admin.Commands;
 
 public record DeleteLeaveCommand(Guid Id) : IRequest;
 

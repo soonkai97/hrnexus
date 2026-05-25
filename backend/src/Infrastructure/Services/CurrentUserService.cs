@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Http;
-using NightclubWorkforce.Application.Common.Interfaces;
+﻿using Microsoft.AspNetCore.Http;
+using HRNexus.Application.Common.Interfaces;
 using System.Security.Claims;
 
-namespace NightclubWorkforce.Infrastructure.Services;
+namespace HRNexus.Infrastructure.Services;
 
 public class CurrentUserService(IHttpContextAccessor accessor) : ICurrentUserService
 {

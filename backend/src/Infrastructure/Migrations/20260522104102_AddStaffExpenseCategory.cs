@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace NightclubWorkforce.Infrastructure.Migrations
+namespace HRNexus.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class AddStaffExpenseCategory : Migration

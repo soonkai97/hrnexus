@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Domain.Entities;
+﻿namespace HRNexus.Domain.Entities;
 
 /// <summary>In-app notification for an employee.</summary>
 public class Notification

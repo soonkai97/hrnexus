@@ -1,8 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 
-namespace NightclubWorkforce.Application.Admin.Queries;
+namespace HRNexus.Application.Admin.Queries;
 
 public record GetDashboardQuery : IRequest<DashboardResponse>;
 
@@ -44,7 +44,7 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var utcNow    = dt.UtcNow;
 
         // All currently-open shifts (EndTime is null), any date.
-        // A nightclub shift can start before midnight and still be running the next day,
+        // A shift can start before midnight and still be running the next day,
         // so we must not filter by WorkDate here.
         var activeShifts = await db.WorkLogs
             .Include(w => w.Employee)

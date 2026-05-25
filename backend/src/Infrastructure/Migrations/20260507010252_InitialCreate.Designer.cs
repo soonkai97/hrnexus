@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NightclubWorkforce.Infrastructure.Persistence;
+using HRNexus.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace NightclubWorkforce.Infrastructure.Migrations
+namespace HRNexus.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260507010252_InitialCreate")]
@@ -20,7 +20,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.ClockLog", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.ClockLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -69,7 +69,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("ClockLogs");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.Employee", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.Employee", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -121,7 +121,7 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.Location", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.Location", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(50)
@@ -182,9 +182,9 @@ namespace NightclubWorkforce.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("NightclubWorkforce.Domain.Entities.ClockLog", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.ClockLog", b =>
                 {
-                    b.HasOne("NightclubWorkforce.Domain.Entities.Employee", "Employee")
+                    b.HasOne("HRNexus.Domain.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)

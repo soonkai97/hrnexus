@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Domain.Entities;
+﻿namespace HRNexus.Domain.Entities;
 
 /// <summary>
 /// Persists the individual tip amount each staff member received from a TipsPool distribution.

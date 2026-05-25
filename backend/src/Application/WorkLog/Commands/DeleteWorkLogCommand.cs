@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Entities;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.WorkLog.Commands;
+namespace HRNexus.Application.WorkLog.Commands;
 
 public record DeleteWorkLogCommand(Guid Id, Guid EmployeeId) : IRequest;
 

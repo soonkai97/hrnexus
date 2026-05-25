@@ -1,6 +1,6 @@
-using NightclubWorkforce.Domain.Entities;
+﻿using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Common;
+namespace HRNexus.Application.Common;
 
 public static class OvertimeCalculator
 {

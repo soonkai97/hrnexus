@@ -1,4 +1,4 @@
-namespace NightclubWorkforce.Application.Common;
+﻿namespace HRNexus.Application.Common;
 
 public class VenueOptions
 {

@@ -1,11 +1,11 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using NightclubWorkforce.Application.Common.Interfaces;
-using NightclubWorkforce.Domain.Common;
-using NightclubWorkforce.Domain.Entities;
-using NightclubWorkforce.Infrastructure.Persistence.Configurations;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Common;
+using HRNexus.Domain.Entities;
+using HRNexus.Infrastructure.Persistence.Configurations;
 
-namespace NightclubWorkforce.Infrastructure.Persistence;
+namespace HRNexus.Infrastructure.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUser)
     : DbContext(options), IAppDbContext

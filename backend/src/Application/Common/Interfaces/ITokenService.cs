@@ -1,10 +1,10 @@
-using NightclubWorkforce.Domain.Entities;
+﻿using HRNexus.Domain.Entities;
 
-namespace NightclubWorkforce.Application.Common.Interfaces;
+namespace HRNexus.Application.Common.Interfaces;
 
 public interface ITokenService
 {
-    string GenerateAccessToken(NightclubWorkforce.Domain.Entities.Staff employee);
+    string GenerateAccessToken(HRNexus.Domain.Entities.Staff employee);
     string GenerateRefreshToken();
     Guid? ValidateAccessToken(string token);
 }

@@ -199,8 +199,8 @@ describe('LeaveComponent', () => {
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-01';
       component.form.hours      = null;
-      component.form.startTime  = '18:00';
-      component.form.endTime    = '10:00'; // before start
+      component.startTimeDate   = new Date(2026, 5, 1, 18, 0); // 6:00 PM
+      component.endTimeDate     = new Date(2026, 5, 1, 10, 0); // 10:00 AM — before start
       component.save();
       expect(component.formError()).toBe('End date/time must be after start date/time.');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();

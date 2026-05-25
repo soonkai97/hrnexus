@@ -1,4 +1,5 @@
 using Hangfire;
+using Hangfire.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NightclubWorkforce.Application.Common.Interfaces;
@@ -202,5 +203,34 @@ public class ShiftJobs(
         await db.SaveChangesAsync();
         logger.LogInformation(
             "AutoRejectOverdueLeave: auto-rejected {Count} leave(s).", overdue.Count);
+    }
+
+    /// <summary>
+    /// Deletes failed Hangfire job records older than 7 days.
+    /// Succeeded jobs already auto-expire after 24 h (Hangfire default).
+    /// Failed jobs stay forever unless explicitly deleted — this prevents table bloat.
+    /// Runs weekly on Sunday at 04:00 UTC.
+    /// </summary>
+    [AutomaticRetry(Attempts = 1)]
+    public Task CleanupOldJobsAsync()
+    {
+        var monitoring = JobStorage.Current.GetMonitoringApi();
+        var client     = new BackgroundJobClient(JobStorage.Current);
+        var cutoff     = DateTime.UtcNow.AddDays(-7);
+
+        var failed = monitoring.FailedJobs(0, 1000);
+        int count  = 0;
+
+        foreach (var (id, data) in failed)
+        {
+            if (data.FailedAt.HasValue && data.FailedAt.Value < cutoff)
+            {
+                client.Delete(id);
+                count++;
+            }
+        }
+
+        logger.LogInformation("Hangfire cleanup: deleted {Count} failed job(s) older than 7 days", count);
+        return Task.CompletedTask;
     }
 }

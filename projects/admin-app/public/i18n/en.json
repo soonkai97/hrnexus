@@ -11,7 +11,6 @@
     "payroll":       "Payroll",
     "staffLedger":   "Staff Ledger",
     "staffSettings": "Staff Settings",
-    "features":        "Feature Management",
     "account":         "My Account"
   },
   "shell": {
@@ -434,27 +433,6 @@
     "expired":          "Expired",
     "editBtn":          "Edit",
     "deleteBtn":        "Delete"
-  },
-  "features": {
-    "title":          "Feature Management",
-    "subtitle":       "Enable or disable optional features for both portals. Changes take effect immediately.",
-    "disableAll":     "Disable All",
-    "enableAll":      "Enable All",
-    "phase":          "Phase",
-    "phase1Label":    "Finance & Reports",
-    "phase2Label":    "Communication",
-    "phase3Label":    "Staff Ledger",
-    "payroll":        { "label": "Payroll Summary",              "desc": "Monthly payroll breakdown per staff member with CSV export." },
-    "tips":           { "label": "Tips Pool (Admin)",            "desc": "Manage and distribute tips pools across shifts and staff members." },
-    "paySummary":     { "label": "Pay Summary (Staff Portal)",   "desc": "Let staff view their earnings summary broken down by period." },
-    "tipsHistory":    { "label": "Tips History (Staff Portal)",  "desc": "Show staff their monthly tips allocation history." },
-    "announcements":  { "label": "Announcements",                "desc": "Post team-wide announcements visible to all or selected staff." },
-    "staffLedger":    { "label": "Staff Ledger",                  "desc": "Record and track staff earnings, deductions, loans and monthly payouts." },
-    "toggleFailed":    "Failed to save. Please try again.",
-    "allEnabled":      "All features enabled.",
-    "allDisabled":     "All features disabled.",
-    "enableAllFailed": "Failed to enable all features.",
-    "disableAllFailed":"Failed to disable all features."
   },
   "staffLedger": {
     "title":             "Staff Ledger",

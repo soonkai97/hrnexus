@@ -38,12 +38,6 @@ services:
       Cors__AllowedOrigins__3: "https://staff.${DOMAIN}"
       # Override connection string so the API reaches postgres by service name
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-hr_nexus};Username=${POSTGRES_USER:-ncuser};Password=${POSTGRES_PASSWORD:-ncpassword}"
-      # Feature management PIN (bcrypt hash of the unlock PIN)
-      # Bcrypt hashes contain $ signs — must be hardcoded here with $$ escaping, NOT via .env
-      # To change: generate hash with htpasswd -bnBC 12 "" YOUR_PIN | tr -d ':\n' | sed 's/$2y/$2a/'
-      # Then replace every $ in the hash with $$ below.
-      FeatureMgmt__PinHash: "$$2a$$12$$VQ.HGxzpCTn/T0icTUdya0VxgNv26fPV7S.ACyRESOAmC.od6r5.K"
-      FeatureMgmt__TokenSecret: "${FEATURE_TOKEN_SECRET:-m3h6qVMkYrcStQEtJk7uUpw8T0uOPMmS0h4ltRkWRLa5NUSWJxphFVHIvM2b80uW}"
       # Web Push (VAPID) — generate keys with: npx web-push generate-vapid-keys
       # Leave empty to disable push notifications without breaking anything
       WebPush__Subject: "${VAPID_SUBJECT:-mailto:admin@nightcrew.app}"

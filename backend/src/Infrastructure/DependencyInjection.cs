@@ -44,7 +44,6 @@ public static class DependencyInjection
         // Auth
         services.AddScoped<ITokenService, TokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
-        services.AddSingleton<IFeatureMgmtService, FeatureMgmtService>();
 
         // Cross-cutting abstractions
         services.AddHttpContextAccessor();

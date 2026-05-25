@@ -151,10 +151,10 @@ describe('LogShiftComponent', () => {
   // ── myRoles computed ─────────────────────────────────────────────────────────
 
   describe('myRoles computed', () => {
-    it('filters out admin and manager roles — non-scheduling roles should not appear in role select', () => {
+    it('filters out ADMIN only — managers should be able to select the MANAGER role when logging a shift', () => {
       mockAuth.user = () => ({ roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'BARTENDER'] } as any);
       const fresh = TestBed.createComponent(LogShiftComponent).componentInstance;
-      expect(fresh.myRoles()).toEqual(['EMPLOYEE', 'BARTENDER']);
+      expect(fresh.myRoles()).toEqual(['EMPLOYEE', 'MANAGER', 'BARTENDER']);
     });
 
     it('returns empty array when user has no roles', () => {

@@ -77,8 +77,6 @@ await using (var scope = app.Services.CreateAsyncScope())
     var hasher = scope.ServiceProvider.GetRequiredService<HRNexus.Application.Common.Interfaces.IPasswordHasher>();
     await db.Database.MigrateAsync();
     await HRNexus.Infrastructure.Persistence.SeedData.SeedDemoUsersAsync(db, hasher);
-    // BulkSeedData disabled — dev/demo bulk records removed; real data only
-    // await HRNexus.Infrastructure.Persistence.BulkSeedData.SeedAsync(db, hasher);
 }
 
 if (app.Environment.IsDevelopment())

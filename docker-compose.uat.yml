@@ -25,7 +25,8 @@ services:
       - "8081:8081"   # staff HTTP  → redirects to HTTPS
       - "8443:8443"   # staff HTTPS (PWA)
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro   # Let's Encrypt certs from host
+      - ./nginx/nginx.uat.conf:/etc/nginx/nginx.conf:ro  # HTTPS config replaces the HTTP-only default
+      - /etc/letsencrypt:/etc/letsencrypt:ro              # Let's Encrypt certs from host
 
   api:
     environment:

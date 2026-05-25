@@ -139,22 +139,6 @@ public class AuthCommandTests
         Assert.Contains("BARTENDER", result.User.Roles);
     }
 
-    [Fact]
-    public async Task Login_Succeeds_ReturnsMustChangePassword_WhenFlagSet()
-    {
-        await using var db = CreateDb();
-        var staff = MakeStaff();
-        staff.SetMustChangePassword();
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService());
-        var result = await handler.Handle(new LoginCommand("S001", "pass"), CancellationToken.None);
-
-        Assert.True(result.MustChangePassword);
-    }
-
     // ── ChangePasswordCommand ─────────────────────────────────────────────────
 
     [Fact]
@@ -263,53 +247,6 @@ public class AuthCommandTests
         var result = await handler.Handle(new ForgotPasswordCommand("S001"), CancellationToken.None);
 
         Assert.True(result.Found);
-    }
-
-    // ── ForceChangePasswordCommand ────────────────────────────────────────────
-
-    [Fact]
-    public async Task ForceChangePassword_ThrowsKeyNotFound_WhenEmployeeDoesNotExist()
-    {
-        await using var db = CreateDb();
-        var handler = new ForceChangePasswordCommandHandler(db, new StubHasher());
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new ForceChangePasswordCommand(Guid.NewGuid(), "newpass12"),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task ForceChangePassword_ThrowsArgument_WhenNewPasswordTooShort()
-    {
-        await using var db = CreateDb();
-        var staff = MakeStaff();
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-
-        var handler = new ForceChangePasswordCommandHandler(db, new StubHasher());
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new ForceChangePasswordCommand(staff.Id, "short"),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task ForceChangePassword_Succeeds_ClearsMustChangePasswordFlag()
-    {
-        await using var db = CreateDb();
-        var staff = MakeStaff();
-        staff.SetMustChangePassword();
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new ForceChangePasswordCommandHandler(db, new StubHasher());
-        await handler.Handle(new ForceChangePasswordCommand(staff.Id, "newpass12"),
-            CancellationToken.None);
-
-        var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
-        Assert.False(updated.MustChangePassword);
-        Assert.Equal("hashed-newpass12", updated.PasswordHash);
     }
 
     // ── RefreshTokenCommand ───────────────────────────────────────────────────

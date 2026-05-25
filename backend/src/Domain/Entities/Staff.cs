@@ -41,7 +41,6 @@ public class Staff : IHasAudit, ISoftDelete
 
     public string? RefreshToken    { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
-    public bool MustChangePassword { get; private set; }
 
     private Staff() { }
 
@@ -94,8 +93,6 @@ public class Staff : IHasAudit, ISoftDelete
     }
 
     public void ChangePassword(string newHash) => PasswordHash = newHash;
-    public void SetMustChangePassword()     => MustChangePassword = true;
-    public void ClearMustChangePassword()   => MustChangePassword = false;
 
     public void Deactivate() => IsActive = false;
     public void Activate()   => IsActive = true;

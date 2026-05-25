@@ -16,7 +16,6 @@ export interface AuthResponse {
   refreshToken: string;
   expiresIn: number;
   user: AuthUser;
-  mustChangePassword: boolean;
 }
 
 export interface AuthUser {
@@ -34,4 +33,3 @@ export interface RefreshTokenRequest {
 
 export interface ForgotPasswordRequest  { staffId: string; }
 export interface ForgotPasswordResponse { message: string; found: boolean; }
-export interface ForceChangePasswordRequest { newPassword: string; }

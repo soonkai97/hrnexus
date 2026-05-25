@@ -32,7 +32,7 @@ describe('LoginComponent (staff-app)', () => {
 
   beforeEach(async () => {
     mockAuth = {
-      login:  vi.fn().mockReturnValue(of({ user: { roles: ['employee'] }, mustChangePassword: false })),
+      login:  vi.fn().mockReturnValue(of({ user: { roles: ['employee'] } })),
       logout: vi.fn(),
     };
     mockLang = { current: vi.fn().mockReturnValue('en'), set: vi.fn() };

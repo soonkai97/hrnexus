@@ -45,7 +45,6 @@ export class AuthService {
     return this.http.post<AuthResponse>('/api/auth/login', request).pipe(
       tap(res => {
         this.storeSession(res);
-        this.lastMustChangePassword = res.mustChangePassword ?? false;
       })
     );
   }
@@ -60,10 +59,6 @@ export class AuthService {
 
   forgotPassword(staffId: string): Observable<ForgotPasswordResponse> {
     return this.http.post<ForgotPasswordResponse>('/api/auth/forgot-password', { staffId });
-  }
-
-  forceChangePassword(newPassword: string): Observable<void> {
-    return this.http.post<void>('/api/auth/force-change-password', { newPassword });
   }
 
   refreshToken(): Observable<AuthResponse> {
@@ -114,9 +109,6 @@ export class AuthService {
     localStorage.setItem(USER_KEY, JSON.stringify(res.user));
     this._user.set(res.user);
   }
-
-  /** Expose the raw AuthResponse mustChangePassword from last login for navigation. */
-  lastMustChangePassword = false;
 
   private loadUser(): AuthUser | null {
     try {

@@ -17,7 +17,6 @@ function makeAuthResponse(roles: string[] = ['employee']): AuthResponse {
     refreshToken: 'rt-abc',
     expiresIn:    3600,
     user: fakeUser(roles),
-    mustChangePassword: false,
   };
 }
 
@@ -88,13 +87,6 @@ describe('AuthService — login()', () => {
     expect(service.isAuthenticated()).toBe(true);
   });
 
-  it('sets lastMustChangePassword flag from the response', async () => {
-    const res = { ...makeAuthResponse(), mustChangePassword: true };
-    const promise = firstValueFrom(service.login({ staffId: 'NC001', password: 'p' }));
-    http.expectOne('/api/auth/login').flush(res);
-    await promise;
-    expect(service.lastMustChangePassword).toBe(true);
-  });
 });
 
 describe('AuthService — refreshToken()', () => {
@@ -179,11 +171,4 @@ describe('AuthService — password flows', () => {
     expect(result.found).toBe(false);
   });
 
-  it('forceChangePassword() POST /api/auth/force-change-password with new password', async () => {
-    const promise = firstValueFrom(service.forceChangePassword('NewP@ss1'));
-    const req = http.expectOne('/api/auth/force-change-password');
-    expect(req.request.body).toEqual({ newPassword: 'NewP@ss1' });
-    req.flush(null);
-    await promise;
-  });
 });

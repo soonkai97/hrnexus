@@ -239,22 +239,6 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Register_SetsMustChangePassword()
-    {
-        // New staff must change the admin-assigned password on first login for security.
-        await using var db = CreateDb();
-        var handler = RegisterHandler(db);
-
-        var id = await handler.Handle(new RegisterStaffCommand(
-            "S001", "Alice", "Wong", "alice@test.com", "pass",
-            new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
-            CancellationToken.None);
-
-        var staff = await db.Staff.FindAsync(id);
-        Assert.True(staff!.MustChangePassword);
-    }
-
-    [Fact]
     public async Task Register_HashesPassword_UsingHasher()
     {
         // Passwords must never be stored in plain text.

@@ -25,7 +25,6 @@ public class RefreshTokenCommandHandler(IAppDbContext db, ITokenService tokens)
 
         return new LoginResult(access, newRefresh, 3600,
             new UserDto(employee.Id, employee.StaffId, employee.FullName, employee.Email,
-                employee.Roles.ToList()),
-            employee.MustChangePassword);
+                employee.Roles.ToList()));
     }
 }

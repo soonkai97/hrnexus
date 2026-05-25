@@ -5,15 +5,15 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: nightclub_workforce
-      POSTGRES_USER: ncuser
-      POSTGRES_PASSWORD: ncpassword
+      POSTGRES_DB:       ${POSTGRES_DB:-nightclub_workforce}
+      POSTGRES_USER:     ${POSTGRES_USER:-ncuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ncpassword}
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ncuser -d nightclub_workforce"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ncuser} -d ${POSTGRES_DB:-nightclub_workforce}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,7 +35,7 @@ services:
       Cors__AllowedOrigins__2: "https://admin.${DOMAIN}"
       Cors__AllowedOrigins__3: "https://staff.${DOMAIN}"
       # Override connection string so the API reaches postgres by service name
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=nightclub_workforce;Username=ncuser;Password=ncpassword"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-nightclub_workforce};Username=${POSTGRES_USER:-ncuser};Password=${POSTGRES_PASSWORD:-ncpassword}"
       # Feature management PIN (bcrypt hash — $$ in YAML = literal $ in container)
       FeatureMgmt__PinHash: "$$2a$$12$$MG7x0Vdz6AoOTmDVOG7.2e.haGjX1uVUmH5n75ctE6x4hUGUa2i4."
       FeatureMgmt__TokenSecret: "m3h6qVMkYrcStQEtJk7uUpw8T0uOPMmS0h4ltRkWRLa5NUSWJxphFVHIvM2b80uW"

@@ -15,8 +15,8 @@ fi
 
 BACKUP_FILE="$1"
 DB_CONTAINER="nightclub-workforce-postgres-1"
-DB_USER="ncuser"
-DB_NAME="nightclub_workforce"
+DB_USER="${POSTGRES_USER:-ncuser}"
+DB_NAME="${POSTGRES_DB:-nightclub_workforce}"
 
 if [ ! -f "$BACKUP_FILE" ]; then
     echo "ERROR: File not found: $BACKUP_FILE"

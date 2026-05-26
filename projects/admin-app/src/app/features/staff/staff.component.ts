@@ -78,7 +78,6 @@ export class StaffComponent implements OnInit, OnDestroy {
   get isFormValid(): boolean {
     return !!this.newStaff.staffId?.trim() &&
       !!this.newStaff.firstName?.trim() &&
-      !!this.newStaff.lastName?.trim() &&
       !!this.newStaff.email?.trim() &&
       !!(this.newStaff.icNo?.trim() || this.newStaff.passportNo?.trim()) &&
       !!this.newStaff.dateOfBirth &&

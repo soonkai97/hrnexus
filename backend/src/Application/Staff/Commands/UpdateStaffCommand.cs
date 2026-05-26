@@ -22,7 +22,6 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
     public async Task Handle(UpdateStaffCommand req, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.FirstName)) throw new ArgumentException("First name is required.");
-        if (string.IsNullOrWhiteSpace(req.LastName))  throw new ArgumentException("Last name is required.");
 
         // FirstOrDefaultAsync (not FindAsync) so that AutoInclude on RoleEntries is honoured.
         var emp = await db.Staff.FirstOrDefaultAsync(e => e.Id == req.Id, ct)

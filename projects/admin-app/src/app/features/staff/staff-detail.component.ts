@@ -93,8 +93,7 @@ export class StaffDetailComponent implements OnInit {
   /** Gates the Save button — only Staff ID, first and last name are required. */
   get isEditFormValid(): boolean {
     return !!this.editForm.staffId?.trim() &&
-      !!this.editForm.firstName?.trim() &&
-      !!this.editForm.lastName?.trim();
+      !!this.editForm.firstName?.trim();
   }
 
   cancelEdit(): void { this.editMode.set(false); }

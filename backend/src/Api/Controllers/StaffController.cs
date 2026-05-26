@@ -196,7 +196,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("roles")]
-    [Authorize(Roles = AppConstants.Roles.AdminClaim)]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> CreateRole([FromBody] CreateRoleBody body, CancellationToken ct)
     {
         try
@@ -209,7 +209,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("roles/{name}/rate")]
-    [Authorize(Roles = AppConstants.Roles.AdminClaim)]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> UpdateRoleRate(string name, [FromBody] UpdateRoleRateBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -223,7 +223,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("roles/{name}")]
-    [Authorize(Roles = AppConstants.Roles.AdminClaim)]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> DeleteRole(string name, CancellationToken ct)
     {
         try

@@ -27,8 +27,8 @@ export class NotificationBellComponent implements OnInit {
     this.signalr.notifications$.subscribe(n => this.svc.push(n));
   }
 
-  toggle(event: Event): void {
-    this.notifPanel.toggle(event);
+  toggle(event: Event, target?: HTMLElement): void {
+    this.notifPanel.toggle(event, target);
   }
 
   onNotifClick(n: AppNotification): void {

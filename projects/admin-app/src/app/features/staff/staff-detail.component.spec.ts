@@ -161,22 +161,22 @@ describe('StaffDetailComponent', () => {
       expect(component.isEditFormValid).toBe(false);
     });
 
-    it('returns false when lastName is empty', () => {
+    it('returns true when lastName is empty (lastName is optional on edit)', () => {
       fillValid();
       component.editForm.lastName = '';
-      expect(component.isEditFormValid).toBe(false);
+      expect(component.isEditFormValid).toBe(true);
     });
 
-    it('returns false when email is empty', () => {
+    it('returns true when email is null (email is optional on edit)', () => {
       fillValid();
-      component.editForm.email = '';
-      expect(component.isEditFormValid).toBe(false);
+      component.editForm.email = null;
+      expect(component.isEditFormValid).toBe(true);
     });
 
-    it('returns false when dateOfBirth is empty — required for age calculation', () => {
+    it('returns true when dateOfBirth is null (DOB is optional on edit)', () => {
       fillValid();
-      component.editForm.dateOfBirth = '';
-      expect(component.isEditFormValid).toBe(false);
+      component.editForm.dateOfBirth = null;
+      expect(component.isEditFormValid).toBe(true);
     });
   });
 

@@ -148,10 +148,11 @@ describe('StaffComponent', () => {
       expect(component.isFormValid).toBe(false);
     });
 
-    it('returns false when lastName is empty', () => {
+    it('returns true when lastName is empty (lastName is optional)', () => {
+      // lastName is no longer required — clearing it should not invalidate the form
       fillValidForm();
       component.newStaff.lastName = '';
-      expect(component.isFormValid).toBe(false);
+      expect(component.isFormValid).toBe(true);
     });
 
     it('returns false when email is empty', () => {

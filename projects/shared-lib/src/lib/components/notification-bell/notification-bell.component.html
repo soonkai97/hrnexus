@@ -1,5 +1,5 @@
 <!-- Bell button with unread badge -->
-<div class="bell-wrap">
+<div class="bell-wrap" #bellRef>
   <p-button
     icon="pi pi-bell"
     [text]="true"
@@ -8,7 +8,7 @@
     pTooltip="Notifications"
     tooltipPosition="bottom"
     aria-label="Notifications"
-    (onClick)="toggle($event)" />
+    (onClick)="toggle($event, bellRef)" />
   @if (svc.unreadCount() > 0) {
     <span class="bell-badge">{{ svc.unreadCount() > 9 ? '9+' : svc.unreadCount() }}</span>
   }

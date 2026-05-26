@@ -56,7 +56,7 @@
             <input pInputText type="text" [(ngModel)]="editForm.staffId" />
           </div>
           <div class="col-6 field">
-            <label><span class="req">*</span> {{ 'staffDetail.email' | translate }}</label>
+            <label>{{ 'staffDetail.email' | translate }}</label>
             <input pInputText type="email" [(ngModel)]="editForm.email" />
           </div>
           <div class="col-6 field">
@@ -72,7 +72,7 @@
             <input pInputText type="tel" [(ngModel)]="editForm.phoneNumber" />
           </div>
           <div class="col-6 field">
-            <label><span class="req">*</span> {{ 'staffDetail.dateOfBirth' | translate }}</label>
+            <label>{{ 'staffDetail.dateOfBirth' | translate }}</label>
             <p-datepicker [(ngModel)]="editForm.dateOfBirth"
               dateFormat="yy-mm-dd"
               dataType="string"

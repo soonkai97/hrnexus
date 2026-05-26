@@ -10,7 +10,7 @@ public record UpdateStaffCommand(
     string        StaffId,
     string        FirstName,
     string        LastName,
-    string        Email,
+    string?       Email,
     List<string>  Roles,
     string?       PhoneNumber,
     string?       IcNo          = null,
@@ -35,17 +35,18 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
         if (idTaken)
             throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
 
-        var emailTaken = await db.Staff.AnyAsync(
-            e => e.Email == req.Email.ToLowerInvariant() && e.Id != req.Id, ct);
-        if (emailTaken)
-            throw new InvalidOperationException($"Email '{req.Email}' is already in use.");
+        if (!string.IsNullOrWhiteSpace(req.Email))
+        {
+            var emailTaken = await db.Staff.AnyAsync(
+                e => e.Email == req.Email.ToLowerInvariant() && e.Id != req.Id, ct);
+            if (emailTaken)
+                throw new InvalidOperationException($"Email '{req.Email}' is already in use.");
+        }
 
-        if (string.IsNullOrWhiteSpace(req.IcNo) && string.IsNullOrWhiteSpace(req.PassportNo))
-            throw new InvalidOperationException("IC number or Passport number is required.");
-        if (!req.DateOfBirth.HasValue)
-            throw new InvalidOperationException("Date of birth is required.");
+        // Resolve email: keep existing if not supplied
+        var resolvedEmail = string.IsNullOrWhiteSpace(req.Email) ? emp.Email : req.Email;
 
-        emp.UpdateDetails(normalizedId, req.FirstName, req.LastName, req.Email, req.Roles,
+        emp.UpdateDetails(normalizedId, req.FirstName, req.LastName, resolvedEmail, req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),
             req.IcNo, req.PassportNo, req.DateOfBirth);
         await db.SaveChangesAsync(ct);

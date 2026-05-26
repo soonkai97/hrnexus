@@ -48,7 +48,7 @@ export class StaffStore {
   update(id: string, req: UpdateStaffRequest) {
     return this.svc.update(id, req).pipe(
       tap(() => this.#staff.update(list =>
-        list.map(s => s.id === id ? { ...s, ...req } : s)
+        list.map(s => s.id === id ? { ...s, ...req, email: req.email ?? s.email } : s)
       ))
     );
   }

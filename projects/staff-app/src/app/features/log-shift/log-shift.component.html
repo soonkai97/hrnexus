@@ -91,7 +91,7 @@
           @if (formError()) {
             <p-message severity="error" [text]="formError()" />
           }
-          <p-button [label]="'logShift.startShiftBtn' | translate" severity="primary" styleClass="w-full" [loading]="submitting()" (click)="startShift()" />
+          <p-button [label]="'logShift.startShiftBtn' | translate" severity="primary" class="w-full" styleClass="w-full" [loading]="submitting()" (click)="startShift()" />
         </p-card>
       }
 
@@ -155,7 +155,7 @@
           @if (formError()) {
             <p-message severity="error" [text]="formError()" />
           }
-          <p-button [label]="'logShift.logShiftBtn' | translate" severity="primary" styleClass="w-full" [loading]="submitting()" (click)="submitManual()" />
+          <p-button [label]="'logShift.logShiftBtn' | translate" severity="primary" class="w-full" styleClass="w-full" [loading]="submitting()" (click)="submitManual()" />
         </p-card>
       }
     }

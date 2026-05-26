@@ -1,8 +1,8 @@
-import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { StaffStore, ConfirmService, ToastService, AuthService } from 'shared-lib';
+import { StaffStore, ConfirmService, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -24,10 +24,6 @@ export class RolesComponent implements OnInit {
   private readonly store      = inject(StaffStore);
   private readonly confirmSvc = inject(ConfirmService);
   private readonly toast      = inject(ToastService);
-  private readonly auth       = inject(AuthService);
-
-  /** Only admins may create/edit/delete roles and update hourly rates. */
-  readonly isAdmin = computed(() => this.auth.hasRole('admin'));
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 

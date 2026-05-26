@@ -31,7 +31,7 @@ export interface UpdateStaffRequest {
   staffId: string;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
   roles: string[];
   phoneNumber: string | null;
   icNo: string | null;

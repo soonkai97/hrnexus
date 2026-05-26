@@ -44,8 +44,8 @@ export class StaffDetailComponent implements OnInit {
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalLogs() / this.pageSize)));
 
   editForm: UpdateStaffRequest = {
-    staffId: '', firstName: '', lastName: '', email: '', roles: [],
-    phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: '',
+    staffId: '', firstName: '', lastName: '', email: null, roles: [],
+    phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: null,
   };
 
   private staffId = '';
@@ -81,26 +81,25 @@ export class StaffDetailComponent implements OnInit {
   startEdit(): void {
     const s = this.staff()!;
     this.editForm = {
-      staffId: s.staffId, firstName: s.firstName, lastName: s.lastName, email: s.email,
+      staffId: s.staffId, firstName: s.firstName, lastName: s.lastName,
+      email: s.email || null,
       roles: [...s.roles], phoneNumber: s.phoneNumber,
-      icNo: s.icNo ?? null, passportNo: s.passportNo ?? null, dateOfBirth: s.dateOfBirth ?? '',
+      icNo: s.icNo ?? null, passportNo: s.passportNo ?? null,
+      dateOfBirth: s.dateOfBirth ?? null,
     };
     this.editMode.set(true);
   }
 
-  /** Gates the Save button — mirrors the backend required-field checks. */
+  /** Gates the Save button — only Staff ID, first and last name are required. */
   get isEditFormValid(): boolean {
     return !!this.editForm.staffId?.trim() &&
       !!this.editForm.firstName?.trim() &&
-      !!this.editForm.lastName?.trim() &&
-      !!this.editForm.email?.trim() &&
-      !!this.editForm.dateOfBirth;
+      !!this.editForm.lastName?.trim();
   }
 
   cancelEdit(): void { this.editMode.set(false); }
 
   saveEdit(): void {
-    this.editForm.dateOfBirth = this.editForm.dateOfBirth || '';
     this.saving.set(true);
     this.staffStore.update(this.staffId, this.editForm).subscribe({
       next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success('Profile updated.'); },

@@ -32,8 +32,6 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
             throw new InvalidOperationException("Staff ID must be 20 characters or fewer.");
         if (string.IsNullOrWhiteSpace(req.FirstName))
             throw new InvalidOperationException("First name is required.");
-        if (string.IsNullOrWhiteSpace(req.LastName))
-            throw new InvalidOperationException("Last name is required.");
         if (string.IsNullOrWhiteSpace(req.Email))
             throw new InvalidOperationException("Email is required.");
         if (string.IsNullOrWhiteSpace(req.IcNo) && string.IsNullOrWhiteSpace(req.PassportNo))

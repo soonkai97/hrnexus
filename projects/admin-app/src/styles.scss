@@ -606,6 +606,20 @@ table { min-width: 480px; }
   }
 }
 
+// ── Prevent iOS auto-zoom on input focus ─────────────────────────────────────
+// iOS Safari zooms in whenever a focused input's font-size is < 16px.
+// Setting font-size to at least 16px on all inputs prevents this without
+// touching the viewport meta tag (which would break manual pinch-zoom).
+input, textarea, select,
+.p-inputtext,
+.p-inputnumber-input,
+.p-password input,
+.p-select-label,
+.p-datepicker-input,
+.p-autocomplete-input {
+  font-size: max(1rem, 16px);
+}
+
 // ── Toast (nc-toast) ─────────────────────────────────────────────────────────
 // bottom-center positioning with safe-area clearance for mobile browsers.
 .p-toast.app-toast {

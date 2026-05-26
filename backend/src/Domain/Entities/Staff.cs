@@ -44,7 +44,7 @@ public class Staff : IHasAudit, ISoftDelete
 
     private Staff() { }
 
-    public static Staff Create(string staffId, string firstName, string lastName, string email, string passwordHash,
+    public static Staff Create(string staffId, string firstName, string? lastName, string email, string passwordHash,
         List<string> roles, string? phoneNumber = null,
         string? icNo = null, string? passportNo = null, DateTime? dateOfBirth = null)
     {
@@ -53,7 +53,7 @@ public class Staff : IHasAudit, ISoftDelete
             Id           = Guid.NewGuid(),
             StaffId      = staffId.Trim().ToUpperInvariant(),
             FirstName    = firstName.Trim(),
-            LastName     = lastName.Trim(),
+            LastName     = lastName?.Trim() ?? "",
             Email        = email.ToLowerInvariant(),
             PasswordHash = passwordHash,
             PhoneNumber  = phoneNumber,
@@ -101,13 +101,13 @@ public class Staff : IHasAudit, ISoftDelete
     public void SetLanguage(string lang) => PreferredLanguage = lang;
     public void SetPasswordHash(string hash) => PasswordHash = hash;
 
-    public void UpdateDetails(string staffId, string firstName, string lastName, string email, List<string> roles,
+    public void UpdateDetails(string staffId, string firstName, string? lastName, string email, List<string> roles,
         string? phoneNumber, string? icNo = null, string? passportNo = null,
         DateTime? dateOfBirth = null)
     {
         StaffId     = staffId.Trim().ToUpperInvariant();
         FirstName   = firstName.Trim();
-        LastName    = lastName.Trim();
+        LastName    = lastName?.Trim() ?? LastName;   // keep existing if null
         Email       = email.ToLowerInvariant();
         PhoneNumber = phoneNumber;
         IcNo        = icNo;

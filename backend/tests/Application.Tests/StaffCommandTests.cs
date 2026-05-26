@@ -105,16 +105,21 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Register_ThrowsInvalidOperation_WhenLastNameIsEmpty()
+    public async Task Register_Succeeds_WhenLastNameIsEmpty()
     {
+        // LastName is now optional — registering with an empty string should succeed.
         await using var db = CreateDb();
         var handler = RegisterHandler(db);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new RegisterStaffCommand(
-                "S001", "Alice", "", "alice@test.com", "pass",
-                new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
-                CancellationToken.None));
+        var id = await handler.Handle(new RegisterStaffCommand(
+            "S001", "Alice", "", "alice@test.com", "pass",
+            new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            CancellationToken.None);
+
+        Assert.NotEqual(Guid.Empty, id);
+        var saved = await db.Staff.FindAsync(id);
+        Assert.NotNull(saved);
+        Assert.Equal("", saved.LastName);
     }
 
     [Fact]
@@ -275,8 +280,9 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Update_ThrowsArgument_WhenLastNameIsEmpty()
+    public async Task Update_Succeeds_WhenLastNameIsEmpty()
     {
+        // LastName is now optional — clearing it to empty string should succeed.
         await using var db = CreateDb();
         var existing = MakeStaff();
         db.Staff.Add(existing);
@@ -284,11 +290,13 @@ public class StaffCommandTests
 
         var handler = UpdateHandler(db);
 
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new UpdateStaffCommand(
-                existing.Id, "S001", "Alice", "", "alice@test.com",
-                new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
-                CancellationToken.None));
+        await handler.Handle(new UpdateStaffCommand(
+            existing.Id, "S001", "Alice", "", "alice@test.com",
+            new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            CancellationToken.None);
+
+        await db.Entry(existing).ReloadAsync();
+        Assert.Equal("", existing.LastName);
     }
 
     [Fact]
@@ -347,8 +355,9 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Update_ThrowsInvalidOperation_WhenBothIcAndPassportAreEmpty()
+    public async Task Update_Succeeds_WhenBothIcAndPassportAreNull()
     {
+        // IC and Passport are optional on update — both null should succeed.
         await using var db = CreateDb();
         var existing = MakeStaff();
         db.Staff.Add(existing);
@@ -356,16 +365,20 @@ public class StaffCommandTests
 
         var handler = UpdateHandler(db);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new UpdateStaffCommand(
-                existing.Id, "S001", "Alice", "Wong", "alice@test.com",
-                new List<string>(), null, IcNo: null, PassportNo: null, DateOfBirth: new DateTime(1990, 1, 1)),
-                CancellationToken.None));
+        await handler.Handle(new UpdateStaffCommand(
+            existing.Id, "S001", "Alice", "Wong", "alice@test.com",
+            new List<string>(), null, IcNo: null, PassportNo: null, DateOfBirth: new DateTime(1990, 1, 1)),
+            CancellationToken.None);
+
+        await db.Entry(existing).ReloadAsync();
+        Assert.Null(existing.IcNo);
+        Assert.Null(existing.PassportNo);
     }
 
     [Fact]
-    public async Task Update_ThrowsInvalidOperation_WhenDateOfBirthIsNull()
+    public async Task Update_Succeeds_WhenDateOfBirthIsNull()
     {
+        // DateOfBirth is now optional on update — null should succeed and clear the field.
         await using var db = CreateDb();
         var existing = MakeStaff();
         db.Staff.Add(existing);
@@ -373,11 +386,13 @@ public class StaffCommandTests
 
         var handler = UpdateHandler(db);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new UpdateStaffCommand(
-                existing.Id, "S001", "Alice", "Wong", "alice@test.com",
-                new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: null),
-                CancellationToken.None));
+        await handler.Handle(new UpdateStaffCommand(
+            existing.Id, "S001", "Alice", "Wong", "alice@test.com",
+            new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: null),
+            CancellationToken.None);
+
+        await db.Entry(existing).ReloadAsync();
+        Assert.Null(existing.DateOfBirth);
     }
 
     [Fact]

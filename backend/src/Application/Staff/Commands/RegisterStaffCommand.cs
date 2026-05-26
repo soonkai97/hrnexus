@@ -9,7 +9,7 @@ namespace HRNexus.Application.Staff.Commands;
 public record RegisterStaffCommand(
     string        StaffId,
     string        FirstName,
-    string        LastName,
+    string?       LastName,
     string        Email,
     string        Password,
     List<string>  Roles,

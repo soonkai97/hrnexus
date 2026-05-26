@@ -238,5 +238,5 @@ public class StaffController(IMediator mediator) : ControllerBase
 
 public record CreateRoleBody(string Name, decimal HourlyRate = 0);
 public record UpdateRoleRateBody(decimal HourlyRate);
-public record UpdateStaffBody(string StaffId, string FirstName, string LastName, string? Email, List<string> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth);
+public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<string> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth);
 public record ResetPasswordBody(string NewPassword);

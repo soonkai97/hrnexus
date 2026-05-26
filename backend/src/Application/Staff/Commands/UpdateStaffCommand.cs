@@ -9,7 +9,7 @@ public record UpdateStaffCommand(
     Guid          Id,
     string        StaffId,
     string        FirstName,
-    string        LastName,
+    string?       LastName,
     string?       Email,
     List<string>  Roles,
     string?       PhoneNumber,

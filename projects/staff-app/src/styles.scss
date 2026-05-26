@@ -426,3 +426,15 @@ input[type="time"] {
     border-radius: 0 !important;
   }
 }
+
+// ── Toast (nc-toast) ─────────────────────────────────────────────────────────
+// bottom-center positioning with safe-area clearance for mobile browsers.
+.p-toast.app-toast {
+  width: min(360px, calc(100vw - 2rem));
+
+  @media (max-width: 640px) {
+    bottom: max(1rem, env(safe-area-inset-bottom, 1rem)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}

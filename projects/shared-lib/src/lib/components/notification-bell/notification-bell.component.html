@@ -1,5 +1,6 @@
-<!-- Bell button with unread badge -->
-<div class="bell-wrap" #bellRef>
+<div class="bell-wrap" #bellWrap>
+
+  <!-- Bell button -->
   <p-button
     icon="pi pi-bell"
     [text]="true"
@@ -8,40 +9,50 @@
     pTooltip="Notifications"
     tooltipPosition="bottom"
     aria-label="Notifications"
-    (onClick)="toggle($event, bellRef)" />
+    (onClick)="toggle()" />
   @if (svc.unreadCount() > 0) {
     <span class="bell-badge">{{ svc.unreadCount() > 9 ? '9+' : svc.unreadCount() }}</span>
   }
-</div>
 
-<!-- Popover panel -->
-<p-popover #notifPanel styleClass="notif-popover">
-  <div class="notif-panel">
-    <div class="panel-header">
-      <span class="panel-title">Notifications</span>
-      @if (svc.unreadCount() > 0) {
-        <p-button label="Mark all read" [text]="true" size="small" severity="secondary" (onClick)="markAll()" />
-      }
-    </div>
+  @if (panelOpen()) {
+    <!-- Mobile backdrop -->
+    <div class="notif-backdrop" (click)="close()"></div>
 
-    <div class="panel-list">
-      @if (svc.notifications().length === 0) {
-        <div class="empty-notif">No notifications yet.</div>
-      }
-      @for (n of svc.notifications(); track n.id) {
-        <div class="notif-item"
-             [class.unread]="!n.isRead"
-             [class.clickable]="!!routeFor(n)"
-             (click)="onNotifClick(n)">
-          <div class="notif-icon">{{ iconFor(n.type) }}</div>
-          <div class="notif-body">
-            <div class="notif-title">{{ n.title }}</div>
-            <div class="notif-msg">{{ n.message }}</div>
-            <div class="notif-time">{{ timeAgo(n.createdAt) }}</div>
-          </div>
-          @if (!n.isRead) { <span class="unread-dot"></span> }
+    <!-- Notification panel -->
+    <div class="notif-panel" role="dialog" aria-label="Notifications">
+      <div class="panel-header">
+        <span class="panel-title">Notifications</span>
+        <div class="header-actions">
+          @if (svc.unreadCount() > 0) {
+            <p-button label="Mark all read" [text]="true" size="small" severity="secondary" (onClick)="markAll()" />
+          }
+          <p-button icon="pi pi-times" [text]="true" severity="secondary" aria-label="Close" (onClick)="close()" />
         </div>
-      }
+      </div>
+
+      <div class="panel-list">
+        @if (svc.notifications().length === 0) {
+          <div class="empty-notif">
+            <span class="empty-icon">🔔</span>
+            <span>No notifications yet.</span>
+          </div>
+        }
+        @for (n of svc.notifications(); track n.id) {
+          <div class="notif-item"
+               [class.unread]="!n.isRead"
+               [class.clickable]="!!routeFor(n)"
+               (click)="onNotifClick(n)">
+            <div class="notif-icon">{{ iconFor(n.type) }}</div>
+            <div class="notif-body">
+              <div class="notif-title">{{ n.title }}</div>
+              <div class="notif-msg">{{ n.message }}</div>
+              <div class="notif-time">{{ timeAgo(n.createdAt) }}</div>
+            </div>
+            @if (!n.isRead) { <span class="unread-dot"></span> }
+          </div>
+        }
+      </div>
     </div>
-  </div>
-</p-popover>
+  }
+
+</div>

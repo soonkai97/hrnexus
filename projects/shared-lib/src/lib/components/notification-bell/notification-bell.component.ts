@@ -1,7 +1,6 @@
-import { Component, OnInit, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, signal, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from 'primeng/button';
-import { Popover } from 'primeng/popover';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { NotificationService } from '../../services/notification.service';
@@ -11,7 +10,7 @@ import { AppNotification } from '../../models';
 @Component({
   selector: 'nc-notification-bell',
   standalone: true,
-  imports: [Button, Popover, BadgeModule, TooltipModule],
+  imports: [Button, BadgeModule, TooltipModule],
   templateUrl: './notification-bell.component.html',
   styleUrl:    './notification-bell.component.scss',
 })
@@ -20,15 +19,23 @@ export class NotificationBellComponent implements OnInit {
   private readonly signalr = inject(SignalRService);
   private readonly router  = inject(Router);
 
-  @ViewChild('notifPanel') notifPanel!: Popover;
+  @ViewChild('bellWrap') private bellWrap!: ElementRef<HTMLElement>;
+
+  panelOpen = signal(false);
 
   ngOnInit(): void {
     this.svc.load().subscribe();
     this.signalr.notifications$.subscribe(n => this.svc.push(n));
   }
 
-  toggle(event: Event, target?: HTMLElement): void {
-    this.notifPanel.toggle(event, target);
+  toggle(): void { this.panelOpen.update(v => !v); }
+  close(): void  { this.panelOpen.set(false); }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(e: MouseEvent): void {
+    if (this.panelOpen() && !this.bellWrap?.nativeElement.contains(e.target as Node)) {
+      this.panelOpen.set(false);
+    }
   }
 
   onNotifClick(n: AppNotification): void {
@@ -38,7 +45,7 @@ export class NotificationBellComponent implements OnInit {
     }
     const route = this.routeFor(n);
     if (route) this.router.navigate([route]);
-    this.notifPanel.hide();
+    this.close();
   }
 
   markAll(): void {
@@ -48,14 +55,14 @@ export class NotificationBellComponent implements OnInit {
   routeFor(n: AppNotification): string | null {
     switch (n.type) {
       case 'leave_approved':
-      case 'leave_rejected':   return '/my-leave';
-      case 'leave_pending':    return '/leave';
-      case 'stale_shift':      return '/log-shift';
-      case 'stale_shift_admin':return '/dashboard';
+      case 'leave_rejected':    return '/my-leave';
+      case 'leave_pending':     return '/leave';
+      case 'stale_shift':       return '/log-shift';
+      case 'stale_shift_admin': return '/dashboard';
       case 'roster_assigned':
-      case 'missed_clockin':   return '/log-shift';
-      case 'password_reset':   return '/staff';
-      default:                 return null;
+      case 'missed_clockin':    return '/log-shift';
+      case 'password_reset':    return '/staff';
+      default:                  return null;
     }
   }
 

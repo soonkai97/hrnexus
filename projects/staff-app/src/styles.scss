@@ -427,6 +427,17 @@ input[type="time"] {
   }
 }
 
+// ── Prevent iOS auto-zoom on input focus ─────────────────────────────────────
+input, textarea, select,
+.p-inputtext,
+.p-inputnumber-input,
+.p-password input,
+.p-select-label,
+.p-datepicker-input,
+.p-autocomplete-input {
+  font-size: max(1rem, 16px);
+}
+
 // ── Notification popover — mobile full-width dropdown ────────────────────────
 @media (max-width: 640px) {
   .p-popover.notif-popover {

@@ -51,27 +51,27 @@
       } @else {
         <!-- Edit form -->
         <div class="row g-3">
-          <div class="col-6 field">
+          <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.staffId' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.staffId" />
           </div>
-          <div class="col-6 field">
+          <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.email' | translate }}</label>
             <input pInputText type="email" [(ngModel)]="editForm.email" />
           </div>
-          <div class="col-6 field">
+          <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.firstName' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.firstName" />
           </div>
-          <div class="col-6 field">
+          <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.lastName' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.lastName" />
           </div>
-          <div class="col-6 field">
+          <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.phone' | translate }}</label>
             <input pInputText type="tel" [(ngModel)]="editForm.phoneNumber" />
           </div>
-          <div class="col-6 field">
+          <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.dateOfBirth' | translate }}</label>
             <p-datepicker [(ngModel)]="editForm.dateOfBirth"
               dateFormat="yy-mm-dd"
@@ -79,15 +79,19 @@
               [showIcon]="true"
               [showOnFocus]="false"
               [readonlyInput]="true"
-              [showClear]="true"
               styleClass="w-full"
               appendTo="body" />
+            @if (editForm.dateOfBirth) {
+              <button type="button" class="dob-clear-btn" (click)="editForm.dateOfBirth = ''">
+                <i class="pi pi-times"></i> Clear date
+              </button>
+            }
           </div>
-          <div class="col-6 field">
+          <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.icNoOptional' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.icNo" />
           </div>
-          <div class="col-6 field">
+          <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.passportNoOptional' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.passportNo" />
           </div>

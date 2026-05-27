@@ -71,6 +71,7 @@
           <p-multiselect [(ngModel)]="locationNames"
             [options]="locations()"
             placeholder="All Locations"
+            [filter]="true"
             [showClear]="true"
             [maxSelectedLabels]="1"
             selectedItemsLabel="{0} selected"
@@ -86,6 +87,7 @@
             optionLabel="name"
             optionValue="name"
             placeholder="All Roles"
+            [filter]="true"
             [showClear]="true"
             [maxSelectedLabels]="1"
             selectedItemsLabel="{0} selected"
@@ -371,7 +373,7 @@
           <p-select [options]="roleOptions()" [(ngModel)]="editShiftForm.roleName"
             optionLabel="label" optionValue="value"
             [placeholder]="'reports.selectRole' | translate"
-            appendTo="body" styleClass="w-full" />
+            [filter]="true" appendTo="body" styleClass="w-full" />
         </div>
         <div class="field">
           <label><span class="req">*</span> {{ 'dashboard.location' | translate }}</label>

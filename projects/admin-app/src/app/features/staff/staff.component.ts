@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService, StaffStore, RegisterStaffRequest,
-         Staff, ToastService, ConfirmService } from 'shared-lib';
+         Staff, ToastService, ConfirmService, TrimInputDirective } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -27,7 +27,7 @@ import { Skeleton } from 'primeng/skeleton';
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe,
+  imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective,
     Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
     MultiSelect, Menu, Paginator, Skeleton],
   templateUrl: './staff.component.html',

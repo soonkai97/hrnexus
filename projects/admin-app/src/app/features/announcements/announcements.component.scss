@@ -7,6 +7,15 @@
   textarea { resize: vertical; min-height: 90px; }
 }
 
+.char-counter {
+  display: block;
+  text-align: right;
+  font-size: 0.72rem;
+  color: $text-muted;
+  margin-top: 0.2rem;
+  &--warn { color: var(--p-orange-500); }
+}
+
 .field-hint {
   font-weight: 400;
   font-size: 0.75rem;

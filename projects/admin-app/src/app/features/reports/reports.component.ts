@@ -10,6 +10,7 @@ import {
   StaffLedgerPayoutDto, StaffOutstandingDto,
   WORK_TYPE_LABELS, SETTLEMENT_LABELS,
   WorkLogService, UpdateWorkLogRequest, LocationStore,
+  TrimInputDirective,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -29,7 +30,7 @@ import { InputText } from 'primeng/inputtext';
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe,
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
     Tabs, TabList, Tab, MultiSelect, Select, Skeleton, Dialog, InputText],
   templateUrl: './reports.component.html',

@@ -15,6 +15,7 @@ import {
   ToastService,
   ConfirmService,
   toLocalDateString,
+  TrimInputDirective,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
@@ -33,7 +34,7 @@ const MONTH_OPTS = MONTHS.map((label, i) => ({ label, value: i + 1 }));
 @Component({
   selector: 'app-staff-ledger',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, TranslatePipe, Button, Select, InputText, InputNumber, Card, Tag, Skeleton, Message, Divider, Tabs, TabList, Tab],
+  imports: [FormsModule, DecimalPipe, TranslatePipe, TrimInputDirective, Button, Select, InputText, InputNumber, Card, Tag, Skeleton, Message, Divider, Tabs, TabList, Tab],
   templateUrl: './staff-ledger.component.html',
   styleUrl: './staff-ledger.component.scss',
 })

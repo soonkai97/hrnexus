@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { WorkLogService, WorkLogDto, UpdateWorkLogRequest, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PagedResult, todayLocalString } from 'shared-lib';
+import { WorkLogService, WorkLogDto, UpdateWorkLogRequest, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PagedResult, todayLocalString, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -24,11 +24,11 @@ function nowHHmm(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, Button, Card, Tag, InputText, Select, Message, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator],
+  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, TrimInputDirective, Button, Card, Tag, InputText, Select, Message, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })
-export class LogShiftComponent implements OnInit {
+export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   private readonly workLogSvc    = inject(WorkLogService);
   private readonly locationStore = inject(LocationStore);
   private readonly toast         = inject(ToastService);
@@ -98,6 +98,16 @@ export class LogShiftComponent implements OnInit {
   };
   manualFormStartTime: Date | null = null; // UI binding
   manualFormEndTime:   Date | null = null; // UI binding
+
+  hasUnsavedChanges(): boolean {
+    if (this.view() !== 'log' || !!this.activeLog()) return false;
+    if (this.mode() === 'live') {
+      return !!(this.liveForm.roleName || this.liveForm.locationId || this.liveForm.notes);
+    }
+    // manual mode
+    return !!(this.manualForm.roleName || this.manualForm.locationId ||
+              this.manualFormStartTime || this.manualFormEndTime || this.manualForm.notes);
+  }
 
   get isOvernightManual(): boolean {
     if (!this.manualFormStartTime || !this.manualFormEndTime) return false;

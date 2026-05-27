@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, roleGuard, featureFlagGuard } from 'shared-lib';
+import { authGuard, roleGuard, featureFlagGuard, unsavedChangesGuard } from 'shared-lib';
 import { ShellComponent } from './shell/shell.component';
 
 export const routes: Routes = [
@@ -21,7 +21,7 @@ export const routes: Routes = [
       { path: 'locations',     loadComponent: () => import('./features/locations/locations.component').then(m => m.LocationsComponent) },
       { path: 'leave',         loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
 
-      { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/dashboard')], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
+      { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
       { path: 'tips',          canActivate: [featureFlagGuard('tips',           '/dashboard')], loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },
       { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
       { path: 'staff-ledger',   canActivate: [featureFlagGuard('staffLedger', '/dashboard')], loadComponent: () => import('./features/staff-ledger/staff-ledger.component').then(m => m.StaffLedgerComponent) },

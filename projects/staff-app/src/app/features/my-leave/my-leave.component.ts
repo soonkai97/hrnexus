@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe } from 'shared-lib';
+import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe, TrimInputDirective } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -19,7 +19,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 @Component({
   selector: 'app-my-leave',
   standalone: true,
-  imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe, AmPmPipe,
+  imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe, AmPmPipe, TrimInputDirective,
     Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',

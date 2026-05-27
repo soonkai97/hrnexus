@@ -5,6 +5,30 @@ import { AppNotification } from '../models';
 
 export type HubState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'failed';
 
+/**
+ * Custom SignalR logger that suppresses the full maintenance-page HTML that
+ * gets dumped to the console when /hubs/negotiate returns 503 during a deploy.
+ * All other messages are forwarded to the browser console unchanged.
+ */
+class FilteredLogger implements signalR.ILogger {
+  log(logLevel: signalR.LogLevel, message: string): void {
+    if (message.includes('<!DOCTYPE') || message.includes("Status code '503'")) {
+      return; // silently drop maintenance-mode negotiation errors
+    }
+    switch (logLevel) {
+      case signalR.LogLevel.Critical:
+      case signalR.LogLevel.Error:
+        console.error(message); break;
+      case signalR.LogLevel.Warning:
+        console.warn(message); break;
+      case signalR.LogLevel.Information:
+        console.info(message); break;
+      default:
+        console.debug(message);
+    }
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class SignalRService implements OnDestroy {
   private hub: signalR.HubConnection | null = null;
@@ -26,7 +50,7 @@ export class SignalRService implements OnDestroy {
         accessTokenFactory: () => localStorage.getItem('access_token') ?? '',
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
-      .configureLogging(signalR.LogLevel.Information)
+      .configureLogging(new FilteredLogger())
       .build();
 
     this.registerHandlers();
@@ -61,12 +85,21 @@ export class SignalRService implements OnDestroy {
     this.hub.onclose(() => this.hubState.set('disconnected'));
   }
 
-  private connect(): void {
-    if (!this.hub) return;
+  private connect(): Promise<void> {
+    if (!this.hub) return Promise.resolve();
     this.hubState.set('connecting');
-    this.hub.start()
+    return this.hub.start()
       .then(() => this.hubState.set('connected'))
-      .catch(() => this.hubState.set('failed'));
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        // Redirect to the maintenance page when the hub endpoint returns 503
+        // (the negotiation response body contains the maintenance HTML).
+        if (msg.includes("Status code '503'") || msg.includes('<!DOCTYPE')) {
+          window.location.href = '/maintenance.html';
+          return;
+        }
+        this.hubState.set('failed');
+      });
   }
 }
 

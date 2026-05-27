@@ -152,4 +152,56 @@ describe('SignalRService', () => {
       expect((service as any).hub).toBe(fakeHub);
     });
   });
+
+  // ── connect() — maintenance-mode 503 handling ─────────────────────────────
+
+  describe('connect() — maintenance 503 detection', () => {
+    let navigatedHref: string;
+
+    beforeEach(() => {
+      navigatedHref = '';
+      // jsdom does not allow assigning window.location.href directly; intercept
+      // via Object.defineProperty so we can assert without actually navigating.
+      Object.defineProperty(window, 'location', {
+        value: { ...window.location, set href(v: string) { navigatedHref = v; } },
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('redirects to /maintenance.html when hub.start() rejects with a 503 status-code message', async () => {
+      const fakeHub = {
+        stop: vi.fn(), on: vi.fn(),
+        onreconnecting: vi.fn(), onreconnected: vi.fn(), onclose: vi.fn(),
+        start: vi.fn().mockRejectedValue(new Error("Error: Status code '503'")),
+      };
+      (service as any).hub = fakeHub;
+      // Call connect() directly — it is private but accessible via cast
+      await (service as any).connect();
+      expect(navigatedHref).toBe('/maintenance.html');
+    });
+
+    it('redirects to /maintenance.html when hub.start() rejects with an HTML body', async () => {
+      const fakeHub = {
+        stop: vi.fn(), on: vi.fn(),
+        onreconnecting: vi.fn(), onreconnected: vi.fn(), onclose: vi.fn(),
+        start: vi.fn().mockRejectedValue(new Error('<!DOCTYPE html><html>maintenance</html>')),
+      };
+      (service as any).hub = fakeHub;
+      await (service as any).connect();
+      expect(navigatedHref).toBe('/maintenance.html');
+    });
+
+    it('sets hubState to "failed" for non-maintenance errors (e.g. network error)', async () => {
+      const fakeHub = {
+        stop: vi.fn(), on: vi.fn(),
+        onreconnecting: vi.fn(), onreconnected: vi.fn(), onclose: vi.fn(),
+        start: vi.fn().mockRejectedValue(new Error('Network error')),
+      };
+      (service as any).hub = fakeHub;
+      await (service as any).connect();
+      expect(service.hubState()).toBe('failed');
+      expect(navigatedHref).toBe('');
+    });
+  });
 });

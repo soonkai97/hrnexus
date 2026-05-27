@@ -109,7 +109,12 @@
         }
       </div>
     } @else if (pools().length === 0) {
-      <p class="history-empty">{{ 'tips.noDistributions' | translate }}</p>
+      <div class="empty-state">
+        <div class="empty-inner d-flex flex-column align-items-center gap-2">
+          <span><i class="pi pi-dollar"></i></span>
+          <p>{{ 'tips.noDistributions' | translate }}</p>
+        </div>
+      </div>
     } @else {
       <p-table [value]="pools()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px"
         sortField="shiftDate" [sortOrder]="-1">

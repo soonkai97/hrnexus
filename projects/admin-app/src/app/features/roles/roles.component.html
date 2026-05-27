@@ -31,6 +31,14 @@
   }
 
   <!-- Roles list -->
+  @if (roles().length === 0 && !loading()) {
+    <p-card styleClass="empty-state">
+      <div class="empty-inner d-flex flex-column align-items-center gap-2">
+        <span><i class="pi pi-id-card"></i></span>
+        <p>{{ 'roles.noRoles' | translate }}</p>
+      </div>
+    </p-card>
+  } @else {
   <p-card styleClass="table-card p-0">
     <p-table [value]="roles()" [tableStyle]="{'min-width':'100%'}"
       sortField="name" [sortOrder]="1">
@@ -88,4 +96,5 @@
       </ng-template>
     </p-table>
   </p-card>
+  } <!-- end @else -->
 </div>

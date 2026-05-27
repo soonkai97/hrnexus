@@ -70,10 +70,10 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
     }))
   );
 
-  form: { title: string; body: string; targetRoles: string[]; expiresAt: string } = {
-    title: '', body: '', targetRoles: [], expiresAt: '',
+  form: { title: string; body: string; targetRoles: string[]; expiresAt: string | null } = {
+    title: '', body: '', targetRoles: [], expiresAt: null,
   };
-  private _initialForm = { title: '', body: '', targetRoles: [] as string[], expiresAt: '' };
+  private _initialForm = { title: '', body: '', targetRoles: [] as string[], expiresAt: null as string | null };
 
   ngOnInit(): void { this.load(1); this.staffStore.loadRoles(); }
 
@@ -90,7 +90,7 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
   }
 
   openAdd(): void {
-    this.form = { title: '', body: '', targetRoles: [], expiresAt: '' };
+    this.form = { title: '', body: '', targetRoles: [], expiresAt: null };
     this._initialForm = { ...this.form, targetRoles: [] };
     this.editing.set(null);
     this.showForm.set(true);
@@ -102,7 +102,7 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
       title:       item.title,
       body:        item.body,
       targetRoles: item.targetRoles === '*' ? [] : item.targetRoles.split(','),
-      expiresAt:   item.expiresAt ? item.expiresAt.slice(0, 10) : '',
+      expiresAt:   item.expiresAt ? item.expiresAt.slice(0, 10) : null,
     };
     this._initialForm = { ...this.form, targetRoles: [...this.form.targetRoles] };
     this.editing.set(item.id);

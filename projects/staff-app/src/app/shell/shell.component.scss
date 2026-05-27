@@ -372,3 +372,34 @@
 @media (max-width: 768px) {
   .mobile-menu-btn { display: block; }
 }
+
+// ── Offline banner ────────────────────────────────────────────────────────────
+.offline-banner {
+  background: #ef4444;
+  color: #fff;
+  text-align: center;
+  padding: 0.4rem 1rem;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+// ── Pull-to-refresh indicator ─────────────────────────────────────────────────
+.ptr-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  color: $text-muted;
+  flex-shrink: 0;
+  transition: opacity 0.1s;
+  user-select: none;
+
+  .pi-refresh { font-size: 0.95rem; }
+}

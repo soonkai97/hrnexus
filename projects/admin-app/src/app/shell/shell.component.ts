@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inject, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -24,7 +24,45 @@ interface NavItem {
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
-export class ShellComponent {
+export class ShellComponent implements AfterViewInit {
+  @ViewChild('mainContent') private mainContent!: ElementRef<HTMLElement>;
+  private readonly destroyRef = inject(DestroyRef);
+
+  // ── Offline detection ──────────────────────────────────────────────────────
+  isOffline = signal(false);
+
+  // ── Pull-to-refresh ────────────────────────────────────────────────────────
+  pullProgress = signal(0);   // 0–100
+  private ptStartY = 0;
+  private ptPulling = false;
+  private readonly PULL_THRESHOLD = 70; // px
+
+  private readonly onOnline  = () => this.isOffline.set(false);
+  private readonly onOffline = () => this.isOffline.set(true);
+
+  private readonly onTouchStart = (e: TouchEvent) => {
+    if (this.mainContent?.nativeElement.scrollTop === 0) {
+      this.ptStartY = e.touches[0].clientY;
+      this.ptPulling = true;
+    }
+  };
+  private readonly onTouchMove = (e: TouchEvent) => {
+    if (!this.ptPulling) return;
+    const delta = e.touches[0].clientY - this.ptStartY;
+    if (delta > 0 && this.mainContent?.nativeElement.scrollTop === 0) {
+      e.preventDefault();
+      this.pullProgress.set(Math.min(100, Math.round((delta / this.PULL_THRESHOLD) * 100)));
+    } else {
+      this.ptPulling = false;
+      this.pullProgress.set(0);
+    }
+  };
+  private readonly onTouchEnd = () => {
+    if (this.pullProgress() >= 100) window.location.reload();
+    this.pullProgress.set(0);
+    this.ptPulling = false;
+  };
+
   private readonly auth      = inject(AuthService);
   private readonly router    = inject(Router);
   private readonly signalR   = inject(SignalRService);
@@ -91,6 +129,24 @@ export class ShellComponent {
     { separator: true },
     { label: 'Sign Out', icon: 'pi pi-power-off', command: () => this.logout() },
   ]);
+
+  ngAfterViewInit(): void {
+    if (typeof window === 'undefined') return;
+    this.isOffline.set(!navigator.onLine);
+    const el = this.mainContent.nativeElement;
+    window.addEventListener('online',     this.onOnline);
+    window.addEventListener('offline',    this.onOffline);
+    el.addEventListener('touchstart', this.onTouchStart, { passive: true });
+    el.addEventListener('touchmove',  this.onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   this.onTouchEnd,   { passive: true });
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('online',  this.onOnline);
+      window.removeEventListener('offline', this.onOffline);
+      el.removeEventListener('touchstart', this.onTouchStart);
+      el.removeEventListener('touchmove',  this.onTouchMove);
+      el.removeEventListener('touchend',   this.onTouchEnd);
+    });
+  }
 
   toggleSidebar(): void { this.collapsed.update(v => !v); }
   logout(): void { this.signalR.stopConnection(); this.auth.logout(); }

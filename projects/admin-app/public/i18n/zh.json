@@ -407,7 +407,8 @@
     "actionsCol":       "操作",
     "system":           "系统",
     "custom":           "自定义",
-    "deleteRole":       "删除"
+    "deleteRole":       "删除",
+    "noRoles":          "未找到角色。"
   },
   "announcements": {
     "title":            "公告",

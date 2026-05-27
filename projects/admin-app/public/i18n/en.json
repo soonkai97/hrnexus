@@ -409,7 +409,8 @@
     "actionsCol":       "Actions",
     "system":           "System",
     "custom":           "Custom",
-    "deleteRole":       "Delete"
+    "deleteRole":       "Delete",
+    "noRoles":          "No roles found."
   },
   "announcements": {
     "title":            "Announcements",

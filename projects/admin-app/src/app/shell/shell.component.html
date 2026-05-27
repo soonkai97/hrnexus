@@ -77,7 +77,18 @@
         }
       </div>
     </header>
-    <div class="content">
+    @if (isOffline()) {
+      <div class="offline-banner">
+        <i class="pi pi-wifi"></i> You're offline — showing cached data
+      </div>
+    }
+    @if (pullProgress() > 0) {
+      <div class="ptr-indicator" [style.opacity]="pullProgress() / 100">
+        <i class="pi pi-refresh" [style.transform]="'rotate(' + (pullProgress() * 3.6) + 'deg)'"></i>
+        <span>{{ pullProgress() >= 100 ? 'Release to refresh' : 'Pull to refresh' }}</span>
+      </div>
+    }
+    <div class="content" #mainContent>
       <router-outlet />
     </div>
   </div>

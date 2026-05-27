@@ -19,5 +19,16 @@ public class LeaveRequestConfiguration : IEntityTypeConfiguration<LeaveRequest>
         b.HasOne(l => l.Employee).WithMany().HasForeignKey(l => l.EmployeeId);
         b.HasIndex(l => l.EmployeeId);
         b.HasIndex(l => l.StartDate);
+        // xmin is a PostgreSQL system column (uint / xid type) that increments on every UPDATE.
+        // Declaring it as a shadow property with IsConcurrencyToken() makes EF add
+        // "WHERE xmin = @p" to every UPDATE so concurrent admin approval + auto-reject
+        // can't silently overwrite each other.  No migration is needed — xmin already
+        // exists on every PostgreSQL table row; this just teaches EF to SELECT and check it.
+        b.Property<uint>("xmin")
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .IsRequired()
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
     }
 }

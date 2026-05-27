@@ -27,8 +27,9 @@ export class NotificationBellComponent implements OnInit {
   panelOpen = signal(false);
 
   ngOnInit(): void {
-    this.svc.load().subscribe();
-    // takeUntilDestroyed prevents accumulating subscriptions across logout/re-login cycles
+    // takeUntilDestroyed ensures the callback never runs on a destroyed component
+    // (guards against component being torn down while the HTTP request is in-flight)
+    this.svc.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     this.signalr.notifications$.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(n => this.svc.push(n));

@@ -30,6 +30,14 @@ public class SavePushSubscriptionCommandHandler(IAppDbContext db)
 
         var sub = PushSubscription.Create(req.EmployeeId, req.Endpoint, req.P256dh, req.Auth);
         db.PushSubscriptions.Add(sub);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // Unique endpoint index fired: a concurrent request registered the same subscription
+            // between our AnyAsync check and our save. Treat as success — the subscription exists.
+        }
     }
 }

@@ -49,7 +49,20 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
             req.IcNo, req.PassportNo, req.DateOfBirth);
 
         db.Staff.Add(employee);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // Unique index on StaffId or Email fired: a concurrent request registered
+            // the same StaffId or Email between our AnyAsync check and our save.
+            // Check which one to surface the right message.
+            var idStillTaken = await db.Staff.AnyAsync(e => e.StaffId == normalizedId, ct);
+            if (idStillTaken)
+                throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
+            throw new InvalidOperationException($"Email '{req.Email}' is already registered.");
+        }
         await audit.LogAsync("Staff", employee.Id.ToString(), "Created",
             null, "Admin", $"StaffId={normalizedId}", ct);
         return employee.Id;

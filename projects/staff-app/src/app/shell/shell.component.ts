@@ -130,15 +130,24 @@ export class ShellComponent implements AfterViewInit {
     });
   }
 
+  private isRefreshingUnread = false;
+
   private refreshUnread(): void {
     if (!this.featureSvc.isEnabled('announcements')) return;
-    this.announcementSvc.getMine().subscribe(list =>
-      this.unreadAnnouncements.set(list.filter(a => !a.isRead).length)
-    );
+    if (this.isRefreshingUnread) return; // dedup: previous poll still in-flight
+    this.isRefreshingUnread = true;
+    this.announcementSvc.getMine().subscribe({
+      next:  list => { this.unreadAnnouncements.set(list.filter(a => !a.isRead).length); this.isRefreshingUnread = false; },
+      error: ()   => { this.isRefreshingUnread = false; },
+    });
   }
+
+  private isCheckingLeave = false;
 
   /** Compare live leave records against the stored snapshot; toast on status changes. */
   private checkLeaveChanges(): void {
+    if (this.isCheckingLeave) return; // dedup: previous poll still in-flight
+    this.isCheckingLeave = true;
     this.leaveSvc.getMine().subscribe({
       next: records => {
         let snapshot: Record<string, string> = {};
@@ -164,8 +173,9 @@ export class ShellComponent implements AfterViewInit {
 
         try { localStorage.setItem(LEAVE_SNAPSHOT_KEY, JSON.stringify(snapshot)); } catch { /* quota */ }
         if (newChanges > 0) this.leaveChangeCount.update(n => n + newChanges);
+        this.isCheckingLeave = false;
       },
-      error: () => { /* silent — background poll */ },
+      error: () => { this.isCheckingLeave = false; /* silent — background poll */ },
     });
   }
 

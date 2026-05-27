@@ -18,29 +18,32 @@ public class ShiftJobs(
     /// <summary>
     /// Reset annual leave entitlements at start of each new year.
     /// Runs on January 1st via Hangfire cron.
+    /// [DisableConcurrentExecution] prevents duplicate inserts when Hangfire retries
+    /// or multiple servers try to run the same job simultaneously.
     /// </summary>
     [AutomaticRetry(Attempts = 2)]
-    public async Task ResetLeaveEntitlementsAsync()
+    [DisableConcurrentExecution(timeoutInSeconds: 300)]
+    public async Task ResetLeaveEntitlementsAsync(CancellationToken ct = default)
     {
         var newYear = dateTime.LocalNow.Year;
 
         var activeStaff = await db.Staff
             .Where(s => s.IsActive)
             .Select(s => s.Id)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         int created = 0;
         foreach (var staffId in activeStaff)
         {
             var exists = await db.LeaveEntitlements
-                .AnyAsync(e => e.EmployeeId == staffId && e.Year == newYear);
+                .AnyAsync(e => e.EmployeeId == staffId && e.Year == newYear, ct);
             if (!exists)
             {
                 db.LeaveEntitlements.Add(LeaveEntitlement.Create(staffId, newYear));
                 created++;
             }
         }
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
         logger.LogInformation(
             "Leave entitlement reset: created {Count} records for year {Year}", created, newYear);
     }
@@ -52,14 +55,15 @@ public class ShiftJobs(
     /// Runs every 15 minutes via Hangfire.
     /// </summary>
     [AutomaticRetry(Attempts = 1)]
-    public async Task RemindLongRunningWorkLogsAsync()
+    [DisableConcurrentExecution(timeoutInSeconds: 300)]
+    public async Task RemindLongRunningWorkLogsAsync(CancellationToken ct = default)
     {
         var cutoff = dateTime.UtcNow.AddHours(-12);
 
         var stale = await db.WorkLogs
             .Include(w => w.Employee)
             .Where(w => w.EndTime == null && w.CreatedAt <= cutoff)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         if (stale.Count == 0) return;
 
@@ -84,7 +88,7 @@ public class ShiftJobs(
         var alreadyNotifiedIds = await db.Notifications
             .Where(n => n.Type == "stale_shift" && staleIds.Contains(n.RelatedId!))
             .Select(n => n.RelatedId!)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         var newlyStale = stale
             .Where(w => !alreadyNotifiedIds.Contains(w.Id.ToString()))
@@ -111,7 +115,7 @@ public class ShiftJobs(
             .Where(s => s.IsActive &&
                         s.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager || r.Role == AppConstants.Roles.Admin))
             .Select(s => s.Id)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         var supervisorBody = newlyStale.Count == 1
             ? $"{newlyStale[0].Employee?.FullName ?? "A staff member"} has been on shift for over 12 hours without clocking out."
@@ -128,7 +132,7 @@ public class ShiftJobs(
         foreach (var (_, notif) in supervisorNotifs)
             db.Notifications.Add(notif);
 
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
 
         // ── Real-time push via SignalR (after save so IDs are stable) ─────────
         foreach (var (employeeId, notif) in employeeNotifs)
@@ -166,14 +170,15 @@ public class ShiftJobs(
     /// Runs daily at 02:00 UTC so nothing slips through overnight.
     /// </summary>
     [AutomaticRetry(Attempts = 2)]
-    public async Task AutoRejectOverdueLeaveAsync()
+    [DisableConcurrentExecution(timeoutInSeconds: 300)]
+    public async Task AutoRejectOverdueLeaveAsync(CancellationToken ct = default)
     {
         var today = dateTime.LocalNow.Date;
 
         var overdue = await db.LeaveRequests
             .Include(l => l.Employee)
             .Where(l => l.Status == "pending" && l.EndDate.Date < today)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         if (overdue.Count == 0)
         {
@@ -200,7 +205,7 @@ public class ShiftJobs(
             catch { /* push is non-critical */ }
         }
 
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
         logger.LogInformation(
             "AutoRejectOverdueLeave: auto-rejected {Count} leave(s).", overdue.Count);
     }
@@ -212,7 +217,8 @@ public class ShiftJobs(
     /// Runs weekly on Sunday at 04:00 UTC.
     /// </summary>
     [AutomaticRetry(Attempts = 1)]
-    public async Task CleanupOldJobsAsync()
+    [DisableConcurrentExecution(timeoutInSeconds: 300)]
+    public async Task CleanupOldJobsAsync(CancellationToken ct = default)
     {
         // ── Hangfire: delete failed job records older than 7 days ─────────────
         var monitoring  = JobStorage.Current.GetMonitoringApi();
@@ -235,7 +241,7 @@ public class ShiftJobs(
         var notifCutoff  = dateTime.UtcNow.AddDays(-90);
         int notifsDeleted = await db.Notifications
             .Where(n => n.CreatedAt < notifCutoff)
-            .ExecuteDeleteAsync();
+            .ExecuteDeleteAsync(ct);
 
         logger.LogInformation(
             "Weekly cleanup: {Jobs} failed Hangfire job(s), {Notifs} notification(s) older than 90 days removed",

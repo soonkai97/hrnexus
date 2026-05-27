@@ -226,6 +226,12 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
@@ -473,6 +479,7 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("RefreshToken")
+                        .IsConcurrencyToken()
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("RefreshTokenExpiry")
@@ -1109,7 +1116,10 @@ namespace HRNexus.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EmployeeId");
+                    b.HasIndex("EmployeeId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_WorkLogs_EmployeeId_Active")
+                        .HasFilter("\"EndTime\" IS NULL");
 
                     b.HasIndex("WorkDate");
 

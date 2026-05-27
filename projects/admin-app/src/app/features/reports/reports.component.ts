@@ -1,4 +1,7 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Subject, EMPTY } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -45,6 +48,50 @@ export class ReportsComponent implements OnInit {
   private readonly featureFlagSvc     = inject(FeatureFlagService);
   private readonly workLogSvc         = inject(WorkLogService);
   private readonly locationStore      = inject(LocationStore);
+  private readonly destroyRef         = inject(DestroyRef);
+
+  // switchMap cancels any in-flight getReport request when a newer runReport() call arrives.
+  private readonly _reportTrigger$ = new Subject<void>();
+
+  constructor() {
+    this._reportTrigger$.pipe(
+      switchMap(() => {
+        this.loading.set(true);
+        this.error.set('');
+
+        const from = new Date(this.dateFrom);
+        const to   = new Date(this.dateTo);
+        if ((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24) > 366) {
+          this.toast.error('Date range cannot exceed 366 days. Please narrow your filter.');
+          this.loading.set(false);
+          return EMPTY;
+        }
+
+        const staffIds      = this.staffIds      ?? [];
+        const locationNames = this.locationNames ?? [];
+        const roles         = this.roles         ?? [];
+
+        return this.admin.getReport({
+          dateFrom:      this.dateFrom,
+          dateTo:        this.dateTo,
+          staffIds:      staffIds.length      && staffIds.length      < this.allStaff().length   ? staffIds      : undefined,
+          locationNames: locationNames.length && locationNames.length < this.locations().length  ? locationNames : undefined,
+          roles:         roles.length         && roles.length         < this.staffRoles().length ? roles         : undefined,
+        }).pipe(
+          catchError(() => {
+            this.error.set('Failed to load report.');
+            this.toast.error('Failed to load report.');
+            this.loading.set(false);
+            return EMPTY;
+          }),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(data => {
+      this.report.set(data);
+      this.loading.set(false);
+    });
+  }
 
   // ── Section switcher ─────────────────────────────────────────────────────────
 
@@ -195,37 +242,8 @@ export class ReportsComponent implements OnInit {
   }
 
   runReport(): void {
-    this.loading.set(true);
-    this.error.set('');
-
-    // Guard: backend enforces 366-day cap — catch it here for immediate feedback
-    const from = new Date(this.dateFrom);
-    const to   = new Date(this.dateTo);
-    const rangeDays = (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24);
-    if (rangeDays > 366) {
-      this.toast.error('Date range cannot exceed 366 days. Please narrow your filter.');
-      this.loading.set(false);
-      return;
-    }
-
-    // Normalise to [] when PrimeNG clear (×) button sets the value to null.
-    // Treat "all options selected" as "no filter" — avoids blasting every ID
-    // into the query string when the user clicks Select All.
-    const staffIds      = this.staffIds      ?? [];
-    const locationNames = this.locationNames ?? [];
-    const roles         = this.roles         ?? [];
-
-    const filters: ReportFilters = {
-      dateFrom:      this.dateFrom,
-      dateTo:        this.dateTo,
-      staffIds:      staffIds.length      && staffIds.length      < this.allStaff().length   ? staffIds      : undefined,
-      locationNames: locationNames.length && locationNames.length < this.locations().length  ? locationNames : undefined,
-      roles:         roles.length         && roles.length         < this.staffRoles().length ? roles         : undefined,
-    };
-    this.admin.getReport(filters).subscribe({
-      next:  data  => { this.report.set(data); this.loading.set(false); },
-      error: ()    => { this.error.set('Failed to load report.'); this.toast.error('Failed to load report.'); this.loading.set(false); },
-    });
+    // switchMap in constructor cancels any in-flight request when a newer call arrives
+    this._reportTrigger$.next();
   }
 
   setPreset(preset: 'today' | 'yesterday' | 'week' | 'month' | 'last-month'): void {
@@ -336,6 +354,7 @@ export class ReportsComponent implements OnInit {
   ledgerTotalPayout  = computed(() => this.ledgerPayout().reduce((s, r) => s + r.netPayout, 0));
 
   loadLedgerData(): void {
+    if (this.ledgerLoading()) return; // dedup: skip if a fetch is already in flight
     this.ledgerLoading.set(true);
     this.staffLedgerSvc.summary(this.ledgerYear(), this.ledgerMonth()).subscribe({
       next:  rows => { this.ledgerPayout.set(rows); this.ledgerLoading.set(false); },

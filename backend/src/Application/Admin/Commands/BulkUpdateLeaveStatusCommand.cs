@@ -70,7 +70,18 @@ public class BulkUpdateLeaveStatusCommandHandler(
             count++;
         }
 
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // xmin concurrency token mismatch: the auto-reject Hangfire job (or another admin)
+            // modified one of these leave requests between our read and our save.
+            // Surface a clean 409-style message so the caller knows to refresh and retry.
+            throw new InvalidOperationException(
+                "One or more leave requests were modified concurrently. Please refresh and try again.");
+        }
         return count;
     }
 }

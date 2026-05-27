@@ -625,34 +625,97 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 
 **No `environment.ts` files.** All config is relative URLs or runtime API calls.
 
-### UAT deployment (soft launch for user testing)
+### Production server
 
-Uses `docker-compose.uat.yml` overlay which overrides CORS to accept the public server IP/hostname instead of prod subdomains.
+| Property | Value |
+|---|---|
+| Provider | DigitalOcean droplet `hrnexus-prod` |
+| Region | SGP1 (Singapore) |
+| OS | Ubuntu 24.04 LTS x64 |
+| RAM | 2 GB (minimum — Angular build needs ~1.5 GB) |
+| Repo path | `/root/hrnexus` |
+| Domain | `hrnexus.duckdns.org` (DuckDNS free dynamic DNS) |
+| SSL | Let's Encrypt — certs at `/etc/letsencrypt/live/hrnexus.duckdns.org/` |
 
-**Required `.env` file on the server** (never commit this):
+**Live URLs:**
+- Admin portal: `https://hrnexus.duckdns.org` (port 443)
+- Staff portal: `https://hrnexus.duckdns.org:8443`
+- HTTP (80 / 8081) redirects to HTTPS automatically
+
+**Docker Compose setup:**
+Uses `docker-compose.uat.yml` overlay on top of the base `docker-compose.yml`. This overlay:
+- Exposes ports 80, 443, 8081, 8443 on the host
+- Mounts `/etc/letsencrypt` into the nginx container for SSL certs
+- Replaces `nginx.conf` with `nginx.uat.conf` (HTTPS + redirect config)
+- Rewrites CORS to accept `https://hrnexus.duckdns.org` and `https://hrnexus.duckdns.org:8443`
+
+**`.env` file on the server** (never commit — lives at `/root/hrnexus/.env`):
 ```
-DOMAIN=yourname.duckdns.org
-UAT_HOST=yourname.duckdns.org
+DOMAIN=hrnexus.duckdns.org
+UAT_HOST=hrnexus.duckdns.org
 JWT_SECRET=<random-long-string-min-32-chars>
+POSTGRES_USER=ncuser
+POSTGRES_PASSWORD=<password>
+POSTGRES_DB=hr_nexus
+VAPID_SUBJECT=mailto:admin@...
+VAPID_PUBLIC_KEY=<key>
+VAPID_PRIVATE_KEY=<key>
 ```
 
-**Launch command on UAT server:**
+**First-time launch:**
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d --build
 ```
 
-**Update after pushing new code:**
+**Routine deploy (after `git push`):**
 ```bash
-git pull && docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d --build --no-deps web api
+./deploy.sh          # web only (most common)
+./deploy.sh all      # web + api (when backend changed)
 ```
 
-**UAT URLs** (replace `yourname` with your DuckDNS subdomain):
-- Admin portal: `http://yourname.duckdns.org` (port 80)
-- Staff portal: `http://yourname.duckdns.org:8081`
+**Firewall (ufw):**
+```bash
+ufw allow 22 && ufw allow 80 && ufw allow 443 && ufw allow 8081 && ufw allow 8443 && ufw enable
+```
 
-**Server spec**: Minimum **2 GB RAM** (DigitalOcean $14/month Singapore droplet) — the Angular build needs ~1.5 GB during `docker compose build`.
+**Cron jobs (already configured on server — `crontab -l` to verify):**
+```
+0 2 * * *    /root/hrnexus/scripts/backup-db.sh      >> /var/log/hrnexus-backup.log 2>&1
+0 3 1 */2 *  /root/hrnexus/scripts/renew-cert.sh     >> /var/log/hrnexus-renew.log 2>&1
+*/5 * * * *  /root/hrnexus/scripts/update-duckdns.sh >> /var/log/hrnexus-duckdns.log 2>&1
+```
 
-**Firewall**: Open ports 80, 8081, and 22 with `ufw allow 80 && ufw allow 8081 && ufw allow 22 && ufw enable`.
+---
+
+### Production infrastructure services
+
+#### DigitalOcean
+- **Droplet** — the VM that runs everything (Docker, nginx, API, Postgres)
+- **Automated Backups** — Weekly full-droplet snapshot (Sunday 8PM–12AM UTC), ~4 weeks retention. Enabled in DO dashboard → droplet → Backups. Restoring from a snapshot reverts the entire server (OS + Docker volumes + data).
+- **Dashboard**: https://cloud.digitalocean.com → Droplets → `hrnexus-prod`
+- Use for: resizing the droplet, viewing bandwidth/CPU graphs, restoring from snapshot, SSH console fallback
+
+#### DuckDNS (free dynamic DNS)
+- **Purpose**: maps `hrnexus.duckdns.org` to the droplet's public IP. DigitalOcean droplets get a static IP, but DuckDNS is used as the domain provider (free alternative to buying a domain).
+- **Dashboard**: https://www.duckdns.org — log in with Google to see the token and update the IP manually if needed
+- **Auto-update cron**: `scripts/update-duckdns.sh` runs every 5 minutes and pings `https://www.duckdns.org/update?domains=hrnexus&token=<TOKEN>&ip=` — DuckDNS auto-detects the caller's public IP. The `DUCKDNS_TOKEN` is stored in `.env` (or hardcoded in the script — check the script for the actual location).
+- If DNS stops resolving, check: (1) cron log `/var/log/hrnexus-duckdns.log`, (2) DuckDNS dashboard to verify the IP is current, (3) `curl "https://www.duckdns.org/update?domains=hrnexus&token=<TOKEN>&ip="` manually on the server.
+
+#### Let's Encrypt (SSL)
+- **Certs**: `/etc/letsencrypt/live/hrnexus.duckdns.org/fullchain.pem` and `privkey.pem` — mounted read-only into the nginx container
+- **Renewal cron**: `scripts/renew-cert.sh` runs on the 1st of every other month at 3AM (`0 3 1 */2 *`). It runs `certbot renew` and then reloads nginx to pick up the new cert.
+- **Cert expiry**: 90-day validity. The every-2-month cron gives a comfortable renewal window. If Uptime Robot starts alerting on SSL errors, check: `certbot certificates` on the server.
+- **First-time issuance** was done with: `certbot certonly --standalone -d hrnexus.duckdns.org` (nginx stopped during issuance)
+
+#### Uptime Robot (free uptime monitoring)
+- **Purpose**: pings the live URLs every 5 minutes and sends email alerts when the site goes down or SSL expires
+- **Dashboard**: https://uptimerobot.com — log in to see monitor status and alert history
+- **Monitors configured**:
+  - Admin portal `https://hrnexus.duckdns.org` (HTTP monitor, port 443)
+  - Staff portal `https://hrnexus.duckdns.org:8443` (HTTP monitor, port 8443)
+- **Alerts**: sent by email when a monitor goes down or comes back up; also shows SSL cert expiry warnings ~30 days before expiry
+- **Free tier limits**: up to 50 monitors, 5-minute check interval — sufficient for this project
+- If an alert fires: SSH into the server, run `docker compose ps` to check container health, then `docker compose logs web` or `docker compose logs api` for errors
 
 ---
 
@@ -711,12 +774,7 @@ Two layers are in place on the production server:
 - Use for: accidental data deletion, migration gone wrong — surgical DB restore without touching the server
 - Restore: `scripts/restore-db.sh /opt/hrnexus/backups/hrnexus_YYYYMMDD_HHMMSS.sql.gz` (prompts "YES" confirmation, destructive)
 
-### Other crons on prod server
-```
-0 2 * * *    backup-db.sh        → daily DB dump
-0 3 1 */2 *  renew-cert.sh       → Let's Encrypt renewal every 2 months
-*/5 * * * *  update-duckdns.sh   → keep DuckDNS IP current
-```
+All three cron jobs are documented in the **Production infrastructure services → DuckDNS / Let's Encrypt / DigitalOcean** section above.
 
 ---
 

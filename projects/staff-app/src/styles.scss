@@ -27,6 +27,11 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+// ── p-button host display fix ─────────────────────────────────────────────────
+// Angular custom elements default to display:inline, so width:100% has no effect.
+// Any p-button with w-full must be block so the inner button can stretch.
+p-button.w-full { display: block; }
+
 html, body {
   height: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

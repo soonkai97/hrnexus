@@ -92,7 +92,17 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
             count++;
         }
 
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            // Unique constraint race: a concurrent BulkUpsertLeaveEntitlement or
+            // ResetLeaveEntitlements job inserted a (EmployeeId, ToYear) row between our
+            // toEntitlements read and this save. REPEATABLE READ prevents non-repeatable
+            // reads but not phantom inserts from other concurrent transactions.
+            // Ask the admin to retry — carry-over is a once-a-year operation.
+            throw new InvalidOperationException(
+                "Leave entitlements were modified concurrently. Please try the carry-over again.");
+        }
         if (tx is not null) await tx.CommitAsync(ct);
         return count;
     }

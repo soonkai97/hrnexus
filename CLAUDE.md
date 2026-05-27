@@ -1038,7 +1038,7 @@ dotnet test
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
 | shared-lib (services + stores + guards + auth) | 26 | 355 | ✅ |
-| admin-app components | 17 | 680 | ✅ |
+| admin-app components | 17 | 677 | ✅ |
 | staff-app components | 11 | 265 | ✅ |
 | backend Application.Tests | — | 432 | ✅ |
 

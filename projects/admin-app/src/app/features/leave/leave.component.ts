@@ -6,7 +6,7 @@ import {
   LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance,
   LeaveSummary, LeavePatternWarning,
   LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
-  TrimInputDirective,
+  TrimInputDirective, CanComponentDeactivate,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
@@ -35,7 +35,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
-export class LeaveComponent implements OnInit {
+export class LeaveComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
   private readonly leaveSvc   = inject(LeaveService);
   private readonly toast      = inject(ToastService);
@@ -643,6 +643,10 @@ export class LeaveComponent implements OnInit {
   /** Item 12: check if an employee has a pattern warning */
   patternWarningFor(employeeId: string): LeavePatternWarning | undefined {
     return this.patternWarnings().find(w => w.employeeId === employeeId);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.showForm() && !!this.form.employeeId;
   }
 
   private scrollToForm(): void {

@@ -17,9 +17,9 @@ export const routes: Routes = [
       { path: 'staff',         loadChildren:  () => import('./features/staff/staff.routes').then(m => m.STAFF_ROUTES) },
 
       { path: 'reports',       loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent) },
-      { path: 'roles',         loadComponent: () => import('./features/roles/roles.component').then(m => m.RolesComponent) },
-      { path: 'locations',     loadComponent: () => import('./features/locations/locations.component').then(m => m.LocationsComponent) },
-      { path: 'leave',         loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
+      { path: 'roles',         canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/roles/roles.component').then(m => m.RolesComponent) },
+      { path: 'locations',     canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/locations/locations.component').then(m => m.LocationsComponent) },
+      { path: 'leave',         canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
 
       { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
       { path: 'tips',          canActivate: [featureFlagGuard('tips',           '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },

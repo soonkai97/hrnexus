@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe, TrimInputDirective } from 'shared-lib';
+import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -24,7 +24,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })
-export class MyLeaveComponent implements OnInit {
+export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   private readonly leaveSvc  = inject(LeaveService);
   private readonly toast     = inject(ToastService);
   private readonly confirm   = inject(ConfirmService);
@@ -238,6 +238,17 @@ export class MyLeaveComponent implements OnInit {
         this.saving.set(false);
       },
     });
+  }
+
+  hasUnsavedChanges(): boolean {
+    // Consider the Apply form dirty if the user has touched any field beyond the default leave type.
+    return this.view() === 'apply' && (
+      !!this.form.startDate ||
+      !!this.form.endDate   ||
+      this.form.startTime !== null ||
+      this.form.endTime   !== null ||
+      !!this.form.notes.trim()
+    );
   }
 
   onStartDateChange(date: string): void {

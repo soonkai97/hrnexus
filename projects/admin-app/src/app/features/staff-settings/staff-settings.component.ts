@@ -14,6 +14,7 @@ import {
   ToastService,
   ConfirmService,
   TrimInputDirective,
+  CanComponentDeactivate,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -52,7 +53,7 @@ type SeverityValue = 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'con
   templateUrl: './staff-settings.component.html',
   styleUrl:    './staff-settings.component.scss',
 })
-export class StaffSettingsComponent implements OnInit {
+export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
   private readonly configSvc  = inject(StaffConfigService);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
@@ -314,5 +315,9 @@ export class StaffSettingsComponent implements OnInit {
 
   private emptyEcForm(): UpsertExpenseCategoryRequest {
     return { key: '', label: '', displayOrder: 0, isActive: true };
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.showWtForm() || this.showStForm() || this.showEcForm() || this.showLtForm();
   }
 }

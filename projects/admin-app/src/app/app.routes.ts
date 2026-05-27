@@ -22,10 +22,10 @@ export const routes: Routes = [
       { path: 'leave',         loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
 
       { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
-      { path: 'tips',          canActivate: [featureFlagGuard('tips',           '/dashboard')], loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },
+      { path: 'tips',          canActivate: [featureFlagGuard('tips',           '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },
       { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
-      { path: 'staff-ledger',   canActivate: [featureFlagGuard('staffLedger', '/dashboard')], loadComponent: () => import('./features/staff-ledger/staff-ledger.component').then(m => m.StaffLedgerComponent) },
-      { path: 'staff-settings', loadComponent: () => import('./features/staff-settings/staff-settings.component').then(m => m.StaffSettingsComponent) },
+      { path: 'staff-ledger',   canActivate: [featureFlagGuard('staffLedger', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/staff-ledger/staff-ledger.component').then(m => m.StaffLedgerComponent) },
+      { path: 'staff-settings', canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/staff-settings/staff-settings.component').then(m => m.StaffSettingsComponent) },
       { path: 'account',       loadChildren:  () => import('./features/account/account.routes').then(m => m.ACCOUNT_ROUTES) },
     ],
   },

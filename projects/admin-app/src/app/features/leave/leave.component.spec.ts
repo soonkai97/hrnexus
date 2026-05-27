@@ -1022,4 +1022,57 @@ describe('LeaveComponent', () => {
       expect(types).toContain('no-show');
     });
   });
+
+  // ── setDatePreset() ───────────────────────────────────────────────────────────
+
+  describe('setDatePreset()', () => {
+    beforeEach(() => {
+      // Pin system clock to 2026-07-15 (Wednesday, month index 6)
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 6, 15));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('"today" sets filterFrom and filterTo to today', () => {
+      component.setDatePreset('today');
+      expect(component.filterFrom).toBe('2026-07-15');
+      expect(component.filterTo).toBe('2026-07-15');
+    });
+
+    it('"week" sets filterFrom to Monday of the current week', () => {
+      // 2026-07-15 is Wednesday → Monday is 2026-07-13
+      component.setDatePreset('week');
+      expect(component.filterFrom).toBe('2026-07-13');
+      expect(component.filterTo).toBe('2026-07-15');
+    });
+
+    it('"month" sets filterFrom to first of current month', () => {
+      component.setDatePreset('month');
+      expect(component.filterFrom).toBe('2026-07-01');
+      expect(component.filterTo).toBe('2026-07-15');
+    });
+
+    it('"last-month" sets filterFrom and filterTo to full previous month', () => {
+      // Current month is July 2026 → last month is June 2026
+      component.setDatePreset('last-month');
+      expect(component.filterFrom).toBe('2026-06-01');
+      expect(component.filterTo).toBe('2026-06-30');
+    });
+
+    it('"last-3-months" sets filterFrom to 3 months ago (first of that month)', () => {
+      // 2026-07 minus 3 = 2026-04
+      component.setDatePreset('last-3-months');
+      expect(component.filterFrom).toBe('2026-04-01');
+      expect(component.filterTo).toBe('2026-07-15');
+    });
+
+    it('calls load(1) after setting any preset — so results update immediately', () => {
+      const loadCallsBefore = mockLeaveSvc.getAll.mock.calls.length;
+      component.setDatePreset('month');
+      expect(mockLeaveSvc.getAll.mock.calls.length).toBeGreaterThan(loadCallsBefore);
+    });
+  });
 });

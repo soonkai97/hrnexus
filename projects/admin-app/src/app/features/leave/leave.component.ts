@@ -81,6 +81,41 @@ export class LeaveComponent implements OnInit {
     else this.load();
   }
 
+  readonly datePresets = [
+    { label: 'Today',         value: 'today'         as const },
+    { label: 'This Week',     value: 'week'          as const },
+    { label: 'This Month',    value: 'month'         as const },
+    { label: 'Last Month',    value: 'last-month'    as const },
+    { label: 'Last 3 Months', value: 'last-3-months' as const },
+  ];
+
+  setDatePreset(preset: 'today' | 'week' | 'month' | 'last-month' | 'last-3-months'): void {
+    const now = new Date();
+    const fmt = (d: Date) => toLocalDateString(d);
+    switch (preset) {
+      case 'today':
+        this.filterFrom = this.filterTo = fmt(now); break;
+      case 'week': {
+        const mon = new Date(now);
+        mon.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+        this.filterFrom = fmt(mon); this.filterTo = fmt(now); break;
+      }
+      case 'month':
+        this.filterFrom = fmt(new Date(now.getFullYear(), now.getMonth(), 1));
+        this.filterTo   = fmt(now); break;
+      case 'last-month': {
+        const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const last  = new Date(now.getFullYear(), now.getMonth(), 0);
+        this.filterFrom = fmt(first); this.filterTo = fmt(last); break;
+      }
+      case 'last-3-months': {
+        const first3 = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        this.filterFrom = fmt(first3); this.filterTo = fmt(now); break;
+      }
+    }
+    this.load(1);
+  }
+
   /** Overdue pending leaves (loaded separately, all pages) */
   overdueLeaves    = signal<LeaveRecord[]>([]);
   overdueExpanded  = signal(true);

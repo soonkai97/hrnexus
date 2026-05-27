@@ -104,6 +104,9 @@
       <p-inputicon styleClass="pi pi-search" />
       <input pInputText type="text" [placeholder]="'staff.searchPlaceholder' | translate"
              [value]="search()" (input)="onSearch($any($event.target).value)" />
+      @if (search()) {
+        <p-inputicon styleClass="pi pi-times search-clear" style="cursor:pointer;pointer-events:all" (click)="onSearch('')" />
+      }
     </p-iconfield>
   </div>
 

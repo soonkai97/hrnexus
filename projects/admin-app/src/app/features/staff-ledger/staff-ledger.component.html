@@ -1,13 +1,13 @@
-<div class="hl-page">
+﻿<div class="hl-page">
 
-  <!-- ── Page header ──────────────────────────────────────────────────────── -->
+  <!-- â”€â”€ Page header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
   <div class="page-header">
     <div class="page-header__left">
       <h1 class="page-title">{{ 'staffLedger.title' | translate }}</h1>
     </div>
   </div>
 
-  <!-- ── Filters ──────────────────────────────────────────────────────────── -->
+  <!-- â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
   <div class="filters-row">
     <p-select
       [options]="staffOpts()"
@@ -74,7 +74,7 @@
   @if (selectedStaffId()) {
     <div class="hl-body">
 
-      <!-- ── Left column: entry list + form ──────────────────────────────── -->
+      <!-- â”€â”€ Left column: entry list + form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <div class="hl-main">
 
         <!-- Tabs -->
@@ -86,7 +86,7 @@
           </p-tablist>
         </p-tabs>
 
-        <!-- ── Entries tab ──────────────────────────────────────────────── -->
+        <!-- â”€â”€ Entries tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         @if (activeTab() === 'entries') {
 
         <!-- Add/Edit form -->
@@ -127,6 +127,7 @@
                   [minFractionDigits]="0"
                   [maxFractionDigits]="2"
                   [min]="0"
+                  [pt]="$any({ input: { inputmode: 'decimal' } })"
                   (ngModelChange)="recalcVenueEarnings()">
                 </p-inputnumber>
               </div>
@@ -140,6 +141,7 @@
                   [maxFractionDigits]="2"
                   [min]="0"
                   prefix="RM "
+                  [pt]="$any({ input: { inputmode: 'decimal' } })"
                   (ngModelChange)="recalcVenueEarnings()">
                 </p-inputnumber>
               </div>
@@ -152,7 +154,8 @@
                   [minFractionDigits]="2"
                   [maxFractionDigits]="2"
                   [min]="0"
-                  prefix="RM ">
+                  prefix="RM "
+                  [pt]="$any({ input: { inputmode: 'decimal' } })">
                 </p-inputnumber>
               </div>
 
@@ -165,7 +168,8 @@
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
                     [min]="0"
-                    prefix="RM ">
+                    prefix="RM "
+                    [pt]="$any({ input: { inputmode: 'decimal' } })">
                   </p-inputnumber>
                 </div>
 
@@ -176,7 +180,8 @@
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
                     [min]="0"
-                    prefix="RM ">
+                    prefix="RM "
+                    [pt]="$any({ input: { inputmode: 'decimal' } })">
                   </p-inputnumber>
                 </div>
               }
@@ -269,7 +274,7 @@
                         [severity]="settlementSeverity(entry.settlement)">
                       </p-tag>
                     </td>
-                    <td class="notes-col">{{ entry.notes ?? '—' }}</td>
+                    <td class="notes-col">{{ entry.notes ?? 'â€”' }}</td>
                     <td class="action-col">
                       <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="openEdit(entry)" />
                       <p-button icon="pi pi-trash"  [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="remove(entry)" />
@@ -283,7 +288,7 @@
 
         } <!-- end @if entries tab -->
 
-        <!-- ── Expenses tab ────────────────────────────────────────────── -->
+        <!-- â”€â”€ Expenses tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         @if (activeTab() === 'expenses') {
 
           <!-- Expense Add/Edit form -->
@@ -316,7 +321,8 @@
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
                     [min]="0"
-                    prefix="RM ">
+                    prefix="RM "
+                    [pt]="$any({ input: { inputmode: 'decimal' } })">
                   </p-inputnumber>
                 </div>
 
@@ -373,7 +379,7 @@
                     <tr>
                       <td>{{ expenseCategoryLabel(exp.category) }}</td>
                       <td class="num-col red">{{ exp.amount | number:'1.2-2' }}</td>
-                      <td class="notes-col">{{ exp.notes ?? '—' }}</td>
+                      <td class="notes-col">{{ exp.notes ?? 'â€”' }}</td>
                       <td class="action-col">
                         <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="openEditExpense(exp)" />
                         <p-button icon="pi pi-trash"  [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="removeExpense(exp)" />
@@ -387,7 +393,7 @@
 
         } <!-- end @if expenses tab -->
 
-        <!-- ── Loans tab ────────────────────────────────────────────────── -->
+        <!-- â”€â”€ Loans tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
         @if (activeTab() === 'loans') {
 
           <!-- Loan Add form -->
@@ -425,7 +431,8 @@
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
                     [min]="0"
-                    prefix="RM ">
+                    prefix="RM "
+                    [pt]="$any({ input: { inputmode: 'decimal' } })">
                   </p-inputnumber>
                 </div>
 
@@ -490,7 +497,7 @@
                         </p-tag>
                       </td>
                       <td class="num-col">{{ loan.amount | number:'1.2-2' }}</td>
-                      <td class="notes-col">{{ loan.purpose ?? '—' }}</td>
+                      <td class="notes-col">{{ loan.purpose ?? 'â€”' }}</td>
                       <td class="action-col">
                         <p-button icon="pi pi-trash" [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="removeLoan(loan)" />
                       </td>
@@ -515,7 +522,7 @@
 
       </div>
 
-      <!-- ── Right column: summary panel ─────────────────────────────────── -->
+      <!-- â”€â”€ Right column: summary panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
       <aside class="hl-summary">
         <p-card styleClass="summary-card">
           <div class="summary-title">{{ 'staffLedger.summaryTitle' | translate }}</div>
@@ -531,7 +538,7 @@
           </div>
           <div class="summary-row">
             <span class="summary-label">{{ 'staffLedger.totalDeductions' | translate }}</span>
-            <span class="summary-value" [class.red]="totalExpenses() > 0">– RM {{ totalExpenses() | number:'1.2-2' }}</span>
+            <span class="summary-value" [class.red]="totalExpenses() > 0">â€“ RM {{ totalExpenses() | number:'1.2-2' }}</span>
           </div>
           <p-divider />
           <div class="summary-row summary-row--total">
@@ -548,7 +555,7 @@
           }
 
           <div class="summary-entries-note">
-            {{ entryCount() }} {{ entryCount() === 1 ? 'entry' : 'entries' }} · {{ expenses().length }} deduction(s) this month
+            {{ entryCount() }} {{ entryCount() === 1 ? 'entry' : 'entries' }} Â· {{ expenses().length }} deduction(s) this month
           </div>
 
           <p-divider />

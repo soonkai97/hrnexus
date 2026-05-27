@@ -37,6 +37,13 @@ public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt) :
             changes:         changes));
 
         leave.Cancel();
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateConcurrencyException)
+        {
+            // xmin token mismatch: admin updated this leave between our read and our save.
+            // Surface a friendly error so the staff member can refresh and retry.
+            throw new InvalidOperationException(
+                "This leave request was modified concurrently. Please refresh and try again.");
+        }
     }
 }

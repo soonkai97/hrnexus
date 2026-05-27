@@ -187,10 +187,33 @@ public class ShiftJobs(
         }
 
         var stamp = $"Auto-rejected {today:yyyy-MM-dd}: leave ended without admin review.";
+        int autoRejected = 0;
 
         foreach (var leave in overdue)
         {
-            leave.AutoReject(stamp);
+            // ExecuteUpdateAsync is atomic: the WHERE l.Status == "pending" ensures we only
+            // flip leaves that are still pending. If an admin approved/rejected between our
+            // ToListAsync and now, affected == 0 and we skip — no stale-overwrite, no
+            // phantom push. ExecuteUpdateAsync bypasses the EF change-tracker (no xmin token
+            // contention), so a concurrent xmin bump cannot cause a DbUpdateConcurrencyException.
+            var newNotes = string.IsNullOrWhiteSpace(leave.Notes)
+                ? stamp
+                : $"{leave.Notes} | {stamp}";
+
+            var affected = await db.LeaveRequests
+                .Where(l => l.Id == leave.Id && l.Status == "pending")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(l => l.Status, "rejected")
+                    .SetProperty(l => l.Notes, newNotes), ct);
+
+            if (affected == 0)
+            {
+                logger.LogWarning(
+                    "AutoRejectOverdueLeave: skipped leave {Id} — concurrently modified by admin.", leave.Id);
+                continue;
+            }
+
+            autoRejected++;
 
             try
             {
@@ -205,9 +228,8 @@ public class ShiftJobs(
             catch { /* push is non-critical */ }
         }
 
-        await db.SaveChangesAsync(ct);
         logger.LogInformation(
-            "AutoRejectOverdueLeave: auto-rejected {Count} leave(s).", overdue.Count);
+            "AutoRejectOverdueLeave: auto-rejected {Count}/{Total} leave(s).", autoRejected, overdue.Count);
     }
 
     /// <summary>

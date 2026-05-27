@@ -239,6 +239,15 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 return leave.Id;
             }
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            // xmin token mismatch: another session updated the same LeaveRequest row
+            // between our read and our SaveChanges. Roll back and surface a friendly error.
+            if (tx != null)
+                try { tx.Rollback(); } catch { /* ignore rollback errors */ }
+            throw new InvalidOperationException(
+                "This leave request was modified concurrently. Please refresh and try again.");
+        }
         catch
         {
             // Roll back the balance-check transaction if it hasn't been committed yet.

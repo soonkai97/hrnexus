@@ -27,9 +27,9 @@ public class WorkLogConfiguration : IEntityTypeConfiguration<WorkLog>
         b.HasIndex(w => w.EmployeeId);
         b.HasIndex(w => w.WorkDate);
         // Partial unique index: prevents duplicate active shifts per employee at the DB level.
-        // HasFilter uses a WHERE clause so only rows with EndTime IS NULL (active shifts) are indexed.
+        // Filter includes IsDeleted = false so soft-deleted active shifts don't block new starts.
         b.HasIndex(w => w.EmployeeId)
-            .HasFilter("\"EndTime\" IS NULL")
+            .HasFilter("\"EndTime\" IS NULL AND \"IsDeleted\" = false")
             .IsUnique()
             .HasDatabaseName("IX_WorkLogs_EmployeeId_Active");
         // Partial unique index: one completed work log per employee per date (soft-deleted rows exempt).

@@ -199,6 +199,9 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
       error: (e) => {
         this.formError.set(e?.error?.error ?? 'Failed to start shift.');
         this.submitting.set(false);
+        // If the backend detected an active shift that we missed (e.g. loadActive()
+        // failed silently on page load), refresh now so the End Shift card appears.
+        this.loadActive();
       },
     });
   }

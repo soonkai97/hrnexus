@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using HRNexus.Infrastructure.Persistence;
 
 #nullable disable
 
 namespace HRNexus.Infrastructure.Migrations
 {
-    /// <inheritdoc />
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20260527000000_RenameAdminRoleToSuperAdmin")]
     public partial class RenameAdminRoleToSuperAdmin : Migration
     {
         /// <inheritdoc />

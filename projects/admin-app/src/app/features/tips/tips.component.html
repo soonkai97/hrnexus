@@ -15,7 +15,8 @@
         <label><span class="req">*</span> {{ 'tips.locationLabel' | translate }}</label>
         <p-select [(ngModel)]="form.locationId" (onChange)="onLocationChange()"
           [options]="locationStore.locations()" optionLabel="name" optionValue="id"
-          [placeholder]="'tips.selectLocation' | translate" styleClass="w-full" />
+          [placeholder]="'tips.selectLocation' | translate" [filter]="true"
+          styleClass="w-full" appendTo="body" />
       </div>
 
       <div class="field">

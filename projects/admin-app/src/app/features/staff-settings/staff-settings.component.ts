@@ -13,6 +13,7 @@ import {
   UpsertLoanTypeRequest,
   ToastService,
   ConfirmService,
+  TrimInputDirective,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -44,7 +45,7 @@ type SeverityValue = 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'con
   selector: 'app-staff-settings',
   standalone: true,
   imports: [
-    FormsModule, TranslatePipe,
+    FormsModule, TranslatePipe, TrimInputDirective,
     Button, InputText, InputNumber, Select, Checkbox, Tag, Divider, Message,
     Tabs, TabList, Tab, TabPanels, TabPanel,
   ],

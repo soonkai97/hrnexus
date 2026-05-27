@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } fr
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService, StaffStore } from 'shared-lib';
+import { AnnouncementService, AdminAnnouncementDto, ConfirmService, ToastService, StaffStore, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { MultiSelect } from 'primeng/multiselect';
@@ -20,12 +20,12 @@ import { Skeleton } from 'primeng/skeleton';
 @Component({
   selector: 'app-announcements',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslatePipe,
+  imports: [DatePipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, InputText, MultiSelect, Textarea, TableModule, Tag, Card, TooltipModule, DatePicker, Paginator, Menu, Skeleton],
   templateUrl: './announcements.component.html',
   styleUrl: './announcements.component.scss',
 })
-export class AnnouncementsComponent implements OnInit {
+export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
   private readonly announcementSvc = inject(AnnouncementService);
   private readonly confirmSvc      = inject(ConfirmService);
   private readonly toast           = inject(ToastService);
@@ -73,6 +73,7 @@ export class AnnouncementsComponent implements OnInit {
   form: { title: string; body: string; targetRoles: string[]; expiresAt: string } = {
     title: '', body: '', targetRoles: [], expiresAt: '',
   };
+  private _initialForm = { title: '', body: '', targetRoles: [] as string[], expiresAt: '' };
 
   ngOnInit(): void { this.load(1); this.staffStore.loadRoles(); }
 
@@ -90,6 +91,7 @@ export class AnnouncementsComponent implements OnInit {
 
   openAdd(): void {
     this.form = { title: '', body: '', targetRoles: [], expiresAt: '' };
+    this._initialForm = { ...this.form, targetRoles: [] };
     this.editing.set(null);
     this.showForm.set(true);
     this.scrollToForm();
@@ -102,10 +104,18 @@ export class AnnouncementsComponent implements OnInit {
       targetRoles: item.targetRoles === '*' ? [] : item.targetRoles.split(','),
       expiresAt:   item.expiresAt ? item.expiresAt.slice(0, 10) : '',
     };
+    this._initialForm = { ...this.form, targetRoles: [...this.form.targetRoles] };
     this.editing.set(item.id);
     this.showForm.set(true);
     this.scrollToForm();
   }
+
+  hasUnsavedChanges(): boolean {
+    if (!this.showForm()) return false;
+    return JSON.stringify(this.form) !== JSON.stringify(this._initialForm);
+  }
+
+  private isFormDirty(): boolean { return this.hasUnsavedChanges(); }
 
   save(): void {
     if (!this.form.title.trim() || !this.form.body.trim()) {
@@ -168,5 +178,16 @@ export class AnnouncementsComponent implements OnInit {
     return !!this.form.title.trim() && !!this.form.body.trim();
   }
 
-  cancel(): void { this.showForm.set(false); }
+  cancel(): void {
+    if (this.isFormDirty()) {
+      this.confirmSvc.confirm({
+        title: 'Discard Changes',
+        message: 'You have unsaved changes. Discard them?',
+        confirmLabel: 'Discard',
+        danger: true,
+      }).subscribe(ok => { if (ok) this.showForm.set(false); });
+    } else {
+      this.showForm.set(false);
+    }
+  }
 }

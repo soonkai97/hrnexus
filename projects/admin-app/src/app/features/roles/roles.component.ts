@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angul
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { StaffStore, ConfirmService, ToastService } from 'shared-lib';
+import { StaffStore, ConfirmService, ToastService, TrimInputDirective } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -15,7 +15,7 @@ import { Message } from 'primeng/message';
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe,
+  imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Message],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',

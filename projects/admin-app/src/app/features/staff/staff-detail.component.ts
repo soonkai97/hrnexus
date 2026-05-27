@@ -3,7 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, AuthService, ToastService, WorkLogService, WorkLogDto, AmPmPipe } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, AuthService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -17,18 +17,19 @@ import { Paginator } from 'primeng/paginator';
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe,
+  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, TrimInputDirective,
     Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Paginator],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
-export class StaffDetailComponent implements OnInit {
+export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
-  private readonly auth       = inject(AuthService);
-  private readonly staffSvc   = inject(StaffManagementService);
-  private readonly toast      = inject(ToastService);
-  private readonly route      = inject(ActivatedRoute);
-  private readonly workLogSvc = inject(WorkLogService);
+  private readonly auth        = inject(AuthService);
+  private readonly staffSvc    = inject(StaffManagementService);
+  private readonly toast       = inject(ToastService);
+  private readonly confirmSvc  = inject(ConfirmService);
+  private readonly route       = inject(ActivatedRoute);
+  private readonly workLogSvc  = inject(WorkLogService);
 
   staff            = signal<StaffDetail | null>(null);
   loading          = signal(true);
@@ -51,6 +52,7 @@ export class StaffDetailComponent implements OnInit {
     staffId: '', firstName: '', lastName: '', email: null, roles: [],
     phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: null,
   };
+  private _initialEditForm: UpdateStaffRequest = { ...this.editForm, roles: [] };
 
   private staffId = '';
 
@@ -91,7 +93,13 @@ export class StaffDetailComponent implements OnInit {
       icNo: s.icNo ?? null, passportNo: s.passportNo ?? null,
       dateOfBirth: s.dateOfBirth ?? null,
     };
+    this._initialEditForm = { ...this.editForm, roles: [...this.editForm.roles] };
     this.editMode.set(true);
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (!this.editMode()) return false;
+    return JSON.stringify(this.editForm) !== JSON.stringify(this._initialEditForm);
   }
 
   /** Gates the Save button — only Staff ID, first and last name are required. */
@@ -100,7 +108,18 @@ export class StaffDetailComponent implements OnInit {
       !!this.editForm.firstName?.trim();
   }
 
-  cancelEdit(): void { this.editMode.set(false); }
+  cancelEdit(): void {
+    if (this.hasUnsavedChanges()) {
+      this.confirmSvc.confirm({
+        title: 'Discard Changes',
+        message: 'You have unsaved changes. Discard them?',
+        confirmLabel: 'Discard',
+        danger: true,
+      }).subscribe(ok => { if (ok) this.editMode.set(false); });
+    } else {
+      this.editMode.set(false);
+    }
+  }
 
   saveEdit(): void {
     this.saving.set(true);

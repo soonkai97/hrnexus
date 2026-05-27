@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService } from 'shared-lib';
+import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Card } from 'primeng/card';
@@ -11,7 +11,7 @@ import { Message } from 'primeng/message';
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, Button, InputText, Card, TooltipModule, Message],
+  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Message],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })

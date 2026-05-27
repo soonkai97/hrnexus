@@ -6,6 +6,7 @@ import {
   LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance,
   LeaveSummary, LeavePatternWarning,
   LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
+  TrimInputDirective,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
@@ -28,7 +29,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
 @Component({
   selector: 'app-leave',
   standalone: true,
-  imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe,
+  imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
     Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox],
   templateUrl: './leave.component.html',

@@ -252,7 +252,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(13,13,22,0.7);
+    background: var(--topbar-blur-bg, rgba(13,13,22,0.7));
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     z-index: -1;

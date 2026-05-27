@@ -339,7 +339,10 @@ table { min-width: 480px; }
   app-shell .user-info .user-role { color: var(--nc-text-muted) !important; }
   app-shell .collapse-btn { color: var(--nc-text-muted) !important; border-color: var(--nc-border-subtle) !important; }
   app-shell .mobile-menu-btn { color: var(--nc-text-secondary) !important; }
-  app-shell .topbar { background: rgba(240,240,252,0.85) !important; border-color: var(--nc-border-subtle) !important; }
+  // Topbar: drive the ::before background via a CSS var (CSS vars pierce Angular
+  // view encapsulation; setting background on the element itself is covered by ::before).
+  --topbar-blur-bg: rgba(240, 240, 252, 0.88);
+  app-shell .topbar { border-color: var(--nc-border-subtle) !important; }
   app-shell .topbar-user { color: var(--nc-text-secondary) !important; }
   app-shell .shell::before { opacity: 0.04; }
 
@@ -603,6 +606,31 @@ input, textarea, select,
 .p-datepicker-input,
 .p-autocomplete-input {
   font-size: max(1rem, 16px) !important;
+}
+
+// ── Empty states (shared across all features) ─────────────────────────────────
+.empty-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: $text-muted;
+}
+
+.empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  span { font-size: 2.5rem; }
+  p    { font-size: 0.9rem; margin: 0; }
+}
+
+// ── Paginator mobile: compact number strip ────────────────────────────────────
+// On phones the paginator's page-number buttons overflow — hide them and let
+// the Prev / Next arrows alone navigate. The current page is still shown via
+// the p-paginator-current element if it's configured.
+@media (max-width: 640px) {
+  .p-paginator-pages { display: none !important; }
 }
 
 // ── Toast (nc-toast) ─────────────────────────────────────────────────────────

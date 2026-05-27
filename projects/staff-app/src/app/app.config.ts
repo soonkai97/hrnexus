@@ -28,13 +28,13 @@ const HRNexusTheme = definePreset(Aura, {
 });
 
 import { routes } from './app.routes';
-import { jwtInterceptor, provideNoAutofill } from 'shared-lib';
+import { jwtInterceptor, maintenanceInterceptor, provideNoAutofill } from 'shared-lib';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withInterceptors([jwtInterceptor])),
+    provideHttpClient(withInterceptors([maintenanceInterceptor, jwtInterceptor])),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

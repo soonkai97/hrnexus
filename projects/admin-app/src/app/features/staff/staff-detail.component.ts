@@ -102,7 +102,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     return JSON.stringify(this.editForm) !== JSON.stringify(this._initialEditForm);
   }
 
-  /** Gates the Save button — only Staff ID, first and last name are required. */
+  /** Gates the Save button — only Staff ID and first name are required. */
   get isEditFormValid(): boolean {
     return !!this.editForm.staffId?.trim() &&
       !!this.editForm.firstName?.trim();
@@ -123,7 +123,12 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
 
   saveEdit(): void {
     this.saving.set(true);
-    this.staffStore.update(this.staffId, this.editForm).subscribe({
+    // Coerce empty-string DOB to null — the API field is DateTime? and rejects "".
+    const req: UpdateStaffRequest = {
+      ...this.editForm,
+      dateOfBirth: this.editForm.dateOfBirth?.trim() || null,
+    };
+    this.staffStore.update(this.staffId, req).subscribe({
       next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success('Profile updated.'); },
       error: (e: any) => { this.toast.error(e?.error?.error ?? 'Update failed.'); this.saving.set(false); },
     });

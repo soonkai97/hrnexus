@@ -46,13 +46,28 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location '{req.LocationId}' not found.");
 
-        // Prevent date collision: another log for the same employee on the same date (excluding current)
-        var hasCollision = await db.WorkLogs.AnyAsync(
-            w => w.EmployeeId == log.EmployeeId
-              && w.WorkDate   == req.WorkDate
-              && w.Id         != req.Id, ct);
-        if (hasCollision)
-            throw new InvalidOperationException("Another work log already exists for this employee on that date.");
+        // Prevent time overlap: another completed shift for the same employee whose time range
+        // intersects the edited shift (excluding the current record being updated).
+        // Check the day before as well to catch overnight shifts from the previous date.
+        var prevDate = req.WorkDate.AddDays(-1);
+        var nearby = await db.WorkLogs
+            .Where(w => w.EmployeeId == log.EmployeeId
+                     && w.EndTime != null
+                     && w.Id != req.Id
+                     && w.WorkDate >= prevDate
+                     && w.WorkDate <= req.WorkDate)
+            .Select(w => new { w.WorkDate, w.StartTime, w.EndTime })
+            .ToListAsync(ct);
+
+        var newStart = AbsStart(req.WorkDate, req.StartTime);
+        var newEnd   = AbsEnd(req.WorkDate, req.StartTime, req.EndTime);
+        foreach (var s in nearby)
+        {
+            var sStart = AbsStart(s.WorkDate, s.StartTime);
+            var sEnd   = AbsEnd(s.WorkDate, s.StartTime, s.EndTime!);
+            if (newStart < sEnd && sStart < newEnd)
+                throw new InvalidOperationException("This shift overlaps with another existing shift.");
+        }
 
         // Capture before-state for audit trail
         var before = $"Date={log.WorkDate},Start={log.StartTime},End={log.EndTime},Role={log.RoleName},Location={log.LocationName},Notes={log.Notes ?? ""}";
@@ -74,12 +89,20 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             performedByName: actor?.FullName ?? "Unknown",
             changes:         $"Before: {before} | After: {after}"));
 
-        try { await db.SaveChangesAsync(ct); }
-        catch (DbUpdateException)
-        {
-            // Unique index race: a concurrent update claimed the same (EmployeeId, WorkDate)
-            // between our AnyAsync check and this save.
-            throw new InvalidOperationException("Another work log already exists for this employee on that date.");
-        }
+        await db.SaveChangesAsync(ct);
     }
+
+    private static long AbsStart(DateOnly date, string time) =>
+        (long)date.DayNumber * 1440 + ParseMins(time);
+
+    private static long AbsEnd(DateOnly date, string startTime, string endTime)
+    {
+        var s = ParseMins(startTime);
+        var e = ParseMins(endTime);
+        var dayBase = (long)date.DayNumber * 1440;
+        return e > s ? dayBase + e : dayBase + e + 1440;
+    }
+
+    private static int ParseMins(string time) =>
+        int.Parse(time[..2]) * 60 + int.Parse(time[3..]);
 }

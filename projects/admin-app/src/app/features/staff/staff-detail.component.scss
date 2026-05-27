@@ -12,6 +12,23 @@
   &:hover { color: $neon-purple; }
 }
 
+// Clear button for date-only pickers — sits below the input, avoids icon overlap
+.dob-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: $text-muted;
+  transition: color $transition-fast;
+  &:hover { color: var(--p-red-500); }
+  .pi { font-size: 0.7rem; }
+}
+
 // Auto-fill grid used for info panels (profile details, edit form sections)
 .detail-info-grid {
   display: grid;

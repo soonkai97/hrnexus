@@ -296,7 +296,7 @@
                     @for (r of day.leaves.slice(0, 2); track r.id) {
                       <div class="cal-leave-chip" [class]="'cal-leave-' + r.leaveType"
                            [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
-                           [title]=”r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — Overdue' : '')”
+                           [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — Overdue' : '')"
                            (click)="openCalLeave(r, $event)">
                         {{ r.staffName.split(' ')[0] + (r.staffName.indexOf(' ') > -1 ? ' ' + r.staffName.split(' ')[1][0] + '.' : '') }}
                       </div>
@@ -420,7 +420,7 @@
                 <span class="leave-staff-id">{{ r.staffId }}</span>
               </div>
               <div class="leave-dates">
-                <span class=”leave-dates-text”>{{ r.startDate }}@if (r.startTime) { {{ r.startTime }}}{{ r.startDate !== r.endDate ? ' — ' + r.endDate : '' }}@if (r.endTime) { {{ r.endTime }}}</span>
+                <span class="leave-dates-text">{{ r.startDate }}@if (r.startTime) { {{ r.startTime }}}{{ r.startDate !== r.endDate ? ' — ' + r.endDate : '' }}@if (r.endTime) { {{ r.endTime }}}</span>
                 <span class="leave-days-pill">{{ r.hours }}h</span>
               </div>
               @if (r.notes) { <div class="leave-notes">{{ r.notes }}</div> }
@@ -479,7 +479,7 @@
       @let b = staffBalance()!;
       <p-card styleClass="balance-card">
         <div class="balance-card-header">
-          <span class=”balance-card-title”>{{ 'leave.leaveBalance' | translate }} — {{ b.year }}</span>
+          <span class="balance-card-title">{{ 'leave.leaveBalance' | translate }} — {{ b.year }}</span>
           <p-button [icon]="editingEntitlement() ? 'pi pi-times' : 'pi pi-pencil'"
                     [label]="editingEntitlement() ? ('leave.cancelEntitlement' | translate) : ('leave.editEntitlement' | translate)"
                     [text]="true" severity="secondary" (click)="toggleEntitlementEdit()" />
@@ -709,7 +709,7 @@
               </div>
               <div class="pw-stats">
                 <span class="pw-count">{{ w.sickLeaveCount }}×</span>
-                <span class=”pw-hours”>{{ w.sickLeaveHours }}h — {{ 'leave.patternWarningDesc' | translate }}</span>
+                <span class="pw-hours">{{ w.sickLeaveHours }}h — {{ 'leave.patternWarningDesc' | translate }}</span>
               </div>
             </div>
           }

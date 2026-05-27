@@ -1119,7 +1119,7 @@ namespace HRNexus.Infrastructure.Migrations
                     b.HasIndex("EmployeeId")
                         .IsUnique()
                         .HasDatabaseName("IX_WorkLogs_EmployeeId_Active")
-                        .HasFilter("\"EndTime\" IS NULL");
+                        .HasFilter("\"EndTime\" IS NULL AND \"IsDeleted\" = false");
 
                     b.HasIndex("WorkDate");
 

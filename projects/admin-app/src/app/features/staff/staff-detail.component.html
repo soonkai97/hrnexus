@@ -72,14 +72,20 @@
             <input pInputText type="tel" [(ngModel)]="editForm.phoneNumber" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label>{{ 'staffDetail.dateOfBirth' | translate }}</label>
+            <div class="d-flex justify-content-between align-items-center">
+              <label>{{ 'staffDetail.dateOfBirth' | translate }}</label>
+              @if (editForm.dateOfBirth) {
+                <button type="button" class="dob-clear-link" (click)="editForm.dateOfBirth = null">
+                  <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
+                </button>
+              }
+            </div>
             <p-datepicker [(ngModel)]="editForm.dateOfBirth"
               dateFormat="yy-mm-dd"
               dataType="string"
               [showIcon]="true"
               [showOnFocus]="false"
               [readonlyInput]="true"
-              [showClear]="true"
               styleClass="w-full"
               appendTo="body" />
           </div>

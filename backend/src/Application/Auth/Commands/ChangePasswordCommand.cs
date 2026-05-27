@@ -17,6 +17,9 @@ public class ChangePasswordCommandHandler(IAppDbContext db, IPasswordHasher hash
         if (!hasher.Verify(req.CurrentPassword, employee.PasswordHash))
             throw new UnauthorizedAccessException("Current password is incorrect.");
 
+        if (string.IsNullOrWhiteSpace(req.NewPassword))
+            throw new ArgumentException("New password is required.");
+
         if (req.NewPassword.Length < 8)
             throw new ArgumentException("Password must be at least 8 characters.");
 

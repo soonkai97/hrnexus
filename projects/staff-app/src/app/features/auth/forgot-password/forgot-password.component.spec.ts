@@ -72,6 +72,12 @@ describe('ForgotPasswordComponent (staff-app)', () => {
       expect(mockAuth.forgotPassword).not.toHaveBeenCalled();
     });
 
+    it('does not call forgotPassword with whitespace-only staffId', () => {
+      component.staffId = '   ';
+      component.submit();
+      expect(mockAuth.forgotPassword).not.toHaveBeenCalled();
+    });
+
     it('does not call forgotPassword when already loading', () => {
       component.staffId = 'NC001';
       component.loading.set(true);

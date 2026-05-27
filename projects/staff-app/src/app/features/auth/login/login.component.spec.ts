@@ -92,6 +92,13 @@ describe('LoginComponent (staff-app)', () => {
       component.submit();
       expect(mockAuth.login).not.toHaveBeenCalled();
     });
+
+    it('does not call auth.login and shows error when staffId is whitespace-only', () => {
+      component.form.patchValue({ staffId: '   ', password: 'pass123' });
+      component.submit();
+      expect(mockAuth.login).not.toHaveBeenCalled();
+      expect(component.error()).toBe('Please enter your Staff ID.');
+    });
   });
 
   // ── submit() — success ────────────────────────────────────────────────────────

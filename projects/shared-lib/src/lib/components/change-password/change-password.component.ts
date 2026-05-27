@@ -31,6 +31,10 @@ export class ChangePasswordComponent {
 
   submit(): void {
     const { currentPassword, newPassword, confirmPassword } = this.form.value;
+    if (!currentPassword?.trim() || !newPassword?.trim() || !confirmPassword?.trim()) {
+      this.error.set('Password fields cannot be blank.');
+      return;
+    }
     if (newPassword !== confirmPassword) {
       this.error.set('New passwords do not match.');
       return;

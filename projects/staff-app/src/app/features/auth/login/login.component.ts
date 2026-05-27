@@ -38,9 +38,11 @@ export class LoginComponent {
 
   submit(): void {
     if (this.form.invalid || this.loading()) return;
+    const staffId = (this.form.value.staffId as string).trim();
+    if (!staffId) { this.error.set('Please enter your Staff ID.'); return; }
     this.loading.set(true);
     this.error.set('');
-    this.auth.login({ ...this.form.value, portal: 'staff' }).subscribe({
+    this.auth.login({ ...this.form.value, staffId, portal: 'staff' }).subscribe({
       next: () => {
         this.router.navigate(['/home']);
       },

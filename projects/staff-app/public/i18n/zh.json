@@ -170,7 +170,8 @@
     "delete":           "🗑 删除",
     "manual":           "手动",
     "edited":           "已修改",
-    "overnightHint":    "若结束时间早于开始时间，表示班次跨越午夜。"
+    "overnightHint":    "跨夜班次 — 跨越午夜。",
+    "endsOn":           "结束于"
   },
   "polling": {
     "leaveApproved": "您的请假申请已获批准。",

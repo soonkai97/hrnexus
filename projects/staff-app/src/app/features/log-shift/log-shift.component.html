@@ -146,7 +146,10 @@
             </div>
           </div>
           @if (isOvernightManual) {
-            <small class="overnight-hint"><i class="pi pi-moon"></i> {{ 'logShift.overnightHint' | translate }}</small>
+            <small class="overnight-hint">
+              <i class="pi pi-moon"></i> {{ 'logShift.overnightHint' | translate }}
+              <strong>{{ 'logShift.endsOn' | translate }} {{ manualEndDate }}</strong>
+            </small>
           }
           <div class="field">
             <label>{{ 'logShift.notesLabel' | translate }}</label>
@@ -239,6 +242,14 @@
                       [showIcon]="true" icon="pi pi-clock"
                       [readonlyInput]="true" [showOnFocus]="false" placeholder="Select time" appendTo="body" styleClass="w-full" />
                   </div>
+                  @if (isOvernightEdit) {
+                    <div class="col-12">
+                      <small class="overnight-hint">
+                        <i class="pi pi-moon"></i> {{ 'logShift.overnightHint' | translate }}
+                        <strong>{{ 'logShift.endsOn' | translate }} {{ editEndDate }}</strong>
+                      </small>
+                    </div>
+                  }
                   <div class="col-12 field">
                     <label>{{ 'logShift.notesLabel' | translate }}</label>
                     <input pInputText type="text" [(ngModel)]="editForm.notes"

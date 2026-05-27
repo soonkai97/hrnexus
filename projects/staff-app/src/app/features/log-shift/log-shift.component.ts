@@ -116,6 +116,29 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     return em < sm;
   }
 
+  /** The calendar date on which an overnight manual shift ends (WorkDate + 1). */
+  get manualEndDate(): string | null {
+    if (!this.manualForm.workDate || !this.isOvernightManual) return null;
+    const d = new Date(this.manualForm.workDate);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
+  get isOvernightEdit(): boolean {
+    if (!this.editFormStartTime || !this.editFormEndTime) return false;
+    const sm = this.editFormStartTime.getHours() * 60 + this.editFormStartTime.getMinutes();
+    const em = this.editFormEndTime.getHours() * 60 + this.editFormEndTime.getMinutes();
+    return em < sm;
+  }
+
+  /** The calendar date on which an overnight edited shift ends (WorkDate + 1). */
+  get editEndDate(): string | null {
+    if (!this.editForm.workDate || !this.isOvernightEdit) return null;
+    const d = new Date(this.editForm.workDate);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
   // Error
   formError = signal('');
 

@@ -110,6 +110,35 @@
   white-space: nowrap;
 }
 
+// ── Responsive tab row ────────────────────────────────────────────────────────
+
+.tab-row {
+  margin: 1rem 0 0.75rem;
+}
+
+// Mobile dropdown: stacked column, full-width button — visible only on mobile
+.tab-select-wrap {
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  // Full-width download button on mobile
+  :host :deep(.p-button) { width: 100%; justify-content: center; }
+}
+
+// Desktop tabs row: side-by-side tabs + CSV button
+.tab-bar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .tab-select-wrap { display: flex; }
+  .tab-bar-wrap    { display: none; }
+}
+
 // ── Location breakdown (table) ────────────────────────────────────────────────
 
 .th-bar  { width: 35%; min-width: 120px; }

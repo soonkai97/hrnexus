@@ -361,6 +361,7 @@
 .content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;  // prevent horizontal bleed from wide page content
   display: flex;
   flex-direction: column;
   min-height: 0;

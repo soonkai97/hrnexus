@@ -72,6 +72,14 @@ export class ReportsComponent implements OnInit {
 
   activeTab = signal<'employee' | 'location' | 'role' | 'date' | 'shifts'>('employee');
 
+  readonly tabOptions = [
+    { label: 'reports.byEmployee', value: 'employee' },
+    { label: 'reports.byLocation', value: 'location' },
+    { label: 'reports.byRole',     value: 'role'     },
+    { label: 'reports.byDate',     value: 'date'     },
+    { label: 'reports.allShifts',  value: 'shifts'   },
+  ];
+
   readonly datePresets = [
     { label: 'Today',      value: 'today'      as const },
     { label: 'Yesterday',  value: 'yesterday'  as const },

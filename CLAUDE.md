@@ -36,6 +36,13 @@ npx ng serve staff-app    # → localhost:4201
 
 After every deploy, hard-refresh the browser (**Ctrl+Shift+R**) — nginx caches `index.html` without a content hash.
 
+**Production deploy (on the server):**
+```bash
+./deploy.sh        # rebuild + restart web only (most common)
+./deploy.sh all    # rebuild + restart web + api
+```
+`deploy.sh` automatically enables maintenance mode before building and removes it after containers are healthy (`--wait`).
+
 > **Rule 18**: After any coding session, always commit to GitHub AND rebuild Docker before closing.  
 > See **Rule 18 — Docker and GitHub must always reflect the latest code** in the Process rules section.
 
@@ -96,18 +103,28 @@ Feature files follow the pattern: `{name}.component.ts`, `.html`, `.scss` (and `
 
 - **Fully standalone components — no NgModules anywhere.**
 - Bootstrap: `main.ts` → `bootstrapApplication(App, appConfig)`
-- Root `App` component contains only `<router-outlet />`
+- Root `App` component calls `appUpdate.init()` in `ngOnInit` (ensures SW update check fires on every page load, regardless of auth state)
 - All feature routes are lazy-loaded via `loadComponent()` / `loadChildren()`
 
 **`app.config.ts` key providers:**
 ```typescript
 provideRouter(routes, withComponentInputBinding())
-provideHttpClient(withInterceptors([jwtInterceptor]))
+provideHttpClient(withInterceptors([maintenanceInterceptor, jwtInterceptor]))
+provideAppInitializer(async () => {
+  // Hits /api/health before anything renders — bypasses SW cache (not in dataGroups).
+  // On 503: maintenanceInterceptor redirects to /maintenance.html, bootstrap is blocked.
+  // On network error: swallowed, app boots from cache (offline).
+  const http = inject(HttpClient);
+  try { await firstValueFrom(http.get('/api/health', { responseType: 'text' })); }
+  catch (err: unknown) {
+    if ((err as { status?: number })?.status === 503)
+      await new Promise<never>(() => {});
+  }
+})
 provideTranslateService({ defaultLanguage: 'en' })
 providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '[data-theme="dark"]' } } })
-MessageService, ConfirmationService   // PrimeNG services
-// staff-app only:
-provideServiceWorker('ngsw-worker.js', { enabled: isDevMode() === false })
+MessageService, ConfirmationService
+provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStrategy: 'registerWhenStable:30000' })
 ```
 
 ---
@@ -604,6 +621,7 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 - `/hubs/` → proxied with WebSocket upgrade headers (SignalR)
 - `/uploads/` → proxied to API (media files)
 - `index.html` and `/i18n/` — `no-cache` headers so new deploys take effect immediately
+- Static file extensions (`.js`, `.css`, `.json`, `.webmanifest`, fonts, images) — **always served even during maintenance** so the SW can download updated bundles
 
 **No `environment.ts` files.** All config is relative URLs or runtime API calls.
 
@@ -635,6 +653,70 @@ git pull && docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d
 **Server spec**: Minimum **2 GB RAM** (DigitalOcean $14/month Singapore droplet) — the Angular build needs ~1.5 GB during `docker compose build`.
 
 **Firewall**: Open ports 80, 8081, and 22 with `ufw allow 80 && ufw allow 8081 && ufw allow 22 && ufw enable`.
+
+---
+
+## Maintenance mode
+
+During `./deploy.sh`, users see a styled maintenance page instead of a blank error.
+
+### How it works end-to-end
+
+1. `deploy.sh` calls `nginx -s reload` (picks up any nginx config changes), then `touch maintenance/on`
+2. nginx checks `if (-f /tmp/maintenance/on)` on every request — `/api/`, `/hubs/`, `index.html`, `location /` — and returns 503 with `maintenance.html`
+3. `maintenanceInterceptor` (shared-lib) catches any HTTP 503 from Angular `HttpClient` and does `window.location.href = '/maintenance.html'`
+4. `provideAppInitializer` calls `GET /api/health` before Angular renders anything — guarantees maintenance is detected even on phones with cached apps
+5. `deploy.sh` uses `--wait` so the flag is only removed after all container health checks pass
+6. `maintenance.html` polls `/api/health` every 30 s; when it returns 200 it navigates to `/` (not `reload()` — that would loop back to the same HTML page)
+
+### Service worker + phone behaviour
+
+The Angular SW caches the app. During maintenance, the cached old app would normally bypass the interceptor. Three mechanisms work together to fix this:
+
+- **Static assets pass through nginx during maintenance** — `.js`, `.css`, `.json`, `ngsw.json`, `ngsw-worker.js` are served without the maintenance check. This lets the SW download the new app version in the background.
+- **`AppUpdateService.init()` is called in the root `App` component** (not just in `ShellComponent`) — so it fires on every page load regardless of auth state, triggering `activateUpdate()` + reload as soon as the new version is ready.
+- **`provideAppInitializer`** hits `/api/health` (not in any SW `dataGroups`) before rendering — catches maintenance even from a freshly activated new app.
+
+### SignalR during maintenance
+
+SignalR uses its own fetch for `/hubs/negotiate` — it bypasses `HttpClient` and `maintenanceInterceptor`. `SignalRService` uses a `FilteredLogger` that silently drops messages containing `<!DOCTYPE` or `Status code '503'`. The `connect()` catch handler also redirects to `/maintenance.html` on 503.
+
+### Key files
+
+| File | Role |
+|---|---|
+| `nginx/maintenance.html` | Maintenance page — dark glassmorphism, animated gears, elapsed timer, 30s health poll |
+| `nginx/nginx.conf` / `nginx.uat.conf` | `if (-f /tmp/maintenance/on)` checks in every location block |
+| `maintenance/` | Host directory bind-mounted to `/tmp/maintenance` in the nginx container; `on` file is git-ignored |
+| `deploy.sh` | Creates/removes `maintenance/on`; uses `--wait` |
+| `shared-lib/auth/maintenance.interceptor.ts` | `HttpInterceptorFn` — catches 503 and redirects |
+| `shared-lib/services/signalr.service.ts` | `FilteredLogger` + 503 detection in `connect()` catch |
+
+---
+
+## Backup & recovery
+
+Two layers are in place on the production server:
+
+### 1. DigitalOcean Automated Backups (weekly)
+- Full droplet snapshot every **Sunday 8PM–12AM UTC**
+- Keeps ~4 weeks of snapshots
+- Use for: entire server loss / OS corruption
+- Restore: DigitalOcean dashboard → restore droplet
+
+### 2. Daily PostgreSQL dump (cron)
+- Script: `scripts/backup-db.sh` — `pg_dump` → gzipped file in `/opt/hrnexus/backups/`
+- Keeps last **7 days** of dumps
+- Cron on prod server: `0 2 * * * /root/hrnexus/scripts/backup-db.sh >> /var/log/hrnexus-backup.log 2>&1`
+- Use for: accidental data deletion, migration gone wrong — surgical DB restore without touching the server
+- Restore: `scripts/restore-db.sh /opt/hrnexus/backups/hrnexus_YYYYMMDD_HHMMSS.sql.gz` (prompts "YES" confirmation, destructive)
+
+### Other crons on prod server
+```
+0 2 * * *    backup-db.sh        → daily DB dump
+0 3 1 */2 *  renew-cert.sh       → Let's Encrypt renewal every 2 months
+*/5 * * * *  update-duckdns.sh   → keep DuckDNS IP current
+```
 
 ---
 
@@ -893,11 +975,11 @@ Set-Location backend
 dotnet test
 ```
 
-### Baseline — as of 2026-05-26 (0 gaps, all green)
+### Baseline — as of 2026-05-27 (0 gaps, all green)
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 25 | 347 | ✅ |
+| shared-lib (services + stores + guards + auth) | 26 | 355 | ✅ |
 | admin-app components | 17 | 680 | ✅ |
 | staff-app components | 11 | 265 | ✅ |
 | backend Application.Tests | — | 432 | ✅ |
@@ -1019,9 +1101,9 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 360 tests
-npx ng test admin-app  --no-watch   # 685 tests
-npx ng test staff-app  --no-watch   # 245 tests
+npx ng test shared-lib --no-watch   # 355 tests
+npx ng test admin-app  --no-watch   # 680 tests
+npx ng test staff-app  --no-watch   # 265 tests
 
 # Backend
 Set-Location backend

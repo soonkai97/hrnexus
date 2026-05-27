@@ -18,11 +18,13 @@
         <span class="info-label">{{ 'account.staffId' | translate }}</span>
         <span class="info-value mono">{{ user()!.staffId }}</span>
       </div>
-      <div class="divider"></div>
-      <div class="info-row">
-        <span class="info-label">{{ 'account.email' | translate }}</span>
-        <span class="info-value">{{ user()!.email }}</span>
-      </div>
+      @if (user()!.email) {
+        <div class="divider"></div>
+        <div class="info-row">
+          <span class="info-label">{{ 'account.email' | translate }}</span>
+          <span class="info-value">{{ user()!.email }}</span>
+        </div>
+      }
       <div class="divider"></div>
       <div class="info-row">
         <span class="info-label">{{ 'account.roles' | translate }}</span>

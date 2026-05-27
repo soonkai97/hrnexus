@@ -27,9 +27,15 @@ git pull
 # Only flip to maintenance for deployments that rebuild the web container.
 # The flag lives in ./maintenance/on — mounted into the nginx container.
 # Nginx checks the file on every request; no reload needed.
+#
+# We also reload nginx config BEFORE creating the flag so that any updates to
+# nginx.conf (e.g. the first deploy that added the maintenance check) take
+# effect immediately in the running container.
 MAINTENANCE_FLAG="./maintenance/on"
 if [[ "$SERVICE" == "web" || "$SERVICE" == "all" ]]; then
   mkdir -p ./maintenance
+  echo "▶  Reloading nginx config in running container…"
+  $COMPOSE exec web nginx -s reload 2>/dev/null && echo "   nginx reloaded." || echo "   (nginx reload skipped — container may not be running yet)"
   touch "$MAINTENANCE_FLAG"
   echo "▶  Maintenance mode ON — users will see the maintenance page."
 fi

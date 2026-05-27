@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HRNexus — Under Maintenance</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d16;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #f0eeff;
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+    /* Background glow blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(80px);
+    }
+    body::before {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+      top: -200px; left: -100px;
+    }
+    body::after {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(236,72,153,0.07) 0%, transparent 70%);
+      bottom: -100px; right: -50px;
+    }
+
+    .card {
+      background: rgba(26, 26, 42, 0.85);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+      border-radius: 20px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(168,85,247,0.06);
+      padding: 3rem 2.5rem;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      background: linear-gradient(90deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .logo-icon {
+      font-size: 1.4rem;
+      -webkit-text-fill-color: #a855f7;
+      color: #a855f7;
+      filter: drop-shadow(0 0 12px rgba(168,85,247,0.9));
+      animation: flicker 4s ease-in-out infinite;
+    }
+
+    @keyframes flicker {
+      0%,100% { opacity: 1; }
+      92%      { opacity: 1; }
+      93%      { opacity: 0.6; }
+      94%      { opacity: 1; }
+      96%      { opacity: 0.8; }
+      97%      { opacity: 1; }
+    }
+
+    .gear-wrap {
+      margin: 0 auto 1.75rem;
+      width: 80px; height: 80px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gear-outer, .gear-inner {
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .gear-outer {
+      width: 80px; height: 80px;
+      border: 3px solid rgba(168,85,247,0.3);
+      border-top-color: #a855f7;
+      animation: spin 2s linear infinite;
+    }
+
+    .gear-inner {
+      width: 52px; height: 52px;
+      border: 2px solid rgba(236,72,153,0.25);
+      border-bottom-color: #ec4899;
+      animation: spin 1.4s linear infinite reverse;
+    }
+
+    .gear-dot {
+      width: 12px; height: 12px;
+      background: #a855f7;
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(168,85,247,0.8);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #f0eeff;
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #a09ab8;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(168,85,247,0.1);
+      border: 1px solid rgba(168,85,247,0.2);
+      border-radius: 99px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.78rem;
+      color: #c084fc;
+      white-space: nowrap;
+    }
+
+    .badge.amber {
+      background: rgba(251,191,36,0.08);
+      border-color: rgba(251,191,36,0.2);
+      color: #fbbf24;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(168,85,247,0.2), transparent);
+      margin: 0 0 1.5rem;
+    }
+
+    .check-status {
+      font-size: 0.78rem;
+      color: #7b7698;
+    }
+
+    .check-status span {
+      color: #a09ab8;
+      font-weight: 600;
+    }
+
+    #countdown {
+      display: inline-block;
+      min-width: 2ch;
+      color: #a855f7;
+    }
+
+    .dot-pulse {
+      display: inline-flex;
+      gap: 3px;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    .dot-pulse span {
+      display: inline-block;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: #a855f7;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
+      40%          { transform: scale(1);   opacity: 1;   }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="logo">
+      <span class="logo-icon">✦</span>
+      HRNexus
+    </div>
+
+    <div class="gear-wrap">
+      <div class="gear-outer"></div>
+      <div class="gear-inner"></div>
+      <div class="gear-dot"></div>
+    </div>
+
+    <h1>System Update in Progress</h1>
+    <p class="subtitle">
+      We're deploying the latest version.<br>
+      This usually takes <strong style="color:#f0eeff">5 – 15 minutes</strong>.
+    </p>
+
+    <div class="info-row">
+      <span class="badge">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 3v2.5l1.5 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Est. 5 – 15 min
+      </span>
+      <span class="badge amber">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <path d="M5 1.5v4M5 7.5v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Data is safe
+      </span>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="check-status">
+      Checking again in <span id="countdown">30</span>s
+      <span class="dot-pulse"><span></span><span></span><span></span></span>
+    </p>
+
+  </div>
+
+  <script>
+    var INTERVAL = 30;
+    var remaining = INTERVAL;
+    var el = document.getElementById('countdown');
+
+    function check() {
+      fetch('/api/health', { cache: 'no-store' })
+        .then(function(r) {
+          if (r.ok) { window.location.reload(); }
+          else { scheduleNext(); }
+        })
+        .catch(function() { scheduleNext(); });
+    }
+
+    function scheduleNext() {
+      remaining = INTERVAL;
+      tick();
+    }
+
+    function tick() {
+      el.textContent = remaining;
+      if (remaining <= 0) {
+        el.textContent = '…';
+        check();
+      } else {
+        remaining--;
+        setTimeout(tick, 1000);
+      }
+    }
+
+    tick();
+  </script>
+</body>
+</html>

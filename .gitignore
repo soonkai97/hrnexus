@@ -49,6 +49,9 @@ Thumbs.db
 docker-compose.local.yml
 docker-compose.override.yml
 
+# Maintenance flag — created by deploy.sh, must never be committed
+maintenance/on
+
 # Logs
 backend/src/Api/logs/
 *.log

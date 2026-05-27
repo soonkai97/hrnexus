@@ -151,8 +151,8 @@ describe('LogShiftComponent', () => {
   // ── myRoles computed ─────────────────────────────────────────────────────────
 
   describe('myRoles computed', () => {
-    it('filters out ADMIN only — managers should be able to select the MANAGER role when logging a shift', () => {
-      mockAuth.user = () => ({ roles: ['EMPLOYEE', 'MANAGER', 'ADMIN', 'BARTENDER'] } as any);
+    it('filters out SUPERADMIN only — managers should be able to select the MANAGER role when logging a shift', () => {
+      mockAuth.user = () => ({ roles: ['EMPLOYEE', 'MANAGER', 'SUPERADMIN', 'BARTENDER'] } as any);
       const fresh = TestBed.createComponent(LogShiftComponent).componentInstance;
       expect(fresh.myRoles()).toEqual(['EMPLOYEE', 'MANAGER', 'BARTENDER']);
     });

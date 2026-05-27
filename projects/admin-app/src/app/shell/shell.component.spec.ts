@@ -30,7 +30,7 @@ describe('ShellComponent', () => {
   let mockNotifSvc:   { unreadCount: ReturnType<typeof vi.fn> };
   let mockAppUpdate:  { init: ReturnType<typeof vi.fn> };
 
-  function createComponent(userRoles: string[] = ['ADMIN']) {
+  function createComponent(userRoles: string[] = ['SUPERADMIN']) {
     mockAuth.user.mockReturnValue({ fullName: 'Jane Doe', roles: userRoles });
     return TestBed.createComponent(ShellComponent).componentInstance;
   }
@@ -85,7 +85,7 @@ describe('ShellComponent', () => {
     });
 
     it('caps initials at 2 characters for multi-word names', () => {
-      mockAuth.user.mockReturnValue({ fullName: 'Alice Mary Smith', roles: ['ADMIN'] });
+      mockAuth.user.mockReturnValue({ fullName: 'Alice Mary Smith', roles: ['SUPERADMIN'] });
       const c = TestBed.createComponent(ShellComponent).componentInstance;
       expect(c.initials()).toBe('AM');
     });
@@ -95,7 +95,7 @@ describe('ShellComponent', () => {
 
   describe('userRoleLabel computed', () => {
     it('returns "Admin" for admin role', () => {
-      const c = createComponent(['ADMIN']);
+      const c = createComponent(['SUPERADMIN']);
       expect(c.userRoleLabel()).toBe('Admin');
     });
 

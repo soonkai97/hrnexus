@@ -135,7 +135,7 @@ export class ShellComponent {
   userRoleLabel = computed(() => {
     const roles = this.auth.user()?.roles ?? [];
     if (roles.includes('MANAGER')) return 'Manager';
-    if (roles.includes('ADMIN'))   return 'Admin';
+    if (roles.includes('SUPERADMIN'))   return 'Admin';
     return roles[0] ?? 'Staff';
   });
 

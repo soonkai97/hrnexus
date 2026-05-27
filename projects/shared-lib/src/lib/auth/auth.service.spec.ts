@@ -39,13 +39,13 @@ describe('AuthService — userRole and hasRole', () => {
   });
 
   it('resolves to admin when roles contains admin', () => {
-    (service as any)._user.set(fakeUser(['ADMIN']));
+    (service as any)._user.set(fakeUser(['SUPERADMIN']));
     expect(service.userRole()).toBe('admin');
   });
 
   it('admin takes precedence over manager when staff holds both roles', () => {
     // Highest privilege wins — access decisions must not accidentally downgrade
-    (service as any)._user.set(fakeUser(['MANAGER', 'ADMIN']));
+    (service as any)._user.set(fakeUser(['MANAGER', 'SUPERADMIN']));
     expect(service.userRole()).toBe('admin');
   });
 

@@ -85,7 +85,7 @@ public class AuthCommandTests
     public async Task Login_ThrowsUnauthorized_WhenAdminAccessesStaffPortal()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(roles: new List<string> { "ADMIN" }));
+        db.Staff.Add(MakeStaff(roles: new List<string> { "SUPERADMIN" }));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 

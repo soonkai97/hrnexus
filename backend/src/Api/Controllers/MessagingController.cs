@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using HRNexus.Application.Messaging.Commands;
 using HRNexus.Application.Messaging.Queries;
 using HRNexus.Api.Filters;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Api.Controllers;
 
@@ -18,7 +19,7 @@ public class MessagingController(IMediator mediator) : ControllerBase
     private string CurrentName   => User.FindFirstValue(ClaimTypes.Name)
         ?? User.FindFirstValue("FullName")
         ?? User.FindFirstValue(ClaimTypes.Email) ?? "Staff";
-    private bool   IsAdmin => User.IsInRole("Admin") || User.IsInRole("Manager");
+    private bool   IsAdmin => User.IsInRole(AppConstants.Roles.AdminClaim) || User.IsInRole(AppConstants.Roles.ManagerClaim);
 
     [HttpGet("inbox")]
     public async Task<IActionResult> Inbox(CancellationToken ct) =>

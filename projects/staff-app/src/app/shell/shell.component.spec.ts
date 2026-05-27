@@ -102,7 +102,7 @@ describe('ShellComponent (staff-app)', () => {
     });
 
     it('returns "Admin" for admin role', () => {
-      const c = createComponent(['ADMIN']);
+      const c = createComponent(['SUPERADMIN']);
       expect(c.userRoleLabel()).toBe('Admin');
     });
 

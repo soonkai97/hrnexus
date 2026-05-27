@@ -154,7 +154,7 @@ public class GetStaffListQueryTests
     public async Task Handle_ExcludeAdmins_OmitsAdminRole()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Admin", "User", "admin"));
+        db.Staff.Add(MakeStaff("S001", "Admin", "User", "superadmin"));
         db.Staff.Add(MakeStaff("S002", "Regular", "Staff", "bartender"));
         await db.SaveChangesAsync();
 
@@ -169,7 +169,7 @@ public class GetStaffListQueryTests
     public async Task Handle_ExcludeAdminsFalse_IncludesAll()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Admin", "User", "admin"));
+        db.Staff.Add(MakeStaff("S001", "Admin", "User", "superadmin"));
         db.Staff.Add(MakeStaff("S002", "Regular", "Staff", "bartender"));
         await db.SaveChangesAsync();
 

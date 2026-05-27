@@ -83,7 +83,7 @@ public class StaffDomainTests
     {
         // Roles are uppercase-normalised so permission checks are always case-insensitive.
         var staff = E.Staff.Create("NC001", "Alice", "Tan", "alice@test.com", "hash",
-            new List<string> { "admin", "bartender" });
+            new List<string> { "superadmin", "bartender" });
 
         Assert.All(staff.RoleEntries, re => Assert.Equal(re.Role, re.Role.ToUpperInvariant()));
     }
@@ -94,7 +94,7 @@ public class StaffDomainTests
     public void PermissionLevel_AdminRole_IsNotEmployee()
     {
         // Admin staff must receive elevated access — never the plain "Employee" tier.
-        var staff = MakeStaff(new List<string> { "admin" });
+        var staff = MakeStaff(new List<string> { "superadmin" });
 
         Assert.NotEqual("Employee", staff.PermissionLevel);
     }
@@ -122,9 +122,9 @@ public class StaffDomainTests
     {
         // When a staff member holds both roles, admin-level access must win.
         // The admin claim and manager claim are different strings — they must not be equal.
-        var admin   = MakeStaff(new List<string> { "admin" });
+        var admin   = MakeStaff(new List<string> { "superadmin" });
         var manager = MakeStaff(new List<string> { "manager" });
-        var both    = MakeStaff(new List<string> { "admin", "manager" });
+        var both    = MakeStaff(new List<string> { "superadmin", "manager" });
 
         Assert.Equal(admin.PermissionLevel, both.PermissionLevel);
         Assert.NotEqual(manager.PermissionLevel, both.PermissionLevel);

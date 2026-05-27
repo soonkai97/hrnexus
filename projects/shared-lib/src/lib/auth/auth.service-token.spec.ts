@@ -118,7 +118,7 @@ describe('AuthService — evictStaleTokens()', () => {
   it('removes mock-* tokens on construction so dev leftovers never reach production guards', () => {
     // Seed a mock token BEFORE constructing the service
     localStorage.setItem(ACCESS_TOKEN_KEY, 'mock-dev-token');
-    localStorage.setItem(USER_KEY, JSON.stringify(fakeUser(['ADMIN'])));
+    localStorage.setItem(USER_KEY, JSON.stringify(fakeUser(['SUPERADMIN'])));
 
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideRouter([])],

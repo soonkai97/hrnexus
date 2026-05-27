@@ -74,6 +74,12 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             performedByName: actor?.FullName ?? "Unknown",
             changes:         $"Before: {before} | After: {after}"));
 
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            // Unique index race: a concurrent update claimed the same (EmployeeId, WorkDate)
+            // between our AnyAsync check and this save.
+            throw new InvalidOperationException("Another work log already exists for this employee on that date.");
+        }
     }
 }

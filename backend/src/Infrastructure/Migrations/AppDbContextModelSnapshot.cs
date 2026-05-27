@@ -1123,6 +1123,11 @@ namespace HRNexus.Infrastructure.Migrations
 
                     b.HasIndex("WorkDate");
 
+                    b.HasIndex("EmployeeId", "WorkDate")
+                        .IsUnique()
+                        .HasDatabaseName("IX_WorkLogs_EmployeeId_WorkDate_Active")
+                        .HasFilter("\"IsDeleted\" = false");
+
                     b.ToTable("WorkLogs");
                 });
 

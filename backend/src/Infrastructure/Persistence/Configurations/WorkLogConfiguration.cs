@@ -32,5 +32,11 @@ public class WorkLogConfiguration : IEntityTypeConfiguration<WorkLog>
             .HasFilter("\"EndTime\" IS NULL")
             .IsUnique()
             .HasDatabaseName("IX_WorkLogs_EmployeeId_Active");
+        // Partial unique index: one completed work log per employee per date (soft-deleted rows exempt).
+        // Backs the TOCTOU collision check in CreateManualWorkLogCommand and UpdateWorkLogCommand.
+        b.HasIndex(w => new { w.EmployeeId, w.WorkDate })
+            .HasFilter("\"IsDeleted\" = false")
+            .IsUnique()
+            .HasDatabaseName("IX_WorkLogs_EmployeeId_WorkDate_Active");
     }
 }

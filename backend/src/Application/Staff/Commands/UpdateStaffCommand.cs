@@ -48,7 +48,16 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
         emp.UpdateDetails(normalizedId, req.FirstName, req.LastName, resolvedEmail, req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),
             req.IcNo, req.PassportNo, req.DateOfBirth);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            // Unique constraint race: another request claimed the same StaffId or Email
+            // between our AnyAsync checks and this save. Re-check to give a precise message.
+            var idStillTaken = await db.Staff.AnyAsync(e => e.StaffId == normalizedId && e.Id != req.Id, ct);
+            if (idStillTaken)
+                throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
+            throw new InvalidOperationException($"Email '{req.Email}' is already in use.");
+        }
         await audit.LogAsync("Staff", req.Id.ToString(), "Updated",
             null, "Admin", $"StaffId={normalizedId}", ct);
     }

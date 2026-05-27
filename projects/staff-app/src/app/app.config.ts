@@ -1,6 +1,7 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, isDevMode } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, isDevMode, provideAppInitializer, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -35,6 +36,16 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([maintenanceInterceptor, jwtInterceptor])),
+    provideAppInitializer(async () => {
+      const http = inject(HttpClient);
+      try {
+        await firstValueFrom(http.get('/api/health', { responseType: 'text' }));
+      } catch (err: unknown) {
+        if ((err as { status?: number })?.status === 503) {
+          await new Promise<never>(() => { /* block bootstrap — page is navigating to /maintenance.html */ });
+        }
+      }
+    }),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

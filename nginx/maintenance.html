@@ -171,20 +171,54 @@
       margin: 0 0 1.5rem;
     }
 
-    .check-status {
-      font-size: 0.78rem;
+    .timer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .elapsed-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+    }
+
+    .elapsed-label {
+      font-size: 0.68rem;
       color: #7b7698;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
-    .check-status span {
-      color: #a09ab8;
-      font-weight: 600;
-    }
-
-    #countdown {
-      display: inline-block;
-      min-width: 2ch;
+    .elapsed-value {
+      font-size: 1.5rem;
+      font-weight: 700;
       color: #a855f7;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .check-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.15rem;
+    }
+
+    .check-label {
+      font-size: 0.68rem;
+      color: #7b7698;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .check-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #a09ab8;
+      font-variant-numeric: tabular-nums;
     }
 
     .dot-pulse {
@@ -249,38 +283,55 @@
 
     <div class="divider"></div>
 
-    <p class="check-status">
-      Checking again in <span id="countdown">30</span>s
-      <span class="dot-pulse"><span></span><span></span><span></span></span>
-    </p>
+    <div class="timer-row">
+      <div class="elapsed-wrap">
+        <span class="elapsed-label">Deploying for</span>
+        <span id="elapsed" class="elapsed-value">0:00</span>
+      </div>
+      <div class="check-wrap">
+        <span class="check-label">Next check in</span>
+        <span id="countdown" class="check-value">30s</span>
+        <span class="dot-pulse"><span></span><span></span><span></span></span>
+      </div>
+    </div>
 
   </div>
 
   <script>
-    var INTERVAL = 30;
+    var INTERVAL  = 30;
     var remaining = INTERVAL;
-    var el = document.getElementById('countdown');
+    var startTime = Date.now();
+    var elCD      = document.getElementById('countdown');
+    var elEL      = document.getElementById('elapsed');
+
+    function formatElapsed() {
+      var total = Math.floor((Date.now() - startTime) / 1000);
+      var m = Math.floor(total / 60);
+      var s = total % 60;
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
 
     function check() {
+      elCD.textContent = '…';
       fetch('/api/health', { cache: 'no-store' })
         .then(function(r) {
           if (r.ok) { window.location.reload(); }
-          else { scheduleNext(); }
+          else { resetCountdown(); }
         })
-        .catch(function() { scheduleNext(); });
+        .catch(function() { resetCountdown(); });
     }
 
-    function scheduleNext() {
+    function resetCountdown() {
       remaining = INTERVAL;
       tick();
     }
 
     function tick() {
-      el.textContent = remaining;
+      elEL.textContent = formatElapsed();
       if (remaining <= 0) {
-        el.textContent = '…';
         check();
       } else {
+        elCD.textContent = remaining + 's';
         remaining--;
         setTimeout(tick, 1000);
       }

@@ -718,16 +718,14 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     this.form.startTime = this.startTimeDate ? this.toTimeStr(this.startTimeDate) : null;
     this.form.endTime   = this.endTimeDate   ? this.toTimeStr(this.endTimeDate)   : null;
 
-    if (!this.form.employeeId || !this.form.startDate || !this.form.endDate) {
+    if (!this.form.employeeId || !this.form.startDate || !this.form.endDate
+        || !this.startTimeDate || !this.endTimeDate) {
       this.formError.set('Please fill in all required fields.'); return;
     }
-    if (this.form.startTime && this.form.endTime) {
-      const h = this.calcHours;
-      if (h <= 0) { this.formError.set('End date/time must be after start date/time.'); return; }
-      this.form.hours = h;
-    } else if (!this.form.hours || this.form.hours <= 0) {
-      this.formError.set('Please enter start/end times or specify hours manually.'); return;
-    }
+    const h = this.calcHours;
+    if (h <= 0) { this.formError.set('End date/time must be after start date/time.'); return; }
+    this.form.hours = h;
+
     this.saving.set(true);
     const id   = this.editing();
     const fail = (e: any) => { this.formError.set(e?.error?.error ?? 'Save failed.'); this.saving.set(false); };

@@ -12,6 +12,13 @@ public interface IAppDbContext
     /// </summary>
     Task<IDbContextTransaction?> BeginRepeatableReadAsync(CancellationToken ct = default);
 
+    /// <summary>
+    /// Wraps an operation in the configured execution strategy (required when using
+    /// user-initiated transactions with NpgsqlRetryingExecutionStrategy).
+    /// On InMemory (tests) the non-retrying strategy executes the operation directly.
+    /// </summary>
+    Task<T> ExecuteInStrategyAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default);
+
     DbSet<HRNexus.Domain.Entities.Staff>    Staff      { get; }
     DbSet<HRNexus.Domain.Entities.StaffRole> StaffRoles { get; }
     DbSet<Location>         Locations         { get; }

@@ -72,7 +72,8 @@ public class AdminController(IMediator mediator) : ControllerBase
                 null, body.EmployeeId, body.LeaveType,
                 body.StartDate, body.EndDate,
                 body.StartTime, body.EndTime, body.Hours,
-                body.Notes, body.Status ?? "approved", body.RejectionReason), ct);
+                body.Notes, body.Status ?? "approved", body.RejectionReason,
+                SkipAdvanceNotice: true), ct);
             return Ok(new { id });
         }
         catch (ArgumentException ex)        { return BadRequest(new { error = ex.Message }); }

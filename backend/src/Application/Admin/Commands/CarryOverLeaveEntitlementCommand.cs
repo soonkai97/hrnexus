@@ -35,75 +35,66 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
 
         if (activeStaffIds.Count == 0) return 0;
 
-        // Wrap all 3 reads + save in a REPEATABLE READ transaction so that a concurrent
-        // leave approval between our reads and our save can't produce a stale carry-over.
-        // REPEATABLE READ prevents non-repeatable reads: re-reading the same rows within
-        // the transaction will always return the same data we saw at first read.
-        await using var tx = await db.BeginRepeatableReadAsync(ct);
-
-        // From-year entitlements
-        var fromEntitlements = await db.LeaveEntitlements
-            .Where(e => activeStaffIds.Contains(e.EmployeeId) && e.Year == req.FromYear)
-            .ToListAsync(ct);
-        var fromMap = fromEntitlements.ToDictionary(e => e.EmployeeId);
-
-        // Used annual + emergency hours in fromYear (both draw from the annual pool)
-        var fromYearStart = new DateTime(req.FromYear,     1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var fromYearEnd   = new DateTime(req.FromYear + 1, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(-1);
-
-        var usedByEmployee = await db.LeaveRequests
-            .Where(l => activeStaffIds.Contains(l.EmployeeId)
-                     && (l.LeaveType == "annual" || l.LeaveType == "emergency")
-                     && l.StartDate >= fromYearStart
-                     && l.StartDate <= fromYearEnd
-                     && l.Status != "rejected"
-                     && l.Status != "cancelled")
-            .GroupBy(l => l.EmployeeId)
-            .Select(g => new { EmployeeId = g.Key, Used = g.Sum(l => l.Hours ?? 0m) })
-            .ToListAsync(ct);
-
-        var usedMap = usedByEmployee.ToDictionary(u => u.EmployeeId, u => u.Used);
-
-        // To-year entitlements (to add carry-over on top of existing)
-        var toEntitlements = await db.LeaveEntitlements
-            .Where(e => activeStaffIds.Contains(e.EmployeeId) && e.Year == req.ToYear)
-            .ToListAsync(ct);
-        var toMap = toEntitlements.ToDictionary(e => e.EmployeeId);
-
-        int count = 0;
-        foreach (var empId in activeStaffIds)
+        return await db.ExecuteInStrategyAsync(async ct =>
         {
-            var annualEnt = fromMap.TryGetValue(empId, out var fe) ? fe.AnnualHours : 0m;
-            var used      = usedMap.TryGetValue(empId, out var u) ? u : 0m;
-            var remaining = Math.Max(0m, annualEnt - used);
-            var carryOver = Math.Min(remaining, req.MaxCarryOver);
+            await using var tx = await db.BeginRepeatableReadAsync(ct);
 
-            if (carryOver <= 0m) continue;
+            var fromEntitlements = await db.LeaveEntitlements
+                .Where(e => activeStaffIds.Contains(e.EmployeeId) && e.Year == req.FromYear)
+                .ToListAsync(ct);
+            var fromMap = fromEntitlements.ToDictionary(e => e.EmployeeId);
 
-            if (toMap.TryGetValue(empId, out var te))
-                te.AddCarryOver(carryOver);
-            else
+            var fromYearStart = new DateTime(req.FromYear,     1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var fromYearEnd   = new DateTime(req.FromYear + 1, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(-1);
+
+            var usedByEmployee = await db.LeaveRequests
+                .Where(l => activeStaffIds.Contains(l.EmployeeId)
+                         && (l.LeaveType == "annual" || l.LeaveType == "emergency")
+                         && l.StartDate >= fromYearStart
+                         && l.StartDate <= fromYearEnd
+                         && l.Status != "rejected"
+                         && l.Status != "cancelled")
+                .GroupBy(l => l.EmployeeId)
+                .Select(g => new { EmployeeId = g.Key, Used = g.Sum(l => l.Hours ?? 0m) })
+                .ToListAsync(ct);
+
+            var usedMap = usedByEmployee.ToDictionary(u => u.EmployeeId, u => u.Used);
+
+            var toEntitlements = await db.LeaveEntitlements
+                .Where(e => activeStaffIds.Contains(e.EmployeeId) && e.Year == req.ToYear)
+                .ToListAsync(ct);
+            var toMap = toEntitlements.ToDictionary(e => e.EmployeeId);
+
+            int count = 0;
+            foreach (var empId in activeStaffIds)
             {
-                var newEnt = LeaveEntitlement.Create(empId, req.ToYear, 0m, 0m);
-                newEnt.AddCarryOver(carryOver);
-                db.LeaveEntitlements.Add(newEnt);
+                var annualEnt = fromMap.TryGetValue(empId, out var fe) ? fe.AnnualHours : 0m;
+                var used      = usedMap.TryGetValue(empId, out var u) ? u : 0m;
+                var remaining = Math.Max(0m, annualEnt - used);
+                var carryOver = Math.Min(remaining, req.MaxCarryOver);
+
+                if (carryOver <= 0m) continue;
+
+                if (toMap.TryGetValue(empId, out var te))
+                    te.AddCarryOver(carryOver);
+                else
+                {
+                    var newEnt = LeaveEntitlement.Create(empId, req.ToYear, 0m, 0m);
+                    newEnt.AddCarryOver(carryOver);
+                    db.LeaveEntitlements.Add(newEnt);
+                }
+
+                count++;
             }
 
-            count++;
-        }
-
-        try { await db.SaveChangesAsync(ct); }
-        catch (DbUpdateException)
-        {
-            // Unique constraint race: a concurrent BulkUpsertLeaveEntitlement or
-            // ResetLeaveEntitlements job inserted a (EmployeeId, ToYear) row between our
-            // toEntitlements read and this save. REPEATABLE READ prevents non-repeatable
-            // reads but not phantom inserts from other concurrent transactions.
-            // Ask the admin to retry — carry-over is a once-a-year operation.
-            throw new InvalidOperationException(
-                "Leave entitlements were modified concurrently. Please try the carry-over again.");
-        }
-        if (tx is not null) await tx.CommitAsync(ct);
-        return count;
+            try { await db.SaveChangesAsync(ct); }
+            catch (DbUpdateException)
+            {
+                throw new InvalidOperationException(
+                    "Leave entitlements were modified concurrently. Please try the carry-over again.");
+            }
+            if (tx is not null) await tx.CommitAsync(ct);
+            return count;
+        }, ct);
     }
 }

@@ -1,5 +1,7 @@
-import { Component, OnInit, signal, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, DestroyRef, signal, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, EMPTY } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
@@ -15,9 +17,10 @@ import { AppNotification } from '../../models';
   styleUrl:    './notification-bell.component.scss',
 })
 export class NotificationBellComponent implements OnInit {
-  readonly svc             = inject(NotificationService);
-  private readonly signalr = inject(SignalRService);
-  private readonly router  = inject(Router);
+  readonly svc               = inject(NotificationService);
+  private readonly signalr   = inject(SignalRService);
+  private readonly router    = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('bellWrap') private bellWrap!: ElementRef<HTMLElement>;
 
@@ -25,7 +28,10 @@ export class NotificationBellComponent implements OnInit {
 
   ngOnInit(): void {
     this.svc.load().subscribe();
-    this.signalr.notifications$.subscribe(n => this.svc.push(n));
+    // takeUntilDestroyed prevents accumulating subscriptions across logout/re-login cycles
+    this.signalr.notifications$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(n => this.svc.push(n));
   }
 
   toggle(): void { this.panelOpen.update(v => !v); }
@@ -41,7 +47,10 @@ export class NotificationBellComponent implements OnInit {
   onNotifClick(n: AppNotification): void {
     if (!n.isRead) {
       this.svc.markReadOptimistic(n.id);
-      this.svc.markRead(n.id).subscribe({ error: () => this.svc.load().subscribe() });
+      // catchError in-pipe avoids nested subscribe; re-syncs state on failure
+      this.svc.markRead(n.id).pipe(
+        catchError(() => { this.svc.load().subscribe(); return EMPTY; }),
+      ).subscribe();
     }
     const route = this.routeFor(n);
     if (route) this.router.navigate([route]);
@@ -49,7 +58,9 @@ export class NotificationBellComponent implements OnInit {
   }
 
   markAll(): void {
-    this.svc.markAllRead().subscribe({ error: () => this.svc.load().subscribe() });
+    this.svc.markAllRead().pipe(
+      catchError(() => { this.svc.load().subscribe(); return EMPTY; }),
+    ).subscribe();
   }
 
   routeFor(n: AppNotification): string | null {

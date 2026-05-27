@@ -37,6 +37,7 @@ export class ShellComponent implements AfterViewInit {
   pullProgress = signal(0);
   private ptStartY = 0;
   private ptPulling = false;
+  private ptReloading = false;
   private readonly PULL_THRESHOLD = 70;
 
   private readonly onOnline  = () => this.isOffline.set(false);
@@ -60,7 +61,8 @@ export class ShellComponent implements AfterViewInit {
     }
   };
   private readonly onTouchEnd = () => {
-    if (this.pullProgress() >= 100) window.location.reload();
+    if (this.ptReloading) return;
+    if (this.pullProgress() >= 100) { this.ptReloading = true; window.location.reload(); return; }
     this.pullProgress.set(0);
     this.ptPulling = false;
   };
@@ -114,7 +116,10 @@ export class ShellComponent implements AfterViewInit {
       this.checkLeaveChanges();
     });
 
-    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(e => {
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(e => {
       this.collapsed.set(true);
       this.refreshUnread();
       // Clear leave badge when the user opens My Leave

@@ -18,10 +18,19 @@ public class RefreshTokenCommandHandler(IAppDbContext db, ITokenService tokens)
                 e.IsActive, ct)
             ?? throw new UnauthorizedAccessException("Invalid or expired refresh token.");
 
-        var access      = tokens.GenerateAccessToken(employee);
-        var newRefresh  = tokens.GenerateRefreshToken();
+        var access     = tokens.GenerateAccessToken(employee);
+        var newRefresh = tokens.GenerateRefreshToken();
         employee.SetRefreshToken(newRefresh, DateTime.UtcNow.AddDays(30));
-        await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another concurrent refresh already rotated this token — treat as invalid.
+            throw new UnauthorizedAccessException("Refresh token has already been used. Please sign in again.");
+        }
 
         return new LoginResult(access, newRefresh, 3600,
             new UserDto(employee.Id, employee.StaffId, employee.FullName, employee.Email,

@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Common;
 using HRNexus.Domain.Entities;
@@ -34,6 +36,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<StaffSettlement>       StaffSettlements       => Set<StaffSettlement>();
     public DbSet<StaffExpenseCategory>  StaffExpenseCategories => Set<StaffExpenseCategory>();
     public DbSet<StaffLoanType>        StaffLoanTypes         => Set<StaffLoanType>();
+
+    /// <summary>
+    /// Begins a RepeatableRead transaction for leave-balance TOCTOU protection.
+    /// Returns null when the underlying provider does not support transactions (never happens
+    /// in production — guard exists so InMemory-backed tests can call this safely).
+    /// </summary>
+    public async Task<IDbContextTransaction?> BeginRepeatableReadAsync(CancellationToken ct = default)
+    {
+        if (!Database.IsRelational()) return null;
+        return await Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
+    }
 
     protected override void OnModelCreating(ModelBuilder mb)
     {

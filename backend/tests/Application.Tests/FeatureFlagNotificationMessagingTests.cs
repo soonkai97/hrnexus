@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.FeatureFlags.Queries;
 using HRNexus.Application.Messaging.Commands;
@@ -47,11 +48,14 @@ public class FeatureFlagNotificationMessagingTests
 
     // ── GetFeatureFlagsQuery ──────────────────────────────────────────────────
 
+    // Each test uses a fresh MemoryCache so cached results from one test don't bleed into another.
+    private static IMemoryCache NewCache() => new MemoryCache(new MemoryCacheOptions());
+
     [Fact]
     public async Task GetFeatureFlags_ReturnsEmptyDictionary_WhenNoFlagsExist()
     {
         await using var db = CreateDb();
-        var handler = new GetFeatureFlagsHandler(db);
+        var handler = new GetFeatureFlagsHandler(db, NewCache());
 
         var result = await handler.Handle(new GetFeatureFlagsQuery(), CancellationToken.None);
 
@@ -67,12 +71,36 @@ public class FeatureFlagNotificationMessagingTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new GetFeatureFlagsHandler(db);
+        var handler = new GetFeatureFlagsHandler(db, NewCache());
         var result = await handler.Handle(new GetFeatureFlagsQuery(), CancellationToken.None);
 
         Assert.Equal(2, result.Count);
         Assert.True(result["tips"]);
         Assert.False(result["payroll"]);
+    }
+
+    [Fact]
+    public async Task GetFeatureFlags_ReturnsCachedResult_OnSecondCall()
+    {
+        // Verifies that the result is served from cache on subsequent calls within the TTL.
+        await using var db = CreateDb();
+        db.FeatureFlags.Add(E.FeatureFlag.Create("tips", true));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var cache   = NewCache();
+        var handler = new GetFeatureFlagsHandler(db, cache);
+
+        var first  = await handler.Handle(new GetFeatureFlagsQuery(), CancellationToken.None);
+        // Add a new flag AFTER the first call — the second call should still return cached result
+        db.FeatureFlags.Add(E.FeatureFlag.Create("payroll", false));
+        await db.SaveChangesAsync();
+        var second = await handler.Handle(new GetFeatureFlagsQuery(), CancellationToken.None);
+
+        // Cached: second call does NOT see the newly-added flag
+        Assert.Single(first);
+        Assert.Single(second);
+        Assert.True(second["tips"]);
     }
 
     // ── MarkNotificationsReadCommand ──────────────────────────────────────────

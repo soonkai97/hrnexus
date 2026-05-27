@@ -269,6 +269,30 @@ public class AuthCommandTests
 
     // ── RefreshTokenCommand ───────────────────────────────────────────────────
 
+    /// <summary>
+    /// Simulates the second concurrent refresh: <see cref="SaveChangesAsync"/> throws
+    /// <see cref="DbUpdateConcurrencyException"/> (EF Core raises this when RefreshToken is
+    /// configured as a concurrency token and 0 rows are updated — i.e. another request already
+    /// rotated the token). The handler must surface this as <see cref="UnauthorizedAccessException"/>.
+    /// </summary>
+    private sealed class ConcurrentRotationDb(DbContextOptions<TestDbContext> opts)
+        : TestDbContext(opts)
+    {
+        private bool _firstSaveDone;
+
+        public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
+        {
+            if (!_firstSaveDone)
+            {
+                // First call: succeed so we can seed the staff member
+                _firstSaveDone = true;
+                return await base.SaveChangesAsync(ct);
+            }
+            // Second call (the handler's SaveChangesAsync): simulate a concurrent rotation
+            throw new DbUpdateConcurrencyException("Simulated concurrent token rotation.");
+        }
+    }
+
     [Fact]
     public async Task RefreshToken_ThrowsUnauthorized_WhenTokenNotFound()
     {
@@ -314,5 +338,31 @@ public class AuthCommandTests
         // Old token should be replaced
         var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
         Assert.Equal("stub-refresh", updated.RefreshToken);
+    }
+
+    [Fact]
+    public async Task RefreshToken_ThrowsUnauthorized_WhenConcurrentRotationDetected()
+    {
+        // Two concurrent 401 responses both present the same (valid, unexpired) token.
+        // The first refresh wins; the second finds 0 rows updated (EF concurrency token mismatch)
+        // and gets DbUpdateConcurrencyException. The handler re-throws as UnauthorizedAccessException
+        // so the client is told to sign in again rather than receiving an opaque 500.
+        var opts = new DbContextOptionsBuilder<TestDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var db = new ConcurrentRotationDb(opts);
+
+        var staff = MakeStaff();
+        staff.SetRefreshToken("valid-token", DateTime.UtcNow.AddDays(30));
+        db.Staff.Add(staff);
+        // First SaveChangesAsync — seeds the data via ConcurrentRotationDb's seeding path
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new RefreshTokenCommandHandler(db, new StubTokenService());
+
+        // Handler's SaveChangesAsync (the second call) throws DbUpdateConcurrencyException
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            handler.Handle(new RefreshTokenCommand("valid-token"), CancellationToken.None));
     }
 }

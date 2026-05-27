@@ -35,6 +35,12 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
 
         if (activeStaffIds.Count == 0) return 0;
 
+        // Wrap all 3 reads + save in a REPEATABLE READ transaction so that a concurrent
+        // leave approval between our reads and our save can't produce a stale carry-over.
+        // REPEATABLE READ prevents non-repeatable reads: re-reading the same rows within
+        // the transaction will always return the same data we saw at first read.
+        await using var tx = await db.BeginRepeatableReadAsync(ct);
+
         // From-year entitlements
         var fromEntitlements = await db.LeaveEntitlements
             .Where(e => activeStaffIds.Contains(e.EmployeeId) && e.Year == req.FromYear)
@@ -87,6 +93,7 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
         }
 
         await db.SaveChangesAsync(ct);
+        if (tx is not null) await tx.CommitAsync(ct);
         return count;
     }
 }

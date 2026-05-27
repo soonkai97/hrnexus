@@ -26,16 +26,30 @@ public class UpsertLeaveEntitlementCommandHandler(IAppDbContext db)
         var ent = await db.LeaveEntitlements
             .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == req.Year, ct);
 
-        if (ent is null)
+        bool wasInsert = ent is null;
+        if (wasInsert)
         {
             ent = LeaveEntitlement.Create(req.EmployeeId, req.Year, req.AnnualHours, req.SickHours);
             db.LeaveEntitlements.Add(ent);
         }
         else
         {
-            ent.Update(req.AnnualHours, req.SickHours);
+            ent!.Update(req.AnnualHours, req.SickHours);
         }
 
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException) when (wasInsert)
+        {
+            // Two concurrent inserts for the same (EmployeeId, Year): the unique constraint fired.
+            // Use ExecuteUpdateAsync to bypass the tracker — the row now exists, just update it.
+            await db.LeaveEntitlements
+                .Where(e => e.EmployeeId == req.EmployeeId && e.Year == req.Year)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(e => e.AnnualHours, req.AnnualHours)
+                    .SetProperty(e => e.SickHours, req.SickHours), ct);
+        }
     }
 }

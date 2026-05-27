@@ -48,7 +48,7 @@ public class SendMessageHandler(IAppDbContext db, INotificationHub notifHub) : I
             try
             {
                 await notifHub.SendToUserAsync(req.RecipientId.Value,
-                    new NotificationPayload(notif.Id.ToString(), notif.Title, notif.Message, notif.Type, notif.RelatedId, notif.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
+                    new NotificationPayload(notif.Id.ToString(), notif.Title, notif.Message, notif.Type, notif.RelatedId, notif.CreatedAt.ToString("yyyy-MM-dd HH:mm")), ct);
             }
             catch { /* SignalR delivery is best-effort; message is already persisted */ }
         }

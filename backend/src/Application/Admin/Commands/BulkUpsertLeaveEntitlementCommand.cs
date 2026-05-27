@@ -49,7 +49,20 @@ public class BulkUpsertLeaveEntitlementCommandHandler(IAppDbContext db)
                     LeaveEntitlement.Create(empId, req.Year, req.AnnualHours, req.SickHours));
         }
 
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent bulk-upsert inserted one or more entitlements between our read and save.
+            // Use ExecuteUpdateAsync to bypass the tracker — all records now exist, just update them.
+            await db.LeaveEntitlements
+                .Where(e => activeStaffIds.Contains(e.EmployeeId) && e.Year == req.Year)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(e => e.AnnualHours, req.AnnualHours)
+                    .SetProperty(e => e.SickHours, req.SickHours), ct);
+        }
         return activeStaffIds.Count;
     }
 }

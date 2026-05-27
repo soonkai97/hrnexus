@@ -47,10 +47,14 @@ export class StaffStore {
     this._loadTrigger$.next({ search, page, pageSize });
   }
 
+  private rolesLoading = false;
+
   loadRoles(): void {
+    if (this.rolesLoading) return; // dedup: skip if a fetch is already in flight
+    this.rolesLoading = true;
     this.svc.getRoles().subscribe({
-      next: list => this.#roles.set(list),
-      error: ()   => {},
+      next: list => { this.#roles.set(list); this.rolesLoading = false; },
+      error: ()   => { this.rolesLoading = false; },
     });
   }
 

@@ -133,7 +133,18 @@ public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime,
             req.LocationId, req.LocationName, shiftDateUtc, req.TotalAmount, req.SplitMethod);
         pool.MarkDistributed(activeWorkLogs.Count);
         db.TipsPools.Add(pool);
-        await db.SaveChangesAsync(ct); // flush pool first so we have pool.Id
+        try
+        {
+            await db.SaveChangesAsync(ct); // flush pool first so we have pool.Id
+        }
+        catch (DbUpdateException)
+        {
+            // Unique index on (LocationId, ShiftDate) fires when a concurrent request
+            // slipped past the AnyAsync check above. Surface a clean error.
+            throw new InvalidOperationException(
+                "Tips have already been distributed for this location and date. " +
+                "Check the existing pool entry before distributing again.");
+        }
 
         foreach (var alloc in allocations)
         {

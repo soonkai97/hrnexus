@@ -20,6 +20,14 @@ public class MarkAnnouncementReadCommandHandler(IAppDbContext db)
 
         var read = AnnouncementRead.Create(req.AnnouncementId, req.EmployeeId);
         db.AnnouncementReads.Add(read);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // Composite PK unique constraint fired: a concurrent "mark read" call
+            // slipped past the AnyAsync check. The record already exists — this is idempotent.
+        }
     }
 }

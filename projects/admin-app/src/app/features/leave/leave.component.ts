@@ -1,4 +1,7 @@
-import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef, DestroyRef } from '@angular/core';
+import { Subject, EMPTY } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -40,6 +43,41 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   private readonly leaveSvc   = inject(LeaveService);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  // switchMap cancels any in-flight getAll request when a newer load(page) call arrives —
+  // prevents stale page data appearing after rapid filter changes or pagination clicks.
+  private readonly _loadTrigger$ = new Subject<number>();
+
+  constructor() {
+    this._loadTrigger$.pipe(
+      switchMap(page => {
+        this.loading.set(true);
+        this.currentPage.set(page);
+        return this.leaveSvc.getAll({
+          employeeId: this.filterEmployeeId || undefined,
+          dateFrom:   this.filterFrom       || undefined,
+          dateTo:     this.filterTo         || undefined,
+          status:     this.filterStatus     || undefined,
+          leaveType:  this.filterLeaveType  || undefined,
+          page,
+          pageSize:   this.pageSize,
+        }).pipe(
+          catchError(() => {
+            this.toast.error('Failed to load leave records.');
+            this.loading.set(false);
+            return EMPTY;
+          }),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(r => {
+      this.records.set(r?.items ?? []);
+      this.totalRecords.set(r?.total ?? 0);
+      this.loading.set(false);
+      this.loadBalances();
+    });
+  }
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
@@ -432,26 +470,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   }
 
   load(page = 1): void {
-    this.loading.set(true);
-    this.currentPage.set(page);
-    this.leaveSvc.getAll({
-      employeeId: this.filterEmployeeId || undefined,
-      dateFrom:   this.filterFrom       || undefined,
-      dateTo:     this.filterTo         || undefined,
-      status:     this.filterStatus     || undefined,
-      leaveType:  this.filterLeaveType  || undefined,
-      page,
-      pageSize:   this.pageSize,
-    }).subscribe({
-      next:  r  => {
-        this.records.set(r?.items ?? []);
-        this.totalRecords.set(r?.total ?? 0);
-        this.loading.set(false);
-      },
-      error: () => { this.toast.error('Failed to load leave records.'); this.loading.set(false); },
-    });
-
-    this.loadBalances();
+    this._loadTrigger$.next(page);
   }
 
   loadBalances(): void {

@@ -21,6 +21,7 @@ export class LocationStore {
   readonly count     = computed(() => this.#locations().length);
 
   load(): void {
+    if (this.#loading()) return; // dedup: skip if a fetch is already in flight
     this.#loading.set(true);
     this.http.get<Location[]>('/api/locations').subscribe({
       next: list => { this.#locations.set(list); this.#loading.set(false); },

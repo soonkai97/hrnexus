@@ -46,7 +46,16 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
 
         var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes);
         db.WorkLogs.Add(log);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // Partial unique index IX_WorkLogs_EmployeeId_Active fires when a concurrent request
+            // slipped past the AnyAsync check above. Surface a clean error instead of a 500.
+            throw new InvalidOperationException("You already have an active shift. Please end it first.");
+        }
 
         // Broadcast updated live stats to all connected dashboard clients
         var stats = await sender.Send(new GetLiveStatsQuery(), ct);

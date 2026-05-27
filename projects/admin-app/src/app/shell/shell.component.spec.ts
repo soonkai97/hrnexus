@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ShellComponent } from './shell.component';
-import { AuthService, LangService, FeatureFlagService, SignalRService, NotificationService } from 'shared-lib';
+import { AuthService, LangService, FeatureFlagService, SignalRService, NotificationService, AppUpdateService } from 'shared-lib';
 
 /**
  * Admin ShellComponent — layout shell with sidebar navigation.
@@ -23,11 +23,12 @@ import { AuthService, LangService, FeatureFlagService, SignalRService, Notificat
  */
 
 describe('ShellComponent', () => {
-  let mockAuth:      { user: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
-  let mockLang:      { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn> };
-  let mockFeature:   { load: ReturnType<typeof vi.fn>; flags: ReturnType<typeof vi.fn>; isEnabled: ReturnType<typeof vi.fn> };
-  let mockSignalR:   { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn> };
-  let mockNotifSvc:  { unreadCount: ReturnType<typeof vi.fn> };
+  let mockAuth:       { user: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
+  let mockLang:       { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn> };
+  let mockFeature:    { load: ReturnType<typeof vi.fn>; flags: ReturnType<typeof vi.fn>; isEnabled: ReturnType<typeof vi.fn> };
+  let mockSignalR:    { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn> };
+  let mockNotifSvc:   { unreadCount: ReturnType<typeof vi.fn> };
+  let mockAppUpdate:  { init: ReturnType<typeof vi.fn> };
 
   function createComponent(userRoles: string[] = ['ADMIN']) {
     mockAuth.user.mockReturnValue({ fullName: 'Jane Doe', roles: userRoles });
@@ -35,9 +36,9 @@ describe('ShellComponent', () => {
   }
 
   beforeEach(async () => {
-    mockAuth     = { user: vi.fn().mockReturnValue(null), logout: vi.fn() };
-    mockLang     = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn() };
-    mockFeature  = {
+    mockAuth      = { user: vi.fn().mockReturnValue(null), logout: vi.fn() };
+    mockLang      = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn() };
+    mockFeature   = {
       load:      vi.fn().mockReturnValue(of(undefined)),
       flags:     vi.fn().mockReturnValue({
         payroll: false, tips: false, tipsHistory: false,
@@ -45,8 +46,9 @@ describe('ShellComponent', () => {
       }),
       isEnabled: vi.fn().mockReturnValue(false),
     };
-    mockSignalR  = { startConnection: vi.fn(), stopConnection: vi.fn() };
-    mockNotifSvc = { unreadCount: vi.fn().mockReturnValue(0) };
+    mockSignalR   = { startConnection: vi.fn(), stopConnection: vi.fn() };
+    mockNotifSvc  = { unreadCount: vi.fn().mockReturnValue(0) };
+    mockAppUpdate = { init: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [ShellComponent],
@@ -59,6 +61,7 @@ describe('ShellComponent', () => {
         { provide: FeatureFlagService, useValue: mockFeature },
         { provide: SignalRService,     useValue: mockSignalR },
         { provide: NotificationService, useValue: mockNotifSvc },
+        { provide: AppUpdateService,    useValue: mockAppUpdate },
         MessageService,
         ConfirmationService,
       ],

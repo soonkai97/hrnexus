@@ -35,3 +35,4 @@ export * from './lib/services/feature-flag.service';
 export * from './lib/services/staff-config.service';
 export * from './lib/pipes/am-pm.pipe';
 export * from './lib/utils/date.utils';
+export * from './lib/services/app-update.service';

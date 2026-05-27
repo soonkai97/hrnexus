@@ -9,7 +9,7 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService, LeaveService, ToastService, AppUpdateService } from 'shared-lib';
 
 const LEAVE_SNAPSHOT_KEY = 'nc_leave_status_snapshot';
 const POLL_INTERVAL_MS   = 60_000;
@@ -39,6 +39,7 @@ export class ShellComponent {
   private readonly leaveSvc        = inject(LeaveService);
   private readonly toast           = inject(ToastService);
   private readonly translate       = inject(TranslateService);
+  private readonly appUpdate       = inject(AppUpdateService);
 
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
@@ -47,6 +48,7 @@ export class ShellComponent {
   leaveChangeCount    = signal(0);
 
   constructor() {
+    this.appUpdate.init();
     this.featureSvc.load().subscribe(() => { this.refreshUnread(); });
     this.lang.syncFromApi();
     this.signalR.startConnection();

@@ -12,6 +12,18 @@ set -euo pipefail
 
 SERVICE="${1:-web}"
 COMPOSE="docker compose -f docker-compose.yml -f docker-compose.uat.yml"
+MAINTENANCE_FLAG="./maintenance/on"
+
+# ── Always remove the maintenance flag on exit (even on error/Ctrl-C) ─────────
+# Without this trap, set -e would exit the script on any failed step and leave
+# the maintenance page stuck permanently until manually removed.
+cleanup() {
+  if [[ -f "$MAINTENANCE_FLAG" ]]; then
+    rm -f "$MAINTENANCE_FLAG"
+    echo "▶  Maintenance mode OFF (cleanup)."
+  fi
+}
+trap cleanup EXIT
 
 # ── Verify .env exists ────────────────────────────────────────────────────────
 if [[ ! -f .env ]]; then
@@ -31,7 +43,6 @@ git pull
 # We also reload nginx config BEFORE creating the flag so that any updates to
 # nginx.conf (e.g. the first deploy that added the maintenance check) take
 # effect immediately in the running container.
-MAINTENANCE_FLAG="./maintenance/on"
 if [[ "$SERVICE" == "web" || "$SERVICE" == "all" ]]; then
   mkdir -p ./maintenance
   echo "▶  Reloading nginx config in running container…"
@@ -58,12 +69,6 @@ if [[ "$SERVICE" == "all" ]]; then
 else
   echo "▶  Restarting $SERVICE…"
   $COMPOSE up -d --no-deps --wait "$SERVICE"
-fi
-
-# ── Maintenance mode OFF ──────────────────────────────────────────────────────
-if [[ -f "$MAINTENANCE_FLAG" ]]; then
-  rm -f "$MAINTENANCE_FLAG"
-  echo "▶  Maintenance mode OFF — site is live."
 fi
 
 # ── Confirm healthy ───────────────────────────────────────────────────────────

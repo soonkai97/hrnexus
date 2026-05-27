@@ -38,7 +38,11 @@ public class StaffConfigController(IAppDbContext db) : ControllerBase
 
         var item = StaffWorkType.Create(key, body.Label, body.AutoCalc, body.HasPrivate, body.DisplayOrder);
         db.StaffWorkTypes.Add(item);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            return Conflict(new { error = $"Work type '{key}' already exists." });
+        }
         return CreatedAtAction(nameof(ListWorkTypes), new { }, new { id = item.Id.ToString() });
     }
 
@@ -96,7 +100,11 @@ public class StaffConfigController(IAppDbContext db) : ControllerBase
 
         var item = StaffSettlement.Create(key, body.Label, body.Severity, body.DisplayOrder);
         db.StaffSettlements.Add(item);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            return Conflict(new { error = $"Settlement '{key}' already exists." });
+        }
         return CreatedAtAction(nameof(ListSettlements), new { }, new { id = item.Id.ToString() });
     }
 
@@ -154,7 +162,11 @@ public class StaffConfigController(IAppDbContext db) : ControllerBase
 
         var item = StaffExpenseCategory.Create(key, body.Label, body.DisplayOrder);
         db.StaffExpenseCategories.Add(item);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            return Conflict(new { error = $"Expense category '{key}' already exists." });
+        }
         return CreatedAtAction(nameof(ListExpenseCategories), new { }, new { id = item.Id.ToString() });
     }
 
@@ -214,7 +226,11 @@ public class StaffConfigController(IAppDbContext db) : ControllerBase
 
         var item = StaffLoanType.Create(key, body.Label, body.IsAdvance, body.DisplayOrder);
         db.StaffLoanTypes.Add(item);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            return Conflict(new { error = $"Loan type '{key}' already exists." });
+        }
         return CreatedAtAction(nameof(ListLoanTypes), new { }, new { id = item.Id.ToString() });
     }
 

@@ -32,7 +32,7 @@
             <label class="field-label">{{ 'logShift.endTime' | translate }}</label>
             <p-datepicker [(ngModel)]="endTimeDate" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
-              [readonlyInput]="true" [showOnFocus]="false" [showClear]="true" placeholder="Select time" appendTo="body" styleClass="w-full" />
+              [readonlyInput]="true" [showOnFocus]="false" placeholder="Select time" appendTo="body" styleClass="w-full" />
             <div class="d-flex gap-2 mt-2">
               <p-button [label]="'logShift.endShift' | translate" severity="primary" [loading]="submitting()" (click)="confirmEnd()" />
               <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEnd()" />

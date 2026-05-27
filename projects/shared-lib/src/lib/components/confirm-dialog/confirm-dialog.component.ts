@@ -5,6 +5,6 @@ import { ConfirmDialog } from 'primeng/confirmdialog';
   selector: 'nc-confirm-dialog',
   standalone: true,
   imports: [ConfirmDialog],
-  template: `<p-confirmDialog />`,
+  template: `<p-confirmDialog [style]="{ width: 'min(440px, 92vw)' }" />`,
 })
 export class ConfirmDialogComponent {}

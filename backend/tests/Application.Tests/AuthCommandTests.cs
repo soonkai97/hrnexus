@@ -185,6 +185,24 @@ public class AuthCommandTests
     }
 
     [Fact]
+    public async Task ChangePassword_ThrowsArgument_WhenNewPasswordIsWhitespaceOnly()
+    {
+        // Eight spaces pass the length check but must be rejected — a whitespace-only
+        // password would be unusable in practice and should never be stored.
+        await using var db = CreateDb();
+        var staff = MakeStaff(password: "pass");
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new ChangePasswordCommandHandler(db, new StubHasher());
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "        "),
+                CancellationToken.None));
+    }
+
+    [Fact]
     public async Task ChangePassword_Succeeds_ClearsRefreshToken()
     {
         await using var db = CreateDb();

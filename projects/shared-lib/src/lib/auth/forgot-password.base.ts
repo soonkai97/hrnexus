@@ -16,7 +16,7 @@ export abstract class ForgotPasswordBase {
   sent    = signal(false);
 
   submit(): void {
-    if (!this.staffId || this.loading()) return;
+    if (!this.staffId?.trim() || this.loading()) return;
     this.loading.set(true);
     this.error.set('');
     this.auth.forgotPassword(this.staffId.trim()).subscribe({

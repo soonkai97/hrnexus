@@ -77,14 +77,20 @@
           <input pInputText type="text" [(ngModel)]="newStaff.passportNo" placeholder="e.g. A12345678" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label>{{ 'staff.dateOfBirth' | translate }}</label>
+          <div class="d-flex justify-content-between align-items-center">
+            <label>{{ 'staff.dateOfBirth' | translate }}</label>
+            @if (newStaff.dateOfBirth) {
+              <button type="button" class="dob-clear-link" (click)="newStaff.dateOfBirth = null">
+                <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
+              </button>
+            }
+          </div>
           <p-datepicker [(ngModel)]="newStaff.dateOfBirth"
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
             [showOnFocus]="false"
             [readonlyInput]="true"
-            [showClear]="true"
             [maxDate]="todayDate"
             styleClass="w-full"
             appendTo="body" />

@@ -19,14 +19,28 @@
           styleClass="w-full" />
       </div>
       <div class="field filter-date">
-        <label>{{ 'leave.fromLabel' | translate }}</label>
+        <div class="d-flex justify-content-between align-items-center">
+          <label>{{ 'leave.fromLabel' | translate }}</label>
+          @if (filterFrom) {
+            <button type="button" class="dob-clear-link" (click)="filterFrom = ''; load(1)">
+              <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
+            </button>
+          }
+        </div>
         <p-datepicker [(ngModel)]="filterFrom" dateFormat="yy-mm-dd" dataType="string"
-          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" [showClear]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
+          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-date">
-        <label>{{ 'leave.toLabel' | translate }}</label>
+        <div class="d-flex justify-content-between align-items-center">
+          <label>{{ 'leave.toLabel' | translate }}</label>
+          @if (filterTo) {
+            <button type="button" class="dob-clear-link" (click)="filterTo = ''; load(1)">
+              <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
+            </button>
+          }
+        </div>
         <p-datepicker [(ngModel)]="filterTo" dateFormat="yy-mm-dd" dataType="string"
-          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" [showClear]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
+          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-status">
         <label>{{ 'leave.statusLabel' | translate }}</label>

@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angul
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { StaffStore, ConfirmService, ToastService, TrimInputDirective } from 'shared-lib';
+import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -20,7 +20,7 @@ import { Message } from 'primeng/message';
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })
-export class RolesComponent implements OnInit {
+export class RolesComponent implements OnInit, CanComponentDeactivate {
   private readonly store      = inject(StaffStore);
   private readonly confirmSvc = inject(ConfirmService);
   private readonly toast      = inject(ToastService);
@@ -93,6 +93,11 @@ export class RolesComponent implements OnInit {
         this.savingRate.set(false);
       },
     });
+  }
+
+  hasUnsavedChanges(): boolean {
+    return (this.showForm() && (!!this.newRoleName.trim() || this.newRoleRate > 0)) ||
+           this.editingRateName() !== null;
   }
 
   deleteRole(name: string): void {

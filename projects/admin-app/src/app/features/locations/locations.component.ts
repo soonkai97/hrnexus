@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective } from 'shared-lib';
+import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Card } from 'primeng/card';
@@ -15,7 +15,7 @@ import { Message } from 'primeng/message';
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })
-export class LocationsComponent implements OnInit {
+export class LocationsComponent implements OnInit, CanComponentDeactivate {
   private readonly store      = inject(LocationStore);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
@@ -34,6 +34,10 @@ export class LocationsComponent implements OnInit {
   form: UpsertLocationDto = { name: '' };
 
   ngOnInit(): void { this.store.load(); }
+
+  hasUnsavedChanges(): boolean {
+    return this.showForm() && !!this.form.name.trim();
+  }
 
   private scrollToForm(): void {
     setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));

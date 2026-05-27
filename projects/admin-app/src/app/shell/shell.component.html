@@ -1,5 +1,10 @@
 <div class="shell" [class.collapsed]="collapsed()">
 
+  <!-- Mobile sidebar backdrop — click outside to close -->
+  @if (!collapsed()) {
+    <div class="sidebar-backdrop" (click)="collapsed.set(true)"></div>
+  }
+
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-top">

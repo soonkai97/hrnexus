@@ -11,7 +11,7 @@ public class Staff : IHasAudit, ISoftDelete
     public string LastName         { get; private set; } = default!;
     /// <summary>Computed display name.</summary>
     public string FullName         => $"{FirstName} {LastName}".Trim();
-    public string Email            { get; private set; } = default!;
+    public string? Email           { get; private set; }
     public string PasswordHash     { get; private set; } = default!;
     /// <summary>Normalized role rows — loaded automatically via AutoInclude.</summary>
     public List<StaffRole> RoleEntries { get; private set; } = new();
@@ -44,7 +44,7 @@ public class Staff : IHasAudit, ISoftDelete
 
     private Staff() { }
 
-    public static Staff Create(string staffId, string firstName, string? lastName, string email, string passwordHash,
+    public static Staff Create(string staffId, string firstName, string? lastName, string? email, string passwordHash,
         List<string> roles, string? phoneNumber = null,
         string? icNo = null, string? passportNo = null, DateTime? dateOfBirth = null)
     {
@@ -54,7 +54,7 @@ public class Staff : IHasAudit, ISoftDelete
             StaffId      = staffId.Trim().ToUpperInvariant(),
             FirstName    = firstName.Trim(),
             LastName     = lastName?.Trim() ?? "",
-            Email        = email.ToLowerInvariant(),
+            Email        = email?.ToLowerInvariant(),
             PasswordHash = passwordHash,
             PhoneNumber  = phoneNumber,
             IcNo         = icNo,
@@ -101,14 +101,14 @@ public class Staff : IHasAudit, ISoftDelete
     public void SetLanguage(string lang) => PreferredLanguage = lang;
     public void SetPasswordHash(string hash) => PasswordHash = hash;
 
-    public void UpdateDetails(string staffId, string firstName, string? lastName, string email, List<string> roles,
+    public void UpdateDetails(string staffId, string firstName, string? lastName, string? email, List<string> roles,
         string? phoneNumber, string? icNo = null, string? passportNo = null,
         DateTime? dateOfBirth = null)
     {
         StaffId     = staffId.Trim().ToUpperInvariant();
         FirstName   = firstName.Trim();
         LastName    = lastName?.Trim() ?? LastName;   // keep existing if null
-        Email       = email.ToLowerInvariant();
+        Email       = email?.ToLowerInvariant() ?? Email;  // keep existing if null
         PhoneNumber = phoneNumber;
         IcNo        = icNo;
         PassportNo  = passportNo;

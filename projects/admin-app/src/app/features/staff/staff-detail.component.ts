@@ -3,7 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, WorkLogService, WorkLogDto, AmPmPipe } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, AuthService, ToastService, WorkLogService, WorkLogDto, AmPmPipe } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -24,6 +24,7 @@ import { Paginator } from 'primeng/paginator';
 })
 export class StaffDetailComponent implements OnInit {
   readonly staffStore  = inject(StaffStore);
+  private readonly auth       = inject(AuthService);
   private readonly staffSvc   = inject(StaffManagementService);
   private readonly toast      = inject(ToastService);
   private readonly route      = inject(ActivatedRoute);
@@ -33,6 +34,9 @@ export class StaffDetailComponent implements OnInit {
   loading          = signal(true);
   editMode         = signal(false);
   saving           = signal(false);
+
+  /** True when the viewer is a manager (not an admin) — used to hide role editing. */
+  readonly isManager = computed(() => this.auth.hasRole('manager') && !this.auth.hasRole('admin'));
 
   availableRoles = computed(() => this.staffStore.roles().filter(r => r.name !== 'admin'));
 

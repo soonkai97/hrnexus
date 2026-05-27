@@ -31,7 +31,7 @@
           <input pInputText type="text" [(ngModel)]="newStaff.lastName" placeholder="e.g. Torres" maxlength="100" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label><span class="req">*</span> {{ 'staff.email' | translate }}</label>
+          <label>{{ 'staff.email' | translate }}</label>
           <input pInputText type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off" />
         </div>
         <div class="col-12 col-md-6 field">
@@ -75,9 +75,8 @@
           <label>{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
           <input pInputText type="text" [(ngModel)]="newStaff.passportNo" placeholder="e.g. A12345678" />
         </div>
-        <p class="col-12 id-required-note"><span class="req">*</span> {{ 'staff.idRequiredNote' | translate }}</p>
         <div class="col-12 col-md-6 field">
-          <label><span class="req">*</span> {{ 'staff.dateOfBirth' | translate }}</label>
+          <label>{{ 'staff.dateOfBirth' | translate }}</label>
           <p-datepicker [(ngModel)]="newStaff.dateOfBirth"
             dateFormat="yy-mm-dd"
             dataType="string"

@@ -4,7 +4,7 @@ export interface Staff {
   firstName: string;
   lastName: string;
   fullName: string;
-  email: string;
+  email: string | null;
   roles: string[];
   isActive: boolean;
   phoneNumber: string | null;
@@ -18,7 +18,7 @@ export interface RegisterStaffRequest {
   staffId: string;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
   password: string;
   roles: string[];
   phoneNumber: string;

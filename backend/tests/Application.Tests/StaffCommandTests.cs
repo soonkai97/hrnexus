@@ -123,43 +123,51 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Register_ThrowsInvalidOperation_WhenEmailIsEmpty()
+    public async Task Register_Succeeds_WhenEmailIsNull()
     {
+        // Email is now optional — staff can be added and receive email later via Edit.
         await using var db = CreateDb();
         var handler = RegisterHandler(db);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new RegisterStaffCommand(
-                "S001", "Alice", "Wong", "", "pass",
-                new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
-                CancellationToken.None));
+        var id = await handler.Handle(new RegisterStaffCommand(
+            "S001", "Alice", "Wong", null, "pass",
+            new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            CancellationToken.None);
+
+        var staff = await db.Staff.FindAsync(id);
+        Assert.NotNull(staff);
+        Assert.Null(staff.Email);
     }
 
     [Fact]
-    public async Task Register_ThrowsInvalidOperation_WhenBothIcAndPassportAreEmpty()
+    public async Task Register_Succeeds_WhenBothIcAndPassportAreNull()
     {
-        // IC or Passport is required for identity verification; both blank is invalid.
+        // IC and Passport are now optional — staff can be added without identity docs.
         await using var db = CreateDb();
         var handler = RegisterHandler(db);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new RegisterStaffCommand(
-                "S001", "Alice", "Wong", "alice@test.com", "pass",
-                new List<string>(), IcNo: null, PassportNo: null, DateOfBirth: new DateTime(1990, 1, 1)),
-                CancellationToken.None));
+        var id = await handler.Handle(new RegisterStaffCommand(
+            "S001", "Alice", "Wong", "alice@test.com", "pass",
+            new List<string>(), IcNo: null, PassportNo: null),
+            CancellationToken.None);
+
+        Assert.NotEqual(Guid.Empty, id);
     }
 
     [Fact]
-    public async Task Register_ThrowsInvalidOperation_WhenDateOfBirthIsNull()
+    public async Task Register_Succeeds_WhenDateOfBirthIsNull()
     {
+        // Date of birth is now optional.
         await using var db = CreateDb();
         var handler = RegisterHandler(db);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new RegisterStaffCommand(
-                "S001", "Alice", "Wong", "alice@test.com", "pass",
-                new List<string>(), IcNo: "990101-01-1234", DateOfBirth: null),
-                CancellationToken.None));
+        var id = await handler.Handle(new RegisterStaffCommand(
+            "S001", "Alice", "Wong", "alice@test.com", "pass",
+            new List<string>(), DateOfBirth: null),
+            CancellationToken.None);
+
+        var staff = await db.Staff.FindAsync(id);
+        Assert.Null(staff!.DateOfBirth);
     }
 
     [Fact]

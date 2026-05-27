@@ -14,7 +14,7 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
         b.HasIndex(e => e.StaffId).IsUnique();
         b.Property(e => e.FirstName).HasMaxLength(50).IsRequired();
         b.Property(e => e.LastName).HasMaxLength(50).IsRequired();
-        b.Property(e => e.Email).HasMaxLength(200).IsRequired();
+        b.Property(e => e.Email).HasMaxLength(200);  // nullable — email is optional at registration
         b.HasIndex(e => e.Email).IsUnique();
         b.Property(e => e.PasswordHash).IsRequired();
         b.Property(e => e.IcNo).HasMaxLength(20);

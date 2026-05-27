@@ -12,7 +12,7 @@ public record GetStaffListQuery(
     int     Page         = 1,
     int     PageSize     = 10) : IRequest<PagedResult<StaffDto>>;
 
-public record StaffDto(Guid Id, string StaffId, string FirstName, string LastName, string FullName, string Email, List<string> Roles,
+public record StaffDto(Guid Id, string StaffId, string FirstName, string LastName, string FullName, string? Email, List<string> Roles,
     bool IsActive, string? PhoneNumber,
     string? IcNo, string? PassportNo, string? DateOfBirth, int? Age);
 
@@ -31,7 +31,7 @@ public class GetStaffListQueryHandler(IAppDbContext db)
             var s = req.Search.ToLower();
             // FullName is an ignored computed property — query on stored columns instead.
             query = query.Where(e => (e.FirstName + " " + e.LastName).ToLower().Contains(s)
-                                  || e.Email.Contains(s)
+                                  || (e.Email != null && e.Email.Contains(s))
                                   || e.StaffId.ToLower().Contains(s)
                                   || e.RoleEntries.Any(r => r.Role.ToLower().Contains(s)));
         }

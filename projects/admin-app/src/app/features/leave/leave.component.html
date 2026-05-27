@@ -1,4 +1,4 @@
-<div class="p-3 p-md-4">
+﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
     <div class="d-flex gap-2">
@@ -7,7 +7,7 @@
     </div>
   </div>
 
-  <!-- ── Filter bar ─────────────────────────────────────────────────────────── -->
+  <!-- â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
   <p-card styleClass="filter-bar">
     <div class="filter-row d-flex flex-wrap gap-2 align-items-end">
       <div class="field filter-staff">
@@ -15,7 +15,7 @@
         <p-select [(ngModel)]="filterEmployeeId" (onChange)="load(1)"
           [options]="staffStore.staff()" optionLabel="fullName" optionValue="id"
           [placeholder]="'leave.allStaff' | translate" [showClear]="!!filterEmployeeId"
-          [filter]="true" filterPlaceholder="Search staff…"
+          [filter]="true" filterPlaceholder="Search staffâ€¦"
           styleClass="w-full" />
       </div>
       <div class="field filter-date">
@@ -36,6 +36,12 @@
           [showClear]="!!filterStatus" styleClass="w-full" />
       </div>
     </div>
+    <!-- Date range presets -->
+    <div class="preset-row d-flex flex-wrap gap-2 mt-2">
+      @for (p of datePresets; track p.value) {
+        <p-button [label]="p.label" size="small" [outlined]="true" severity="secondary" (click)="setDatePreset(p.value)" />
+      }
+    </div>
     <!-- Preset leave-type filter chips -->
     <div class="preset-filter-row d-flex align-items-center gap-2 flex-wrap mt-2">
       @for (p of presetTypes; track p.value) {
@@ -49,7 +55,7 @@
     </div>
   </p-card>
 
-  <!-- ── Page tabs ──────────────────────────────────────────────────────────── -->
+  <!-- â”€â”€ Page tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
   <p-tabs [value]="tab()" (valueChange)="tab.set($any($event))">
     <p-tablist>
       <p-tab value="records">
@@ -62,7 +68,7 @@
     </p-tablist>
   </p-tabs>
 
-  <!-- ═══════════════════════════ RECORDS TAB ═════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• RECORDS TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   @if (tab() === 'records') {
 
     <!-- Overdue pending banner -->
@@ -82,7 +88,7 @@
                 <div class="overdue-row-info">
                   <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                   <span class="overdue-staff">{{ r.staffName }}</span>
-                  <span class="overdue-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
+                  <span class="overdue-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} Â· {{ r.hours }}h</span>
                 </div>
                 <div class="overdue-row-actions">
                   <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary"
@@ -115,7 +121,7 @@
             <p-select [(ngModel)]="form.employeeId" [options]="staffStore.staff()"
               optionLabel="fullName" optionValue="id"
               [placeholder]="'leave.selectOption' | translate"
-              [filter]="true" filterPlaceholder="Search staff…"
+              [filter]="true" filterPlaceholder="Search staffâ€¦"
               [disabled]="!!editing()" styleClass="w-full"
               (ngModelChange)="onFormEmployeeChange($event)" />
             @if (formBalance()) {
@@ -177,7 +183,7 @@
             } @else {
               <label><span class="req">*</span> {{ 'leave.hoursLabel' | translate }}</label>
               <p-inputnumber [(ngModel)]="form.hours" [min]="0.5" [max]="720" [step]="0.5"
-                suffix="h" styleClass="w-full" />
+                suffix="h" styleClass="w-full" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             }
           </div>
           <div class="col-12 col-md-6 field">
@@ -285,7 +291,7 @@
                     @for (r of day.leaves.slice(0, 2); track r.id) {
                       <div class="cal-leave-chip" [class]="'cal-leave-' + r.leaveType"
                            [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
-                           [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — Overdue' : '')"
+                           [title]="r.staffName + ' â€” ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' â€” Overdue' : '')"
                            (click)="openCalLeave(r, $event)">
                         {{ r.staffName.split(' ')[0] + (r.staffName.indexOf(' ') > -1 ? ' ' + r.staffName.split(' ')[1][0] + '.' : '') }}
                       </div>
@@ -321,7 +327,7 @@
                           <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
                         <span class="cal-day-staff-name">{{ r.staffName }}</span>
-                        <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
+                        <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} Â· {{ r.hours }}h</span>
                       </div>
                       <div class="cal-day-row-right">
                         <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
@@ -409,7 +415,7 @@
                 <span class="leave-staff-id">{{ r.staffId }}</span>
               </div>
               <div class="leave-dates">
-                <span class="leave-dates-text">{{ r.startDate }}@if (r.startTime) { {{ r.startTime }}}{{ r.startDate !== r.endDate ? ' – ' + r.endDate : '' }}@if (r.endTime) { {{ r.endTime }}}</span>
+                <span class="leave-dates-text">{{ r.startDate }}@if (r.startTime) { {{ r.startTime }}}{{ r.startDate !== r.endDate ? ' â€“ ' + r.endDate : '' }}@if (r.endTime) { {{ r.endTime }}}</span>
                 <span class="leave-days-pill">{{ r.hours }}h</span>
               </div>
               @if (r.notes) { <div class="leave-notes">{{ r.notes }}</div> }
@@ -460,7 +466,7 @@
 
   }
 
-  <!-- ═══════════════════════════ BALANCES TAB ════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• BALANCES TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   @if (tab() === 'balances') {
 
     <!-- Individual staff balance (when filtered) -->
@@ -468,7 +474,7 @@
       @let b = staffBalance()!;
       <p-card styleClass="balance-card">
         <div class="balance-card-header">
-          <span class="balance-card-title">{{ 'leave.leaveBalance' | translate }} — {{ b.year }}</span>
+          <span class="balance-card-title">{{ 'leave.leaveBalance' | translate }} â€” {{ b.year }}</span>
           <p-button [icon]="editingEntitlement() ? 'pi pi-times' : 'pi pi-pencil'"
                     [label]="editingEntitlement() ? ('leave.cancelEntitlement' | translate) : ('leave.editEntitlement' | translate)"
                     [text]="true" severity="secondary" (click)="toggleEntitlementEdit()" />
@@ -515,15 +521,15 @@
           <div class="entitlement-form">
             <div class="field m-0">
               <label>{{ 'leave.annualHours' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" />
+              <p-inputnumber [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <div class="field m-0">
               <label>{{ 'leave.sickHours' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" />
+              <p-inputnumber [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <div class="field m-0">
               <label>{{ 'common.year' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.year" />
+              <p-inputnumber [(ngModel)]="entitlementForm.year" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <p-button [label]="savingEntitlement() ? ('common.saving' | translate) : ('leave.saveEntitlement' | translate)"
                       severity="primary" styleClass="ent-save-btn" (click)="saveEntitlement()"
@@ -553,11 +559,11 @@
           <div class="bulk-ent-fields d-flex align-items-center gap-3 flex-wrap mt-2">
             <div class="field m-0">
               <label>{{ 'leave.annualHours' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" />
+              <p-inputnumber [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <div class="field m-0">
               <label>{{ 'leave.sickHours' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" />
+              <p-inputnumber [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <p-button icon="pi pi-check" [label]="bulkSaving() ? ('common.saving' | translate) : 'Apply to All Staff'"
               severity="primary" [loading]="bulkSaving()" [disabled]="bulkSaving()"
@@ -602,7 +608,7 @@
                   <i class="pi pi-sun"></i> {{ b.annualRemaining }}h
                   <!-- Item 9: carry-over indicator -->
                   @if (b.carryOverHours > 0) {
-                    <small class="bal-chip-carryover" [pTooltip]="b.carryOverHours + 'h carry-over included'" tooltipPosition="top">⟳{{ b.carryOverHours }}</small>
+                    <small class="bal-chip-carryover" [pTooltip]="b.carryOverHours + 'h carry-over included'" tooltipPosition="top">âŸ³{{ b.carryOverHours }}</small>
                   }
                 </span>
                 <span class="bal-chip" [class.bal-chip-warn]="b.sickRemaining <= 24" [class.bal-chip-ok]="b.sickRemaining > 24">
@@ -664,11 +670,11 @@
                 <span class="ls-fullname">{{ s.fullName }}</span>
                 <span class="ls-sid">{{ s.staffId }}</span>
               </div>
-              <span class="ls-data-col">{{ s.annualUsed > 0 ? s.annualUsed + 'h' : '—' }}</span>
-              <span class="ls-data-col">{{ s.sickUsed > 0 ? s.sickUsed + 'h' : '—' }}</span>
-              <span class="ls-data-col ls-emergency-val">{{ s.emergencyUsed > 0 ? s.emergencyUsed + 'h' : '—' }}</span>
-              <span class="ls-data-col">{{ s.unpaidUsed > 0 ? s.unpaidUsed + 'h' : '—' }}</span>
-              <span class="ls-data-col ls-noshow-val">{{ s.noShowUsed > 0 ? s.noShowUsed + 'h' : '—' }}</span>
+              <span class="ls-data-col">{{ s.annualUsed > 0 ? s.annualUsed + 'h' : 'â€”' }}</span>
+              <span class="ls-data-col">{{ s.sickUsed > 0 ? s.sickUsed + 'h' : 'â€”' }}</span>
+              <span class="ls-data-col ls-emergency-val">{{ s.emergencyUsed > 0 ? s.emergencyUsed + 'h' : 'â€”' }}</span>
+              <span class="ls-data-col">{{ s.unpaidUsed > 0 ? s.unpaidUsed + 'h' : 'â€”' }}</span>
+              <span class="ls-data-col ls-noshow-val">{{ s.noShowUsed > 0 ? s.noShowUsed + 'h' : 'â€”' }}</span>
               <span class="ls-data-col ls-total-col">{{ s.totalUsed }}h</span>
             </div>
           }
@@ -697,8 +703,8 @@
                 <span class="pw-id">{{ w.staffId }}</span>
               </div>
               <div class="pw-stats">
-                <span class="pw-count">{{ w.sickLeaveCount }}×</span>
-                <span class="pw-hours">{{ w.sickLeaveHours }}h — {{ 'leave.patternWarningDesc' | translate }}</span>
+                <span class="pw-count">{{ w.sickLeaveCount }}Ã—</span>
+                <span class="pw-hours">{{ w.sickLeaveHours }}h â€” {{ 'leave.patternWarningDesc' | translate }}</span>
               </div>
             </div>
           }

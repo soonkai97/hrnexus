@@ -7,7 +7,7 @@
     <div class="d-flex gap-3 align-items-end flex-wrap">
       <div class="field">
         <label>Year</label>
-        <p-inputnumber [ngModel]="year()" (ngModelChange)="year.set($event)" [min]="2020" [max]="2099" [useGrouping]="false" />
+        <p-inputnumber [ngModel]="year()" (ngModelChange)="year.set($event)" [min]="2020" [max]="2099" [useGrouping]="false" [pt]="$any({ input: { inputmode: 'decimal' } })" />
       </div>
       <div class="field">
         <label>Month</label>

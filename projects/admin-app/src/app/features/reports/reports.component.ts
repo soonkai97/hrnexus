@@ -72,6 +72,14 @@ export class ReportsComponent implements OnInit {
 
   activeTab = signal<'employee' | 'location' | 'role' | 'date' | 'shifts'>('employee');
 
+  readonly datePresets = [
+    { label: 'Today',      value: 'today'      as const },
+    { label: 'Yesterday',  value: 'yesterday'  as const },
+    { label: 'This Week',  value: 'week'       as const },
+    { label: 'This Month', value: 'month'      as const },
+    { label: 'Last Month', value: 'last-month' as const },
+  ];
+
   // ── Edit shift (manager can edit any staff's shift) ───────────────────────────
   readonly locationOptions = computed(() =>
     this.locationStore.locations().map(l => ({ label: l.name, value: l.id }))

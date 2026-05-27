@@ -12,7 +12,8 @@
           (ngModelChange)="selectedYear.set($event)"
           [min]="2020"
           [max]="2099"
-          [useGrouping]="false" />
+          [useGrouping]="false"
+          [pt]="$any({ input: { inputmode: 'decimal' } })" />
       </div>
       <div class="field">
         <label>{{ 'pay.month' | translate }}</label>

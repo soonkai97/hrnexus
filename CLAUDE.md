@@ -1037,10 +1037,10 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 26 | 355 | ✅ |
-| admin-app components | 17 | 677 | ✅ |
-| staff-app components | 11 | 265 | ✅ |
-| backend Application.Tests | — | 432 | ✅ |
+| shared-lib (services + stores + guards + auth) | 27 | 372 | ✅ |
+| admin-app components | 17 | 678 | ✅ |
+| staff-app components | 11 | 267 | ✅ |
+| backend Application.Tests | — | 433 | ✅ |
 
 **Wrapper-component rule**: `change-password-page.component.spec.ts` in both apps intentionally has 1 smoke test — the component is a pure template wrapper around shared-lib's `ChangePasswordComponent`; all logic lives in shared-lib and is tested there.
 

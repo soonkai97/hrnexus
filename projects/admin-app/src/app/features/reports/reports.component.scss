@@ -60,9 +60,10 @@
 .filter-bar {
   padding: 1rem 1.25rem;
   margin-bottom: 0.25rem;
-  // Dropdowns must paint above the stat cards below
-  position: relative;
-  z-index: $z-dropdown;
+  // No z-index needed: all dropdown overlays use appendTo="body" and portal
+  // themselves to <body> with their own high z-index. A stacking context here
+  // would cause the notification panel (inside topbar z-index:30) to be buried
+  // under this card (z-index:200 in the same ancestor context).
 }
 
 

@@ -94,7 +94,7 @@ describe('roleGuard', () => {
   });
 
   it('returns true for admin when admin role is required', () => {
-    (auth as any)._user.set(fakeUser(['ADMIN']));
+    (auth as any)._user.set(fakeUser(['SUPERADMIN']));
     const result = TestBed.runInInjectionContext(() => roleGuard('admin')(route, state));
     expect(result).toBe(true);
   });

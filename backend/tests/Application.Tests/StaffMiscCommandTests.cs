@@ -125,14 +125,14 @@ public class StaffMiscCommandTests
     public async Task DeleteRole_ThrowsInvalidOperation_WhenSystemRole()
     {
         await using var db = CreateDb();
-        db.Roles.Add(E.Role.Create("ADMIN", isSystem: true));
+        db.Roles.Add(E.Role.Create("SUPERADMIN", isSystem: true));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
         var handler = new DeleteRoleCommandHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new DeleteRoleCommand("ADMIN"), CancellationToken.None));
+            handler.Handle(new DeleteRoleCommand("SUPERADMIN"), CancellationToken.None));
     }
 
     [Fact]
@@ -293,7 +293,7 @@ public class StaffMiscCommandTests
         // Query: OrderBy(r => r.IsSystem ? 1 : 0) — non-system=0 (first), system=1 (last)
         await using var db = CreateDb();
         db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
-        db.Roles.Add(E.Role.Create("ADMIN", isSystem: true));
+        db.Roles.Add(E.Role.Create("SUPERADMIN", isSystem: true));
         db.Roles.Add(E.Role.Create("MANAGER", isSystem: true));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();

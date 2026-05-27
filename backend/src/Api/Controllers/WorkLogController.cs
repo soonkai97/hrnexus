@@ -60,7 +60,7 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateWorkLogRequest req, CancellationToken ct)
     {
-        var isPrivileged = User.IsInRole("Admin") || User.IsInRole("Manager");
+        var isPrivileged = User.IsInRole(AppConstants.Roles.AdminClaim) || User.IsInRole(AppConstants.Roles.ManagerClaim);
         try
         {
             await mediator.Send(new UpdateWorkLogCommand(id, CallerId, isPrivileged, req.RoleName, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes), ct);
@@ -116,7 +116,7 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
 
     // Admin: get all work logs (paginated)
     [HttpGet]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> GetAll([FromQuery] GetAllWorkLogsParams p, CancellationToken ct)
     {
         var pageSize = Math.Min(p.PageSize, AppConstants.Limits.MaxPageSize);

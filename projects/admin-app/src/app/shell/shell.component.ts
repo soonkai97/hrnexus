@@ -57,7 +57,7 @@ export class ShellComponent {
 
   userRoleLabel = computed(() => {
     const roles = this.auth.user()?.roles ?? [];
-    if (roles.includes('ADMIN'))   return 'Admin';
+    if (roles.includes('SUPERADMIN'))   return 'Admin';
     if (roles.includes('MANAGER')) return 'Manager';
     return roles[0] ?? 'Staff';
   });
@@ -79,7 +79,7 @@ export class ShellComponent {
   navItems = computed(() => {
     const flags   = this.featureSvc.flags();
     const roles   = this.auth.user()?.roles ?? [];
-    const isAdmin = roles.includes('ADMIN');
+    const isAdmin = roles.includes('SUPERADMIN');
 
     return this.allNavItems.filter(item =>
       (!item.featureFlag || flags[item.featureFlag]) &&

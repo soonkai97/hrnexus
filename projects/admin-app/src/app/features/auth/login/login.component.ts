@@ -43,7 +43,7 @@ export class AdminLoginComponent {
     this.auth.login({ ...this.form.value, portal: 'admin' }).subscribe({
       next: (res) => {
         const roles = (res.user?.roles ?? []).map(r => r.toUpperCase());
-        if (!roles.includes('ADMIN') && !roles.includes('MANAGER')) {
+        if (!roles.includes('SUPERADMIN') && !roles.includes('MANAGER')) {
           this.auth.logout();
           this.error.set('Access denied. Only Admin or Manager accounts can log in to this portal.');
           this.loading.set(false);

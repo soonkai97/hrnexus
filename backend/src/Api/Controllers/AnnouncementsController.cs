@@ -6,6 +6,7 @@ using HRNexus.Application.Announcements.Commands;
 using HRNexus.Application.Announcements.Queries;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Api.Filters;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Api.Controllers;
 
@@ -43,7 +44,7 @@ public class AnnouncementsController(IMediator mediator, IAppDbContext db) : Con
 
     /// <summary>Get all announcements with read-receipt counts (admin view).</summary>
     [HttpGet("all")]
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page     = 1,
         [FromQuery] int pageSize = 10,
@@ -55,7 +56,7 @@ public class AnnouncementsController(IMediator mediator, IAppDbContext db) : Con
 
     /// <summary>Create a new announcement.</summary>
     [HttpPost]
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> Create([FromBody] UpsertAnnouncementRequest req, CancellationToken ct)
     {
         var creatorId = EmployeeId;
@@ -71,7 +72,7 @@ public class AnnouncementsController(IMediator mediator, IAppDbContext db) : Con
 
     /// <summary>Update an existing announcement.</summary>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpsertAnnouncementRequest req, CancellationToken ct)
     {
         try
@@ -94,7 +95,7 @@ public class AnnouncementsController(IMediator mediator, IAppDbContext db) : Con
 
     /// <summary>Delete an announcement (hard delete).</summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         try

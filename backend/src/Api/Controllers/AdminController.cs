@@ -12,7 +12,7 @@ namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-[Authorize(Roles = "Manager,Admin")]
+[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
 public class AdminController(IMediator mediator) : ControllerBase
 {
     private Guid   CallerId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

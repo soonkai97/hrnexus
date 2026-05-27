@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.Staff.Queries;
 
@@ -23,7 +24,7 @@ public class GetStaffListQueryHandler(IAppDbContext db)
         var query = db.Staff.AsQueryable();
 
         if (req.ExcludeAdmins)
-            query = query.Where(e => !e.RoleEntries.Any(r => r.Role == "ADMIN"));
+            query = query.Where(e => !e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Admin));
 
         if (!string.IsNullOrWhiteSpace(req.Search))
         {

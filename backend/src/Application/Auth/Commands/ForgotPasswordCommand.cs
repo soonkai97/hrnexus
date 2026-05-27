@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Auth.Commands;
@@ -36,8 +37,8 @@ public class ForgotPasswordCommandHandler(
         // Filter managers/admins directly in SQL via the normalised StaffRoles table.
         var adminsAndManagers = await db.Staff
             .Where(e => e.IsActive &&
-                (e.RoleEntries.Any(r => r.Role == "ADMIN") ||
-                 e.RoleEntries.Any(r => r.Role == "MANAGER")))
+                (e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Admin) ||
+                 e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager)))
             .ToListAsync(ct);
 
         var title   = "🔐 Password Reset Request";

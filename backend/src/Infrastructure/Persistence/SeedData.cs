@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 
 namespace HRNexus.Infrastructure.Persistence;
@@ -15,7 +16,7 @@ public static class SeedData
         HRNexus.Application.Common.Interfaces.IPasswordHasher hasher)
     {
         // Seed system roles required for authentication guards
-        var systemRoles = new[] { "MANAGER", "ADMIN" };
+        var systemRoles = new[] { AppConstants.Roles.Manager, AppConstants.Roles.Admin };
         foreach (var roleName in systemRoles)
             if (!await db.Roles.AnyAsync(r => r.Name == roleName))
                 db.Roles.Add(Role.Create(roleName, isSystem: true));
@@ -25,7 +26,7 @@ public static class SeedData
             db.Staff.Add(Staff.Create(
                 "HRADMIN", "HR", "Admin", "admin@hrnexus.com",
                 hasher.Hash("Admin@1234"),
-                new List<string> { "ADMIN" },
+                new List<string> { AppConstants.Roles.Admin },
                 null, null, null, null));
 
         await db.SaveChangesAsync();

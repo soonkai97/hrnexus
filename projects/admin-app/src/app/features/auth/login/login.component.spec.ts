@@ -33,7 +33,7 @@ describe('AdminLoginComponent', () => {
 
   beforeEach(async () => {
     mockAuth = {
-      login:  vi.fn().mockReturnValue(of({ user: { roles: ['ADMIN'] } })),
+      login:  vi.fn().mockReturnValue(of({ user: { roles: ['SUPERADMIN'] } })),
       logout: vi.fn(),
     };
     mockLang = { current: vi.fn().mockReturnValue('en'), set: vi.fn() };
@@ -113,7 +113,7 @@ describe('AdminLoginComponent', () => {
     });
 
     it('navigates to /dashboard when login succeeds', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['ADMIN'] } }));
+      mockAuth.login.mockReturnValue(of({ user: { roles: ['SUPERADMIN'] } }));
       component.submit();
       // Routing handled by provideRouter; just confirm loading stays true (no error path)
       expect(component.error()).toBe('');

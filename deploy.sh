@@ -49,13 +49,15 @@ else
   $COMPOSE build --no-cache "$SERVICE"
 fi
 
-# ── Restart (rolling — other services stay up) ────────────────────────────────
+# ── Restart and wait until healthy ───────────────────────────────────────────
+# --wait blocks until all container health checks pass before returning.
+# Maintenance flag is only removed after containers are confirmed healthy.
 if [[ "$SERVICE" == "all" ]]; then
   echo "▶  Restarting web and api…"
-  $COMPOSE up -d --no-deps web api
+  $COMPOSE up -d --no-deps --wait web api
 else
   echo "▶  Restarting $SERVICE…"
-  $COMPOSE up -d --no-deps "$SERVICE"
+  $COMPOSE up -d --no-deps --wait "$SERVICE"
 fi
 
 # ── Maintenance mode OFF ──────────────────────────────────────────────────────

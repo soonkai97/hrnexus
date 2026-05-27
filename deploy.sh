@@ -23,6 +23,17 @@ fi
 echo "▶  Pulling latest code from origin…"
 git pull
 
+# ── Maintenance mode ON ───────────────────────────────────────────────────────
+# Only flip to maintenance for deployments that rebuild the web container.
+# The flag lives in ./maintenance/on — mounted into the nginx container.
+# Nginx checks the file on every request; no reload needed.
+MAINTENANCE_FLAG="./maintenance/on"
+if [[ "$SERVICE" == "web" || "$SERVICE" == "all" ]]; then
+  mkdir -p ./maintenance
+  touch "$MAINTENANCE_FLAG"
+  echo "▶  Maintenance mode ON — users will see the maintenance page."
+fi
+
 # ── Build ─────────────────────────────────────────────────────────────────────
 if [[ "$SERVICE" == "all" ]]; then
   echo "▶  Building web and api (--no-cache)…"
@@ -39,6 +50,12 @@ if [[ "$SERVICE" == "all" ]]; then
 else
   echo "▶  Restarting $SERVICE…"
   $COMPOSE up -d --no-deps "$SERVICE"
+fi
+
+# ── Maintenance mode OFF ──────────────────────────────────────────────────────
+if [[ -f "$MAINTENANCE_FLAG" ]]; then
+  rm -f "$MAINTENANCE_FLAG"
+  echo "▶  Maintenance mode OFF — site is live."
 fi
 
 # ── Confirm healthy ───────────────────────────────────────────────────────────

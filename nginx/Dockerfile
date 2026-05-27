@@ -14,7 +14,8 @@ RUN npx ng build staff-app  --configuration production
 
 # Stage 2 — serve with nginx
 FROM nginx:alpine
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/nginx.conf        /etc/nginx/nginx.conf
+COPY nginx/maintenance.html  /usr/share/nginx/maintenance.html
 COPY --from=builder /workspace/dist/admin-app/browser  /usr/share/nginx/admin
 COPY --from=builder /workspace/dist/staff-app/browser  /usr/share/nginx/staff
 EXPOSE 80

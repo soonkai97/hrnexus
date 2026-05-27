@@ -43,7 +43,18 @@ public class ShiftJobs(
                 created++;
             }
         }
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            // Unique constraint race: an extremely rare concurrent Hangfire execution (or a
+            // manual trigger while the scheduled run was in progress) inserted the same
+            // (EmployeeId, Year) row between our AnyAsync checks and this save.
+            // Log a warning and let Hangfire retry — on retry, AnyAsync will find the
+            // existing rows and skip them, so the job will complete with created = 0.
+            logger.LogWarning(
+                "ResetLeaveEntitlements: unique constraint hit for year {Year} — possible concurrent run. Hangfire will retry.", newYear);
+            throw;
+        }
         logger.LogInformation(
             "Leave entitlement reset: created {Count} records for year {Year}", created, newYear);
     }

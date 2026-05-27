@@ -179,15 +179,20 @@ export class ShellComponent implements AfterViewInit {
     });
   }
 
+  private isSyncingLeave = false;
+
   /** Silently update snapshot without showing toasts (called after user visits My Leave). */
   private syncLeaveSnapshot(): void {
-    this.leaveSvc.getMine().subscribe({
+    if (this.isSyncingLeave) return; // dedup: previous sync still in-flight
+    this.isSyncingLeave = true;
+    this.leaveSvc.getMine().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: records => {
         const snapshot: Record<string, string> = {};
         records.forEach(r => snapshot[r.id] = r.status);
         try { localStorage.setItem(LEAVE_SNAPSHOT_KEY, JSON.stringify(snapshot)); } catch { /* quota */ }
+        this.isSyncingLeave = false;
       },
-      error: () => {},
+      error: () => { this.isSyncingLeave = false; },
     });
   }
 

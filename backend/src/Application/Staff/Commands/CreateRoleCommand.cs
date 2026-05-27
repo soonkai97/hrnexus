@@ -19,6 +19,12 @@ public class CreateRoleCommandHandler(IAppDbContext db)
         if (exists) throw new InvalidOperationException($"Role '{name}' already exists.");
 
         db.Roles.Add(Role.Create(name, hourlyRate: req.HourlyRate));
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            // PK collision: concurrent request inserted the same role name between our
+            // AnyAsync check and this save. Return the friendly duplicate error.
+            throw new InvalidOperationException($"Role '{name}' already exists.");
+        }
     }
 }

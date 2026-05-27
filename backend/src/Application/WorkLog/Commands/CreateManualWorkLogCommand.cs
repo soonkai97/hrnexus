@@ -49,7 +49,13 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
 
         var log = Domain.Entities.WorkLog.CreateManual(req.EmployeeId, req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, req.EndTime, role.HourlyRate, req.Notes);
         db.WorkLogs.Add(log);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            // Unique index race: a concurrent insert landed the same (EmployeeId, WorkDate)
+            // between our AnyAsync check and this save.
+            throw new InvalidOperationException("A work log already exists for this employee on that date.");
+        }
         return log.Id;
     }
 }

@@ -42,6 +42,10 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public Task<IDbContextTransaction?> BeginRepeatableReadAsync(CancellationToken ct = default)
         => Task.FromResult<IDbContextTransaction?>(null);
 
+    // InMemory uses a non-retrying strategy — execute the operation directly.
+    public Task<T> ExecuteInStrategyAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
+        => operation(ct);
+
     protected override void OnModelCreating(ModelBuilder mb)
     {
         // AnnouncementRead: composite PK (no Id column)

@@ -48,6 +48,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         return await Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
     }
 
+    public Task<T> ExecuteInStrategyAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
+        => Database.CreateExecutionStrategy().ExecuteAsync(operation, ct);
+
     protected override void OnModelCreating(ModelBuilder mb)
     {
         mb.ApplyConfiguration(new StaffConfiguration());

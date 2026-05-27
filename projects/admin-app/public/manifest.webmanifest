@@ -1,6 +1,6 @@
 ﻿{
   "name": "HRNexus Admin",
-  "short_name": "HRNexus",
+  "short_name": "HR Admin",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

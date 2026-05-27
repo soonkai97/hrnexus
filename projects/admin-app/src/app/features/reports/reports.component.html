@@ -336,6 +336,12 @@
         </p-card>
       }
 
+    } @else if (!loading()) {
+      <!-- No report run yet — prompt user -->
+      <div class="no-selection mt-5">
+        <i class="pi pi-chart-bar no-selection-icon"></i>
+        <p>{{ 'reports.selectFiltersAndRun' | translate }}</p>
+      </div>
     }
 
   }<!-- /workforce section -->

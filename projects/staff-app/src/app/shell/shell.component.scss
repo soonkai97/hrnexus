@@ -241,13 +241,24 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  background: rgba(13,13,22,0.7);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
   border-bottom: 1px solid $border-subtle;
   flex-shrink: 0;
   position: relative;
   z-index: $z-topbar;
+
+  // Blur applied via pseudo-element so backdrop-filter is NOT on .topbar itself.
+  // If backdrop-filter were on .topbar directly it would become the containing block
+  // for position:fixed descendants (e.g. the notification panel), trapping them.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(13,13,22,0.7);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    z-index: -1;
+    pointer-events: none;
+  }
 
   .topbar-left { display: flex; align-items: center; gap: 1rem; }
   .topbar-right { display: flex; align-items: center; gap: 0.75rem; }

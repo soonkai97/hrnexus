@@ -63,8 +63,8 @@ export class StaffComponent implements OnInit, OnDestroy {
   staffMenuItems   = signal<MenuItem[]>([]);
 
   newStaff: RegisterStaffRequest = {
-    staffId: '', firstName: '', lastName: '', email: '', password: '', roles: [],
-    phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: '',
+    staffId: '', firstName: '', lastName: '', email: null, password: '', roles: [],
+    phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
   };
 
   showNewStaffPwd = signal(false);
@@ -74,13 +74,10 @@ export class StaffComponent implements OnInit, OnDestroy {
   newPassword     = '';
   savingReset     = signal(false);
 
-  /** Mirrors the required-field checks in saveStaff() so Save can be disabled upfront. */
+  /** Gates the Save button — only Staff ID, first name, and initial password are required. */
   get isFormValid(): boolean {
     return !!this.newStaff.staffId?.trim() &&
       !!this.newStaff.firstName?.trim() &&
-      !!this.newStaff.email?.trim() &&
-      !!(this.newStaff.icNo?.trim() || this.newStaff.passportNo?.trim()) &&
-      !!this.newStaff.dateOfBirth &&
       (this.newStaff.password?.length ?? 0) >= 8;
   }
 
@@ -161,29 +158,22 @@ export class StaffComponent implements OnInit, OnDestroy {
     this.showForm.set(false);
     this.error.set('');
     this.showNewStaffPwd.set(false);
-    this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: '',
-      roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: '' };
+    this.newStaff = { staffId: '', firstName: '', lastName: '', email: null, password: '',
+      roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
   }
 
   saveStaff(): void {
-    if (!this.newStaff.staffId || !this.newStaff.firstName || !this.newStaff.lastName || !this.newStaff.email) {
-      this.error.set('Please fill in Staff ID, First Name, Last Name and Email.');
-      return;
+    // Email is optional but must be valid if provided
+    const email = this.newStaff.email?.trim() || null;
+    if (email) {
+      const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        this.error.set('Please enter a valid email address.');
+        this.toast.error('Please enter a valid email address.');
+        return;
+      }
     }
-    const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(this.newStaff.email)) {
-      this.error.set('Please enter a valid email address.');
-      this.toast.error('Please enter a valid email address.');
-      return;
-    }
-    if (!this.newStaff.icNo && !this.newStaff.passportNo) {
-      this.error.set('Please enter an IC number or Passport number.');
-      return;
-    }
-    if (!this.newStaff.dateOfBirth) {
-      this.error.set('Date of birth is required.');
-      return;
-    }
+
     if (!this.newStaff.roles.length) {
       const defaultRole = this.availableRoles()[0]?.name;
       if (!defaultRole) { this.error.set('Please select at least one role.'); return; }
@@ -191,11 +181,11 @@ export class StaffComponent implements OnInit, OnDestroy {
     }
     this.saving.set(true);
     this.error.set('');
-    this.staffStore.register(this.newStaff).subscribe({
+    const req = { ...this.newStaff, email };   // normalise empty string → null
+    this.staffStore.register(req).subscribe({
       next: () => {
-        this.newStaff = { staffId: '', firstName: '', lastName: '', email: '', password: '',
-          roles: [], phoneNumber: '',
-          icNo: null, passportNo: null, dateOfBirth: '' };
+        this.newStaff = { staffId: '', firstName: '', lastName: '', email: null, password: '',
+          roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
         this.showNewStaffPwd.set(false);
         this.saving.set(false);
         this.showForm.set(false);

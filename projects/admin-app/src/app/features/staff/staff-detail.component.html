@@ -90,18 +90,20 @@
             <label>{{ 'staffDetail.passportNoOptional' | translate }}</label>
             <input pInputText type="text" [(ngModel)]="editForm.passportNo" />
           </div>
-          <!-- Roles -->
-          <div class="field col-12">
-            <label>{{ 'staffDetail.roles' | translate }}</label>
-            <p-multiselect
-              [(ngModel)]="editForm.roles"
-              [options]="availableRoles()"
-              optionLabel="name"
-              optionValue="name"
-              [placeholder]="'staffDetail.selectRoles' | translate"
-              display="chip"
-              styleClass="w-full" />
-          </div>
+          <!-- Roles — admins only; managers can't change role assignments -->
+          @if (!isManager()) {
+            <div class="field col-12">
+              <label>{{ 'staffDetail.roles' | translate }}</label>
+              <p-multiselect
+                [(ngModel)]="editForm.roles"
+                [options]="availableRoles()"
+                optionLabel="name"
+                optionValue="name"
+                [placeholder]="'staffDetail.selectRoles' | translate"
+                display="chip"
+                styleClass="w-full" />
+            </div>
+          }
         </div>
         <div class="d-flex gap-2 mt-4">
           <p-button [label]="'common.save' | translate" severity="primary"

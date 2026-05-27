@@ -12,7 +12,7 @@ public record StaffDetailDto(
     string       FirstName,
     string       LastName,
     string       FullName,
-    string       Email,
+    string?      Email,
     List<string> Roles,
     bool         IsActive,
     string?      PhoneNumber,

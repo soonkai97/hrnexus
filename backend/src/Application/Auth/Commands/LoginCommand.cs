@@ -14,7 +14,7 @@ public record LoginCommand(string StaffId, string Password, string? Portal = nul
 
 public record LoginResult(string AccessToken, string RefreshToken, int ExpiresIn, UserDto User);
 
-public record UserDto(Guid Id, string StaffId, string FullName, string Email, List<string> Roles);
+public record UserDto(Guid Id, string StaffId, string FullName, string? Email, List<string> Roles);
 
 public class LoginCommandHandler(IAppDbContext db, IPasswordHasher hasher, ITokenService tokens)
     : IRequestHandler<LoginCommand, LoginResult>

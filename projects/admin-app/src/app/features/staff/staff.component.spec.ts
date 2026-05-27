@@ -106,27 +106,15 @@ describe('StaffComponent', () => {
   // ── isFormValid getter ────────────────────────────────────────────────────────
 
   describe('isFormValid', () => {
-    /** Fill all required fields so individual tests can blank out one at a time. */
+    /** Fill the minimum required fields — staffId, firstName, password. */
     function fillValidForm(): void {
-      component.newStaff.staffId     = 'NC999';
-      component.newStaff.firstName   = 'Alice';
-      component.newStaff.lastName    = 'Tan';
-      component.newStaff.email       = 'alice@test.com';
-      component.newStaff.password    = 'Password1!';   // ≥8 chars required by isFormValid
-      component.newStaff.icNo        = 'IC99999';
-      component.newStaff.passportNo  = null;
-      component.newStaff.dateOfBirth = '1995-06-15';
+      component.newStaff.staffId  = 'NC999';
+      component.newStaff.firstName = 'Alice';
+      component.newStaff.password  = 'Password1!';   // ≥8 chars required by isFormValid
     }
 
-    it('returns true when all required fields are present with IC number', () => {
+    it('returns true with only staffId, firstName, and password filled', () => {
       fillValidForm();
-      expect(component.isFormValid).toBe(true);
-    });
-
-    it('returns true when passport number is provided instead of IC', () => {
-      fillValidForm();
-      component.newStaff.icNo       = null;
-      component.newStaff.passportNo = 'PASS12345';
       expect(component.isFormValid).toBe(true);
     });
 
@@ -148,36 +136,34 @@ describe('StaffComponent', () => {
       expect(component.isFormValid).toBe(false);
     });
 
-    it('returns true when lastName is empty (lastName is optional)', () => {
-      // lastName is no longer required — clearing it should not invalidate the form
+    it('returns true when lastName is empty — lastName is optional', () => {
       fillValidForm();
       component.newStaff.lastName = '';
       expect(component.isFormValid).toBe(true);
     });
 
-    it('returns false when email is empty', () => {
+    it('returns true when email is null — email is optional', () => {
       fillValidForm();
-      component.newStaff.email = '';
-      expect(component.isFormValid).toBe(false);
+      component.newStaff.email = null;
+      expect(component.isFormValid).toBe(true);
     });
 
-    it('returns false when both icNo and passportNo are null — identity doc is required for compliance', () => {
+    it('returns true when both icNo and passportNo are null — identity docs are optional', () => {
       fillValidForm();
       component.newStaff.icNo       = null;
       component.newStaff.passportNo = null;
-      expect(component.isFormValid).toBe(false);
+      expect(component.isFormValid).toBe(true);
     });
 
-    it('returns false when both icNo and passportNo are empty strings', () => {
+    it('returns true when dateOfBirth is null — DOB is optional', () => {
       fillValidForm();
-      component.newStaff.icNo       = '';
-      component.newStaff.passportNo = '';
-      expect(component.isFormValid).toBe(false);
+      component.newStaff.dateOfBirth = null;
+      expect(component.isFormValid).toBe(true);
     });
 
-    it('returns false when dateOfBirth is empty — required for age calculation', () => {
+    it('returns false when password is shorter than 8 characters', () => {
       fillValidForm();
-      component.newStaff.dateOfBirth = '';
+      component.newStaff.password = 'short';
       expect(component.isFormValid).toBe(false);
     });
   });
@@ -266,55 +252,36 @@ describe('StaffComponent', () => {
   // ── saveStaff() — validation ──────────────────────────────────────────────────
 
   describe('saveStaff() — validation', () => {
-    it('sets error when required name/ID/email fields are missing', () => {
-      component.newStaff.staffId   = '';
-      component.newStaff.firstName = '';
-      component.saveStaff();
-      expect(component.error()).toBe('Please fill in Staff ID, First Name, Last Name and Email.');
-      expect(mockStaffStore.register).not.toHaveBeenCalled();
-    });
-
     it('sets error for an invalid email format', () => {
       component.newStaff.staffId   = 'NC001';
       component.newStaff.firstName = 'Alice';
-      component.newStaff.lastName  = 'Tan';
+      component.newStaff.password  = 'Password1!';
       component.newStaff.email     = 'not-an-email';
       component.saveStaff();
       expect(component.error()).toBe('Please enter a valid email address.');
+      expect(mockStaffStore.register).not.toHaveBeenCalled();
     });
 
-    it('sets error when neither IC nor passport is provided', () => {
-      component.newStaff.staffId   = 'NC001';
-      component.newStaff.firstName = 'Alice';
-      component.newStaff.lastName  = 'Tan';
-      component.newStaff.email     = 'alice@test.com';
-      component.newStaff.icNo      = null;
-      component.newStaff.passportNo = null;
+    it('does not error when email is null — email is optional', () => {
+      mockStaffStore.roles.mockReturnValue([makeRole('employee')]);
+      component.newStaff = {
+        staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
+        password: 'Password1!', roles: ['employee'],
+        phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
+      };
       component.saveStaff();
-      expect(component.error()).toBe('Please enter an IC number or Passport number.');
-    });
-
-    it('sets error when dateOfBirth is missing', () => {
-      component.newStaff.staffId     = 'NC001';
-      component.newStaff.firstName   = 'Alice';
-      component.newStaff.lastName    = 'Tan';
-      component.newStaff.email       = 'alice@test.com';
-      component.newStaff.icNo        = 'IC12345';
-      component.newStaff.dateOfBirth = '';
-      component.saveStaff();
-      expect(component.error()).toBe('Date of birth is required.');
+      expect(component.error()).toBe('');
+      expect(mockStaffStore.register).toHaveBeenCalled();
     });
 
     it('auto-assigns the first available role when roles array is empty', () => {
-      // Set up roles BEFORE saveStaff() evaluates availableRoles() for the first time
       mockStaffStore.roles.mockReturnValue([makeRole('employee')]);
       component.newStaff = {
-        staffId: 'NC001', firstName: 'Alice', lastName: 'Tan', email: 'alice@test.com',
-        password: 'password123', roles: [],
-        phoneNumber: '', icNo: 'IC12345', passportNo: null, dateOfBirth: '2000-01-01',
+        staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
+        password: 'Password1!', roles: [],
+        phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
-      // The register call should include the auto-assigned role
       const req = mockStaffStore.register.mock.calls[0]?.[0];
       expect(req?.roles).toEqual(['employee']);
     });
@@ -322,9 +289,9 @@ describe('StaffComponent', () => {
     it('sets error when roles is empty and no available roles exist', () => {
       // roles() already returns [] by default
       component.newStaff = {
-        staffId: 'NC001', firstName: 'Alice', lastName: 'Tan', email: 'alice@test.com',
-        password: 'password123', roles: [],
-        phoneNumber: '', icNo: 'IC12345', passportNo: null, dateOfBirth: '2000-01-01',
+        staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
+        password: 'Password1!', roles: [],
+        phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
       expect(component.error()).toBe('Please select at least one role.');
@@ -336,9 +303,9 @@ describe('StaffComponent', () => {
   describe('saveStaff() — success', () => {
     function fillAndSubmit(): void {
       component.newStaff = {
-        staffId: 'NC001', firstName: 'Alice', lastName: 'Tan', email: 'alice@test.com',
-        password: 'password123', roles: ['employee'],
-        phoneNumber: '', icNo: 'IC12345', passportNo: null, dateOfBirth: '2000-01-01',
+        staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
+        password: 'Password1!', roles: ['employee'],
+        phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
     }
@@ -346,7 +313,7 @@ describe('StaffComponent', () => {
     it('calls register() with the form data', () => {
       fillAndSubmit();
       expect(mockStaffStore.register).toHaveBeenCalledWith(
-        expect.objectContaining({ staffId: 'NC001', email: 'alice@test.com' }),
+        expect.objectContaining({ staffId: 'NC001', email: null }),
       );
     });
 
@@ -364,7 +331,7 @@ describe('StaffComponent', () => {
     it('resets the form fields after success', () => {
       fillAndSubmit();
       expect(component.newStaff.staffId).toBe('');
-      expect(component.newStaff.email).toBe('');
+      expect(component.newStaff.email).toBeNull();
     });
 
     it('clears saving flag after success', () => {
@@ -384,9 +351,9 @@ describe('StaffComponent', () => {
   describe('saveStaff() — API error', () => {
     beforeEach(() => {
       component.newStaff = {
-        staffId: 'NC001', firstName: 'Alice', lastName: 'Tan', email: 'alice@test.com',
-        password: 'password123', roles: ['employee'],
-        phoneNumber: '', icNo: 'IC12345', passportNo: null, dateOfBirth: '2000-01-01',
+        staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
+        password: 'Password1!', roles: ['employee'],
+        phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
     });
 

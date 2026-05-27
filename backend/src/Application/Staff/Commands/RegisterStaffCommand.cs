@@ -10,7 +10,7 @@ public record RegisterStaffCommand(
     string        StaffId,
     string        FirstName,
     string?       LastName,
-    string        Email,
+    string?       Email,
     string        Password,
     List<string>  Roles,
     string?       PhoneNumber   = null,
@@ -32,20 +32,16 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
             throw new InvalidOperationException("Staff ID must be 20 characters or fewer.");
         if (string.IsNullOrWhiteSpace(req.FirstName))
             throw new InvalidOperationException("First name is required.");
-        if (string.IsNullOrWhiteSpace(req.Email))
-            throw new InvalidOperationException("Email is required.");
-        if (string.IsNullOrWhiteSpace(req.IcNo) && string.IsNullOrWhiteSpace(req.PassportNo))
-            throw new InvalidOperationException("IC number or Passport number is required.");
-        if (!req.DateOfBirth.HasValue)
-            throw new InvalidOperationException("Date of birth is required.");
-
         var idTaken = await db.Staff.AnyAsync(e => e.StaffId == normalizedId, ct);
         if (idTaken)
             throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
 
-        var emailTaken = await db.Staff.AnyAsync(e => e.Email == req.Email.ToLowerInvariant(), ct);
-        if (emailTaken)
-            throw new InvalidOperationException($"Email '{req.Email}' is already registered.");
+        if (!string.IsNullOrWhiteSpace(req.Email))
+        {
+            var emailTaken = await db.Staff.AnyAsync(e => e.Email == req.Email.ToLowerInvariant(), ct);
+            if (emailTaken)
+                throw new InvalidOperationException($"Email '{req.Email}' is already registered.");
+        }
 
         var employee = HRNexus.Domain.Entities.Staff.Create(normalizedId, req.FirstName, req.LastName, req.Email,
             hasher.Hash(req.Password), req.Roles,

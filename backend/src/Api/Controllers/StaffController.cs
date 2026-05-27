@@ -91,14 +91,25 @@ public class StaffController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStaffBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
+        // No one can assign the admin role via this endpoint
         if (HasAdminRole(body.Roles))
             return Forbid();
 
-        if (IsManagerCaller && HasElevatedRole(body.Roles))
-            return Forbid();
+        if (IsManagerCaller)
+        {
+            // Load the current roles once — used for both the admin check and role preservation
+            var currentRoles = await db.StaffRoles
+                .Where(r => r.EmployeeId == id)
+                .Select(r => r.Role)
+                .ToListAsync(ct);
 
-        if (IsManagerCaller && await IsAdminAsync(id, db, ct))
-            return Forbid();
+            // Managers can't edit admin staff profiles
+            if (currentRoles.Contains(AppConstants.Roles.Admin))
+                return Forbid();
+
+            // Managers can't change role assignments — preserve current roles silently
+            body = body with { Roles = currentRoles };
+        }
 
         try
         {

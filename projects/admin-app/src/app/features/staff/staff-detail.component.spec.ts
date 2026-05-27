@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { StaffDetailComponent } from './staff-detail.component';
-import { StaffStore, StaffManagementService, ToastService, WorkLogService, StaffDetail } from 'shared-lib';
+import { StaffStore, StaffManagementService, AuthService, ToastService, WorkLogService, StaffDetail } from 'shared-lib';
 
 /**
  * StaffDetailComponent — per-staff profile + edit form + work log history.
@@ -40,8 +40,9 @@ describe('StaffDetailComponent', () => {
     loadRoles: ReturnType<typeof vi.fn>;
     update:   ReturnType<typeof vi.fn>;
   };
-  let mockStaffSvc: { getById: ReturnType<typeof vi.fn> };
-  let mockToast:    { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
+  let mockStaffSvc:  { getById: ReturnType<typeof vi.fn> };
+  let mockAuth:      { hasRole: ReturnType<typeof vi.fn> };
+  let mockToast:     { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockWorkLogSvc: { getAll: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -53,6 +54,7 @@ describe('StaffDetailComponent', () => {
     mockStaffSvc = {
       getById: vi.fn().mockReturnValue(of(makeStaffDetail())),
     };
+    mockAuth = { hasRole: vi.fn().mockReturnValue(false) };
     mockToast = { success: vi.fn(), error: vi.fn() };
     mockWorkLogSvc = {
       getAll: vi.fn().mockReturnValue(of({ items: [], total: 0 })),
@@ -64,10 +66,11 @@ describe('StaffDetailComponent', () => {
         provideHttpClient(),
         provideRouter([]),
         provideTranslateService({ defaultLanguage: 'en' }),
-        { provide: StaffStore,          useValue: mockStaffStore },
+        { provide: StaffStore,             useValue: mockStaffStore },
         { provide: StaffManagementService, useValue: mockStaffSvc },
-        { provide: ToastService,        useValue: mockToast },
-        { provide: WorkLogService,      useValue: mockWorkLogSvc },
+        { provide: AuthService,            useValue: mockAuth },
+        { provide: ToastService,           useValue: mockToast },
+        { provide: WorkLogService,         useValue: mockWorkLogSvc },
         MessageService,
         ConfirmationService,
       ],

@@ -427,7 +427,6 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 

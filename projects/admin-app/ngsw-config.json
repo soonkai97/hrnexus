@@ -10,6 +10,7 @@
           "/favicon.ico",
           "/index.csr.html",
           "/index.html",
+          "/manifest.webmanifest",
           "/*.css",
           "/*.js"
         ]
@@ -21,6 +22,28 @@
       "updateMode": "prefetch",
       "resources": {
         "files": ["/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "api-staff",
+      "urls": ["/api/staff/**"],
+      "cacheConfig": {
+        "maxSize": 20,
+        "maxAge": "10m",
+        "timeout": "5s",
+        "strategy": "freshness"
+      }
+    },
+    {
+      "name": "api-notifications",
+      "urls": ["/api/notifications/**", "/api/announcements/**"],
+      "cacheConfig": {
+        "maxSize": 10,
+        "maxAge": "5m",
+        "timeout": "3s",
+        "strategy": "freshness"
       }
     }
   ]

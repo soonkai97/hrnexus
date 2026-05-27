@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ShellComponent } from './shell.component';
-import { AuthService, LangService, FeatureFlagService, SignalRService, NotificationService, AnnouncementService } from 'shared-lib';
+import { AuthService, LangService, FeatureFlagService, SignalRService, NotificationService, AnnouncementService, AppUpdateService } from 'shared-lib';
 
 /**
  * Staff ShellComponent — layout shell with bottom navigation bar.
@@ -29,6 +29,7 @@ describe('ShellComponent (staff-app)', () => {
   let mockSignalR:         { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn> };
   let mockNotifSvc:        { unreadCount: ReturnType<typeof vi.fn> };
   let mockAnnouncementSvc: { getMine: ReturnType<typeof vi.fn> };
+  let mockAppUpdate:       { init: ReturnType<typeof vi.fn> };
 
   function createComponent(userRoles: string[] = ['BARTENDER'], fullName = 'Jane Doe') {
     mockAuth.user.mockReturnValue({ fullName, roles: userRoles });
@@ -49,6 +50,7 @@ describe('ShellComponent (staff-app)', () => {
     mockSignalR         = { startConnection: vi.fn(), stopConnection: vi.fn() };
     mockNotifSvc        = { unreadCount: vi.fn().mockReturnValue(0) };
     mockAnnouncementSvc = { getMine: vi.fn().mockReturnValue(of([])) };
+    mockAppUpdate       = { init: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [ShellComponent],
@@ -62,6 +64,7 @@ describe('ShellComponent (staff-app)', () => {
         { provide: SignalRService,       useValue: mockSignalR },
         { provide: NotificationService,  useValue: mockNotifSvc },
         { provide: AnnouncementService,  useValue: mockAnnouncementSvc },
+        { provide: AppUpdateService,     useValue: mockAppUpdate },
         MessageService,
         ConfirmationService,
       ],

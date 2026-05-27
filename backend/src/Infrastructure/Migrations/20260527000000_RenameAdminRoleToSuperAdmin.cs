@@ -13,6 +13,13 @@ namespace HRNexus.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // SeedData may have already inserted a 'SUPERADMIN' row on a previous startup
+            // before this migration was discovered. Remove it so the UPDATE below doesn't
+            // violate the PK_Roles unique constraint.
+            migrationBuilder.Sql("""
+                DELETE FROM "Roles" WHERE "Name" = 'SUPERADMIN';
+                """);
+
             // Rename the system role record itself
             migrationBuilder.Sql("""
                 UPDATE "Roles" SET "Name" = 'SUPERADMIN' WHERE "Name" = 'ADMIN';

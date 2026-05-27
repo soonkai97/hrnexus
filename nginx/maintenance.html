@@ -315,7 +315,7 @@
       elCD.textContent = '…';
       fetch('/api/health', { cache: 'no-store' })
         .then(function(r) {
-          if (r.ok) { window.location.reload(); }
+          if (r.ok) { window.location.href = '/'; }
           else { resetCountdown(); }
         })
         .catch(function() { resetCountdown(); });

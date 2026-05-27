@@ -21,12 +21,12 @@
       <div class="field filter-date">
         <label>{{ 'leave.fromLabel' | translate }}</label>
         <p-datepicker [(ngModel)]="filterFrom" dateFormat="yy-mm-dd" dataType="string"
-          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
+          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" [showClear]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-date">
         <label>{{ 'leave.toLabel' | translate }}</label>
         <p-datepicker [(ngModel)]="filterTo" dateFormat="yy-mm-dd" dataType="string"
-          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
+          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" [showClear]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-status">
         <label>{{ 'leave.statusLabel' | translate }}</label>

@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService, StaffStore, RegisterStaffRequest,
-         Staff, ToastService, ConfirmService, TrimInputDirective } from 'shared-lib';
+         Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -33,7 +33,7 @@ import { Skeleton } from 'primeng/skeleton';
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })
-export class StaffComponent implements OnInit, OnDestroy {
+export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate {
   protected readonly auth      = inject(AuthService);
   private readonly staffStore  = inject(StaffStore);
   private readonly toast       = inject(ToastService);
@@ -274,5 +274,15 @@ export class StaffComponent implements OnInit, OnDestroy {
         this.savingReset.set(false);
       },
     });
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.showForm() && (
+      !!this.newStaff.staffId?.trim()   ||
+      !!this.newStaff.firstName?.trim() ||
+      !!this.newStaff.lastName?.trim()  ||
+      !!this.newStaff.email?.trim()     ||
+      !!this.newStaff.password
+    );
   }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, todayLocalString } from 'shared-lib';
+import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, todayLocalString, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
@@ -20,7 +20,7 @@ import { Skeleton } from 'primeng/skeleton';
   templateUrl: './tips.component.html',
   styleUrl: './tips.component.scss',
 })
-export class TipsComponent implements OnInit {
+export class TipsComponent implements OnInit, CanComponentDeactivate {
   private readonly adminSvc     = inject(AdminService);
   private readonly toast        = inject(ToastService);
   readonly locationStore        = inject(LocationStore);
@@ -104,4 +104,8 @@ export class TipsComponent implements OnInit {
   }
 
   cancel(): void { this.showForm.set(false); this.preview.set(null); this.previewTime.set(null); }
+
+  hasUnsavedChanges(): boolean {
+    return this.showForm() && (!!this.form.locationId || this.form.totalAmount > 0);
+  }
 }

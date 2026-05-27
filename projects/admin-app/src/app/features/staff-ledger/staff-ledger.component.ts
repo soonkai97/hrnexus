@@ -16,6 +16,7 @@ import {
   ConfirmService,
   toLocalDateString,
   TrimInputDirective,
+  CanComponentDeactivate,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
@@ -38,7 +39,7 @@ const MONTH_OPTS = MONTHS.map((label, i) => ({ label, value: i + 1 }));
   templateUrl: './staff-ledger.component.html',
   styleUrl: './staff-ledger.component.scss',
 })
-export class StaffLedgerComponent implements OnInit {
+export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
   private readonly staffStore  = inject(StaffStore);
   private readonly staffSvc    = inject(StaffService);
   private readonly configSvc   = inject(StaffConfigService);
@@ -522,5 +523,9 @@ export class StaffLedgerComponent implements OnInit {
       amount:   0,
       purpose:  null,
     };
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.showForm() || this.showExpenseForm() || this.showLoanForm();
   }
 }

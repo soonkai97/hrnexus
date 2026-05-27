@@ -79,13 +79,9 @@
               [showIcon]="true"
               [showOnFocus]="false"
               [readonlyInput]="true"
+              [showClear]="true"
               styleClass="w-full"
               appendTo="body" />
-            @if (editForm.dateOfBirth) {
-              <button type="button" class="dob-clear-btn" (click)="editForm.dateOfBirth = ''">
-                <i class="pi pi-times"></i> Clear date
-              </button>
-            }
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.icNoOptional' | translate }}</label>

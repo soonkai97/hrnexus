@@ -1038,9 +1038,9 @@ dotnet test
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
 | shared-lib (services + stores + guards + auth) | 27 | 372 | ✅ |
-| admin-app components | 17 | 678 | ✅ |
+| admin-app components | 17 | 684 | ✅ |
 | staff-app components | 11 | 267 | ✅ |
-| backend Application.Tests | — | 433 | ✅ |
+| backend Application.Tests | — | 435 | ✅ |
 
 **Wrapper-component rule**: `change-password-page.component.spec.ts` in both apps intentionally has 1 smoke test — the component is a pure template wrapper around shared-lib's `ChangePasswordComponent`; all logic lives in shared-lib and is tested there.
 
@@ -1159,9 +1159,9 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 355 tests
-npx ng test admin-app  --no-watch   # 680 tests
-npx ng test staff-app  --no-watch   # 265 tests
+npx ng test shared-lib --no-watch   # 372 tests
+npx ng test admin-app  --no-watch   # 684 tests
+npx ng test staff-app  --no-watch   # 267 tests
 
 # Backend
 Set-Location backend

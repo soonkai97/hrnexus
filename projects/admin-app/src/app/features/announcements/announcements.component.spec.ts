@@ -279,9 +279,9 @@ describe('AnnouncementsComponent', () => {
       expect(component.form.expiresAt).toBe('2026-12-31');
     });
 
-    it('sets expiresAt to empty string when expiresAt is null', () => {
+    it('sets expiresAt to null when expiresAt is null', () => {
       component.startEdit(makeItem({ expiresAt: null }));
-      expect(component.form.expiresAt).toBe('');
+      expect(component.form.expiresAt).toBeNull();
     });
 
     it('sets editing signal to the announcement id', () => {

@@ -160,21 +160,40 @@
         </div>
       </div>
 
-      <!-- Result tabs -->
-      <div class="d-flex justify-content-between align-items-center gap-2 mt-4 mb-3">
-        <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))" styleClass="tab-nav-tabs">
-          <p-tablist>
-            <p-tab value="employee">{{ 'reports.byEmployee' | translate }}</p-tab>
-            <p-tab value="location">{{ 'reports.byLocation' | translate }}</p-tab>
-            <p-tab value="role">{{ 'reports.byRole' | translate }}</p-tab>
-            <p-tab value="date">{{ 'reports.byDate' | translate }}</p-tab>
-            <p-tab value="shifts">{{ 'reports.allShifts' | translate }}</p-tab>
-          </p-tablist>
-        </p-tabs>
-        <p-button icon="pi pi-download"
-                  [label]="reportExporting() ? ('reports.exporting' | translate) : ('reports.downloadCsv' | translate)"
-                  severity="primary" styleClass="tab-csv-btn"
-                  (click)="downloadReportCsv()" [disabled]="reportExporting()" [loading]="reportExporting()" />
+      <!-- Result tabs — responsive: dropdown on mobile, p-tabs on desktop -->
+      <div class="tab-row">
+
+        <!-- Mobile dropdown (≤640 px) — hidden on desktop via CSS -->
+        <div class="tab-select-wrap">
+          <p-select [ngModel]="activeTab()" (ngModelChange)="activeTab.set($any($event))"
+            [options]="tabOptions" optionValue="value" optionLabel="label"
+            appendTo="body" styleClass="w-full">
+            <ng-template pTemplate="selectedItem" let-opt>{{ opt.label | translate }}</ng-template>
+            <ng-template pTemplate="item" let-opt>{{ opt.label | translate }}</ng-template>
+          </p-select>
+          <p-button icon="pi pi-download"
+                    [label]="reportExporting() ? ('reports.exporting' | translate) : ('reports.downloadCsv' | translate)"
+                    severity="primary"
+                    (click)="downloadReportCsv()" [disabled]="reportExporting()" [loading]="reportExporting()" />
+        </div>
+
+        <!-- Desktop tabs (>640 px) — hidden on mobile via CSS -->
+        <div class="tab-bar-wrap">
+          <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))" styleClass="tab-nav-tabs">
+            <p-tablist>
+              <p-tab value="employee">{{ 'reports.byEmployee' | translate }}</p-tab>
+              <p-tab value="location">{{ 'reports.byLocation' | translate }}</p-tab>
+              <p-tab value="role">{{ 'reports.byRole' | translate }}</p-tab>
+              <p-tab value="date">{{ 'reports.byDate' | translate }}</p-tab>
+              <p-tab value="shifts">{{ 'reports.allShifts' | translate }}</p-tab>
+            </p-tablist>
+          </p-tabs>
+          <p-button icon="pi pi-download"
+                    [label]="reportExporting() ? ('reports.exporting' | translate) : ('reports.downloadCsv' | translate)"
+                    severity="primary" styleClass="tab-csv-btn"
+                    (click)="downloadReportCsv()" [disabled]="reportExporting()" [loading]="reportExporting()" />
+        </div>
+
       </div>
 
       <!-- By Employee -->

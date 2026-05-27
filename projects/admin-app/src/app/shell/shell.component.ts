@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inject, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
@@ -35,6 +36,7 @@ export class ShellComponent implements AfterViewInit {
   pullProgress = signal(0);   // 0–100
   private ptStartY = 0;
   private ptPulling = false;
+  private ptReloading = false;
   private readonly PULL_THRESHOLD = 70; // px
 
   private readonly onOnline  = () => this.isOffline.set(false);
@@ -58,7 +60,8 @@ export class ShellComponent implements AfterViewInit {
     }
   };
   private readonly onTouchEnd = () => {
-    if (this.pullProgress() >= 100) window.location.reload();
+    if (this.ptReloading) return;
+    if (this.pullProgress() >= 100) { this.ptReloading = true; window.location.reload(); return; }
     this.pullProgress.set(0);
     this.ptPulling = false;
   };
@@ -78,7 +81,10 @@ export class ShellComponent implements AfterViewInit {
     this.lang.syncFromApi();
     this.signalR.startConnection();
 
-    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
       this.collapsed.set(true);
     });
   }

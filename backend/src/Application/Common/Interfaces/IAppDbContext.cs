@@ -1,10 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Common.Interfaces;
 
 public interface IAppDbContext
 {
+    /// <summary>
+    /// Begins a RepeatableRead transaction for balance-check TOCTOU protection.
+    /// Returns null when the underlying provider does not support transactions (e.g. InMemory in tests).
+    /// </summary>
+    Task<IDbContextTransaction?> BeginRepeatableReadAsync(CancellationToken ct = default);
+
     DbSet<HRNexus.Domain.Entities.Staff>    Staff      { get; }
     DbSet<HRNexus.Domain.Entities.StaffRole> StaffRoles { get; }
     DbSet<Location>         Locations         { get; }

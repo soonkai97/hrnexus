@@ -28,6 +28,11 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
             .OnDelete(DeleteBehavior.Cascade);
         b.Navigation(e => e.RoleEntries).AutoInclude();
 
+        // RefreshToken as a concurrency token: EF includes it in the UPDATE WHERE clause.
+        // If two concurrent 401s both read the same token, the second SaveChanges finds
+        // 0 rows (token already rotated) and throws DbUpdateConcurrencyException.
+        b.Property(e => e.RefreshToken).IsConcurrencyToken();
+
         b.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
         b.Property(e => e.CreatedBy).HasMaxLength(100);
         b.Property(e => e.ModifiedAt).HasColumnType("timestamp with time zone");

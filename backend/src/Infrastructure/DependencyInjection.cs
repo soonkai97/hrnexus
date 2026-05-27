@@ -33,6 +33,7 @@ public static class DependencyInjection
                 .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddMemoryCache(); // shared in-process cache for feature flags + other short-lived lookups
         services.AddScoped<IFileStorage, LocalFileStorage>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();

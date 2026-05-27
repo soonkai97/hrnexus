@@ -144,6 +144,7 @@
         <p-button
           [label]="saving() ? (('common.saving' | translate) + '…') : ('leave.applyLeave' | translate)"
           severity="primary"
+          [disabled]="saving()"
           [loading]="saving()"
           (click)="submit()" />
       </div>

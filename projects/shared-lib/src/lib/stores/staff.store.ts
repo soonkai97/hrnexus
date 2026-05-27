@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { tap } from 'rxjs';
+import { Subject, EMPTY } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 import { StaffManagementService } from '../services/staff-management.service';
 import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole } from '../models';
 
@@ -19,19 +20,31 @@ export class StaffStore {
   readonly error      = this.#error.asReadonly();
   readonly totalCount = this.#totalCount.asReadonly();
 
-  loadStaff(search?: string, page = 1, pageSize = 10): void {
-    this.#loading.set(true);
-    this.svc.getAll(search, page, pageSize).subscribe({
-      next: result => {
-        this.#staff.set(result.items);
-        this.#totalCount.set(result.total);
-        this.#loading.set(false);
-      },
-      error: () => {
-        this.#error.set('Failed to load staff.');
-        this.#loading.set(false);
-      },
+  // switchMap cancels any in-flight request when a newer loadStaff() call arrives —
+  // prevents stale page data appearing after rapid pagination or search changes.
+  private readonly _loadTrigger$ = new Subject<{ search?: string; page: number; pageSize: number }>();
+
+  constructor() {
+    this._loadTrigger$.pipe(
+      switchMap(({ search, page, pageSize }) => {
+        this.#loading.set(true);
+        return this.svc.getAll(search, page, pageSize).pipe(
+          catchError(() => {
+            this.#error.set('Failed to load staff.');
+            this.#loading.set(false);
+            return EMPTY; // keep the outer stream alive for future calls
+          }),
+        );
+      }),
+    ).subscribe(result => {
+      this.#staff.set(result.items);
+      this.#totalCount.set(result.total);
+      this.#loading.set(false);
     });
+  }
+
+  loadStaff(search?: string, page = 1, pageSize = 10): void {
+    this._loadTrigger$.next({ search, page, pageSize });
   }
 
   loadRoles(): void {

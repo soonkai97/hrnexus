@@ -484,13 +484,15 @@ public class FeatureFlagNotificationMessagingTests
     }
 
     [Fact]
-    public async Task CreateManualWorkLog_ThrowsInvalidOperation_WhenDateCollisionExists()
+    public async Task CreateManualWorkLog_ThrowsInvalidOperation_WhenShiftsTimeOverlap()
     {
+        // Multiple shifts per day are allowed, but their time ranges must not intersect.
         await using var db = CreateDb();
         var staff = MakeStaff();
         var loc = E.Location.Create("Main");
         var role = MakeRole("bartender");
         var workDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        // Existing: 09:00–17:00; new attempt: 10:00–18:00 — these overlap (10:00–17:00)
         var existingLog = E.WorkLog.CreateManual(staff.Id, "BARTENDER", loc.Id, "MAIN",
             workDate, "09:00", "17:00", 0m);
 
@@ -507,6 +509,35 @@ public class FeatureFlagNotificationMessagingTests
             handler.Handle(new CreateManualWorkLogCommand(
                 staff.Id, "BARTENDER", loc.Id, workDate, "10:00", "18:00", null),
                 CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CreateManualWorkLog_Succeeds_WhenTwoNonOverlappingShiftsOnSameDay()
+    {
+        // Two shifts on the same calendar day are allowed when their times don't intersect.
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        var loc = E.Location.Create("Main");
+        var role = MakeRole("bartender");
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        // Existing: 09:00–14:00; new: 15:00–22:00 — no overlap, 1h gap between them
+        var existingLog = E.WorkLog.CreateManual(staff.Id, "BARTENDER", loc.Id, "MAIN",
+            workDate, "09:00", "14:00", 0m);
+
+        db.Staff.Add(staff);
+        db.Locations.Add(loc);
+        db.Roles.Add(role);
+        db.WorkLogs.Add(existingLog);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new CreateManualWorkLogCommandHandler(db);
+
+        var logId = await handler.Handle(new CreateManualWorkLogCommand(
+            staff.Id, "BARTENDER", loc.Id, workDate, "15:00", "22:00", null),
+            CancellationToken.None);
+
+        Assert.NotEqual(Guid.Empty, logId);
     }
 
     [Fact]

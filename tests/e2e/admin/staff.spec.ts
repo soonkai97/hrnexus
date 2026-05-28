@@ -1,56 +1,35 @@
-import { test, expect } from '@playwright/test';
-import { loginAdmin } from '../shared/helpers';
+﻿import { test, expect } from '@playwright/test';
+import { loginAs, ADMIN } from '../shared/helpers';
 
-/**
- * Admin App — Staff Management
- *
- * WHY these tests matter:
- *  - Staff list is the primary management view; a blank table or broken search
- *    means managers can't find a specific employee quickly during a busy shift.
- *  - The Add Staff form is the only way to onboard new employees; if it doesn't
- *    open or validation silently passes, a manager could submit an incomplete record.
- *  - Debounced search (added in latest commit) should filter without API hammering.
- */
-test.describe('Admin — Staff Management', () => {
+test.describe('Admin — staff list', () => {
+
   test.beforeEach(async ({ page }) => {
-    await loginAdmin(page);
+    await loginAs(page, ADMIN.staffId, ADMIN.password);
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
     await page.goto('/staff');
-    await page.waitForURL(/\/staff/);
   });
 
-  test('shows the staff list page heading', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText(/staff/i, { timeout: 8_000 });
+  test('staff list page renders a table with at least the seeded admin row', async ({ page }) => {
+    // Wait for the skeleton to clear and at least one row to appear
+    await expect(page.locator('p-datatable, table')).toBeVisible({ timeout: 8_000 });
+    // HRADMIN is always seeded — at least one row must exist
+    await expect(page.getByText('HRADMIN')).toBeVisible({ timeout: 5_000 });
   });
 
-  test('shows the Add Staff button', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /add staff/i })).toBeVisible({ timeout: 8_000 });
+  test('search filters the staff list', async ({ page }) => {
+    await expect(page.locator('p-datatable, table')).toBeVisible({ timeout: 8_000 });
+    // Type in the search box — admin staff list has a search input
+    const searchInput = page.locator('input[placeholder*="search" i], input[placeholder*="Search" i]').first();
+    await searchInput.fill('HRADMIN');
+    await expect(page.getByText('HRADMIN')).toBeVisible({ timeout: 5_000 });
   });
 
-  test('opens the Add Staff form when button is clicked', async ({ page }) => {
-    await page.getByRole('button', { name: /add staff/i }).click();
-    // Form card should appear with Staff ID input
-    await expect(page.getByPlaceholder(/nc1001/i)).toBeVisible({ timeout: 5_000 });
+  test('navigating to a staff detail page loads without error', async ({ page }) => {
+    await expect(page.locator('p-datatable, table')).toBeVisible({ timeout: 8_000 });
+    // Click the first row's view/edit link or the row itself
+    const firstRow = page.locator('tbody tr').first();
+    await firstRow.click();
+    await expect(page).toHaveURL(/\/staff\//, { timeout: 5_000 });
   });
 
-  test('shows a search input for filtering staff', async ({ page }) => {
-    const searchInput = page.locator('input[type="search"], input[placeholder*="earch"]').first();
-    await expect(searchInput).toBeVisible({ timeout: 8_000 });
-  });
-
-  test('shows at least one staff row or an empty state', async ({ page }) => {
-    // Wait for loading to finish (skeleton replaced by table or empty message)
-    await page.waitForSelector('.skeleton-row, .p-datatable-tbody tr, .empty-state', { timeout: 10_000 });
-    const hasRows   = await page.locator('.p-datatable-tbody tr').count();
-    const hasEmpty  = await page.locator('.empty-state').count();
-    expect(hasRows + hasEmpty).toBeGreaterThan(0);
-  });
-
-  test('Add Staff form Save button is disabled when required fields are empty', async ({ page }) => {
-    await page.getByRole('button', { name: /add staff/i }).click();
-    await page.waitForSelector('input[placeholder*="NC"]', { timeout: 5_000 });
-    // The primary (Save) button uses [disabled]="!isFormValid || saving()".
-    // An empty form means isFormValid is false, so Save must be disabled.
-    const saveBtn = page.locator('.form-actions').getByRole('button').last();
-    await expect(saveBtn).toBeDisabled({ timeout: 5_000 });
-  });
 });

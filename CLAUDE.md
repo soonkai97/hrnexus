@@ -260,7 +260,6 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 | `LeaveService` | Leave requests + balances |
 | `NotificationService` | Notification list + unread count |
 | `AnnouncementService` | Announcement CRUD |
-| `MessagingService` | Message send/receive |
 | `SignalRService` | WebSocket connection to `/hubs/` |
 | `LangService` | Language toggle (see i18n section) |
 | `ToastService` | `success/error/warning/info(msg)` |
@@ -793,12 +792,6 @@ The two systems are intentionally decoupled. A shift log proves presence; a ledg
 
 ---
 
-## Design reference
-
-`docs/design.md` — complete design system spec: color tokens, component states, screen wireframes, gap list (U1–U30), migration plan.
-
----
-
 ## Process rules
 
 These rules apply to every task unless explicitly overridden.
@@ -1033,20 +1026,17 @@ Set-Location backend
 dotnet test
 ```
 
-### Baseline — as of 2026-05-27 (0 gaps, all green)
+### Baseline — as of 2026-05-28 (0 gaps, all green)
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
 | shared-lib (services + stores + guards + auth) | 27 | 372 | ✅ |
 | admin-app components | 17 | 684 | ✅ |
-| staff-app components | 11 | 267 | ✅ |
-| backend Application.Tests | — | 435 | ✅ |
+| staff-app components | 11 | ~284 | ✅ |
+| backend Application.Tests | — | ~438 | ✅ |
+| E2E (Playwright) | 5 | 16 | ✅ |
 
 **Wrapper-component rule**: `change-password-page.component.spec.ts` in both apps intentionally has 1 smoke test — the component is a pure template wrapper around shared-lib's `ChangePasswordComponent`; all logic lives in shared-lib and is tested there.
-
-**7 future feature areas** (no source yet → no tests needed yet):  
-`Clock`, `Incidents`, `QrCodes`, `Roster`, `ShiftSwap`, `ShiftTemplates`, `VenueEvents`  
-Each must get a test file written **at the same time** its first handler is implemented.
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1193,3 +1183,22 @@ The final phase of any project must include E2E validation that covers:
 
 E2E tests live in `tests/e2e/{admin,staff}/` and use Playwright.
 Run against the Docker deployment (`http://localhost` for admin, `http://localhost:8081` for staff).
+
+**Seeded test credentials:** staffId=`HRADMIN`, password=`Admin@1234`
+
+**Run commands:**
+```bash
+npm run test:e2e          # all tests (admin + staff)
+npm run test:e2e:admin    # admin project only
+npm run test:e2e:staff    # staff project only
+npm run test:e2e:ui       # interactive Playwright UI
+```
+
+**Current E2E specs:**
+| File | Covers |
+|---|---|
+| `tests/e2e/admin/auth.spec.ts` | Login, wrong password, authGuard redirect, logout |
+| `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation |
+| `tests/e2e/admin/locations.spec.ts` | Locations page renders, Add button visible |
+| `tests/e2e/staff/auth.spec.ts` | Login → /home, wrong password, authGuard, logout |
+| `tests/e2e/staff/log-shift.spec.ts` | Page renders, Manual tab, History tab |

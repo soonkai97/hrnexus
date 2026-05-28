@@ -1,14 +1,5 @@
-/**
- * Playwright global setup — runs once before any test file.
- *
- * Feature flags are managed via the database for E2E tests.
- * To enable all flags in the test environment:
- *   docker exec hrnexus-postgres-1 psql -h localhost -U hrnexus -d hrnexus_db \
- *     -c 'UPDATE "FeatureFlags" SET "IsEnabled" = true, "UpdatedAt" = NOW();'
- *
- * The global setup is intentionally a no-op here — flag state is pre-set in
- * the DB so tests don't depend on the feature-pin-guarded API toggle endpoint.
- */
-export default async function globalSetup(): Promise<void> {
-  // No-op: feature flags enabled directly in DB before test run.
-}
+﻿import type { FullConfig } from '@playwright/test';
+
+// No global pre-authentication — each spec handles its own login.
+// If the test suite grows large, save auth storage state here to avoid redundant logins.
+export default async function globalSetup(_config: FullConfig): Promise<void> {}

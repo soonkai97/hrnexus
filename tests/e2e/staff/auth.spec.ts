@@ -1,25 +1,39 @@
-import { test, expect } from '@playwright/test';
+﻿import { test, expect } from '@playwright/test';
+import { loginAs, ADMIN } from '../shared/helpers';
 
 /**
- * Staff App — Authentication flow
- * Tests login and route protection.
- *
- * Form inputs are identified via for/id label linkage (accessibility fix applied).
+ * Staff app auth flow E2E.
+ * The staff app is a mobile PWA — same login form, different landing page (/home).
  */
-test.describe('Staff App — Authentication', () => {
-  test('redirects unauthenticated user to login', async ({ page }) => {
-    await page.goto('/home');
+test.describe('Staff app — authentication', () => {
+
+  test('successful login lands on /home', async ({ page }) => {
+    await loginAs(page, ADMIN.staffId, ADMIN.password);
+    await expect(page).toHaveURL(/\/home/, { timeout: 10_000 });
+  });
+
+  test('wrong password shows an error message', async ({ page }) => {
+    await loginAs(page, ADMIN.staffId, 'badpassword');
+    await expect(page.locator('p-message[severity="error"], .p-message-error')).toBeVisible({ timeout: 5_000 });
     await expect(page).toHaveURL(/\/auth\/login/);
   });
 
-  test('shows login form with Staff ID and Password inputs', async ({ page }) => {
-    await page.goto('/auth/login');
-    await expect(page.getByLabel('Staff ID', { exact: true })).toBeVisible();
-    await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
+  test('accessing /log-shift while logged out redirects to /auth/login', async ({ page }) => {
+    await page.goto('/log-shift');
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });
   });
 
-  test('shows sign-in button', async ({ page }) => {
-    await page.goto('/auth/login');
-    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
+  test('accessing /home while logged out redirects to /auth/login', async ({ page }) => {
+    await page.goto('/home');
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });
   });
+
+  test('logout from profile page navigates back to login', async ({ page }) => {
+    await loginAs(page, ADMIN.staffId, ADMIN.password);
+    await expect(page).toHaveURL(/\/home/, { timeout: 10_000 });
+    await page.goto('/profile');
+    await page.getByRole('button', { name: /sign out/i }).click();
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });
+  });
+
 });

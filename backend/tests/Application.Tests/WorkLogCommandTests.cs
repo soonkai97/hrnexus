@@ -254,15 +254,17 @@ public class WorkLogCommandTests
     }
 
     [Fact]
-    public async Task Update_ThrowsInvalidOperation_WhenDateCollisionExists()
+    public async Task Update_ThrowsInvalidOperation_WhenShiftsTimeOverlap()
     {
-        // Two work logs for the same employee on the same date is an integrity violation.
+        // Multiple shifts per day are allowed, but their time ranges must not intersect.
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
         var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var log1 = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
-        var log2 = E.WorkLog.CreateManual(empId, "WAITER",    "loc-1", "Main Bar", workDate, "10:00", "14:00", 40m);
+        // log1: 09:00–17:00 (not being edited, stays in place)
+        // log2: 20:00–23:00 (will be edited to 10:00–18:00 which overlaps with log1)
+        var log1 = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "09:00", "17:00", 50m);
+        var log2 = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "20:00", "23:00", 50m);
         db.WorkLogs.Add(log1);
         db.WorkLogs.Add(log2);
         var loc = MakeLocation("loc-1");
@@ -271,11 +273,71 @@ public class WorkLogCommandTests
 
         var handler = UpdateHandler(db);
 
-        // Trying to update log1 to the same date as log2 → collision
+        // 10:00–18:00 intersects 09:00–17:00 → should throw
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
-                log1.Id, empId, true,
-                "BARTENDER", "loc-1", workDate, "18:00", "23:00", null),
+                log2.Id, empId, true,
+                "BARTENDER", "loc-1", workDate, "10:00", "18:00", null),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Update_Succeeds_WhenTwoNonOverlappingShiftsOnSameDay()
+    {
+        // Multiple shifts on the same day are allowed as long as they don't overlap.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // log1: 09:00–14:00, log2: 18:00–23:00 — no overlap
+        var log1 = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "09:00", "14:00", 50m);
+        var log2 = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log1);
+        db.WorkLogs.Add(log2);
+        var loc = MakeLocation("loc-1");
+        db.Locations.Add(loc);
+        await db.SaveChangesAsync();
+
+        var handler = UpdateHandler(db);
+
+        // Editing log2 to 15:00–22:00 still doesn't overlap with log1 (09:00–14:00)
+        await handler.Handle(new UpdateWorkLogCommand(
+            log2.Id, empId, true,
+            "BARTENDER", "loc-1", workDate, "15:00", "22:00", null),
+            CancellationToken.None);
+
+        var updated = await db.WorkLogs.FindAsync(log2.Id);
+        Assert.Equal("15:00", updated!.StartTime);
+        Assert.Equal("22:00", updated.EndTime);
+    }
+
+    [Fact]
+    public async Task Update_ThrowsInvalidOperation_WhenPreviousDayOvernightOverlaps()
+    {
+        // An overnight shift from the day before must be detected as overlapping.
+        // e.g. overnight 22:00–02:00 on D-1 overlaps with 01:00–09:00 on D.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var dayD    = DateOnly.FromDateTime(DateTime.UtcNow);
+        var dayDm1  = dayD.AddDays(-1);
+
+        // Overnight shift on day D-1: 22:00–02:00 (ends on day D at 02:00)
+        var overnight = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", dayDm1, "22:00", "02:00", 50m);
+        // The shift being edited: currently 10:00–18:00 on day D (no conflict)
+        var dayShift  = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", dayD,   "10:00", "18:00", 50m);
+        db.WorkLogs.Add(overnight);
+        db.WorkLogs.Add(dayShift);
+        var loc = MakeLocation("loc-1");
+        db.Locations.Add(loc);
+        await db.SaveChangesAsync();
+
+        var handler = UpdateHandler(db);
+
+        // Editing dayShift to 01:00–09:00 would collide with overnight (which ends at 02:00)
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new UpdateWorkLogCommand(
+                dayShift.Id, empId, true,
+                "BARTENDER", "loc-1", dayD, "01:00", "09:00", null),
                 CancellationToken.None));
     }
 

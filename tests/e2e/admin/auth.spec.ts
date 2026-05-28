@@ -1,44 +1,44 @@
-import { test, expect } from '@playwright/test';
+﻿import { test, expect } from '@playwright/test';
+import { loginAs, ADMIN } from '../shared/helpers';
 
 /**
- * Admin App — Authentication flow
- * Tests login, logout, and route guard protection.
- *
- * Form inputs are identified via for/id label linkage (accessibility fix applied).
- * The translated label text (English) is used for getByLabel() selectors.
+ * Admin auth flow E2E.
+ * These tests guard the login → dashboard path and the authGuard redirect.
+ * A regression here means no one can access the admin portal.
  */
-test.describe('Admin — Authentication', () => {
-  test('redirects unauthenticated user to login', async ({ page }) => {
-    await page.goto('/dashboard');
+test.describe('Admin — authentication', () => {
+
+  test('successful login lands on /dashboard', async ({ page }) => {
+    await loginAs(page, ADMIN.staffId, ADMIN.password);
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+    await expect(page.locator('.sidebar')).toBeVisible();
+  });
+
+  test('wrong password shows an inline error message', async ({ page }) => {
+    await loginAs(page, ADMIN.staffId, 'wrongpassword');
+    // p-message severity="error" renders a visible alert
+    await expect(page.locator('p-message[severity="error"], .p-message-error')).toBeVisible({ timeout: 5_000 });
     await expect(page).toHaveURL(/\/auth\/login/);
   });
 
-  test('shows login form with Staff ID and Password fields', async ({ page }) => {
-    await page.goto('/auth/login');
-    await expect(page.getByLabel('Staff ID', { exact: true })).toBeVisible();
-    await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
+  test('accessing /dashboard while logged out redirects to /auth/login', async ({ page }) => {
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });
   });
 
-  test('shows sign-in button', async ({ page }) => {
-    await page.goto('/auth/login');
-    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
+  test('accessing /staff while logged out redirects to /auth/login', async ({ page }) => {
+    await page.goto('/staff');
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });
   });
 
-  test('shows error on invalid credentials', async ({ page }) => {
-    await page.goto('/auth/login');
+  test('logout navigates back to login page', async ({ page }) => {
+    await loginAs(page, ADMIN.staffId, ADMIN.password);
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
 
-    // Click inputs first to remove the readonly attribute (anti-autofill technique)
-    const staffInput = page.getByLabel('Staff ID');
-    await staffInput.click();
-    await staffInput.fill('INVALID');
-
-    const pwdInput = page.getByLabel('Password', { exact: true });
-    await pwdInput.click();
-    await pwdInput.fill('wrongpassword');
-
-    await page.getByRole('button', { name: /sign in/i }).click();
-
-    // PrimeNG message component renders with .p-message class
-    await expect(page.locator('.p-message')).toBeVisible({ timeout: 8000 });
+    // Logout button lives on /account page
+    await page.goto('/account');
+    await page.getByRole('button', { name: /sign out/i }).click();
+    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });
   });
+
 });

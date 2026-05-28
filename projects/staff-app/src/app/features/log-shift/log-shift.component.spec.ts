@@ -551,6 +551,113 @@ describe('LogShiftComponent', () => {
     });
   });
 
+  // ── overnight date getters ───────────────────────────────────────────────────
+
+  describe('isOvernightManual', () => {
+    it('returns false when manualFormStartTime is null', () => {
+      component.manualFormStartTime = null;
+      component.manualFormEndTime   = new Date(2026, 4, 17, 6, 0);
+      expect(component.isOvernightManual).toBe(false);
+    });
+
+    it('returns false when manualFormEndTime is null', () => {
+      component.manualFormStartTime = new Date(2026, 4, 17, 22, 0);
+      component.manualFormEndTime   = null;
+      expect(component.isOvernightManual).toBe(false);
+    });
+
+    it('returns false for a same-day shift (end > start)', () => {
+      component.manualFormStartTime = new Date(2026, 4, 17, 9, 0);  // 09:00
+      component.manualFormEndTime   = new Date(2026, 4, 17, 17, 0); // 17:00
+      expect(component.isOvernightManual).toBe(false);
+    });
+
+    it('returns true when end time is earlier than start (overnight)', () => {
+      component.manualFormStartTime = new Date(2026, 4, 17, 22, 0); // 22:00
+      component.manualFormEndTime   = new Date(2026, 4, 17, 2, 0);  // 02:00 next day
+      expect(component.isOvernightManual).toBe(true);
+    });
+  });
+
+  describe('manualEndDate', () => {
+    it('returns null when the shift is not overnight', () => {
+      component.manualForm.workDate = '2026-05-17';
+      component.manualFormStartTime = new Date(2026, 4, 17, 9, 0);
+      component.manualFormEndTime   = new Date(2026, 4, 17, 17, 0);
+      expect(component.manualEndDate).toBeNull();
+    });
+
+    it('returns null when workDate is empty even if shift is overnight', () => {
+      component.manualForm.workDate = '';
+      component.manualFormStartTime = new Date(2026, 4, 17, 22, 0);
+      component.manualFormEndTime   = new Date(2026, 4, 17, 2, 0);
+      expect(component.manualEndDate).toBeNull();
+    });
+
+    it('returns the next calendar date when the shift is overnight — so staff know when they clock out', () => {
+      component.manualForm.workDate = '2026-05-17';
+      component.manualFormStartTime = new Date(2026, 4, 17, 22, 0); // 22:00
+      component.manualFormEndTime   = new Date(2026, 4, 17, 2, 0);  // 02:00
+      expect(component.manualEndDate).toBe('2026-05-18');
+    });
+
+    it('handles month-end rollover correctly', () => {
+      component.manualForm.workDate = '2026-05-31';
+      component.manualFormStartTime = new Date(2026, 4, 31, 23, 0);
+      component.manualFormEndTime   = new Date(2026, 4, 31, 1, 0);
+      expect(component.manualEndDate).toBe('2026-06-01');
+    });
+  });
+
+  describe('isOvernightEdit', () => {
+    it('returns false when editFormStartTime is null', () => {
+      component.editFormStartTime = null;
+      component.editFormEndTime   = new Date(2026, 4, 17, 6, 0);
+      expect(component.isOvernightEdit).toBe(false);
+    });
+
+    it('returns false when editFormEndTime is null', () => {
+      component.editFormStartTime = new Date(2026, 4, 17, 22, 0);
+      component.editFormEndTime   = null;
+      expect(component.isOvernightEdit).toBe(false);
+    });
+
+    it('returns false for a same-day shift', () => {
+      component.editFormStartTime = new Date(2026, 4, 17, 18, 0);
+      component.editFormEndTime   = new Date(2026, 4, 17, 23, 0);
+      expect(component.isOvernightEdit).toBe(false);
+    });
+
+    it('returns true when end time is earlier than start (overnight edit)', () => {
+      component.editFormStartTime = new Date(2026, 4, 17, 22, 0);
+      component.editFormEndTime   = new Date(2026, 4, 17, 4, 0);
+      expect(component.isOvernightEdit).toBe(true);
+    });
+  });
+
+  describe('editEndDate', () => {
+    it('returns null when the edited shift is not overnight', () => {
+      component.editForm.workDate = '2026-05-17';
+      component.editFormStartTime = new Date(2026, 4, 17, 18, 0);
+      component.editFormEndTime   = new Date(2026, 4, 17, 23, 0);
+      expect(component.editEndDate).toBeNull();
+    });
+
+    it('returns null when editForm.workDate is empty', () => {
+      component.editForm.workDate = '';
+      component.editFormStartTime = new Date(2026, 4, 17, 22, 0);
+      component.editFormEndTime   = new Date(2026, 4, 17, 4, 0);
+      expect(component.editEndDate).toBeNull();
+    });
+
+    it('returns the next calendar date for an overnight edit — staff can confirm when the shift ends', () => {
+      component.editForm.workDate = '2026-05-17';
+      component.editFormStartTime = new Date(2026, 4, 17, 22, 0);
+      component.editFormEndTime   = new Date(2026, 4, 17, 4, 0);
+      expect(component.editEndDate).toBe('2026-05-18');
+    });
+  });
+
   // ── setMode() ────────────────────────────────────────────────────────────────
 
   describe('setMode()', () => {

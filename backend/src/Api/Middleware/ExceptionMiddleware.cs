@@ -14,14 +14,24 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled exception");
-            ctx.Response.StatusCode = ex switch
+
+            // Known/intentional exceptions carry curated, user-safe messages — surface them
+            // with the right status. Anything else is an unexpected fault: return a generic
+            // message so we never leak raw exception text or DB internals to the client.
+            // (The full exception is always logged above for diagnostics.)
+            var (status, message) = ex switch
             {
-                UnauthorizedAccessException => 401,
-                TooManyRequestsException    => 429,
-                _                           => 500,
+                UnauthorizedAccessException => (401, ex.Message),
+                TooManyRequestsException    => (429, ex.Message),
+                ArgumentException           => (400, ex.Message),
+                KeyNotFoundException        => (404, ex.Message),
+                InvalidOperationException   => (409, ex.Message),
+                _                           => (500, "An unexpected error occurred. Please try again."),
             };
+
+            ctx.Response.StatusCode  = status;
             ctx.Response.ContentType = "application/json";
-            await ctx.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
+            await ctx.Response.WriteAsync(JsonSerializer.Serialize(new { error = message }));
         }
     }
 }

@@ -72,7 +72,7 @@ public class StaffCommandTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new RegisterStaffCommand(
-                "", "Alice", "Wong", "alice@test.com", "pass",
+                "", "Alice", "Wong", "alice@test.com", "Passw0rd1",
                 new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
@@ -86,7 +86,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new RegisterStaffCommand(
                 "ABCDEFGHIJKLMNOPQRSTU", // 21 chars
-                "Alice", "Wong", "alice@test.com", "pass",
+                "Alice", "Wong", "alice@test.com", "Passw0rd1",
                 new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
@@ -99,7 +99,22 @@ public class StaffCommandTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new RegisterStaffCommand(
-                "S001", "", "Wong", "alice@test.com", "pass",
+                "S001", "", "Wong", "alice@test.com", "Passw0rd1",
+                new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Register_ThrowsArgument_WhenPasswordTooWeak()
+    {
+        // Initial password must meet the same policy as a self-service change:
+        // 8+ chars, one uppercase, one number. "alllowercase" lacks upper + digit.
+        await using var db = CreateDb();
+        var handler = RegisterHandler(db);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new RegisterStaffCommand(
+                "S001", "Alice", "Wong", "alice@test.com", "alllowercase",
                 new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
@@ -112,7 +127,7 @@ public class StaffCommandTests
         var handler = RegisterHandler(db);
 
         var id = await handler.Handle(new RegisterStaffCommand(
-            "S001", "Alice", "", "alice@test.com", "pass",
+            "S001", "Alice", "", "alice@test.com", "Passw0rd1",
             new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
@@ -130,7 +145,7 @@ public class StaffCommandTests
         var handler = RegisterHandler(db);
 
         var id = await handler.Handle(new RegisterStaffCommand(
-            "S001", "Alice", "Wong", null, "pass",
+            "S001", "Alice", "Wong", null, "Passw0rd1",
             new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
@@ -147,7 +162,7 @@ public class StaffCommandTests
         var handler = RegisterHandler(db);
 
         var id = await handler.Handle(new RegisterStaffCommand(
-            "S001", "Alice", "Wong", "alice@test.com", "pass",
+            "S001", "Alice", "Wong", "alice@test.com", "Passw0rd1",
             new List<string>(), IcNo: null, PassportNo: null),
             CancellationToken.None);
 
@@ -162,7 +177,7 @@ public class StaffCommandTests
         var handler = RegisterHandler(db);
 
         var id = await handler.Handle(new RegisterStaffCommand(
-            "S001", "Alice", "Wong", "alice@test.com", "pass",
+            "S001", "Alice", "Wong", "alice@test.com", "Passw0rd1",
             new List<string>(), DateOfBirth: null),
             CancellationToken.None);
 
@@ -183,7 +198,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new RegisterStaffCommand(
                 "s001", // lowercase — handler normalises to S001 before checking
-                "Bob", "Tan", "bob@test.com", "pass",
+                "Bob", "Tan", "bob@test.com", "Passw0rd1",
                 new List<string>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
                 CancellationToken.None));
     }
@@ -201,7 +216,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new RegisterStaffCommand(
                 "S002", "Bob", "Tan", "Alice@Test.Com", // mixed case — normalised to lowercase
-                "pass", new List<string>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
+                "Passw0rd1", new List<string>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
                 CancellationToken.None));
     }
 
@@ -212,7 +227,7 @@ public class StaffCommandTests
         var handler = RegisterHandler(db);
 
         var id = await handler.Handle(new RegisterStaffCommand(
-            "S001", "Alice", "Wong", "alice@test.com", "pass",
+            "S001", "Alice", "Wong", "alice@test.com", "Passw0rd1",
             new List<string> { "BARTENDER" }, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
@@ -227,7 +242,7 @@ public class StaffCommandTests
         var handler = RegisterHandler(db);
 
         var id = await handler.Handle(new RegisterStaffCommand(
-            "s001", "Alice", "Wong", "alice@test.com", "pass",
+            "s001", "Alice", "Wong", "alice@test.com", "Passw0rd1",
             new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
@@ -243,7 +258,7 @@ public class StaffCommandTests
         var handler = RegisterHandler(db);
 
         var id = await handler.Handle(new RegisterStaffCommand(
-            "S001", "Alice", "Wong", "Alice@Test.COM", "pass",
+            "S001", "Alice", "Wong", "Alice@Test.COM", "Passw0rd1",
             new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
@@ -259,13 +274,13 @@ public class StaffCommandTests
         var handler = RegisterHandler(db);
 
         var id = await handler.Handle(new RegisterStaffCommand(
-            "S001", "Alice", "Wong", "alice@test.com", "mySecret",
+            "S001", "Alice", "Wong", "alice@test.com", "MySecret1",
             new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         var staff = await db.Staff.FindAsync(id);
         // StubHasher produces "hashed-<password>"
-        Assert.Equal("hashed-mySecret", staff!.PasswordHash);
+        Assert.Equal("hashed-MySecret1", staff!.PasswordHash);
     }
 
     // ── UpdateStaffCommand ────────────────────────────────────────────────────

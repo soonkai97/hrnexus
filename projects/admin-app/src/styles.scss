@@ -473,6 +473,16 @@ input.input-invalid {
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25) !important;
 }
 
+// ── Live password-requirements checklist (turns green as each rule is met) ─────
+.pwd-reqs {
+  list-style: none; margin: 0.4rem 0 0; padding: 0;
+  display: flex; flex-direction: column; gap: 0.2rem;
+  font-size: 0.72rem; color: $text-muted; text-transform: none; letter-spacing: 0;
+  li { display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s ease; }
+  li i { font-size: 0.8rem; }
+  li.met { color: $neon-green; }
+}
+
 // ── Shared inline-form standards ──────────────────────────────────────────────
 // Used by every page that has an inline add/edit form card.
 .form-header {

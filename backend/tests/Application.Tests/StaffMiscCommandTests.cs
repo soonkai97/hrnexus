@@ -46,7 +46,7 @@ public class StaffMiscCommandTests
         var handler = new AdminResetPasswordCommandHandler(db, new StubHasher());
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new AdminResetPasswordCommand(Guid.NewGuid(), "newpass"),
+            handler.Handle(new AdminResetPasswordCommand(Guid.NewGuid(), "Newpass1"),
                 CancellationToken.None));
     }
 
@@ -61,11 +61,11 @@ public class StaffMiscCommandTests
         db.ChangeTracker.Clear();
 
         var handler = new AdminResetPasswordCommandHandler(db, new StubHasher());
-        await handler.Handle(new AdminResetPasswordCommand(staff.Id, "newpassword"),
+        await handler.Handle(new AdminResetPasswordCommand(staff.Id, "Newpassword1"),
             CancellationToken.None);
 
         var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
-        Assert.Equal("hashed-newpassword", updated.PasswordHash);
+        Assert.Equal("hashed-Newpassword1", updated.PasswordHash);
         Assert.Null(updated.RefreshToken);
     }
 

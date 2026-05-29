@@ -32,6 +32,9 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
             throw new InvalidOperationException("Staff ID must be 20 characters or fewer.");
         if (string.IsNullOrWhiteSpace(req.FirstName))
             throw new InvalidOperationException("First name is required.");
+
+        PasswordPolicy.Validate(req.Password);
+
         var idTaken = await db.Staff.AnyAsync(e => e.StaffId == normalizedId, ct);
         if (idTaken)
             throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");

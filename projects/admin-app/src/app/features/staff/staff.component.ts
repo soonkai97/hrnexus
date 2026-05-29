@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService, StaffStore, RegisterStaffRequest,
-         Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
+         Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
+         passwordChecks, isStrongPassword } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -74,12 +75,15 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   newPassword     = '';
   savingReset     = signal(false);
 
-  /** Gates the Save button — only Staff ID, first name, and initial password are required. */
+  /** Gates the Save button — Staff ID, first name, and a policy-compliant initial password. */
   get isFormValid(): boolean {
     return !!this.newStaff.staffId?.trim() &&
       !!this.newStaff.firstName?.trim() &&
-      (this.newStaff.password?.length ?? 0) >= 8;
+      isStrongPassword(this.newStaff.password);
   }
+
+  /** Live password-requirement state for the checklist UI. */
+  get pwdChecks() { return passwordChecks(this.newStaff.password); }
 
   // ── Per-field inline validation ───────────────────────────────────────────────
   private readonly emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
@@ -97,7 +101,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     switch (field) {
       case 'staffId':   return f.staffId?.trim()   ? '' : 'Staff ID is required.';
       case 'firstName': return f.firstName?.trim() ? '' : 'First name is required.';
-      case 'password':  return (f.password?.length ?? 0) >= 8 ? '' : 'Password must be at least 8 characters.';
+      case 'password':  return isStrongPassword(f.password) ? '' : 'Min. 8 characters, one uppercase letter and one number.';
       case 'email': {
         const e = f.email?.trim();
         return !e || this.emailRegex.test(e) ? '' : 'Enter a valid email address.';
@@ -106,9 +110,19 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   generateNewStaffPassword(): void {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
-    this.newStaff.password = Array.from({ length: 10 }, () =>
-      chars[Math.floor(Math.random() * chars.length)]).join('');
+    const upper  = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower  = 'abcdefghjkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const all    = upper + lower + digits + '!@#$';
+    const pick   = (set: string) => set[Math.floor(Math.random() * set.length)];
+    // Guarantee at least one uppercase and one digit (policy), fill the rest, then shuffle
+    // so the guaranteed characters aren't always in a fixed position.
+    const chars = [pick(upper), pick(digits), ...Array.from({ length: 8 }, () => pick(all))];
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    this.newStaff.password = chars.join('');
     this.showNewStaffPwd.set(true);
   }
 
@@ -279,15 +293,27 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   closeResetPassword(): void { this.resetPassTarget.set(null); }
 
+  /** Live password-requirement state for the reset-password modal checklist. */
+  get resetPwdChecks() { return passwordChecks(this.newPassword); }
+  get isResetPwdValid(): boolean { return isStrongPassword(this.newPassword); }
+
   generatePassword(): void {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
-    this.newPassword = Array.from({ length: 10 }, () =>
-      chars[Math.floor(Math.random() * chars.length)]).join('');
+    const upper  = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower  = 'abcdefghjkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const all    = upper + lower + digits + '!@#$';
+    const pick   = (set: string) => set[Math.floor(Math.random() * set.length)];
+    const chars = [pick(upper), pick(digits), ...Array.from({ length: 8 }, () => pick(all))];
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    this.newPassword = chars.join('');
   }
 
   saveResetPassword(): void {
     const target = this.resetPassTarget();
-    if (!target || !this.newPassword || this.newPassword.length < 8) return;
+    if (!target || !isStrongPassword(this.newPassword)) return;
     this.savingReset.set(true);
     this.staffStore.resetPassword(target.id, this.newPassword).subscribe({
       next: () => {

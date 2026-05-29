@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.Staff.Commands;
@@ -11,6 +12,8 @@ public class AdminResetPasswordCommandHandler(IAppDbContext db, IPasswordHasher 
 {
     public async Task Handle(AdminResetPasswordCommand req, CancellationToken ct)
     {
+        PasswordPolicy.Validate(req.NewPassword);
+
         var emp = await db.Staff.FirstOrDefaultAsync(e => e.Id == req.EmployeeId, ct)
             ?? throw new KeyNotFoundException($"Employee {req.EmployeeId} not found.");
 

@@ -186,14 +186,12 @@ public class StaffController(IMediator mediator) : ControllerBase
         if (IsManagerCaller && await IsAdminAsync(id, db, ct))
             return Forbid();
 
-        if (string.IsNullOrWhiteSpace(body.NewPassword) || body.NewPassword.Length < AppConstants.Limits.PasswordMinLength)
-            return BadRequest(new { error = $"Password must be at least {AppConstants.Limits.PasswordMinLength} characters." });
-
         try
         {
             await mediator.Send(new AdminResetPasswordCommand(id, body.NewPassword), ct);
             return NoContent();
         }
+        catch (ArgumentException ex)    { return BadRequest(new { error = ex.Message }); }
         catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
     }
 

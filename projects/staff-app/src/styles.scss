@@ -420,6 +420,8 @@ input[type="time"] {
 }
 
 // ── Dialog responsive (§9.6) ──────────────────────────────────────────────────
+// Fullscreen on mobile for large form dialogs. Confirm dialogs are excluded
+// below so a short "Delete X?" message doesn't stretch to full screen height.
 @media (max-width: 640px) {
   .p-dialog-mask { align-items: flex-start !important; padding: 0 !important; }
   .p-dialog {
@@ -429,6 +431,21 @@ input[type="time"] {
     max-height:    100dvh !important;
     margin:        0 !important;
     border-radius: 0 !important;
+  }
+
+  // Confirm dialogs stay compact & centred (higher specificity + :has() win
+  // over the fullscreen rule above).
+  .p-dialog-mask:has(.p-confirmdialog) {
+    align-items: center !important;
+    padding:     1rem !important;
+  }
+  .p-confirmdialog.p-dialog {
+    width:         min(440px, 92vw) !important;
+    max-width:     92vw !important;
+    height:        auto !important;
+    max-height:    85dvh !important;
+    margin:        0 auto !important;
+    border-radius: 18px !important;
   }
 }
 

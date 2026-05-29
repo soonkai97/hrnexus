@@ -1,5 +1,5 @@
 ﻿import { test, expect } from '@playwright/test';
-import { loginAs, ADMIN } from '../shared/helpers';
+import { loginAs, loginAdmin, ADMIN } from '../shared/helpers';
 
 /**
  * Admin auth flow E2E.
@@ -32,9 +32,7 @@ test.describe('Admin — authentication', () => {
   });
 
   test('logout navigates back to login page', async ({ page }) => {
-    await loginAs(page, ADMIN.staffId, ADMIN.password);
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
-
+    await loginAdmin(page);
     // Logout button lives on /account page
     await page.goto('/account');
     await page.getByRole('button', { name: /sign out/i }).click();

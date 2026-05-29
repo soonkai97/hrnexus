@@ -31,7 +31,7 @@ export default defineConfig({
       testMatch: '**/admin/**/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env['BASE_URL_ADMIN'] ?? 'http://localhost',
+        baseURL: process.env['BASE_URL_ADMIN'] ?? 'http://localhost:8080',
       },
     },
     {

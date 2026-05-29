@@ -22,10 +22,12 @@ test.describe('Admin — Staff Ledger', () => {
 
   test('shows the section switcher tabs (Entries, Expenses, Loans)', async ({ page }) => {
     await page.waitForTimeout(1_000);
-    // Section switcher may be hidden until a staff member is selected — check for staff list instead
-    const hasSwitcher = await page.locator('.section-switcher').count();
-    const hasStaffList = await page.locator('.staff-list, [class*="staff"]').count();
-    expect(hasSwitcher + hasStaffList).toBeGreaterThan(0);
+    // The Entries/Expenses/Loans switcher (styleClass="ledger-tabs") only renders
+    // once a staff member is selected; before that the page shows a .no-selection
+    // prompt. Either is a valid loaded state.
+    const hasSwitcher = await page.locator('.ledger-tabs').count();
+    const hasPrompt   = await page.locator('.no-selection').count();
+    expect(hasSwitcher + hasPrompt).toBeGreaterThan(0);
   });
 
   test('staff ledger has a staff search or filter input', async ({ page }) => {

@@ -1,5 +1,5 @@
 ﻿import { test, expect } from '@playwright/test';
-import { loginAs, ADMIN } from '../shared/helpers';
+import { loginAs, loginStaff, ADMIN } from '../shared/helpers';
 
 /**
  * Staff app auth flow E2E.
@@ -8,8 +8,8 @@ import { loginAs, ADMIN } from '../shared/helpers';
 test.describe('Staff app — authentication', () => {
 
   test('successful login lands on /home', async ({ page }) => {
-    await loginAs(page, ADMIN.staffId, ADMIN.password);
-    await expect(page).toHaveURL(/\/home/, { timeout: 10_000 });
+    await loginStaff(page);
+    await expect(page).toHaveURL(/\/home/);
   });
 
   test('wrong password shows an error message', async ({ page }) => {
@@ -29,8 +29,7 @@ test.describe('Staff app — authentication', () => {
   });
 
   test('logout from profile page navigates back to login', async ({ page }) => {
-    await loginAs(page, ADMIN.staffId, ADMIN.password);
-    await expect(page).toHaveURL(/\/home/, { timeout: 10_000 });
+    await loginStaff(page);
     await page.goto('/profile');
     await page.getByRole('button', { name: /sign out/i }).click();
     await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });

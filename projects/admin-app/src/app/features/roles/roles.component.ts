@@ -43,17 +43,25 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   editingRateValue = signal(0);
   savingRate       = signal(false);
 
+  readonly touched = signal<Set<string>>(new Set());
+  markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
+  fieldError(field: 'name'): string {
+    if (!this.touched().has(field)) return '';
+    return this.newRoleName?.trim() ? '' : 'Role name is required.';
+  }
+
   ngOnInit(): void { this.store.loadRoles(); }
 
   openAdd(): void {
     this.newRoleName = '';
     this.newRoleRate = 0;
     this.error.set('');
+    this.touched.set(new Set());
     this.showForm.set(true);
     setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
-  cancel(): void { this.showForm.set(false); this.error.set(''); }
+  cancel(): void { this.showForm.set(false); this.error.set(''); this.touched.set(new Set()); }
 
   addRole(): void {
     const name = this.newRoleName.trim().toUpperCase();

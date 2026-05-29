@@ -18,7 +18,9 @@
       <div class="field">
         <label><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
         <input pInputText type="text" [ngModel]="form.name" (ngModelChange)="form.name = $event.toUpperCase()"
-               [placeholder]="'locations.namePlaceholder' | translate" maxlength="100" />
+               [placeholder]="'locations.namePlaceholder' | translate" maxlength="100"
+               (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" />
+        @if (fieldError('name'); as err) { <small class="field-err">{{ err }}</small> }
       </div>
       <div class="form-actions d-flex gap-3 justify-content-end">
         <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />

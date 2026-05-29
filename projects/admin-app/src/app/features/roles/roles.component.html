@@ -15,7 +15,9 @@
         <div class="field">
           <label><span class="req">*</span> {{ 'roles.roleNameCol' | translate }}</label>
           <input pInputText type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
-                 [placeholder]="'roles.rolePlaceholder' | translate" maxlength="50" (keydown.enter)="addRole()" />
+                 [placeholder]="'roles.rolePlaceholder' | translate" maxlength="50" (keydown.enter)="addRole()"
+                 (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" />
+          @if (fieldError('name'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="field rate-field">
           <label>Rate (RM/hr)</label>

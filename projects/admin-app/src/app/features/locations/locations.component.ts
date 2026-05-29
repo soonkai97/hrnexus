@@ -33,6 +33,13 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
 
   form: UpsertLocationDto = { name: '' };
 
+  readonly touched = signal<Set<string>>(new Set());
+  markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
+  fieldError(field: 'name'): string {
+    if (!this.touched().has(field)) return '';
+    return this.form.name?.trim() ? '' : 'Location name is required.';
+  }
+
   ngOnInit(): void { this.store.load(); }
 
   hasUnsavedChanges(): boolean {
@@ -43,9 +50,9 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
-  openAdd(): void    { this.form = { name: '' }; this.editing.set(null); this.showForm.set(true); this.scrollToForm(); }
-  openEdit(loc: Location): void { this.form = { name: loc.name }; this.editing.set(loc); this.showForm.set(true); this.scrollToForm(); }
-  cancel(): void     { this.showForm.set(false); this.editing.set(null); }
+  openAdd(): void    { this.form = { name: '' }; this.editing.set(null); this.touched.set(new Set()); this.showForm.set(true); this.scrollToForm(); }
+  openEdit(loc: Location): void { this.form = { name: loc.name }; this.editing.set(loc); this.touched.set(new Set()); this.showForm.set(true); this.scrollToForm(); }
+  cancel(): void     { this.showForm.set(false); this.editing.set(null); this.touched.set(new Set()); }
 
   save(): void {
     const name = this.form.name.trim().toUpperCase();

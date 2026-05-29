@@ -36,11 +36,13 @@
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
                   <input pInputText [(ngModel)]="wtForm.key" [placeholder]="'VENUECLOCK'"
-                         [disabled]="!!editingWt()" maxlength="50" />
+                         [disabled]="!!editingWt()" maxlength="50"
+                         (blur)="markTouched('wt.key')" [class.input-invalid]="!!fieldError('wt.key', wtForm.key, 'Key')" />
+                  @if (fieldError('wt.key', wtForm.key, 'Key'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
-                  <input pInputText [(ngModel)]="wtForm.label" placeholder="å†™é’Ÿ" maxlength="100" />
+                  <input pInputText [(ngModel)]="wtForm.label" (blur)="markTouched('wt.label')" [class.input-invalid]="!!fieldError('wt.label', wtForm.label, 'Label')" placeholder="å†™é’Ÿ" maxlength="100" />
                 </div>
                 <div class="field field-sm">
                   <label>{{ 'staffSettings.order' | translate }}</label>
@@ -127,11 +129,15 @@
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
                   <input pInputText [(ngModel)]="ecForm.key" placeholder="MEAL"
-                         [disabled]="!!editingEc()" maxlength="50" />
+                         [disabled]="!!editingEc()" maxlength="50"
+                         (blur)="markTouched('ec.key')" [class.input-invalid]="!!fieldError('ec.key', ecForm.key, 'Key')" />
+                  @if (fieldError('ec.key', ecForm.key, 'Key'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
-                  <input pInputText [(ngModel)]="ecForm.label" placeholder="Meal Subsidy" maxlength="100" />
+                  <input pInputText [(ngModel)]="ecForm.label" placeholder="Meal Subsidy" maxlength="100"
+                         (blur)="markTouched('ec.label')" [class.input-invalid]="!!fieldError('ec.label', ecForm.label, 'Label')" />
+                  @if (fieldError('ec.label', ecForm.label, 'Label'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field field-sm">
                   <label>{{ 'staffSettings.order' | translate }}</label>
@@ -203,11 +209,13 @@
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
                   <input pInputText [(ngModel)]="stForm.key" placeholder="SETTLED"
-                         [disabled]="!!editingSt()" maxlength="50" />
+                         [disabled]="!!editingSt()" maxlength="50"
+                         (blur)="markTouched('st.key')" [class.input-invalid]="!!fieldError('st.key', stForm.key, 'Key')" />
+                  @if (fieldError('st.key', stForm.key, 'Key'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
-                  <input pInputText [(ngModel)]="stForm.label" placeholder="æ¸… (Settled)" maxlength="100" />
+                  <input pInputText [(ngModel)]="stForm.label" (blur)="markTouched('st.label')" [class.input-invalid]="!!fieldError('st.label', stForm.label, 'Label')" placeholder="æ¸… (Settled)" maxlength="100" />
                 </div>
                 <div class="field field-sm">
                   <label>{{ 'staffSettings.order' | translate }}</label>
@@ -298,11 +306,15 @@
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
                   <input pInputText [(ngModel)]="ltForm.key" placeholder="CASH_ADVANCE"
-                         [disabled]="!!editingLt()" maxlength="50" />
+                         [disabled]="!!editingLt()" maxlength="50"
+                         (blur)="markTouched('lt.key')" [class.input-invalid]="!!fieldError('lt.key', ltForm.key, 'Key')" />
+                  @if (fieldError('lt.key', ltForm.key, 'Key'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
-                  <input pInputText [(ngModel)]="ltForm.label" placeholder="Cash Advance" maxlength="100" />
+                  <input pInputText [(ngModel)]="ltForm.label" placeholder="Cash Advance" maxlength="100"
+                         (blur)="markTouched('lt.label')" [class.input-invalid]="!!fieldError('lt.label', ltForm.label, 'Label')" />
+                  @if (fieldError('lt.label', ltForm.label, 'Label'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field field-sm">
                   <label>{{ 'staffSettings.order' | translate }}</label>

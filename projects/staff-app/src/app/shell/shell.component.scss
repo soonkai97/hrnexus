@@ -364,6 +364,20 @@
   min-height: 0;
 }
 
+// Mobile-first pages have no width cap of their own, so on wide desktop screens
+// every card/form stretches edge-to-edge (1400px-long inputs, label/value pairs
+// flung to opposite edges). Constrain the routed content to a comfortable column
+// and centre it. No effect on phones/tablets — below 1100px this is a no-op.
+.content-inner {
+  width: 100%;
+  max-width: 1100px;
+  margin-inline: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 // ── Bottom navigation bar (mobile only) ──────────────────────────────────────
 
 .bottom-nav {

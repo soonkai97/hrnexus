@@ -82,6 +82,7 @@
   } @else {
     <p-card styleClass="table-wrap">
       <p-table [value]="pagedItems()" [tableStyle]="{'min-width':'100%'}"
+        responsiveLayout="stack" breakpoint="640px"
         sortField="createdAt" [sortOrder]="-1">
         <ng-template pTemplate="header">
           <tr>
@@ -96,12 +97,13 @@
         </ng-template>
         <ng-template pTemplate="body" let-item>
           <tr>
-            <td class="col-title">{{ item.title }}</td>
-            <td><p-tag [value]="item.targetRoles" severity="info" /></td>
-            <td class="col-muted">{{ item.readCount }}</td>
-            <td class="col-muted">{{ item.createdByName }}</td>
-            <td class="col-muted">{{ item.expiresAt ? (item.expiresAt | date:'dd/MM/yyyy') : '—' }}</td>
+            <td class="col-title"><span class="p-column-title">{{ 'announcements.titleCol' | translate }}</span>{{ item.title }}</td>
+            <td><span class="p-column-title">{{ 'announcements.targetRolesCol' | translate }}</span><p-tag [value]="item.targetRoles" severity="info" /></td>
+            <td class="col-muted"><span class="p-column-title">{{ 'announcements.readsCol' | translate }}</span>{{ item.readCount }}</td>
+            <td class="col-muted"><span class="p-column-title">{{ 'announcements.createdByCol' | translate }}</span>{{ item.createdByName }}</td>
+            <td class="col-muted"><span class="p-column-title">{{ 'announcements.expiresCol' | translate }}</span>{{ item.expiresAt ? (item.expiresAt | date:'dd/MM/yyyy') : '—' }}</td>
             <td>
+              <span class="p-column-title">{{ 'announcements.activeCol' | translate }}</span>
               <p-tag [value]="item.isActive ? ('common.active' | translate) : ('announcements.expired' | translate)"
                      [severity]="item.isActive ? 'success' : 'secondary'" />
             </td>

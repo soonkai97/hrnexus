@@ -674,6 +674,26 @@ public class AdminQueryPushTests
     }
 
     [Fact]
+    public async Task GetAllLeaveBalances_ExcludesSuperAdminAccounts()
+    {
+        await using var db = CreateDb();
+        db.Staff.Add(MakeStaff("S001"));   // BARTENDER — should appear
+        db.Staff.Add(E.Staff.Create("ADMIN1", "Super", "Admin", "admin1@test.com", "hash",
+            new List<string> { "SUPERADMIN" }));   // super-admin/system account — should NOT appear
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var dt      = new FixedDateTimeProvider(new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc));
+        var handler = new GetAllLeaveBalancesQueryHandler(db, dt);
+
+        var result = await handler.Handle(new GetAllLeaveBalancesQuery(2025), CancellationToken.None);
+
+        Assert.Single(result);
+        Assert.Equal("S001", result[0].StaffId);
+        Assert.DoesNotContain(result, r => r.StaffId == "ADMIN1");
+    }
+
+    [Fact]
     public async Task GetAllLeaveBalances_ShowsUsedLeave_ForEachEmployee()
     {
         await using var db = CreateDb();

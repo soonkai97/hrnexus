@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.Admin.Queries;
 
@@ -92,7 +93,8 @@ public class GetReportQueryHandler(IAppDbContext db)
 
         var query = db.WorkLogs
             .Include(w => w.Employee)
-            .Where(w => w.WorkDate >= from && w.WorkDate <= to && w.EndTime != null);
+            .Where(w => w.WorkDate >= from && w.WorkDate <= to && w.EndTime != null
+                     && !db.StaffRoles.Any(r => r.EmployeeId == w.EmployeeId && r.Role == AppConstants.Roles.Admin));
 
         if (req.StaffIds?.Count > 0)
             query = query.Where(w => req.StaffIds.Contains(w.EmployeeId));

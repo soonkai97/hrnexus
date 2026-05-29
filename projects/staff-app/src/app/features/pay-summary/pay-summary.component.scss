@@ -112,7 +112,7 @@
     color: $text-primary;
 
     &.accent-amber { color: $neon-amber; text-shadow: 0 0 10px rgba(251,191,36,0.4); }
-    &.accent-pink  { color: $neon-pink;  text-shadow: 0 0 10px rgba(236,72,153,0.4); }
+    &.accent-pink  { color: $neon-pink;  text-shadow: 0 0 10px rgba(79, 70, 229,0.4); }
   }
 }
 
@@ -155,7 +155,7 @@
     gap: 0.2rem;
 
     .shift-hours { font-size: 0.75rem; color: $text-muted; }
-    .shift-pay   { font-size: 0.95rem; font-weight: 700; color: $neon-green; text-shadow: 0 0 8px rgba(74,222,128,0.4); }
+    .shift-pay   { font-size: 0.95rem; font-weight: 700; color: $neon-green; text-shadow: 0 0 8px rgba(22, 163, 74,0.4); }
   }
 }
 

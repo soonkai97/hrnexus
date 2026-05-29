@@ -21,10 +21,10 @@
 .bal-sep       { color: $text-muted; font-size: 1rem; }
 .bal-total     { color: $text-muted; font-size: 0.85rem; }
 .bal-used      { font-size: 0.72rem; color: $text-muted; }
-.bal-emergency { font-size: 0.65rem; color: #fbbf24; }
+.bal-emergency { font-size: 0.65rem; color: #d97706; }
 
 .tab-count {
-  background: rgba(168,85,247,0.25);
+  background: rgba(37, 99, 235,0.25);
   color: $neon-purple;
   font-size: 0.7rem;
   font-weight: 700;
@@ -43,7 +43,7 @@
 .hours-preview {
   display: inline-flex; align-items: center; gap: 0.4rem;
   font-size: 0.85rem; font-weight: 600; color: $neon-purple;
-  background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
+  background: rgba(37, 99, 235,0.1); border: 1px solid rgba(37, 99, 235,0.25);
   border-radius: $radius-pill; padding: 0.3rem 0.8rem;
   margin-top: 0.25rem;
 }
@@ -52,16 +52,16 @@
   display: flex; gap: 0.4rem;
   .period-btn {
     flex: 1; padding: 0.4rem 0.6rem; font-size: 0.8rem; font-weight: 600;
-    background: rgba(168,85,247,0.07); border: 1px solid rgba(168,85,247,0.18);
+    background: rgba(37, 99, 235,0.07); border: 1px solid rgba(37, 99, 235,0.18);
     border-radius: $radius-pill; color: $text-secondary; cursor: pointer;
     transition: background $transition-fast, color $transition-fast, border-color $transition-fast;
-    &.active { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.5); color: $neon-purple; }
-    &:hover:not(.active) { background: rgba(168,85,247,0.12); color: $text-primary; }
+    &.active { background: rgba(37, 99, 235,0.25); border-color: rgba(37, 99, 235,0.5); color: $neon-purple; }
+    &:hover:not(.active) { background: rgba(37, 99, 235,0.12); color: $text-primary; }
   }
 }
 
 .sick-note {
-  background: rgba(168,85,247,0.07); border: 1px solid rgba(168,85,247,0.2);
+  background: rgba(37, 99, 235,0.07); border: 1px solid rgba(37, 99, 235,0.2);
   border-radius: $radius-sm; padding: 0.6rem 0.9rem; margin: 0.75rem 0;
   font-size: 0.82rem; color: $neon-purple; display: flex; gap: 0.5rem; align-items: center;
 }
@@ -72,7 +72,7 @@
   color: $danger; font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem;
 }
 .success-box {
-  background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25);
+  background: rgba(22, 163, 74,0.08); border: 1px solid rgba(22, 163, 74,0.25);
   border-radius: $radius-sm; padding: 0.6rem 0.9rem;
   color: $neon-green; font-size: 0.82rem;
 }
@@ -103,7 +103,7 @@
   font-weight: 600; color: $text-muted; font-size: 0.82rem;
 }
 .period-tag {
-  font-size: 0.72rem; font-weight: 700; color: #fbbf24;
+  font-size: 0.72rem; font-weight: 700; color: #d97706;
   background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25);
   border-radius: $radius-pill; padding: 0.1rem 0.45rem;
 }
@@ -112,14 +112,14 @@
 
 .cert-row-display { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; flex-wrap: wrap; }
 .cert-link    { font-size: 0.8rem; color: $neon-purple; text-decoration: none; &:hover { text-decoration: underline; } }
-.cert-missing { font-size: 0.78rem; color: #fbbf24; }
+.cert-missing { font-size: 0.78rem; color: #d97706; }
 
 .btn-xs {
   font-size: 0.75rem; padding: 0.2rem 0.6rem;
-  background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
+  background: rgba(37, 99, 235,0.1); border: 1px solid rgba(37, 99, 235,0.25);
   border-radius: $radius-sm; color: $neon-purple; cursor: pointer;
   transition: background $transition-fast;
-  &:hover { background: rgba(168,85,247,0.25); }
+  &:hover { background: rgba(37, 99, 235,0.25); }
 }
 
 .btn-danger-xs {
@@ -171,12 +171,12 @@
   border: 1px solid $border-subtle; border-radius: 5px;
   cursor: pointer; transition: background $transition-fast;
   display: flex; flex-direction: column; align-items: flex-start;
-  &:hover         { background: rgba(168,85,247,0.06); }
+  &:hover         { background: rgba(37, 99, 235,0.06); }
   &.staff-cal-blank   { border-color: transparent; cursor: default; &:hover { background: transparent; } }
-  &.staff-cal-weekend { background: rgba(168,85,247,0.02); }
+  &.staff-cal-weekend { background: rgba(37, 99, 235,0.02); }
   &.staff-cal-today   { border-color: $neon-purple !important; box-shadow: inset 0 0 0 1px $neon-purple; }
-  &.staff-cal-selected { background: rgba(168,85,247,0.12) !important; border-color: rgba(168,85,247,0.4) !important; }
-  &.staff-cal-has-leave { background: rgba(74,222,128,0.04); }
+  &.staff-cal-selected { background: rgba(37, 99, 235,0.12) !important; border-color: rgba(37, 99, 235,0.4) !important; }
+  &.staff-cal-has-leave { background: rgba(22, 163, 74,0.04); }
 }
 
 .staff-cal-day-num {
@@ -230,7 +230,7 @@
 }
 .staff-cal-day-hours {
   font-size: 0.78rem; font-weight: 700; color: $neon-purple;
-  background: rgba(168,85,247,0.1); border-radius: $radius-pill;
+  background: rgba(37, 99, 235,0.1); border-radius: $radius-pill;
   padding: 0.1rem 0.45rem;
 }
 .staff-cal-rejection {

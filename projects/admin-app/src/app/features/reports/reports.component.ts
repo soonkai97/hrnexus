@@ -103,6 +103,9 @@ export class ReportsComponent implements OnInit {
   // Load all staff independently (not via paginated store) so the dropdown
   // shows every staff member, not just the first page of 10.
   allStaff            = signal<Staff[]>([]);
+  // Staff filter options — excludes SUPERADMIN/system accounts (not reported on)
+  readonly staffOptions = computed(() =>
+    this.allStaff().filter(s => !s.roles.includes('SUPERADMIN')));
   // Exclude the SUPERADMIN/system role from the report role filter (system accounts aren't reported on)
   readonly staffRoles = computed(() =>
     this.staffStore.roles().filter(r => r.name.toUpperCase() !== 'SUPERADMIN'));

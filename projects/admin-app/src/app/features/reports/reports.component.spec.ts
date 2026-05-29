@@ -127,6 +127,16 @@ describe('ReportsComponent', () => {
       expect(mockStaffSvc.getAll).toHaveBeenCalledWith('', 1, 999);
     });
 
+    it('staffOptions excludes SUPERADMIN/system accounts from the staff filter', () => {
+      component.allStaff.set([
+        { id: '1', fullName: 'SK CC',    roles: ['STAFF'] },
+        { id: '2', fullName: 'HR Admin', roles: ['SUPERADMIN'] },
+      ] as any);
+      const names = component.staffOptions().map(s => s.fullName);
+      expect(names).toEqual(['SK CC']);
+      expect(names).not.toContain('HR Admin');
+    });
+
     it('loads roles so the role filter is populated', () => {
       component.ngOnInit();
       expect(mockStaffStore.loadRoles).toHaveBeenCalled();

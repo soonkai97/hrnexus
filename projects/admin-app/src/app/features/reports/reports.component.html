@@ -65,7 +65,7 @@
         <div class="field">
           <label>{{ 'reports.staff' | translate }}</label>
           <p-multiselect [(ngModel)]="staffIds"
-            [options]="allStaff()"
+            [options]="staffOptions()"
             optionLabel="fullName"
             optionValue="id"
             placeholder="All Staff"

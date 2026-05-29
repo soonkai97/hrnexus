@@ -91,9 +91,6 @@ public static class AppConstants
         // Pagination
         public const int DefaultPageSize = 20;
         public const int MaxPageSize     = 100;
-
-        // Work-log / overtime
-        public const int OvertimeThresholdHours = 12;
     }
 
     // ── Feature flag keys ──────────────────────────────────────────────────────

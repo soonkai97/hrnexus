@@ -24,7 +24,6 @@
     "grossPay":             "Gross Pay",
     "thisMonth":            "This Month",
     "totalHours":           "Total Hours",
-    "overtime":             "overtime",
     "recentShifts":         "Recent Shifts",
     "viewAllShifts":        "View All Shifts",
     "noRecentShifts":       "No shifts logged yet. Tap Log Shift to get started.",
@@ -63,8 +62,7 @@
   },
 "pay": {
     "title":         "Pay Summary",
-    "regularHours":  "Regular Hours",
-    "overtimeHours": "Overtime Hours",
+    "workHours":     "Work Hours",
     "grossPay":      "Gross Pay",
     "tips":          "Tips",
     "noData":        "No pay data for this period.",

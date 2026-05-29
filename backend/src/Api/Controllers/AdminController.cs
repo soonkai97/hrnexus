@@ -193,40 +193,6 @@ public class AdminController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetLeavePatternWarnings(CancellationToken ct) =>
         Ok(await mediator.Send(new GetLeavePatternWarningsQuery(), ct));
 
-    // ── Overtime Rules ────────────────────────────────────────────────────────
-
-    [HttpGet("overtime-rules")]
-    [FeatureRequired("otRules")]
-    public async Task<IActionResult> GetOvertimeRules(CancellationToken ct) =>
-        Ok(await mediator.Send(new GetOvertimeRulesQuery(), ct));
-
-    [HttpPost("overtime-rules")]
-    [FeatureRequired("otRules")]
-    public async Task<IActionResult> UpsertOvertimeRule(
-        [FromBody] UpsertOvertimeRuleBody body, CancellationToken ct)
-    {
-        try
-        {
-            var id = await mediator.Send(new UpsertOvertimeRuleCommand(
-                body.Id, body.Role, body.ThresholdHours, body.Multiplier, body.IsActive ?? true), ct);
-            return Ok(new { id });
-        }
-        catch (KeyNotFoundException ex)  { return NotFound(new { error = ex.Message }); }
-        catch (ArgumentException ex)     { return BadRequest(new { error = ex.Message }); }
-    }
-
-    [HttpDelete("overtime-rules/{id:guid}")]
-    [FeatureRequired("otRules")]
-    public async Task<IActionResult> DeleteOvertimeRule(Guid id, CancellationToken ct)
-    {
-        try
-        {
-            await mediator.Send(new DeleteOvertimeRuleCommand(id), ct);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
-    }
-
     // ── Payroll ───────────────────────────────────────────────────────────────
 
     [HttpGet("payroll/summary")]
@@ -243,9 +209,8 @@ public class AdminController(IMediator mediator) : ControllerBase
         {
             staffId       = r.StaffId,
             name          = r.FullName,
-            regularHours  = r.RegularHours,
-            overtimeHours = r.OvertimeHours,
-            totalPay      = r.GrossPay,         // work-hours pay (reg + OT)
+            totalHours    = r.TotalHours,
+            totalPay      = r.GrossPay,         // total hours × hourly rate
             paidLeaveDays = r.PaidLeaveDays,
             paidLeavePay  = r.PaidLeavePay,
             grandTotal    = r.GrandTotal,        // work pay + paid-leave pay
@@ -271,8 +236,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetPayrollExportQuery(year, month), ct);
 
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("StaffId,Full Name,Roles,Hourly Rate (RM),Total Hours,Regular Hours," +
-                      "OT Hours,Regular Pay (RM),OT Pay (RM),Work Pay (RM)," +
+        sb.AppendLine("StaffId,Full Name,Roles,Hourly Rate (RM),Total Hours,Work Pay (RM)," +
                       "Total Leave Days,Paid Leave Days,Paid Leave Pay (RM),Grand Total (RM)");
 
         foreach (var r in result.Rows)
@@ -283,10 +247,6 @@ public class AdminController(IMediator mediator) : ControllerBase
                 $"\"{r.Roles}\"",
                 r.HourlyRate.ToString("F2"),
                 r.TotalHours.ToString("F2"),
-                r.RegularHours.ToString("F2"),
-                r.OvertimeHours.ToString("F2"),
-                r.RegularPay.ToString("F2"),
-                r.OvertimePay.ToString("F2"),
                 r.GrossPay.ToString("F2"),
                 r.ApprovedLeaveDays.ToString(),
                 r.PaidLeaveDays.ToString(),
@@ -331,5 +291,4 @@ public record BulkUpdateLeaveStatusBody(List<Guid> Ids, string Status, string? R
 public record LeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record BulkLeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record CarryOverBody(int FromYear, int ToYear, decimal? MaxCarryOver);
-public record UpsertOvertimeRuleBody(Guid? Id, string Role, decimal ThresholdHours, decimal Multiplier, bool? IsActive);
 public record DistributeTipsBody(Guid LocationId, string LocationName, DateTime ShiftDate, decimal TotalAmount, string? SplitMethod);

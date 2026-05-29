@@ -9,10 +9,9 @@ using Xunit;
 namespace HRNexus.Application.Tests;
 
 /// <summary>
-/// Handler-level tests for Announcement commands (Upsert, Delete, MarkRead)
-/// and Overtime Rule commands (Upsert, Delete).
+/// Handler-level tests for Announcement commands (Upsert, Delete, MarkRead).
 /// </summary>
-public class AnnouncementOvertimeTests
+public class AnnouncementTests
 {
     // ── Stubs ─────────────────────────────────────────────────────────────────
 
@@ -230,99 +229,4 @@ public class AnnouncementOvertimeTests
         Assert.Equal(1, await db.AnnouncementReads.CountAsync());
     }
 
-    // ── UpsertOvertimeRuleCommand ─────────────────────────────────────────────
-
-    [Fact]
-    public async Task UpsertOvertimeRule_ThrowsArgument_WhenThresholdIsZero()
-    {
-        await using var db = CreateDb();
-        var handler = new UpsertOvertimeRuleCommandHandler(db);
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new UpsertOvertimeRuleCommand(null, "*", 0, 1.5m),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task UpsertOvertimeRule_ThrowsArgument_WhenMultiplierLessThanOne()
-    {
-        await using var db = CreateDb();
-        var handler = new UpsertOvertimeRuleCommandHandler(db);
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new UpsertOvertimeRuleCommand(null, "*", 8m, 0.9m),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task UpsertOvertimeRule_Create_Succeeds()
-    {
-        await using var db = CreateDb();
-        var handler = new UpsertOvertimeRuleCommandHandler(db);
-
-        var id = await handler.Handle(new UpsertOvertimeRuleCommand(null, "BARTENDER", 8m, 1.5m),
-            CancellationToken.None);
-
-        var rule = await db.OvertimeRules.FirstAsync(r => r.Id == id);
-        Assert.Equal(8m, rule.ThresholdHours);
-        Assert.Equal(1.5m, rule.Multiplier);
-        Assert.True(rule.IsActive);
-    }
-
-    [Fact]
-    public async Task UpsertOvertimeRule_Update_Succeeds()
-    {
-        await using var db = CreateDb();
-        var rule = E.OvertimeRule.Create("*", 8m, 1.5m);
-        db.OvertimeRules.Add(rule);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new UpsertOvertimeRuleCommandHandler(db);
-        await handler.Handle(new UpsertOvertimeRuleCommand(rule.Id, "*", 10m, 2.0m, IsActive: false),
-            CancellationToken.None);
-
-        var updated = await db.OvertimeRules.FirstAsync(r => r.Id == rule.Id);
-        Assert.Equal(10m, updated.ThresholdHours);
-        Assert.Equal(2.0m, updated.Multiplier);
-        Assert.False(updated.IsActive);
-    }
-
-    [Fact]
-    public async Task UpsertOvertimeRule_Update_ThrowsKeyNotFound_WhenRuleNotFound()
-    {
-        await using var db = CreateDb();
-        var handler = new UpsertOvertimeRuleCommandHandler(db);
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new UpsertOvertimeRuleCommand(Guid.NewGuid(), "*", 8m, 1.5m),
-                CancellationToken.None));
-    }
-
-    // ── DeleteOvertimeRuleCommand ─────────────────────────────────────────────
-
-    [Fact]
-    public async Task DeleteOvertimeRule_ThrowsKeyNotFound_WhenRuleNotFound()
-    {
-        await using var db = CreateDb();
-        var handler = new DeleteOvertimeRuleCommandHandler(db);
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new DeleteOvertimeRuleCommand(Guid.NewGuid()), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task DeleteOvertimeRule_Succeeds_RemovesRule()
-    {
-        await using var db = CreateDb();
-        var rule = E.OvertimeRule.Create("*", 8m, 1.5m);
-        db.OvertimeRules.Add(rule);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new DeleteOvertimeRuleCommandHandler(db);
-        await handler.Handle(new DeleteOvertimeRuleCommand(rule.Id), CancellationToken.None);
-
-        Assert.Equal(0, await db.OvertimeRules.CountAsync());
-    }
 }

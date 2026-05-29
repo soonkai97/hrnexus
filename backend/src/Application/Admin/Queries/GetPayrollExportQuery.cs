@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
@@ -14,11 +14,7 @@ public record PayrollExportRow(
     string  Roles,
     decimal HourlyRate,
     decimal TotalHours,
-    decimal RegularHours,
-    decimal OvertimeHours,
-    decimal RegularPay,
-    decimal OvertimePay,
-    decimal GrossPay,           // work-hours pay only
+    decimal GrossPay,           // work-hours pay only (total hours × hourly rate)
     int     ApprovedLeaveDays,  // total approved leave days (all types)
     int     PaidLeaveDays,      // annual + sick only
     decimal PaidLeavePay,       // PaidLeaveDays × 8h × HourlyRate
@@ -57,12 +53,6 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
                      && l.EndDate   >= startDt)
             .ToListAsync(ct);
 
-        // Load all active OT rules once
-        var allOtRules = await db.OvertimeRules
-            .Where(r => r.IsActive)
-            .OrderBy(r => r.ThresholdHours)
-            .ToListAsync(ct);
-
         // Latest hourly rate per employee (for paid-leave pay when no current-period logs)
         var latestRates = await db.WorkLogs
             .Where(w => w.EndTime != null)
@@ -78,27 +68,16 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
 
         foreach (var emp in employees)
         {
-            var empLogs         = logs.Where(l => l.EmployeeId == emp.Id).ToList();
-            var applicableRules = OvertimeCalculator.ResolveRules(allOtRules, emp.Roles);
-            var otThreshold     = OvertimeCalculator.GetThreshold(applicableRules);
+            var empLogs = logs.Where(l => l.EmployeeId == emp.Id).ToList();
 
-            var regHours = 0m; var otHours = 0m;
-            var regPay   = 0m; var otPay   = 0m;
-
+            // Pay = total shift hours × the role's hourly rate snapshotted on each log.
+            var totalHours = 0m; var grossWork = 0m;
             foreach (var w in empLogs)
             {
-                var h = OvertimeCalculator.CalcHours(w.StartTime, w.EndTime!);
-                // Clamp to 0 in case of bad data (should not happen after time validation, but be safe)
-                if (h <= 0) continue;
-
-                var gross = OvertimeCalculator.Calculate(h, w.HourlyRateSnapshot, applicableRules);
-
-                var reg = Math.Min(h, otThreshold);
-                var ot  = Math.Max(0m, h - otThreshold);
-                regHours += reg;
-                otHours  += ot;
-                regPay   += reg * w.HourlyRateSnapshot;
-                otPay    += gross - (reg * w.HourlyRateSnapshot);
+                var h = ShiftHours.CalcHours(w.StartTime, w.EndTime!);
+                if (h <= 0) continue;   // guard against bad data
+                totalHours += h;
+                grossWork  += h * w.HourlyRateSnapshot;
             }
 
             // Hourly rate: prefer current-period snapshot, fall back to latest historical
@@ -120,18 +99,14 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
                 (int)Math.Round((l.EndDate.Date - l.StartDate.Date).TotalDays) + 1);
 
             var paidLeavePay  = Math.Round(paidLeaveDays * PaidLeaveHoursPerDay * displayRate, 2);
-            var grossWorkPay  = Math.Round(regPay + otPay, 2);
+            var grossWorkPay  = Math.Round(grossWork, 2);
 
             rows.Add(new PayrollExportRow(
                 StaffId:          emp.StaffId,
                 FullName:         emp.FullName,
                 Roles:            string.Join(" / ", emp.Roles),
                 HourlyRate:       displayRate,
-                TotalHours:       Math.Round(regHours + otHours, 2),
-                RegularHours:     Math.Round(regHours, 2),
-                OvertimeHours:    Math.Round(otHours, 2),
-                RegularPay:       Math.Round(regPay, 2),
-                OvertimePay:      Math.Round(otPay, 2),
+                TotalHours:       Math.Round(totalHours, 2),
                 GrossPay:         grossWorkPay,
                 ApprovedLeaveDays: totalLeaveDays,
                 PaidLeaveDays:    paidLeaveDays,

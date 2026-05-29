@@ -114,16 +114,14 @@ public class RemainingQueryTests
         Assert.Empty(result.Shifts);
     }
 
-    // 4. Overtime threshold applies — hours above threshold charged at OT rate
+    // 4. Pay = total shift hours × hourly rate (straight time, no overtime tiers)
     [Fact]
-    public async Task GetPaySummary_AppliesOvertimeMultiplier_WhenHoursExceedThreshold()
+    public async Task GetPaySummary_PaysAllHoursAtHourlyRate()
     {
         await using var db = CreateDb();
         var emp = MakeStaff();
         db.Staff.Add(emp);
-        // OT rule: threshold 8h, multiplier 1.5x, wildcard role
-        db.OvertimeRules.Add(E.OvertimeRule.Create("*", 8m, 1.5m));
-        // 10 hours @ 20/h: 8h regular (160) + 2h OT (2 × 20 × 1.5 = 60) = 220
+        // 10 hours @ 20/h = 200 (no overtime)
         var log = MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "08:00", "18:00", 20m);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync();
@@ -135,9 +133,7 @@ public class RemainingQueryTests
             CancellationToken.None);
 
         Assert.Equal(10m,  result.TotalHours);
-        Assert.Equal(8m,   result.RegularHours);
-        Assert.Equal(2m,   result.OvertimeHours);
-        Assert.Equal(220m, result.GrossPay);
+        Assert.Equal(200m, result.GrossPay);
     }
 
     // 5. Tips within the period are included in GrossPay
@@ -242,9 +238,7 @@ public class RemainingQueryTests
         var row = result.Rows[0];
         Assert.Equal("E001",  row.StaffId);
         Assert.Equal(5m,      row.TotalHours);
-        Assert.Equal(100m,    row.RegularPay);
-        Assert.Equal(0m,      row.OvertimePay);
-        Assert.Equal(100m,    row.GrossPay);
+        Assert.Equal(100m,    row.GrossPay);   // 5h × RM20 = RM100
     }
 
     // 4. Open shifts (no EndTime) are excluded from payroll

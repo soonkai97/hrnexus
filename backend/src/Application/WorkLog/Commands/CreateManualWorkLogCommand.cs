@@ -18,7 +18,7 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
             throw new ArgumentException("EndTime must be in HH:mm format.");
 
         // Validate time range: supports overnight shifts, but rejects identical or >24h spans
-        var hours = OvertimeCalculator.CalcHours(req.StartTime, req.EndTime);
+        var hours = ShiftHours.CalcHours(req.StartTime, req.EndTime);
         if (hours <= 0)
             throw new ArgumentException("End time must be different from start time.");
         if (hours > 24)

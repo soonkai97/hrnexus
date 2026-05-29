@@ -350,16 +350,13 @@
                 <td class="td-muted">{{ s.locationName }}</td>
                 <td class="td-muted">{{ s.clockedIn | date:'dd/MM h:mm a' }}</td>
                 <td class="td-muted">{{ s.clockedOut ? (s.clockedOut | date:'dd/MM h:mm a') : '—' }}</td>
-                <td [class.td-ot]="s.isOvertime">{{ s.hours }}h</td>
+                <td>{{ s.hours }}h</td>
                 <td class="td-pay">RM {{ s.cost | number:'1.2-2' }}</td>
                 <td>
                   <p-tag [value]="s.status"
                          [severity]="s.status === 'Active' ? 'success' : 'secondary'" />
                 </td>
                 <td class="td-flags">
-                  @if (s.isOvertime) {
-                    <p-tag value="OT" severity="warn" [pTooltip]="'Shift exceeds ' + s.otThreshold + 'h (configured OT threshold)'" styleClass="badge-ot" />
-                  }
                   @if (s.isEdited) {
                     <p-tag [value]="'reports.edited' | translate" severity="secondary" [pTooltip]="'reports.editedTooltip' | translate" />
                   }

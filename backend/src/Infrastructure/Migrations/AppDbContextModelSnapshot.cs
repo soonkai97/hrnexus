@@ -312,47 +312,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.OvertimeRule", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal>("Multiplier")
-                        .HasPrecision(10, 4)
-                        .HasColumnType("numeric(10,4)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<decimal>("ThresholdHours")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("OvertimeRules");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("11111111-0000-0000-0000-000000000001"),
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            Multiplier = 1.5m,
-                            Role = "*",
-                            ThresholdHours = 8m
-                        });
-                });
-
             modelBuilder.Entity("HRNexus.Domain.Entities.PushSubscription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1124,9 +1083,7 @@ namespace HRNexus.Infrastructure.Migrations
                     b.HasIndex("WorkDate");
 
                     b.HasIndex("EmployeeId", "WorkDate")
-                        .IsUnique()
-                        .HasDatabaseName("IX_WorkLogs_EmployeeId_WorkDate_Active")
-                        .HasFilter("\"IsDeleted\" = false");
+                        .HasDatabaseName("IX_WorkLogs_EmployeeId_WorkDate");
 
                     b.ToTable("WorkLogs");
                 });

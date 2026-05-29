@@ -40,7 +40,7 @@ const fakeBalance = {
 
 const fakePaySummary = {
   employeeId: 'e1', periodStart: '2026-05-01', periodEnd: '2026-05-31',
-  totalHours: 40, regularHours: 40, totalPay: 600,
+  totalHours: 40, grossPay: 600, tipsAllocated: 0,
 };
 
 // ── Suite ─────────────────────────────────────────────────────────────────────

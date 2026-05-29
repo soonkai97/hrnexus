@@ -701,59 +701,6 @@ public class AdminQueryPushTests
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    // GetOvertimeRulesQuery
-    // ═════════════════════════════════════════════════════════════════════════
-
-    [Fact]
-    public async Task GetOvertimeRules_ReturnsEmpty_WhenNoRulesExist()
-    {
-        await using var db  = CreateDb();
-        var handler         = new GetOvertimeRulesQueryHandler(db);
-
-        var result = await handler.Handle(new GetOvertimeRulesQuery(), CancellationToken.None);
-
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public async Task GetOvertimeRules_ReturnsAllRules_WithCorrectFields()
-    {
-        await using var db = CreateDb();
-        db.OvertimeRules.Add(E.OvertimeRule.Create("*",         8m,  1.5m));
-        db.OvertimeRules.Add(E.OvertimeRule.Create("bartender", 10m, 2.0m));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new GetOvertimeRulesQueryHandler(db);
-        var result  = await handler.Handle(new GetOvertimeRulesQuery(), CancellationToken.None);
-
-        Assert.Equal(2, result.Count);
-        // Should be ordered by threshold ascending
-        Assert.Equal(8m,  result[0].ThresholdHours);
-        Assert.Equal(10m, result[1].ThresholdHours);
-        Assert.True(result[0].IsActive);
-    }
-
-    [Fact]
-    public async Task GetOvertimeRules_OrderedByThreshold_Ascending()
-    {
-        await using var db = CreateDb();
-        db.OvertimeRules.Add(E.OvertimeRule.Create("*", 12m, 1.5m));
-        db.OvertimeRules.Add(E.OvertimeRule.Create("*",  6m, 1.5m));
-        db.OvertimeRules.Add(E.OvertimeRule.Create("*",  9m, 1.5m));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new GetOvertimeRulesQueryHandler(db);
-        var result  = await handler.Handle(new GetOvertimeRulesQuery(), CancellationToken.None);
-
-        Assert.Equal(3, result.Count);
-        Assert.Equal(6m,  result[0].ThresholdHours);
-        Assert.Equal(9m,  result[1].ThresholdHours);
-        Assert.Equal(12m, result[2].ThresholdHours);
-    }
-
-    // ═════════════════════════════════════════════════════════════════════════
     // GetTipsPoolsQuery
     // ═════════════════════════════════════════════════════════════════════════
 

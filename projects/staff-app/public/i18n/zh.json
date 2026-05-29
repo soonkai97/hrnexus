@@ -24,7 +24,6 @@
     "grossPay":            "应发工资",
     "thisMonth":           "本月",
     "totalHours":          "总工时",
-    "overtime":            "加班",
     "recentShifts":        "近期班次",
     "viewAllShifts":       "查看全部班次",
     "noRecentShifts":      "暂无班次记录，点击「记录班次」开始。",
@@ -63,8 +62,7 @@
   },
 "pay": {
     "title":         "薪资概览",
-    "regularHours":  "正常工时",
-    "overtimeHours": "加班工时",
+    "workHours":     "工时",
     "grossPay":      "应发工资",
     "tips":          "小费",
     "noData":        "本期间暂无薪资数据。",

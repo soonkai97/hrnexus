@@ -52,6 +52,12 @@
 // Form
 .form-card { padding: 1.5rem; margin-bottom: 1.5rem; }
 
+// Stack the side-by-side Start/End time pickers on narrow phones — at ~165px
+// each the clock icon + "Select time" placeholder gets clipped to "Select tim".
+@media (max-width: 480px) {
+  .row.g-2 > .col-6 { flex: 0 0 100%; max-width: 100%; }
+}
+
 .form-error {
   background: rgba(239,68,68,0.1);
   border: 1px solid rgba(239,68,68,0.25);

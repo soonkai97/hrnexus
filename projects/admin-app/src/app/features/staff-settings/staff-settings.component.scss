@@ -38,6 +38,7 @@
 
 .inline-form {
   margin-bottom: 0.5rem;
+  max-width: 640px;   // cap on desktop — fields were stretching the full page width
 }
 
 .form-title {
@@ -186,4 +187,11 @@
   color: $text-muted;
   font-size: 0.875rem;
   padding: 1rem;
+}
+
+// Stack form fields on narrow phones so the KEY/LABEL pair doesn't squash
+// side-by-side (~165px each) and truncate the placeholder/value.
+@media (max-width: 480px) {
+  .form-row .field,
+  .form-row .field.field-sm { flex: 1 1 100%; min-width: 0; }
 }

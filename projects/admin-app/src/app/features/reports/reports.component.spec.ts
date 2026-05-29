@@ -132,6 +132,16 @@ describe('ReportsComponent', () => {
       expect(mockStaffStore.loadRoles).toHaveBeenCalled();
     });
 
+    it('excludes the SUPERADMIN role from the report role filter', () => {
+      mockStaffStore.roles.mockReturnValue([
+        { name: 'BARTENDER',  isSystem: false, hourlyRate: 20 },
+        { name: 'SUPERADMIN', isSystem: true,  hourlyRate: 0  },
+      ]);
+      const names = component.staffRoles().map(r => r.name);
+      expect(names).toEqual(['BARTENDER']);
+      expect(names).not.toContain('SUPERADMIN');
+    });
+
     it('fetches location names for the location filter', () => {
       mockStaffSvc.getLocations.mockReturnValue(of([{ id: 'l1', name: 'Main Bar' }]));
       component.ngOnInit();

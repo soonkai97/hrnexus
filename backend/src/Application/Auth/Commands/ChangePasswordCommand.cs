@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.Auth.Commands;
@@ -17,14 +18,7 @@ public class ChangePasswordCommandHandler(IAppDbContext db, IPasswordHasher hash
         if (!hasher.Verify(req.CurrentPassword, employee.PasswordHash))
             throw new UnauthorizedAccessException("Current password is incorrect.");
 
-        if (string.IsNullOrWhiteSpace(req.NewPassword))
-            throw new ArgumentException("New password is required.");
-
-        if (req.NewPassword.Length < 8)
-            throw new ArgumentException("Password must be at least 8 characters.");
-
-        if (!req.NewPassword.Any(char.IsUpper) || !req.NewPassword.Any(char.IsDigit))
-            throw new ArgumentException("Password must include at least one uppercase letter and one number.");
+        PasswordPolicy.Validate(req.NewPassword);
 
         employee.ChangePassword(hasher.Hash(req.NewPassword));
         employee.ClearRefreshToken();

@@ -71,7 +71,11 @@
               <i [class]="showNewStaffPwd() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
             </span>
           </div>
-          @if (fieldError('password'); as err) { <small class="field-err">{{ err }}</small> }
+          <ul class="pwd-reqs" aria-label="Password requirements">
+            <li [class.met]="pwdChecks.minLength"><i [class]="pwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> At least 8 characters</li>
+            <li [class.met]="pwdChecks.hasUpper"><i [class]="pwdChecks.hasUpper ? 'pi pi-check-circle' : 'pi pi-circle'"></i> One uppercase letter</li>
+            <li [class.met]="pwdChecks.hasNumber"><i [class]="pwdChecks.hasNumber ? 'pi pi-check-circle' : 'pi pi-circle'"></i> One number</li>
+          </ul>
           <p-button label="Generate" [text]="true" severity="secondary" size="small"
                     styleClass="gen-btn mt-1" (click)="generateNewStaffPassword()" />
           <small style="color:var(--p-text-muted-color)">Staff can change this on first login.</small>
@@ -222,6 +226,11 @@
       <label>{{ 'staff.newPassword' | translate }}</label>
       <p-password [(ngModel)]="newPassword" [feedback]="false" [toggleMask]="true"
                   [placeholder]="'staff.minChars' | translate" autocomplete="new-password" />
+      <ul class="pwd-reqs" aria-label="Password requirements">
+        <li [class.met]="resetPwdChecks.minLength"><i [class]="resetPwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> At least 8 characters</li>
+        <li [class.met]="resetPwdChecks.hasUpper"><i [class]="resetPwdChecks.hasUpper ? 'pi pi-check-circle' : 'pi pi-circle'"></i> One uppercase letter</li>
+        <li [class.met]="resetPwdChecks.hasNumber"><i [class]="resetPwdChecks.hasNumber ? 'pi pi-check-circle' : 'pi pi-circle'"></i> One number</li>
+      </ul>
       <p-button [label]="'staff.generatePassword' | translate" [text]="true" severity="secondary"
                 styleClass="gen-btn" (click)="generatePassword()" />
     </div>
@@ -231,6 +240,6 @@
     <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="closeResetPassword()" />
     <p-button [label]="savingReset() ? ('common.saving' | translate) : ('staff.saveReset' | translate)"
               severity="primary" (click)="saveResetPassword()"
-              [disabled]="savingReset() || newPassword.length < 8" [loading]="savingReset()" />
+              [disabled]="savingReset() || !isResetPwdValid" [loading]="savingReset()" />
   </ng-template>
 </p-dialog>

@@ -13,7 +13,7 @@
       <div class="field filter-staff">
         <label>{{ 'leave.staffLabel' | translate }}</label>
         <p-select [(ngModel)]="filterEmployeeId" (onChange)="load(1)"
-          [options]="staffStore.staff()" optionLabel="fullName" optionValue="id"
+          [options]="staffOptions()" optionLabel="fullName" optionValue="id"
           [placeholder]="'leave.allStaff' | translate" [showClear]="!!filterEmployeeId"
           [filter]="true" filterPlaceholder="Search staff…"
           styleClass="w-full" />

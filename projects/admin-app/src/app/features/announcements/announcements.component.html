@@ -12,12 +12,16 @@
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'announcements.titleLabel' | translate }}</label>
-        <input pInputText [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" maxlength="200" />
+        <input pInputText [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" maxlength="200"
+               (blur)="markTouched('title')" [class.input-invalid]="!!fieldError('title')" />
+        @if (fieldError('title'); as err) { <small class="field-err">{{ err }}</small> }
         <small class="char-counter" [class.char-counter--warn]="form.title.length > 180">{{ form.title.length }}/200</small>
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'announcements.bodyLabel' | translate }}</label>
-        <textarea pTextarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate" maxlength="5000"></textarea>
+        <textarea pTextarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate" maxlength="5000"
+                  (blur)="markTouched('body')" [class.input-invalid]="!!fieldError('body')"></textarea>
+        @if (fieldError('body'); as err) { <small class="field-err">{{ err }}</small> }
         <small class="char-counter" [class.char-counter--warn]="form.body.length > 4500">{{ form.body.length }}/5000</small>
       </div>
       <div class="field">

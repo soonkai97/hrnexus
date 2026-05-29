@@ -106,11 +106,21 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     this.configSvc.loadLoanTypes();
   }
 
+  // ── Per-field inline validation (shared across all four sub-forms) ─────────
+  readonly touched = signal<Set<string>>(new Set());
+  markTouched(key: string): void { this.touched.update(s => new Set(s).add(key)); }
+  /** Generic required-field error: namespaced key (e.g. 'wt.key'), the bound value, and a label. */
+  fieldError(key: string, value: string | undefined, label: string): string {
+    if (!this.touched().has(key)) return '';
+    return value?.trim() ? '' : `${label} is required.`;
+  }
+
   // ── Work type actions ─────────────────────────────────────────────────────
   openAddWt(): void {
     this.wtForm = this.emptyWtForm();
     this.editingWt.set(null);
     this.wtError.set('');
+    this.touched.set(new Set());
     this.showWtForm.set(true);
   }
 
@@ -158,6 +168,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     this.stForm = this.emptyStForm();
     this.editingSt.set(null);
     this.stError.set('');
+    this.touched.set(new Set());
     this.showStForm.set(true);
   }
 
@@ -205,6 +216,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     this.ecForm = this.emptyEcForm();
     this.editingEc.set(null);
     this.ecError.set('');
+    this.touched.set(new Set());
     this.showEcForm.set(true);
   }
 
@@ -252,6 +264,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     this.ltForm = this.emptyLtForm();
     this.editingLt.set(null);
     this.ltError.set('');
+    this.touched.set(new Set());
     this.showLtForm.set(true);
   }
 

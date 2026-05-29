@@ -93,6 +93,7 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
     this.form = { title: '', body: '', targetRoles: [], expiresAt: null };
     this._initialForm = { ...this.form, targetRoles: [] };
     this.editing.set(null);
+    this.touched.set(new Set());
     this.showForm.set(true);
     this.scrollToForm();
   }
@@ -106,6 +107,7 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
     };
     this._initialForm = { ...this.form, targetRoles: [...this.form.targetRoles] };
     this.editing.set(item.id);
+    this.touched.set(new Set());
     this.showForm.set(true);
     this.scrollToForm();
   }
@@ -176,6 +178,16 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
 
   get isFormValid(): boolean {
     return !!this.form.title.trim() && !!this.form.body.trim();
+  }
+
+  readonly touched = signal<Set<string>>(new Set());
+  markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
+  fieldError(field: 'title' | 'body'): string {
+    if (!this.touched().has(field)) return '';
+    switch (field) {
+      case 'title': return this.form.title?.trim() ? '' : 'Title is required.';
+      case 'body':  return this.form.body?.trim()  ? '' : 'Body is required.';
+    }
   }
 
   cancel(): void {

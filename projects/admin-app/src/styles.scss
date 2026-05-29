@@ -458,6 +458,21 @@ table { min-width: 480px; }
 // ── Required field asterisk ────────────────────────────────────────────────────
 .req { color: $danger; margin-right: 0.15em; font-weight: 700; }
 
+// ── Per-field inline validation ────────────────────────────────────────────────
+// Reusable across forms: red error text below a field + red border on the input.
+.field-err {
+  color: $danger;
+  font-size: 0.72rem;
+  margin-top: 0.1rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.input-invalid,
+input.input-invalid {
+  border-color: $danger !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25) !important;
+}
+
 // ── Shared inline-form standards ──────────────────────────────────────────────
 // Used by every page that has an inline add/edit form card.
 .form-header {

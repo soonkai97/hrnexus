@@ -79,9 +79,7 @@ public record ShiftDetailRow(
     DateTime? ClockedOut,
     decimal   Hours,
     decimal   Cost,
-    string    Status,
-    bool      IsOvertime,
-    decimal   OtThreshold
+    string    Status
 );
 
 public class GetReportQueryHandler(IAppDbContext db)
@@ -113,15 +111,12 @@ public class GetReportQueryHandler(IAppDbContext db)
 
         var logs = await query.ToListAsync(ct);
 
-        var allOtRules = await db.OvertimeRules.Where(r => r.IsActive).OrderBy(r => r.ThresholdHours).ToListAsync(ct);
-
         var shifts = logs.Select(w =>
         {
-            var hours     = OvertimeCalculator.CalcHours(w.StartTime, w.EndTime!);
-            var applicable = OvertimeCalculator.ResolveRules(allOtRules, [w.RoleName]);
-            var cost        = OvertimeCalculator.Calculate(hours, w.HourlyRateSnapshot, applicable);
-            hours           = Math.Round(hours, 2);
-            var otThreshold = OvertimeCalculator.GetThreshold(applicable);
+            // Cost estimate = total shift hours × the role's snapshotted hourly rate.
+            var raw   = ShiftHours.CalcHours(w.StartTime, w.EndTime!);
+            var cost  = Math.Round(raw * w.HourlyRateSnapshot, 2);
+            var hours = Math.Round(raw, 2);
             var startDt = w.WorkDate.ToDateTime(TimeOnly.Parse(w.StartTime));
             var endDt   = w.EndTime != null ? w.WorkDate.ToDateTime(TimeOnly.Parse(w.EndTime)) : (DateTime?)null;
             // Handle midnight crossover (e.g. 22:00 → 02:00)
@@ -134,8 +129,7 @@ public class GetReportQueryHandler(IAppDbContext db)
                 w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndTime,
                 w.Notes,
                 w.IsEdited,
-                startDt, endDt, hours, cost, "Complete", hours > otThreshold,
-                otThreshold);
+                startDt, endDt, hours, cost, "Complete");
         }).ToList();
 
         var summary = new ReportSummary(shifts.Count, Math.Round(shifts.Sum(s => s.Hours), 1), Math.Round(shifts.Sum(s => s.Cost), 2), shifts.Select(s => s.StaffId).Distinct().Count(), shifts.Select(s => s.LocationName).Distinct().Count(), shifts.Count > 0 ? Math.Round(shifts.Average(s => s.Hours), 2) : 0m);

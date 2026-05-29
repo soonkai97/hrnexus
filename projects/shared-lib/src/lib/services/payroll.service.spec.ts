@@ -49,7 +49,7 @@ describe('PayrollService', () => {
     });
 
     it('passes through the API response without transformation', () => {
-      const summary = { shifts: 10, regularHours: 80, overtimeHours: 5, totalPay: 2000 };
+      const summary = { totalHours: 80, grossPay: 2000, tipsAllocated: 0, shifts: [] };
       let result: any;
       service.getMySummary('2026-05-01', '2026-05-31').subscribe(v => (result = v));
       http.expectOne(r => r.url.includes('/api/worklogs/pay-summary')).flush(summary);

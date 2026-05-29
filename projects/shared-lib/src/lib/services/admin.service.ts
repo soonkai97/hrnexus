@@ -91,8 +91,6 @@ export interface ShiftDetailRow {
   hours:        number;
   cost:         number;
   status:       string;
-  isOvertime:   boolean;
-  otThreshold:  number;
 }
 
 export interface ReportResponse {
@@ -120,9 +118,8 @@ export interface TipsDistributionResult { staffCount: number; allocations: TipsA
 export interface PayrollStaffRow {
   staffId: string;
   name: string;
-  regularHours: number;
-  overtimeHours: number;
-  totalPay: number;       // work-hours pay (reg + OT)
+  totalHours: number;
+  totalPay: number;       // total hours × hourly rate
   paidLeaveDays: number;
   paidLeavePay: number;
   grandTotal: number;     // totalPay + paidLeavePay

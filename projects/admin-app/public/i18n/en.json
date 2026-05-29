@@ -318,7 +318,7 @@
     "editedTooltip":    "This shift was edited after it was first logged.",
     "noShiftsInPeriod": "No shifts in selected period.",
     "payrollTitle":     "Payroll Export",
-    "payrollDesc":      "Download a monthly pay summary CSV for all active staff — includes regular hours, overtime (1.5×), tips, and approved leave days.",
+    "payrollDesc":      "Download a monthly pay summary CSV for all active staff — includes total hours, work pay, and approved leave days.",
     "yearLabel":        "Year",
     "monthLabel":       "Month",
     "downloadPayroll":  "Download Payroll CSV",

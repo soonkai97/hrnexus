@@ -21,9 +21,7 @@ import { PayrollService } from 'shared-lib';
 
 const fakeSummary = {
   employeeId: 'e1', periodStart: '2026-05-01', periodEnd: '2026-05-31',
-  totalHours: 40, regularHours: 40, overtimeHours: 0,
-  regularPay: 600, overtimePay: 0, tipsAllocated: 150,
-  otMultiplier: 1.5, grossPay: 750, shifts: [],
+  totalHours: 40, tipsAllocated: 150, grossPay: 750, shifts: [],
 };
 
 describe('TipsHistoryComponent', () => {

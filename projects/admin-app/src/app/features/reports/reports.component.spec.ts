@@ -35,7 +35,7 @@ const fakeReport = {
   shifts:     [{
     staffId: 'NC001', staffName: 'Jane Doe', role: 'bartender',
     locationName: 'Main Bar', clockedIn: '18:00', clockedOut: '23:00',
-    hours: 5, cost: 75, status: 'completed', isOvertime: false, otThreshold: 0,
+    hours: 5, cost: 75, status: 'completed',
   }],
 };
 

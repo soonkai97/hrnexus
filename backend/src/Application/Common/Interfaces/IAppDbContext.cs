@@ -27,7 +27,6 @@ public interface IAppDbContext
     DbSet<LeaveRequest>     LeaveRequests     { get; }
     DbSet<LeaveEntitlement> LeaveEntitlements { get; }
     DbSet<Notification>       Notifications       { get; }
-    DbSet<OvertimeRule>       OvertimeRules       { get; }
     DbSet<Announcement>       Announcements       { get; }
     DbSet<AnnouncementRead>   AnnouncementReads   { get; }
     DbSet<AuditLog>           AuditLogs           { get; }

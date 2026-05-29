@@ -37,7 +37,7 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         if (!TimeOnly.TryParseExact(req.EndTime, "HH:mm", null, DateTimeStyles.None, out _))
             throw new ArgumentException("EndTime must be in HH:mm format.");
 
-        var hours = OvertimeCalculator.CalcHours(req.StartTime, req.EndTime);
+        var hours = ShiftHours.CalcHours(req.StartTime, req.EndTime);
         if (hours <= 0)
             throw new ArgumentException("End time must be different from start time.");
         if (hours > 24)

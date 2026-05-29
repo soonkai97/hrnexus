@@ -56,12 +56,8 @@
       </div>
       <div class="d-flex flex-column gap-2">
         <div class="breakdown-row d-flex justify-content-between">
-          <span>{{ 'pay.regularHours' | translate }}</span>
-          <span>RM {{ summary()!.regularPay | number:'1.2-2' }}</span>
-        </div>
-        <div class="breakdown-row d-flex justify-content-between">
-          <span>{{ 'pay.overtimeHours' | translate }}</span>
-          <span>RM {{ summary()!.overtimePay | number:'1.2-2' }}</span>
+          <span>{{ 'pay.workHours' | translate }}</span>
+          <span>RM {{ (summary()!.grossPay - summary()!.tipsAllocated) | number:'1.2-2' }}</span>
         </div>
         <div class="breakdown-row d-flex justify-content-between highlight">
           <span>{{ 'pay.tips' | translate }}</span>

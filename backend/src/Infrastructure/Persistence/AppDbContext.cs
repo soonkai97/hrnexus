@@ -20,7 +20,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<LeaveRequest>     LeaveRequests     => Set<LeaveRequest>();
     public DbSet<LeaveEntitlement> LeaveEntitlements => Set<LeaveEntitlement>();
     public DbSet<Notification>     Notifications     => Set<Notification>();
-    public DbSet<OvertimeRule>     OvertimeRules     => Set<OvertimeRule>();
     public DbSet<Announcement>      Announcements      => Set<Announcement>();
     public DbSet<AnnouncementRead>  AnnouncementReads  => Set<AnnouncementRead>();
     public DbSet<AuditLog>          AuditLogs          => Set<AuditLog>();
@@ -61,7 +60,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new LeaveRequestConfiguration());
         mb.ApplyConfiguration(new LeaveEntitlementConfiguration());
         mb.ApplyConfiguration(new NotificationConfiguration());
-        mb.ApplyConfiguration(new OvertimeRuleConfiguration());
         mb.ApplyConfiguration(new AnnouncementConfiguration());
         mb.ApplyConfiguration(new AnnouncementReadConfiguration());
         mb.ApplyConfiguration(new AuditLogConfiguration());

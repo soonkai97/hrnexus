@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
@@ -12,13 +12,8 @@ public record PaySummaryDto(
     string   PeriodStart,
     string   PeriodEnd,
     decimal  TotalHours,
-    decimal  RegularHours,
-    decimal  OvertimeHours,
-    decimal  RegularPay,
-    decimal  OvertimePay,
     decimal  TipsAllocated,
     decimal  GrossPay,
-    decimal  OtMultiplier,
     List<PayShiftLineDto> Shifts);
 
 public record PayShiftLineDto(
@@ -42,32 +37,16 @@ public class GetPaySummaryQueryHandler(IAppDbContext db)
             .ThenBy(w => w.StartTime)
             .ToListAsync(ct);
 
-        var allOtRules = await db.OvertimeRules
-            .Where(r => r.IsActive)
-            .OrderBy(r => r.ThresholdHours)
-            .ToListAsync(ct);
-
-        var emp = await db.Staff.FindAsync([req.EmployeeId], ct);
-        var applicableRules = OvertimeCalculator.ResolveRules(allOtRules, emp?.Roles ?? []);
-        var otThreshold     = OvertimeCalculator.GetThreshold(applicableRules);
-
-        decimal totalRegHours = 0, totalOtHours = 0, totalRegPay = 0, totalOtPay = 0;
+        // Pay = total shift hours × the role's hourly rate snapshotted on the log.
+        decimal totalHours = 0, totalPay = 0;
         var shifts = new List<PayShiftLineDto>();
 
         foreach (var w in logs)
         {
-            var h = OvertimeCalculator.CalcHours(w.StartTime, w.EndTime!);
-
-            var gross  = OvertimeCalculator.Calculate(h, w.HourlyRateSnapshot, applicableRules);
-            var reg    = Math.Min(h, otThreshold);
-            var ot     = Math.Max(0m, h - otThreshold);
-            var regPay = reg * w.HourlyRateSnapshot;
-            var otPay  = gross - regPay;
-
-            totalRegHours += reg;
-            totalOtHours  += ot;
-            totalRegPay   += regPay;
-            totalOtPay    += otPay;
+            var h     = ShiftHours.CalcHours(w.StartTime, w.EndTime!);
+            var gross = h * w.HourlyRateSnapshot;
+            totalHours += h;
+            totalPay   += gross;
 
             shifts.Add(new PayShiftLineDto(
                 w.Id,
@@ -76,12 +55,6 @@ public class GetPaySummaryQueryHandler(IAppDbContext db)
                 Math.Round(h,     2),
                 Math.Round(gross, 2)));
         }
-
-        var otMultiplier = totalOtHours > 0
-            ? (applicableRules.Count > 0
-                ? applicableRules.OrderByDescending(r => r.Multiplier).First().Multiplier
-                : 1.5m)
-            : 1.0m;
 
         // Sum tips allocations for the employee within the period.
         // TipsPool.ShiftDate is stored as UTC midnight; convert DateOnly period bounds accordingly.
@@ -101,14 +74,9 @@ public class GetPaySummaryQueryHandler(IAppDbContext db)
             req.EmployeeId,
             req.PeriodStart.ToString("yyyy-MM-dd"),
             req.PeriodEnd.ToString("yyyy-MM-dd"),
-            Math.Round(totalRegHours + totalOtHours, 2),
-            Math.Round(totalRegHours, 2),
-            Math.Round(totalOtHours,  2),
-            Math.Round(totalRegPay,   2),
-            Math.Round(totalOtPay,    2),
+            Math.Round(totalHours, 2),
             Math.Round(tipsAllocated, 2),
-            Math.Round(totalRegPay + totalOtPay + tipsAllocated, 2),
-            otMultiplier,
+            Math.Round(totalPay + tipsAllocated, 2),
             shifts);
     }
 }

@@ -21,7 +21,6 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.LeaveRequest>     LeaveRequests     => Set<E.LeaveRequest>();
     public DbSet<E.LeaveEntitlement> LeaveEntitlements => Set<E.LeaveEntitlement>();
     public DbSet<E.Notification>     Notifications     => Set<E.Notification>();
-    public DbSet<E.OvertimeRule>     OvertimeRules     => Set<E.OvertimeRule>();
     public DbSet<E.Announcement>     Announcements     => Set<E.Announcement>();
     public DbSet<E.AnnouncementRead> AnnouncementReads => Set<E.AnnouncementRead>();
     public DbSet<E.AuditLog>         AuditLogs         => Set<E.AuditLog>();

@@ -61,7 +61,6 @@ projects/
 │       ├── dashboard/
 │       ├── staff/                # staff list + staff-detail
 │       ├── leave/
-│       ├── overtime/
 │       ├── payroll/
 │       ├── tips/
 │       ├── reports/

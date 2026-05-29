@@ -24,12 +24,7 @@ const fakeSummary = {
   periodStart: '2026-05-01',
   periodEnd: '2026-05-31',
   totalHours: 80,
-  regularHours: 80,
-  overtimeHours: 0,
-  regularPay: 1200,
-  overtimePay: 0,
   tipsAllocated: 200,
-  otMultiplier: 1.5,
   grossPay: 1400,
   shifts: [],
 };

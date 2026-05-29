@@ -20,7 +20,7 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
         if (log.EndTime != null) throw new InvalidOperationException("Shift already ended.");
 
         // Validate end time produces a non-zero duration (guard against identical start/end)
-        var hours = HRNexus.Application.Common.OvertimeCalculator.CalcHours(log.StartTime, req.EndTime);
+        var hours = HRNexus.Application.Common.ShiftHours.CalcHours(log.StartTime, req.EndTime);
         if (hours <= 0)
             throw new ArgumentException("End time must be different from the shift start time.");
 

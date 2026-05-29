@@ -41,8 +41,7 @@
           <tr>
             <th pSortableColumn="staffId">Staff ID <p-sortIcon field="staffId" /></th>
             <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
-            <th pSortableColumn="regularHours">Regular Hrs <p-sortIcon field="regularHours" /></th>
-            <th pSortableColumn="overtimeHours">OT Hrs <p-sortIcon field="overtimeHours" /></th>
+            <th pSortableColumn="totalHours">Total Hrs <p-sortIcon field="totalHours" /></th>
             <th pSortableColumn="totalPay">Work Pay (RM) <p-sortIcon field="totalPay" /></th>
             <th pSortableColumn="paidLeaveDays">Paid Leave Days <p-sortIcon field="paidLeaveDays" /></th>
             <th pSortableColumn="paidLeavePay">Leave Pay (RM) <p-sortIcon field="paidLeavePay" /></th>
@@ -53,8 +52,7 @@
           <tr>
             <td class="td-muted mono"><span class="p-column-title">Staff ID</span>{{ row.staffId }}</td>
             <td><span class="p-column-title">Name</span>{{ row.name }}</td>
-            <td><span class="p-column-title">Regular Hrs</span>{{ row.regularHours | number:'1.1-1' }}</td>
-            <td><span class="p-column-title">OT Hrs</span>{{ row.overtimeHours | number:'1.1-1' }}</td>
+            <td><span class="p-column-title">Total Hrs</span>{{ row.totalHours | number:'1.1-1' }}</td>
             <td><span class="p-column-title">Work Pay (RM)</span>{{ row.totalPay | number:'1.2-2' }}</td>
             <td class="td-center">
               <span class="p-column-title">Paid Leave</span>

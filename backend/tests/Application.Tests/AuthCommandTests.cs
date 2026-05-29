@@ -185,6 +185,24 @@ public class AuthCommandTests
     }
 
     [Fact]
+    public async Task ChangePassword_ThrowsArgument_WhenNewPasswordLacksComplexity()
+    {
+        // 8+ chars but all lowercase letters — must be rejected for missing an
+        // uppercase letter and a number (policy mirrored on the frontend checklist).
+        await using var db = CreateDb();
+        var staff = MakeStaff(password: "pass");
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new ChangePasswordCommandHandler(db, new StubHasher());
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "lowercaseonly"),
+                CancellationToken.None));
+    }
+
+    [Fact]
     public async Task ChangePassword_ThrowsArgument_WhenNewPasswordIsWhitespaceOnly()
     {
         // Eight spaces pass the length check but must be rejected — a whitespace-only
@@ -213,12 +231,12 @@ public class AuthCommandTests
         db.ChangeTracker.Clear();
 
         var handler = new ChangePasswordCommandHandler(db, new StubHasher());
-        await handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "newpass12"),
+        await handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "Newpass12"),
             CancellationToken.None);
 
         var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
         Assert.Null(updated.RefreshToken);
-        Assert.Equal("hashed-newpass12", updated.PasswordHash);
+        Assert.Equal("hashed-Newpass12", updated.PasswordHash);
     }
 
     // ── ForgotPasswordCommand ─────────────────────────────────────────────────

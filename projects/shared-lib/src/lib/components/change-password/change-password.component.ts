@@ -1,5 +1,13 @@
 import { Component, signal, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+
+/** Password policy (kept in sync with the backend ChangePasswordCommand): 8+ chars, 1 uppercase, 1 number. */
+export function strongPasswordValidator(ctrl: AbstractControl): ValidationErrors | null {
+  const v: string = ctrl.value ?? '';
+  if (!v) return null;               // 'required' handles the empty case
+  const ok = v.length >= 8 && /[A-Z]/.test(v) && /[0-9]/.test(v);
+  return ok ? null : { weakPassword: true };
+}
 import { Button } from 'primeng/button';
 import { Password } from 'primeng/password';
 import { Message } from 'primeng/message';
@@ -24,9 +32,19 @@ export class ChangePasswordComponent {
   constructor() {
     this.form = this.fb.group({
       currentPassword: ['', Validators.required],
-      newPassword:     ['', [Validators.required, Validators.minLength(8)]],
+      newPassword:     ['', [Validators.required, strongPasswordValidator]],
       confirmPassword: ['', Validators.required],
     });
+  }
+
+  /** Live requirement state for the checklist UI — re-evaluated as the user types. */
+  get pwdChecks(): { minLength: boolean; hasUpper: boolean; hasNumber: boolean } {
+    const v: string = this.form?.get('newPassword')?.value ?? '';
+    return {
+      minLength: v.length >= 8,
+      hasUpper:  /[A-Z]/.test(v),
+      hasNumber: /[0-9]/.test(v),
+    };
   }
 
   submit(): void {

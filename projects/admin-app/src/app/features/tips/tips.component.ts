@@ -48,6 +48,11 @@ export class TipsComponent implements OnInit, CanComponentDeactivate {
     splitMethod:  'equal',
   };
 
+  /** Distribute button is enabled only once required fields are filled (mirrors distribute() guard). */
+  get isFormValid(): boolean {
+    return !!this.form.locationName && !!this.form.shiftDate && this.form.totalAmount > 0;
+  }
+
   ngOnInit(): void {
     this.locationStore.load();
     this.load();

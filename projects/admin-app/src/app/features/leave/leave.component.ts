@@ -719,6 +719,13 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     this.endTimeDate   = null;
   }
 
+  /** Save is enabled only once all required fields are filled. The date/time-order check
+   *  stays in save() so the user gets a specific reason rather than a silently-disabled button. */
+  get isFormValid(): boolean {
+    return !!this.form.employeeId && !!this.form.startDate && !!this.form.endDate
+        && !!this.startTimeDate && !!this.endTimeDate;
+  }
+
   save(): void {
     this.form.startTime = this.startTimeDate ? this.toTimeStr(this.startTimeDate) : null;
     this.form.endTime   = this.endTimeDate   ? this.toTimeStr(this.endTimeDate)   : null;

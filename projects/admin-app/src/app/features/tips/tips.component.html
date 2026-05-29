@@ -44,7 +44,7 @@
 
       <div class="form-actions d-flex gap-3 justify-content-end">
         <p-button [label]="'tips.previewDistribution' | translate" severity="primary"
-                  (click)="distribute()" [disabled]="distributing()" [loading]="distributing()" />
+                  (click)="distribute()" [disabled]="distributing() || !isFormValid" [loading]="distributing()" />
       </div>
 
       @if (preview(); as p) {

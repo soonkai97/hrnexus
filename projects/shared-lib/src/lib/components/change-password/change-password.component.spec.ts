@@ -63,6 +63,27 @@ describe('ChangePasswordComponent', () => {
     });
   });
 
+  // ── password strength policy (8+ chars, uppercase, number) ──────────────────────
+
+  describe('password requirements', () => {
+    it('marks newPassword invalid when it lacks an uppercase letter or number', () => {
+      component.form.get('newPassword')!.setValue('lowercaseonly');
+      expect(component.form.get('newPassword')!.hasError('weakPassword')).toBe(true);
+    });
+
+    it('accepts a password with 8+ chars, an uppercase letter and a number', () => {
+      component.form.get('newPassword')!.setValue('NewPass12');
+      expect(component.form.get('newPassword')!.errors).toBeNull();
+    });
+
+    it('pwdChecks reflects which requirements are met as the user types', () => {
+      component.form.get('newPassword')!.setValue('abc');           // too short, no upper, no num
+      expect(component.pwdChecks).toEqual({ minLength: false, hasUpper: false, hasNumber: false });
+      component.form.get('newPassword')!.setValue('Abcdefg9');      // all met
+      expect(component.pwdChecks).toEqual({ minLength: true, hasUpper: true, hasNumber: true });
+    });
+  });
+
   // ── submit() — whitespace guard ───────────────────────────────────────────────
 
   describe('submit() — whitespace-only guard', () => {

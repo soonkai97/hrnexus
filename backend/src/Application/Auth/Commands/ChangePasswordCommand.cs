@@ -23,6 +23,9 @@ public class ChangePasswordCommandHandler(IAppDbContext db, IPasswordHasher hash
         if (req.NewPassword.Length < 8)
             throw new ArgumentException("Password must be at least 8 characters.");
 
+        if (!req.NewPassword.Any(char.IsUpper) || !req.NewPassword.Any(char.IsDigit))
+            throw new ArgumentException("Password must include at least one uppercase letter and one number.");
+
         employee.ChangePassword(hasher.Hash(req.NewPassword));
         employee.ClearRefreshToken();
         await db.SaveChangesAsync(ct);

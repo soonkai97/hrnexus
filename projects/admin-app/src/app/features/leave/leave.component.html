@@ -212,7 +212,7 @@
         <div class="form-actions d-flex gap-3 justify-content-end">
           <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelForm()" />
           <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"
-                    severity="primary" (click)="save()" [disabled]="saving()" [loading]="saving()" />
+                    severity="primary" (click)="save()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
         </div>
       </p-card>
     }

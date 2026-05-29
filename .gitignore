@@ -71,5 +71,8 @@ test-results-leave.txt
 test-results/
 playwright-report/
 
+# Stray build logs
+build_output.txt
+
 # Build tool cache
 *.lscache

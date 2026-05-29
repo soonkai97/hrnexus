@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -17,28 +17,11 @@ namespace HRNexus.Infrastructure.Migrations
 
             // Drop the now-orphaned 'otRules' feature flag (nothing references it anymore).
             migrationBuilder.Sql("DELETE FROM \"FeatureFlags\" WHERE \"Key\" = 'otRules';");
-
-            // Align the WorkLogs (EmployeeId, WorkDate) index with the current model: it is
-            // intentionally NON-unique (multiple shifts per day are allowed, enforced by an
-            // in-code time-overlap check). The DB still carried the older UNIQUE variant,
-            // which would otherwise block a legitimate second same-day shift.
-            migrationBuilder.DropIndex(
-                name: "IX_WorkLogs_EmployeeId_WorkDate_Active",
-                table: "WorkLogs");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WorkLogs_EmployeeId_WorkDate",
-                table: "WorkLogs",
-                columns: new[] { "EmployeeId", "WorkDate" });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_WorkLogs_EmployeeId_WorkDate",
-                table: "WorkLogs");
-
             migrationBuilder.CreateTable(
                 name: "OvertimeRules",
                 columns: table => new
@@ -54,18 +37,6 @@ namespace HRNexus.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_OvertimeRules", x => x.Id);
                 });
-
-            migrationBuilder.InsertData(
-                table: "OvertimeRules",
-                columns: new[] { "Id", "CreatedAt", "IsActive", "Multiplier", "Role", "ThresholdHours" },
-                values: new object[] { new Guid("11111111-0000-0000-0000-000000000001"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, 1.5m, "*", 8m });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WorkLogs_EmployeeId_WorkDate_Active",
-                table: "WorkLogs",
-                columns: new[] { "EmployeeId", "WorkDate" },
-                unique: true,
-                filter: "\"IsDeleted\" = false");
         }
     }
 }

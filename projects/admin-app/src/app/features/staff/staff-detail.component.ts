@@ -94,6 +94,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
       dateOfBirth: s.dateOfBirth ?? null,
     };
     this._initialEditForm = { ...this.editForm, roles: [...this.editForm.roles] };
+    this.touched.set(new Set());
     this.editMode.set(true);
   }
 
@@ -102,10 +103,35 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     return JSON.stringify(this.editForm) !== JSON.stringify(this._initialEditForm);
   }
 
-  /** Gates the Save button — only Staff ID and first name are required. */
+  /** Gates the Save button — only Staff ID and first name are required (email must be valid if present). */
   get isEditFormValid(): boolean {
     return !!this.editForm.staffId?.trim() &&
-      !!this.editForm.firstName?.trim();
+      !!this.editForm.firstName?.trim() &&
+      this.emailIsValid();
+  }
+
+  // ── Per-field inline validation ───────────────────────────────────────────────
+  private readonly emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  readonly touched = signal<Set<string>>(new Set());
+
+  private emailIsValid(): boolean {
+    const e = this.editForm.email?.trim();
+    return !e || this.emailRegex.test(e);
+  }
+
+  markTouched(field: string): void {
+    this.touched.update(s => new Set(s).add(field));
+  }
+
+  /** Inline error text for a field — empty when valid or not yet blurred. */
+  fieldError(field: 'staffId' | 'firstName' | 'email'): string {
+    if (!this.touched().has(field)) return '';
+    const f = this.editForm;
+    switch (field) {
+      case 'staffId':   return f.staffId?.trim()   ? '' : 'Staff ID is required.';
+      case 'firstName': return f.firstName?.trim() ? '' : 'First name is required.';
+      case 'email':     return this.emailIsValid() ? '' : 'Enter a valid email address.';
+    }
   }
 
   cancelEdit(): void {

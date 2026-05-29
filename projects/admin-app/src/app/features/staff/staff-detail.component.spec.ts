@@ -152,6 +152,30 @@ describe('StaffDetailComponent', () => {
       expect(component.isEditFormValid).toBe(true);
     });
 
+    it('returns false when email is present but malformed', () => {
+      fillValid();
+      component.editForm.email = 'bad-email';
+      expect(component.isEditFormValid).toBe(false);
+    });
+
+    // ── per-field inline validation ──────────────────────────────────────────
+    it('fieldError surfaces a required message only after the field is blurred', () => {
+      fillValid();
+      component.editForm.staffId = '';
+      expect(component.fieldError('staffId')).toBe('');   // not touched yet
+      component.markTouched('staffId');
+      expect(component.fieldError('staffId')).toBe('Staff ID is required.');
+    });
+
+    it('fieldError flags a malformed email once touched, clears when blank or valid', () => {
+      fillValid();
+      component.markTouched('email');
+      component.editForm.email = 'bad-email';
+      expect(component.fieldError('email')).toBe('Enter a valid email address.');
+      component.editForm.email = null;
+      expect(component.fieldError('email')).toBe('');
+    });
+
     it('returns false when staffId is empty', () => {
       fillValid();
       component.editForm.staffId = '';

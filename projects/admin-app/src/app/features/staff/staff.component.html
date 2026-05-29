@@ -20,11 +20,15 @@
       <div class="row g-3">
         <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.staffId' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="newStaff.staffId" placeholder="e.g. NC1001" maxlength="20" style="text-transform:uppercase" />
+          <input pInputText type="text" [(ngModel)]="newStaff.staffId" placeholder="e.g. NC1001" maxlength="20" style="text-transform:uppercase"
+                 (blur)="markTouched('staffId')" [class.input-invalid]="!!fieldError('staffId')" />
+          @if (fieldError('staffId'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.firstName' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" maxlength="100" />
+          <input pInputText type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" maxlength="100"
+                 (blur)="markTouched('firstName')" [class.input-invalid]="!!fieldError('firstName')" />
+          @if (fieldError('firstName'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
           <label>{{ 'staff.lastName' | translate }}</label>
@@ -32,7 +36,9 @@
         </div>
         <div class="col-12 col-md-6 field">
           <label>{{ 'staff.email' | translate }}</label>
-          <input pInputText type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off" />
+          <input pInputText type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off"
+                 (blur)="markTouched('email')" [class.input-invalid]="!!fieldError('email')" />
+          @if (fieldError('email'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
           <label>{{ 'staff.roles' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
@@ -56,7 +62,8 @@
             <input pInputText [type]="showNewStaffPwd() ? 'text' : 'password'"
                    [(ngModel)]="newStaff.password"
                    [placeholder]="showNewStaffPwd() ? 'Min. 8 characters' : ''"
-                   autocomplete="new-password" class="w-full" />
+                   autocomplete="new-password" class="w-full"
+                   (blur)="markTouched('password')" [class.input-invalid]="!!fieldError('password')" />
             <span class="eye-btn" role="button" tabindex="0"
                   [attr.aria-label]="showNewStaffPwd() ? 'Hide' : 'Show'"
                   (click)="showNewStaffPwd.set(!showNewStaffPwd())"
@@ -64,6 +71,7 @@
               <i [class]="showNewStaffPwd() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
             </span>
           </div>
+          @if (fieldError('password'); as err) { <small class="field-err">{{ err }}</small> }
           <p-button label="Generate" [text]="true" severity="secondary" size="small"
                     styleClass="gen-btn mt-1" (click)="generateNewStaffPassword()" />
           <small style="color:var(--p-text-muted-color)">Staff can change this on first login.</small>

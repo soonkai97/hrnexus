@@ -53,15 +53,21 @@
         <div class="row g-3">
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.staffId' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="editForm.staffId" />
+            <input pInputText type="text" [(ngModel)]="editForm.staffId"
+                   (blur)="markTouched('staffId')" [class.input-invalid]="!!fieldError('staffId')" />
+            @if (fieldError('staffId'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.email' | translate }}</label>
-            <input pInputText type="email" [(ngModel)]="editForm.email" />
+            <input pInputText type="email" [(ngModel)]="editForm.email"
+                   (blur)="markTouched('email')" [class.input-invalid]="!!fieldError('email')" />
+            @if (fieldError('email'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
             <label><span class="req">*</span> {{ 'staffDetail.firstName' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="editForm.firstName" />
+            <input pInputText type="text" [(ngModel)]="editForm.firstName"
+                   (blur)="markTouched('firstName')" [class.input-invalid]="!!fieldError('firstName')" />
+            @if (fieldError('firstName'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
             <label>{{ 'staffDetail.lastName' | translate }}</label>

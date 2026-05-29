@@ -81,6 +81,30 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
       (this.newStaff.password?.length ?? 0) >= 8;
   }
 
+  // ── Per-field inline validation ───────────────────────────────────────────────
+  private readonly emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  readonly touched = signal<Set<string>>(new Set());
+
+  /** Mark a field as blurred so its inline error can show (don't nag before first interaction). */
+  markTouched(field: string): void {
+    this.touched.update(s => new Set(s).add(field));
+  }
+
+  /** Inline error text for a field — empty string when valid or not yet touched. */
+  fieldError(field: 'staffId' | 'firstName' | 'email' | 'password'): string {
+    if (!this.touched().has(field)) return '';
+    const f = this.newStaff;
+    switch (field) {
+      case 'staffId':   return f.staffId?.trim()   ? '' : 'Staff ID is required.';
+      case 'firstName': return f.firstName?.trim() ? '' : 'First name is required.';
+      case 'password':  return (f.password?.length ?? 0) >= 8 ? '' : 'Password must be at least 8 characters.';
+      case 'email': {
+        const e = f.email?.trim();
+        return !e || this.emailRegex.test(e) ? '' : 'Enter a valid email address.';
+      }
+    }
+  }
+
   generateNewStaffPassword(): void {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
     this.newStaff.password = Array.from({ length: 10 }, () =>
@@ -150,6 +174,8 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   }
 
   openAdd(): void {
+    this.error.set('');
+    this.touched.set(new Set());
     this.showForm.set(true);
     setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
@@ -157,6 +183,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   closeForm(): void {
     this.showForm.set(false);
     this.error.set('');
+    this.touched.set(new Set());
     this.showNewStaffPwd.set(false);
     this.newStaff = { staffId: '', firstName: '', lastName: '', email: null, password: '',
       roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };

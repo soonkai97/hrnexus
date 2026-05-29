@@ -118,6 +118,31 @@ describe('StaffComponent', () => {
       expect(component.isFormValid).toBe(true);
     });
 
+    // ── per-field inline validation ──────────────────────────────────────────
+    it('fieldError stays empty until the field is blurred (no nagging before interaction)', () => {
+      component.newStaff.staffId = '';
+      expect(component.fieldError('staffId')).toBe('');   // not touched yet
+      component.markTouched('staffId');
+      expect(component.fieldError('staffId')).toBe('Staff ID is required.');
+    });
+
+    it('fieldError flags an invalid email but accepts a blank one (optional)', () => {
+      component.markTouched('email');
+      component.newStaff.email = 'not-an-email';
+      expect(component.fieldError('email')).toBe('Enter a valid email address.');
+      component.newStaff.email = '';
+      expect(component.fieldError('email')).toBe('');
+      component.newStaff.email = 'ok@test.com';
+      expect(component.fieldError('email')).toBe('');
+    });
+
+    it('fieldError clears once a required field is filled', () => {
+      component.markTouched('firstName');
+      expect(component.fieldError('firstName')).toBe('First name is required.');
+      component.newStaff.firstName = 'Alice';
+      expect(component.fieldError('firstName')).toBe('');
+    });
+
     it('returns false when staffId is empty', () => {
       fillValidForm();
       component.newStaff.staffId = '';

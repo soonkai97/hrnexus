@@ -13,7 +13,7 @@ public class PushNotificationService(
     IConfiguration config,
     ILogger<PushNotificationService> logger) : IPushNotificationService
 {
-    private readonly string _subject    = config["WebPush:Subject"]    ?? "mailto:admin@nightcrew.app";
+    private readonly string _subject    = config["WebPush:Subject"]    ?? "mailto:chiansoonkai97@gmail.com";
     private readonly string _publicKey  = config["WebPush:PublicKey"]  ?? string.Empty;
     private readonly string _privateKey = config["WebPush:PrivateKey"] ?? string.Empty;
 

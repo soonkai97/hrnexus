@@ -8,7 +8,7 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, LangService, SignalRService, NotificationService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, LangService, SignalRService } from 'shared-lib';
 
 interface NavItem {
   path: string;
@@ -72,9 +72,6 @@ export class ShellComponent implements AfterViewInit {
   readonly lang              = inject(LangService);
   readonly featureSvc        = inject(FeatureFlagService);
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
-
-  readonly notifSvc          = inject(NotificationService);
-  readonly unreadNotifications = computed(() => this.notifSvc.unreadCount());
 
   constructor() {
     this.featureSvc.load().subscribe();

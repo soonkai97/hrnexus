@@ -35,9 +35,6 @@
           @if (!collapsed()) {
             <span class="nav-label">{{ item.labelKey | translate }}</span>
           }
-          @if (item.path === '/notifications' && unreadNotifications() > 0) {
-            <span class="nav-badge">{{ unreadNotifications() > 99 ? '99+' : unreadNotifications() }}</span>
-          }
           <span class="nav-indicator"></span>
         </a>
       }

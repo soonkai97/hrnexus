@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.Admin.Queries;
 
@@ -31,10 +30,9 @@ public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider
         var startOfYear = new DateTime(year,     1, 1, 0, 0, 0, DateTimeKind.Utc);
         var endOfYear   = new DateTime(year + 1, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(-1);
 
-        // All active staff except super-admin/system accounts (they don't take tracked leave), sorted by name
+        // All active staff, sorted by name
         var staff = await db.Staff
-            .Where(s => s.IsActive
-                     && !db.StaffRoles.Any(r => r.EmployeeId == s.Id && r.Role == AppConstants.Roles.Admin))
+            .Where(s => s.IsActive)
             .OrderBy(s => s.FirstName).ThenBy(s => s.LastName)
             .Select(s => new { s.Id, s.StaffId, s.FirstName, s.LastName })
             .ToListAsync(ct);

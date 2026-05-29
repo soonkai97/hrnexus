@@ -121,17 +121,6 @@ describe('LeaveComponent', () => {
       expect(mockStaffStore.loadStaff).toHaveBeenCalled();
     });
 
-    it('staffOptions excludes SUPERADMIN/system accounts from the filter dropdown', () => {
-      mockStaffStore.staff.mockReturnValue([
-        { id: '1', fullName: 'SK C',     roles: ['MANAGER'] },
-        { id: '2', fullName: 'HR Admin', roles: ['SUPERADMIN'] },
-        { id: '3', fullName: 'SK CC',    roles: ['STAFF'] },
-      ]);
-      const names = component.staffOptions().map(s => s.fullName);
-      expect(names).toEqual(['SK C', 'SK CC']);
-      expect(names).not.toContain('HR Admin');
-    });
-
     it('loads leave records for the table', () => {
       component.ngOnInit();
       expect(mockLeaveSvc.getAll).toHaveBeenCalled();

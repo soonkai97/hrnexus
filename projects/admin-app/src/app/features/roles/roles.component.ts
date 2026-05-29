@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -27,8 +27,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
-  // Hide the SUPERADMIN/system role — it's not a manageable staff role (rate is N/A, can't be deleted)
-  readonly roles   = computed(() => this.store.roles().filter(r => r.name.toUpperCase() !== 'SUPERADMIN'));
+  readonly roles   = this.store.roles;
   readonly loading = this.store.loading;
 
   showForm    = signal(false);

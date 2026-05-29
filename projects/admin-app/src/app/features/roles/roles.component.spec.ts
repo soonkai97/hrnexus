@@ -71,19 +71,6 @@ describe('RolesComponent', () => {
     expect(mockStaffStore.loadRoles).toHaveBeenCalled();
   });
 
-  // ── SUPERADMIN exclusion ──────────────────────────────────────────────────────
-
-  it('hides the SUPERADMIN/system role — it is not a manageable staff role', () => {
-    mockStaffStore.roles.mockReturnValue([
-      { name: 'MANAGER',    isSystem: true,  hourlyRate: 30 },
-      { name: 'SUPERADMIN', isSystem: true,  hourlyRate: 0  },
-      { name: 'BARTENDER',  isSystem: false, hourlyRate: 20 },
-    ]);
-    const names = component.roles().map(r => r.name);
-    expect(names).toEqual(['MANAGER', 'BARTENDER']);
-    expect(names).not.toContain('SUPERADMIN');
-  });
-
   // ── addRole() ─────────────────────────────────────────────────────────────────
 
   describe('addRole()', () => {

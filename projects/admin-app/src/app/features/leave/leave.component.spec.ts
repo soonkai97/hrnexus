@@ -183,14 +183,16 @@ describe('LeaveComponent', () => {
       expect(component.formError()).toBe('Please fill in all required fields.');
     });
 
-    it('sets formError when no times and no manual hours are provided', () => {
+    it('sets formError when the start/end time pickers are not set', () => {
       component.form.employeeId = 'e1';
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-05';
       component.form.hours      = null;
-      // form.startTime/endTime are null by default → no auto-calculated hours
+      // start/end time pickers are required by save() — none set here
+      component.startTimeDate   = null;
+      component.endTimeDate     = null;
       component.save();
-      expect(component.formError()).toBe('Please enter start/end times or specify hours manually.');
+      expect(component.formError()).toBe('Please fill in all required fields.');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
     });
 
@@ -219,6 +221,10 @@ describe('LeaveComponent', () => {
       };
       component.form.startTime = null;
       component.form.endTime   = null;
+      // save() requires the time pickers; with a 4-day date span any valid
+      // times yield positive hours so the create/update path is reached.
+      component.startTimeDate = new Date(2026, 5, 1, 9, 0);
+      component.endTimeDate   = new Date(2026, 5, 1, 17, 0);
       component.editing.set(null);
     });
 
@@ -263,6 +269,9 @@ describe('LeaveComponent', () => {
       };
       component.form.startTime = null;
       component.form.endTime   = null;
+      // save() requires the time pickers (see create block above).
+      component.startTimeDate = new Date(2026, 5, 1, 9, 0);
+      component.endTimeDate   = new Date(2026, 5, 1, 17, 0);
       component.editing.set('r-existing');
     });
 

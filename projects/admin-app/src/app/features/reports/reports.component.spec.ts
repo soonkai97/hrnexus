@@ -127,29 +127,9 @@ describe('ReportsComponent', () => {
       expect(mockStaffSvc.getAll).toHaveBeenCalledWith('', 1, 999);
     });
 
-    it('staffOptions excludes SUPERADMIN/system accounts from the staff filter', () => {
-      component.allStaff.set([
-        { id: '1', fullName: 'SK CC',    roles: ['STAFF'] },
-        { id: '2', fullName: 'HR Admin', roles: ['SUPERADMIN'] },
-      ] as any);
-      const names = component.staffOptions().map(s => s.fullName);
-      expect(names).toEqual(['SK CC']);
-      expect(names).not.toContain('HR Admin');
-    });
-
     it('loads roles so the role filter is populated', () => {
       component.ngOnInit();
       expect(mockStaffStore.loadRoles).toHaveBeenCalled();
-    });
-
-    it('excludes the SUPERADMIN role from the report role filter', () => {
-      mockStaffStore.roles.mockReturnValue([
-        { name: 'BARTENDER',  isSystem: false, hourlyRate: 20 },
-        { name: 'SUPERADMIN', isSystem: true,  hourlyRate: 0  },
-      ]);
-      const names = component.staffRoles().map(r => r.name);
-      expect(names).toEqual(['BARTENDER']);
-      expect(names).not.toContain('SUPERADMIN');
     });
 
     it('fetches location names for the location filter', () => {

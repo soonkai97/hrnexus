@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.Admin.Queries;
 
@@ -38,8 +37,7 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
         var endDt   = startDt.AddMonths(1).AddTicks(-1);
 
         var employees = await db.Staff
-            .Where(e => e.IsActive
-                     && !db.StaffRoles.Any(r => r.EmployeeId == e.Id && r.Role == AppConstants.Roles.Admin))
+            .Where(e => e.IsActive)
             .OrderBy(e => e.StaffId)
             .ToListAsync(ct);
 

@@ -82,8 +82,10 @@ public class AuthCommandTests
     }
 
     [Fact]
-    public async Task Login_ThrowsUnauthorized_WhenAdminAccessesStaffPortal()
+    public async Task Login_Succeeds_WhenAdminAccessesStaffPortal()
     {
+        // Superadmins are treated as normal users in the staff portal — they can log in there
+        // (e.g. to record their own shifts/leave). Only the admin portal is role-gated.
         await using var db = CreateDb();
         db.Staff.Add(MakeStaff(roles: new List<string> { "SUPERADMIN" }));
         await db.SaveChangesAsync();
@@ -91,8 +93,10 @@ public class AuthCommandTests
 
         var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService());
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None));
+        var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result.AccessToken);
     }
 
     [Fact]

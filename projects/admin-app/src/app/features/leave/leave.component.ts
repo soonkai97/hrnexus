@@ -40,11 +40,6 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
 })
 export class LeaveComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
-
-  /** Staff filter options — excludes SUPERADMIN/system accounts (they don't take tracked leave). */
-  readonly staffOptions = computed(() =>
-    this.staffStore.staff().filter(s => !s.roles.includes('SUPERADMIN')));
-
   private readonly leaveSvc   = inject(LeaveService);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);

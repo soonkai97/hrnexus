@@ -28,12 +28,11 @@ public class LoginCommandHandler(IAppDbContext db, IPasswordHasher hasher, IToke
         if (!hasher.Verify(req.Password, employee.PasswordHash))
             throw new UnauthorizedAccessException("Invalid credentials.");
 
-        // Portal access control
+        // Portal access control. Superadmins/managers are treated as normal users in the
+        // staff portal (they can log their own shifts / leave there); only the admin portal
+        // is gated to elevated roles.
         var isAdmin    = employee.Roles.Any(r => r.Equals(AppConstants.Roles.Admin,   StringComparison.OrdinalIgnoreCase));
         var isElevated = isAdmin || employee.Roles.Any(r => r.Equals(AppConstants.Roles.Manager, StringComparison.OrdinalIgnoreCase));
-
-        if (req.Portal == "staff" && isAdmin)
-            throw new UnauthorizedAccessException("Admin accounts cannot access the staff portal.");
 
         if (req.Portal == "admin" && !isElevated)
             throw new UnauthorizedAccessException("Access denied. Manager or Admin role required.");

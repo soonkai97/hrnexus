@@ -7,7 +7,7 @@ public class Notification
     public Guid    EmployeeId { get; private set; }
     public string  Title      { get; private set; } = default!;
     public string  Message    { get; private set; } = default!;
-    /// <summary>leave_approved | leave_rejected | leave_pending | missed_clockin | roster_assigned</summary>
+    /// <summary>leave_approved | leave_rejected | leave_pending | password_reset | message | announcement | stale_shift | stale_shift_admin</summary>
     public string  Type       { get; private set; } = default!;
     public bool    IsRead     { get; private set; }
     public DateTime CreatedAt { get; private set; }

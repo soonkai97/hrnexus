@@ -48,8 +48,6 @@ public static class AppConstants
         public const string LeaveApproved  = "leave_approved";
         public const string LeaveRejected  = "leave_rejected";
         public const string LeavePending   = "leave_pending";
-        public const string MissedClockIn  = "missed_clockin";
-        public const string RosterAssigned = "roster_assigned";
         public const string Message        = "message";
         public const string Announcement   = "announcement";
         public const string Tips           = "tips";

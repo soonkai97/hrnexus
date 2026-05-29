@@ -2,8 +2,6 @@ export type NotificationType =
   | 'leave_approved'
   | 'leave_rejected'
   | 'leave_pending'
-  | 'missed_clockin'
-  | 'roster_assigned'
   | 'password_reset'
   | 'message'
   | 'announcement'

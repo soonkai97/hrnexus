@@ -99,8 +99,6 @@ export class NotificationBellComponent implements OnInit {
       case 'leave_pending':     return '/leave';
       case 'stale_shift':       return '/log-shift';
       case 'stale_shift_admin': return '/dashboard';
-      case 'roster_assigned':
-      case 'missed_clockin':    return '/log-shift';
       case 'password_reset':    return '/staff';
       default:                  return null;
     }
@@ -111,8 +109,6 @@ export class NotificationBellComponent implements OnInit {
       case 'leave_approved':  return '✅';
       case 'leave_rejected':  return '❌';
       case 'leave_pending':   return '📋';
-      case 'missed_clockin':  return '⚠️';
-      case 'roster_assigned': return '📅';
       case 'password_reset':  return '🔐';
       default:                return '🔔';
     }

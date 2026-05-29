@@ -473,7 +473,7 @@ load(): void {
 }
 ```
 
-Rule: use `<p-skeleton>` for initial page loads (>150 ms). Use `[loading]="saving()"` on PrimeNG buttons for action waits. Use `<p-progressspinner>` only for section-level reloads (e.g. paginating).
+Rule: use `<p-skeleton>` for initial page loads (>150 ms). Use `[loading]="saving()"` on PrimeNG buttons for action waits. Section-level reloads (e.g. paginating) reuse the same skeleton/`loading()` guard — there is no full-page `<p-progressspinner>` anywhere in the codebase, and none should be added (skeletons + button spinners are the only loading patterns). `<p-progressbar>` is reserved for data visualization (leave-balance ratios, cost bars), never as a loading indicator.
 
 ---
 

@@ -32,6 +32,10 @@ export class ShellComponent implements AfterViewInit {
   // ── Offline detection ──────────────────────────────────────────────────────
   isOffline = signal(false);
 
+  // Shown the instant Sign Out is tapped so the navigation/teardown gap doesn't
+  // look like a frozen screen.
+  signingOut = signal(false);
+
   // ── Pull-to-refresh ────────────────────────────────────────────────────────
   pullProgress = signal(0);   // 0–100
   private ptStartY = 0;
@@ -152,5 +156,9 @@ export class ShellComponent implements AfterViewInit {
   }
 
   toggleSidebar(): void { this.collapsed.update(v => !v); }
-  logout(): void { this.signalR.stopConnection(); this.auth.logout(); }
+  logout(): void {
+    this.signingOut.set(true);
+    // Defer one macrotask so the overlay paints before the route teardown/navigation.
+    setTimeout(() => { this.signalR.stopConnection(); this.auth.logout(); });
+  }
 }

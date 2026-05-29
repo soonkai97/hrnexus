@@ -232,6 +232,14 @@ export class ShellComponent implements AfterViewInit {
     { label: 'Sign Out', icon: 'pi pi-power-off', command: () => this.logout() },
   ]);
 
+  // Shown the instant Sign Out is tapped so the navigation/teardown gap doesn't
+  // look like a frozen screen.
+  signingOut = signal(false);
+
   toggleSidebar(): void { this.collapsed.update(v => !v); }
-  logout(): void { this.signalR.stopConnection(); this.auth.logout(); }
+  logout(): void {
+    this.signingOut.set(true);
+    // Defer one macrotask so the overlay paints before the route teardown/navigation.
+    setTimeout(() => { this.signalR.stopConnection(); this.auth.logout(); });
+  }
 }

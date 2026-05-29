@@ -181,6 +181,7 @@
     "loading": "Loading…",
     "save":    "Save",
     "saving":  "Saving…",
+    "signingOut": "Signing out…",
     "cancel":  "Cancel",
     "confirm": "Confirm",
     "delete":  "Delete",

@@ -26,8 +26,8 @@ describe('ShellComponent', () => {
   let mockAuth:       { user: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
   let mockLang:       { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn> };
   let mockFeature:    { load: ReturnType<typeof vi.fn>; flags: ReturnType<typeof vi.fn>; isEnabled: ReturnType<typeof vi.fn> };
-  let mockSignalR:    { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn> };
-  let mockNotifSvc:   { unreadCount: ReturnType<typeof vi.fn> };
+  let mockSignalR:    { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn>; notifications$: unknown };
+  let mockNotifSvc:   { unreadCount: ReturnType<typeof vi.fn>; load: ReturnType<typeof vi.fn>; push: ReturnType<typeof vi.fn> };
   let mockAppUpdate:  { init: ReturnType<typeof vi.fn> };
 
   function createComponent(userRoles: string[] = ['SUPERADMIN']) {
@@ -46,8 +46,8 @@ describe('ShellComponent', () => {
       }),
       isEnabled: vi.fn().mockReturnValue(false),
     };
-    mockSignalR   = { startConnection: vi.fn(), stopConnection: vi.fn() };
-    mockNotifSvc  = { unreadCount: vi.fn().mockReturnValue(0) };
+    mockSignalR   = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
+    mockNotifSvc  = { unreadCount: vi.fn().mockReturnValue(0), load: vi.fn().mockReturnValue(of(undefined)), push: vi.fn() };
     mockAppUpdate = { init: vi.fn() };
 
     await TestBed.configureTestingModule({
@@ -195,15 +195,24 @@ describe('ShellComponent', () => {
   // ── logout() ─────────────────────────────────────────────────────────────────
 
   describe('logout()', () => {
-    it('stops SignalR connection before logging out', () => {
+    it('shows the signing-out overlay immediately (sync feedback)', async () => {
       const c = createComponent();
       c.logout();
+      expect(c.signingOut()).toBe(true);          // set synchronously, before nav
+      await new Promise(r => setTimeout(r));        // drain the deferred timer
+    });
+
+    it('stops SignalR connection before logging out', async () => {
+      const c = createComponent();
+      c.logout();
+      await new Promise(r => setTimeout(r));   // flush the deferred navigation
       expect(mockSignalR.stopConnection).toHaveBeenCalled();
     });
 
-    it('calls auth.logout() to clear the session', () => {
+    it('calls auth.logout() to clear the session', async () => {
       const c = createComponent();
       c.logout();
+      await new Promise(r => setTimeout(r));
       expect(mockAuth.logout).toHaveBeenCalled();
     });
   });

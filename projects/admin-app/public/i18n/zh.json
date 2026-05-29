@@ -19,6 +19,7 @@
   "common": {
     "save":      "保存",
     "saving":    "保存中…",
+    "signingOut": "正在登出…",
     "cancel":    "取消",
     "delete":    "删除",
     "edit":      "编辑",

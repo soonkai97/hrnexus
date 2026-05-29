@@ -3,7 +3,7 @@
 
 .tab-badge {
   background: rgba(251,191,36,0.2);
-  color: #fbbf24;
+  color: #d97706;
   border: 1px solid rgba(251,191,36,0.35);
   font-size: 0.68rem;
   font-weight: 700;
@@ -15,7 +15,7 @@
 .hours-preview {
   display: inline-flex; align-items: center; gap: 0.4rem;
   font-size: 0.85rem; font-weight: 600; color: $neon-purple;
-  background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
+  background: rgba(37, 99, 235,0.1); border: 1px solid rgba(37, 99, 235,0.25);
   border-radius: $radius-pill; padding: 0.3rem 0.8rem;
 }
 
@@ -41,7 +41,7 @@
   strong { color: $text-primary; }
   &[data-type="sick"]    strong { color: $danger; }
   &[data-type="annual"]  strong { color: $neon-green; }
-  &[data-type="no-show"] strong { color: #fbbf24; }
+  &[data-type="no-show"] strong { color: #d97706; }
 }
 
 // ── Overdue pending banner ────────────────────────────────────────────────────
@@ -60,7 +60,7 @@
   &:hover { background: rgba(251,191,36,0.1); }
 }
 .overdue-banner-title {
-  font-size: 0.875rem; font-weight: 700; color: #fbbf24; white-space: nowrap;
+  font-size: 0.875rem; font-weight: 700; color: #d97706; white-space: nowrap;
 }
 .overdue-banner-desc {
   font-size: 0.78rem; color: $text-muted; flex: 1;
@@ -90,7 +90,7 @@
 .overdue-noshow-btn {
   padding: 0.25rem 0.6rem; font-size: 0.78rem; font-weight: 600;
   background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
-  color: #fbbf24; border-radius: $radius-sm; cursor: pointer;
+  color: #d97706; border-radius: $radius-sm; cursor: pointer;
   transition: background $transition-fast;
   &:hover { background: rgba(251,191,36,0.22); }
 }
@@ -157,7 +157,7 @@
 .bal-row-label { font-size: 0.75rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em; }
 .bal-bar       { flex: 1; }
 .bal-row-nums  { font-size: 0.8rem; color: $text-secondary; text-align: right; strong { color: $text-primary; } }
-.bal-not-set   { font-size: 0.75rem; color: #fbbf24; font-style: italic; }
+.bal-not-set   { font-size: 0.75rem; color: #d97706; font-style: italic; }
 
 // PrimeNG progressbar overrides for balance bars
 :host :deep(.bal-bar .p-progressbar) {
@@ -181,8 +181,8 @@
 
 // ── Bulk entitlement panel ────────────────────────────────────────────────────
 .bulk-ent-panel {
-  background: rgba(168,85,247,0.06);
-  border: 1px solid rgba(168,85,247,0.2);
+  background: rgba(37, 99, 235,0.06);
+  border: 1px solid rgba(37, 99, 235,0.2);
   border-radius: $radius-md;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
@@ -200,7 +200,7 @@
   border-bottom: 1px solid $border-subtle; cursor: pointer;
   transition: background $transition-fast;
   &:last-child { border-bottom: none; }
-  &:hover { background: rgba(168,85,247,0.04); margin: 0 -1.25rem; padding: 0.75rem 1.25rem; }
+  &:hover { background: rgba(37, 99, 235,0.04); margin: 0 -1.25rem; padding: 0.75rem 1.25rem; }
 }
 .staff-bal-name     { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
 .staff-bal-fullname { font-size: 0.875rem; font-weight: 600; color: $text-primary; }
@@ -210,9 +210,9 @@
 .bal-chip {
   display: inline-block; border-radius: 99px; font-size: 0.75rem; font-weight: 600;
   padding: 0.2rem 0.6rem; white-space: nowrap;
-  &.bal-chip-ok     { background: rgba(74,222,128,0.1);  color: $neon-green; border: 1px solid rgba(74,222,128,0.25); }
+  &.bal-chip-ok     { background: rgba(22, 163, 74,0.1);  color: $neon-green; border: 1px solid rgba(22, 163, 74,0.25); }
   &.bal-chip-warn   { background: rgba(239,68,68,0.08);  color: $danger; border: 1px solid rgba(239,68,68,0.22); }
-  &.bal-chip-unpaid { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+  &.bal-chip-unpaid { background: rgba(251,191,36,0.1);  color: #d97706; border: 1px solid rgba(251,191,36,0.25); }
 }
 
 // ── Calendar ─────────────────────────────────────────────────────────────────
@@ -236,11 +236,11 @@
   background: transparent; border: 1px solid $border-subtle;
   border-radius: 6px; position: relative;
   transition: background $transition-fast;
-  &:hover { background: rgba(168,85,247,0.05); }
+  &:hover { background: rgba(37, 99, 235,0.05); }
   &.cal-blank    { border-color: transparent; cursor: default !important; &:hover { background: transparent; } }
-  &.cal-weekend  { background: rgba(168,85,247,0.03); }
+  &.cal-weekend  { background: rgba(37, 99, 235,0.03); }
   &.cal-today    { border-color: $neon-purple !important; box-shadow: inset 0 0 0 1px $neon-purple; }
-  &.cal-selected { background: rgba(168,85,247,0.12) !important; border-color: rgba(168,85,247,0.5) !important; }
+  &.cal-selected { background: rgba(37, 99, 235,0.12) !important; border-color: rgba(37, 99, 235,0.5) !important; }
 }
 .cal-day-num {
   font-size: 0.72rem; font-weight: 700; color: $text-secondary; display: block; margin-bottom: 3px;
@@ -251,9 +251,9 @@
   font-size: 0.58rem; font-weight: 600; border-radius: 3px;
   padding: 1px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.cal-leave-annual  { background: rgba(74,222,128,0.18);  color: $neon-green; }
+.cal-leave-annual  { background: rgba(22, 163, 74,0.18);  color: $neon-green; }
 .cal-leave-sick    { background: rgba(239,68,68,0.15);   color: $danger; }
-.cal-leave-unpaid  { background: rgba(168,85,247,0.15);  color: $neon-purple; }
+.cal-leave-unpaid  { background: rgba(37, 99, 235,0.15);  color: $neon-purple; }
 .cal-leave-no-show { background: rgba(251,191,36,0.15);  color: $neon-amber; }
 .cal-leave-overdue { outline: 1px solid rgba(251,191,36,0.7); animation: overdue-pulse 2.5s ease-in-out infinite; }
 .cal-leave-more { font-size: 0.56rem; color: $text-muted; }
@@ -293,7 +293,7 @@
   background: $bg-raised; border: 1px solid $border-subtle;
   border-radius: $radius-sm; cursor: pointer;
   transition: background $transition-fast, border-color $transition-fast;
-  &:hover { background: rgba(168,85,247,0.07); border-color: rgba(168,85,247,0.3); }
+  &:hover { background: rgba(37, 99, 235,0.07); border-color: rgba(37, 99, 235,0.3); }
   &.cal-day-row-locked { cursor: default;
     &:hover { background: $bg-raised; border-color: $border-subtle; }
   }
@@ -310,7 +310,7 @@
 .leave-card  {
   padding: 1rem 1.25rem;
   &.leave-card-overdue {
-    border-left: 3px solid #fbbf24 !important;
+    border-left: 3px solid #d97706 !important;
   }
 }
 
@@ -323,7 +323,7 @@
 
 .overdue-badge {
   font-size: 0.68rem; font-weight: 700;
-  background: rgba(251,191,36,0.12); color: #fbbf24;
+  background: rgba(251,191,36,0.12); color: #d97706;
   border: 1px solid rgba(251,191,36,0.35);
   border-radius: 999px; padding: 0.1rem 0.5rem;
   white-space: nowrap;
@@ -348,10 +348,10 @@
 .leave-dates-text { font-size: 0.85rem; color: $text-secondary; }
 .leave-days-pill {
   font-size: 0.75rem; font-weight: 700; color: $neon-purple;
-  background: rgba(168,85,247,0.1); border-radius: $radius-pill; padding: 0.1rem 0.5rem;
+  background: rgba(37, 99, 235,0.1); border-radius: $radius-pill; padding: 0.1rem 0.5rem;
 }
 .period-tag {
-  font-size: 0.72rem; font-weight: 700; color: #fbbf24;
+  font-size: 0.72rem; font-weight: 700; color: #d97706;
   background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25);
   border-radius: $radius-pill; padding: 0.1rem 0.45rem;
 }
@@ -363,14 +363,14 @@
 .cert-row-inline {
   display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;
 }
-.cert-missing { font-size: 0.78rem; color: #fbbf24; }
+.cert-missing { font-size: 0.78rem; color: #d97706; }
 .cert-link    { font-size: 0.8rem; color: $neon-purple; text-decoration: none; &:hover { text-decoration: underline; } }
 .btn-xs-upload {
   font-size: 0.73rem; padding: 0.2rem 0.6rem;
-  background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25);
+  background: rgba(37, 99, 235,0.1); border: 1px solid rgba(37, 99, 235,0.25);
   border-radius: $radius-sm; color: $neon-purple; cursor: pointer;
   transition: background $transition-fast;
-  &:hover { background: rgba(168,85,247,0.25); }
+  &:hover { background: rgba(37, 99, 235,0.25); }
 }
 
 // Inline icon buttons inside the leave card header
@@ -378,10 +378,10 @@
   background: none; border: none; cursor: pointer; padding: 0.2rem 0.35rem;
   border-radius: 6px; font-size: 0.9rem; color: $text-muted; line-height: 1;
   transition: background $transition-fast, color $transition-fast;
-  &:hover { background: rgba(168,85,247,0.1); color: $text-primary; }
+  &:hover { background: rgba(37, 99, 235,0.1); color: $text-primary; }
   &.lc-icon-danger:hover { background: rgba(239,68,68,0.12); color: $danger; }
-  &.lc-reopen-btn { color: #fbbf24;
-    &:hover { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  &.lc-reopen-btn { color: #d97706;
+    &:hover { background: rgba(251,191,36,0.12); color: #d97706; }
   }
 }
 
@@ -393,10 +393,10 @@
 
 .btn-approve {
   padding: 0.35rem 0.85rem; font-size: 0.82rem; font-weight: 600;
-  background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3);
+  background: rgba(22, 163, 74,0.1); border: 1px solid rgba(22, 163, 74,0.3);
   color: $neon-green; border-radius: $radius-sm; cursor: pointer;
   transition: background $transition-fast;
-  &:hover { background: rgba(74,222,128,0.22); }
+  &:hover { background: rgba(22, 163, 74,0.22); }
 }
 .btn-reject {
   padding: 0.35rem 0.85rem; font-size: 0.82rem; font-weight: 600;
@@ -449,8 +449,8 @@ p.text-center { color: $text-muted; }
   i { font-size: 0.7rem; }
   small { font-size: 0.68rem; font-weight: 400; color: inherit; opacity: 0.8; }
   &.form-balance-annual {
-    background: rgba(74,222,128,0.1); color: $neon-green;
-    border: 1px solid rgba(74,222,128,0.25);
+    background: rgba(22, 163, 74,0.1); color: $neon-green;
+    border: 1px solid rgba(22, 163, 74,0.25);
   }
   &.form-balance-sick {
     background: rgba(239,68,68,0.08); color: $danger;
@@ -464,7 +464,7 @@ p.text-center { color: $text-muted; }
 
 // ── Item 8: Emergency note in balance ─────────────────────────────────────────
 .bal-emergency-note {
-  display: block; font-size: 0.68rem; color: #fbbf24; font-weight: 400;
+  display: block; font-size: 0.68rem; color: #d97706; font-weight: 400;
   margin-top: 0.15rem;
 }
 
@@ -484,7 +484,7 @@ p.text-center { color: $text-muted; }
 .bulk-action-bar {
   display: flex; align-items: center; justify-content: space-between;
   gap: 0.75rem; flex-wrap: wrap;
-  background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2);
+  background: rgba(37, 99, 235,0.06); border: 1px solid rgba(37, 99, 235,0.2);
   border-radius: $radius-sm; padding: 0.6rem 1rem; margin-bottom: 0.75rem;
 }
 .bulk-action-bar-left  { display: flex; align-items: center; gap: 0.65rem; }
@@ -504,8 +504,8 @@ p.text-center { color: $text-muted; }
 
 // ── Item 3: Selected card highlight ───────────────────────────────────────────
 .leave-card-selected {
-  border: 1px solid rgba(168,85,247,0.4) !important;
-  background: rgba(168,85,247,0.04) !important;
+  border: 1px solid rgba(37, 99, 235,0.4) !important;
+  background: rgba(37, 99, 235,0.04) !important;
 }
 
 // ── Item 1: Inline rejection reason form ──────────────────────────────────────
@@ -559,7 +559,7 @@ p.text-center { color: $text-muted; }
 .pattern-warning-badge {
   display: inline-flex; align-items: center; gap: 0.25rem;
   font-size: 0.65rem; font-weight: 700;
-  background: rgba(251,191,36,0.12); color: #fbbf24;
+  background: rgba(251,191,36,0.12); color: #d97706;
   border: 1px solid rgba(251,191,36,0.35);
   border-radius: 999px; padding: 0.1rem 0.45rem;
   white-space: nowrap; cursor: default;
@@ -582,7 +582,7 @@ p.text-center { color: $text-muted; }
 .pw-id   { font-size: 0.72rem; color: $text-muted; }
 .pw-stats { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .pw-count {
-  font-size: 0.85rem; font-weight: 800; color: #fbbf24;
+  font-size: 0.85rem; font-weight: 800; color: #d97706;
   background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);
   border-radius: $radius-sm; padding: 0.15rem 0.5rem;
 }
@@ -611,7 +611,7 @@ p.text-center { color: $text-muted; }
   transition: background $transition-fast;
   font-size: 0.82rem;
   &:last-child { border-bottom: none; }
-  &:hover { background: rgba(168,85,247,0.04); margin: 0 -1.25rem; padding: 0.5rem 1.25rem; }
+  &:hover { background: rgba(37, 99, 235,0.04); margin: 0 -1.25rem; padding: 0.5rem 1.25rem; }
 }
 .ls-name-col {
   display: flex; flex-direction: column; gap: 0.1rem;

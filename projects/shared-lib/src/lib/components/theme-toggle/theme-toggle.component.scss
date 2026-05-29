@@ -3,7 +3,7 @@
   height: 34px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid rgba(168,85,247,0.25) !important;
+  border: 1px solid rgba(37, 99, 235,0.25) !important;
   background: rgba(13,13,22,0.7) !important;
   color: #f0eeff !important;
   font-size: 1rem;
@@ -11,7 +11,7 @@
   transition: background 0.2s, border-color 0.2s;
 
   &:hover {
-    background: rgba(168,85,247,0.2) !important;
-    border-color: rgba(168,85,247,0.5) !important;
+    background: rgba(37, 99, 235,0.2) !important;
+    border-color: rgba(37, 99, 235,0.5) !important;
   }
 }

@@ -3,7 +3,7 @@
 .filter-card  { padding: 1.25rem; margin-bottom: 1.25rem; }
 .field        { display: flex; flex-direction: column; gap: 0.25rem; }
 .field label  { font-size: 0.8rem; color: $text-muted; }
-.summary-bar  { padding: 1rem 1.25rem; background: rgba(168,85,247,0.08); border: 1px solid $border-glow; border-radius: $radius-md; margin-bottom: 1rem; }
+.summary-bar  { padding: 1rem 1.25rem; background: rgba(37, 99, 235,0.08); border: 1px solid $border-glow; border-radius: $radius-md; margin-bottom: 1rem; }
 .summary-label  { font-size: 0.875rem; color: $text-muted; }
 .summary-amount { font-size: 1.4rem; font-weight: 700; color: $neon-purple; flex: 1; }
 .export-btn   { margin-left: auto; }
@@ -20,7 +20,7 @@
   background: rgba(251, 191, 36, 0.1);
   border: 1px solid rgba(251, 191, 36, 0.35);
   border-radius: $radius-md;
-  color: #fbbf24;
+  color: #d97706;
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }

@@ -12,8 +12,8 @@
   --nc-text-primary:   #f0eeff;
   --nc-text-secondary: #a09ab8;
   --nc-text-muted:     #7b7698;
-  --nc-border-subtle:  rgba(168, 85, 247, 0.12);
-  --nc-border-glow:    rgba(168, 85, 247, 0.4);
+  --nc-border-subtle:  rgba(37, 99, 235, 0.12);
+  --nc-border-glow:    rgba(37, 99, 235, 0.4);
 
   // ── Unprefixed aliases for inline template styles ─────────────────────────
   --text-primary:   var(--nc-text-primary);
@@ -189,7 +189,7 @@ input[type="time"] {
   h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
   p  { color: $text-secondary; font-size: 0.9rem; margin-bottom: 1.5rem; }
 
-  &.state-success { border-color: rgba(74,222,128,0.35); }
+  &.state-success { border-color: rgba(22, 163, 74,0.35); }
   &.state-error   { border-color: rgba(239,68,68,0.3); }
 }
 
@@ -251,8 +251,8 @@ input[type="time"] {
   app-shell .sidebar-top  { border-color: var(--nc-border-subtle) !important; }
   app-shell .sidebar-footer { border-color: var(--nc-border-subtle) !important; }
   app-shell .nav-item { color: var(--nc-text-secondary) !important; }
-  app-shell .nav-item:hover  { background: rgba(120,60,200,0.07) !important; color: var(--nc-text-primary) !important; }
-  app-shell .nav-item.active { background: rgba(120,60,200,0.12) !important; color: #7c3aed !important; }
+  app-shell .nav-item:hover  { background: rgba(37,99,235,0.07) !important; color: var(--nc-text-primary) !important; }
+  app-shell .nav-item.active { background: rgba(37,99,235,0.12) !important; color: #1d4ed8 !important; }
   app-shell .nav-icon { filter: none !important; }
   app-shell .user-info .user-name { color: var(--nc-text-primary) !important; }
   app-shell .user-info .user-role { color: var(--nc-text-muted) !important; }
@@ -272,7 +272,7 @@ input[type="time"] {
   }
   app-shell .bn-item { color: var(--nc-text-muted) !important; }
   app-shell .bn-item:hover,
-  app-shell .bn-item.active { color: #7c3aed !important; }
+  app-shell .bn-item.active { color: #1d4ed8 !important; }
 
   // Login page
   .login-page { background: var(--nc-bg-base) !important; }
@@ -387,7 +387,7 @@ input[type="time"] {
 .form-actions {
   margin-top: 0.85rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(168,85,247,0.12);
+  border-top: 1px solid rgba(37, 99, 235,0.12);
 }
 
 .icon-btn {
@@ -401,7 +401,7 @@ input[type="time"] {
   position: fixed;
   z-index: 99999;
   background: $bg-raised;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  border: 1px solid rgba(37, 99, 235, 0.3);
   color: $text-primary;
   font-size: 0.74rem;
   font-weight: 500;

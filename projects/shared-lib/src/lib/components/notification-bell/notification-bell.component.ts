@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, signal, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, DestroyRef, signal, computed, input, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,7 +24,35 @@ export class NotificationBellComponent implements OnInit {
 
   @ViewChild('bellWrap') private bellWrap!: ElementRef<HTMLElement>;
 
+  /** Which portal this bell is mounted in — controls which notifications are shown. */
+  readonly portal = input<'admin' | 'staff'>('staff');
+
   panelOpen = signal(false);
+
+  /**
+   * Audience of a notification type. Admin-context items (e.g. "pending leave approval")
+   * are useless in the staff portal (no admin route to act on them), and vice-versa.
+   * 'announcement' is relevant in both.
+   */
+  private audienceOf(type: string): 'admin' | 'staff' | 'both' {
+    switch (type) {
+      case 'leave_pending':
+      case 'password_reset':
+      case 'stale_shift_admin': return 'admin';
+      case 'announcement':      return 'both';
+      default:                  return 'staff';
+    }
+  }
+
+  /** Notifications relevant to the current portal. */
+  readonly visible = computed(() =>
+    this.svc.notifications().filter(n => {
+      const a = this.audienceOf(n.type);
+      return a === 'both' || a === this.portal();
+    }));
+
+  /** Unread count scoped to the current portal (so the badge matches the list). */
+  readonly visibleUnread = computed(() => this.visible().filter(n => !n.isRead).length);
 
   ngOnInit(): void {
     // takeUntilDestroyed ensures the callback never runs on a destroyed component

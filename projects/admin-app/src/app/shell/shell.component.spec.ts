@@ -27,7 +27,7 @@ describe('ShellComponent', () => {
   let mockLang:       { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn> };
   let mockFeature:    { load: ReturnType<typeof vi.fn>; flags: ReturnType<typeof vi.fn>; isEnabled: ReturnType<typeof vi.fn> };
   let mockSignalR:    { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn>; notifications$: unknown };
-  let mockNotifSvc:   { unreadCount: ReturnType<typeof vi.fn>; load: ReturnType<typeof vi.fn>; push: ReturnType<typeof vi.fn> };
+  let mockNotifSvc:   { notifications: ReturnType<typeof vi.fn>; unreadCount: ReturnType<typeof vi.fn>; load: ReturnType<typeof vi.fn>; push: ReturnType<typeof vi.fn> };
   let mockAppUpdate:  { init: ReturnType<typeof vi.fn> };
 
   function createComponent(userRoles: string[] = ['SUPERADMIN']) {
@@ -47,7 +47,7 @@ describe('ShellComponent', () => {
       isEnabled: vi.fn().mockReturnValue(false),
     };
     mockSignalR   = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
-    mockNotifSvc  = { unreadCount: vi.fn().mockReturnValue(0), load: vi.fn().mockReturnValue(of(undefined)), push: vi.fn() };
+    mockNotifSvc  = { notifications: vi.fn().mockReturnValue([]), unreadCount: vi.fn().mockReturnValue(0), load: vi.fn().mockReturnValue(of(undefined)), push: vi.fn() };
     mockAppUpdate = { init: vi.fn() };
 
     await TestBed.configureTestingModule({

@@ -1182,9 +1182,10 @@ The final phase of any project must include E2E validation that covers:
 - Auth flow (login → guarded route) for any route changes
 
 E2E tests live in `tests/e2e/{admin,staff}/` and use Playwright.
-Run against the Docker deployment (`http://localhost` for admin, `http://localhost:8081` for staff).
+Run against the Docker deployment (`http://localhost:8080` for admin, `http://localhost:8081` for staff).
 
-**Seeded test credentials:** staffId=`HRADMIN`, password=`Admin@1234`
+**Seeded test credentials (admin):** staffId=`HRADMIN`, password=`Admin@1234`  
+**E2E staff account (created by global-setup):** staffId=`TESTSTAFF01`, password=`Test@1234` (EMPLOYEE role — HRADMIN is blocked from the staff portal)
 
 **Run commands:**
 ```bash

@@ -1,12 +1,12 @@
-﻿import { test, expect } from '@playwright/test';
-import { loginAs, ADMIN } from '../shared/helpers';
+import { test, expect } from '@playwright/test';
+import { loginAdmin } from '../shared/helpers';
 
 test.describe('Admin — staff list', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, ADMIN.staffId, ADMIN.password);
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+    await loginAdmin(page);
     await page.goto('/staff');
+    await page.waitForURL(/\/staff/);
   });
 
   test('staff list page renders a table with at least the seeded admin row', async ({ page }) => {
@@ -17,18 +17,25 @@ test.describe('Admin — staff list', () => {
   });
 
   test('search filters the staff list', async ({ page }) => {
-    await expect(page.locator('p-datatable, table')).toBeVisible({ timeout: 8_000 });
-    // Type in the search box — admin staff list has a search input
-    const searchInput = page.locator('input[placeholder*="search" i], input[placeholder*="Search" i]').first();
+    // Wait for the table to fully load first
+    await page.waitForSelector('tbody tr', { timeout: 8_000 });
+    // The search input is inside .search-wrap — find it directly
+    const searchInput = page.locator('.search-wrap input').first();
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
+    // The no-autofill feature stamps inputs readonly until first interaction,
+    // so .fill() (which requires an editable element) deadlocks. Click first —
+    // mousedown/focus strips the temporary readonly — then fill.
+    await searchInput.click();
     await searchInput.fill('HRADMIN');
-    await expect(page.getByText('HRADMIN')).toBeVisible({ timeout: 5_000 });
+    // Server-side search has a 300ms debounce; allow up to 6s for API to respond
+    await expect(page.getByText('HRADMIN')).toBeVisible({ timeout: 6_000 });
   });
 
   test('navigating to a staff detail page loads without error', async ({ page }) => {
-    await expect(page.locator('p-datatable, table')).toBeVisible({ timeout: 8_000 });
-    // Click the first row's view/edit link or the row itself
-    const firstRow = page.locator('tbody tr').first();
-    await firstRow.click();
+    await page.waitForSelector('tbody tr', { timeout: 8_000 });
+    // Click the name link (routerLink) in the first row — not the row itself
+    const firstNameLink = page.locator('tbody tr').first().locator('a.staff-name-link');
+    await firstNameLink.click();
     await expect(page).toHaveURL(/\/staff\//, { timeout: 5_000 });
   });
 

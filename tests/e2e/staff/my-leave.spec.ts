@@ -34,11 +34,10 @@ test.describe('Staff — My Leave', () => {
   });
 
   test('shows the leave application form in Apply tab', async ({ page }) => {
-    // The Apply tab should be the default view
+    // The Apply tab should be the default view (view signal defaults to 'apply')
     await page.waitForSelector('.p-selectbutton', { timeout: 8_000 });
-    // Apply form fields should be visible (leave type, start date, end date)
-    const formSection = page.locator('text=/apply|leave type|start date/i').first();
-    await expect(formSection).toBeVisible({ timeout: 8_000 });
+    // Apply form renders as <p-card styleClass="form-card"> → class "form-card"
+    await expect(page.locator('.form-card')).toBeVisible({ timeout: 8_000 });
   });
 
   test('switches to History tab and shows records or empty state', async ({ page }) => {

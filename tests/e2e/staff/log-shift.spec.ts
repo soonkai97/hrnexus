@@ -1,32 +1,36 @@
-﻿import { test, expect } from '@playwright/test';
-import { loginAs, ADMIN } from '../shared/helpers';
+import { test, expect } from '@playwright/test';
+import { loginStaff } from '../shared/helpers';
 
 test.describe('Staff app — log shift page', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, ADMIN.staffId, ADMIN.password);
-    await expect(page).toHaveURL(/\/home/, { timeout: 10_000 });
+    await loginStaff(page);
     await page.goto('/log-shift');
+    await page.waitForURL(/\/log-shift/);
   });
 
   test('log-shift page renders without error', async ({ page }) => {
     // The page must render something visible — not a blank screen or error
     await expect(page.locator('body')).not.toBeEmpty();
-    // Should show mode toggle buttons (Live / Manual)
-    await expect(page.getByRole('button', { name: /manual/i })).toBeVisible({ timeout: 5_000 });
+    // Should show mode toggle tabs (Live / Manual) inside the Log tab
+    // PrimeNG p-tab renders with role="tab", not role="button"
+    await expect(page.getByRole('tab', { name: /manual/i })).toBeVisible({ timeout: 5_000 });
   });
 
   test('switching to Manual tab shows the manual entry form', async ({ page }) => {
-    await page.getByRole('button', { name: /manual/i }).click();
-    // The manual form has a date field and time pickers
-    await expect(page.locator('input[type="date"], p-datepicker')).toBeVisible({ timeout: 5_000 });
+    await page.getByRole('tab', { name: /manual/i }).click();
+    // The manual form has a date field plus several time pickers — assert the first
+    await expect(page.locator('input[type="date"], p-datepicker').first()).toBeVisible({ timeout: 5_000 });
   });
 
   test('history tab shows completed shift records or an empty state', async ({ page }) => {
-    await page.getByRole('button', { name: /history/i }).click();
-    // Either shift cards or an empty-state message must appear — never a blank crash
+    // PrimeNG p-tab renders with role="tab", not role="button"
+    await page.getByRole('tab', { name: /history/i }).click();
+    // Either history cards (.history-card) or an empty-state message — never a blank crash.
+    // .first() avoids strict-mode violation: the empty state contains both
+    // .empty-state and a nested .empty-icon, which both match [class*="empty"].
     await expect(
-      page.locator('.shift-card, .empty-state, [class*="empty"]')
+      page.locator('.history-card, .empty-state').first()
     ).toBeVisible({ timeout: 6_000 });
   });
 

@@ -103,3 +103,10 @@
 
 <nc-toast />
 <nc-confirm-dialog />
+
+@if (signingOut()) {
+  <div class="signing-out-overlay" role="status" aria-live="polite">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>{{ 'common.signingOut' | translate }}</span>
+  </div>
+}

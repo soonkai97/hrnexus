@@ -24,6 +24,9 @@ dotnet_diagnostic.CA1862.severity = none
 # CA1873 flags logging arguments as "potentially expensive"; ours are cheap property/field accesses on
 # always-on Information logs, so the IsEnabled guard it wants adds noise without benefit.
 dotnet_diagnostic.CA1873.severity = none
+# CA1711 reserves the 'Permission' suffix for System.Security.IPermission types. Our RolePermission is a
+# domain join entity (role -> permission key), not a code-access-security permission — a false positive.
+dotnet_diagnostic.CA1711.severity = none
 
 # Generated EF Core migrations are scaffolded — don't enforce style on them.
 [**/Migrations/*.cs]
@@ -31,5 +34,4 @@ dotnet_diagnostic.IDE0005.severity = none
 
 # Test conventions that fight CA defaults.
 [tests/**/*.cs]
-dotnet_diagnostic.CA1711.severity = none   # xUnit [CollectionDefinition] classes conventionally end in 'Collection'
 dotnet_diagnostic.CA1001.severity = none   # disposable test fields are released via xUnit IAsyncLifetime.DisposeAsync

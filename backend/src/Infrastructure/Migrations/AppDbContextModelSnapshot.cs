@@ -400,6 +400,21 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.RolePermission", b =>
+                {
+                    b.Property<string>("RoleName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PermissionKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("RoleName", "PermissionKey");
+
+                    b.ToTable("RolePermissions", (string)null);
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.RoleRate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -862,6 +877,23 @@ namespace HRNexus.Infrastructure.Migrations
                     b.HasIndex("SentAt");
 
                     b.ToTable("StaffMessages");
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.StaffPermissionOverride", b =>
+                {
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PermissionKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("Granted")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("EmployeeId", "PermissionKey");
+
+                    b.ToTable("StaffPermissionOverrides", (string)null);
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.StaffRole", b =>

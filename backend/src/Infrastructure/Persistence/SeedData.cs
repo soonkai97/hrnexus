@@ -21,6 +21,14 @@ public static class SeedData
             if (!await db.Roles.AnyAsync(r => r.Name == roleName))
                 db.Roles.Add(Role.Create(roleName, isSystem: true));
 
+        // Backfill role-default permissions: the two system roles get EVERY permission (incl.
+        // portal.admin) so behaviour is identical to the pre-permission, role-gated world.
+        // EMPLOYEE intentionally gets none. Idempotent + auto-seeds any newly added catalog key.
+        foreach (var roleName in systemRoles)
+            foreach (var key in AppConstants.Permissions.All)
+                if (!await db.RolePermissions.AnyAsync(rp => rp.RoleName == roleName && rp.PermissionKey == key))
+                    db.RolePermissions.Add(RolePermission.Create(roleName, key));
+
         // Seed the single default admin account
         if (!await db.Staff.AnyAsync(e => e.StaffId == "HRADMIN"))
             db.Staff.Add(Staff.Create(

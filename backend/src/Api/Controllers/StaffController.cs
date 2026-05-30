@@ -221,7 +221,14 @@ public class StaffController(IMediator mediator) : ControllerBase
             return BadRequest(new { error = "Hourly rate cannot be negative." });
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == name.ToUpperInvariant(), ct);
         if (role is null) return NotFound(new { error = "Role not found." });
-        role.SetRate(body.HourlyRate);
+        if (role.HourlyRate != body.HourlyRate)
+        {
+            role.SetRate(body.HourlyRate);
+            // Append a rate-history row effective today. Existing rows are never mutated, so shifts
+            // worked before this change keep being priced at the prior rate (as-of their work date).
+            db.RoleRates.Add(HRNexus.Domain.Entities.RoleRate.Create(
+                role.Name, body.HourlyRate, DateOnly.FromDateTime(DateTime.UtcNow)));
+        }
         await db.SaveChangesAsync(ct);
         return NoContent();
     }

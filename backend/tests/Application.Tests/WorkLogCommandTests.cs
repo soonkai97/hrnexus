@@ -501,6 +501,69 @@ public class WorkLogCommandTests
                 CancellationToken.None));
     }
 
+    // ── Gap 2: effective-dated rate history ───────────────────────────────────
+
+    [Fact]
+    public async Task ManualEntry_PricesAtRateAsOfWorkDate_NotCurrentRate()
+    {
+        // A shift back-dated to BEFORE a raise must be priced at the historical rate, not today's.
+        await using var db = CreateDb();
+        db.Locations.Add(MakeLocation("loc-1"));
+        db.Roles.Add(MakeRole("bartender", 99m));                                  // current rate 99
+        db.RoleRates.Add(E.RoleRate.Create("bartender", 50m, new DateOnly(2000, 1, 1)));
+        db.RoleRates.Add(E.RoleRate.Create("bartender", 99m, new DateOnly(2026, 5, 1)));
+        await db.SaveChangesAsync();
+
+        var id = await new CreateManualWorkLogCommandHandler(db).Handle(new CreateManualWorkLogCommand(
+            Guid.NewGuid(), "BARTENDER", "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
+            CancellationToken.None);
+
+        var log = await db.WorkLogs.FindAsync(id);
+        Assert.Equal(50m, log!.HourlyRateSnapshot);   // rate in effect on 2026-04-15, not 99
+    }
+
+    [Fact]
+    public async Task ManualEntry_FallsBackToCurrentRate_WhenNoHistory()
+    {
+        // No history rows → fall back to the role's current rate.
+        await using var db = CreateDb();
+        db.Locations.Add(MakeLocation("loc-1"));
+        db.Roles.Add(MakeRole("bartender", 77m));
+        await db.SaveChangesAsync();
+
+        var id = await new CreateManualWorkLogCommandHandler(db).Handle(new CreateManualWorkLogCommand(
+            Guid.NewGuid(), "BARTENDER", "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
+            CancellationToken.None);
+
+        var log = await db.WorkLogs.FindAsync(id);
+        Assert.Equal(77m, log!.HourlyRateSnapshot);
+    }
+
+    [Fact]
+    public async Task Update_RoleChange_PricesAtRateAsOfWorkDate()
+    {
+        // Editing a shift onto a new role uses that role's rate AS-OF the shift's work date,
+        // not the role's current rate.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = new DateOnly(2026, 5, 15);
+        var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log);
+        db.Locations.Add(MakeLocation("loc-1"));
+        db.Roles.Add(MakeRole("supervisor", 80m));                                 // current rate 80
+        db.RoleRates.Add(E.RoleRate.Create("supervisor", 60m, new DateOnly(2000, 1, 1)));
+        db.RoleRates.Add(E.RoleRate.Create("supervisor", 80m, new DateOnly(2026, 6, 1)));
+        await db.SaveChangesAsync();
+
+        await UpdateHandler(db).Handle(new UpdateWorkLogCommand(
+            log.Id, empId, true,
+            "SUPERVISOR", "loc-1", workDate, "18:00", "23:00", null),
+            CancellationToken.None);
+
+        var updated = await db.WorkLogs.FindAsync(log.Id);
+        Assert.Equal(60m, updated!.HourlyRateSnapshot);   // effective on 2026-05-15, not current 80
+    }
+
     // ── DeleteWorkLogCommand ──────────────────────────────────────────────────
 
     [Fact]

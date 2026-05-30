@@ -62,7 +62,8 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         {
             var role = await db.Roles.FindAsync([req.RoleName.ToUpperInvariant()], ct)
                 ?? throw new KeyNotFoundException($"Role '{req.RoleName}' not found.");
-            newRateSnapshot = role.HourlyRate;
+            // Price at the new role's rate as-of the shift's work date, not its current rate.
+            newRateSnapshot = await RoleRateLookup.RateAsOfAsync(db, req.RoleName, req.WorkDate, role.HourlyRate, ct);
         }
 
         // Prevent time overlap: another completed shift for the same employee whose time range

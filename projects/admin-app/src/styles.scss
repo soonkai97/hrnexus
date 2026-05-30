@@ -707,6 +707,14 @@ input.p-inputtext,
   padding-bottom: 0 !important;
 }
 
+// Default-size buttons match the field height so CTAs line up with inputs in filter
+// rows and form actions. min-height (not height) never clips a taller button. Small
+// and icon-only buttons are excluded — they are intentionally compact (ellipsis menus,
+// toggles, inline table actions).
+.p-button:not(.p-button-sm):not(.p-button-icon-only) {
+  min-height: var(--nc-field-h);
+}
+
 // ── Empty states (shared across all features) ─────────────────────────────────
 .empty-state {
   padding: 3rem 1rem;

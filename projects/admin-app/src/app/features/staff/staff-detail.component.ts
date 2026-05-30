@@ -111,7 +111,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   }
 
   // ── Per-field inline validation ───────────────────────────────────────────────
-  private readonly emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  private readonly emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   readonly touched = signal<Set<string>>(new Set());
 
   private emailIsValid(): boolean {

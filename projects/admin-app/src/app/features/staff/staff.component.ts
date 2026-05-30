@@ -85,7 +85,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   get pwdChecks() { return passwordChecks(this.newStaff.password); }
 
   // ── Per-field inline validation ───────────────────────────────────────────────
-  private readonly emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  private readonly emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   readonly touched = signal<Set<string>>(new Set());
 
   /** Mark a field as blurred so its inline error can show (don't nag before first interaction). */
@@ -206,7 +206,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     // Email is optional but must be valid if provided
     const email = this.newStaff.email?.trim() || null;
     if (email) {
-      const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
         this.error.set(this.translate.instant('staff.errEmailInvalidFull'));
         this.toast.error(this.translate.instant('staff.errEmailInvalidFull'));

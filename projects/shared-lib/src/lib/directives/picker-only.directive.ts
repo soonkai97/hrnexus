@@ -7,6 +7,7 @@ import { Directive, ElementRef, HostListener, inject, OnInit } from '@angular/co
  * - Keyboard input is blocked to prevent invalid values being typed manually.
  */
 @Directive({
+  // eslint-disable-next-line @angular-eslint/directive-selector -- intentionally targets native date/time inputs, not a prefixed attribute
   selector: 'input[type=date], input[type=time]',
   standalone: true,
 })

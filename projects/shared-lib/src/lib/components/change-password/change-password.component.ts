@@ -15,6 +15,7 @@ import { Message } from 'primeng/message';
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector -- legacy 'lib-' selector; renaming would touch both apps' wrapper templates
   selector: 'lib-change-password',
   standalone: true,
   imports: [ReactiveFormsModule, TranslatePipe, Button, Password, Message],

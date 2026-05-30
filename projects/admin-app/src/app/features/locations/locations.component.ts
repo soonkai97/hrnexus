@@ -62,7 +62,7 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     this.error.set('');
     const dto: UpsertLocationDto = { name };
     const done = () => { this.saving.set(false); this.showForm.set(false); this.editing.set(null); this.toast.success(this.translate.instant('locations.saved')); };
-    const fail = (e: any) => { const msg = e?.error?.error ?? this.translate.instant('locations.saveFailed'); this.error.set(msg); this.toast.error(msg); this.saving.set(false); };
+    const fail = (e: { error?: { error?: string } }) => { const msg = e?.error?.error ?? this.translate.instant('locations.saveFailed'); this.error.set(msg); this.toast.error(msg); this.saving.set(false); };
     const editingId = this.editing()?.id;
     if (editingId) {
       this.store.update(editingId, dto).subscribe({ next: done, error: fail });

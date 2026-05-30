@@ -119,7 +119,7 @@ describe('AdminService', () => {
 
   describe('distributeTips()', () => {
     it('calls POST /api/admin/tips-pools/distribute with the payload', () => {
-      const payload = { locationId: 'loc-1', totalAmount: 1000, splitMethod: 'equal' };
+      const payload = { locationId: 'loc-1', locationName: 'Main Bar', shiftDate: '2026-05-30', totalAmount: 1000, splitMethod: 'equal' };
       service.distributeTips(payload).subscribe();
       const req = http.expectOne('/api/admin/tips-pools/distribute');
       expect(req.request.method).toBe('POST');

@@ -110,6 +110,7 @@ export interface ReportFilters {
   roles?:         string[];
 }
 
+export interface DistributeTipsRequest { locationId: string; locationName: string; shiftDate: string; totalAmount: number; splitMethod: string; }
 export interface TipsPoolDto { id: string; locationName: string; shiftDate: string; totalAmount: number; splitMethod: string; isDistributed: boolean; staffCount: number; createdAt: string; }
 export interface TipsAllocation { employeeId: string; fullName: string; amount: number; hoursWorked: number; }
 export interface TipsExcludedStaff { employeeId: string; fullName: string; reason: string; }
@@ -166,7 +167,7 @@ export class AdminService {
     return this.http.get<TipsPoolDto[]>(`/api/admin/tips-pools?${q}`);
   }
 
-  distributeTips(dto: any): Observable<TipsDistributionResult> {
+  distributeTips(dto: DistributeTipsRequest): Observable<TipsDistributionResult> {
     return this.http.post<TipsDistributionResult>('/api/admin/tips-pools/distribute', dto);
   }
 

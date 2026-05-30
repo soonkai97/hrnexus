@@ -188,8 +188,8 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     this.historyPage.set(page);
     this.workLogSvc.getMy(page, this.historyPageSize).subscribe({
       next: r => {
-        const activeCount = r.items.filter((l: any) => l.isActive).length;
-        this.history.set(r.items.filter((l: any) => !l.isActive));
+        const activeCount = r.items.filter(l => l.isActive).length;
+        this.history.set(r.items.filter(l => !l.isActive));
         this.totalHistory.set(r.total - activeCount);
         this.loading.set(false);
       },

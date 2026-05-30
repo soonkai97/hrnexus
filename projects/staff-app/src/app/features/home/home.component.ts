@@ -82,7 +82,7 @@ export class HomeComponent implements OnInit {
         (res.recent?.items ?? []).filter(s => !s.isActive).slice(0, 4)
       );
       this.unreadNotices.set(
-        Array.isArray(res.notices) ? res.notices.filter((a: any) => !a.isRead).length : 0
+        Array.isArray(res.notices) ? res.notices.filter((a: { isRead: boolean }) => !a.isRead).length : 0
       );
       this.loading.set(false);
     });

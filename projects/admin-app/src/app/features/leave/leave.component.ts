@@ -246,7 +246,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
           this.selectedIds.set(new Set());
           this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
         },
-        error: (e: any) => { this.toast.error(e?.error?.error ?? this.translate.instant('leave.bulkApproveFailed')); this.bulkStatusSaving.set(false); },
+        error: (e: { error?: { error?: string } }) => { this.toast.error(e?.error?.error ?? this.translate.instant('leave.bulkApproveFailed')); this.bulkStatusSaving.set(false); },
       });
     });
   }
@@ -272,7 +272,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
           this.selectedIds.set(new Set()); this.bulkRejReason.set('');
           this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
         },
-        error: (e: any) => { this.toast.error(e?.error?.error ?? this.translate.instant('leave.bulkRejectFailed')); this.bulkStatusSaving.set(false); },
+        error: (e: { error?: { error?: string } }) => { this.toast.error(e?.error?.error ?? this.translate.instant('leave.bulkRejectFailed')); this.bulkStatusSaving.set(false); },
       });
     });
   }
@@ -583,7 +583,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
           this.toast.success(this.translate.instant('leave.bulkApplyToast', { n: r.count }));
           this.loadBalances();
         },
-        error: (e: any) => {
+        error: (e: { error?: { error?: string } }) => {
           this.toast.error(e?.error?.error ?? this.translate.instant('leave.bulkApplyFailed'));
           this.bulkSaving.set(false);
         },
@@ -777,7 +777,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
 
     this.saving.set(true);
     const id   = this.editing();
-    const fail = (e: any) => { this.formError.set(e?.error?.error ?? this.translate.instant('leave.saveFailed')); this.saving.set(false); };
+    const fail = (e: { error?: { error?: string } }) => { this.formError.set(e?.error?.error ?? this.translate.instant('leave.saveFailed')); this.saving.set(false); };
     if (id) {
       this.leaveSvc.update(id, this.form).subscribe({
         next: () => {

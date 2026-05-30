@@ -650,6 +650,38 @@
     "imageUploaded":"Image uploaded.",
     "uploadFailed": "Upload failed."
   },
+  "permissions": {
+    "roleTitle":   "Role permissions",
+    "roleDesc":    "Default permissions granted to everyone with this role.",
+    "userTitle":   "Permission overrides",
+    "userDesc":    "Grant or revoke specific permissions for this person, on top of their roles.",
+    "save":        "Save permissions",
+    "saved":       "Permissions updated.",
+    "saveFailed":  "Failed to save permissions.",
+    "loadFailed":  "Failed to load permissions.",
+    "inherit":     "Inherit",
+    "grant":       "Grant",
+    "revoke":      "Revoke",
+    "effective":   "Effective",
+    "keys": {
+      "portal.admin":         "Admin portal access",
+      "staff.view":           "View staff",
+      "staff.manage":         "Manage staff",
+      "leave.approve":        "Approve leave",
+      "leave.manage":         "Manage leave entitlements",
+      "worklog.manage":       "Manage shifts",
+      "reports.view":         "View reports",
+      "payroll.view":         "View payroll",
+      "payroll.manage":       "Manage payroll",
+      "payroll.lock":         "Lock payroll periods",
+      "tips.manage":          "Manage tips",
+      "ledger.manage":        "Manage staff ledger",
+      "roles.manage":         "Manage roles & permissions",
+      "locations.manage":     "Manage locations",
+      "announcements.manage": "Manage announcements",
+      "config.manage":        "Manage settings"
+    }
+  },
   "roles": {
     "title":            "Staff Roles",
     "subtitle":         "Manage available job roles for staff registration",

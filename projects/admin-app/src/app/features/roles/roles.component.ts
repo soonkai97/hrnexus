@@ -2,7 +2,8 @@ import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angul
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
+import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate,
+         PermissionAdminService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -11,12 +12,14 @@ import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
+import { Dialog } from 'primeng/dialog';
+import { Checkbox } from 'primeng/checkbox';
 
 @Component({
   selector: 'app-roles',
   standalone: true,
   imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective,
-    Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Message],
+    Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Message, Dialog, Checkbox],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })
@@ -25,6 +28,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   private readonly confirmSvc = inject(ConfirmService);
   private readonly toast      = inject(ToastService);
   private readonly translate  = inject(TranslateService);
+  private readonly permSvc    = inject(PermissionAdminService);
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
@@ -42,6 +46,13 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   editingRateName  = signal<string | null>(null);
   editingRateValue = signal(0);
   savingRate       = signal(false);
+
+  // Role-permissions editor state
+  permRole        = signal<string | null>(null);   // role whose permissions dialog is open
+  permCatalog     = signal<string[]>([]);          // all assignable permission keys
+  permSelected    = signal<string[]>([]);          // currently checked keys
+  permLoading     = signal(false);
+  permSaving      = signal(false);
 
   readonly touched = signal<Set<string>>(new Set());
   markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
@@ -122,6 +133,52 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
         next: () => { this.deletingRole.set(null); this.toast.success(this.translate.instant('roles.deleted')); },
         error: (e) => { this.deletingRole.set(null); this.error.set(e?.error?.error ?? this.translate.instant('roles.deleteFailed')); },
       });
+    });
+  }
+
+  // ── Role permissions editor ────────────────────────────────────────────────
+
+  openPermissions(name: string): void {
+    this.permRole.set(name);
+    this.permSelected.set([]);
+    this.permLoading.set(true);
+    // Catalog is fetched once and cached on the component.
+    if (this.permCatalog().length === 0) {
+      this.permSvc.catalog().subscribe({
+        next: (keys) => this.permCatalog.set(keys),
+        error: () => this.toast.error(this.translate.instant('permissions.loadFailed')),
+      });
+    }
+    this.permSvc.getRolePermissions(name).subscribe({
+      next: (keys) => { this.permSelected.set(keys); this.permLoading.set(false); },
+      error: () => { this.permLoading.set(false); this.toast.error(this.translate.instant('permissions.loadFailed')); },
+    });
+  }
+
+  closePermissions(): void {
+    this.permRole.set(null);
+    this.permSelected.set([]);
+  }
+
+  togglePermission(key: string, checked: boolean): void {
+    this.permSelected.update(keys =>
+      checked ? [...keys, key] : keys.filter(k => k !== key));
+  }
+
+  savePermissions(): void {
+    const role = this.permRole();
+    if (!role || this.permSaving()) return;
+    this.permSaving.set(true);
+    this.permSvc.setRolePermissions(role, this.permSelected()).subscribe({
+      next: () => {
+        this.permSaving.set(false);
+        this.toast.success(this.translate.instant('permissions.saved'));
+        this.closePermissions();
+      },
+      error: () => {
+        this.permSaving.set(false);
+        this.toast.error(this.translate.instant('permissions.saveFailed'));
+      },
     });
   }
 }

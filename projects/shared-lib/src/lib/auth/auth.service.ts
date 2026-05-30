@@ -91,7 +91,9 @@ export class AuthService {
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (!token) return false;
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const part = token.split('.')[1];
+      if (!part) return false;
+      const payload = JSON.parse(atob(part));
       return (payload.exp ?? 0) > Date.now() / 1000;
     } catch {
       return false;

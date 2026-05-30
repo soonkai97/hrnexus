@@ -2,6 +2,7 @@
 using System.Threading.RateLimiting;
 using Hangfire;
 using MediatR;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -114,6 +115,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Behind nginx the api only ever sees the proxy's container IP. nginx forwards the real client
+// in X-Forwarded-For / X-Real-IP, so honour it FIRST — otherwise Connection.RemoteIpAddress is the
+// proxy and the per-IP rate limiter degenerates into a single global bucket (false 429s at shift
+// change). KnownProxies/Networks are cleared because only nginx can reach this container (internal
+// docker network, no host port in prod), so the forwarded header is trusted.
+var forwardedOptions = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor };
+forwardedOptions.KnownIPNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseStaticFiles();

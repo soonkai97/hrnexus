@@ -7,6 +7,7 @@
     "start:staff": "ng serve staff-app",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "lint": "eslint .",
     "test": "ng test shared-lib",
     "test:shared": "ng test shared-lib",
     "test:admin": "ng test admin-app",
@@ -17,7 +18,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:admin": "playwright test --project=admin",
-    "test:e2e:staff": "playwright test --project=staff"
+    "test:e2e:staff": "playwright test --project=staff",
+    "lint": "ng lint"
   },
   "private": true,
   "packageManager": "npm@11.13.0",
@@ -43,13 +45,17 @@
     "@angular/build": "^21.2.9",
     "@angular/cli": "^21.2.9",
     "@angular/compiler-cli": "^21.2.0",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
     "@vitest/coverage-v8": "^4.1.6",
+    "angular-eslint": "21.4.0",
+    "eslint": "^10.3.0",
     "jsdom": "^28.0.0",
     "ng-packagr": "^21.2.0",
     "prettier": "^3.8.1",
     "sharp": "^0.34.5",
     "typescript": "~5.9.2",
+    "typescript-eslint": "8.59.2",
     "vitest": "^4.0.8"
   }
 }

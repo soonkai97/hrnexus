@@ -88,7 +88,7 @@ export class ProfileComponent implements OnInit {
         }).toPromise();
         this.pushEnabled.set(true);
       }
-    } catch (e) {
+    } catch {
       this.toast.error(this.translate.instant('profile.toast.enableFailed'));
     } finally {
       this.pushLoading.set(false);

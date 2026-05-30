@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { provideTranslateService } from '@ngx-translate/core';
 import { ChangePasswordComponent } from './change-password.component';
 import { AuthService } from '../../auth/auth.service';
 
@@ -32,6 +33,7 @@ describe('ChangePasswordComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
+        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService, useValue: mockAuth },
         MessageService,
         ConfirmationService,
@@ -90,21 +92,21 @@ describe('ChangePasswordComponent', () => {
     it('rejects whitespace-only currentPassword and shows error', () => {
       component.form.patchValue({ currentPassword: '   ', newPassword: 'ValidPwd1', confirmPassword: 'ValidPwd1' });
       component.submit();
-      expect(component.error()).toBe('Password fields cannot be blank.');
+      expect(component.error()).toBe('changePassword.errBlank');
       expect(mockAuth.changePassword).not.toHaveBeenCalled();
     });
 
     it('rejects whitespace-only newPassword and shows error', () => {
       component.form.patchValue({ currentPassword: 'OldPass1', newPassword: '        ', confirmPassword: '        ' });
       component.submit();
-      expect(component.error()).toBe('Password fields cannot be blank.');
+      expect(component.error()).toBe('changePassword.errBlank');
       expect(mockAuth.changePassword).not.toHaveBeenCalled();
     });
 
     it('rejects whitespace-only confirmPassword and shows error', () => {
       component.form.patchValue({ currentPassword: 'OldPass1', newPassword: 'NewPass1', confirmPassword: '   ' });
       component.submit();
-      expect(component.error()).toBe('Password fields cannot be blank.');
+      expect(component.error()).toBe('changePassword.errBlank');
       expect(mockAuth.changePassword).not.toHaveBeenCalled();
     });
   });
@@ -115,7 +117,7 @@ describe('ChangePasswordComponent', () => {
     it('sets mismatch error when newPassword and confirmPassword differ', () => {
       component.form.patchValue({ currentPassword: 'OldPass1', newPassword: 'NewPass1', confirmPassword: 'Different1' });
       component.submit();
-      expect(component.error()).toBe('New passwords do not match.');
+      expect(component.error()).toBe('changePassword.errMismatch');
       expect(mockAuth.changePassword).not.toHaveBeenCalled();
     });
 
@@ -187,7 +189,7 @@ describe('ChangePasswordComponent', () => {
     it('falls back to generic error when no specific message', () => {
       mockAuth.changePassword.mockReturnValue(throwError(() => ({})));
       component.submit();
-      expect(component.error()).toBe('Failed to change password.');
+      expect(component.error()).toBe('changePassword.errFailed');
     });
   });
 });

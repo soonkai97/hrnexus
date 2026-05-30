@@ -1,5 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 /** Password policy (kept in sync with the backend ChangePasswordCommand): 8+ chars, 1 uppercase, 1 number. */
 export function strongPasswordValidator(ctrl: AbstractControl): ValidationErrors | null {
@@ -16,13 +17,14 @@ import { AuthService } from '../../auth/auth.service';
 @Component({
   selector: 'lib-change-password',
   standalone: true,
-  imports: [ReactiveFormsModule, Button, Password, Message],
+  imports: [ReactiveFormsModule, TranslatePipe, Button, Password, Message],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.scss',
 })
 export class ChangePasswordComponent {
-  private readonly fb   = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
+  private readonly fb        = inject(FormBuilder);
+  private readonly auth      = inject(AuthService);
+  private readonly translate = inject(TranslateService);
 
   form: FormGroup;
   saving  = signal(false);
@@ -50,11 +52,11 @@ export class ChangePasswordComponent {
   submit(): void {
     const { currentPassword, newPassword, confirmPassword } = this.form.value;
     if (!currentPassword?.trim() || !newPassword?.trim() || !confirmPassword?.trim()) {
-      this.error.set('Password fields cannot be blank.');
+      this.error.set(this.translate.instant('changePassword.errBlank'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      this.error.set('New passwords do not match.');
+      this.error.set(this.translate.instant('changePassword.errMismatch'));
       return;
     }
     if (this.form.invalid || this.saving()) return;
@@ -68,7 +70,7 @@ export class ChangePasswordComponent {
         setTimeout(() => { this.success.set(false); }, 1500);
       },
       error: (e) => {
-        this.error.set(e?.error?.error ?? 'Failed to change password.');
+        this.error.set(e?.error?.error ?? this.translate.instant('changePassword.errFailed'));
         this.saving.set(false);
       },
     });

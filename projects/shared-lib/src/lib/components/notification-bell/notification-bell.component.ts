@@ -2,6 +2,7 @@ import { Component, OnInit, DestroyRef, signal, computed, input, inject, ViewChi
 import { Router } from '@angular/router';
 import { catchError, EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
@@ -12,7 +13,7 @@ import { AppNotification } from '../../models';
 @Component({
   selector: 'nc-notification-bell',
   standalone: true,
-  imports: [Button, BadgeModule, TooltipModule],
+  imports: [TranslatePipe, Button, BadgeModule, TooltipModule],
   templateUrl: './notification-bell.component.html',
   styleUrl:    './notification-bell.component.scss',
 })
@@ -20,6 +21,7 @@ export class NotificationBellComponent implements OnInit {
   readonly svc               = inject(NotificationService);
   private readonly signalr   = inject(SignalRService);
   private readonly router    = inject(Router);
+  private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('bellWrap') private bellWrap!: ElementRef<HTMLElement>;
@@ -117,11 +119,11 @@ export class NotificationBellComponent implements OnInit {
   timeAgo(isoStr: string): string {
     const diff = Date.now() - new Date(isoStr).getTime();
     const mins = Math.floor(diff / 60_000);
-    if (mins < 1)  return 'just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1)  return this.translate.instant('notifications.justNow');
+    if (mins < 60) return this.translate.instant('notifications.minsAgo', { n: mins });
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24)  return `${hrs}h ago`;
+    if (hrs < 24)  return this.translate.instant('notifications.hrsAgo', { n: hrs });
     const days = Math.floor(hrs / 24);
-    return days === 1 ? 'yesterday' : `${days}d ago`;
+    return days === 1 ? this.translate.instant('notifications.yesterday') : this.translate.instant('notifications.daysAgo', { n: days });
   }
 }

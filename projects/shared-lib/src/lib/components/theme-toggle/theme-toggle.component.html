@@ -2,7 +2,7 @@
   styleClass="theme-toggle-btn"
   [icon]="themeSvc.theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'"
   [text]="true"
-  [pTooltip]="themeSvc.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+  [pTooltip]="(themeSvc.theme() === 'dark' ? 'theme.toLight' : 'theme.toDark') | translate"
   tooltipPosition="bottom"
-  aria-label="Toggle colour theme"
+  [attr.aria-label]="'theme.toggle' | translate"
   (click)="themeSvc.toggle()" />

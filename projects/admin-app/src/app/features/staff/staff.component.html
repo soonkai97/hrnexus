@@ -162,7 +162,6 @@
           <th scope="col" pSortableColumn="staffId">{{ 'staff.staffId' | translate }} <p-sortIcon field="staffId" /></th>
           <th scope="col" pSortableColumn="firstName">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }} <p-sortIcon field="firstName" /></th>
           <th scope="col" pSortableColumn="roles">{{ 'staff.roleCol' | translate }} <p-sortIcon field="roles" /></th>
-          <th scope="col" pSortableColumn="phoneNumber">{{ 'staff.phone' | translate }} <p-sortIcon field="phoneNumber" /></th>
           <th scope="col" pSortableColumn="isActive">{{ 'staff.statusCol' | translate }} <p-sortIcon field="isActive" /></th>
           <th scope="col" class="td-actions"></th>
         </tr>
@@ -176,11 +175,14 @@
           </td>
           <td>
             <span class="p-column-title">{{ 'staff.roleCol' | translate }}</span>
-            @for (r of s.roles; track r) {
+            @for (r of s.roles.slice(0, 3); track r) {
               <p-tag [value]="r" severity="info" styleClass="mr-1" />
             }
+            @if (s.roles.length > 3) {
+              <p-tag [value]="'+' + (s.roles.length - 3)" severity="secondary" styleClass="mr-1 roles-more"
+                     [pTooltip]="s.roles.join(', ')" tooltipPosition="top" />
+            }
           </td>
-          <td class="td-muted"><span class="p-column-title">{{ 'staff.phone' | translate }}</span>{{ s.phoneNumber || '—' }}</td>
           <td>
             <span class="p-column-title">{{ 'staff.statusCol' | translate }}</span>
             <p-tag [value]="s.isActive ? ('common.active' | translate) : ('common.inactive' | translate)"

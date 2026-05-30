@@ -13,7 +13,7 @@ import {
   StaffLedgerPayoutDto, StaffOutstandingDto,
   WORK_TYPE_LABELS, SETTLEMENT_LABELS,
   WorkLogService, UpdateWorkLogRequest, LocationStore,
-  TrimInputDirective, AuthService,
+  TrimInputDirective,
   PayrollLockService, ConfirmService, apiErrorMessage,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -50,7 +50,6 @@ export class ReportsComponent implements OnInit {
   private readonly workLogSvc         = inject(WorkLogService);
   private readonly locationStore      = inject(LocationStore);
   private readonly translate          = inject(TranslateService);
-  private readonly auth               = inject(AuthService);
   private readonly lockSvc            = inject(PayrollLockService);
   private readonly confirmSvc         = inject(ConfirmService);
   private readonly destroyRef         = inject(DestroyRef);
@@ -93,17 +92,6 @@ export class ReportsComponent implements OnInit {
         error: (e: unknown) => { this.lockBusy.set(false); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('reports.periodReopenFailed')); },
       });
     });
-  }
-
-  /**
-   * Separation-of-duties: a MANAGER may not edit their own shift (those hours feed payroll).
-   * The backend enforces this regardless, but we also disable the edit pencil on the manager's
-   * own rows so the block is obvious upfront instead of surfacing only after they click Save.
-   * A SuperAdmin (userRole 'admin') may edit any shift, so this is always false for admins.
-   */
-  isOwnShiftForManager(s: ShiftDetailRow): boolean {
-    const me = this.auth.user();
-    return this.auth.userRole() === 'manager' && !!me?.staffId && s.staffId === me.staffId;
   }
 
   // switchMap cancels any in-flight getReport request when a newer runReport() call arrives.
@@ -224,8 +212,6 @@ export class ReportsComponent implements OnInit {
   }
 
   openEditShift(s: ShiftDetailRow): void {
-    // Belt-and-braces: the pencil is disabled for a manager's own shift, but guard here too.
-    if (this.isOwnShiftForManager(s)) return;
     this.editShiftForm = {
       roleName:   s.role,
       locationId: s.locationId,

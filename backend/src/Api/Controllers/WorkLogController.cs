@@ -60,11 +60,10 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateWorkLogRequest req, CancellationToken ct)
     {
-        var isAdmin      = User.IsInRole(AppConstants.Roles.AdminClaim);
-        var isPrivileged = isAdmin || User.IsInRole(AppConstants.Roles.ManagerClaim);
+        var isPrivileged = User.IsInRole(AppConstants.Roles.AdminClaim) || User.IsInRole(AppConstants.Roles.ManagerClaim);
         try
         {
-            await mediator.Send(new UpdateWorkLogCommand(id, CallerId, isPrivileged, req.RoleName, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes, isAdmin), ct);
+            await mediator.Send(new UpdateWorkLogCommand(id, CallerId, isPrivileged, req.RoleName, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes), ct);
             return NoContent();
         }
         catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }

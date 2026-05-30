@@ -16,8 +16,7 @@ public record UpdateWorkLogCommand(
     DateOnly WorkDate,
     string   StartTime,
     string   EndTime,
-    string?  Notes,
-    bool     IsAdmin = false // true = SuperAdmin — may edit own shift; a Manager may not
+    string?  Notes
 ) : IRequest;
 
 public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<UpdateWorkLogCommand>
@@ -74,12 +73,6 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             if (newStart < sEnd && sStart < newEnd)
                 throw new InvalidOperationException("This shift overlaps with another existing shift.");
         }
-
-        // Separation of duties: a manager must not edit their OWN shift records — those hours
-        // feed payroll, so self-editing is a conflict of interest. A superadmin may (apex of
-        // trust), and every edit is audited regardless. Managers escalate to an admin.
-        if (req.IsPrivileged && !req.IsAdmin && log.EmployeeId == req.CallerId)
-            throw new InvalidOperationException("You can't edit your own shift records. Please ask an admin to make this change.");
 
         // Capture before-state for audit trail
         var before = $"Date={log.WorkDate},Start={log.StartTime},End={log.EndTime},Role={log.RoleName},Location={log.LocationName},Notes={log.Notes ?? ""}";

@@ -125,10 +125,8 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.showNewStaffPwd.set(true);
   }
 
-  availableRoles = computed(() =>
-    // Managers have the same power as admins, so both see every assignable role.
-    // (The SuperAdmin role is still never assignable via the UI — filtered out above.)
-    this.roles().filter(r => r.name !== 'admin'));
+  // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
+  availableRoles = computed(() => this.roles());
 
   ngOnInit(): void {
     this.staffStore.loadStaff('', 1, this.pageSize);

@@ -24,9 +24,6 @@ public class StaffController(IMediator mediator) : ControllerBase
     /// </summary>
     private static bool IsManagerCaller => false;
 
-    private static bool HasAdminRole(IEnumerable<string> roles) =>
-        roles.Any(r => r.Equals(AppConstants.Roles.Admin, StringComparison.OrdinalIgnoreCase));
-
     /// <summary>Returns true if the staff member with the given ID has the admin role.</summary>
     private static async Task<bool> IsAdminAsync(Guid id, IAppDbContext db, CancellationToken ct)
     {
@@ -63,10 +60,6 @@ public class StaffController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] RegisterStaffCommand cmd, CancellationToken ct)
     {
-        // SuperAdmin is seed-only — nobody (manager OR admin) can grant it via the API.
-        if (HasAdminRole(cmd.Roles))
-            return Forbid();
-
         try
         {
             var id = await mediator.Send(cmd, ct);
@@ -86,10 +79,6 @@ public class StaffController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStaffBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
-        // No one can assign the admin role via this endpoint
-        if (HasAdminRole(body.Roles))
-            return Forbid();
-
         if (IsManagerCaller)
         {
             // Load the current roles once — used for both the admin check and role preservation

@@ -363,17 +363,17 @@ describe('StaffDetailComponent', () => {
   // ── availableRoles computed ───────────────────────────────────────────────────
 
   describe('availableRoles computed', () => {
-    it('excludes the admin role from the selectable roles list', () => {
+    it('exposes every defined role as selectable, including SUPERADMIN', () => {
       mockStaffStore.roles.mockReturnValue([
-        { name: 'admin', isSystem: true },
-        { name: 'manager', isSystem: true },
-        { name: 'employee', isSystem: false },
+        { name: 'SUPERADMIN', isSystem: true },
+        { name: 'MANAGER', isSystem: true },
+        { name: 'EMPLOYEE', isSystem: false },
       ]);
       const c2 = TestBed.createComponent(StaffDetailComponent).componentInstance;
       const names = c2.availableRoles().map((r: any) => r.name);
-      expect(names).not.toContain('admin');
-      expect(names).toContain('manager');
-      expect(names).toContain('employee');
+      expect(names).toContain('SUPERADMIN');
+      expect(names).toContain('MANAGER');
+      expect(names).toContain('EMPLOYEE');
     });
   });
 });

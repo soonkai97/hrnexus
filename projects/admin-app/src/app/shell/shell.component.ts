@@ -15,6 +15,7 @@ interface NavItem {
   path: string;
   labelKey: string;
   icon: string;
+  group: string;
   featureFlag?: FeatureKey;
   adminOnly?: boolean;
 }
@@ -116,23 +117,27 @@ export class ShellComponent implements AfterViewInit {
   });
 
   private readonly allNavItems: NavItem[] = [
-    // Ordered by importance / daily-use frequency: operations → finance → comms → setup.
-    // Daily operations
-    { path: '/dashboard',     labelKey: 'nav.dashboard',     icon: 'pi pi-th-large'                                   },
-    { path: '/staff',         labelKey: 'nav.staff',         icon: 'pi pi-users'                                      },
-    { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                   },
-    { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar'                                  },
-    // Finance
-    { path: '/staff-ledger',   labelKey: 'nav.staffLedger',   icon: 'pi pi-book',      featureFlag: 'staffLedger'     },
-    { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    featureFlag: 'payroll'          },
-    { path: '/tips',           labelKey: 'nav.tips',           icon: 'pi pi-dollar',    featureFlag: 'tips'             },
-    // Communication
-    { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'    },
-    // Setup / governance (configured rarely)
-    { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker'                                },
-    { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card'                                    },
-    { path: '/staff-settings', labelKey: 'nav.staffSettings', icon: 'pi pi-sliders-h', featureFlag: 'staffLedger'     },
-    { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock'                                       },
+    // Grouped + ordered by importance / daily-use frequency: operations → finance → comms → setup.
+    { path: '/dashboard',     labelKey: 'nav.dashboard',     icon: 'pi pi-th-large',  group: 'operations' },
+    { path: '/staff',         labelKey: 'nav.staff',         icon: 'pi pi-users',     group: 'operations' },
+    { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar',  group: 'operations' },
+    { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar', group: 'operations' },
+    { path: '/staff-ledger',   labelKey: 'nav.staffLedger',   icon: 'pi pi-book',      group: 'finance', featureFlag: 'staffLedger'  },
+    { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    group: 'finance', featureFlag: 'payroll'      },
+    { path: '/tips',           labelKey: 'nav.tips',           icon: 'pi pi-dollar',    group: 'finance', featureFlag: 'tips'         },
+    { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', group: 'comms', featureFlag: 'announcements'    },
+    { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker', group: 'setup'                              },
+    { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card',   group: 'setup'    },
+    { path: '/staff-settings', labelKey: 'nav.staffSettings', icon: 'pi pi-sliders-h', group: 'setup', featureFlag: 'staffLedger'    },
+    { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock',      group: 'setup'    },
+  ];
+
+  /** Section order for the grouped sidebar. */
+  private readonly navGroupOrder = [
+    { key: 'operations', labelKey: 'nav.group.operations' },
+    { key: 'finance',    labelKey: 'nav.group.finance'    },
+    { key: 'comms',      labelKey: 'nav.group.comms'      },
+    { key: 'setup',      labelKey: 'nav.group.setup'      },
   ];
 
   navItems = computed(() => {
@@ -144,6 +149,14 @@ export class ShellComponent implements AfterViewInit {
       (!item.featureFlag || flags[item.featureFlag]) &&
       (!item.adminOnly   || isAdmin)
     );
+  });
+
+  /** Visible nav items grouped into labelled sections (empty groups dropped). */
+  navGroups = computed(() => {
+    const items = this.navItems();
+    return this.navGroupOrder
+      .map(g => ({ labelKey: g.labelKey, items: items.filter(i => i.group === g.key) }))
+      .filter(g => g.items.length > 0);
   });
 
   readonly avatarMenuItems = computed<MenuItem[]>(() => {

@@ -123,6 +123,24 @@
   overflow-x: hidden;
 }
 
+// Section header above each nav group (expanded sidebar only).
+.nav-group-title {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-muted;
+  padding: 0.85rem 0.85rem 0.3rem;
+  &:first-child { padding-top: 0.25rem; }
+}
+
+// Thin separator between groups when the sidebar is collapsed (icons only, no headers).
+.nav-group-sep {
+  height: 1px;
+  margin: 0.4rem 0.5rem;
+  background: $border-subtle;
+}
+
 .nav-item {
   display: flex;
   align-items: center;

@@ -7,6 +7,16 @@
   font-size: 0.9rem;
 }
 
+.perm-group-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-muted;
+  margin: 0.75rem 0 0.4rem;
+}
+.perm-group:first-child .perm-group-title { margin-top: 0; }
+
 .perm-list {
   display: flex;
   flex-direction: column;

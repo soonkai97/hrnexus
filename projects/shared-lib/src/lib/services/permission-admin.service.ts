@@ -23,6 +23,35 @@ export const PERMISSION_FEATURE_FLAG: Readonly<Record<string, FeatureKey>> = {
   'ledger.manage':        'staffLedger',
 };
 
+/** An ordered, labelled grouping of permission keys for display in the editors. */
+export interface PermissionGroup { labelKey: string; keys: string[]; }
+
+/** Permission catalog organised into sections (display order). Every catalog key belongs to one. */
+export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
+  { labelKey: 'permissions.groups.access',     keys: ['portal.admin'] },
+  { labelKey: 'permissions.groups.staff',      keys: ['staff.view', 'staff.manage'] },
+  { labelKey: 'permissions.groups.leave',      keys: ['leave.approve', 'leave.manage'] },
+  { labelKey: 'permissions.groups.operations', keys: ['worklog.manage', 'reports.view'] },
+  { labelKey: 'permissions.groups.finance',    keys: ['payroll.view', 'payroll.manage', 'payroll.lock', 'tips.manage', 'ledger.manage'] },
+  { labelKey: 'permissions.groups.settings',   keys: ['roles.manage', 'locations.manage', 'announcements.manage', 'config.manage'] },
+];
+
+/**
+ * Projects a flat set of visible permission keys onto the ordered groups, keeping only the keys
+ * present in <paramref/> and dropping groups left empty. Any key not in a defined group is appended
+ * to a trailing "other" group so nothing is ever silently hidden.
+ */
+export function groupedPermissions(visibleKeys: string[]): PermissionGroup[] {
+  const set = new Set(visibleKeys);
+  const grouped = PERMISSION_GROUPS
+    .map(g => ({ labelKey: g.labelKey, keys: g.keys.filter(k => set.has(k)) }))
+    .filter(g => g.keys.length > 0);
+  const known = new Set(PERMISSION_GROUPS.flatMap(g => g.keys));
+  const other = visibleKeys.filter(k => !known.has(k));
+  if (other.length) grouped.push({ labelKey: 'permissions.groups.other', keys: other });
+  return grouped;
+}
+
 /**
  * Admin CRUD for the permission framework: the catalog, each role's default permissions, and
  * per-user overrides. Separate from PermissionService (which loads the CURRENT user's effective

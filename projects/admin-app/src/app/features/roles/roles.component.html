@@ -119,7 +119,7 @@
   <p class="modal-desc">{{ 'permissions.roleDesc' | translate }}</p>
 
   <div class="perm-list">
-    @for (key of permCatalog(); track key) {
+    @for (key of visiblePermCatalog(); track key) {
       <div class="perm-row">
         <p-checkbox [inputId]="'perm-' + key" [binary]="true"
                     [ngModel]="permSelected().includes(key)"

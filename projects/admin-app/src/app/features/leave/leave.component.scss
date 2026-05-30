@@ -596,7 +596,10 @@ p.text-center { color: $text-muted; }
 }
 .ls-header, .ls-row {
   display: grid;
-  grid-template-columns: minmax(140px, 1.8fr) repeat(5, 1fr) 1fr;
+  // minmax(0, 1fr) (not bare 1fr) so the data columns are EQUAL shares independent of content.
+  // Bare 1fr = minmax(auto, 1fr): the header grid sizes columns to long words like "EMERGENCY"
+  // while data rows size to "—", so the two separate grids' columns drift out of alignment.
+  grid-template-columns: minmax(140px, 1.8fr) repeat(6, minmax(0, 1fr));
   min-width: 480px; // force scroll on narrow screens instead of squishing columns
   gap: 0.25rem;
   align-items: center;

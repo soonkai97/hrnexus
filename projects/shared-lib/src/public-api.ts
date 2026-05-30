@@ -6,6 +6,7 @@ export * from './lib/models';
 export * from './lib/auth/auth.service';
 export * from './lib/auth/jwt.interceptor';
 export * from './lib/auth/maintenance.interceptor';
+export * from './lib/auth/error.interceptor';
 export * from './lib/auth/forgot-password.base';
 export * from './lib/services/lang.service';
 export * from './lib/guards/auth.guard';

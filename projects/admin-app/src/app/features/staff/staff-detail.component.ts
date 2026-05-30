@@ -3,7 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, AuthService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, AuthService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -157,7 +157,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     };
     this.staffStore.update(this.staffId, req).subscribe({
       next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success(this.translate.instant('staffDetail.profileUpdated')); },
-      error: (e: { error?: { error?: string } }) => { this.toast.error(e?.error?.error ?? this.translate.instant('staffDetail.updateFailed')); this.saving.set(false); },
+      error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('staffDetail.updateFailed')); this.saving.set(false); },
     });
   }
 }

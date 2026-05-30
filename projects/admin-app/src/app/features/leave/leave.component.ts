@@ -10,6 +10,7 @@ import {
   LeaveSummary, LeavePatternWarning,
   LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
   TrimInputDirective, CanComponentDeactivate,
+  apiErrorMessage,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
@@ -246,7 +247,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
           this.selectedIds.set(new Set());
           this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
         },
-        error: (e: { error?: { error?: string } }) => { this.toast.error(e?.error?.error ?? this.translate.instant('leave.bulkApproveFailed')); this.bulkStatusSaving.set(false); },
+        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkApproveFailed')); this.bulkStatusSaving.set(false); },
       });
     });
   }
@@ -272,7 +273,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
           this.selectedIds.set(new Set()); this.bulkRejReason.set('');
           this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
         },
-        error: (e: { error?: { error?: string } }) => { this.toast.error(e?.error?.error ?? this.translate.instant('leave.bulkRejectFailed')); this.bulkStatusSaving.set(false); },
+        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkRejectFailed')); this.bulkStatusSaving.set(false); },
       });
     });
   }
@@ -583,8 +584,8 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
           this.toast.success(this.translate.instant('leave.bulkApplyToast', { n: r.count }));
           this.loadBalances();
         },
-        error: (e: { error?: { error?: string } }) => {
-          this.toast.error(e?.error?.error ?? this.translate.instant('leave.bulkApplyFailed'));
+        error: (e: unknown) => {
+          this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkApplyFailed'));
           this.bulkSaving.set(false);
         },
       });
@@ -777,7 +778,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
 
     this.saving.set(true);
     const id   = this.editing();
-    const fail = (e: { error?: { error?: string } }) => { this.formError.set(e?.error?.error ?? this.translate.instant('leave.saveFailed')); this.saving.set(false); };
+    const fail = (e: unknown) => { this.formError.set(apiErrorMessage(e) ?? this.translate.instant('leave.saveFailed')); this.saving.set(false); };
     if (id) {
       this.leaveSvc.update(id, this.form).subscribe({
         next: () => {

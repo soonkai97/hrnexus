@@ -5,7 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { AuthService, ThemeToggleComponent, LangService } from 'shared-lib';
+import { AuthService, ThemeToggleComponent, LangService, apiErrorMessage } from 'shared-lib';
 
 @Component({
   selector: 'app-login',
@@ -47,9 +47,8 @@ export class LoginComponent {
       next: () => {
         this.router.navigate(['/home']);
       },
-      error: (e: { error?: string | { error?: string; message?: string } }) => {
-        const raw = e?.error;
-        const msg: string = (typeof raw === 'string' ? raw : raw?.error ?? raw?.message) ?? '';
+      error: (e: unknown) => {
+        const msg = apiErrorMessage(e) ?? '';
         this.error.set(
           msg.includes('Admin accounts')
             ? this.translate.instant('auth.errAdminPortal')

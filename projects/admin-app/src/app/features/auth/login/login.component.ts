@@ -5,7 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { AuthService, ThemeToggleComponent, LangService } from 'shared-lib';
+import { AuthService, ThemeToggleComponent, LangService, apiErrorMessage } from 'shared-lib';
 
 @Component({
   selector: 'app-admin-login',
@@ -54,9 +54,8 @@ export class AdminLoginComponent {
         }
         this.router.navigate(['/dashboard']);
       },
-      error: (e: { error?: string | { error?: string; message?: string } }) => {
-        const raw = e?.error;
-        const msg: string = (typeof raw === 'string' ? raw : raw?.error ?? raw?.message) ?? '';
+      error: (e: unknown) => {
+        const msg = apiErrorMessage(e) ?? '';
         this.error.set(
           msg.includes('Manager or Admin')
             ? this.translate.instant('auth.errAccessDeniedRole')

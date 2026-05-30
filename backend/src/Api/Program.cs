@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Threading.RateLimiting;
+using FluentValidation;
 using Hangfire;
 using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -57,7 +58,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginCommand).Assembly));
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(LoginCommand).Assembly);
+    // Behaviors run outermost-first: logging wraps everything (so it times validation too),
+    // then validation runs before the handler.
+    cfg.AddOpenBehavior(typeof(HRNexus.Application.Common.Behaviors.LoggingBehavior<,>));
+    cfg.AddOpenBehavior(typeof(HRNexus.Application.Common.Behaviors.ValidationBehavior<,>));
+});
+// Auto-register any FluentValidation validators in the Application assembly (none yet — the
+// ValidationBehavior is a no-op until a command adds one; existing commands validate inline).
+builder.Services.AddValidatorsFromAssembly(typeof(LoginCommand).Assembly);
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ── Rate limiting ───────────────────────────────────────────────────────────

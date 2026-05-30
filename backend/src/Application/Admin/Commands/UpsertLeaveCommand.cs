@@ -67,7 +67,12 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             var isAnnualOrEmergency = req.LeaveType.Equals(AppConstants.Leave.Annual,    StringComparison.OrdinalIgnoreCase) || isEmergency;
             var isSick              = req.LeaveType.Equals(AppConstants.Leave.Sick,      StringComparison.OrdinalIgnoreCase);
 
-            IDbContextTransaction? tx = await db.BeginRepeatableReadAsync(ct);
+            // Serializable (not RepeatableRead): two concurrent approvals insert DIFFERENT leave
+            // rows, which snapshot isolation can't serialize — both could pass the balance check
+            // and overdraw. Serializable SSI detects the read/write conflict and aborts one; the
+            // execution strategy (EnableRetryOnFailure) retries it, and the retry sees the now-
+            // committed leave and correctly rejects if over the limit.
+            IDbContextTransaction? tx = await db.BeginSerializableAsync(ct);
             try
             {
                 if (!isRejectedOrCancelled && (isAnnualOrEmergency || isSick))

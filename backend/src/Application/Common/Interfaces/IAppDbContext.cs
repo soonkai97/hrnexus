@@ -13,6 +13,14 @@ public interface IAppDbContext
     Task<IDbContextTransaction?> BeginRepeatableReadAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Begins a Serializable transaction. Used for the leave balance check where two concurrent
+    /// approvals inserting different rows must not both pass a check-then-insert (RepeatableRead
+    /// snapshot can't catch that; Serializable SSI aborts one, which the execution strategy retries).
+    /// Returns null on non-relational providers (InMemory tests).
+    /// </summary>
+    Task<IDbContextTransaction?> BeginSerializableAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Wraps an operation in the configured execution strategy (required when using
     /// user-initiated transactions with NpgsqlRetryingExecutionStrategy).
     /// On InMemory (tests) the non-retrying strategy executes the operation directly.

@@ -37,5 +37,15 @@ public class WorkLogConfiguration : IEntityTypeConfiguration<WorkLog>
         // per day are allowed as long as they don't overlap in time.
         b.HasIndex(w => new { w.EmployeeId, w.WorkDate })
             .HasDatabaseName("IX_WorkLogs_EmployeeId_WorkDate");
+        // Optimistic concurrency: xmin is a PostgreSQL system column that bumps on every UPDATE.
+        // EF adds "WHERE xmin = @p" to UPDATEs so two concurrent end/edit operations on the same
+        // shift can't silently last-write-win — the loser gets DbUpdateConcurrencyException.
+        // No migration needed; xmin already exists on every row.
+        b.Property<uint>("xmin")
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .IsRequired()
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
     }
 }

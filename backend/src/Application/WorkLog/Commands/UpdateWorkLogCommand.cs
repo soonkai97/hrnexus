@@ -96,7 +96,11 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             performedByName: actor?.FullName ?? "Unknown",
             changes:         $"Before: {before} | After: {after}"));
 
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new InvalidOperationException("This shift was just changed by someone else. Please refresh and try again.");
+        }
     }
 
     private static long AbsStart(DateOnly date, string time) =>

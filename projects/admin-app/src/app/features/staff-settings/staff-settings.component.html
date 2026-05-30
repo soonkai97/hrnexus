@@ -93,8 +93,8 @@
                 </div>
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
-                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditWt(item)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (click)="openEditWt(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
                     [loading]="deletingWtId() === item.id" [disabled]="!!deletingWtId()"
                     (click)="removeWt(item)" />
                 </div>
@@ -173,8 +173,8 @@
                 </div>
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
-                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditEc(item)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (click)="openEditEc(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
                     [loading]="deletingEcId() === item.id" [disabled]="!!deletingEcId()"
                     (click)="removeEc(item)" />
                 </div>
@@ -271,8 +271,8 @@
                 </div>
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
-                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditSt(item)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (click)="openEditSt(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
                     [loading]="deletingStId() === item.id" [disabled]="!!deletingStId()"
                     (click)="removeSt(item)" />
                 </div>
@@ -371,8 +371,8 @@
                 </div>
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
-                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" (click)="openEditLt(item)" />
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger"
+                  <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small" (click)="openEditLt(item)" />
+                  <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
                     [loading]="deletingLtId() === item.id" [disabled]="item.isSystem || !!deletingLtId()"
                     (click)="removeLt(item)" />
                 </div>

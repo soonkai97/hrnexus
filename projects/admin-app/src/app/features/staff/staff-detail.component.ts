@@ -16,15 +16,18 @@ import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
 import { Paginator } from 'primeng/paginator';
 import { SelectButton } from 'primeng/selectbutton';
+import { Tabs, TabList, Tab } from 'primeng/tabs';
 
 /** Tri-state choice for a per-user permission override. */
 type OverrideChoice = 'inherit' | 'grant' | 'revoke';
+/** Which detail tab is active. */
+type DetailTab = 'profile' | 'worklogs' | 'permissions';
 
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, TrimInputDirective,
-    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Paginator, SelectButton],
+    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Paginator, SelectButton, Tabs, TabList, Tab],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
@@ -43,6 +46,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   loading          = signal(true);
   editMode         = signal(false);
   saving           = signal(false);
+  activeTab        = signal<DetailTab>('profile');
 
   /** Managers now have the same power as admins, so role editing is never hidden. */
   readonly isManager = computed(() => false);

@@ -7,7 +7,7 @@
       <h1 class="page-title">{{ staff()?.fullName ?? '…' }}</h1>
       <span class="page-sub">{{ staff()?.staffId }}</span>
     </div>
-    @if (!editMode()) {
+    @if (activeTab() === 'profile' && !editMode()) {
       <p-button icon="pi pi-pencil" [label]="'staffDetail.editBtn' | translate" severity="primary" (click)="startEdit()" />
     }
   </div>
@@ -25,7 +25,16 @@
     </p-card>
   } @else if (staff(); as s) {
 
+    <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))" styleClass="detail-tabs">
+      <p-tablist>
+        <p-tab value="profile">{{ 'staffDetail.tabProfile' | translate }}</p-tab>
+        <p-tab value="worklogs">{{ 'staffDetail.tabWorkLogs' | translate }}</p-tab>
+        <p-tab value="permissions">{{ 'staffDetail.tabPermissions' | translate }}</p-tab>
+      </p-tablist>
+    </p-tabs>
+
     <!-- ── Profile card ─────────────────────────────────────────────── -->
+    @if (activeTab() === 'profile') {
     <p-card styleClass="nc-card" class="mb-4">
       @if (!editMode()) {
         <div class="detail-info-grid">
@@ -128,8 +137,10 @@
         </div>
       }
     </p-card>
+    }
 
     <!-- ── Work Logs ─────────────────────────────────────────────────── -->
+    @if (activeTab() === 'worklogs') {
     <p-card styleClass="nc-card">
       <div class="d-flex align-items-center gap-3 mb-3">
         <h3 class="m-0">{{ 'staffDetail.workLogHistory' | translate }}</h3>
@@ -191,16 +202,18 @@
         }
       }
     </p-card>
+    }
 
     <!-- ── Permission overrides ──────────────────────────────────────── -->
-    <p-card styleClass="nc-card" class="mt-4">
+    @if (activeTab() === 'permissions') {
+    <p-card styleClass="nc-card">
       <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
         <div>
           <h3 class="m-0">{{ 'permissions.userTitle' | translate }}</h3>
           <p style="color:var(--p-text-muted-color);font-size:.85rem;margin:.35rem 0 0">{{ 'permissions.userDesc' | translate }}</p>
         </div>
         @if (!permLoading() && !permEditMode()) {
-          <p-button [label]="'common.edit' | translate" icon="pi pi-pencil" [text]="true" size="small"
+          <p-button [label]="'common.edit' | translate" icon="pi pi-pencil" severity="primary"
                     (onClick)="startPermEdit()" />
         }
       </div>
@@ -259,5 +272,6 @@
         </div>
       }
     </p-card>
+    }
   }
 </div>

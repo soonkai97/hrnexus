@@ -256,6 +256,9 @@
   },
   "staffDetail": {
     "editBtn":             "编辑",
+    "tabProfile":          "资料",
+    "tabWorkLogs":         "工作记录",
+    "tabPermissions":      "权限",
     "staffId":             "员工编号",
     "fullName":            "全名",
     "firstName":           "名字",

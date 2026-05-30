@@ -132,31 +132,41 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     ];
   }
 
-  setDatePreset(preset: 'today' | 'week' | 'month' | 'last-month' | 'last-3-months'): void {
+  /** The From/To range a preset produces, computed against today. */
+  private presetRange(preset: 'today' | 'week' | 'month' | 'last-month' | 'last-3-months'): { from: string; to: string } {
     const now = new Date();
     const fmt = (d: Date) => toLocalDateString(d);
     switch (preset) {
-      case 'today':
-        this.filterFrom = this.filterTo = fmt(now); break;
+      case 'today': return { from: fmt(now), to: fmt(now) };
       case 'week': {
         const mon = new Date(now);
         mon.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-        this.filterFrom = fmt(mon); this.filterTo = fmt(now); break;
+        return { from: fmt(mon), to: fmt(now) };
       }
       case 'month':
-        this.filterFrom = fmt(new Date(now.getFullYear(), now.getMonth(), 1));
-        this.filterTo   = fmt(now); break;
+        return { from: fmt(new Date(now.getFullYear(), now.getMonth(), 1)), to: fmt(now) };
       case 'last-month': {
         const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const last  = new Date(now.getFullYear(), now.getMonth(), 0);
-        this.filterFrom = fmt(first); this.filterTo = fmt(last); break;
+        return { from: fmt(first), to: fmt(last) };
       }
-      case 'last-3-months': {
-        const first3 = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-        this.filterFrom = fmt(first3); this.filterTo = fmt(now); break;
-      }
+      case 'last-3-months':
+        return { from: fmt(new Date(now.getFullYear(), now.getMonth() - 3, 1)), to: fmt(now) };
     }
+  }
+
+  setDatePreset(preset: 'today' | 'week' | 'month' | 'last-month' | 'last-3-months'): void {
+    const r = this.presetRange(preset);
+    this.filterFrom = r.from;
+    this.filterTo   = r.to;
     this.load(1);
+  }
+
+  /** Active when the current From/To exactly matches this preset — drives the highlight.
+   *  Auto-deselects when the user picks a custom range (no preset will match). */
+  isPresetActive(preset: 'today' | 'week' | 'month' | 'last-month' | 'last-3-months'): boolean {
+    const r = this.presetRange(preset);
+    return this.filterFrom === r.from && this.filterTo === r.to;
   }
 
   /** Overdue pending leaves (loaded separately, all pages) */

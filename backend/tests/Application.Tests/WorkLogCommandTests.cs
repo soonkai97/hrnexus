@@ -143,6 +143,30 @@ public class WorkLogCommandTests
     }
 
     [Fact]
+    public async Task Update_ThrowsInvalidOperation_WhenManagerEditsOwnShift()
+    {
+        // Separation of duties: a manager editing their OWN shift (whose hours feed payroll)
+        // is a conflict of interest and must be rejected. A superadmin is exempt — see the
+        // success tests above, which pass IsAdmin: true and are allowed.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log);
+        db.Locations.Add(MakeLocation("loc-1", "Main Bar"));
+        await db.SaveChangesAsync();
+
+        var handler = UpdateHandler(db);
+
+        // IsPrivileged = true, IsAdmin = false (manager), caller == owner → rejected.
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new UpdateWorkLogCommand(
+                log.Id, empId, true,
+                "BARTENDER", "loc-1", workDate, "18:00", "22:00", null),
+                CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Update_ThrowsInvalidOperation_WhenShiftIsActive()
     {
         await using var db = CreateDb();
@@ -227,7 +251,7 @@ public class WorkLogCommandTests
         // Identical start=end → CalcHours returns 24, which is valid — should not throw ArgumentException
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "18:00", null),
+            "BARTENDER", "loc-1", workDate, "18:00", "18:00", null, true),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
@@ -303,7 +327,7 @@ public class WorkLogCommandTests
         // Editing log2 to 15:00–22:00 still doesn't overlap with log1 (09:00–14:00)
         await handler.Handle(new UpdateWorkLogCommand(
             log2.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "15:00", "22:00", null),
+            "BARTENDER", "loc-1", workDate, "15:00", "22:00", null, true),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log2.Id);
@@ -357,7 +381,7 @@ public class WorkLogCommandTests
         var handler = UpdateHandler(db);
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "22:00", "Updated notes"),
+            "BARTENDER", "loc-1", workDate, "18:00", "22:00", "Updated notes", true),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
@@ -380,7 +404,7 @@ public class WorkLogCommandTests
         var handler = UpdateHandler(db);
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "22:00", null),
+            "BARTENDER", "loc-1", workDate, "18:00", "22:00", null, true),
             CancellationToken.None);
 
         Assert.Equal(1, await db.AuditLogs.CountAsync());
@@ -401,7 +425,7 @@ public class WorkLogCommandTests
         var handler = UpdateHandler(db);
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "19:00", "22:00", "test note"),
+            "BARTENDER", "loc-1", workDate, "19:00", "22:00", "test note", true),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);

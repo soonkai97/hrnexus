@@ -24,6 +24,23 @@ public class SetRolePermissionsHandler(IAppDbContext db, IPermissionResolver res
             throw new ArgumentException($"Unknown permission(s): {string.Join(", ", unknown)}");
 
         var existing = await db.RolePermissions.Where(rp => rp.RoleName == name).ToListAsync(ct);
+
+        // Lockout guard: if this edit strips portal.admin from a role that currently grants it, ensure at
+        // least one active user would still have admin-portal access afterwards (else nobody could log in).
+        var roleHadAdmin = existing.Any(rp => rp.PermissionKey == AppConstants.Permissions.PortalAdmin);
+        var roleKeepsAdmin = keys.Contains(AppConstants.Permissions.PortalAdmin);
+        if (roleHadAdmin && !roleKeepsAdmin)
+        {
+            // Roles still granting portal.admin after this change = current admin roles minus this one.
+            var adminRolesAfter = await db.RolePermissions
+                .Where(rp => rp.PermissionKey == AppConstants.Permissions.PortalAdmin && rp.RoleName != name)
+                .Select(rp => rp.RoleName).Distinct().ToListAsync(ct);
+            if (await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRolesAfter, exclude: null, ct) == 0)
+                throw new ArgumentException(
+                    "This change would leave no active user with admin-portal access. " +
+                    "Grant 'Admin portal access' to another role or user first.");
+        }
+
         db.RolePermissions.RemoveRange(existing);
         foreach (var key in keys)
             db.RolePermissions.Add(RolePermission.Create(name, key));

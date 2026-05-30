@@ -28,6 +28,36 @@ public class SetStaffOverridesHandler(IAppDbContext db, IPermissionResolver reso
         if (unknown.Count > 0)
             throw new ArgumentException($"Unknown permission(s): {string.Join(", ", unknown)}");
 
+        // Lockout guard: if this edit removes the user's OWN admin-portal access and they currently have
+        // it, ensure at least one OTHER active user still does (else nobody could log in to undo it).
+        var adminOverride = overrides.FirstOrDefault(o => o.PermissionKey == AppConstants.Permissions.PortalAdmin);
+        bool userKeepsAdmin;
+        if (adminOverride is not null)
+        {
+            userKeepsAdmin = adminOverride.Granted;   // explicit grant keeps it; explicit revoke drops it
+        }
+        else
+        {
+            // No explicit override after this change → falls back to the user's role defaults.
+            var userRoles = await db.StaffRoles.Where(sr => sr.EmployeeId == req.EmployeeId)
+                .Select(sr => sr.Role).ToListAsync(ct);
+            userKeepsAdmin = userRoles.Count > 0
+                && await db.RolePermissions.AnyAsync(
+                    rp => userRoles.Contains(rp.RoleName)
+                       && rp.PermissionKey == AppConstants.Permissions.PortalAdmin, ct);
+        }
+
+        if (!userKeepsAdmin && await PortalAdminInvariant.UserHasAdminAsync(db, req.EmployeeId, ct))
+        {
+            var adminRoles = await db.RolePermissions
+                .Where(rp => rp.PermissionKey == AppConstants.Permissions.PortalAdmin)
+                .Select(rp => rp.RoleName).Distinct().ToListAsync(ct);
+            if (await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.EmployeeId, ct) == 0)
+                throw new ArgumentException(
+                    "This change would remove admin-portal access from the last administrator. " +
+                    "Grant 'Admin portal access' to another user or role first.");
+        }
+
         var existing = await db.StaffPermissionOverrides
             .Where(o => o.EmployeeId == req.EmployeeId).ToListAsync(ct);
         db.StaffPermissionOverrides.RemoveRange(existing);

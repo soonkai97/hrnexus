@@ -11,26 +11,33 @@
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: $text-muted;
+  letter-spacing: 0.06em;
+  color: $text-secondary;
+  background: $bg-raised;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid $border-subtle;
   margin: 0;
 }
 
 .perm-list {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;                 // space BETWEEN groups
+  gap: 0.85rem;                 // space BETWEEN group cards
 
+  // Each group is a bordered card with a header band so the grouping is unmistakable
   .perm-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.7rem;                // space between the title and each checkbox row
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    overflow: hidden;
   }
 
   .perm-row {
     display: flex;
     align-items: center;
     gap: 0.65rem;
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid $border-subtle;
+    &:last-child { border-bottom: none; }
 
     label {
       margin: 0;

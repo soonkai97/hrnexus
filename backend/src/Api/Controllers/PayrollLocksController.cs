@@ -17,7 +17,8 @@ namespace HRNexus.Api.Controllers;
 [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
 public class PayrollLocksController(IMediator mediator) : ControllerBase
 {
-    private string CallerName => User.FindFirstValue(ClaimTypes.Name) ?? "Unknown";
+    // The JWT carries the display name in a custom "fullName" claim (see TokenService), not ClaimTypes.Name.
+    private string CallerName => User.FindFirstValue("fullName") ?? "Unknown";
 
     [HttpGet]
     public async Task<IActionResult> List([FromQuery] int? year, CancellationToken ct)

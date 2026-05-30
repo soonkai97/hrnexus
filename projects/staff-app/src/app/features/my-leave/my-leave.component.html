@@ -81,6 +81,7 @@
             [showOnFocus]="false"
             [readonlyInput]="true"
             [minDate]="minStartDate"
+            [defaultDate]="minStartDate"
             styleClass="w-full"
             appendTo="body"
             (ngModelChange)="onStartDateChange($event)" />
@@ -106,6 +107,7 @@
             [showOnFocus]="false"
             [readonlyInput]="true"
             [minDate]="minEndDate"
+            [defaultDate]="minEndDate"
             styleClass="w-full"
             appendTo="body" />
         </div>

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Entities;
 
@@ -20,6 +21,8 @@ public class CreateStaffExpenseHandler(IAppDbContext db)
     {
         if (!await db.Staff.AnyAsync(s => s.Id == req.StaffId, ct))
             throw new KeyNotFoundException("Staff member not found.");
+
+        await PayrollLockGuard.EnsureMonthOpenAsync(db, req.Year, req.Month, ct);
 
         var expense = StaffExpense.Create(req.StaffId, req.Year, req.Month, req.Category, req.Amount, req.Notes);
         db.StaffExpenses.Add(expense);

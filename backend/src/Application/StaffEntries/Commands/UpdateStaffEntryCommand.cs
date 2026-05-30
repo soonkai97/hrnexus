@@ -1,4 +1,5 @@
 using MediatR;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.StaffEntries.Commands;
@@ -25,6 +26,10 @@ public class UpdateStaffEntryHandler(IAppDbContext db)
 
         if (!DateOnly.TryParse(req.EntryDate, out var date))
             throw new ArgumentException("Invalid date format. Use yyyy-MM-dd.");
+
+        // Block edits touching a locked month — the entry's current month and the one it moves to.
+        await PayrollLockGuard.EnsureDateOpenAsync(db, entry.EntryDate, ct);
+        await PayrollLockGuard.EnsureDateOpenAsync(db, date, ct);
 
         entry.Update(date, req.WorkType,
             req.VenueUnits, req.VenueRate, req.VenueEarnings,

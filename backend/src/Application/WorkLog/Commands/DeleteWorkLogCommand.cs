@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Entities;
 
@@ -15,6 +16,9 @@ public class DeleteWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Del
             ?? throw new KeyNotFoundException("Work log not found.");
         if (log.EmployeeId != req.EmployeeId) throw new UnauthorizedAccessException("Not your shift.");
         if (log.EndTime == null) throw new InvalidOperationException("Cannot delete an active shift. End it first.");
+
+        // Can't delete a shift that falls in a locked payroll period.
+        await PayrollLockGuard.EnsureDateOpenAsync(db, log.WorkDate, ct);
 
         // Look up the employee name for the audit trail
         var employee = await db.Staff

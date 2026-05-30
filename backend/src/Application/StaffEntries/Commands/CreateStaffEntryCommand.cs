@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Entities;
 
@@ -27,6 +28,8 @@ public class CreateStaffEntryHandler(IAppDbContext db)
 
         if (!DateOnly.TryParse(req.EntryDate, out var date))
             throw new ArgumentException("Invalid date format. Use yyyy-MM-dd.");
+
+        await PayrollLockGuard.EnsureDateOpenAsync(db, date, ct);
 
         var entry = StaffEntry.Create(
             req.StaffId, date, req.WorkType,

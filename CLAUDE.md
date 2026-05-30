@@ -885,6 +885,22 @@ docker compose up -d web
 
 ---
 
+## MediatR pipeline behaviors
+
+Every request sent through `IMediator.Send` passes through two open behaviors (registered in
+`Program.cs`, in `Application/Common/Behaviors/`):
+
+- **`LoggingBehavior`** — logs each request name + elapsed ms, and a warning (with exception) on failure.
+- **`ValidationBehavior`** — runs any registered FluentValidation `IValidator<TRequest>` and throws
+  `ArgumentException` (→ HTTP 400) on the first failure. **Opt-in:** a request is only validated if a
+  validator exists for it. Existing commands keep their **inline** guards — the handler-direct unit
+  tests (`handler.Handle(...)`) bypass the pipeline, so inline validation is what they exercise. To add
+  boundary validation for a NEW command, drop a `class XCommandValidator : AbstractValidator<XCommand>`
+  in the Application assembly — `AddValidatorsFromAssembly` discovers it automatically.
+
+Note: because behaviors only run via `IMediator.Send`, they're exercised by the real app and the
+`Integration.Tests` (WebApplicationFactory), not by handler-direct unit tests.
+
 ## Backend unit test pattern (C# xUnit + EF Core InMemory)
 
 All backend tests live in `backend/tests/Application.Tests/`. Each test class creates a fresh in-memory `AppDbContext` per test to guarantee isolation.

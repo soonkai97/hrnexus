@@ -18,6 +18,8 @@
           [filter]="true" [filterPlaceholder]="'leave.searchStaff' | translate"
           styleClass="w-full" />
       </div>
+      <!-- From/To/Status apply to the Records list only -->
+      @if (tab() === 'records') {
       <div class="field filter-date">
         <div class="d-flex justify-content-between align-items-center">
           <label>{{ 'leave.fromLabel' | translate }}</label>
@@ -49,7 +51,9 @@
           [placeholder]="'leave.allStatus' | translate"
           [showClear]="!!filterStatus" styleClass="w-full" />
       </div>
+      }
     </div>
+    @if (tab() === 'records') {
     <!-- Date range presets -->
     <div class="preset-row d-flex flex-wrap gap-2 mt-2">
       @for (p of datePresets; track p.value) {
@@ -67,6 +71,7 @@
           (click)="setTypeFilter(p.value)" />
       }
     </div>
+    }
   </p-card>
 
   <!-- â”€â”€ Page tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->

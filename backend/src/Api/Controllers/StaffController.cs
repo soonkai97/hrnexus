@@ -16,16 +16,14 @@ namespace HRNexus.Api.Controllers;
 [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
 public class StaffController(IMediator mediator) : ControllerBase
 {
-    private string CallerRole => User.FindFirstValue(ClaimTypes.Role) ?? "";
     private Guid   CallerId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>True when the caller is a Manager but NOT an Admin.</summary>
-    private bool IsManagerCaller =>
-        User.IsInRole(AppConstants.Roles.ManagerClaim) && !User.IsInRole(AppConstants.Roles.AdminClaim);
-
-    private static bool HasElevatedRole(IEnumerable<string> roles) =>
-        roles.Any(r => r.Equals(AppConstants.Roles.Manager, StringComparison.OrdinalIgnoreCase) ||
-                       r.Equals(AppConstants.Roles.Admin,   StringComparison.OrdinalIgnoreCase));
+    /// <summary>
+    /// Whether the caller is a "restricted" manager. Managers now have the SAME power as admins,
+    /// so this is always false — no staff-management action (viewing/editing/deleting admin
+    /// accounts, etc.) is withheld from managers.
+    /// </summary>
+    private bool IsManagerCaller => false;
 
     private static bool HasAdminRole(IEnumerable<string> roles) =>
         roles.Any(r => r.Equals(AppConstants.Roles.Admin, StringComparison.OrdinalIgnoreCase));
@@ -66,10 +64,8 @@ public class StaffController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] RegisterStaffCommand cmd, CancellationToken ct)
     {
+        // SuperAdmin is seed-only — nobody (manager OR admin) can grant it via the API.
         if (HasAdminRole(cmd.Roles))
-            return Forbid();
-
-        if (CallerRole == AppConstants.Roles.ManagerClaim && HasElevatedRole(cmd.Roles))
             return Forbid();
 
         try

@@ -37,8 +37,8 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   editMode         = signal(false);
   saving           = signal(false);
 
-  /** True when the viewer is a manager (not an admin) — used to hide role editing. */
-  readonly isManager = computed(() => this.auth.hasRole('manager') && !this.auth.hasRole('admin'));
+  /** Managers now have the same power as admins, so role editing is never hidden. */
+  readonly isManager = computed(() => false);
 
   availableRoles = computed(() => this.staffStore.roles().filter(r => r.name !== 'admin'));
 

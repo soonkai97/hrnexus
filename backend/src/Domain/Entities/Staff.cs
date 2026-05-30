@@ -42,6 +42,12 @@ public class Staff : IHasAudit, ISoftDelete
     public string? RefreshToken    { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
 
+    // ── Brute-force lockout ──────────────────────────────────────────────────
+    /// <summary>Consecutive failed login attempts since the last success. Reset to 0 on success.</summary>
+    public int AccessFailedCount { get; private set; }
+    /// <summary>When set and in the future, the account is locked and logins must be refused.</summary>
+    public DateTime? LockoutEnd { get; private set; }
+
     private Staff() { }
 
     public static Staff Create(string staffId, string firstName, string? lastName, string? email, string passwordHash,
@@ -93,6 +99,36 @@ public class Staff : IHasAudit, ISoftDelete
     }
 
     public void ChangePassword(string newHash) => PasswordHash = newHash;
+
+    // ── Brute-force lockout behaviour ────────────────────────────────────────
+
+    /// <summary>True when the account is currently locked (LockoutEnd is set and still in the future).</summary>
+    public bool IsLockedOut(DateTime nowUtc) => LockoutEnd.HasValue && LockoutEnd.Value > nowUtc;
+
+    /// <summary>
+    /// Records a failed login. Once <paramref name="maxAttempts"/> consecutive failures accumulate,
+    /// the account is locked for <paramref name="lockoutDuration"/> and the counter resets so the
+    /// next failure after the lock expires starts a fresh window.
+    /// Returns true if THIS failure triggered the lock.
+    /// </summary>
+    public bool RegisterFailedLogin(DateTime nowUtc, int maxAttempts, TimeSpan lockoutDuration)
+    {
+        AccessFailedCount++;
+        if (AccessFailedCount >= maxAttempts)
+        {
+            LockoutEnd        = nowUtc.Add(lockoutDuration);
+            AccessFailedCount = 0;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>Clears the failed-attempt counter and any lockout after a successful authentication.</summary>
+    public void RegisterSuccessfulLogin()
+    {
+        AccessFailedCount = 0;
+        LockoutEnd        = null;
+    }
 
     public void Deactivate() => IsActive = false;
     public void Activate()   => IsActive = true;

@@ -1,0 +1,57 @@
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Testcontainers.PostgreSql;
+using Xunit;
+
+namespace HRNexus.Integration.Tests;
+
+/// <summary>
+/// Spins up a throwaway PostgreSQL 17 container once for the whole test collection, applies the
+/// real EF migrations, and hands out AppDbContext instances pointed at it. EF Core InMemory can't
+/// model transactions, isolation levels, the xmin system column, or partial unique indexes — so
+/// these concurrency guarantees can ONLY be proven against a real Postgres, which is what this gives.
+/// </summary>
+public sealed class PostgresFixture : IAsyncLifetime
+{
+    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
+        .WithImage("postgres:17-alpine")
+        .WithDatabase("hrnexus_test")
+        .WithUsername("test")
+        .WithPassword("test")
+        .Build();
+
+    public string ConnectionString => _container.GetConnectionString();
+
+    public async Task InitializeAsync()
+    {
+        await _container.StartAsync();
+        // Apply the real migration history to the fresh container.
+        await using var db = NewDb();
+        await db.Database.MigrateAsync();
+    }
+
+    public Task DisposeAsync() => _container.DisposeAsync().AsTask();
+
+    /// <summary>A fresh AppDbContext on the container. Each concurrent operation needs its OWN
+    /// context — DbContext is not thread-safe — so callers building parallel races create several.
+    /// Retry-on-failure is enabled to mirror production (the execution strategy retries 40001
+    /// serialization failures), which is exactly the mechanism the Serializable test relies on.</summary>
+    public AppDbContext NewDb()
+    {
+        var opts = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(ConnectionString, npgsql => npgsql.EnableRetryOnFailure(
+                maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null))
+            .Options;
+        return new AppDbContext(opts, new TestCurrentUser());
+    }
+
+    private sealed class TestCurrentUser : ICurrentUserService
+    {
+        public Guid?   UserId   => null;
+        public string? UserName => "IntegrationTest";
+    }
+}
+
+[CollectionDefinition("postgres")]
+public sealed class PostgresCollection : ICollectionFixture<PostgresFixture>;

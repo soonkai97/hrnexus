@@ -60,6 +60,16 @@ public static class AppConstants
         public const string ByHours = "by_hours";
     }
 
+    // ── Brute-force lockout ──────────────────────────────────────────────────────
+    public static class Lockout
+    {
+        /// <summary>Consecutive failed logins that trigger an account lockout.</summary>
+        public const int MaxFailedAttempts = 5;
+
+        /// <summary>How long an account stays locked once the threshold is hit.</summary>
+        public static readonly TimeSpan Duration = TimeSpan.FromMinutes(15);
+    }
+
     // ── Validation limits ──────────────────────────────────────────────────────
     public static class Limits
     {

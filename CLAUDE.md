@@ -892,10 +892,24 @@ All backend tests live in `backend/tests/Application.Tests/`. Each test class cr
 ### Test commands
 ```bash
 cd backend
-dotnet test tests/Application.Tests/               # run all Application tests
+dotnet test tests/Application.Tests/               # run all Application tests (EF InMemory, fast)
+dotnet test tests/Integration.Tests/               # real-Postgres tests (Testcontainers — needs Docker)
 dotnet test tests/Infrastructure.Tests/            # run Infrastructure tests
 dotnet test                                         # run everything
 ```
+
+> **`tests/Integration.Tests/` requires Docker.** It spins up a throwaway `postgres:17-alpine`
+> via Testcontainers to prove things EF InMemory cannot: optimistic concurrency (the `xmin`
+> token), partial unique indexes (double clock-in, tips dedupe), Serializable balance-overrun
+> arbitration, and the HTTP pipeline (rate limiter + exception→status mapping via
+> `WebApplicationFactory<Program>`). If Docker isn't available these tests fail to start — run
+> the Application suite instead. `scripts/seed-and-demo-hardening.ps1` seeds sample data and
+> demonstrates lockout + a live clock-in race against the running local stack.
+
+### Auth hardening (login defense)
+Two complementary layers guard `/api/auth`:
+- **Per-account lockout** — `Staff.AccessFailedCount` / `LockoutEnd`; after `AppConstants.Lockout.MaxFailedAttempts` (5) consecutive failures the account locks for `Lockout.Duration` (15 min) and `LoginCommand` returns **429** (even for the correct password) until it expires; a success resets the counter.
+- **Per-IP fixed-window rate limiter** — `[EnableRateLimiting("auth")]` on `AuthController`, 30 req/min/IP, configured in `Program.cs`; overflow returns **429**.
 
 ### Boilerplate
 ```csharp

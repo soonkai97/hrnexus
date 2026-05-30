@@ -45,7 +45,28 @@
     "payroll":       "Payroll",
     "staffLedger":   "Staff Ledger",
     "staffSettings": "Staff Settings",
+    "payrollLocks":  "Payroll Locks",
     "account":         "My Account"
+  },
+  "payrollLocks": {
+    "title":           "Payroll Locks",
+    "subtitle":        "Lock a month to freeze its shift logs and ledger records. Locked periods can't be edited until reopened.",
+    "year":            "Year",
+    "month":           "Month",
+    "note":            "Note",
+    "notePlaceholder": "Optional reason or reference…",
+    "lockBtn":         "Lock period",
+    "period":          "Period",
+    "lockedBy":        "Locked by",
+    "lockedAt":        "Locked at",
+    "reopen":          "Reopen",
+    "reopenConfirm":   "Reopen {{period}}? Its shift logs and ledger records will become editable again.",
+    "noLocks":         "No periods are locked.",
+    "lockedToast":     "Period locked.",
+    "reopenedToast":   "Period reopened.",
+    "loadFailed":      "Failed to load payroll locks.",
+    "lockFailed":      "Failed to lock the period.",
+    "reopenFailed":    "Failed to reopen the period."
   },
   "shell": {
     "signOut": "Sign out",

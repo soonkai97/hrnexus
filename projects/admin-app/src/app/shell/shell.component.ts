@@ -125,6 +125,7 @@ export class ShellComponent implements AfterViewInit {
     { path: '/staff-settings', labelKey: 'nav.staffSettings', icon: 'pi pi-sliders-h',  featureFlag: 'staffLedger' },
     { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker'                                },
     { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card'                                    },
+    { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock'                                       },
   ];
 
   navItems = computed(() => {

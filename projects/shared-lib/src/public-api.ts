@@ -37,6 +37,7 @@ export * from './lib/services/announcement.service'; // exports AnnouncementDto,
 export * from './lib/services/push.service';
 export * from './lib/services/feature-flag.service';
 export * from './lib/services/staff-config.service';
+export * from './lib/services/payroll-lock.service';
 export * from './lib/pipes/am-pm.pipe';
 export * from './lib/utils/date.utils';
 export * from './lib/utils/password.utils';

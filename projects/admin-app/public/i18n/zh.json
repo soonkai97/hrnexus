@@ -697,6 +697,7 @@
     "close":            "关闭",
     "closeForm":        "关闭表单",
     "rateLabel":        "时薪（马币/小时）",
+    "editRate":         "编辑时薪",
     "hourlyRateCol":    "时薪（马币）",
     "nameRequired":     "职位名称为必填项。",
     "created":          "职位已创建。",

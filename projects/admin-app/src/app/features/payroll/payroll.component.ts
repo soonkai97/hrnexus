@@ -3,7 +3,6 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, PayrollSummaryResponse, MONTH_NAMES } from 'shared-lib';
 import { Button } from 'primeng/button';
-import { Tag } from 'primeng/tag';
 import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Card } from 'primeng/card';
@@ -13,7 +12,7 @@ import { Message } from 'primeng/message';
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, Button, Tag, InputNumber, TableModule, Card, Select, Message],
+  imports: [DecimalPipe, FormsModule, Button, InputNumber, TableModule, Card, Select, Message],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })

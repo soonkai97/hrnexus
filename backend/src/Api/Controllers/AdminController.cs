@@ -222,20 +222,17 @@ public class AdminController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetPayrollExportQuery(year, month), ct);
         var staff = result.Rows.Select(r => new
         {
-            staffId       = r.StaffId,
-            name          = r.FullName,
-            totalHours    = r.TotalHours,
-            totalPay      = r.GrossPay,         // total hours × hourly rate
-            paidLeaveDays = r.PaidLeaveDays,
-            paidLeavePay  = r.PaidLeavePay,
-            grandTotal    = r.GrandTotal,        // work pay + paid-leave pay
+            staffId    = r.StaffId,
+            name       = r.FullName,
+            totalHours = r.TotalHours,
+            totalPay   = r.GrossPay,   // total hours × hourly rate; all leave is unpaid, so this is the full pay
         }).ToList();
         return Ok(new
         {
             year,
             month,
             staff,
-            totalGross = staff.Sum(r => r.grandTotal),
+            totalGross = staff.Sum(r => r.totalPay),
         });
     }
 
@@ -252,8 +249,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetPayrollExportQuery(year, month), ct);
 
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("StaffId,Full Name,Roles,Hourly Rate (RM),Total Hours,Work Pay (RM)," +
-                      "Total Leave Days,Paid Leave Days,Paid Leave Pay (RM),Grand Total (RM)");
+        sb.AppendLine("StaffId,Full Name,Roles,Hourly Rate (RM),Total Hours,Work Pay (RM),Total Leave Days Taken");
 
         foreach (var r in result.Rows)
         {
@@ -264,10 +260,7 @@ public class AdminController(IMediator mediator) : ControllerBase
                 r.HourlyRate.ToString("F2"),
                 r.TotalHours.ToString("F2"),
                 r.GrossPay.ToString("F2"),
-                r.ApprovedLeaveDays.ToString(),
-                r.PaidLeaveDays.ToString(),
-                r.PaidLeavePay.ToString("F2"),
-                r.GrandTotal.ToString("F2")));
+                r.ApprovedLeaveDays.ToString()));
         }
 
         var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());

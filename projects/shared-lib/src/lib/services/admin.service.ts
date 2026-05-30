@@ -120,10 +120,7 @@ export interface PayrollStaffRow {
   staffId: string;
   name: string;
   totalHours: number;
-  totalPay: number;       // total hours × hourly rate
-  paidLeaveDays: number;
-  paidLeavePay: number;
-  grandTotal: number;     // totalPay + paidLeavePay
+  totalPay: number;       // total hours × hourly rate; all leave is unpaid, so this is the full pay
 }
 
 export interface PayrollSummaryResponse {

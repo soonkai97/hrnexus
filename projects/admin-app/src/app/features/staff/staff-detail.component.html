@@ -231,7 +231,7 @@
       } @else {
         <!-- Edit mode: tri-state per permission; selected Grant=green / Revoke=red via row class. -->
         <div class="perm-list">
-          @for (key of permKeys(); track key) {
+          @for (key of visiblePermKeys(); track key) {
             <div class="perm-row"
                  [class.choice-grant]="permChoices()[key] === 'grant'"
                  [class.choice-revoke]="permChoices()[key] === 'revoke'">

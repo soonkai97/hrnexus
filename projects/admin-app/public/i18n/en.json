@@ -503,6 +503,7 @@
     "applySettle":           "Settle Selected",
     "settling":              "Settling…",
     "editShift":             "Edit Shift",
+    "ownShiftNoEdit":        "You can't edit your own shift — ask an admin to make this change.",
     "shiftDate":             "Date",
     "shiftStartTime":        "Start Time",
     "shiftEndTime":          "End Time",

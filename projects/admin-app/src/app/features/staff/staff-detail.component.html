@@ -194,10 +194,17 @@
 
     <!-- ── Permission overrides ──────────────────────────────────────── -->
     <p-card styleClass="nc-card" class="mt-4">
-      <div class="mb-3">
-        <h3 class="m-0">{{ 'permissions.userTitle' | translate }}</h3>
-        <p style="color:var(--p-text-muted-color);font-size:.85rem;margin:.35rem 0 0">{{ 'permissions.userDesc' | translate }}</p>
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+        <div>
+          <h3 class="m-0">{{ 'permissions.userTitle' | translate }}</h3>
+          <p style="color:var(--p-text-muted-color);font-size:.85rem;margin:.35rem 0 0">{{ 'permissions.userDesc' | translate }}</p>
+        </div>
+        @if (!permLoading() && !permEditMode()) {
+          <p-button [label]="'common.edit' | translate" icon="pi pi-pencil" [text]="true" size="small"
+                    (onClick)="startPermEdit()" />
+        }
       </div>
+
       @if (permLoading()) {
         <div class="d-flex flex-column gap-2">
           @for (i of [1,2,3,4,5,6]; track i) {
@@ -207,10 +214,27 @@
             </div>
           }
         </div>
+      } @else if (!permEditMode()) {
+        <!-- View mode: only the active overrides, colour-coded; role defaults are implied. -->
+        @if (activeOverrides().length === 0) {
+          <p style="color:var(--p-text-muted-color);font-size:.9rem;margin:0">{{ 'permissions.noOverrides' | translate }}</p>
+        } @else {
+          <div class="perm-list">
+            @for (key of activeOverrides(); track key) {
+              <div class="perm-row">
+                <span class="perm-label">{{ ('permissions.keys.' + key) | translate }}</span>
+                <p-tag [value]="permChoiceLabel(permChoices()[key])" [severity]="permChoiceSeverity(permChoices()[key])" />
+              </div>
+            }
+          </div>
+        }
       } @else {
+        <!-- Edit mode: tri-state per permission; selected Grant=green / Revoke=red via row class. -->
         <div class="perm-list">
           @for (key of permKeys(); track key) {
-            <div class="perm-row">
+            <div class="perm-row"
+                 [class.choice-grant]="permChoices()[key] === 'grant'"
+                 [class.choice-revoke]="permChoices()[key] === 'revoke'">
               <span class="perm-label" [id]="'perm-label-' + key">{{ ('permissions.keys.' + key) | translate }}</span>
               <p-selectButton
                 [options]="permOptions()"
@@ -223,9 +247,10 @@
             </div>
           }
         </div>
-        <div class="d-flex mt-4">
+        <div class="d-flex gap-2 mt-4">
           <p-button [label]="'permissions.save' | translate" severity="primary"
-                    (onClick)="savePermissions()" [disabled]="permSaving()" [loading]="permSaving()" />
+                    (onClick)="savePermissions()" [disabled]="permSaving() || !permDirty()" [loading]="permSaving()" />
+          <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (onClick)="cancelPermEdit()" />
         </div>
       }
     </p-card>

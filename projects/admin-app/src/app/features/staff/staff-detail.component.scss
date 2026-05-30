@@ -40,3 +40,17 @@
   font-size: 0.9rem;
   color: $text-primary;
 }
+
+// Colour the SELECTED tri-state segment by meaning: Grant = green, Revoke = red (Inherit stays
+// neutral). :host :deep so the rule reaches PrimeNG's internal toggle button (a .class :deep would
+// be scoped to the wrong _ngcontent and never match — see the SCSS gotcha in CLAUDE.md).
+:host :deep(.perm-row.choice-grant .p-togglebutton.p-togglebutton-checked) {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+:host :deep(.perm-row.choice-revoke .p-togglebutton.p-togglebutton-checked) {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}

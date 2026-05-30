@@ -655,6 +655,7 @@
     "roleDesc":    "Default permissions granted to everyone with this role.",
     "userTitle":   "Permission overrides",
     "userDesc":    "Grant or revoke specific permissions for this person, on top of their roles.",
+    "noOverrides": "No overrides — this person inherits all permissions from their roles.",
     "save":        "Save permissions",
     "saved":       "Permissions updated.",
     "saveFailed":  "Failed to save permissions.",

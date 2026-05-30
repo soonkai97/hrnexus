@@ -2,11 +2,8 @@
 using System.Threading.RateLimiting;
 using FluentValidation;
 using Hangfire;
-using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using HRNexus.Api.Converters;
 using HRNexus.Api.Filters;
 using HRNexus.Api.Middleware;

@@ -14,7 +14,7 @@ public class StaffEntriesController(ISender sender) : ControllerBase
 {
     // ── Entries ───────────────────────────────────────────────────────────────
 
-    /// <summary>GET /api/staff-entries?staffId=&year=&month=</summary>
+    /// <summary>GET /api/staff-entries?staffId=&amp;year=&amp;month=</summary>
     [HttpGet]
     public async Task<IActionResult> ListEntries(
         [FromQuery] string staffId,
@@ -84,7 +84,7 @@ public class StaffEntriesController(ISender sender) : ControllerBase
 
     // ── Expenses ──────────────────────────────────────────────────────────────
 
-    /// <summary>GET /api/staff-entries/expenses?staffId=&year=&month=</summary>
+    /// <summary>GET /api/staff-entries/expenses?staffId=&amp;year=&amp;month=</summary>
     [HttpGet("expenses")]
     public async Task<IActionResult> ListExpenses(
         [FromQuery] string staffId,

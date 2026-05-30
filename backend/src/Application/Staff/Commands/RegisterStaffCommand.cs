@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Staff.Commands;
 

@@ -1,7 +1,7 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminService, PayrollSummaryResponse, PayrollStaffRow, MONTH_NAMES } from 'shared-lib';
+import { AdminService, PayrollSummaryResponse, MONTH_NAMES } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { InputNumber } from 'primeng/inputnumber';

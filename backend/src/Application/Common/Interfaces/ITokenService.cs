@@ -1,6 +1,4 @@
-﻿using HRNexus.Domain.Entities;
-
-namespace HRNexus.Application.Common.Interfaces;
+﻿namespace HRNexus.Application.Common.Interfaces;
 
 public interface ITokenService
 {

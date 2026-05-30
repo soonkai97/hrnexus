@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Staff.Commands;
-using HRNexus.Application.Auth.Commands;
 using HRNexus.Application.Staff.Queries;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Constants;

@@ -1,0 +1,9 @@
+root = true
+
+[*.cs]
+# Fail the build on unused using directives (the C# analog of FE's noUnusedLocals for imports).
+dotnet_diagnostic.IDE0005.severity = error
+
+# Generated EF Core migrations are scaffolded — don't enforce style on them.
+[**/Migrations/*.cs]
+dotnet_diagnostic.IDE0005.severity = none

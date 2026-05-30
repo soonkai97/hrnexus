@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Application.Leave.Commands;
-using HRNexus.Application.Notifications.Commands;
-using HRNexus.Application.Notifications.Queries;
 
 namespace HRNexus.Api.Controllers;
 

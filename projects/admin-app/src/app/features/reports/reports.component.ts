@@ -6,8 +6,8 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
-  AdminService, ReportResponse, ReportFilters, ShiftDetailRow,
-  LocationReportRow, StaffStore, StaffManagementService, ToastService, Staff,
+  AdminService, ReportResponse, ShiftDetailRow,
+  StaffStore, StaffManagementService, ToastService, Staff,
   toLocalDateString,
   StaffService, FeatureFlagService,
   StaffLedgerPayoutDto, StaffOutstandingDto,

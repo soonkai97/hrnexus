@@ -6,8 +6,8 @@
 .page-title { margin: 0; font-size: 1.4rem; font-weight: 700; }
 .page-subtitle { margin: .25rem 0 0; color: $text-muted; font-size: .85rem; }
 
-// The lock-form card and the locked-periods card were flush against each other — add a gap.
-:host :deep(.form-card) { margin-bottom: 1.25rem; }
+// The lock-form card and the locked-periods card were flush against each other — add a clear gap.
+:host :deep(.form-card) { margin-bottom: 2rem; }
 
 .lock-form {
   display: flex;

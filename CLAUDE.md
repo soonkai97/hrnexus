@@ -10,7 +10,7 @@ Angular 21 + PrimeNG 21 monorepo. Two frontend apps share one backend and one li
 
 | Project | Path | Audience | Notes |
 |---|---|---|---|
-| `admin-app` | `projects/admin-app` | Venue managers | Desktop-first SPA |
+| `admin-app` | `projects/admin-app` | Venue managers | Desktop-first PWA (service worker) |
 | `staff-app` | `projects/staff-app` | Venue staff | Mobile-first PWA (service worker) |
 | `shared-lib` | `projects/shared-lib` | Both apps | Models, services, stores, guards, pipes, base components |
 | .NET API | separate repo | Backend | `/api/` proxied by nginx |

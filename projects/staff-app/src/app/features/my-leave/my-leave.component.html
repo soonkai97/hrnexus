@@ -39,7 +39,7 @@
         <div class="bal-nums">
           <span class="bal-remaining">{{ b.unpaidUsed }}</span>
         </div>
-        <div class="bal-used">{{ 'leave.hrs' | translate }} {{ 'leave.used' | translate }} this year</div>
+        <div class="bal-used">{{ 'leave.hrs' | translate }} {{ 'leave.used' | translate }} {{ 'leave.thisYear' | translate }}</div>
       </div>
     </div>
   }
@@ -66,10 +66,10 @@
             optionValue="value"
             styleClass="w-full" />
           @if (form.leaveType === 'emergency') {
-            <p-message severity="info" text="Emergency leave is auto-approved. Use this for urgent same-day or short-notice requests." styleClass="mt-2" />
+            <p-message severity="info" [text]="'leave.emergencyInfo' | translate" styleClass="mt-2" />
           }
           @if (form.leaveType === 'annual') {
-            <small style="color:var(--p-text-muted-color)">Annual leave must be applied at least 3 days in advance.</small>
+            <small style="color:var(--p-text-muted-color)">{{ 'leave.annualAdvanceHint' | translate }}</small>
           }
         </div>
         <div class="field">
@@ -93,7 +93,7 @@
             [showIcon]="true" icon="pi pi-clock"
             [readonlyInput]="true"
             [showOnFocus]="false"
-            placeholder="Select time"
+            [placeholder]="'logShift.selectTime' | translate"
             appendTo="body"
             styleClass="w-full" />
         </div>
@@ -117,7 +117,7 @@
             [showIcon]="true" icon="pi pi-clock"
             [readonlyInput]="true"
             [showOnFocus]="false"
-            placeholder="Select time"
+            [placeholder]="'logShift.selectTime' | translate"
             appendTo="body"
             styleClass="w-full" />
         </div>
@@ -239,7 +239,7 @@
             @for (t of leaveTypes; track t) {
               <span class="staff-cal-legend-item">
                 <span class="staff-cal-dot" [class]="'staff-cal-dot-' + t"></span>
-                {{ t | titlecase }}
+                {{ ('leave.type.' + t) | translate }}
               </span>
             }
           </div>

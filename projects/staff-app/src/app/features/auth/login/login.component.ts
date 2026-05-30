@@ -1,7 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
@@ -19,6 +19,7 @@ export class LoginComponent {
   private readonly auth   = inject(AuthService);
   private readonly router = inject(Router);
   readonly lang           = inject(LangService);
+  private readonly translate = inject(TranslateService);
 
   form: FormGroup;
   loading  = signal(false);
@@ -39,7 +40,7 @@ export class LoginComponent {
   submit(): void {
     if (this.form.invalid || this.loading()) return;
     const staffId = (this.form.value.staffId as string).trim();
-    if (!staffId) { this.error.set('Please enter your Staff ID.'); return; }
+    if (!staffId) { this.error.set(this.translate.instant('auth.errEnterStaffId')); return; }
     this.loading.set(true);
     this.error.set('');
     this.auth.login({ ...this.form.value, staffId, portal: 'staff' }).subscribe({
@@ -50,7 +51,9 @@ export class LoginComponent {
         const raw = e?.error;
         const msg: string = raw?.error ?? raw?.message ?? (typeof raw === 'string' ? raw : '') ?? '';
         this.error.set(
-          msg.includes('Admin accounts') ? 'Admin accounts must use the admin portal.' : 'Invalid Staff ID or password.'
+          msg.includes('Admin accounts')
+            ? this.translate.instant('auth.errAdminPortal')
+            : this.translate.instant('auth.errInvalidCredentials')
         );
         this.loading.set(false);
       },

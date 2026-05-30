@@ -227,9 +227,9 @@ export class ShellComponent implements AfterViewInit {
   readonly avatarMenuItems = computed<MenuItem[]>(() => [
     { label: this.user()?.fullName ?? '', disabled: true },
     { separator: true },
-    { label: 'Profile', icon: 'pi pi-user', routerLink: '/profile' },
+    { label: this.translate.instant('nav.profile'), icon: 'pi pi-user', routerLink: '/profile' },
     { separator: true },
-    { label: 'Sign Out', icon: 'pi pi-power-off', command: () => this.logout() },
+    { label: this.translate.instant('profile.signOut'), icon: 'pi pi-power-off', command: () => this.logout() },
   ]);
 
   // Shown the instant Sign Out is tapped so the navigation/teardown gap doesn't

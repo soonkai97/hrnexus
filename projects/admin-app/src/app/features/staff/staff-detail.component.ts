@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, AuthService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -30,6 +30,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly route       = inject(ActivatedRoute);
   private readonly workLogSvc  = inject(WorkLogService);
+  private readonly translate   = inject(TranslateService);
 
   staff            = signal<StaffDetail | null>(null);
   loading          = signal(true);
@@ -67,7 +68,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     this.loading.set(true);
     this.staffSvc.getById(this.staffId).subscribe({
       next:  d  => { this.staff.set(d); this.loading.set(false); },
-      error: () => { this.toast.error('Failed to load staff details.'); this.loading.set(false); },
+      error: () => { this.toast.error(this.translate.instant('staffDetail.loadFailed')); this.loading.set(false); },
     });
   }
 
@@ -128,18 +129,18 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     if (!this.touched().has(field)) return '';
     const f = this.editForm;
     switch (field) {
-      case 'staffId':   return f.staffId?.trim()   ? '' : 'Staff ID is required.';
-      case 'firstName': return f.firstName?.trim() ? '' : 'First name is required.';
-      case 'email':     return this.emailIsValid() ? '' : 'Enter a valid email address.';
+      case 'staffId':   return f.staffId?.trim()   ? '' : this.translate.instant('staff.errStaffIdRequired');
+      case 'firstName': return f.firstName?.trim() ? '' : this.translate.instant('staff.errFirstNameRequired');
+      case 'email':     return this.emailIsValid() ? '' : this.translate.instant('staff.errEmailInvalid');
     }
   }
 
   cancelEdit(): void {
     if (this.hasUnsavedChanges()) {
       this.confirmSvc.confirm({
-        title: 'Discard Changes',
-        message: 'You have unsaved changes. Discard them?',
-        confirmLabel: 'Discard',
+        title: this.translate.instant('staffDetail.discardTitle'),
+        message: this.translate.instant('staffDetail.discardMessage'),
+        confirmLabel: this.translate.instant('staffDetail.discardConfirm'),
         danger: true,
       }).subscribe(ok => { if (ok) this.editMode.set(false); });
     } else {
@@ -155,8 +156,8 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
       dateOfBirth: this.editForm.dateOfBirth?.trim() || null,
     };
     this.staffStore.update(this.staffId, req).subscribe({
-      next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success('Profile updated.'); },
-      error: (e: any) => { this.toast.error(e?.error?.error ?? 'Update failed.'); this.saving.set(false); },
+      next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success(this.translate.instant('staffDetail.profileUpdated')); },
+      error: (e: any) => { this.toast.error(e?.error?.error ?? this.translate.instant('staffDetail.updateFailed')); this.saving.set(false); },
     });
   }
 }

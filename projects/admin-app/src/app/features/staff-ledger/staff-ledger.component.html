@@ -555,7 +555,7 @@
           }
 
           <div class="summary-entries-note">
-            {{ entryCount() }} {{ entryCount() === 1 ? 'entry' : 'entries' }} Â· {{ expenses().length }} deduction(s) this month
+            {{ 'staffLedger.summaryNote' | translate:{ entries: (entryCount() === 1 ? ('staffLedger.summaryEntrySingular' | translate:{ n: entryCount() }) : ('staffLedger.summaryEntryPlural' | translate:{ n: entryCount() })), deductions: expenses().length } }}
           </div>
 
           <p-divider />

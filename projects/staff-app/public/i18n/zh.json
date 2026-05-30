@@ -69,9 +69,22 @@
     "markAllRead":     "全部标为已读",
     "unread":          "条未读",
     "postedBy":        "发布人：",
-    "clickToRead":     "点击标为已读"
+    "clickToRead":     "点击标为已读",
+    "new":             "新",
+    "errLoad":         "加载公告失败。",
+    "errMarkRead":     "标为已读失败。"
   },
   "topbar": { "signOut": "退出" },
+  "shell": {
+    "expandSidebar":    "展开侧边栏",
+    "collapseSidebar":  "收起侧边栏",
+    "openNavMenu":      "打开导航菜单",
+    "switchToZh":       "切换到中文",
+    "switchToEn":       "切换到 English",
+    "offline":          "您已离线 — 显示缓存数据",
+    "pullToRefresh":    "下拉刷新",
+    "releaseToRefresh": "释放以刷新"
+  },
   "auth": {
     "staffPortal":    "员工门户",
     "staffId":        "员工编号",
@@ -92,7 +105,14 @@
     "requestSent":    "您的申请已发送给经理。",
     "requestSentHint":"他们将联系您并提供新密码，请等待他们与您联系。",
     "minCharsHint":        "至少 8 个字符",
-    "confirmPasswordHint": "再次输入新密码"
+    "confirmPasswordHint": "再次输入新密码",
+    "yourStaffId":         "您的员工编号",
+    "yourPassword":        "您的密码",
+    "showPassword":        "显示密码",
+    "hidePassword":        "隐藏密码",
+    "errEnterStaffId":     "请输入您的员工编号。",
+    "errAdminPortal":      "管理员账号必须使用管理员门户。",
+    "errInvalidCredentials": "员工编号或密码无效。"
   },
 "pay": {
     "title":         "薪资概览",
@@ -106,7 +126,9 @@
     "breakdown":     "明细",
     "rate":          "单价",
     "poolDist":      "小费分配",
-    "shifts":        "班次"
+    "shifts":        "班次",
+    "totalSuffix":   "共计",
+    "errLoad":       "加载薪资概览失败。"
   },
   "tipsHistory": {
     "earned":  "已获小费",
@@ -157,7 +179,30 @@
     "calDayFri":         "五",
     "calDaySat":         "六",
     "calDaySun":         "日",
-    "calendarEmpty":     "当天无请假记录。"
+    "calendarEmpty":     "当天无请假记录。",
+    "thisYear":          "今年",
+    "filterAll":         "全部",
+    "emergencyInfo":     "紧急假为自动批准。适用于紧急的当天或短时通知申请。",
+    "annualAdvanceHint": "年假须至少提前 3 天申请。",
+    "errLoad":           "加载请假记录失败。",
+    "errSelectDates":    "请选择开始日期、结束日期和时间。",
+    "errEndAfterStart":  "结束日期/时间必须晚于开始日期/时间。",
+    "errMaxDuration":    "单次申请的请假时长不能超过 720 小时（30 天）。",
+    "errMaxFuture":      "请假申请不能提前超过 1 年。",
+    "errSubmit":         "提交失败，请重试。",
+    "errAlreadyEnded":   "该请假已结束，无法撤销。请联系您的经理。",
+    "errCancel":         "撤销请假失败。",
+    "toast": {
+      "submitted":  "请假申请已提交。",
+      "withdrawn":  "请假申请已撤销。"
+    },
+    "confirm": {
+      "withdrawTitle": "撤回已批准的请假",
+      "cancelTitle":   "取消请假申请",
+      "withdrawMsg":   "该请假已获批准。撤回将取消批准并恢复您的余额。确定吗？",
+      "cancelMsg":     "确定要撤销此请假申请吗？此操作无法撤销。",
+      "yesWithdraw":   "是，撤回"
+    }
   },
   "profile": {
     "title":           "个人资料",
@@ -177,7 +222,14 @@
     "enableNotif":     "开启通知",
     "disableNotif":    "关闭通知",
     "language":        "语言",
-    "signOut":         "退出登录"
+    "signOut":         "退出登录",
+    "toast": {
+      "iosHomeScreen":    "要在 iPhone 上启用通知，请先将此应用添加到主屏幕。",
+      "pushUnsupported":  "此浏览器不支持推送通知。",
+      "pushNotConfigured":"此服务器未配置推送通知。",
+      "permissionDenied": "通知权限被拒绝。",
+      "enableFailed":     "无法启用通知，请重试。"
+    }
   },
   "logShift": {
     "subtitle":         "记录您的工作时间",
@@ -203,7 +255,30 @@
     "manual":           "手动",
     "edited":           "已修改",
     "overnightHint":    "跨夜班次 — 跨越午夜。",
-    "endsOn":           "结束于"
+    "endsOn":           "结束于",
+    "selectTime":           "选择时间",
+    "errSelectRoleLocation":"请选择职位和地点。",
+    "errStart":             "开始班次失败。",
+    "errEnd":               "结束班次失败。",
+    "errFillAll":           "请填写所有字段。",
+    "errSameTime":          "结束时间必须与开始时间不同。",
+    "errMax24":             "单个班次不能超过 24 小时。",
+    "errLog":               "记录班次失败。",
+    "errFillRequired":      "请填写所有必填字段。",
+    "errSameTimeEdit":      "结束时间必须与开始时间不同。",
+    "errUpdate":            "更新班次失败。",
+    "errDelete":            "删除失败。",
+    "toast": {
+      "started": "班次已开始！",
+      "ended":   "班次已结束！",
+      "logged":  "班次已记录！",
+      "updated": "班次已更新。",
+      "removed": "记录已删除。"
+    },
+    "confirm": {
+      "deleteTitle": "删除班次记录",
+      "deleteMsg":   "确定要删除此班次记录吗？此操作无法撤销。"
+    }
   },
   "polling": {
     "leaveApproved": "您的请假申请已获批准。",

@@ -103,7 +103,7 @@ describe('AdminLoginComponent', () => {
       component.form.patchValue({ staffId: '   ', password: 'pass123' });
       component.submit();
       expect(mockAuth.login).not.toHaveBeenCalled();
-      expect(component.error()).toBe('Please enter your Staff ID.');
+      expect(component.error()).toBe('auth.errEnterStaffId');
     });
   });
 
@@ -143,7 +143,7 @@ describe('AdminLoginComponent', () => {
     it('sets access-denied error when user has employee role only', () => {
       mockAuth.login.mockReturnValue(of({ user: { roles: ['BARTENDER'] } }));
       component.submit();
-      expect(component.error()).toContain('Access denied');
+      expect(component.error()).toBe('auth.errAccessDeniedPortal');
     });
 
     it('clears loading after rejecting a non-admin user', () => {
@@ -163,13 +163,13 @@ describe('AdminLoginComponent', () => {
     it('sets generic error message on credential failure', () => {
       mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Bad credentials' } })));
       component.submit();
-      expect(component.error()).toBe('Invalid Staff ID or password.');
+      expect(component.error()).toBe('auth.errInvalidCredentials');
     });
 
     it('sets access-denied message when error contains "Manager or Admin"', () => {
       mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Manager or Admin role required.' } })));
       component.submit();
-      expect(component.error()).toBe('Access denied. Manager or Admin role required.');
+      expect(component.error()).toBe('auth.errAccessDeniedRole');
     });
 
     it('clears loading flag after an API error', () => {

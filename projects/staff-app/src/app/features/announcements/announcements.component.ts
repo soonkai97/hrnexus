@@ -30,7 +30,7 @@ export class AnnouncementsComponent implements OnInit {
     this.loading.set(true);
     this.announcementSvc.getMine().subscribe({
       next:  list => { this.items.set(list); this.loading.set(false); },
-      error: ()   => { this.toast.error('Failed to load announcements.'); this.loading.set(false); },
+      error: ()   => { this.toast.error(this.translate.instant('announcements.errLoad')); this.loading.set(false); },
     });
   }
 
@@ -42,7 +42,7 @@ export class AnnouncementsComponent implements OnInit {
       error: () => {
         // Revert the optimistic update so the user can try again
         this.items.update(list => list.map(x => x.id === a.id ? { ...x, isRead: false } : x));
-        this.toast.error('Failed to mark as read.');
+        this.toast.error(this.translate.instant('announcements.errMarkRead'));
       },
     });
   }

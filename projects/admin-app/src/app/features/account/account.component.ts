@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService, StaffManagementService, StaffDetail, LangService, ToastService, PushService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -20,6 +20,7 @@ export class AccountComponent implements OnInit {
   private readonly staffSvc = inject(StaffManagementService);
   private readonly toast    = inject(ToastService);
   private readonly pushSvc  = inject(PushService);
+  private readonly translate = inject(TranslateService);
   readonly lang             = inject(LangService);
 
   readonly langOptions = [
@@ -48,7 +49,7 @@ export class AccountComponent implements OnInit {
 
   async togglePush(): Promise<void> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      this.toast.error('Push notifications are not supported in this browser.');
+      this.toast.error(this.translate.instant('account.pushNotSupported'));
       return;
     }
 
@@ -60,12 +61,12 @@ export class AccountComponent implements OnInit {
         await existing.unsubscribe();
         await this.pushSvc.unsubscribe(existing.endpoint).toPromise();
         this.pushEnabled.set(false);
-        this.toast.success('Push notifications disabled.');
+        this.toast.success(this.translate.instant('account.pushDisabled'));
       } else {
         const keyRes = await this.pushSvc.getPublicKey().toPromise();
-        if (!keyRes?.publicKey) { this.toast.error('Push notifications are not configured on this server.'); return; }
+        if (!keyRes?.publicKey) { this.toast.error(this.translate.instant('account.pushNotConfigured')); return; }
         const sub = await this.pushSvc.requestPermission(keyRes.publicKey);
-        if (!sub) { this.toast.error('Notification permission denied.'); return; }
+        if (!sub) { this.toast.error(this.translate.instant('account.pushPermissionDenied')); return; }
         const json = sub.toJSON();
         await this.pushSvc.subscribe({
           endpoint: json.endpoint!,
@@ -73,10 +74,10 @@ export class AccountComponent implements OnInit {
           auth:     json.keys?.['auth']   ?? '',
         }).toPromise();
         this.pushEnabled.set(true);
-        this.toast.success('Push notifications enabled.');
+        this.toast.success(this.translate.instant('account.pushEnabled'));
       }
     } catch {
-      this.toast.error('Could not toggle notifications. Please try again.');
+      this.toast.error(this.translate.instant('account.pushToggleFailed'));
     } finally {
       this.pushLoading.set(false);
     }

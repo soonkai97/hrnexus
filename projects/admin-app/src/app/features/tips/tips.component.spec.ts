@@ -100,7 +100,7 @@ describe('TipsComponent', () => {
     it('shows error toast when pools fail to load', () => {
       mockAdminSvc.getTipsPools.mockReturnValue(throwError(() => new Error('Network')));
       component.ngOnInit();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load tips pools.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('tips.loadFailed');
     });
   });
 
@@ -152,7 +152,7 @@ describe('TipsComponent', () => {
       component.form.shiftDate    = '2026-05-17';
       component.form.totalAmount  = 500;
       component.distribute();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Please fill in all required fields.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('tips.fillRequired');
       expect(mockAdminSvc.distributeTips).not.toHaveBeenCalled();
     });
 
@@ -161,7 +161,7 @@ describe('TipsComponent', () => {
       component.form.shiftDate    = '2026-05-17';
       component.form.totalAmount  = 0;
       component.distribute();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Please fill in all required fields.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('tips.fillRequired');
     });
 
     it('blocks amounts above 50,000 to prevent runaway payouts', () => {
@@ -169,9 +169,7 @@ describe('TipsComponent', () => {
       component.form.shiftDate    = '2026-05-17';
       component.form.totalAmount  = 50_001;
       component.distribute();
-      expect(mockToastSvc.error).toHaveBeenCalledWith(
-        'Total tips amount cannot exceed 50,000. Please verify the amount.',
-      );
+      expect(mockToastSvc.error).toHaveBeenCalledWith('tips.capExceeded');
       expect(mockAdminSvc.distributeTips).not.toHaveBeenCalled();
     });
 
@@ -218,7 +216,7 @@ describe('TipsComponent', () => {
     it('shows error toast and clears distributing flag on API failure', () => {
       mockAdminSvc.distributeTips.mockReturnValue(throwError(() => new Error('Network')));
       component.distribute();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Distribution failed.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('tips.distributionFailed');
       expect(component.distributing()).toBe(false);
     });
   });

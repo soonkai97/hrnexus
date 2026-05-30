@@ -68,11 +68,11 @@
             [options]="allStaff()"
             optionLabel="fullName"
             optionValue="id"
-            placeholder="All Staff"
+            [placeholder]="'reports.allStaff' | translate"
             [filter]="true"
             [showClear]="true"
             [maxSelectedLabels]="1"
-            selectedItemsLabel="{0} selected"
+            [selectedItemsLabel]="'reports.selectedItems' | translate"
             appendTo="body"
             styleClass="w-full" />
         </div>
@@ -82,11 +82,11 @@
           <label>{{ 'reports.location' | translate }}</label>
           <p-multiselect [(ngModel)]="locationNames"
             [options]="locations()"
-            placeholder="All Locations"
+            [placeholder]="'reports.allLocations' | translate"
             [filter]="true"
             [showClear]="true"
             [maxSelectedLabels]="1"
-            selectedItemsLabel="{0} selected"
+            [selectedItemsLabel]="'reports.selectedItems' | translate"
             appendTo="body"
             styleClass="w-full" />
         </div>
@@ -98,11 +98,11 @@
             [options]="staffRoles()"
             optionLabel="name"
             optionValue="name"
-            placeholder="All Roles"
+            [placeholder]="'reports.allRoles' | translate"
             [filter]="true"
             [showClear]="true"
             [maxSelectedLabels]="1"
-            selectedItemsLabel="{0} selected"
+            [selectedItemsLabel]="'reports.selectedItems' | translate"
             appendTo="body"
             styleClass="w-full" />
         </div>
@@ -426,13 +426,13 @@
             <label><span class="req">*</span> {{ 'reports.shiftStartTime' | translate }}</label>
             <p-datepicker [(ngModel)]="editShiftStartTimeDate" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
-              [readonlyInput]="true" [showOnFocus]="false" placeholder="Select time" appendTo="body" styleClass="w-full" />
+              [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'leave.selectTime' | translate" appendTo="body" styleClass="w-full" />
           </div>
           <div class="col-6 field">
             <label><span class="req">*</span> {{ 'reports.shiftEndTime' | translate }}</label>
             <p-datepicker [(ngModel)]="editShiftEndTimeDate" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
-              [readonlyInput]="true" [showOnFocus]="false" placeholder="Select time" appendTo="body" styleClass="w-full" />
+              [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'leave.selectTime' | translate" appendTo="body" styleClass="w-full" />
           </div>
         </div>
         <div class="field">

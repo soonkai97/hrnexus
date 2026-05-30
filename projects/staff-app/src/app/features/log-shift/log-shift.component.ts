@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { WorkLogService, WorkLogDto, UpdateWorkLogRequest, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, PagedResult, todayLocalString, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -34,18 +34,23 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   private readonly toast         = inject(ToastService);
   private readonly confirmSvc    = inject(ConfirmService);
   readonly auth                  = inject(AuthService);
+  private readonly translate     = inject(TranslateService);
 
   mode = signal<Mode>('live');
   view = signal<'log' | 'history'>('log');
 
-  readonly viewOptions = [
-    { label: 'Log Shift', value: 'log'     },
-    { label: 'History',   value: 'history' },
-  ];
-  readonly modeOptions = [
-    { label: 'Start Now',     value: 'live'   },
-    { label: 'Manual Entry',  value: 'manual' },
-  ];
+  get viewOptions() {
+    return [
+      { label: this.translate.instant('nav.logShift'), value: 'log'     },
+      { label: this.translate.instant('logShift.history'), value: 'history' },
+    ];
+  }
+  get modeOptions() {
+    return [
+      { label: this.translate.instant('logShift.startNow'),    value: 'live'   },
+      { label: this.translate.instant('logShift.manualEntry'), value: 'manual' },
+    ];
+  }
 
   // State
   activeLog    = signal<WorkLogDto | null>(null);
@@ -201,7 +206,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
 
   startShift(): void {
     if (!this.liveForm.roleName || !this.liveForm.locationId) {
-      this.formError.set('Please select a role and location.'); return;
+      this.formError.set(this.translate.instant('logShift.errSelectRoleLocation')); return;
     }
     const startTime = this.liveFormStartTime ? this.toTimeStr(this.liveFormStartTime) : nowHHmm();
     this.submitting.set(true);
@@ -214,13 +219,13 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     }).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.toast.success('Shift started!');
+        this.toast.success(this.translate.instant('logShift.toast.started'));
         this.loadActive();
         this.liveForm = { roleName: '', locationId: '', startTime: nowHHmm(), notes: '' };
         this.liveFormStartTime = new Date();
       },
       error: (e) => {
-        this.formError.set(e?.error?.error ?? 'Failed to start shift.');
+        this.formError.set(e?.error?.error ?? this.translate.instant('logShift.errStart'));
         this.submitting.set(false);
         // If the backend detected an active shift that we missed (e.g. loadActive()
         // failed silently on page load), refresh now so the End Shift card appears.
@@ -251,12 +256,12 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
         this.submitting.set(false);
         this.endingId.set(null);
         this.endTimeDate = null;
-        this.toast.success('Shift ended!');
+        this.toast.success(this.translate.instant('logShift.toast.ended'));
         this.activeLog.set(null);
         this.loadHistory();
       },
       error: (e) => {
-        this.toast.error(e?.error?.error ?? 'Failed to end shift.');
+        this.toast.error(e?.error?.error ?? this.translate.instant('logShift.errEnd'));
         this.submitting.set(false);
       },
     });
@@ -266,7 +271,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
 
   submitManual(): void {
     if (!this.manualForm.roleName || !this.manualForm.locationId || !this.manualForm.workDate || !this.manualFormStartTime || !this.manualFormEndTime) {
-      this.formError.set('Please fill in all fields.'); return;
+      this.formError.set(this.translate.instant('logShift.errFillAll')); return;
     }
     // Convert Date → HH:mm for validation and API
     const startTime = this.toTimeStr(this.manualFormStartTime);
@@ -278,10 +283,10 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     // >= so same-time gives 0 (not 1440); overnight gives [1, 1439]
     const durationMins = endMins >= startMins ? endMins - startMins : endMins + 1440 - startMins;
     if (durationMins === 0) {
-      this.formError.set('End time must be different from start time.'); return;
+      this.formError.set(this.translate.instant('logShift.errSameTime')); return;
     }
     if (durationMins > 1440) {
-      this.formError.set('A single shift cannot exceed 24 hours.'); return;
+      this.formError.set(this.translate.instant('logShift.errMax24')); return;
     }
     this.submitting.set(true);
     this.formError.set('');
@@ -295,14 +300,14 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     }).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.toast.success('Shift logged!');
+        this.toast.success(this.translate.instant('logShift.toast.logged'));
         this.manualForm = { roleName: '', locationId: '', workDate: todayLocalString(), startTime: '', endTime: '', notes: '' };
         this.manualFormStartTime = null;
         this.manualFormEndTime   = null;
         this.loadHistory();
       },
       error: (e) => {
-        this.formError.set(e?.error?.error ?? 'Failed to log shift.');
+        this.formError.set(e?.error?.error ?? this.translate.instant('logShift.errLog'));
         this.submitting.set(false);
       },
     });
@@ -335,7 +340,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     const id = this.editingLogId();
     if (!id) return;
     if (!this.editForm.roleName || !this.editForm.locationId || !this.editForm.workDate || !this.editFormStartTime || !this.editFormEndTime) {
-      this.editError.set('Please fill in all required fields.'); return;
+      this.editError.set(this.translate.instant('logShift.errFillRequired')); return;
     }
     const startTime = this.toTimeStr(this.editFormStartTime);
     const endTime   = this.toTimeStr(this.editFormEndTime);
@@ -344,8 +349,8 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     const durationMins = (eh * 60 + em) >= (sh * 60 + sm)
       ? (eh * 60 + em) - (sh * 60 + sm)
       : (eh * 60 + em) + 1440 - (sh * 60 + sm);
-    if (durationMins === 0) { this.editError.set('End time must differ from start time.'); return; }
-    if (durationMins > 1440) { this.editError.set('A single shift cannot exceed 24 hours.'); return; }
+    if (durationMins === 0) { this.editError.set(this.translate.instant('logShift.errSameTimeEdit')); return; }
+    if (durationMins > 1440) { this.editError.set(this.translate.instant('logShift.errMax24')); return; }
 
     this.editSaving.set(true);
     this.editError.set('');
@@ -355,11 +360,11 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
         this.editingLogId.set(null);
         this.editFormStartTime = null;
         this.editFormEndTime   = null;
-        this.toast.success('Shift updated.');
+        this.toast.success(this.translate.instant('logShift.toast.updated'));
         this.loadHistory();
       },
       error: (e) => {
-        this.editError.set(e?.error?.error ?? 'Failed to update shift.');
+        this.editError.set(e?.error?.error ?? this.translate.instant('logShift.errUpdate'));
         this.editSaving.set(false);
       },
     });
@@ -368,12 +373,12 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   // ── Delete ───────────────────────────────────────────────────────────────────
 
   deleteLog(id: string): void {
-    this.confirmSvc.confirm({ title: 'Delete Shift Log', message: 'Are you sure you want to remove this shift record? This cannot be undone.', confirmLabel: 'Delete', danger: true }).subscribe(ok => {
+    this.confirmSvc.confirm({ title: this.translate.instant('logShift.confirm.deleteTitle'), message: this.translate.instant('logShift.confirm.deleteMsg'), confirmLabel: this.translate.instant('common.delete'), danger: true }).subscribe(ok => {
       if (!ok) return;
       this.deletingId.set(id);
       this.workLogSvc.delete(id).subscribe({
-        next: () => { this.deletingId.set(null); this.loadHistory(); this.toast.success('Log removed.'); },
-        error: () => { this.deletingId.set(null); this.toast.error('Failed to delete.'); },
+        next: () => { this.deletingId.set(null); this.loadHistory(); this.toast.success(this.translate.instant('logShift.toast.removed')); },
+        error: () => { this.deletingId.set(null); this.toast.error(this.translate.instant('logShift.errDelete')); },
       });
     });
   }

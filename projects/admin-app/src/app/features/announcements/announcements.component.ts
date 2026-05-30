@@ -81,7 +81,7 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
     this.loading.set(true);
     this.announcementSvc.getAll(page, this.pageSize).subscribe({
       next:  result => { this.items.set(result.items); this.totalCount.set(result.total); this.loading.set(false); },
-      error: ()     => { this.toast.error('Failed to load announcements.'); this.loading.set(false); },
+      error: ()     => { this.toast.error(this.translate.instant('announcements.loadFailed')); this.loading.set(false); },
     });
   }
 
@@ -121,21 +121,21 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
 
   save(): void {
     if (!this.form.title.trim() || !this.form.body.trim()) {
-      this.toast.error('Title and body are required.');
+      this.toast.error(this.translate.instant('announcements.errTitleBodyRequired'));
       return;
     }
     if (this.form.title.trim().length > 200) {
-      this.toast.error('Title cannot exceed 200 characters.');
+      this.toast.error(this.translate.instant('announcements.errTitleTooLong'));
       return;
     }
     if (this.form.body.trim().length > 5000) {
-      this.toast.error('Body cannot exceed 5000 characters.');
+      this.toast.error(this.translate.instant('announcements.errBodyTooLong'));
       return;
     }
     if (this.form.expiresAt) {
       const expiry = new Date(this.form.expiresAt);
       if (expiry <= new Date()) {
-        this.toast.error('Expiry date must be in the future.');
+        this.toast.error(this.translate.instant('announcements.errExpiryPast'));
         return;
       }
     }
@@ -148,13 +148,13 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
     };
     const editId = this.editing();
     const onSuccess = () => {
-      this.toast.success(editId ? 'Announcement updated.' : 'Announcement created.');
+      this.toast.success(this.translate.instant(editId ? 'announcements.updated' : 'announcements.created'));
       this.saving.set(false);
       this.showForm.set(false);
       this.load();
     };
     const onError = () => {
-      this.toast.error('Save failed.');
+      this.toast.error(this.translate.instant('announcements.saveFailed'));
       this.saving.set(false);
     };
 
@@ -166,12 +166,12 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
   }
 
   remove(id: string): void {
-    this.confirmSvc.confirm({ title: 'Delete Announcement', message: 'Are you sure you want to delete this announcement?', confirmLabel: 'Delete', danger: true })
+    this.confirmSvc.confirm({ title: this.translate.instant('announcements.confirmDeleteTitle'), message: this.translate.instant('announcements.confirmDeleteMessage'), confirmLabel: this.translate.instant('common.delete'), danger: true })
       .subscribe(ok => {
         if (!ok) return;
         this.announcementSvc.delete(id).subscribe({
-          next:  () => { this.toast.success('Deleted.'); this.load(); },
-          error: () => this.toast.error('Delete failed.'),
+          next:  () => { this.toast.success(this.translate.instant('announcements.deleted')); this.load(); },
+          error: () => this.toast.error(this.translate.instant('announcements.deleteFailed')),
         });
       });
   }
@@ -185,17 +185,17 @@ export class AnnouncementsComponent implements OnInit, CanComponentDeactivate {
   fieldError(field: 'title' | 'body'): string {
     if (!this.touched().has(field)) return '';
     switch (field) {
-      case 'title': return this.form.title?.trim() ? '' : 'Title is required.';
-      case 'body':  return this.form.body?.trim()  ? '' : 'Body is required.';
+      case 'title': return this.form.title?.trim() ? '' : this.translate.instant('announcements.titleRequired');
+      case 'body':  return this.form.body?.trim()  ? '' : this.translate.instant('announcements.bodyRequired');
     }
   }
 
   cancel(): void {
     if (this.isFormDirty()) {
       this.confirmSvc.confirm({
-        title: 'Discard Changes',
-        message: 'You have unsaved changes. Discard them?',
-        confirmLabel: 'Discard',
+        title: this.translate.instant('announcements.discardTitle'),
+        message: this.translate.instant('announcements.discardMessage'),
+        confirmLabel: this.translate.instant('announcements.discardConfirm'),
         danger: true,
       }).subscribe(ok => { if (ok) this.showForm.set(false); });
     } else {

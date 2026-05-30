@@ -86,7 +86,7 @@ describe('AnnouncementsComponent (staff)', () => {
     it('shows error toast and clears loading on failure', () => {
       mockAnnouncementSvc.getMine.mockReturnValue(throwError(() => new Error('Network')));
       component.ngOnInit();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load announcements.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.errLoad');
       expect(component.loading()).toBe(false);
     });
   });
@@ -155,7 +155,7 @@ describe('AnnouncementsComponent (staff)', () => {
       component.items.set([makeAnnouncement({ isRead: false })]);
       mockAnnouncementSvc.markRead.mockReturnValue(throwError(() => new Error('Network')));
       component.markRead(component.items()[0]);
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to mark as read.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.errMarkRead');
     });
   });
 

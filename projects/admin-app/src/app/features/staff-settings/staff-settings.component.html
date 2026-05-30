@@ -37,12 +37,12 @@
                   <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
                   <input pInputText [(ngModel)]="wtForm.key" [placeholder]="'VENUECLOCK'"
                          [disabled]="!!editingWt()" maxlength="50"
-                         (blur)="markTouched('wt.key')" [class.input-invalid]="!!fieldError('wt.key', wtForm.key, 'Key')" />
-                  @if (fieldError('wt.key', wtForm.key, 'Key'); as err) { <small class="field-err">{{ err }}</small> }
+                         (blur)="markTouched('wt.key')" [class.input-invalid]="!!fieldError('wt.key', wtForm.key, 'staffSettings.key')" />
+                  @if (fieldError('wt.key', wtForm.key, 'staffSettings.key'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
-                  <input pInputText [(ngModel)]="wtForm.label" (blur)="markTouched('wt.label')" [class.input-invalid]="!!fieldError('wt.label', wtForm.label, 'Label')" placeholder="å†™é’Ÿ" maxlength="100" />
+                  <input pInputText [(ngModel)]="wtForm.label" (blur)="markTouched('wt.label')" [class.input-invalid]="!!fieldError('wt.label', wtForm.label, 'staffSettings.label')" placeholder="å†™é’Ÿ" maxlength="100" />
                 </div>
                 <div class="field field-sm">
                   <label>{{ 'staffSettings.order' | translate }}</label>
@@ -86,9 +86,9 @@
                   <span class="list-key">{{ item.key }}</span>
                   <span class="list-label">{{ item.label }}</span>
                   <span class="list-badges">
-                    @if (item.autoCalc) { <span class="badge badge-calc">AutoCalc</span> }
-                    @if (item.hasPrivate) { <span class="badge badge-private">Private</span> }
-                    @if (!item.isActive) { <span class="badge badge-inactive">Inactive</span> }
+                    @if (item.autoCalc) { <span class="badge badge-calc">{{ 'staffSettings.autoCalcBadge' | translate }}</span> }
+                    @if (item.hasPrivate) { <span class="badge badge-private">{{ 'staffSettings.privateBadge' | translate }}</span> }
+                    @if (!item.isActive) { <span class="badge badge-inactive">{{ 'staffSettings.inactiveBadge' | translate }}</span> }
                   </span>
                 </div>
                 <div class="list-row-order">{{ item.displayOrder }}</div>
@@ -130,14 +130,14 @@
                   <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
                   <input pInputText [(ngModel)]="ecForm.key" placeholder="MEAL"
                          [disabled]="!!editingEc()" maxlength="50"
-                         (blur)="markTouched('ec.key')" [class.input-invalid]="!!fieldError('ec.key', ecForm.key, 'Key')" />
-                  @if (fieldError('ec.key', ecForm.key, 'Key'); as err) { <small class="field-err">{{ err }}</small> }
+                         (blur)="markTouched('ec.key')" [class.input-invalid]="!!fieldError('ec.key', ecForm.key, 'staffSettings.key')" />
+                  @if (fieldError('ec.key', ecForm.key, 'staffSettings.key'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
                   <input pInputText [(ngModel)]="ecForm.label" placeholder="Meal Subsidy" maxlength="100"
-                         (blur)="markTouched('ec.label')" [class.input-invalid]="!!fieldError('ec.label', ecForm.label, 'Label')" />
-                  @if (fieldError('ec.label', ecForm.label, 'Label'); as err) { <small class="field-err">{{ err }}</small> }
+                         (blur)="markTouched('ec.label')" [class.input-invalid]="!!fieldError('ec.label', ecForm.label, 'staffSettings.label')" />
+                  @if (fieldError('ec.label', ecForm.label, 'staffSettings.label'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field field-sm">
                   <label>{{ 'staffSettings.order' | translate }}</label>
@@ -169,7 +169,7 @@
                 <div class="list-row-info">
                   <span class="list-key">{{ item.key }}</span>
                   <span class="list-label">{{ item.label }}</span>
-                  @if (!item.isActive) { <span class="badge badge-inactive">Inactive</span> }
+                  @if (!item.isActive) { <span class="badge badge-inactive">{{ 'staffSettings.inactiveBadge' | translate }}</span> }
                 </div>
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
@@ -210,12 +210,12 @@
                   <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
                   <input pInputText [(ngModel)]="stForm.key" placeholder="SETTLED"
                          [disabled]="!!editingSt()" maxlength="50"
-                         (blur)="markTouched('st.key')" [class.input-invalid]="!!fieldError('st.key', stForm.key, 'Key')" />
-                  @if (fieldError('st.key', stForm.key, 'Key'); as err) { <small class="field-err">{{ err }}</small> }
+                         (blur)="markTouched('st.key')" [class.input-invalid]="!!fieldError('st.key', stForm.key, 'staffSettings.key')" />
+                  @if (fieldError('st.key', stForm.key, 'staffSettings.key'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
-                  <input pInputText [(ngModel)]="stForm.label" (blur)="markTouched('st.label')" [class.input-invalid]="!!fieldError('st.label', stForm.label, 'Label')" placeholder="æ¸… (Settled)" maxlength="100" />
+                  <input pInputText [(ngModel)]="stForm.label" (blur)="markTouched('st.label')" [class.input-invalid]="!!fieldError('st.label', stForm.label, 'staffSettings.label')" placeholder="æ¸… (Settled)" maxlength="100" />
                 </div>
                 <div class="field field-sm">
                   <label>{{ 'staffSettings.order' | translate }}</label>
@@ -266,7 +266,7 @@
                 <div class="list-row-info">
                   <span class="list-key">{{ item.key }}</span>
                   <p-tag [severity]="severityType(item.severity)" [value]="item.label" />
-                  @if (!item.isActive) { <span class="badge badge-inactive">Inactive</span> }
+                  @if (!item.isActive) { <span class="badge badge-inactive">{{ 'staffSettings.inactiveBadge' | translate }}</span> }
                 </div>
                 <div class="list-row-order">{{ item.displayOrder }}</div>
                 <div class="list-row-actions">
@@ -307,14 +307,14 @@
                   <label><span class="req">*</span> {{ 'staffSettings.key' | translate }}</label>
                   <input pInputText [(ngModel)]="ltForm.key" placeholder="CASH_ADVANCE"
                          [disabled]="!!editingLt()" maxlength="50"
-                         (blur)="markTouched('lt.key')" [class.input-invalid]="!!fieldError('lt.key', ltForm.key, 'Key')" />
-                  @if (fieldError('lt.key', ltForm.key, 'Key'); as err) { <small class="field-err">{{ err }}</small> }
+                         (blur)="markTouched('lt.key')" [class.input-invalid]="!!fieldError('lt.key', ltForm.key, 'staffSettings.key')" />
+                  @if (fieldError('lt.key', ltForm.key, 'staffSettings.key'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field">
                   <label><span class="req">*</span> {{ 'staffSettings.label' | translate }}</label>
                   <input pInputText [(ngModel)]="ltForm.label" placeholder="Cash Advance" maxlength="100"
-                         (blur)="markTouched('lt.label')" [class.input-invalid]="!!fieldError('lt.label', ltForm.label, 'Label')" />
-                  @if (fieldError('lt.label', ltForm.label, 'Label'); as err) { <small class="field-err">{{ err }}</small> }
+                         (blur)="markTouched('lt.label')" [class.input-invalid]="!!fieldError('lt.label', ltForm.label, 'staffSettings.label')" />
+                  @if (fieldError('lt.label', ltForm.label, 'staffSettings.label'); as err) { <small class="field-err">{{ err }}</small> }
                 </div>
                 <div class="field field-sm">
                   <label>{{ 'staffSettings.order' | translate }}</label>
@@ -361,10 +361,10 @@
                   <span class="list-key">{{ item.key }}</span>
                   <span class="list-label">{{ item.label }}</span>
                   <span class="list-badges">
-                    @if (item.isAdvance) { <span class="badge badge-advance">Advance</span> }
-                    @else { <span class="badge badge-repayment">Repayment</span> }
-                    @if (item.isSystem)  { <span class="badge badge-system">System</span> }
-                    @if (!item.isActive) { <span class="badge badge-inactive">Inactive</span> }
+                    @if (item.isAdvance) { <span class="badge badge-advance">{{ 'staffSettings.advanceBadge' | translate }}</span> }
+                    @else { <span class="badge badge-repayment">{{ 'staffSettings.repaymentBadge' | translate }}</span> }
+                    @if (item.isSystem)  { <span class="badge badge-system">{{ 'staffSettings.systemBadge' | translate }}</span> }
+                    @if (!item.isActive) { <span class="badge badge-inactive">{{ 'staffSettings.inactiveBadge' | translate }}</span> }
                   </span>
                 </div>
                 <div class="list-row-order">{{ item.displayOrder }}</div>

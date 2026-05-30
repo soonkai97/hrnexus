@@ -3,7 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Subject, EMPTY } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { SignalRService, AdminService, ActiveStaffDto, RecentEventDto, DashboardStats, ToastService } from 'shared-lib';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -21,6 +21,7 @@ export class DashboardComponent implements OnInit {
   private readonly signalR    = inject(SignalRService);
   private readonly admin      = inject(AdminService);
   private readonly toast      = inject(ToastService);
+  private readonly translate  = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   stats    = signal<DashboardStats | null>(null);
@@ -41,7 +42,7 @@ export class DashboardComponent implements OnInit {
         if (showLoader) this.loading.set(true);
         return this.admin.getDashboard().pipe(
           catchError(() => {
-            this.toast.error('Failed to load dashboard data.');
+            this.toast.error(this.translate.instant('dashboard.loadFailed'));
             this.loading.set(false);
             return EMPTY;
           }),

@@ -171,7 +171,7 @@ describe('LogShiftComponent', () => {
       component.liveForm.roleName   = '';
       component.liveForm.locationId = 'loc-1';
       component.startShift();
-      expect(component.formError()).toBe('Please select a role and location.');
+      expect(component.formError()).toBe('logShift.errSelectRoleLocation');
       expect(mockWorkLogSvc.start).not.toHaveBeenCalled();
     });
 
@@ -179,7 +179,7 @@ describe('LogShiftComponent', () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = '';
       component.startShift();
-      expect(component.formError()).toBe('Please select a role and location.');
+      expect(component.formError()).toBe('logShift.errSelectRoleLocation');
       expect(mockWorkLogSvc.start).not.toHaveBeenCalled();
     });
 
@@ -211,7 +211,7 @@ describe('LogShiftComponent', () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       component.startShift();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Shift started!');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('logShift.toast.started');
     });
 
     it('reloads active shift after success so the clock-out panel appears', () => {
@@ -247,7 +247,7 @@ describe('LogShiftComponent', () => {
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.start.mockReturnValue(throwError(() => ({})));
       component.startShift();
-      expect(component.formError()).toBe('Failed to start shift.');
+      expect(component.formError()).toBe('logShift.errStart');
     });
 
     it('clears submitting flag after error so the button is re-enabled', () => {
@@ -305,7 +305,7 @@ describe('LogShiftComponent', () => {
     it('shows success toast confirming the shift ended', () => {
       component.endingId.set('log-1');
       component.confirmEnd();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Shift ended!');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('logShift.toast.ended');
     });
 
     it('refreshes history after ending so the completed shift appears in the log', () => {
@@ -348,7 +348,7 @@ describe('LogShiftComponent', () => {
       fillManualForm();
       component.manualForm.roleName = '';
       component.submitManual();
-      expect(component.formError()).toBe('Please fill in all fields.');
+      expect(component.formError()).toBe('logShift.errFillAll');
       expect(mockWorkLogSvc.createManual).not.toHaveBeenCalled();
     });
 
@@ -356,28 +356,28 @@ describe('LogShiftComponent', () => {
       fillManualForm();
       component.manualForm.locationId = '';
       component.submitManual();
-      expect(component.formError()).toBe('Please fill in all fields.');
+      expect(component.formError()).toBe('logShift.errFillAll');
     });
 
     it('sets formError when workDate is missing', () => {
       fillManualForm();
       component.manualForm.workDate = '';
       component.submitManual();
-      expect(component.formError()).toBe('Please fill in all fields.');
+      expect(component.formError()).toBe('logShift.errFillAll');
     });
 
     it('sets formError when startTime is missing', () => {
       fillManualForm();
       component.manualFormStartTime = null;
       component.submitManual();
-      expect(component.formError()).toBe('Please fill in all fields.');
+      expect(component.formError()).toBe('logShift.errFillAll');
     });
 
     it('sets formError when endTime is missing', () => {
       fillManualForm();
       component.manualFormEndTime = null;
       component.submitManual();
-      expect(component.formError()).toBe('Please fill in all fields.');
+      expect(component.formError()).toBe('logShift.errFillAll');
     });
 
     it('calls createManual() with correct payload when all fields are valid', () => {
@@ -408,7 +408,7 @@ describe('LogShiftComponent', () => {
       component.manualFormStartTime = new Date(2026, 4, 17, 8, 0);  // 08:00
       component.manualFormEndTime   = new Date(2026, 4, 17, 8, 0);  // 08:00 — same
       component.submitManual();
-      expect(component.formError()).toBe('End time must be different from start time.');
+      expect(component.formError()).toBe('logShift.errSameTime');
       expect(mockWorkLogSvc.createManual).not.toHaveBeenCalled();
     });
 
@@ -423,7 +423,7 @@ describe('LogShiftComponent', () => {
     it('shows success toast after logging a manual shift', () => {
       fillManualForm();
       component.submitManual();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Shift logged!');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('logShift.toast.logged');
     });
 
     it('resets manualForm after success', () => {
@@ -488,7 +488,7 @@ describe('LogShiftComponent', () => {
     it('shows success toast after deletion', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       component.deleteLog('log-99');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Log removed.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('logShift.toast.removed');
     });
 
     it('does NOT call delete() when the user cancels the confirm dialog', () => {
@@ -501,7 +501,7 @@ describe('LogShiftComponent', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       mockWorkLogSvc.delete.mockReturnValue(throwError(() => new Error('Server error')));
       component.deleteLog('log-99');
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to delete.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('logShift.errDelete');
     });
 
     it('shows "Edited" badge indicator — isEdited flag propagates from API to dto', () => {

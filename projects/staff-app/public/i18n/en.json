@@ -69,9 +69,22 @@
     "markAllRead":    "Mark all read",
     "unread":         "unread",
     "postedBy":       "Posted by",
-    "clickToRead":    "Tap to mark as read"
+    "clickToRead":    "Tap to mark as read",
+    "new":            "NEW",
+    "errLoad":        "Failed to load announcements.",
+    "errMarkRead":    "Failed to mark as read."
   },
   "topbar": { "signOut": "Sign out" },
+  "shell": {
+    "expandSidebar":    "Expand sidebar",
+    "collapseSidebar":  "Collapse sidebar",
+    "openNavMenu":      "Open navigation menu",
+    "switchToZh":       "Switch to 中文",
+    "switchToEn":       "Switch to English",
+    "offline":          "You're offline — showing cached data",
+    "pullToRefresh":    "Pull to refresh",
+    "releaseToRefresh": "Release to refresh"
+  },
   "auth": {
     "staffPortal":    "Staff Portal",
     "staffId":        "Staff ID",
@@ -92,7 +105,14 @@
     "requestSent":    "Your request has been sent to your manager.",
     "requestSentHint":"They will contact you with a new password. Please wait for them to reach out.",
     "minCharsHint":        "Min. 8 characters",
-    "confirmPasswordHint": "Re-enter new password"
+    "confirmPasswordHint": "Re-enter new password",
+    "yourStaffId":         "Your Staff ID",
+    "yourPassword":        "Your password",
+    "showPassword":        "Show password",
+    "hidePassword":        "Hide password",
+    "errEnterStaffId":     "Please enter your Staff ID.",
+    "errAdminPortal":      "Admin accounts must use the admin portal.",
+    "errInvalidCredentials": "Invalid Staff ID or password."
   },
 "pay": {
     "title":         "Pay Summary",
@@ -106,7 +126,9 @@
     "breakdown":     "Breakdown",
     "rate":          "rate",
     "poolDist":      "Pool distribution",
-    "shifts":        "Shifts"
+    "shifts":        "Shifts",
+    "totalSuffix":   "total",
+    "errLoad":       "Failed to load pay summary."
   },
   "tipsHistory": {
     "earned":  "Tips Earned",
@@ -157,7 +179,30 @@
     "calDayFri":         "Fri",
     "calDaySat":         "Sat",
     "calDaySun":         "Sun",
-    "calendarEmpty":     "No leave on this day."
+    "calendarEmpty":     "No leave on this day.",
+    "thisYear":          "this year",
+    "filterAll":         "All",
+    "emergencyInfo":     "Emergency leave is auto-approved. Use this for urgent same-day or short-notice requests.",
+    "annualAdvanceHint": "Annual leave must be applied at least 3 days in advance.",
+    "errLoad":           "Failed to load leave records.",
+    "errSelectDates":    "Please select start date, end date, and times.",
+    "errEndAfterStart":  "End date/time must be after start date/time.",
+    "errMaxDuration":    "Leave duration cannot exceed 720 hours (30 days) in a single request.",
+    "errMaxFuture":      "Leave cannot be requested more than 1 year in advance.",
+    "errSubmit":         "Submission failed. Please try again.",
+    "errAlreadyEnded":   "This leave has already ended and cannot be cancelled. Contact your manager.",
+    "errCancel":         "Failed to cancel leave.",
+    "toast": {
+      "submitted":  "Leave request submitted.",
+      "withdrawn":  "Leave request withdrawn."
+    },
+    "confirm": {
+      "withdrawTitle": "Withdraw Approved Leave",
+      "cancelTitle":   "Cancel Leave Request",
+      "withdrawMsg":   "This leave has already been approved. Withdrawing it will remove the approval and restore your balance. Are you sure?",
+      "cancelMsg":     "Are you sure you want to withdraw this leave request? This cannot be undone.",
+      "yesWithdraw":   "Yes, Withdraw"
+    }
   },
   "profile": {
     "title":           "Profile",
@@ -177,7 +222,14 @@
     "enableNotif":     "Enable Notifications",
     "disableNotif":    "Disable Notifications",
     "language":        "Language",
-    "signOut":         "Sign Out"
+    "signOut":         "Sign Out",
+    "toast": {
+      "iosHomeScreen":    "To enable notifications on iPhone, add this app to your Home Screen first.",
+      "pushUnsupported":  "Push notifications are not supported in this browser.",
+      "pushNotConfigured":"Push notifications are not configured on this server.",
+      "permissionDenied": "Notification permission denied.",
+      "enableFailed":     "Could not enable notifications. Please try again."
+    }
   },
   "logShift": {
     "subtitle":         "Record your working hours",
@@ -203,7 +255,30 @@
     "manual":           "Manual",
     "edited":           "Edited",
     "overnightHint":    "Overnight shift — spans midnight.",
-    "endsOn":           "Ends"
+    "endsOn":           "Ends",
+    "selectTime":           "Select time",
+    "errSelectRoleLocation":"Please select a role and location.",
+    "errStart":             "Failed to start shift.",
+    "errEnd":               "Failed to end shift.",
+    "errFillAll":           "Please fill in all fields.",
+    "errSameTime":          "End time must be different from start time.",
+    "errMax24":             "A single shift cannot exceed 24 hours.",
+    "errLog":               "Failed to log shift.",
+    "errFillRequired":      "Please fill in all required fields.",
+    "errSameTimeEdit":      "End time must differ from start time.",
+    "errUpdate":            "Failed to update shift.",
+    "errDelete":            "Failed to delete.",
+    "toast": {
+      "started": "Shift started!",
+      "ended":   "Shift ended!",
+      "logged":  "Shift logged!",
+      "updated": "Shift updated.",
+      "removed": "Log removed."
+    },
+    "confirm": {
+      "deleteTitle": "Delete Shift Log",
+      "deleteMsg":   "Are you sure you want to remove this shift record? This cannot be undone."
+    }
   },
   "polling": {
     "leaveApproved": "Your leave request has been approved.",

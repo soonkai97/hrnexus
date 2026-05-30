@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService, StaffManagementService, StaffDetail, ToastService, PushService, LangService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -21,6 +21,7 @@ export class ProfileComponent implements OnInit {
   private readonly toast    = inject(ToastService);
   private readonly pushSvc  = inject(PushService);
   readonly lang             = inject(LangService);
+  private readonly translate = inject(TranslateService);
 
   readonly langOptions = [
     { label: 'English', value: 'en' },
@@ -57,12 +58,12 @@ export class ProfileComponent implements OnInit {
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const isStandalone = ('standalone' in navigator) && (navigator as any).standalone;
     if (isIos && !isStandalone) {
-      this.toast.warning('To enable notifications on iPhone, add this app to your Home Screen first.');
+      this.toast.warning(this.translate.instant('profile.toast.iosHomeScreen'));
       return;
     }
 
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      this.toast.error('Push notifications are not supported in this browser.');
+      this.toast.error(this.translate.instant('profile.toast.pushUnsupported'));
       return;
     }
 
@@ -76,9 +77,9 @@ export class ProfileComponent implements OnInit {
         this.pushEnabled.set(false);
       } else {
         const keyRes = await this.pushSvc.getPublicKey().toPromise();
-        if (!keyRes?.publicKey) { this.toast.error('Push notifications are not configured on this server.'); return; }
+        if (!keyRes?.publicKey) { this.toast.error(this.translate.instant('profile.toast.pushNotConfigured')); return; }
         const sub = await this.pushSvc.requestPermission(keyRes.publicKey);
-        if (!sub) { this.toast.error('Notification permission denied.'); return; }
+        if (!sub) { this.toast.error(this.translate.instant('profile.toast.permissionDenied')); return; }
         const json = sub.toJSON();
         await this.pushSvc.subscribe({
           endpoint: json.endpoint!,
@@ -88,7 +89,7 @@ export class ProfileComponent implements OnInit {
         this.pushEnabled.set(true);
       }
     } catch (e) {
-      this.toast.error('Could not enable notifications. Please try again.');
+      this.toast.error(this.translate.instant('profile.toast.enableFailed'));
     } finally {
       this.pushLoading.set(false);
     }

@@ -61,7 +61,7 @@
     <div class="hero-card">
       <div class="hero-label">{{ 'pay.grossPay' | translate }}</div>
       <div class="hero-amount">RM {{ summary()!.grossPay | number:'1.2-2' }}</div>
-      <div class="hero-hours">{{ summary()!.totalHours }}h total</div>
+      <div class="hero-hours">{{ summary()!.totalHours }}h {{ 'pay.totalSuffix' | translate }}</div>
     </div>
 
     <!-- Breakdown -->

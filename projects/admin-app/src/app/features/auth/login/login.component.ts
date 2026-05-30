@@ -1,7 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
@@ -18,6 +18,7 @@ export class AdminLoginComponent {
   private readonly fb     = inject(FormBuilder);
   private readonly auth   = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
   readonly lang           = inject(LangService);
 
   form: FormGroup;
@@ -39,7 +40,7 @@ export class AdminLoginComponent {
   submit(): void {
     if (this.form.invalid || this.loading()) return;
     const staffId = (this.form.value.staffId as string).trim();
-    if (!staffId) { this.error.set('Please enter your Staff ID.'); return; }
+    if (!staffId) { this.error.set(this.translate.instant('auth.errEnterStaffId')); return; }
     this.loading.set(true);
     this.error.set('');
     this.auth.login({ ...this.form.value, staffId, portal: 'admin' }).subscribe({
@@ -47,7 +48,7 @@ export class AdminLoginComponent {
         const roles = (res.user?.roles ?? []).map(r => r.toUpperCase());
         if (!roles.includes('SUPERADMIN') && !roles.includes('MANAGER')) {
           this.auth.logout();
-          this.error.set('Access denied. Only Admin or Manager accounts can log in to this portal.');
+          this.error.set(this.translate.instant('auth.errAccessDeniedPortal'));
           this.loading.set(false);
           return;
         }
@@ -57,7 +58,9 @@ export class AdminLoginComponent {
         const raw = e?.error;
         const msg: string = raw?.error ?? raw?.message ?? (typeof raw === 'string' ? raw : '') ?? '';
         this.error.set(
-          msg.includes('Manager or Admin') ? 'Access denied. Manager or Admin role required.' : 'Invalid Staff ID or password.'
+          msg.includes('Manager or Admin')
+            ? this.translate.instant('auth.errAccessDeniedRole')
+            : this.translate.instant('auth.errInvalidCredentials')
         );
         this.loading.set(false);
       },

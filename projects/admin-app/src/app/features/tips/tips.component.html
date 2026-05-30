@@ -49,16 +49,16 @@
 
       @if (preview(); as p) {
         <div class="preview-section">
-          <h4 class="preview-title">{{ 'tips.previewTitle' | translate }} — {{ p.staffCount }} staff receiving tips</h4>
+          <h4 class="preview-title">{{ 'tips.previewTitle' | translate }} — {{ 'tips.previewStaffReceiving' | translate:{ n: p.staffCount } }}</h4>
           @if (previewTime()) {
-            <p class="preview-meta"><i class="pi pi-stopwatch"></i> Snapshot generated at {{ previewTime() }} — confirm promptly to avoid stale data.</p>
+            <p class="preview-meta"><i class="pi pi-stopwatch"></i> {{ 'tips.snapshotNote' | translate:{ time: previewTime() } }}</p>
           }
 
           @if (p.excludedStaff && p.excludedStaff.length > 0) {
             <div class="exclusion-warning d-flex gap-2">
               <span class="exclusion-icon"><i class="pi pi-exclamation-triangle"></i></span>
               <div>
-                <strong>{{ p.excludedStaff.length }} staff clocked out and will NOT receive tips:</strong>
+                <strong>{{ 'tips.excludedHeading' | translate:{ n: p.excludedStaff.length } }}</strong>
                 <ul class="exclusion-list">
                   @for (ex of p.excludedStaff; track ex.employeeId) {
                     <li>{{ ex.fullName }} — <span class="exclusion-reason">{{ ex.reason }}</span></li>

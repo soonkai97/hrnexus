@@ -157,9 +157,7 @@ describe('ReportsComponent', () => {
       component.dateTo   = '2026-06-01'; // > 366 days
       mockAdminSvc.getReport.mockClear();
       component.runReport();
-      expect(mockToastSvc.error).toHaveBeenCalledWith(
-        'Date range cannot exceed 366 days. Please narrow your filter.',
-      );
+      expect(mockToastSvc.error).toHaveBeenCalledWith('reports.errDateRange');
       expect(mockAdminSvc.getReport).not.toHaveBeenCalled();
     });
 
@@ -305,8 +303,8 @@ describe('ReportsComponent', () => {
       component.dateTo   = '2026-05-31';
       mockAdminSvc.getReport.mockReturnValue(throwError(() => new Error('Network')));
       component.runReport();
-      expect(component.error()).toBe('Failed to load report.');
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load report.');
+      expect(component.error()).toBe('reports.loadFailed');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('reports.loadFailed');
     });
   });
 
@@ -409,7 +407,7 @@ describe('ReportsComponent', () => {
       stubDomDownload();
       component.report.set(fakeReport as any);
       component.downloadReportCsv();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Report downloaded.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('reports.reportDownloaded');
     });
 
     it('clears reportExporting flag after download', () => {
@@ -474,7 +472,7 @@ describe('ReportsComponent', () => {
     it('shows toast and clears loading on summary API error', () => {
       mockStaffLedgerSvc.summary.mockReturnValue(throwError(() => new Error('Network')));
       component.loadLedgerData();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load payout data.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('reports.ledgerLoadFailed');
       expect(component.ledgerLoading()).toBe(false);
     });
 
@@ -539,7 +537,7 @@ describe('ReportsComponent', () => {
       stubDomDownload();
       component.ledgerPayout.set(fakePayout);
       component.downloadLedgerCsv();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Payout report downloaded.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('reports.payoutDownloaded');
     });
 
     it('clears ledgerExporting flag after download', () => {
@@ -577,13 +575,13 @@ describe('ReportsComponent', () => {
       mockStaffLedgerSvc.bulkSettle.mockReturnValue(of({ updated: 2 }));
       component.outstandingSelection = [...fakeOutstanding, ...fakeOutstanding]; // 2
       component.bulkSettle();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('2 entries settled.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('reports.settledPlural');
     });
 
     it('shows singular "entry" for a single settle', () => {
       mockStaffLedgerSvc.bulkSettle.mockReturnValue(of({ updated: 1 }));
       component.bulkSettle();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('1 entry settled.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('reports.settledSingular');
     });
 
     it('clears selection after successful settle', () => {
@@ -605,7 +603,7 @@ describe('ReportsComponent', () => {
     it('shows error toast and clears settling flag on API failure', () => {
       mockStaffLedgerSvc.bulkSettle.mockReturnValue(throwError(() => new Error('Network')));
       component.bulkSettle();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to settle entries.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('reports.settleFailed');
       expect(component.settling()).toBe(false);
     });
   });

@@ -160,14 +160,14 @@ describe('ShellComponent', () => {
 
     it('includes a Profile item linking to /account', () => {
       const c = createComponent();
-      const profile = c.avatarMenuItems().find((i: any) => i.label === 'Profile');
+      const profile = c.avatarMenuItems().find((i: any) => i.label === 'account.title');
       expect(profile).toBeDefined();
       expect(profile!.routerLink).toBe('/account');
     });
 
     it('includes a Sign Out item with a command callback', () => {
       const c = createComponent();
-      const signOut = c.avatarMenuItems().find((i: any) => i.label === 'Sign Out');
+      const signOut = c.avatarMenuItems().find((i: any) => i.label === 'shell.signOut');
       expect(signOut).toBeDefined();
       expect(typeof signOut!.command).toBe('function');
     });

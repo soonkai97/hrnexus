@@ -96,7 +96,7 @@ describe('RolesComponent', () => {
     it('shows success toast after creating a role', () => {
       component.newRoleName = 'host';
       component.addRole();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Role created.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('roles.created');
     });
 
     it('hides the form after successfully creating a role', () => {
@@ -167,7 +167,7 @@ describe('RolesComponent', () => {
 
     it('shows success toast after updating the rate', () => {
       component.saveRate();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Hourly rate updated.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('roles.rateUpdated');
     });
 
     it('clears savingRate flag after success', () => {
@@ -209,7 +209,7 @@ describe('RolesComponent', () => {
 
     it('shows success toast after deletion', () => {
       component.deleteRole('bartender');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Role deleted.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('roles.deleted');
     });
 
     it('does NOT delete when confirmation is cancelled', () => {

@@ -113,7 +113,7 @@ describe('LocationsComponent', () => {
 
     it('shows success toast after creating', () => {
       component.save();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Location saved.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('locations.saved');
     });
 
     it('hides the form after creating', () => {
@@ -150,7 +150,7 @@ describe('LocationsComponent', () => {
 
     it('shows success toast after updating', () => {
       component.save();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Location saved.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('locations.saved');
     });
 
     it('hides the form and clears editing state after updating', () => {
@@ -176,7 +176,7 @@ describe('LocationsComponent', () => {
 
     it('shows success toast after removal', () => {
       component.remove('loc-1');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Location deleted.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('locations.deleted');
     });
 
     it('does NOT remove when confirmation is cancelled', () => {
@@ -213,7 +213,7 @@ describe('LocationsComponent', () => {
       const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
       const event = { target: { files: [file] } } as unknown as Event;
       component.uploadImage(fakeLocation as any, event);
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Image uploaded.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('locations.imageUploaded');
     });
 
     it('shows error toast when upload fails', () => {

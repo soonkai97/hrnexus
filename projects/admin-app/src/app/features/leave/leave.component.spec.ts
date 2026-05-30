@@ -171,7 +171,7 @@ describe('LeaveComponent', () => {
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-05';
       component.save();
-      expect(component.formError()).toBe('Please fill in all required fields.');
+      expect(component.formError()).toBe('leave.errRequiredFields');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
     });
 
@@ -180,7 +180,7 @@ describe('LeaveComponent', () => {
       component.form.startDate  = '';
       component.form.endDate    = '2026-06-05';
       component.save();
-      expect(component.formError()).toBe('Please fill in all required fields.');
+      expect(component.formError()).toBe('leave.errRequiredFields');
     });
 
     it('sets formError when the start/end time pickers are not set', () => {
@@ -192,7 +192,7 @@ describe('LeaveComponent', () => {
       component.startTimeDate   = null;
       component.endTimeDate     = null;
       component.save();
-      expect(component.formError()).toBe('Please fill in all required fields.');
+      expect(component.formError()).toBe('leave.errRequiredFields');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
     });
 
@@ -204,7 +204,7 @@ describe('LeaveComponent', () => {
       component.startTimeDate   = new Date(2026, 5, 1, 18, 0); // 6:00 PM
       component.endTimeDate     = new Date(2026, 5, 1, 10, 0); // 10:00 AM — before start
       component.save();
-      expect(component.formError()).toBe('End date/time must be after start date/time.');
+      expect(component.formError()).toBe('leave.errDateOrder');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
     });
   });
@@ -238,7 +238,7 @@ describe('LeaveComponent', () => {
     it('shows success toast and hides form after create', () => {
       component.showForm.set(true);
       component.save();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave saved.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.leaveSaved');
       expect(component.showForm()).toBe(false);
     });
 
@@ -287,7 +287,7 @@ describe('LeaveComponent', () => {
 
     it('shows success toast and clears editing state after update', () => {
       component.save();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave saved.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.leaveSaved');
       expect(component.editing()).toBeNull();
     });
   });
@@ -310,7 +310,7 @@ describe('LeaveComponent', () => {
     it('shows success toast with the new status after approval', () => {
       component.records.set([makeRecord({ id: 'r1' })]);
       component.quickStatus('r1', 'approved');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave approved.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.leaveApproved');
     });
 
     it('routes rejection through startReject() — sets rejectingId instead of calling update directly', () => {
@@ -324,7 +324,7 @@ describe('LeaveComponent', () => {
       component.records.set([makeRecord({ id: 'r1' })]);
       mockLeaveSvc.update.mockReturnValue(throwError(() => new Error('Network')));
       component.quickStatus('r1', 'approved');
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Update failed.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('leave.updateFailed');
     });
   });
 
@@ -392,7 +392,7 @@ describe('LeaveComponent', () => {
     it('shows success toast after deletion', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       component.remove('r1');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave deleted.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.leaveDeleted');
     });
 
     it('does NOT call delete when user cancels', () => {
@@ -405,7 +405,7 @@ describe('LeaveComponent', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       mockLeaveSvc.delete.mockReturnValue(throwError(() => new Error('Network')));
       component.remove('r1');
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Delete failed.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('leave.deleteFailed');
     });
   });
 
@@ -532,7 +532,7 @@ describe('LeaveComponent', () => {
     it('shows success toast and exits edit mode after saving', () => {
       component.filterEmployeeId = 'emp-1';
       component.saveEntitlement();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Entitlement updated.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.entitlementUpdated');
       expect(component.editingEntitlement()).toBe(false);
     });
 
@@ -540,7 +540,7 @@ describe('LeaveComponent', () => {
       component.filterEmployeeId = 'emp-1';
       mockLeaveSvc.setEntitlement.mockReturnValue(throwError(() => new Error('Network')));
       component.saveEntitlement();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to update entitlement.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('leave.entitlementFailed');
     });
   });
 
@@ -581,7 +581,7 @@ describe('LeaveComponent', () => {
     it('shows success toast with count on success', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       component.bulkApplyEntitlement();
-      expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('3'));
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.bulkApplyToast');
     });
 
     it('closes the bulk entitlement panel on success', () => {
@@ -623,20 +623,20 @@ describe('LeaveComponent', () => {
     it('shows warning toast when there are no records to export', () => {
       mockLeaveSvc.getAll.mockReturnValue(of({ items: [], total: 0 }));
       component.exportCsv();
-      expect(mockToastSvc.warning).toHaveBeenCalledWith('No records to export.');
+      expect(mockToastSvc.warning).toHaveBeenCalledWith('leave.noRecordsExport');
     });
 
     it('shows success toast with record count when export succeeds', () => {
       const records = [makeRecord(), makeRecord({ id: 'r2' })];
       mockLeaveSvc.getAll.mockReturnValue(of({ items: records, total: 2 }));
       component.exportCsv();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Exported 2 records.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.exportedToast');
     });
 
     it('shows error toast when getAll fails', () => {
       mockLeaveSvc.getAll.mockReturnValue(throwError(() => new Error('Network')));
       component.exportCsv();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Export failed.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('leave.exportFailed');
     });
   });
 
@@ -752,7 +752,7 @@ describe('LeaveComponent', () => {
     it('confirmReject() shows success toast after update completes', () => {
       component.records.set([makeRecord({ id: 'r1' })]);
       component.confirmReject('r1');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave rejected.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.leaveRejected');
     });
   });
 
@@ -844,7 +844,7 @@ describe('LeaveComponent', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       mockLeaveSvc.bulkUpdateStatus.mockReturnValue(of({ count: 1 }));
       component.bulkApproveSelected();
-      expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('1'));
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.bulkApprovedToast');
     });
 
     it('clears selectedIds after successful bulk approval', () => {
@@ -901,7 +901,7 @@ describe('LeaveComponent', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       mockLeaveSvc.bulkUpdateStatus.mockReturnValue(of({ count: 1 }));
       component.bulkRejectSelected();
-      expect(mockToastSvc.success).toHaveBeenCalledWith(expect.stringContaining('1'));
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.bulkRejectedToast');
     });
 
     it('does NOT call bulkUpdateStatus when user cancels', () => {
@@ -942,13 +942,13 @@ describe('LeaveComponent', () => {
 
     it('shows success toast "Marked as no-show." after update succeeds', () => {
       component.markNoShow(makeRecord());
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Marked as no-show.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.markedNoShow');
     });
 
     it('shows error toast when update fails', () => {
       mockLeaveSvc.update.mockReturnValue(throwError(() => new Error('Network')));
       component.markNoShow(makeRecord());
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Update failed.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('leave.updateFailed');
     });
   });
 

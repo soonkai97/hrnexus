@@ -2,7 +2,7 @@ import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inj
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
@@ -74,6 +74,7 @@ export class ShellComponent implements AfterViewInit {
   private readonly router    = inject(Router);
   private readonly signalR   = inject(SignalRService);
   readonly lang              = inject(LangService);
+  private readonly translate = inject(TranslateService);
   readonly featureSvc        = inject(FeatureFlagService);
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
@@ -129,13 +130,16 @@ export class ShellComponent implements AfterViewInit {
     );
   });
 
-  readonly avatarMenuItems = computed<MenuItem[]>(() => [
-    { label: this.user()?.fullName ?? '', disabled: true },
-    { separator: true },
-    { label: 'Profile', icon: 'pi pi-user', routerLink: '/account' },
-    { separator: true },
-    { label: 'Sign Out', icon: 'pi pi-power-off', command: () => this.logout() },
-  ]);
+  readonly avatarMenuItems = computed<MenuItem[]>(() => {
+    this.lang.current(); // re-evaluate labels on language change
+    return [
+      { label: this.user()?.fullName ?? '', disabled: true },
+      { separator: true },
+      { label: this.translate.instant('account.title'), icon: 'pi pi-user', routerLink: '/account' },
+      { separator: true },
+      { label: this.translate.instant('shell.signOut'), icon: 'pi pi-power-off', command: () => this.logout() },
+    ];
+  });
 
   ngAfterViewInit(): void {
     if (typeof window === 'undefined') return;

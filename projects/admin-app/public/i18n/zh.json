@@ -45,7 +45,28 @@
     "payroll":       "薪资报表",
     "staffLedger":   "员工账本",
     "staffSettings": "员工设置",
+    "payrollLocks":  "薪资锁定",
     "account":         "我的账户"
+  },
+  "payrollLocks": {
+    "title":           "薪资锁定",
+    "subtitle":        "锁定某个月份以冻结其排班记录和账本记录。锁定的周期在重新开放前无法编辑。",
+    "year":            "年份",
+    "month":           "月份",
+    "note":            "备注",
+    "notePlaceholder": "可选的原因或参考…",
+    "lockBtn":         "锁定周期",
+    "period":          "周期",
+    "lockedBy":        "锁定人",
+    "lockedAt":        "锁定时间",
+    "reopen":          "重新开放",
+    "reopenConfirm":   "重新开放 {{period}}？其排班记录和账本记录将再次变为可编辑。",
+    "noLocks":         "没有锁定的周期。",
+    "lockedToast":     "周期已锁定。",
+    "reopenedToast":   "周期已重新开放。",
+    "loadFailed":      "加载薪资锁定失败。",
+    "lockFailed":      "锁定周期失败。",
+    "reopenFailed":    "重新开放周期失败。"
   },
   "shell": {
     "signOut": "退出登录",

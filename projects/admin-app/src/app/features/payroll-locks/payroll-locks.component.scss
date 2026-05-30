@@ -1,0 +1,30 @@
+@use 'styles/theme' as *;
+
+.page { padding: 1rem; }
+
+.page-header { margin-bottom: 1rem; }
+.page-title { margin: 0; font-size: 1.4rem; font-weight: 700; }
+.page-subtitle { margin: .25rem 0 0; color: $text-muted; font-size: .85rem; }
+
+.lock-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+
+  .field { display: flex; flex-direction: column; gap: .35rem; }
+  .field-grow { flex: 1 1 220px; }
+  .field-action { margin-left: auto; }
+
+  label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: $text-muted; }
+  .req { color: $neon-pink; margin-right: .15rem; }
+}
+
+.skeleton-row { display: flex; gap: 1rem; padding: .6rem .25rem; }
+.empty-state { text-align: center; padding: 2rem; color: $text-muted; }
+.td-muted { color: $text-muted; }
+.td-action { text-align: right; }
+
+@media (max-width: 640px) {
+  .lock-form .field-action { margin-left: 0; width: 100%; }
+}

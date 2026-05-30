@@ -258,6 +258,9 @@
   },
   "staffDetail": {
     "editBtn":             "Edit",
+    "tabProfile":          "Profile",
+    "tabWorkLogs":         "Work Logs",
+    "tabPermissions":      "Permissions",
     "staffId":             "Staff ID",
     "fullName":            "Full Name",
     "firstName":           "First Name",

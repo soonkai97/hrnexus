@@ -8,6 +8,7 @@ import { ReportsComponent } from './reports.component';
 import {
   AdminService, StaffStore, StaffManagementService, ToastService,
   StaffService, FeatureFlagService, StaffLedgerPayoutDto, StaffOutstandingDto,
+  AuthService,
 } from 'shared-lib';
 
 /**
@@ -75,6 +76,7 @@ describe('ReportsComponent', () => {
   let mockToastSvc:       { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockStaffLedgerSvc: { summary: ReturnType<typeof vi.fn>; outstanding: ReturnType<typeof vi.fn>; bulkSettle: ReturnType<typeof vi.fn> };
   let mockFeatureSvc:     { isEnabled: ReturnType<typeof vi.fn> };
+  let mockAuthSvc:        { user: ReturnType<typeof vi.fn>; userRole: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockAdminSvc  = { getReport: vi.fn().mockReturnValue(of(fakeReport)) };
@@ -93,6 +95,7 @@ describe('ReportsComponent', () => {
       bulkSettle:  vi.fn().mockReturnValue(of({ updated: 1 })),
     };
     mockFeatureSvc = { isEnabled: vi.fn().mockReturnValue(false) };
+    mockAuthSvc = { user: vi.fn().mockReturnValue(null), userRole: vi.fn().mockReturnValue(null) };
 
     await TestBed.configureTestingModule({
       imports: [ReportsComponent],
@@ -106,6 +109,7 @@ describe('ReportsComponent', () => {
         { provide: ToastService,          useValue: mockToastSvc },
         { provide: StaffService,          useValue: mockStaffLedgerSvc },
         { provide: FeatureFlagService,    useValue: mockFeatureSvc },
+        { provide: AuthService,           useValue: mockAuthSvc },
         MessageService,
         ConfirmationService,
       ],
@@ -619,6 +623,40 @@ describe('ReportsComponent', () => {
     it('returns true when FeatureFlagService.isEnabled returns true', () => {
       mockFeatureSvc.isEnabled.mockReturnValue(true);
       expect(component.isStaffLedgerEnabled()).toBe(true);
+    });
+  });
+
+  // ── Separation of duties: manager can't edit own shift ───────────────────────
+  // WHY: a manager editing their own shift is a payroll conflict of interest. The backend
+  // enforces it, but the edit pencil must also be disabled on the manager's own rows so the
+  // block is visible upfront — not surfaced only after the manager fills the form and saves.
+  describe('isOwnShiftForManager()', () => {
+    const row = (staffId: string) => ({ id: 'w1', staffId, role: 'bartender', locationId: 'L1' }) as never;
+
+    it('is true when a manager views their own shift row', () => {
+      mockAuthSvc.userRole.mockReturnValue('manager');
+      mockAuthSvc.user.mockReturnValue({ staffId: 'MGR001' });
+      expect(component.isOwnShiftForManager(row('MGR001'))).toBe(true);
+    });
+
+    it('is false when a manager views another staff member\'s shift', () => {
+      mockAuthSvc.userRole.mockReturnValue('manager');
+      mockAuthSvc.user.mockReturnValue({ staffId: 'MGR001' });
+      expect(component.isOwnShiftForManager(row('STAFF002'))).toBe(false);
+    });
+
+    it('is false for an admin even on their own shift (admins may edit any shift)', () => {
+      mockAuthSvc.userRole.mockReturnValue('admin');
+      mockAuthSvc.user.mockReturnValue({ staffId: 'ADM001' });
+      expect(component.isOwnShiftForManager(row('ADM001'))).toBe(false);
+    });
+
+    it('openEditShift() is a no-op for a manager\'s own shift (does not open the dialog)', () => {
+      mockAuthSvc.userRole.mockReturnValue('manager');
+      mockAuthSvc.user.mockReturnValue({ staffId: 'MGR001' });
+      component.editShiftVisible.set(false);
+      component.openEditShift(row('MGR001'));
+      expect(component.editShiftVisible()).toBe(false);
     });
   });
 });

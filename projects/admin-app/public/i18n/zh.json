@@ -501,6 +501,7 @@
     "applySettle":           "批量结算",
     "settling":              "结算中…",
     "editShift":             "编辑班次",
+    "ownShiftNoEdit":        "您不能编辑自己的班次记录，请让管理员修改。",
     "shiftDate":             "日期",
     "shiftStartTime":        "开始时间",
     "shiftEndTime":          "结束时间",

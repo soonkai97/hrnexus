@@ -1,4 +1,38 @@
 {
+  "changePassword": {
+    "title": "修改密码",
+    "current": "当前密码",
+    "new": "新密码",
+    "confirm": "确认新密码",
+    "newPlaceholder": "至少 8 个字符",
+    "confirmPlaceholder": "再次输入新密码",
+    "reqAria": "密码要求",
+    "reqMinLength": "至少 8 个字符",
+    "reqUppercase": "一个大写字母",
+    "reqNumber": "一个数字",
+    "saving": "保存中…",
+    "update": "更新密码",
+    "success": "密码修改成功。",
+    "errBlank": "密码不能为空。",
+    "errMismatch": "两次输入的新密码不一致。",
+    "errFailed": "修改密码失败。"
+  },
+  "notifications": {
+    "title": "通知",
+    "markAllRead": "全部标为已读",
+    "close": "关闭",
+    "empty": "暂无通知。",
+    "justNow": "刚刚",
+    "minsAgo": "{{n}} 分钟前",
+    "hrsAgo": "{{n}} 小时前",
+    "yesterday": "昨天",
+    "daysAgo": "{{n}} 天前"
+  },
+  "theme": {
+    "toLight": "切换到浅色模式",
+    "toDark": "切换到深色模式",
+    "toggle": "切换主题颜色"
+  },
   "nav": {
     "clockIn":       "打卡",
     "home":          "主页",

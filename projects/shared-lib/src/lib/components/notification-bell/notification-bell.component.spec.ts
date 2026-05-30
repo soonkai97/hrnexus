@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of, Subject } from 'rxjs';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService } from '@ngx-translate/core';
 import { NotificationBellComponent } from './notification-bell.component';
 import { NotificationService } from '../../services/notification.service';
 import { SignalRService } from '../../services/signalr.service';
@@ -28,6 +29,7 @@ describe('NotificationBellComponent — portal filtering', () => {
       imports: [NotificationBellComponent],
       providers: [
         provideRouter([]),
+        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: NotificationService, useValue: {
             notifications: signal(NOTIFS as any),
             unreadCount:   signal(0),

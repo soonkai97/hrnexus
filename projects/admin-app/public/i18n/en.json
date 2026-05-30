@@ -1,4 +1,38 @@
 {
+  "changePassword": {
+    "title": "Change Password",
+    "current": "Current Password",
+    "new": "New Password",
+    "confirm": "Confirm New Password",
+    "newPlaceholder": "Min. 8 characters",
+    "confirmPlaceholder": "Repeat new password",
+    "reqAria": "Password requirements",
+    "reqMinLength": "At least 8 characters",
+    "reqUppercase": "One uppercase letter",
+    "reqNumber": "One number",
+    "saving": "Saving…",
+    "update": "Update Password",
+    "success": "Password changed successfully.",
+    "errBlank": "Password fields cannot be blank.",
+    "errMismatch": "New passwords do not match.",
+    "errFailed": "Failed to change password."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "close": "Close",
+    "empty": "No notifications yet.",
+    "justNow": "just now",
+    "minsAgo": "{{n}}m ago",
+    "hrsAgo": "{{n}}h ago",
+    "yesterday": "yesterday",
+    "daysAgo": "{{n}}d ago"
+  },
+  "theme": {
+    "toLight": "Switch to light mode",
+    "toDark": "Switch to dark mode",
+    "toggle": "Toggle colour theme"
+  },
   "nav": {
     "dashboard":     "Dashboard",
     "leave":         "Leave",

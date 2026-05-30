@@ -4,6 +4,20 @@ root = true
 # Fail the build on unused using directives (the C# analog of FE's noUnusedLocals for imports).
 dotnet_diagnostic.IDE0005.severity = error
 
+# ── .NET analyzer (CA) tuning ──────────────────────────────────────────────────
+# latest-recommended is enabled in Directory.Build.props; these rules are silenced because they
+# fight this codebase's deliberate conventions or are over-engineering for its scale. Everything
+# else stays at its default (warning) severity so genuinely useful findings remain visible.
+dotnet_diagnostic.CA1707.severity = none        # underscores in identifiers — xUnit test-name convention
+dotnet_diagnostic.CA1725.severity = none        # param name must match interface — we use 'ct' consistently
+dotnet_diagnostic.CA1848.severity = none        # LoggerMessage delegates — over-engineering for this app's log volume
+dotnet_diagnostic.CA1861.severity = none        # prefer static readonly arrays over constant args — micro-optimisation
+# Culture-sensitivity nudges: keep visible in the IDE but not as build noise.
+dotnet_diagnostic.CA1304.severity = suggestion
+dotnet_diagnostic.CA1305.severity = suggestion
+dotnet_diagnostic.CA1310.severity = suggestion
+dotnet_diagnostic.CA1311.severity = suggestion
+
 # Generated EF Core migrations are scaffolded — don't enforce style on them.
 [**/Migrations/*.cs]
 dotnet_diagnostic.IDE0005.severity = none

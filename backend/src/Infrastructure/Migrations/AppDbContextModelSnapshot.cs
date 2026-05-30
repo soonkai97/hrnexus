@@ -400,6 +400,36 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.RoleRate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("EffectiveOn")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("RoleName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleName", "EffectiveOn");
+
+                    b.ToTable("RoleRates");
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>
                 {
                     b.Property<Guid>("Id")

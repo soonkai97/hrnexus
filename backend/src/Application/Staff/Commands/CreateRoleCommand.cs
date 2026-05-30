@@ -19,6 +19,8 @@ public class CreateRoleCommandHandler(IAppDbContext db)
         if (exists) throw new InvalidOperationException($"Role '{name}' already exists.");
 
         db.Roles.Add(Role.Create(name, hourlyRate: req.HourlyRate));
+        // Seed the rate-history baseline so shifts can be priced as-of their work date.
+        db.RoleRates.Add(RoleRate.Create(name, req.HourlyRate, DateOnly.FromDateTime(DateTime.UtcNow)));
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException)
         {

@@ -9,7 +9,8 @@
     <div class="lock-form">
       <div class="field">
         <label for="lock-year"><span class="req">*</span> {{ 'payrollLocks.year' | translate }}</label>
-        <p-inputNumber [(ngModel)]="form.year" [useGrouping]="false" [min]="2000" [max]="2200" inputId="lock-year" />
+        <p-select [(ngModel)]="form.year" [options]="yearOptions" optionLabel="label" optionValue="value"
+                  appendTo="body" inputId="lock-year" />
       </div>
       <div class="field">
         <label for="lock-month"><span class="req">*</span> {{ 'payrollLocks.month' | translate }}</label>

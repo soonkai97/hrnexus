@@ -2,8 +2,10 @@
 using System.Threading.RateLimiting;
 using FluentValidation;
 using Hangfire;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Api.Authorization;
 using HRNexus.Api.Converters;
 using HRNexus.Api.Filters;
 using HRNexus.Api.Middleware;
@@ -76,6 +78,12 @@ builder.Services.AddMediatR(cfg =>
 // ValidationBehavior is a no-op until a command adds one; existing commands validate inline).
 builder.Services.AddValidatorsFromAssembly(typeof(LoginCommand).Assembly);
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Permission-based authorization. Controllers use [Authorize(Policy = "perm:<key>")]; the policy
+// provider builds each requirement on the fly and the handler resolves it against IPermissionResolver.
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 // ── Rate limiting ───────────────────────────────────────────────────────────
 // Per-IP fixed-window limiter on the auth endpoints. This is the FLOOD/credential-stuffing

@@ -43,6 +43,12 @@ public class AuthController(IMediator mediator) : ControllerBase
         }
     }
 
+    /// <summary>Effective permission keys for the signed-in user — drives FE guards/UI gating.</summary>
+    [HttpGet("me/permissions")]
+    [Authorize]
+    public async Task<IActionResult> GetMyPermissions(CancellationToken ct)
+        => Ok(await mediator.Send(new HRNexus.Application.Permissions.Queries.GetMyPermissionsQuery(), ct));
+
     [HttpPost("change-password")]
     [Authorize]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordBody body, CancellationToken ct)

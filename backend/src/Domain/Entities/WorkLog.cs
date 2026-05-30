@@ -64,7 +64,8 @@ public class WorkLog : IHasAudit, ISoftDelete
     public void End(string endTime) => EndTime = endTime;
 
     public void Update(string roleName, string locationId, string locationName,
-        DateOnly workDate, string startTime, string endTime, string? notes)
+        DateOnly workDate, string startTime, string endTime, string? notes,
+        decimal? rateSnapshot = null)
     {
         RoleName     = roleName.Trim().ToUpperInvariant();
         LocationId   = locationId;
@@ -73,6 +74,10 @@ public class WorkLog : IHasAudit, ISoftDelete
         StartTime    = startTime;
         EndTime      = endTime;
         Notes        = notes;
+        // Rate is system-derived, never hand-edited: the caller passes the new role's current rate
+        // ONLY when the role actually changed. A time/notes-only edit passes null so an unrelated
+        // edit never silently re-prices a historical shift.
+        if (rateSnapshot.HasValue) HourlyRateSnapshot = rateSnapshot.Value;
         IsEdited     = true;
         EditedAt     = DateTime.UtcNow;
     }

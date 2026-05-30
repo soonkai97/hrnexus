@@ -51,6 +51,20 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location '{req.LocationId}' not found.");
 
+        // The rate is system-derived (never hand-edited). We only touch it when the role actually
+        // changes: validate the new role exists and re-snapshot to its CURRENT rate. A time/notes-only
+        // edit (role unchanged) leaves the snapshot alone, so an unrelated edit never silently
+        // re-prices a historical shift. (A rate that drifted since the work date would need an
+        // effective-dated rate history — out of scope here.)
+        var roleChanged = log.RoleName != req.RoleName.Trim().ToUpperInvariant();
+        decimal? newRateSnapshot = null;
+        if (roleChanged)
+        {
+            var role = await db.Roles.FindAsync([req.RoleName.ToUpperInvariant()], ct)
+                ?? throw new KeyNotFoundException($"Role '{req.RoleName}' not found.");
+            newRateSnapshot = role.HourlyRate;
+        }
+
         // Prevent time overlap: another completed shift for the same employee whose time range
         // intersects the edited shift (excluding the current record being updated).
         // Check the day before as well to catch overnight shifts from the previous date.
@@ -75,9 +89,9 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         }
 
         // Capture before-state for audit trail
-        var before = $"Date={log.WorkDate},Start={log.StartTime},End={log.EndTime},Role={log.RoleName},Location={log.LocationName},Notes={log.Notes ?? ""}";
+        var before = $"Date={log.WorkDate},Start={log.StartTime},End={log.EndTime},Role={log.RoleName},Rate={log.HourlyRateSnapshot},Location={log.LocationName},Notes={log.Notes ?? ""}";
 
-        log.Update(req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, req.EndTime, req.Notes);
+        log.Update(req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, req.EndTime, req.Notes, newRateSnapshot);
 
         // Resolve who made the change (caller or manager)
         var actor = await db.Staff
@@ -85,7 +99,7 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             .Select(s => new { s.FullName })
             .FirstOrDefaultAsync(ct);
 
-        var after = $"Date={req.WorkDate},Start={req.StartTime},End={req.EndTime},Role={req.RoleName.ToUpperInvariant()},Location={location.Name},Notes={req.Notes ?? ""}";
+        var after = $"Date={req.WorkDate},Start={req.StartTime},End={req.EndTime},Role={req.RoleName.ToUpperInvariant()},Rate={log.HourlyRateSnapshot},Location={location.Name},Notes={req.Notes ?? ""}";
         db.AuditLogs.Add(AuditLog.Create(
             entityType:      "WorkLog",
             entityId:        log.Id.ToString(),

@@ -435,6 +435,72 @@ public class WorkLogCommandTests
         Assert.Equal("test note", updated.Notes);
     }
 
+    [Fact]
+    public async Task Update_ReSnapshotsRate_WhenRoleChanged()
+    {
+        // Changing the role re-prices the shift to the NEW role's current rate, so the displayed
+        // role and the costed rate can never disagree.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log);
+        db.Locations.Add(MakeLocation("loc-1"));
+        db.Roles.Add(MakeRole("supervisor", 80m));   // stored as "SUPERVISOR"
+        await db.SaveChangesAsync();
+
+        await UpdateHandler(db).Handle(new UpdateWorkLogCommand(
+            log.Id, empId, true,
+            "SUPERVISOR", "loc-1", workDate, "18:00", "23:00", null),
+            CancellationToken.None);
+
+        var updated = await db.WorkLogs.FindAsync(log.Id);
+        Assert.Equal("SUPERVISOR", updated!.RoleName);
+        Assert.Equal(80m, updated.HourlyRateSnapshot);   // re-priced to the new role's rate
+    }
+
+    [Fact]
+    public async Task Update_KeepsRateSnapshot_WhenRoleUnchanged_EvenIfRoleRateChangedSince()
+    {
+        // A time/notes-only edit must NEVER re-price a historical shift — the snapshot stays put
+        // even though the (unchanged) role's current rate now differs from what was snapshotted.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log);
+        db.Locations.Add(MakeLocation("loc-1"));
+        db.Roles.Add(MakeRole("bartender", 99m));   // role's rate has since been raised to 99
+        await db.SaveChangesAsync();
+
+        await UpdateHandler(db).Handle(new UpdateWorkLogCommand(
+            log.Id, empId, true,
+            "BARTENDER", "loc-1", workDate, "18:00", "22:00", "fixed end time"),
+            CancellationToken.None);
+
+        var updated = await db.WorkLogs.FindAsync(log.Id);
+        Assert.Equal(50m, updated!.HourlyRateSnapshot);   // unchanged, NOT bumped to 99
+    }
+
+    [Fact]
+    public async Task Update_ThrowsKeyNotFound_WhenChangedRoleDoesNotExist()
+    {
+        // Editing a shift onto a non-existent role is rejected (can't fabricate a role/rate).
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log);
+        db.Locations.Add(MakeLocation("loc-1"));
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            UpdateHandler(db).Handle(new UpdateWorkLogCommand(
+                log.Id, empId, true,
+                "GHOSTROLE", "loc-1", workDate, "18:00", "23:00", null),
+                CancellationToken.None));
+    }
+
     // ── DeleteWorkLogCommand ──────────────────────────────────────────────────
 
     [Fact]

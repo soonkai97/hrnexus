@@ -385,7 +385,7 @@ Both components (`<nc-toast />` and `<nc-confirm-dialog />`) must be in each app
 
 ## Form pattern
 
-**ngModel only — no reactive forms anywhere.** Forms are plain object + template bindings.
+**Template-driven (`ngModel`) is the default — most forms are a plain object + template bindings.** The exceptions are the auth forms: both apps' `LoginComponent` and shared-lib's `ChangePasswordComponent` use **reactive forms** (`FormBuilder`/`FormGroup`/`Validators`) because they need synchronous, field-level validation state. New feature forms should follow the `ngModel` pattern below unless they have the same need.
 
 ```typescript
 // Form state as a plain object
@@ -630,7 +630,7 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 | Provider | DigitalOcean droplet `hrnexus-prod` |
 | Region | SGP1 (Singapore) |
 | OS | Ubuntu 24.04 LTS x64 |
-| RAM | 2 GB (minimum — Angular build needs ~1.5 GB) |
+| RAM | 4 GB (Angular `--no-cache` build needs ~1.5 GB; add swap if running closer to 2 GB) |
 | Repo path | `/root/hrnexus` |
 | Domain | `hrnexus.duckdns.org` (DuckDNS free dynamic DNS) |
 | SSL | Let's Encrypt — certs at `/etc/letsencrypt/live/hrnexus.duckdns.org/` |
@@ -1049,15 +1049,17 @@ Set-Location backend
 dotnet test
 ```
 
-### Baseline — as of 2026-05-28 (0 gaps, all green)
+### Baseline — as of 2026-05-30 (0 gaps, all green)
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 27 | 372 | ✅ |
-| admin-app components | 17 | 684 | ✅ |
-| staff-app components | 11 | ~284 | ✅ |
-| backend Application.Tests | — | ~438 | ✅ |
-| E2E (Playwright) | 5 | 16 | ✅ |
+| shared-lib (services + stores + guards + auth) | 29 | 381 | ✅ |
+| admin-app components | 17 | 695 | ✅ |
+| staff-app components | 11 | 283 | ✅ |
+| backend Application.Tests | — | 423 | ✅ |
+| backend Integration.Tests (Testcontainers) | — | 11 | ✅ |
+| backend Infrastructure.Tests | — | 4 | ✅ |
+| E2E (Playwright) | 5 | 87 | ✅ |
 
 **Wrapper-component rule**: `change-password-page.component.spec.ts` in both apps intentionally has 1 smoke test — the component is a pure template wrapper around shared-lib's `ChangePasswordComponent`; all logic lives in shared-lib and is tested there.
 
@@ -1172,13 +1174,13 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 372 tests
-npx ng test admin-app  --no-watch   # 684 tests
-npx ng test staff-app  --no-watch   # 267 tests
+npx ng test shared-lib --no-watch   # 381 tests
+npx ng test admin-app  --no-watch   # 695 tests
+npx ng test staff-app  --no-watch   # 283 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 401 tests
+dotnet test                          # 438 tests (423 Application + 11 Integration + 4 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```

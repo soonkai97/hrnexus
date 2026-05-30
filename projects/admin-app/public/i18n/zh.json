@@ -662,6 +662,15 @@
     "grant":       "授予",
     "revoke":      "撤销",
     "effective":   "有效",
+    "groups": {
+      "access":     "访问",
+      "staff":      "员工",
+      "leave":      "请假",
+      "operations": "运营",
+      "finance":    "财务",
+      "settings":   "设置",
+      "other":      "其他"
+    },
     "keys": {
       "portal.admin":         "管理后台访问",
       "staff.view":           "查看员工",

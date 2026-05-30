@@ -231,19 +231,24 @@
       } @else {
         <!-- Edit mode: tri-state per permission; selected Grant=green / Revoke=red via row class. -->
         <div class="perm-list">
-          @for (key of visiblePermKeys(); track key) {
-            <div class="perm-row"
-                 [class.choice-grant]="permChoices()[key] === 'grant'"
-                 [class.choice-revoke]="permChoices()[key] === 'revoke'">
-              <span class="perm-label" [id]="'perm-label-' + key">{{ ('permissions.keys.' + key) | translate }}</span>
-              <p-selectButton
-                [options]="permOptions()"
-                optionLabel="label"
-                optionValue="value"
-                [allowEmpty]="false"
-                [ariaLabelledBy]="'perm-label-' + key"
-                [ngModel]="permChoices()[key]"
-                (ngModelChange)="setPermChoice(key, $event)" />
+          @for (group of visiblePermGroups(); track group.labelKey) {
+            <div class="perm-group">
+              <div class="perm-group-title">{{ group.labelKey | translate }}</div>
+              @for (key of group.keys; track key) {
+                <div class="perm-row"
+                     [class.choice-grant]="permChoices()[key] === 'grant'"
+                     [class.choice-revoke]="permChoices()[key] === 'revoke'">
+                  <span class="perm-label" [id]="'perm-label-' + key">{{ ('permissions.keys.' + key) | translate }}</span>
+                  <p-selectButton
+                    [options]="permOptions()"
+                    optionLabel="label"
+                    optionValue="value"
+                    [allowEmpty]="false"
+                    [ariaLabelledBy]="'perm-label-' + key"
+                    [ngModel]="permChoices()[key]"
+                    (ngModelChange)="setPermChoice(key, $event)" />
+                </div>
+              }
             </div>
           }
         </div>

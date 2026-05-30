@@ -664,6 +664,15 @@
     "grant":       "Grant",
     "revoke":      "Revoke",
     "effective":   "Effective",
+    "groups": {
+      "access":     "Access",
+      "staff":      "Staff",
+      "leave":      "Leave",
+      "operations": "Operations",
+      "finance":    "Finance",
+      "settings":   "Settings",
+      "other":      "Other"
+    },
     "keys": {
       "portal.admin":         "Admin portal access",
       "staff.view":           "View staff",

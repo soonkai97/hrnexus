@@ -5,7 +5,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, FeatureFlagService, PERMISSION_FEATURE_FLAG } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, FeatureFlagService, PERMISSION_FEATURE_FLAG, groupedPermissions } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -87,6 +87,9 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
       const flag = PERMISSION_FEATURE_FLAG[k];
       return !flag || this.featureSvc.isEnabled(flag);
     }));
+
+  /** Visible keys organised into labelled sections for the edit list. */
+  readonly visiblePermGroups = computed(() => groupedPermissions(this.visiblePermKeys()));
 
   /** Visible keys with a non-inherit choice — what the read-only view lists. */
   readonly activeOverrides = computed(() =>

@@ -109,13 +109,18 @@
   <p class="modal-desc">{{ 'permissions.roleDesc' | translate }}</p>
 
   <div class="perm-list">
-    @for (key of visiblePermCatalog(); track key) {
-      <div class="perm-row">
-        <p-checkbox [inputId]="'perm-' + key" [binary]="true"
-                    [ngModel]="permSelected().includes(key)"
-                    (ngModelChange)="togglePermission(key, $event)"
-                    [disabled]="permLoading()" />
-        <label [for]="'perm-' + key">{{ ('permissions.keys.' + key) | translate }}</label>
+    @for (group of visiblePermGroups(); track group.labelKey) {
+      <div class="perm-group">
+        <div class="perm-group-title">{{ group.labelKey | translate }}</div>
+        @for (key of group.keys; track key) {
+          <div class="perm-row">
+            <p-checkbox [inputId]="'perm-' + key" [binary]="true"
+                        [ngModel]="permSelected().includes(key)"
+                        (ngModelChange)="togglePermission(key, $event)"
+                        [disabled]="permLoading()" />
+            <label [for]="'perm-' + key">{{ ('permissions.keys.' + key) | translate }}</label>
+          </div>
+        }
       </div>
     }
   </div>

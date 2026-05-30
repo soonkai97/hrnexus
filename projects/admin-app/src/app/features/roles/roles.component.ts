@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate,
-         PermissionAdminService, FeatureFlagService, PERMISSION_FEATURE_FLAG } from 'shared-lib';
+         PermissionAdminService, FeatureFlagService, PERMISSION_FEATURE_FLAG, groupedPermissions } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -66,6 +66,8 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
       const flag = PERMISSION_FEATURE_FLAG[k];
       return !flag || this.featureSvc.isEnabled(flag);
     }));
+  /** Visible catalog organised into labelled sections for the dialog. */
+  readonly visiblePermGroups = computed(() => groupedPermissions(this.visiblePermCatalog()));
 
   readonly touched = signal<Set<string>>(new Set());
   markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }

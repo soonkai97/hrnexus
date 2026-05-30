@@ -1,4 +1,5 @@
 using MediatR;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.StaffEntries.Commands;
@@ -12,6 +13,8 @@ public class DeleteStaffExpenseHandler(IAppDbContext db)
     {
         var expense = await db.StaffExpenses.FindAsync([req.ExpenseId], ct)
             ?? throw new KeyNotFoundException("Staff expense not found.");
+
+        await PayrollLockGuard.EnsureMonthOpenAsync(db, expense.Year, expense.Month, ct);
 
         expense.Delete();
         await db.SaveChangesAsync(ct);

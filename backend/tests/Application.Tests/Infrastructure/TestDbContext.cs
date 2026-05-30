@@ -36,6 +36,7 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.StaffSettlement>      StaffSettlements       => Set<E.StaffSettlement>();
     public DbSet<E.StaffExpenseCategory> StaffExpenseCategories => Set<E.StaffExpenseCategory>();
     public DbSet<E.StaffLoanType>        StaffLoanTypes         => Set<E.StaffLoanType>();
+    public DbSet<E.PayrollLock>          PayrollLocks           => Set<E.PayrollLock>();
 
     // InMemory provider does not support transactions — return null so handlers skip tx logic.
     public Task<IDbContextTransaction?> BeginRepeatableReadAsync(CancellationToken ct = default)

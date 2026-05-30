@@ -1,0 +1,50 @@
+using System.Security.Claims;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using HRNexus.Application.Admin.Commands;
+using HRNexus.Application.Admin.Queries;
+using HRNexus.Domain.Constants;
+
+namespace HRNexus.Api.Controllers;
+
+/// <summary>
+/// Manage payroll-period locks. Locking a month freezes its shift logs and ledger records.
+/// Manager + admin may lock and reopen.
+/// </summary>
+[ApiController]
+[Route("api/payroll-locks")]
+[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+public class PayrollLocksController(IMediator mediator) : ControllerBase
+{
+    private string CallerName => User.FindFirstValue(ClaimTypes.Name) ?? "Unknown";
+
+    [HttpGet]
+    public async Task<IActionResult> List([FromQuery] int? year, CancellationToken ct)
+        => Ok(await mediator.Send(new GetPayrollLocksQuery(year), ct));
+
+    [HttpPost]
+    public async Task<IActionResult> Lock([FromBody] LockPeriodBody body, CancellationToken ct)
+    {
+        try
+        {
+            var id = await mediator.Send(new LockPayrollPeriodCommand(body.Year, body.Month, CallerName, body.Note), ct);
+            return Ok(new { id });
+        }
+        catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
+    }
+
+    [HttpDelete("{year:int}/{month:int}")]
+    public async Task<IActionResult> Reopen(int year, int month, CancellationToken ct)
+    {
+        try
+        {
+            await mediator.Send(new ReopenPayrollPeriodCommand(year, month, CallerName), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
+    }
+}
+
+public record LockPeriodBody(int Year, int Month, string? Note);

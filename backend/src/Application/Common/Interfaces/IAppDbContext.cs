@@ -50,6 +50,7 @@ public interface IAppDbContext
     DbSet<StaffSettlement>       StaffSettlements        { get; }
     DbSet<StaffExpenseCategory>  StaffExpenseCategories  { get; }
     DbSet<StaffLoanType>         StaffLoanTypes          { get; }
+    DbSet<PayrollLock>           PayrollLocks            { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 
     /// <summary>

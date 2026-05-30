@@ -33,6 +33,11 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         if (log.EndTime == null)
             throw new InvalidOperationException("Cannot edit an active shift. End it first.");
 
+        // Block edits that touch a locked payroll period — both the shift's current month and the
+        // month it's being moved to (so a locked period can't be escaped by re-dating).
+        await PayrollLockGuard.EnsureDateOpenAsync(db, log.WorkDate, ct);
+        await PayrollLockGuard.EnsureDateOpenAsync(db, req.WorkDate, ct);
+
         if (!TimeOnly.TryParseExact(req.StartTime, "HH:mm", null, DateTimeStyles.None, out _))
             throw new ArgumentException("StartTime must be in HH:mm format.");
         if (!TimeOnly.TryParseExact(req.EndTime, "HH:mm", null, DateTimeStyles.None, out _))

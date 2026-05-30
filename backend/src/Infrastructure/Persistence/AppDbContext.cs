@@ -35,6 +35,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<StaffSettlement>       StaffSettlements       => Set<StaffSettlement>();
     public DbSet<StaffExpenseCategory>  StaffExpenseCategories => Set<StaffExpenseCategory>();
     public DbSet<StaffLoanType>        StaffLoanTypes         => Set<StaffLoanType>();
+    public DbSet<PayrollLock>          PayrollLocks           => Set<PayrollLock>();
 
     /// <summary>
     /// Begins a RepeatableRead transaction for leave-balance TOCTOU protection.
@@ -83,6 +84,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new StaffSettlementConfiguration());
         mb.ApplyConfiguration(new StaffExpenseCategoryConfiguration());
         mb.ApplyConfiguration(new StaffLoanTypeConfiguration());
+        mb.ApplyConfiguration(new PayrollLockConfiguration());
         SeedData.Seed(mb);
     }
 

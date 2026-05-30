@@ -24,6 +24,9 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         if (hours > 24)
             throw new ArgumentException("A single shift cannot exceed 24 hours.");
 
+        // Can't add a shift into a locked payroll period.
+        await PayrollLockGuard.EnsureDateOpenAsync(db, req.WorkDate, ct);
+
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location {req.LocationId} not found.");
 

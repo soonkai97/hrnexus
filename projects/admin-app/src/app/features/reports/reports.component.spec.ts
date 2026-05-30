@@ -8,7 +8,7 @@ import { ReportsComponent } from './reports.component';
 import {
   AdminService, StaffStore, StaffManagementService, ToastService,
   StaffService, FeatureFlagService, StaffLedgerPayoutDto, StaffOutstandingDto,
-  AuthService,
+  AuthService, PayrollLockService, ConfirmService,
 } from 'shared-lib';
 
 /**
@@ -77,6 +77,8 @@ describe('ReportsComponent', () => {
   let mockStaffLedgerSvc: { summary: ReturnType<typeof vi.fn>; outstanding: ReturnType<typeof vi.fn>; bulkSettle: ReturnType<typeof vi.fn> };
   let mockFeatureSvc:     { isEnabled: ReturnType<typeof vi.fn> };
   let mockAuthSvc:        { user: ReturnType<typeof vi.fn>; userRole: ReturnType<typeof vi.fn> };
+  let mockLockSvc:        { list: ReturnType<typeof vi.fn>; lock: ReturnType<typeof vi.fn>; reopen: ReturnType<typeof vi.fn> };
+  let mockConfirmSvc:     { confirm: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockAdminSvc  = { getReport: vi.fn().mockReturnValue(of(fakeReport)) };
@@ -96,6 +98,8 @@ describe('ReportsComponent', () => {
     };
     mockFeatureSvc = { isEnabled: vi.fn().mockReturnValue(false) };
     mockAuthSvc = { user: vi.fn().mockReturnValue(null), userRole: vi.fn().mockReturnValue(null) };
+    mockLockSvc = { list: vi.fn().mockReturnValue(of([])), lock: vi.fn().mockReturnValue(of({ id: 'x' })), reopen: vi.fn().mockReturnValue(of(void 0)) };
+    mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
 
     await TestBed.configureTestingModule({
       imports: [ReportsComponent],
@@ -110,6 +114,8 @@ describe('ReportsComponent', () => {
         { provide: StaffService,          useValue: mockStaffLedgerSvc },
         { provide: FeatureFlagService,    useValue: mockFeatureSvc },
         { provide: AuthService,           useValue: mockAuthSvc },
+        { provide: PayrollLockService,    useValue: mockLockSvc },
+        { provide: ConfirmService,        useValue: mockConfirmSvc },
         MessageService,
         ConfirmationService,
       ],
@@ -623,6 +629,47 @@ describe('ReportsComponent', () => {
     it('returns true when FeatureFlagService.isEnabled returns true', () => {
       mockFeatureSvc.isEnabled.mockReturnValue(true);
       expect(component.isStaffLedgerEnabled()).toBe(true);
+    });
+  });
+
+  // ── Payroll-period lock quick-action ─────────────────────────────────────────
+  describe('period lock', () => {
+    it('derives year/month and label from the report start date', () => {
+      component.dateFrom = '2026-05-01';
+      expect(component.lockYear).toBe(2026);
+      expect(component.lockMonth).toBe(5);
+      expect(component.lockPeriodLabel()).toBe('2026-05');
+    });
+
+    it('refreshPeriodLock marks the month locked when the service reports it', () => {
+      component.dateFrom = '2026-05-01';
+      mockLockSvc.list.mockReturnValue(of([{ year: 2026, month: 5, lockedAt: '', lockedBy: 'M', note: null }]));
+      component.refreshPeriodLock();
+      expect(mockLockSvc.list).toHaveBeenCalledWith(2026);
+      expect(component.periodLocked()).toBe(true);
+    });
+
+    it('lockCurrentPeriod locks via the service and flips the flag', () => {
+      component.dateFrom = '2026-06-01';
+      component.lockCurrentPeriod();
+      expect(mockLockSvc.lock).toHaveBeenCalledWith(2026, 6);
+      expect(component.periodLocked()).toBe(true);
+      expect(mockToastSvc.success).toHaveBeenCalled();
+    });
+
+    it('reopenCurrentPeriod reopens after confirmation', () => {
+      component.dateFrom = '2026-06-01';
+      component.periodLocked.set(true);
+      component.reopenCurrentPeriod();
+      expect(mockConfirmSvc.confirm).toHaveBeenCalled();
+      expect(mockLockSvc.reopen).toHaveBeenCalledWith(2026, 6);
+      expect(component.periodLocked()).toBe(false);
+    });
+
+    it('reopenCurrentPeriod does nothing when confirmation is dismissed', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(false));
+      component.reopenCurrentPeriod();
+      expect(mockLockSvc.reopen).not.toHaveBeenCalled();
     });
   });
 

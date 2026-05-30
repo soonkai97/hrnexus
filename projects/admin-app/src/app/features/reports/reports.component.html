@@ -130,6 +130,19 @@
 
     @if (report(); as r) {
 
+      <!-- Payroll-period lock quick-action (keyed off the report's start month) -->
+      <div class="period-lock mt-3">
+        <i class="pi pi-calendar-clock"></i>
+        <span class="period-lock-label">{{ 'reports.periodLockLabel' | translate:{ period: lockPeriodLabel() } }}</span>
+        @if (periodLocked()) {
+          <p-tag [value]="'reports.periodLocked' | translate" severity="warn" icon="pi pi-lock" />
+          <p-button [label]="'reports.reopenPeriod' | translate" icon="pi pi-lock-open" [text]="true"
+                    size="small" severity="secondary" [loading]="lockBusy()" (onClick)="reopenCurrentPeriod()" />
+        } @else {
+          <p-button [label]="'reports.lockPeriod' | translate" icon="pi pi-lock" [text]="true"
+                    size="small" severity="secondary" [loading]="lockBusy()" (onClick)="lockCurrentPeriod()" />
+        }
+      </div>
 
       <!-- Summary cards -->
       <div class="row row-cols-2 row-cols-lg-4 g-3 mt-3 mb-4">

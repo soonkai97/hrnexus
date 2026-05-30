@@ -16,7 +16,8 @@ namespace HRNexus.Api.Controllers;
 public class AdminController(IMediator mediator) : ControllerBase
 {
     private Guid   CallerId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    private string CallerName => User.FindFirstValue(ClaimTypes.Name) ?? "Unknown";
+    // The JWT carries the display name in a custom "fullName" claim (see TokenService), not ClaimTypes.Name.
+    private string CallerName => User.FindFirstValue("fullName") ?? "Unknown";
     // ── Dashboard ─────────────────────────────────────────────────────────────
 
     [HttpGet("dashboard")]

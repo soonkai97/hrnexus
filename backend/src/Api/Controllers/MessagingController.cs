@@ -16,8 +16,8 @@ namespace HRNexus.Api.Controllers;
 public class MessagingController(IMediator mediator) : ControllerBase
 {
     private Guid   CurrentUserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    private string CurrentName   => User.FindFirstValue(ClaimTypes.Name)
-        ?? User.FindFirstValue("FullName")
+    // Display name lives in the custom "fullName" claim (see TokenService) — case-sensitive.
+    private string CurrentName   => User.FindFirstValue("fullName")
         ?? User.FindFirstValue(ClaimTypes.Email) ?? "Staff";
     private bool   IsAdmin => User.IsInRole(AppConstants.Roles.AdminClaim) || User.IsInRole(AppConstants.Roles.ManagerClaim);
 

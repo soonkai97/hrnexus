@@ -15,6 +15,7 @@ import {
   ConfirmService,
   TrimInputDirective,
   CanComponentDeactivate,
+  apiErrorMessage,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -141,7 +142,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     this.savingWt.set(true);
     this.wtError.set('');
     const done = () => { this.savingWt.set(false); this.showWtForm.set(false); this.editingWt.set(null); this.toast.success(this.translate.instant('staffSettings.workTypeSaved')); };
-    const fail = (e: { error?: { error?: string } }) => { const msg = e?.error?.error ?? this.translate.instant('staffSettings.saveFailed'); this.wtError.set(msg); this.toast.error(msg); this.savingWt.set(false); };
+    const fail = (e: unknown) => { const msg = apiErrorMessage(e) ?? this.translate.instant('staffSettings.saveFailed'); this.wtError.set(msg); this.toast.error(msg); this.savingWt.set(false); };
     const editing = this.editingWt();
     if (editing) {
       this.configSvc.updateWorkType(editing.id, this.wtForm).subscribe({ next: done, error: fail });
@@ -161,7 +162,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
       this.deletingWtId.set(item.id);
       this.configSvc.deleteWorkType(item.id).subscribe({
         next:  () => { this.deletingWtId.set(null); this.toast.success(this.translate.instant('staffSettings.workTypeDeleted')); },
-        error: (e) => { this.deletingWtId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('staffSettings.deleteFailed')); },
+        error: (e) => { this.deletingWtId.set(null); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('staffSettings.deleteFailed')); },
       });
     });
   }
@@ -189,7 +190,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     this.savingSt.set(true);
     this.stError.set('');
     const done = () => { this.savingSt.set(false); this.showStForm.set(false); this.editingSt.set(null); this.toast.success(this.translate.instant('staffSettings.settlementSaved')); };
-    const fail = (e: { error?: { error?: string } }) => { const msg = e?.error?.error ?? this.translate.instant('staffSettings.saveFailed'); this.stError.set(msg); this.toast.error(msg); this.savingSt.set(false); };
+    const fail = (e: unknown) => { const msg = apiErrorMessage(e) ?? this.translate.instant('staffSettings.saveFailed'); this.stError.set(msg); this.toast.error(msg); this.savingSt.set(false); };
     const editing = this.editingSt();
     if (editing) {
       this.configSvc.updateSettlement(editing.id, this.stForm).subscribe({ next: done, error: fail });
@@ -209,7 +210,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
       this.deletingStId.set(item.id);
       this.configSvc.deleteSettlement(item.id).subscribe({
         next:  () => { this.deletingStId.set(null); this.toast.success(this.translate.instant('staffSettings.settlementDeleted')); },
-        error: (e) => { this.deletingStId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('staffSettings.deleteFailed')); },
+        error: (e) => { this.deletingStId.set(null); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('staffSettings.deleteFailed')); },
       });
     });
   }
@@ -237,7 +238,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     this.savingEc.set(true);
     this.ecError.set('');
     const done = () => { this.savingEc.set(false); this.showEcForm.set(false); this.editingEc.set(null); this.toast.success(this.translate.instant('staffSettings.categorySaved')); };
-    const fail = (e: { error?: { error?: string } }) => { const msg = e?.error?.error ?? this.translate.instant('staffSettings.saveFailed'); this.ecError.set(msg); this.toast.error(msg); this.savingEc.set(false); };
+    const fail = (e: unknown) => { const msg = apiErrorMessage(e) ?? this.translate.instant('staffSettings.saveFailed'); this.ecError.set(msg); this.toast.error(msg); this.savingEc.set(false); };
     const editing = this.editingEc();
     if (editing) {
       this.configSvc.updateExpenseCategory(editing.id, this.ecForm).subscribe({ next: done, error: fail });
@@ -257,7 +258,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
       this.deletingEcId.set(item.id);
       this.configSvc.deleteExpenseCategory(item.id).subscribe({
         next:  () => { this.deletingEcId.set(null); this.toast.success(this.translate.instant('staffSettings.categoryDeleted')); },
-        error: (e) => { this.deletingEcId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('staffSettings.deleteFailed')); },
+        error: (e) => { this.deletingEcId.set(null); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('staffSettings.deleteFailed')); },
       });
     });
   }
@@ -285,7 +286,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     this.savingLt.set(true);
     this.ltError.set('');
     const done = () => { this.savingLt.set(false); this.showLtForm.set(false); this.editingLt.set(null); this.toast.success(this.translate.instant('staffSettings.loanTypeSaved')); };
-    const fail = (e: { error?: { error?: string } }) => { const msg = e?.error?.error ?? this.translate.instant('staffSettings.saveFailed'); this.ltError.set(msg); this.toast.error(msg); this.savingLt.set(false); };
+    const fail = (e: unknown) => { const msg = apiErrorMessage(e) ?? this.translate.instant('staffSettings.saveFailed'); this.ltError.set(msg); this.toast.error(msg); this.savingLt.set(false); };
     const editing = this.editingLt();
     if (editing) {
       this.configSvc.updateLoanType(editing.id, this.ltForm).subscribe({ next: done, error: fail });
@@ -306,7 +307,7 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
       this.deletingLtId.set(item.id);
       this.configSvc.deleteLoanType(item.id).subscribe({
         next:  () => { this.deletingLtId.set(null); this.toast.success(this.translate.instant('staffSettings.loanTypeDeleted')); },
-        error: (e) => { this.deletingLtId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('staffSettings.deleteFailed')); },
+        error: (e) => { this.deletingLtId.set(null); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('staffSettings.deleteFailed')); },
       });
     });
   }

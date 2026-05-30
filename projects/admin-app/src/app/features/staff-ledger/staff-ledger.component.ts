@@ -17,6 +17,7 @@ import {
   toLocalDateString,
   TrimInputDirective,
   CanComponentDeactivate,
+  apiErrorMessage,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
@@ -231,8 +232,8 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
       this.toast.success(this.translate.instant('staffLedger.savedSuccess'));
       this.loadEntries();
     };
-    const onFail = (e: { error?: { error?: string } }) => {
-      const msg = e?.error?.error ?? this.translate.instant('staffLedger.saveFailed');
+    const onFail = (e: unknown) => {
+      const msg = apiErrorMessage(e) ?? this.translate.instant('staffLedger.saveFailed');
       this.formError.set(msg);
       this.toast.error(msg);
       this.saving.set(false);
@@ -303,8 +304,8 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
       this.toast.success(this.translate.instant('staffLedger.expenseSaved'));
       this.loadExpenses();
     };
-    const onFail = (e: { error?: { error?: string } }) => {
-      const msg = e?.error?.error ?? this.translate.instant('staffLedger.expenseFailed');
+    const onFail = (e: unknown) => {
+      const msg = apiErrorMessage(e) ?? this.translate.instant('staffLedger.expenseFailed');
       this.expenseFormError.set(msg);
       this.toast.error(msg);
       this.savingExpense.set(false);
@@ -358,8 +359,8 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
       this.toast.success(this.translate.instant('staffLedger.loanSaved'));
       this.loadLoans();
     };
-    const onFail = (e: { error?: { error?: string } }) => {
-      const msg = e?.error?.error ?? this.translate.instant('staffLedger.loanFailed');
+    const onFail = (e: unknown) => {
+      const msg = apiErrorMessage(e) ?? this.translate.instant('staffLedger.loanFailed');
       this.loanFormError.set(msg);
       this.toast.error(msg);
       this.savingLoan.set(false);

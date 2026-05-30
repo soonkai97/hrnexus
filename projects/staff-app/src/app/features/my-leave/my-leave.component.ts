@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
+import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -291,9 +291,9 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
       this.cancellingId.set(r.id);
       this.leaveSvc.cancel(r.id).subscribe({
         next:  () => { this.cancellingId.set(null); this.load(); this.toast.success(this.translate.instant('leave.toast.withdrawn')); },
-        error: (e: { error?: { error?: string; message?: string } }) => {
+        error: (e: unknown) => {
           this.cancellingId.set(null);
-          const msg: string = e?.error?.error ?? e?.error?.message ?? '';
+          const msg: string = apiErrorMessage(e) ?? '';
           this.toast.error(
             msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('cancel')
               ? this.translate.instant('leave.errAlreadyEnded')

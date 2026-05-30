@@ -29,13 +29,13 @@ const HRNexusTheme = definePreset(Aura, {
 });
 
 import { routes } from './app.routes';
-import { jwtInterceptor, maintenanceInterceptor, provideNoAutofill } from 'shared-lib';
+import { jwtInterceptor, maintenanceInterceptor, errorInterceptor, provideNoAutofill } from 'shared-lib';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withInterceptors([maintenanceInterceptor, jwtInterceptor])),
+    provideHttpClient(withInterceptors([maintenanceInterceptor, errorInterceptor, jwtInterceptor])),
     provideAppInitializer(async () => {
       const http = inject(HttpClient);
       try {

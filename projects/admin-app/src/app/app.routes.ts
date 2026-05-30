@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, roleGuard, featureFlagGuard, unsavedChangesGuard } from 'shared-lib';
+import { authGuard, permissionGuard, featureFlagGuard, unsavedChangesGuard } from 'shared-lib';
 import { ShellComponent } from './shell/shell.component';
 
 export const routes: Routes = [
@@ -11,22 +11,23 @@ export const routes: Routes = [
   {
     path: '',
     component: ShellComponent,
-    canActivate: [authGuard, roleGuard('manager', 'admin')],
+    // Admin-portal access is gated by the portal.admin permission (was: manager/admin role).
+    canActivate: [authGuard, permissionGuard('portal.admin', '/auth/login')],
     children: [
       { path: 'dashboard',     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
-      { path: 'staff',         loadChildren:  () => import('./features/staff/staff.routes').then(m => m.STAFF_ROUTES) },
+      { path: 'staff',         canActivate: [permissionGuard('staff.view', '/dashboard')], loadChildren:  () => import('./features/staff/staff.routes').then(m => m.STAFF_ROUTES) },
 
-      { path: 'reports',       loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent) },
-      { path: 'roles',         canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/roles/roles.component').then(m => m.RolesComponent) },
-      { path: 'locations',     canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/locations/locations.component').then(m => m.LocationsComponent) },
-      { path: 'leave',         canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
+      { path: 'reports',       canActivate: [permissionGuard('reports.view', '/dashboard')], loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent) },
+      { path: 'roles',         canActivate: [permissionGuard('roles.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/roles/roles.component').then(m => m.RolesComponent) },
+      { path: 'locations',     canActivate: [permissionGuard('locations.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/locations/locations.component').then(m => m.LocationsComponent) },
+      { path: 'leave',         canActivate: [permissionGuard('leave.approve', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
 
-      { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
-      { path: 'tips',          canActivate: [featureFlagGuard('tips',           '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },
-      { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
-      { path: 'staff-ledger',   canActivate: [featureFlagGuard('staffLedger', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/staff-ledger/staff-ledger.component').then(m => m.StaffLedgerComponent) },
-      { path: 'staff-settings', canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/staff-settings/staff-settings.component').then(m => m.StaffSettingsComponent) },
-      { path: 'payroll-locks',  loadComponent: () => import('./features/payroll-locks/payroll-locks.component').then(m => m.PayrollLocksComponent) },
+      { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/dashboard'), permissionGuard('announcements.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
+      { path: 'tips',          canActivate: [featureFlagGuard('tips',           '/dashboard'), permissionGuard('tips.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/tips/tips.component').then(m => m.TipsComponent) },
+      { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard'), permissionGuard('payroll.view', '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
+      { path: 'staff-ledger',   canActivate: [featureFlagGuard('staffLedger', '/dashboard'), permissionGuard('ledger.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/staff-ledger/staff-ledger.component').then(m => m.StaffLedgerComponent) },
+      { path: 'staff-settings', canActivate: [permissionGuard('config.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/staff-settings/staff-settings.component').then(m => m.StaffSettingsComponent) },
+      { path: 'payroll-locks',  canActivate: [permissionGuard('payroll.lock', '/dashboard')], loadComponent: () => import('./features/payroll-locks/payroll-locks.component').then(m => m.PayrollLocksComponent) },
       { path: 'account',       loadChildren:  () => import('./features/account/account.routes').then(m => m.ACCOUNT_ROUTES) },
     ],
   },

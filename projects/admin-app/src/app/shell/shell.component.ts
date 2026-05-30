@@ -9,7 +9,7 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, LangService, SignalRService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, PermissionService, LangService, SignalRService } from 'shared-lib';
 
 interface NavItem {
   path: string;
@@ -77,6 +77,7 @@ export class ShellComponent implements AfterViewInit {
   readonly lang              = inject(LangService);
   private readonly translate = inject(TranslateService);
   readonly featureSvc        = inject(FeatureFlagService);
+  readonly permissions       = inject(PermissionService);
 
   // Translation files load asynchronously after bootstrap, so instant() inside a computed
   // returns the raw key on first render. Tick this on translation (re)loads so label
@@ -88,6 +89,7 @@ export class ShellComponent implements AfterViewInit {
 
   constructor() {
     this.featureSvc.load().subscribe();
+    this.permissions.load().subscribe();   // so in-app guards + *ncHasPermission resolve synchronously
     this.lang.syncFromApi();
     this.signalR.startConnection();
 

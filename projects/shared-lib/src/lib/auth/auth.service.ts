@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { AuthResponse, AuthUser, ChangePasswordRequest, ForgotPasswordResponse, LoginRequest, RefreshTokenRequest, UserRole } from '../models';
+import { PermissionService } from '../services/permission.service';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -24,6 +25,7 @@ export class AuthService {
 
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly permissions = inject(PermissionService);
 
   constructor() {
     this.evictStaleTokens();
@@ -82,6 +84,7 @@ export class AuthService {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     this._user.set(null);
+    this.permissions.clear();   // don't let the next user inherit cached permissions
     this.router.navigate(['/auth/login']);
   }
 

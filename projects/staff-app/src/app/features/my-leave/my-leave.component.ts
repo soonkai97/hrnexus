@@ -55,26 +55,42 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     'leave.calDayThu','leave.calDayFri','leave.calDaySat','leave.calDaySun',
   ];
 
-  /** Item 3: Minimum selectable start date. Annual needs 3 days advance; others allow today. */
+  // NOTE: these are bound to the date pickers' [minDate]/[defaultDate]. They MUST return a
+  // stable object reference across change-detection — PrimeNG's minDate/defaultDate setters
+  // re-render (and defaultDate resets the visible month) whenever the value changes by
+  // reference. Returning a fresh `new Date()` every CD made the prev/next arrows snap the
+  // calendar back every cycle, so navigation appeared dead. Memoised by a value-key instead.
+  private _minStartCache?: { key: string; date: Date };
+  private _minEndCache?: { key: string; date: Date };
+
+  /** Minimum selectable start date. Annual needs 3 days advance; others allow today. */
   get minStartDate(): Date {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (this.form.leaveType === 'annual') {
-      const d = new Date(today);
-      d.setDate(d.getDate() + 3);
-      return d;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const key = `${todayStr}:${this.form.leaveType === 'annual' ? 'annual' : 'std'}`;
+    if (this._minStartCache?.key !== key) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      if (this.form.leaveType === 'annual') d.setDate(d.getDate() + 3);
+      this._minStartCache = { key, date: d };
     }
-    return today;
+    return this._minStartCache.date;
   }
 
-  /** Item 3: Minimum end date — same as start date (or today if not yet set). */
+  /** Minimum end date — the chosen start date (or the min start date if none yet). */
   get minEndDate(): Date {
-    if (this.form.startDate) {
-      const d = new Date(this.form.startDate);
-      d.setHours(0, 0, 0, 0);
-      return d;
+    const key = this.form.startDate
+      || `min:${this.form.leaveType === 'annual' ? 'annual' : 'std'}`;
+    if (this._minEndCache?.key !== key) {
+      let date: Date;
+      if (this.form.startDate) {
+        date = new Date(this.form.startDate);
+        date.setHours(0, 0, 0, 0);
+      } else {
+        date = this.minStartDate;
+      }
+      this._minEndCache = { key, date };
     }
-    return this.minStartDate;
+    return this._minEndCache.date;
   }
 
   records      = signal<LeaveRecord[]>([]);

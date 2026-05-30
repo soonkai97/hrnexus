@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -19,6 +19,7 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
   private readonly store      = inject(LocationStore);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
+  private readonly translate  = inject(TranslateService);
 
   readonly locations = this.store.locations;
   readonly loading   = this.store.loading;
@@ -37,7 +38,7 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
   markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
   fieldError(field: 'name'): string {
     if (!this.touched().has(field)) return '';
-    return this.form.name?.trim() ? '' : 'Location name is required.';
+    return this.form.name?.trim() ? '' : this.translate.instant('locations.nameRequired');
   }
 
   ngOnInit(): void { this.store.load(); }
@@ -60,8 +61,8 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     this.saving.set(true);
     this.error.set('');
     const dto: UpsertLocationDto = { name };
-    const done = () => { this.saving.set(false); this.showForm.set(false); this.editing.set(null); this.toast.success('Location saved.'); };
-    const fail = (e: any) => { const msg = e?.error?.error ?? 'Save failed.'; this.error.set(msg); this.toast.error(msg); this.saving.set(false); };
+    const done = () => { this.saving.set(false); this.showForm.set(false); this.editing.set(null); this.toast.success(this.translate.instant('locations.saved')); };
+    const fail = (e: any) => { const msg = e?.error?.error ?? this.translate.instant('locations.saveFailed'); this.error.set(msg); this.toast.error(msg); this.saving.set(false); };
     const editingId = this.editing()?.id;
     if (editingId) {
       this.store.update(editingId, dto).subscribe({ next: done, error: fail });
@@ -72,16 +73,16 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
 
   remove(id: string): void {
     this.confirmSvc.confirm({
-      title: 'Delete Location',
-      message: 'Are you sure you want to delete this location?',
-      confirmLabel: 'Delete',
+      title: this.translate.instant('locations.confirmDeleteTitle'),
+      message: this.translate.instant('locations.confirmDeleteMessage'),
+      confirmLabel: this.translate.instant('common.delete'),
       danger: true,
     }).subscribe(confirmed => {
       if (!confirmed) return;
       this.deletingId.set(id);
       this.store.remove(id).subscribe({
-        next: () => { this.deletingId.set(null); this.toast.success('Location deleted.'); },
-        error: (e) => { this.deletingId.set(null); const msg = e?.error?.error ?? 'Delete failed.'; this.error.set(msg); this.toast.error(msg); },
+        next: () => { this.deletingId.set(null); this.toast.success(this.translate.instant('locations.deleted')); },
+        error: (e) => { this.deletingId.set(null); const msg = e?.error?.error ?? this.translate.instant('locations.deleteFailed'); this.error.set(msg); this.toast.error(msg); },
       });
     });
   }
@@ -90,8 +91,8 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     this.store.uploadImage(loc.id, file).subscribe({
-      next: () => this.toast.success('Image uploaded.'),
-      error: (e) => { const msg = e?.error?.error ?? 'Upload failed.'; this.error.set(msg); this.toast.error(msg); },
+      next: () => this.toast.success(this.translate.instant('locations.imageUploaded')),
+      error: (e) => { const msg = e?.error?.error ?? this.translate.instant('locations.uploadFailed'); this.error.set(msg); this.toast.error(msg); },
     });
   }
 }

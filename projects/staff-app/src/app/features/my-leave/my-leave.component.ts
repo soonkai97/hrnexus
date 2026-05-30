@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
@@ -19,7 +19,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 @Component({
   selector: 'app-my-leave',
   standalone: true,
-  imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe, AmPmPipe, TrimInputDirective,
+  imports: [DatePipe, FormsModule, TranslatePipe, AmPmPipe, TrimInputDirective,
     Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
@@ -40,10 +40,12 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   }
 
   readonly leaveTypes = LEAVE_TYPES;
-  readonly leaveTypeOptions = LEAVE_TYPES.map(t => ({
-    label: t === 'annual' ? 'Annual' : t === 'sick' ? 'Sick' : t === 'unpaid' ? 'Unpaid' : 'Emergency',
-    value: t,
-  }));
+  get leaveTypeOptions() {
+    return LEAVE_TYPES.map(t => ({
+      label: this.translate.instant('leave.type.' + t),
+      value: t,
+    }));
+  }
   readonly todayLocal = toLocalDateString(new Date());
   readonly todayIso   = toLocalDateString(new Date());
 
@@ -89,13 +91,15 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     return type ? this.records().filter(r => r.leaveType === type) : this.records();
   });
 
-  readonly presetTypes = [
-    { label: 'All',       value: '' },
-    { label: 'Annual',    value: 'annual' },
-    { label: 'Sick',      value: 'sick' },
-    { label: 'Unpaid',    value: 'unpaid' },
-    { label: 'Emergency', value: 'emergency' },
-  ];
+  get presetTypes() {
+    return [
+      { label: this.translate.instant('leave.filterAll'),     value: '' },
+      { label: this.translate.instant('leave.type.annual'),   value: 'annual' },
+      { label: this.translate.instant('leave.type.sick'),     value: 'sick' },
+      { label: this.translate.instant('leave.type.unpaid'),   value: 'unpaid' },
+      { label: this.translate.instant('leave.type.emergency'),value: 'emergency' },
+    ];
+  }
 
   form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: Date | null; endTime: Date | null; notes: string } = {
     leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '',
@@ -186,22 +190,22 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     this.loading.set(true);
     this.leaveSvc.getMine().subscribe({
       next:  r  => { this.records.set(r); this.loading.set(false); },
-      error: () => { this.toast.error('Failed to load leave records.'); this.loading.set(false); },
+      error: () => { this.toast.error(this.translate.instant('leave.errLoad')); this.loading.set(false); },
     });
   }
 
   submit(): void {
     this.formError.set('');
     if (!this.form.startDate || !this.form.startTime || !this.form.endDate || !this.form.endTime) {
-      this.formError.set('Please select start date, end date, and times.'); return;
+      this.formError.set(this.translate.instant('leave.errSelectDates')); return;
     }
 
     const hours = this.calcHours;
     if (hours <= 0) {
-      this.formError.set('End date/time must be after start date/time.'); return;
+      this.formError.set(this.translate.instant('leave.errEndAfterStart')); return;
     }
     if (hours > 720) {
-      this.formError.set('Leave duration cannot exceed 720 hours (30 days) in a single request.'); return;
+      this.formError.set(this.translate.instant('leave.errMaxDuration')); return;
     }
 
     const maxFuture = new Date();
@@ -209,7 +213,7 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     const startDt = new Date(this.form.startDate);
     startDt.setHours(this.form.startTime.getHours(), this.form.startTime.getMinutes(), 0, 0);
     if (startDt > maxFuture) {
-      this.formError.set('Leave cannot be requested more than 1 year in advance.'); return;
+      this.formError.set(this.translate.instant('leave.errMaxFuture')); return;
     }
 
     if (this.saving()) return;
@@ -230,11 +234,11 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
         this.form = { leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '' };
         this.load();
         this.leaveSvc.getMyBalance().subscribe({ next: b => this.balance.set(b), error: () => {} });
-        this.toast.success('Leave request submitted.');
+        this.toast.success(this.translate.instant('leave.toast.submitted'));
         this.view.set('history');
       },
       error: (err) => {
-        this.formError.set(err?.error?.error ?? 'Submission failed. Please try again.');
+        this.formError.set(err?.error?.error ?? this.translate.instant('leave.errSubmit'));
         this.saving.set(false);
       },
     });
@@ -260,24 +264,24 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   cancel(r: LeaveRecord): void {
     const isApproved = r.status === 'approved';
     this.confirm.confirm({
-      title:        isApproved ? 'Withdraw Approved Leave' : 'Cancel Leave Request',
+      title:        isApproved ? this.translate.instant('leave.confirm.withdrawTitle') : this.translate.instant('leave.confirm.cancelTitle'),
       message:      isApproved
-        ? 'This leave has already been approved. Withdrawing it will remove the approval and restore your balance. Are you sure?'
-        : 'Are you sure you want to withdraw this leave request? This cannot be undone.',
-      confirmLabel: 'Yes, Withdraw',
+        ? this.translate.instant('leave.confirm.withdrawMsg')
+        : this.translate.instant('leave.confirm.cancelMsg'),
+      confirmLabel: this.translate.instant('leave.confirm.yesWithdraw'),
       danger:       true,
     }).subscribe((confirmed: boolean) => {
       if (!confirmed) return;
       this.cancellingId.set(r.id);
       this.leaveSvc.cancel(r.id).subscribe({
-        next:  () => { this.cancellingId.set(null); this.load(); this.toast.success('Leave request withdrawn.'); },
+        next:  () => { this.cancellingId.set(null); this.load(); this.toast.success(this.translate.instant('leave.toast.withdrawn')); },
         error: (e: any) => {
           this.cancellingId.set(null);
           const msg: string = e?.error?.error ?? e?.error?.message ?? '';
           this.toast.error(
             msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('cancel')
-              ? 'This leave has already ended and cannot be cancelled. Contact your manager.'
-              : 'Failed to cancel leave.'
+              ? this.translate.instant('leave.errAlreadyEnded')
+              : this.translate.instant('leave.errCancel')
           );
         },
       });

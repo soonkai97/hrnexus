@@ -259,14 +259,14 @@ describe('ProfileComponent', () => {
     it('shows error toast and does not subscribe when publicKey is missing', async () => {
       mockPushSvc.getPublicKey.mockReturnValue(of({ publicKey: '' }));
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Push notifications are not configured on this server.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('profile.toast.pushNotConfigured');
       expect(mockPushSvc.subscribe).not.toHaveBeenCalled();
     });
 
     it('shows error toast and does not subscribe when permission is denied (requestPermission returns null)', async () => {
       mockPushSvc.requestPermission.mockResolvedValue(null);
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Notification permission denied.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('profile.toast.permissionDenied');
       expect(mockPushSvc.subscribe).not.toHaveBeenCalled();
     });
   });
@@ -289,7 +289,7 @@ describe('ProfileComponent', () => {
 
     it('shows push error toast when an exception is thrown', async () => {
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Could not enable notifications. Please try again.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('profile.toast.enableFailed');
     });
 
     it('clears pushLoading even when an exception is thrown — finally block', async () => {

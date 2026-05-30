@@ -131,7 +131,7 @@ describe('StaffDetailComponent', () => {
     it('shows error toast and clears loading when staff fetch fails', () => {
       mockStaffSvc.getById.mockReturnValue(throwError(() => new Error('Not found')));
       component.ngOnInit();
-      expect(mockToast.error).toHaveBeenCalledWith('Failed to load staff details.');
+      expect(mockToast.error).toHaveBeenCalledWith('staffDetail.loadFailed');
       expect(component.loading()).toBe(false);
     });
   });
@@ -164,14 +164,14 @@ describe('StaffDetailComponent', () => {
       component.editForm.staffId = '';
       expect(component.fieldError('staffId')).toBe('');   // not touched yet
       component.markTouched('staffId');
-      expect(component.fieldError('staffId')).toBe('Staff ID is required.');
+      expect(component.fieldError('staffId')).toBe('staff.errStaffIdRequired');
     });
 
     it('fieldError flags a malformed email once touched, clears when blank or valid', () => {
       fillValid();
       component.markTouched('email');
       component.editForm.email = 'bad-email';
-      expect(component.fieldError('email')).toBe('Enter a valid email address.');
+      expect(component.fieldError('email')).toBe('staff.errEmailInvalid');
       component.editForm.email = null;
       expect(component.fieldError('email')).toBe('');
     });
@@ -270,7 +270,7 @@ describe('StaffDetailComponent', () => {
 
     it('shows success toast after save', () => {
       component.saveEdit();
-      expect(mockToast.success).toHaveBeenCalledWith('Profile updated.');
+      expect(mockToast.success).toHaveBeenCalledWith('staffDetail.profileUpdated');
     });
 
     it('clears saving flag after success', () => {

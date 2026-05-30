@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -24,6 +24,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   private readonly store      = inject(StaffStore);
   private readonly confirmSvc = inject(ConfirmService);
   private readonly toast      = inject(ToastService);
+  private readonly translate  = inject(TranslateService);
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
@@ -46,7 +47,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
   fieldError(field: 'name'): string {
     if (!this.touched().has(field)) return '';
-    return this.newRoleName?.trim() ? '' : 'Role name is required.';
+    return this.newRoleName?.trim() ? '' : this.translate.instant('roles.nameRequired');
   }
 
   ngOnInit(): void { this.store.loadRoles(); }
@@ -73,9 +74,9 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
         this.newRoleRate = 0;
         this.saving.set(false);
         this.showForm.set(false);
-        this.toast.success('Role created.');
+        this.toast.success(this.translate.instant('roles.created'));
       },
-      error: (e) => { this.error.set(e?.error?.error ?? 'Failed to create role.'); this.saving.set(false); },
+      error: (e) => { this.error.set(e?.error?.error ?? this.translate.instant('roles.createFailed')); this.saving.set(false); },
     });
   }
 
@@ -94,10 +95,10 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
       next: () => {
         this.savingRate.set(false);
         this.editingRateName.set(null);
-        this.toast.success('Hourly rate updated.');
+        this.toast.success(this.translate.instant('roles.rateUpdated'));
       },
       error: (e) => {
-        this.toast.error(e?.error?.error ?? 'Failed to update rate.');
+        this.toast.error(e?.error?.error ?? this.translate.instant('roles.rateUpdateFailed'));
         this.savingRate.set(false);
       },
     });
@@ -110,16 +111,16 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   deleteRole(name: string): void {
     this.confirmSvc.confirm({
-      title: 'Delete Role',
-      message: 'Deleting this role will remove it from all staff members. Are you sure?',
-      confirmLabel: 'Delete',
+      title: this.translate.instant('roles.confirmDeleteTitle'),
+      message: this.translate.instant('roles.confirmDeleteMessage'),
+      confirmLabel: this.translate.instant('common.delete'),
       danger: true,
     }).subscribe(confirmed => {
       if (!confirmed) return;
       this.deletingRole.set(name);
       this.store.deleteRole(name).subscribe({
-        next: () => { this.deletingRole.set(null); this.toast.success('Role deleted.'); },
-        error: (e) => { this.deletingRole.set(null); this.error.set(e?.error?.error ?? 'Failed to delete role.'); },
+        next: () => { this.deletingRole.set(null); this.toast.success(this.translate.instant('roles.deleted')); },
+        error: (e) => { this.deletingRole.set(null); this.error.set(e?.error?.error ?? this.translate.instant('roles.deleteFailed')); },
       });
     });
   }

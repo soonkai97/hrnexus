@@ -8,7 +8,7 @@
     <p-card #formAnchor styleClass="form-card">
       <div class="form-header d-flex align-items-center justify-content-between">
         <h3>{{ editing() ? ('announcements.editForm' | translate) : ('announcements.newForm' | translate) }}</h3>
-        <p-button label="Close" [text]="true" severity="secondary" aria-label="Close form" (click)="cancel()" />
+        <p-button [label]="'announcements.close' | translate" [text]="true" severity="secondary" [attr.aria-label]="'announcements.closeForm' | translate" (click)="cancel()" />
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'announcements.titleLabel' | translate }}</label>
@@ -113,7 +113,7 @@
             </td>
             <td class="td-actions">
               <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small"
-                        [attr.aria-label]="'Actions for ' + item.title"
+                        [attr.aria-label]="'announcements.actionsFor' | translate:{ title: item.title }"
                         (click)="openMenu(item, $event)" />
             </td>
           </tr>

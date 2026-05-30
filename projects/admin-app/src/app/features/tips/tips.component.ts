@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService, TipsPoolDto, TipsDistributionResult, LocationStore, ToastService, todayLocalString, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
@@ -23,6 +23,7 @@ import { Skeleton } from 'primeng/skeleton';
 export class TipsComponent implements OnInit, CanComponentDeactivate {
   private readonly adminSvc     = inject(AdminService);
   private readonly toast        = inject(ToastService);
+  private readonly translate    = inject(TranslateService);
   readonly locationStore        = inject(LocationStore);
 
   pools        = signal<TipsPoolDto[]>([]);
@@ -35,10 +36,12 @@ export class TipsComponent implements OnInit, CanComponentDeactivate {
   /** Today's date as "YYYY-MM-DD" in local (venue) time, not UTC. */
   readonly today = todayLocalString();
 
-  readonly splitMethodOptions = [
-    { label: 'Equal Split', value: 'equal' },
-    { label: 'By Hours Worked', value: 'by_hours' },
-  ];
+  get splitMethodOptions() {
+    return [
+      { label: this.translate.instant('tips.splitEqual'),   value: 'equal' },
+      { label: this.translate.instant('tips.splitByHours'), value: 'by_hours' },
+    ];
+  }
 
   form = {
     locationId:   '',
@@ -62,7 +65,7 @@ export class TipsComponent implements OnInit, CanComponentDeactivate {
     this.loading.set(true);
     this.adminSvc.getTipsPools().subscribe({
       next:  list => { this.pools.set(list); this.loading.set(false); },
-      error: ()   => { this.toast.error('Failed to load tips pools.'); this.loading.set(false); },
+      error: ()   => { this.toast.error(this.translate.instant('tips.loadFailed')); this.loading.set(false); },
     });
   }
 
@@ -79,11 +82,11 @@ export class TipsComponent implements OnInit, CanComponentDeactivate {
 
   distribute(): void {
     if (!this.form.locationName || !this.form.shiftDate || this.form.totalAmount <= 0) {
-      this.toast.error('Please fill in all required fields.');
+      this.toast.error(this.translate.instant('tips.fillRequired'));
       return;
     }
     if (this.form.totalAmount > 50_000) {
-      this.toast.error('Total tips amount cannot exceed 50,000. Please verify the amount.');
+      this.toast.error(this.translate.instant('tips.capExceeded'));
       return;
     }
     this.distributing.set(true);
@@ -95,7 +98,7 @@ export class TipsComponent implements OnInit, CanComponentDeactivate {
         this.distributing.set(false);
       },
       error: () => {
-        this.toast.error('Distribution failed.');
+        this.toast.error(this.translate.instant('tips.distributionFailed'));
         this.distributing.set(false);
       },
     });

@@ -193,7 +193,7 @@ describe('StaffSettingsComponent', () => {
 
     it('shows success toast on create', () => {
       component.saveWt();
-      expect(mockToast.success).toHaveBeenCalledWith('Work type saved.');
+      expect(mockToast.success).toHaveBeenCalledWith('staffSettings.workTypeSaved');
     });
 
     it('hides form and clears editing after create', () => {
@@ -253,7 +253,7 @@ describe('StaffSettingsComponent', () => {
     it('shows success toast after deletion', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       component.removeWt(makeWorkType());
-      expect(mockToast.success).toHaveBeenCalledWith('Work type deleted.');
+      expect(mockToast.success).toHaveBeenCalledWith('staffSettings.workTypeDeleted');
     });
 
     it('does NOT call deleteWorkType when user cancels', () => {
@@ -289,7 +289,7 @@ describe('StaffSettingsComponent', () => {
 
     it('shows success toast on create', () => {
       component.saveSt();
-      expect(mockToast.success).toHaveBeenCalledWith('Settlement saved.');
+      expect(mockToast.success).toHaveBeenCalledWith('staffSettings.settlementSaved');
     });
 
     it('does not call API when key is empty', () => {
@@ -341,7 +341,7 @@ describe('StaffSettingsComponent', () => {
 
     it('shows success toast', () => {
       component.saveEc();
-      expect(mockToast.success).toHaveBeenCalledWith('Category saved.');
+      expect(mockToast.success).toHaveBeenCalledWith('staffSettings.categorySaved');
     });
 
     it('does not call API when label is empty', () => {
@@ -377,7 +377,7 @@ describe('StaffSettingsComponent', () => {
 
     it('shows success toast', () => {
       component.saveLt();
-      expect(mockToast.success).toHaveBeenCalledWith('Loan type saved.');
+      expect(mockToast.success).toHaveBeenCalledWith('staffSettings.loanTypeSaved');
     });
 
     it('does not call API when key is empty', () => {
@@ -414,7 +414,7 @@ describe('StaffSettingsComponent', () => {
     it('shows success toast after deleting a loan type', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       component.removeLt(makeLoanType({ isSystem: false }));
-      expect(mockToast.success).toHaveBeenCalledWith('Loan type deleted.');
+      expect(mockToast.success).toHaveBeenCalledWith('staffSettings.loanTypeDeleted');
     });
 
     it('does NOT call deleteLoanType when cancelled', () => {

@@ -123,13 +123,13 @@ describe('StaffComponent', () => {
       component.newStaff.staffId = '';
       expect(component.fieldError('staffId')).toBe('');   // not touched yet
       component.markTouched('staffId');
-      expect(component.fieldError('staffId')).toBe('Staff ID is required.');
+      expect(component.fieldError('staffId')).toBe('staff.errStaffIdRequired');
     });
 
     it('fieldError flags an invalid email but accepts a blank one (optional)', () => {
       component.markTouched('email');
       component.newStaff.email = 'not-an-email';
-      expect(component.fieldError('email')).toBe('Enter a valid email address.');
+      expect(component.fieldError('email')).toBe('staff.errEmailInvalid');
       component.newStaff.email = '';
       expect(component.fieldError('email')).toBe('');
       component.newStaff.email = 'ok@test.com';
@@ -138,7 +138,7 @@ describe('StaffComponent', () => {
 
     it('fieldError clears once a required field is filled', () => {
       component.markTouched('firstName');
-      expect(component.fieldError('firstName')).toBe('First name is required.');
+      expect(component.fieldError('firstName')).toBe('staff.errFirstNameRequired');
       component.newStaff.firstName = 'Alice';
       expect(component.fieldError('firstName')).toBe('');
     });
@@ -283,7 +283,7 @@ describe('StaffComponent', () => {
       component.newStaff.password  = 'Password1!';
       component.newStaff.email     = 'not-an-email';
       component.saveStaff();
-      expect(component.error()).toBe('Please enter a valid email address.');
+      expect(component.error()).toBe('staff.errEmailInvalidFull');
       expect(mockStaffStore.register).not.toHaveBeenCalled();
     });
 
@@ -319,7 +319,7 @@ describe('StaffComponent', () => {
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
-      expect(component.error()).toBe('Please select at least one role.');
+      expect(component.error()).toBe('staff.errSelectRole');
     });
   });
 
@@ -344,7 +344,7 @@ describe('StaffComponent', () => {
 
     it('shows success toast after registering a new staff member', () => {
       fillAndSubmit();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Staff registered.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('staff.registered');
     });
 
     it('hides the form after successful registration', () => {
@@ -453,7 +453,7 @@ describe('StaffComponent', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       component.ngOnInit();
       component.deleteStaff(makeStaff({ fullName: 'Jane Doe' }));
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Jane Doe deleted.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('staff.deletedToast');
     });
 
     it('does NOT call store.deleteStaff when user cancels the dialog', () => {
@@ -501,7 +501,7 @@ describe('StaffComponent', () => {
     it('shows error toast when toggle fails', () => {
       mockStaffStore.toggleActive.mockReturnValue(throwError(() => new Error('Network')));
       component.toggleActive('s1', false); // activation path (no confirm)
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to update status.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('staff.statusUpdateFailed');
     });
   });
 

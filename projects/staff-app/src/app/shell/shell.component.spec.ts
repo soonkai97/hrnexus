@@ -169,14 +169,14 @@ describe('ShellComponent (staff-app)', () => {
 
     it('includes a Profile item linking to /profile', () => {
       const c = createComponent();
-      const profile = c.avatarMenuItems().find((i: any) => i.label === 'Profile');
+      const profile = c.avatarMenuItems().find((i: any) => i.label === 'nav.profile');
       expect(profile).toBeDefined();
       expect(profile!.routerLink).toBe('/profile');
     });
 
     it('includes a Sign Out item with a command callback', () => {
       const c = createComponent();
-      const signOut = c.avatarMenuItems().find((i: any) => i.label === 'Sign Out');
+      const signOut = c.avatarMenuItems().find((i: any) => i.label === 'profile.signOut');
       expect(signOut).toBeDefined();
       expect(typeof signOut!.command).toBe('function');
     });

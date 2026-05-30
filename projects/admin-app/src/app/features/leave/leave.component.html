@@ -15,7 +15,7 @@
         <p-select [(ngModel)]="filterEmployeeId" (onChange)="load(1)"
           [options]="staffStore.staff()" optionLabel="fullName" optionValue="id"
           [placeholder]="'leave.allStaff' | translate" [showClear]="!!filterEmployeeId"
-          [filter]="true" filterPlaceholder="Search staff…"
+          [filter]="true" [filterPlaceholder]="'leave.searchStaff' | translate"
           styleClass="w-full" />
       </div>
       <div class="field filter-date">
@@ -102,7 +102,7 @@
                 <div class="overdue-row-info">
                   <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
                   <span class="overdue-staff">{{ r.staffName }}</span>
-                  <span class="overdue-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
+                  <span class="overdue-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' ' + ('leave.dateTo' | translate) + ' ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                 </div>
                 <div class="overdue-row-actions">
                   <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary"
@@ -127,7 +127,7 @@
       <p-card #formAnchor styleClass="form-card">
         <div class="form-header d-flex align-items-center justify-content-between">
           <h3>{{ editing() ? ('leave.editLeave' | translate) : ('leave.recordLeaveForm' | translate) }}</h3>
-          <p-button label="Close" [text]="true" severity="secondary" (click)="cancelForm()" />
+          <p-button [label]="'common.close' | translate" [text]="true" severity="secondary" (click)="cancelForm()" />
         </div>
         <div class="row g-3">
           <div class="col-12 col-md-6 field">
@@ -135,19 +135,19 @@
             <p-select [(ngModel)]="form.employeeId" [options]="staffStore.staff()"
               optionLabel="fullName" optionValue="id"
               [placeholder]="'leave.selectOption' | translate"
-              [filter]="true" filterPlaceholder="Search staff…"
+              [filter]="true" [filterPlaceholder]="'leave.searchStaff' | translate"
               [disabled]="!!editing()" styleClass="w-full"
               (ngModelChange)="onFormEmployeeChange($event)" />
             @if (formBalance()) {
               @let fb = formBalance()!;
               <div class="form-balance-hint">
                 <span class="form-balance-pill form-balance-annual" [class.form-balance-low]="fb.annualRemaining <= 8">
-                  <i class="pi pi-sun"></i> {{ fb.annualRemaining }}h annual left
-                  @if (fb.emergencyUsed > 0) { <small>(inc. {{ fb.emergencyUsed }}h emergency)</small> }
-                  @if (fb.carryOverHours > 0) { <small>(inc. {{ fb.carryOverHours }}h carry-over)</small> }
+                  <i class="pi pi-sun"></i> {{ 'leave.annualLeftHint' | translate:{ n: fb.annualRemaining } }}
+                  @if (fb.emergencyUsed > 0) { <small>{{ 'leave.incEmergencyHint' | translate:{ n: fb.emergencyUsed } }}</small> }
+                  @if (fb.carryOverHours > 0) { <small>{{ 'leave.incCarryOverHint' | translate:{ n: fb.carryOverHours } }}</small> }
                 </span>
                 <span class="form-balance-pill form-balance-sick" [class.form-balance-low]="fb.sickRemaining <= 8">
-                  <i class="pi pi-heart"></i> {{ fb.sickRemaining }}h sick left
+                  <i class="pi pi-heart"></i> {{ 'leave.sickLeftHint' | translate:{ n: fb.sickRemaining } }}
                 </span>
               </div>
             }
@@ -170,7 +170,7 @@
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true"
               [showOnFocus]="false"
-              placeholder="Select time"
+              [placeholder]="'leave.selectTime' | translate"
               appendTo="body"
               styleClass="w-full" />
           </div>
@@ -187,7 +187,7 @@
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true"
               [showOnFocus]="false"
-              placeholder="Select time"
+              [placeholder]="'leave.selectTime' | translate"
               appendTo="body"
               styleClass="w-full" />
           </div>
@@ -198,7 +198,7 @@
           </div>
           <div class="col-12 field">
             <label>{{ 'leave.notesLabel' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="form.notes" placeholder="e.g. Doctor's note provided" />
+            <input pInputText type="text" [(ngModel)]="form.notes" [placeholder]="'leave.notesPlaceholder' | translate" />
           </div>
           @if (form.status === 'rejected') {
             <div class="col-12 field">
@@ -221,14 +221,14 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <p-tabs [value]="viewMode()" (valueChange)="switchView($any($event))">
         <p-tablist>
-          <p-tab value="table">Table</p-tab>
-          <p-tab value="calendar">Calendar</p-tab>
+          <p-tab value="table">{{ 'leave.tableView' | translate }}</p-tab>
+          <p-tab value="calendar">{{ 'leave.calendarView' | translate }}</p-tab>
         </p-tablist>
       </p-tabs>
       @if (viewMode() === 'table') {
         <p-button
           [icon]="bulkSelecting() ? 'pi pi-times' : 'pi pi-check-square'"
-          [label]="bulkSelecting() ? ('leave.clearSelection' | translate) : 'Bulk Select'"
+          [label]="bulkSelecting() ? ('leave.clearSelection' | translate) : ('leave.bulkSelect' | translate)"
           [severity]="bulkSelecting() ? 'danger' : 'secondary'"
           [outlined]="true" size="small"
           (click)="toggleBulkMode()" />
@@ -268,9 +268,9 @@
     @if (viewMode() === 'calendar') {
       <p-card styleClass="nc-card">
         <div class="cal-nav">
-          <p-button label="Prev" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="prevCalMonth()" />
+          <p-button [label]="'leave.prev' | translate" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="prevCalMonth()" />
           <span class="cal-month-name">{{ calMonthName() }}</span>
-          <p-button label="Next" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="nextCalMonth()" />
+          <p-button [label]="'leave.next' | translate" [text]="true" severity="secondary" styleClass="cal-nav-btn" (click)="nextCalMonth()" />
         </div>
         @if (loading()) {
           <div class="calendar-week-grid mt-2">
@@ -296,7 +296,7 @@
                     @for (r of day.leaves.slice(0, 2); track r.id) {
                       <div class="cal-leave-chip" [class]="'cal-leave-' + r.leaveType"
                            [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
-                           [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — Overdue' : '')"
+                           [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — ' + ('leave.overdue' | translate) : '')"
                            (click)="openCalLeave(r, $event)">
                         {{ r.staffName.split(' ')[0] + (r.staffName.indexOf(' ') > -1 ? ' ' + r.staffName.split(' ')[1][0] + '.' : '') }}
                       </div>
@@ -318,7 +318,7 @@
             <div class="cal-day-panel">
               <div class="cal-day-panel-header">
                 <span class="cal-day-panel-title">{{ selectedCalDay() | date:'EEEE, dd/MM/yyyy' }}</span>
-                <p-button label="Close" [text]="true" severity="secondary" (click)="selectedCalDay.set(null)" />
+                <p-button [label]="'common.close' | translate" [text]="true" severity="secondary" (click)="selectedCalDay.set(null)" />
               </div>
               @if (selectedCalDayLeaves().length === 0) {
                 <p class="cal-day-empty">{{ 'leave.noDayLeaves' | translate }}</p>
@@ -332,15 +332,15 @@
                           <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
                         <span class="cal-day-staff-name">{{ r.staffName }}</span>
-                        <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
+                        <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' ' + ('leave.dateTo' | translate) + ' ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                       </div>
                       <div class="cal-day-row-right">
                         <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
                         @if (r.status === 'pending') {
-                          <p-button icon="pi pi-check" label="Approve" styleClass="btn-approve cal-approve-btn" severity="primary"
+                          <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve cal-approve-btn" severity="primary"
                             [loading]="processingId() === r.id" [disabled]="!!processingId()"
                             (click)="quickStatus(r.id, 'approved')" />
-                          <p-button icon="pi pi-times" label="Reject" styleClass="btn-reject cal-approve-btn" severity="danger"
+                          <p-button icon="pi pi-times" [label]="'common.rejected' | translate" styleClass="btn-reject cal-approve-btn" severity="danger"
                             [loading]="processingId() === r.id" [disabled]="!!processingId()"
                             (click)="quickStatus(r.id, 'rejected')" />
                         }
@@ -560,7 +560,7 @@
       <!-- Bulk entitlement config panel -->
       @if (showBulkEntForm()) {
         <div class="bulk-ent-panel">
-          <span class="bulk-ent-label">Set annual leave entitlement for <strong>all active staff</strong> in {{ balanceYear() }}:</span>
+          <span class="bulk-ent-label">{{ 'leave.bulkEntLabel' | translate:{ year: balanceYear() } }}</span>
           <div class="bulk-ent-fields d-flex align-items-center gap-3 flex-wrap mt-2">
             <div class="field m-0">
               <label>{{ 'leave.annualHours' | translate }}</label>
@@ -570,10 +570,10 @@
               <label>{{ 'leave.sickHours' | translate }}</label>
               <p-inputnumber [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
-            <p-button icon="pi pi-check" [label]="bulkSaving() ? ('common.saving' | translate) : 'Apply to All Staff'"
+            <p-button icon="pi pi-check" [label]="bulkSaving() ? ('common.saving' | translate) : ('leave.bulkApply' | translate)"
               severity="primary" [loading]="bulkSaving()" [disabled]="bulkSaving()"
               (click)="bulkApplyEntitlement()" />
-            <p-button label="Cancel" [text]="true" severity="secondary" (click)="showBulkEntForm.set(false)" />
+            <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulkEntForm.set(false)" />
           </div>
         </div>
       }
@@ -613,7 +613,7 @@
                   <i class="pi pi-sun"></i> {{ b.annualRemaining }}h
                   <!-- Item 9: carry-over indicator -->
                   @if (b.carryOverHours > 0) {
-                    <small class="bal-chip-carryover" [pTooltip]="b.carryOverHours + 'h carry-over included'" tooltipPosition="top">↻{{ b.carryOverHours }}</small>
+                    <small class="bal-chip-carryover" [pTooltip]="'leave.carryOverIncluded' | translate:{ n: b.carryOverHours }" tooltipPosition="top">↻{{ b.carryOverHours }}</small>
                   }
                 </span>
                 <span class="bal-chip" [class.bal-chip-warn]="b.sickRemaining <= 24" [class.bal-chip-ok]="b.sickRemaining > 24">
@@ -622,11 +622,11 @@
                 <!-- Item 6: emergency chip when emergency leave was used -->
                 @if (b.emergencyUsed > 0) {
                   <span class="bal-chip bal-chip-emergency">
-                    <i class="pi pi-bolt"></i> {{ b.emergencyUsed }}h emg.
+                    <i class="pi pi-bolt"></i> {{ 'leave.emgChip' | translate:{ n: b.emergencyUsed } }}
                   </span>
                 }
                 @if (b.unpaidUsed > 0) {
-                  <span class="bal-chip bal-chip-unpaid"><i class="pi pi-exclamation-triangle"></i> {{ b.unpaidUsed }}h unpaid</span>
+                  <span class="bal-chip bal-chip-unpaid"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.unpaidChip' | translate:{ n: b.unpaidUsed } }}</span>
                 }
               </div>
             </div>

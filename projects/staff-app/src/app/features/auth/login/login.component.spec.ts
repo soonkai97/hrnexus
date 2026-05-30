@@ -97,7 +97,7 @@ describe('LoginComponent (staff-app)', () => {
       component.form.patchValue({ staffId: '   ', password: 'pass123' });
       component.submit();
       expect(mockAuth.login).not.toHaveBeenCalled();
-      expect(component.error()).toBe('Please enter your Staff ID.');
+      expect(component.error()).toBe('auth.errEnterStaffId');
     });
   });
 
@@ -133,7 +133,7 @@ describe('LoginComponent (staff-app)', () => {
     it('sets generic error on credential failure', () => {
       mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Invalid.' } })));
       component.submit();
-      expect(component.error()).toBe('Invalid Staff ID or password.');
+      expect(component.error()).toBe('auth.errInvalidCredentials');
     });
 
     it('sets "admin portal" message when error contains "Admin accounts"', () => {
@@ -141,7 +141,7 @@ describe('LoginComponent (staff-app)', () => {
         throwError(() => ({ error: { error: 'Admin accounts must use the admin portal.' } })),
       );
       component.submit();
-      expect(component.error()).toBe('Admin accounts must use the admin portal.');
+      expect(component.error()).toBe('auth.errAdminPortal');
     });
 
     it('clears loading after error', () => {

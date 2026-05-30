@@ -102,7 +102,7 @@ describe('AnnouncementsComponent', () => {
     it('shows error toast when load fails', () => {
       mockAnnouncementSvc.getAll.mockReturnValue(throwError(() => new Error('Network')));
       component.ngOnInit();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load announcements.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.loadFailed');
     });
   });
 
@@ -137,7 +137,7 @@ describe('AnnouncementsComponent', () => {
       component.form.title = '';
       component.form.body  = 'Valid body.';
       component.save();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Title and body are required.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.errTitleBodyRequired');
       expect(mockAnnouncementSvc.create).not.toHaveBeenCalled();
     });
 
@@ -145,21 +145,21 @@ describe('AnnouncementsComponent', () => {
       component.form.title = '   ';
       component.form.body  = 'Valid body.';
       component.save();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Title and body are required.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.errTitleBodyRequired');
     });
 
     it('blocks empty body', () => {
       component.form.title = 'Valid Title';
       component.form.body  = '';
       component.save();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Title and body are required.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.errTitleBodyRequired');
     });
 
     it('blocks title exceeding 200 characters', () => {
       component.form.title = 'A'.repeat(201);
       component.form.body  = 'Valid body.';
       component.save();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Title cannot exceed 200 characters.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.errTitleTooLong');
     });
 
     it('allows title of exactly 200 characters', () => {
@@ -173,7 +173,7 @@ describe('AnnouncementsComponent', () => {
       component.form.title = 'Valid Title';
       component.form.body  = 'B'.repeat(5001);
       component.save();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Body cannot exceed 5000 characters.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.errBodyTooLong');
     });
 
     it('blocks past expiry date — would make the announcement invisible immediately', () => {
@@ -181,7 +181,7 @@ describe('AnnouncementsComponent', () => {
       component.form.body     = 'Valid body.';
       component.form.expiresAt = '2020-01-01'; // past date
       component.save();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Expiry date must be in the future.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.errExpiryPast');
     });
 
     it('allows a future expiry date', () => {
@@ -217,7 +217,7 @@ describe('AnnouncementsComponent', () => {
 
     it('shows "Announcement created." toast on success', () => {
       component.save();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Announcement created.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('announcements.created');
     });
 
     it('hides the form after creating', () => {
@@ -229,7 +229,7 @@ describe('AnnouncementsComponent', () => {
     it('shows "Save failed." toast on create error', () => {
       mockAnnouncementSvc.create.mockReturnValue(throwError(() => new Error('Network')));
       component.save();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Save failed.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.saveFailed');
       expect(component.saving()).toBe(false);
     });
   });
@@ -250,7 +250,7 @@ describe('AnnouncementsComponent', () => {
 
     it('shows "Announcement updated." toast on success', () => {
       component.save();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Announcement updated.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('announcements.updated');
     });
   });
 
@@ -310,7 +310,7 @@ describe('AnnouncementsComponent', () => {
 
     it('shows success toast after deletion', () => {
       component.remove('a1');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Deleted.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('announcements.deleted');
     });
 
     it('reloads announcements after deletion', () => {
@@ -328,7 +328,7 @@ describe('AnnouncementsComponent', () => {
     it('shows error toast when deletion fails', () => {
       mockAnnouncementSvc.delete.mockReturnValue(throwError(() => new Error('Network')));
       component.remove('a1');
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Delete failed.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('announcements.deleteFailed');
     });
   });
 });

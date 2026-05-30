@@ -4,7 +4,7 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   AdminService, ReportResponse, ReportFilters, ShiftDetailRow,
   LocationReportRow, StaffStore, StaffManagementService, ToastService, Staff,
@@ -48,6 +48,7 @@ export class ReportsComponent implements OnInit {
   private readonly featureFlagSvc     = inject(FeatureFlagService);
   private readonly workLogSvc         = inject(WorkLogService);
   private readonly locationStore      = inject(LocationStore);
+  private readonly translate          = inject(TranslateService);
   private readonly destroyRef         = inject(DestroyRef);
 
   // switchMap cancels any in-flight getReport request when a newer runReport() call arrives.
@@ -62,7 +63,7 @@ export class ReportsComponent implements OnInit {
         const from = new Date(this.dateFrom);
         const to   = new Date(this.dateTo);
         if ((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24) > 366) {
-          this.toast.error('Date range cannot exceed 366 days. Please narrow your filter.');
+          this.toast.error(this.translate.instant('reports.errDateRange'));
           this.loading.set(false);
           return EMPTY;
         }
@@ -79,8 +80,8 @@ export class ReportsComponent implements OnInit {
           roles:         roles.length         && roles.length         < this.staffRoles().length ? roles         : undefined,
         }).pipe(
           catchError(() => {
-            this.error.set('Failed to load report.');
-            this.toast.error('Failed to load report.');
+            this.error.set(this.translate.instant('reports.loadFailed'));
+            this.toast.error(this.translate.instant('reports.loadFailed'));
             this.loading.set(false);
             return EMPTY;
           }),
@@ -127,13 +128,15 @@ export class ReportsComponent implements OnInit {
     { label: 'reports.allShifts',  value: 'shifts'   },
   ];
 
-  readonly datePresets = [
-    { label: 'Today',      value: 'today'      as const },
-    { label: 'Yesterday',  value: 'yesterday'  as const },
-    { label: 'This Week',  value: 'week'       as const },
-    { label: 'This Month', value: 'month'      as const },
-    { label: 'Last Month', value: 'last-month' as const },
-  ];
+  get datePresets() {
+    return [
+      { label: this.translate.instant('reports.today'),      value: 'today'      as const },
+      { label: this.translate.instant('reports.yesterday'),  value: 'yesterday'  as const },
+      { label: this.translate.instant('reports.thisWeek'),   value: 'week'       as const },
+      { label: this.translate.instant('reports.thisMonth'),  value: 'month'      as const },
+      { label: this.translate.instant('reports.lastMonth'),  value: 'last-month' as const },
+    ];
+  }
 
   // ── Edit shift (manager can edit any staff's shift) ───────────────────────────
   readonly locationOptions = computed(() =>
@@ -192,7 +195,7 @@ export class ReportsComponent implements OnInit {
     if (!s) return;
     if (!this.editShiftForm.roleName || !this.editShiftForm.locationId ||
         !this.editShiftForm.workDate || !this.editShiftStartTimeDate || !this.editShiftEndTimeDate) {
-      this.editShiftError.set('Please fill in all required fields.'); return;
+      this.editShiftError.set(this.translate.instant('reports.errRequiredFields')); return;
     }
     const startTime = this.toTimeStr(this.editShiftStartTimeDate);
     const endTime   = this.toTimeStr(this.editShiftEndTimeDate);
@@ -201,8 +204,8 @@ export class ReportsComponent implements OnInit {
     const durationMins = (eh * 60 + em) >= (sh * 60 + sm)
       ? (eh * 60 + em) - (sh * 60 + sm)
       : (eh * 60 + em) + 1440 - (sh * 60 + sm);
-    if (durationMins === 0) { this.editShiftError.set('End time must differ from start time.'); return; }
-    if (durationMins > 1440) { this.editShiftError.set('A single shift cannot exceed 24 hours.'); return; }
+    if (durationMins === 0) { this.editShiftError.set(this.translate.instant('reports.errSameTime')); return; }
+    if (durationMins > 1440) { this.editShiftError.set(this.translate.instant('reports.errOver24h')); return; }
 
     this.editShiftSaving.set(true);
     this.editShiftError.set('');
@@ -213,11 +216,11 @@ export class ReportsComponent implements OnInit {
         this.editingShift.set(null);
         this.editShiftStartTimeDate = null;
         this.editShiftEndTimeDate   = null;
-        this.toast.success('Shift updated.');
+        this.toast.success(this.translate.instant('reports.shiftUpdated'));
         this.runReport();
       },
       error: (e) => {
-        this.editShiftError.set(e?.error?.error ?? 'Failed to update shift.');
+        this.editShiftError.set(e?.error?.error ?? this.translate.instant('reports.shiftUpdateFailed'));
         this.editShiftSaving.set(false);
       },
     });
@@ -281,29 +284,30 @@ export class ReportsComponent implements OnInit {
     this.reportExporting.set(true);
     const tab = this.activeTab();
 
+    const t = (k: string) => this.translate.instant(k);
     let csv = '';
     if (tab === 'employee') {
-      csv  = 'Staff ID,Name,Role,Shifts,Hours,Avg h/shift,Gross Pay\n';
+      csv  = [t('reports.csvStaffId'), t('reports.csvName'), t('reports.csvRole'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvAvgHShift'), t('reports.csvGrossPay')].join(',') + '\n';
       csv += r.byStaff.map(e =>
         `${e.staffId},"${e.name}",${e.role},${e.shifts},${e.hours},${e.avgHoursPerShift},${e.cost.toFixed(2)}`
       ).join('\n');
     } else if (tab === 'location') {
-      csv  = 'Location,Shifts,Hours,Labour Cost\n';
+      csv  = [t('reports.csvLocation'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvLabourCost')].join(',') + '\n';
       csv += r.byLocation.map(l =>
         `"${l.locationName}",${l.shifts},${l.hours},${l.cost.toFixed(2)}`
       ).join('\n');
     } else if (tab === 'role') {
-      csv  = 'Role,Staff Count,Shifts,Hours,Labour Cost\n';
+      csv  = [t('reports.csvRole'), t('reports.csvStaffCount'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvLabourCost')].join(',') + '\n';
       csv += r.byRole.map(ro =>
         `${ro.role},${ro.staffCount},${ro.shifts},${ro.hours},${ro.cost.toFixed(2)}`
       ).join('\n');
     } else if (tab === 'date') {
-      csv  = 'Date,Shifts,Hours,Labour Cost\n';
+      csv  = [t('reports.csvDate'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvLabourCost')].join(',') + '\n';
       csv += r.byDate.map(d =>
         `${d.date},${d.shifts},${d.hours},${d.cost.toFixed(2)}`
       ).join('\n');
     } else {
-      csv  = 'Staff ID,Name,Role,Location,Clocked In,Clocked Out,Hours,Cost,Status\n';
+      csv  = [t('reports.csvStaffId'), t('reports.csvName'), t('reports.csvRole'), t('reports.csvLocation'), t('reports.csvClockedIn'), t('reports.csvClockedOut'), t('reports.csvHours'), t('reports.csvCost'), t('reports.csvStatus')].join(',') + '\n';
       csv += r.shifts.map(s =>
         `${s.staffId},"${s.staffName}",${s.role},"${s.locationName}",${s.clockedIn},${s.clockedOut ?? ''},${s.hours},${s.cost.toFixed(2)},${s.status}`
       ).join('\n');
@@ -317,25 +321,27 @@ export class ReportsComponent implements OnInit {
     a.click();
     URL.revokeObjectURL(url);
     this.reportExporting.set(false);
-    this.toast.success('Report downloaded.');
+    this.toast.success(this.translate.instant('reports.reportDownloaded'));
   }
 
   // ── Staff Ledger Payout ───────────────────────────────────────────────────────
 
-  readonly MONTH_OPTS = [
-    { label: 'January',   value: 1  },
-    { label: 'February',  value: 2  },
-    { label: 'March',     value: 3  },
-    { label: 'April',     value: 4  },
-    { label: 'May',       value: 5  },
-    { label: 'June',      value: 6  },
-    { label: 'July',      value: 7  },
-    { label: 'August',    value: 8  },
-    { label: 'September', value: 9  },
-    { label: 'October',   value: 10 },
-    { label: 'November',  value: 11 },
-    { label: 'December',  value: 12 },
-  ];
+  get MONTH_OPTS() {
+    return [
+      { label: this.translate.instant('reports.month1'),  value: 1  },
+      { label: this.translate.instant('reports.month2'),  value: 2  },
+      { label: this.translate.instant('reports.month3'),  value: 3  },
+      { label: this.translate.instant('reports.month4'),  value: 4  },
+      { label: this.translate.instant('reports.month5'),  value: 5  },
+      { label: this.translate.instant('reports.month6'),  value: 6  },
+      { label: this.translate.instant('reports.month7'),  value: 7  },
+      { label: this.translate.instant('reports.month8'),  value: 8  },
+      { label: this.translate.instant('reports.month9'),  value: 9  },
+      { label: this.translate.instant('reports.month10'), value: 10 },
+      { label: this.translate.instant('reports.month11'), value: 11 },
+      { label: this.translate.instant('reports.month12'), value: 12 },
+    ];
+  }
 
   readonly yearOpts = [-2, -1, 0, 1].map(offset => {
     const y = new Date().getFullYear() + offset;
@@ -358,7 +364,7 @@ export class ReportsComponent implements OnInit {
     this.ledgerLoading.set(true);
     this.staffLedgerSvc.summary(this.ledgerYear(), this.ledgerMonth()).subscribe({
       next:  rows => { this.ledgerPayout.set(rows); this.ledgerLoading.set(false); },
-      error: ()   => { this.toast.error('Failed to load payout data.'); this.ledgerLoading.set(false); },
+      error: ()   => { this.toast.error(this.translate.instant('reports.ledgerLoadFailed')); this.ledgerLoading.set(false); },
     });
     this.staffLedgerSvc.outstanding().subscribe({
       next:  rows => this.ledgerOutstanding.set(rows),
@@ -377,11 +383,13 @@ export class ReportsComponent implements OnInit {
   // ── Outstanding bulk-settle ───────────────────────────────────────────────────
 
   /** Settlement options for the bulk-settle dropdown — only the "resolved" states. */
-  readonly SETTLE_OPTIONS = [
-    { label: '清 (Settled)',  value: 'SETTLED' },
-    { label: 'Cash',          value: 'CASH'    },
-    { label: 'Bank In',       value: 'BANKIN'  },
-  ];
+  get SETTLE_OPTIONS() {
+    return [
+      { label: this.translate.instant('reports.settleSettled'), value: 'SETTLED' },
+      { label: this.translate.instant('reports.settleCash'),    value: 'CASH'    },
+      { label: this.translate.instant('reports.settleBankIn'),  value: 'BANKIN'  },
+    ];
+  }
 
   /** Rows selected in the outstanding table (PrimeNG two-way binding target). */
   outstandingSelection: StaffOutstandingDto[] = [];
@@ -396,13 +404,13 @@ export class ReportsComponent implements OnInit {
     this.staffLedgerSvc.bulkSettle(entryIds, this.settleWith()).subscribe({
       next: (res) => {
         const n = res.updated;
-        this.toast.success(`${n} ${n === 1 ? 'entry' : 'entries'} settled.`);
+        this.toast.success(this.translate.instant(n === 1 ? 'reports.settledSingular' : 'reports.settledPlural', { n }));
         this.outstandingSelection = [];
         this.loadLedgerData();
         this.settling.set(false);
       },
       error: () => {
-        this.toast.error('Failed to settle entries.');
+        this.toast.error(this.translate.instant('reports.settleFailed'));
         this.settling.set(false);
       },
     });
@@ -414,7 +422,8 @@ export class ReportsComponent implements OnInit {
     this.ledgerExporting.set(true);
 
     const monthStr = String(this.ledgerMonth()).padStart(2, '0');
-    let csv = 'Staff Code,Name,Venue Earnings,Private Net,Net Payout,Entries,Pending,Not Collected\n';
+    const t = (k: string) => this.translate.instant(k);
+    let csv = [t('reports.csvStaffCode'), t('reports.csvName'), t('reports.ledgerVenueCol'), t('reports.ledgerPrivateCol'), t('reports.ledgerPayoutCol'), t('reports.ledgerEntriesCol'), t('reports.ledgerPendingCol'), t('reports.ledgerNotCollectedCol')].join(',') + '\n';
     csv += rows.map(r =>
       `${r.staffCode},"${r.staffName}",${r.venueEarnings.toFixed(2)},${r.privateNet.toFixed(2)},${r.netPayout.toFixed(2)},${r.entryCount},${r.pendingCount},${r.notCollectedCount}`
     ).join('\n');
@@ -427,7 +436,7 @@ export class ReportsComponent implements OnInit {
     a.click();
     URL.revokeObjectURL(url);
     this.ledgerExporting.set(false);
-    this.toast.success('Payout report downloaded.');
+    this.toast.success(this.translate.instant('reports.payoutDownloaded'));
   }
 
   private firstDayOfMonth(): Date {

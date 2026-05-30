@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PayrollService, PaySummary, ToastService, MONTH_NAMES } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -41,6 +41,7 @@ export class PaySummaryComponent implements OnInit {
   });
 
   private readonly toast = inject(ToastService);
+  private readonly translate = inject(TranslateService);
 
   constructor(private payroll: PayrollService) {}
 
@@ -50,7 +51,7 @@ export class PaySummaryComponent implements OnInit {
     this.loading.set(true);
     this.payroll.getMySummary(this.periodStart(), this.periodEnd()).subscribe({
       next: s => { this.summary.set(s); this.loading.set(false); },
-      error: () => { this.summary.set(null); this.loading.set(false); this.toast.error('Failed to load pay summary.'); },
+      error: () => { this.summary.set(null); this.loading.set(false); this.toast.error(this.translate.instant('pay.errLoad')); },
     });
   }
 

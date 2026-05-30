@@ -29,9 +29,6 @@ import { Message } from 'primeng/message';
 import { Divider } from 'primeng/divider';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const MONTH_OPTS = MONTHS.map((label, i) => ({ label, value: i + 1 }));
-
 @Component({
   selector: 'app-staff-ledger',
   standalone: true,
@@ -50,7 +47,13 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
   // ── Reference data ──────────────────────────────────────────────────────────
   readonly allStaff    = this.staffStore.staff;
   readonly staffOpts   = computed(() => this.allStaff().map(s => ({ label: `${s.fullName} (${s.staffId})`, value: s.id })));
-  readonly MONTH_OPTS  = MONTH_OPTS;
+  get MONTH_OPTS(): { label: string; value: number }[] {
+    return Array.from({ length: 12 }, (_, i) => ({ label: this.monthName(i + 1), value: i + 1 }));
+  }
+  /** Localised month name for month number 1–12. */
+  monthName(month: number): string {
+    return this.translate.instant(`staffLedger.month${month}`);
+  }
   readonly yearOpts    = Array.from({ length: 8 }, (_, i) => new Date().getFullYear() - i);
   readonly workTypes         = computed(() => this.configSvc.workTypes().filter(t => t.isActive).map(t => ({ label: t.label, value: t.key })));
   readonly settlements       = computed(() => this.configSvc.settlements().filter(s => s.isActive).map(s => ({ label: s.label, value: s.key })));
@@ -156,7 +159,7 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
     this.loading.set(true);
     this.staffSvc.listEntries(staffId, this.selectedYear(), this.selectedMonth()).subscribe({
       next:  (data) => { this.entries.set(data); this.loading.set(false); },
-      error: ()     => { this.toast.error('Failed to load entries.'); this.loading.set(false); },
+      error: ()     => { this.toast.error(this.translate.instant('staffLedger.loadEntriesFailed')); this.loading.set(false); },
     });
   }
 
@@ -166,7 +169,7 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
     this.expenseLoading.set(true);
     this.staffSvc.listExpenses(staffId, this.selectedYear(), this.selectedMonth()).subscribe({
       next:  (data) => { this.expenses.set(data); this.expenseLoading.set(false); },
-      error: ()     => { this.toast.error('Failed to load expenses.'); this.expenseLoading.set(false); },
+      error: ()     => { this.toast.error(this.translate.instant('staffLedger.loadExpensesFailed')); this.expenseLoading.set(false); },
     });
   }
 
@@ -176,7 +179,7 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
     this.loanLoading.set(true);
     this.staffSvc.listLoans(staffId).subscribe({
       next:  (data) => { this.loans.set(data); this.loanLoading.set(false); },
-      error: ()     => { this.toast.error('Failed to load loans.'); this.loanLoading.set(false); },
+      error: ()     => { this.toast.error(this.translate.instant('staffLedger.loadLoansFailed')); this.loanLoading.set(false); },
     });
   }
 
@@ -407,16 +410,26 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
     const staffName  = this.selectedStaffName();
     const year       = this.selectedYear();
     const month      = this.selectedMonth();
-    const monthLabel = `${MONTHS[month - 1]} ${year}`;
+    const monthLabel = `${this.monthName(month)} ${year}`;
+    const t = (key: string) => this.translate.instant(key);
     const q = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
 
     const rows: string[] = [
-      `Staff Payout Statement`,
-      `Staff,${q(staffName)}`,
-      `Period,${q(monthLabel)}`,
+      t('staffLedger.csvStatementTitle'),
+      `${t('staffLedger.csvStaff')},${q(staffName)}`,
+      `${t('staffLedger.csvPeriod')},${q(monthLabel)}`,
       ``,
-      `SHIFT ENTRIES`,
-      `Date,Work Type,Units,Rate (RM),Venue (RM),Private Net (RM),Settlement,Notes`,
+      t('staffLedger.csvShiftEntries'),
+      [
+        t('staffLedger.csvColDate'),
+        t('staffLedger.csvColWorkType'),
+        t('staffLedger.csvColUnits'),
+        t('staffLedger.csvColRate'),
+        t('staffLedger.csvColVenue'),
+        t('staffLedger.csvColPrivateNet'),
+        t('staffLedger.csvColSettlement'),
+        t('staffLedger.csvColNotes'),
+      ].map(q).join(','),
       ...this.entries().map(e => [
         q(e.entryDate),
         q(this.workTypeLabel(e.workType)),
@@ -427,29 +440,38 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
         q(this.settlementLabel(e.settlement)),
         q(e.notes ?? ''),
       ].join(',')),
-      `"Subtotal","","","",${this.totalVenue()},${this.totalPrivateNet()},"",""`,
+      `${q(t('staffLedger.csvSubtotal'))},"","","",${this.totalVenue()},${this.totalPrivateNet()},"",""`,
       ``,
-      `DEDUCTIONS`,
-      `Category,Amount (RM),Notes`,
+      t('staffLedger.csvDeductions'),
+      [
+        t('staffLedger.csvColCategory'),
+        t('staffLedger.csvColAmount'),
+        t('staffLedger.csvColNotes'),
+      ].map(q).join(','),
       ...this.expenses().map(e => [
         q(this.expenseCategoryLabel(e.category)),
         e.amount,
         q(e.notes ?? ''),
       ].join(',')),
-      `"Total Deductions",${this.totalExpenses()},""`,
+      `${q(t('staffLedger.csvTotalDeductions'))},${this.totalExpenses()},""`,
       ``,
-      `SUMMARY`,
-      `Net Payout (Venue + Private - Deductions),${this.netPayout()}`,
+      t('staffLedger.csvSummary'),
+      `${q(t('staffLedger.csvNetPayout'))},${this.netPayout()}`,
       ``,
-      `LOANS / ADVANCES`,
-      `Date,Type,Amount (RM),Purpose`,
+      t('staffLedger.csvLoansAdvances'),
+      [
+        t('staffLedger.csvColDate'),
+        t('staffLedger.csvColType'),
+        t('staffLedger.csvColAmount'),
+        t('staffLedger.csvColPurpose'),
+      ].map(q).join(','),
       ...this.loans().map(l => [
         q(l.loanDate),
         q(this.loanTypeLabel(l.loanType)),
         l.amount,
         q(l.purpose ?? ''),
       ].join(',')),
-      `"Net Loan Balance",${this.netLoanBalance()},"",""`,
+      `${q(t('staffLedger.csvNetLoanBalance'))},${this.netLoanBalance()},"",""`,
     ];
 
     const csv  = rows.join('\n');

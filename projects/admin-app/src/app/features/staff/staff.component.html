@@ -15,28 +15,28 @@
     <p-card #formAnchor styleClass="form-card">
       <div class="form-header d-flex align-items-center justify-content-between">
         <h3>{{ 'staff.newStaffMember' | translate }}</h3>
-        <p-button label="Close" [text]="true" severity="secondary" aria-label="Close form" (click)="closeForm()" />
+        <p-button [label]="'common.close' | translate" [text]="true" severity="secondary" [attr.aria-label]="'staff.closeForm' | translate" (click)="closeForm()" />
       </div>
       <div class="row g-3">
         <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.staffId' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="newStaff.staffId" placeholder="e.g. NC1001" maxlength="20" style="text-transform:uppercase"
+          <input pInputText type="text" [(ngModel)]="newStaff.staffId" [placeholder]="'staff.staffIdPlaceholder' | translate" maxlength="20" style="text-transform:uppercase"
                  (blur)="markTouched('staffId')" [class.input-invalid]="!!fieldError('staffId')" />
           @if (fieldError('staffId'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.firstName' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" maxlength="100"
+          <input pInputText type="text" [(ngModel)]="newStaff.firstName" [placeholder]="'staff.firstNamePlaceholder' | translate" maxlength="100"
                  (blur)="markTouched('firstName')" [class.input-invalid]="!!fieldError('firstName')" />
           @if (fieldError('firstName'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
           <label>{{ 'staff.lastName' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="newStaff.lastName" placeholder="e.g. Torres" maxlength="100" />
+          <input pInputText type="text" [(ngModel)]="newStaff.lastName" [placeholder]="'staff.lastNamePlaceholder' | translate" maxlength="100" />
         </div>
         <div class="col-12 col-md-6 field">
           <label>{{ 'staff.email' | translate }}</label>
-          <input pInputText type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off"
+          <input pInputText type="email" [(ngModel)]="newStaff.email" [placeholder]="'staff.emailPlaceholder' | translate" maxlength="254" autocomplete="off"
                  (blur)="markTouched('email')" [class.input-invalid]="!!fieldError('email')" />
           @if (fieldError('email'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
@@ -54,39 +54,39 @@
         </div>
         <div class="col-12 col-md-6 field">
           <label>{{ 'staff.phoneNumber' | translate }}</label>
-          <input pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" maxlength="20" />
+          <input pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" [placeholder]="'staff.phonePlaceholder' | translate" maxlength="20" />
         </div>
         <div class="col-12 col-md-6 field">
           <label><span class="req">*</span> {{ 'staff.initialPassword' | translate }}</label>
           <div class="pwd-wrap">
             <input pInputText [type]="showNewStaffPwd() ? 'text' : 'password'"
                    [(ngModel)]="newStaff.password"
-                   [placeholder]="showNewStaffPwd() ? 'Min. 8 characters' : ''"
+                   [placeholder]="showNewStaffPwd() ? ('staff.minChars' | translate) : ''"
                    autocomplete="new-password" class="w-full"
                    (blur)="markTouched('password')" [class.input-invalid]="!!fieldError('password')" />
             <span class="eye-btn" role="button" tabindex="0"
-                  [attr.aria-label]="showNewStaffPwd() ? 'Hide' : 'Show'"
+                  [attr.aria-label]="(showNewStaffPwd() ? 'auth.hidePassword' : 'auth.showPassword') | translate"
                   (click)="showNewStaffPwd.set(!showNewStaffPwd())"
                   (keydown.enter)="showNewStaffPwd.set(!showNewStaffPwd())">
               <i [class]="showNewStaffPwd() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
             </span>
           </div>
-          <ul class="pwd-reqs" aria-label="Password requirements">
-            <li [class.met]="pwdChecks.minLength"><i [class]="pwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> At least 8 characters</li>
-            <li [class.met]="pwdChecks.hasUpper"><i [class]="pwdChecks.hasUpper ? 'pi pi-check-circle' : 'pi pi-circle'"></i> One uppercase letter</li>
-            <li [class.met]="pwdChecks.hasNumber"><i [class]="pwdChecks.hasNumber ? 'pi pi-check-circle' : 'pi pi-circle'"></i> One number</li>
+          <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
+            <li [class.met]="pwdChecks.minLength"><i [class]="pwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>
+            <li [class.met]="pwdChecks.hasUpper"><i [class]="pwdChecks.hasUpper ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqUppercase' | translate }}</li>
+            <li [class.met]="pwdChecks.hasNumber"><i [class]="pwdChecks.hasNumber ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqNumber' | translate }}</li>
           </ul>
-          <p-button label="Generate" [text]="true" severity="secondary" size="small"
+          <p-button [label]="'staff.generate' | translate" [text]="true" severity="secondary" size="small"
                     styleClass="gen-btn mt-1" (click)="generateNewStaffPassword()" />
-          <small style="color:var(--p-text-muted-color)">Staff can change this on first login.</small>
+          <small style="color:var(--p-text-muted-color)">{{ 'staff.changeOnFirstLogin' | translate }}</small>
         </div>
         <div class="col-12 col-md-6 field">
           <label>{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
-          <input pInputText type="text" [(ngModel)]="newStaff.icNo" placeholder="e.g. 990101-01-1234" />
+          <input pInputText type="text" [(ngModel)]="newStaff.icNo" [placeholder]="'staff.icNoPlaceholder' | translate" />
         </div>
         <div class="col-12 col-md-6 field">
           <label>{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
-          <input pInputText type="text" [(ngModel)]="newStaff.passportNo" placeholder="e.g. A12345678" />
+          <input pInputText type="text" [(ngModel)]="newStaff.passportNo" [placeholder]="'staff.passportNoPlaceholder' | translate" />
         </div>
         <div class="col-12 col-md-6 field">
           <div class="d-flex justify-content-between align-items-center">
@@ -187,7 +187,7 @@
           </td>
           <td class="td-actions">
             <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small" rounded
-                      [attr.aria-label]="'Actions for ' + s.fullName"
+                      [attr.aria-label]="'staff.actionsFor' | translate:{ name: s.fullName }"
                       (click)="openStaffMenu(s, $event)" />
           </td>
         </tr>
@@ -217,19 +217,17 @@
 
   @if (resetPassTarget()) {
     <p class="modal-desc">
-      Set a new password for <strong>{{ resetPassTarget()!.name }}</strong>.
-      After saving, inform them of the new password verbally — they will be
-      prompted to change it on next login.
+      {{ 'staff.resetPasswordDesc' | translate:{ name: resetPassTarget()!.name } }}
     </p>
 
     <div class="field">
       <label>{{ 'staff.newPassword' | translate }}</label>
       <p-password [(ngModel)]="newPassword" [feedback]="false" [toggleMask]="true"
                   [placeholder]="'staff.minChars' | translate" autocomplete="new-password" />
-      <ul class="pwd-reqs" aria-label="Password requirements">
-        <li [class.met]="resetPwdChecks.minLength"><i [class]="resetPwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> At least 8 characters</li>
-        <li [class.met]="resetPwdChecks.hasUpper"><i [class]="resetPwdChecks.hasUpper ? 'pi pi-check-circle' : 'pi pi-circle'"></i> One uppercase letter</li>
-        <li [class.met]="resetPwdChecks.hasNumber"><i [class]="resetPwdChecks.hasNumber ? 'pi pi-check-circle' : 'pi pi-circle'"></i> One number</li>
+      <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
+        <li [class.met]="resetPwdChecks.minLength"><i [class]="resetPwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>
+        <li [class.met]="resetPwdChecks.hasUpper"><i [class]="resetPwdChecks.hasUpper ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqUppercase' | translate }}</li>
+        <li [class.met]="resetPwdChecks.hasNumber"><i [class]="resetPwdChecks.hasNumber ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqNumber' | translate }}</li>
       </ul>
       <p-button [label]="'staff.generatePassword' | translate" [text]="true" severity="secondary"
                 styleClass="gen-btn" (click)="generatePassword()" />

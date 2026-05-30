@@ -51,7 +51,7 @@
             <div class="card-header-row">
               <div class="card-title-wrap">
                 @if (!item.isRead) {
-                  <p-tag value="NEW" severity="danger" />
+                  <p-tag [value]="'announcements.new' | translate" severity="danger" />
                 }
                 <h3 class="card-title">{{ item.title }}</h3>
               </div>

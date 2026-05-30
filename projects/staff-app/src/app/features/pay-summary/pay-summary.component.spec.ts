@@ -181,7 +181,7 @@ describe('PaySummaryComponent', () => {
       mockPayrollSvc.getMySummary.mockReturnValue(throwError(() => new Error('Network')));
       component.load();
       expect(component.summary()).toBeNull();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load pay summary.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('pay.errLoad');
     });
   });
 });

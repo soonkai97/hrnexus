@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   StaffConfigService,
   StaffWorkTypeDto,
@@ -26,20 +26,6 @@ import { Divider } from 'primeng/divider';
 import { Message } from 'primeng/message';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 
-export const LOAN_DIRECTION_OPTIONS: { label: string; value: boolean }[] = [
-  { label: 'Advance (Cash Out)',  value: true  },
-  { label: 'Repayment (Cash In)', value: false },
-];
-
-export const SEVERITY_OPTIONS: { label: string; value: string }[] = [
-  { label: 'Success (green)',  value: 'success'   },
-  { label: 'Warn (orange)',    value: 'warn'      },
-  { label: 'Danger (red)',     value: 'danger'    },
-  { label: 'Info (blue)',      value: 'info'      },
-  { label: 'Secondary (grey)', value: 'secondary' },
-  { label: 'Contrast',         value: 'contrast'  },
-];
-
 type SeverityValue = 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast';
 
 @Component({
@@ -57,13 +43,30 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
   private readonly configSvc  = inject(StaffConfigService);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
+  private readonly translate  = inject(TranslateService);
 
   readonly workTypes         = this.configSvc.workTypes;
   readonly settlements       = this.configSvc.settlements;
   readonly expenseCategories = this.configSvc.expenseCategories;
   readonly loanTypes       = this.configSvc.loanTypes;
-  readonly loanDirectionOpts = LOAN_DIRECTION_OPTIONS;
-  readonly severityOpts      = SEVERITY_OPTIONS;
+
+  get loanDirectionOpts(): { label: string; value: boolean }[] {
+    return [
+      { label: this.translate.instant('staffSettings.advance'),   value: true  },
+      { label: this.translate.instant('staffSettings.repayment'), value: false },
+    ];
+  }
+
+  get severityOpts(): { label: string; value: string }[] {
+    return [
+      { label: this.translate.instant('staffSettings.sevSuccess'),   value: 'success'   },
+      { label: this.translate.instant('staffSettings.sevWarn'),      value: 'warn'      },
+      { label: this.translate.instant('staffSettings.sevDanger'),    value: 'danger'    },
+      { label: this.translate.instant('staffSettings.sevInfo'),      value: 'info'      },
+      { label: this.translate.instant('staffSettings.sevSecondary'), value: 'secondary' },
+      { label: this.translate.instant('staffSettings.sevContrast'),  value: 'contrast'  },
+    ];
+  }
 
   // ── Deleting state ────────────────────────────────────────────────────────
   deletingWtId = signal<string | null>(null);
@@ -109,10 +112,10 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
   // ── Per-field inline validation (shared across all four sub-forms) ─────────
   readonly touched = signal<Set<string>>(new Set());
   markTouched(key: string): void { this.touched.update(s => new Set(s).add(key)); }
-  /** Generic required-field error: namespaced key (e.g. 'wt.key'), the bound value, and a label. */
-  fieldError(key: string, value: string | undefined, label: string): string {
+  /** Generic required-field error: namespaced key (e.g. 'wt.key'), the bound value, and a label translation key. */
+  fieldError(key: string, value: string | undefined, labelKey: string): string {
     if (!this.touched().has(key)) return '';
-    return value?.trim() ? '' : `${label} is required.`;
+    return value?.trim() ? '' : this.translate.instant('staffSettings.fieldRequired', { label: this.translate.instant(labelKey) });
   }
 
   // ── Work type actions ─────────────────────────────────────────────────────
@@ -137,8 +140,8 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     if (!this.wtForm.key.trim() || !this.wtForm.label.trim()) return;
     this.savingWt.set(true);
     this.wtError.set('');
-    const done = () => { this.savingWt.set(false); this.showWtForm.set(false); this.editingWt.set(null); this.toast.success('Work type saved.'); };
-    const fail = (e: any) => { const msg = e?.error?.error ?? 'Save failed.'; this.wtError.set(msg); this.toast.error(msg); this.savingWt.set(false); };
+    const done = () => { this.savingWt.set(false); this.showWtForm.set(false); this.editingWt.set(null); this.toast.success(this.translate.instant('staffSettings.workTypeSaved')); };
+    const fail = (e: any) => { const msg = e?.error?.error ?? this.translate.instant('staffSettings.saveFailed'); this.wtError.set(msg); this.toast.error(msg); this.savingWt.set(false); };
     const editing = this.editingWt();
     if (editing) {
       this.configSvc.updateWorkType(editing.id, this.wtForm).subscribe({ next: done, error: fail });
@@ -149,16 +152,16 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
 
   removeWt(item: StaffWorkTypeDto): void {
     this.confirmSvc.confirm({
-      title: 'Delete Work Type',
-      message: `Delete "${item.label}" (${item.key})?`,
-      confirmLabel: 'Delete',
+      title: this.translate.instant('staffSettings.confirmDeleteWorkType'),
+      message: this.translate.instant('staffSettings.confirmDeleteItem', { label: item.label, key: item.key }),
+      confirmLabel: this.translate.instant('common.delete'),
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
       this.deletingWtId.set(item.id);
       this.configSvc.deleteWorkType(item.id).subscribe({
-        next:  () => { this.deletingWtId.set(null); this.toast.success('Work type deleted.'); },
-        error: (e) => { this.deletingWtId.set(null); this.toast.error(e?.error?.error ?? 'Delete failed.'); },
+        next:  () => { this.deletingWtId.set(null); this.toast.success(this.translate.instant('staffSettings.workTypeDeleted')); },
+        error: (e) => { this.deletingWtId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('staffSettings.deleteFailed')); },
       });
     });
   }
@@ -185,8 +188,8 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     if (!this.stForm.key.trim() || !this.stForm.label.trim()) return;
     this.savingSt.set(true);
     this.stError.set('');
-    const done = () => { this.savingSt.set(false); this.showStForm.set(false); this.editingSt.set(null); this.toast.success('Settlement saved.'); };
-    const fail = (e: any) => { const msg = e?.error?.error ?? 'Save failed.'; this.stError.set(msg); this.toast.error(msg); this.savingSt.set(false); };
+    const done = () => { this.savingSt.set(false); this.showStForm.set(false); this.editingSt.set(null); this.toast.success(this.translate.instant('staffSettings.settlementSaved')); };
+    const fail = (e: any) => { const msg = e?.error?.error ?? this.translate.instant('staffSettings.saveFailed'); this.stError.set(msg); this.toast.error(msg); this.savingSt.set(false); };
     const editing = this.editingSt();
     if (editing) {
       this.configSvc.updateSettlement(editing.id, this.stForm).subscribe({ next: done, error: fail });
@@ -197,16 +200,16 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
 
   removeSt(item: StaffSettlementDto): void {
     this.confirmSvc.confirm({
-      title: 'Delete Settlement',
-      message: `Delete "${item.label}" (${item.key})?`,
-      confirmLabel: 'Delete',
+      title: this.translate.instant('staffSettings.confirmDeleteSettlement'),
+      message: this.translate.instant('staffSettings.confirmDeleteItem', { label: item.label, key: item.key }),
+      confirmLabel: this.translate.instant('common.delete'),
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
       this.deletingStId.set(item.id);
       this.configSvc.deleteSettlement(item.id).subscribe({
-        next:  () => { this.deletingStId.set(null); this.toast.success('Settlement deleted.'); },
-        error: (e) => { this.deletingStId.set(null); this.toast.error(e?.error?.error ?? 'Delete failed.'); },
+        next:  () => { this.deletingStId.set(null); this.toast.success(this.translate.instant('staffSettings.settlementDeleted')); },
+        error: (e) => { this.deletingStId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('staffSettings.deleteFailed')); },
       });
     });
   }
@@ -233,8 +236,8 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     if (!this.ecForm.key.trim() || !this.ecForm.label.trim()) return;
     this.savingEc.set(true);
     this.ecError.set('');
-    const done = () => { this.savingEc.set(false); this.showEcForm.set(false); this.editingEc.set(null); this.toast.success('Category saved.'); };
-    const fail = (e: any) => { const msg = e?.error?.error ?? 'Save failed.'; this.ecError.set(msg); this.toast.error(msg); this.savingEc.set(false); };
+    const done = () => { this.savingEc.set(false); this.showEcForm.set(false); this.editingEc.set(null); this.toast.success(this.translate.instant('staffSettings.categorySaved')); };
+    const fail = (e: any) => { const msg = e?.error?.error ?? this.translate.instant('staffSettings.saveFailed'); this.ecError.set(msg); this.toast.error(msg); this.savingEc.set(false); };
     const editing = this.editingEc();
     if (editing) {
       this.configSvc.updateExpenseCategory(editing.id, this.ecForm).subscribe({ next: done, error: fail });
@@ -245,16 +248,16 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
 
   removeEc(item: StaffExpenseCategoryDto): void {
     this.confirmSvc.confirm({
-      title: 'Delete Category',
-      message: `Delete "${item.label}" (${item.key})?`,
-      confirmLabel: 'Delete',
+      title: this.translate.instant('staffSettings.confirmDeleteCategory'),
+      message: this.translate.instant('staffSettings.confirmDeleteItem', { label: item.label, key: item.key }),
+      confirmLabel: this.translate.instant('common.delete'),
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
       this.deletingEcId.set(item.id);
       this.configSvc.deleteExpenseCategory(item.id).subscribe({
-        next:  () => { this.deletingEcId.set(null); this.toast.success('Category deleted.'); },
-        error: (e) => { this.deletingEcId.set(null); this.toast.error(e?.error?.error ?? 'Delete failed.'); },
+        next:  () => { this.deletingEcId.set(null); this.toast.success(this.translate.instant('staffSettings.categoryDeleted')); },
+        error: (e) => { this.deletingEcId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('staffSettings.deleteFailed')); },
       });
     });
   }
@@ -281,8 +284,8 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
     if (!this.ltForm.key.trim() || !this.ltForm.label.trim()) return;
     this.savingLt.set(true);
     this.ltError.set('');
-    const done = () => { this.savingLt.set(false); this.showLtForm.set(false); this.editingLt.set(null); this.toast.success('Loan type saved.'); };
-    const fail = (e: any) => { const msg = e?.error?.error ?? 'Save failed.'; this.ltError.set(msg); this.toast.error(msg); this.savingLt.set(false); };
+    const done = () => { this.savingLt.set(false); this.showLtForm.set(false); this.editingLt.set(null); this.toast.success(this.translate.instant('staffSettings.loanTypeSaved')); };
+    const fail = (e: any) => { const msg = e?.error?.error ?? this.translate.instant('staffSettings.saveFailed'); this.ltError.set(msg); this.toast.error(msg); this.savingLt.set(false); };
     const editing = this.editingLt();
     if (editing) {
       this.configSvc.updateLoanType(editing.id, this.ltForm).subscribe({ next: done, error: fail });
@@ -294,16 +297,16 @@ export class StaffSettingsComponent implements OnInit, CanComponentDeactivate {
   removeLt(item: StaffLoanTypeDto): void {
     if (item.isSystem) return;
     this.confirmSvc.confirm({
-      title: 'Delete Loan Type',
-      message: `Delete "${item.label}" (${item.key})?`,
-      confirmLabel: 'Delete',
+      title: this.translate.instant('staffSettings.confirmDeleteLoanType'),
+      message: this.translate.instant('staffSettings.confirmDeleteItem', { label: item.label, key: item.key }),
+      confirmLabel: this.translate.instant('common.delete'),
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
       this.deletingLtId.set(item.id);
       this.configSvc.deleteLoanType(item.id).subscribe({
-        next:  () => { this.deletingLtId.set(null); this.toast.success('Loan type deleted.'); },
-        error: (e) => { this.deletingLtId.set(null); this.toast.error(e?.error?.error ?? 'Delete failed.'); },
+        next:  () => { this.deletingLtId.set(null); this.toast.success(this.translate.instant('staffSettings.loanTypeDeleted')); },
+        error: (e) => { this.deletingLtId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('staffSettings.deleteFailed')); },
       });
     });
   }

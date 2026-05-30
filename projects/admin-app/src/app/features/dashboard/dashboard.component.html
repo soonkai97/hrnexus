@@ -123,7 +123,7 @@
             <td class="td-muted">{{ a.locationName }}</td>
             <td class="td-muted">{{ a.timestamp | date:'h:mm a' }}</td>
             <td>
-              <p-tag [value]="a.eventType === 'shift-started' ? 'In' : 'Out'"
+              <p-tag [value]="(a.eventType === 'shift-started' ? 'dashboard.eventIn' : 'dashboard.eventOut') | translate"
                      [severity]="a.eventType === 'shift-started' ? 'success' : 'secondary'" />
             </td>
           </tr>

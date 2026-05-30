@@ -13,7 +13,7 @@
     <p-card #formAnchor styleClass="form-card">
       <div class="form-header d-flex align-items-center justify-content-between">
         <h3>{{ editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate) }}</h3>
-        <p-button label="Close" [text]="true" severity="secondary" (click)="cancel()" />
+        <p-button [label]="'locations.close' | translate" [text]="true" severity="secondary" (click)="cancel()" />
       </div>
       <div class="field">
         <label><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
@@ -73,7 +73,7 @@
           <p-card styleClass="empty-state">
             <div class="empty-inner d-flex flex-column align-items-center gap-2 py-4">
               <i class="pi pi-map-marker" style="font-size:2rem;color:var(--p-text-muted-color)"></i>
-              <p style="color:var(--p-text-muted-color)">No locations yet. Add one above.</p>
+              <p style="color:var(--p-text-muted-color)">{{ 'locations.emptyState' | translate }}</p>
             </div>
           </p-card>
         </div>

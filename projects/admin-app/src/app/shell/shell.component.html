@@ -20,9 +20,9 @@
         [text]="true"
         severity="secondary"
         size="small"
-        [pTooltip]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+        [pTooltip]="(collapsed() ? 'shell.expandSidebar' : 'shell.collapseSidebar') | translate"
         tooltipPosition="right"
-        [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+        [attr.aria-label]="(collapsed() ? 'shell.expandSidebar' : 'shell.collapseSidebar') | translate"
         (onClick)="toggleSidebar()" />
     </div>
 
@@ -51,7 +51,7 @@
           [text]="true"
           severity="secondary"
           class="mobile-menu-btn"
-          aria-label="Open navigation menu"
+          [attr.aria-label]="'shell.openNavMenu' | translate"
           (onClick)="toggleSidebar()" />
       </div>
       <div class="topbar-right">
@@ -64,8 +64,8 @@
             severity="secondary"
             [outlined]="true"
             size="small"
-            [pTooltip]="lang.current() === 'en' ? 'Switch to 中文' : 'Switch to English'"
-            [attr.aria-label]="lang.current() === 'en' ? 'Switch to Chinese' : 'Switch to English'"
+            [pTooltip]="(lang.current() === 'en' ? 'shell.switchToZh' : 'shell.switchToEn') | translate"
+            [attr.aria-label]="(lang.current() === 'en' ? 'shell.switchToZh' : 'shell.switchToEn') | translate"
             (onClick)="lang.toggle()" />
           <button class="topbar-avatar" (click)="avatarMenu.toggle($event)" [attr.title]="user()!.fullName">
             {{ initials() }}
@@ -76,13 +76,13 @@
     </header>
     @if (isOffline()) {
       <div class="offline-banner">
-        <i class="pi pi-wifi"></i> You're offline — showing cached data
+        <i class="pi pi-wifi"></i> {{ 'shell.offline' | translate }}
       </div>
     }
     @if (pullProgress() > 0) {
       <div class="ptr-indicator" [style.opacity]="pullProgress() / 100">
         <i class="pi pi-refresh" [style.transform]="'rotate(' + (pullProgress() * 3.6) + 'deg)'"></i>
-        <span>{{ pullProgress() >= 100 ? 'Release to refresh' : 'Pull to refresh' }}</span>
+        <span>{{ (pullProgress() >= 100 ? 'shell.releaseToRefresh' : 'shell.pullToRefresh') | translate }}</span>
       </div>
     }
     <div class="content" #mainContent>

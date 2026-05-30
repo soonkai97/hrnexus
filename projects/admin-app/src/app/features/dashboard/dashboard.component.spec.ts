@@ -125,7 +125,7 @@ describe('DashboardComponent', () => {
     it('shows error toast and clears loading flag on API failure', () => {
       mockAdminSvc.getDashboard.mockReturnValue(throwError(() => new Error('Network')));
       component.ngOnInit();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load dashboard data.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('dashboard.loadFailed');
       expect(component.loading()).toBe(false);
     });
   });

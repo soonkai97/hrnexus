@@ -51,4 +51,11 @@ public interface IAppDbContext
     DbSet<StaffExpenseCategory>  StaffExpenseCategories  { get; }
     DbSet<StaffLoanType>         StaffLoanTypes          { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Detaches all tracked entities. Call at the start of each attempt inside
+    /// <see cref="ExecuteInStrategyAsync"/> so a retried delegate doesn't collide with entities the
+    /// previous (rolled-back) attempt left in the change tracker.
+    /// </summary>
+    void ClearChangeTracker();
 }

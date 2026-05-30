@@ -158,14 +158,8 @@ public class LoadConcurrencyTests(PostgresFixture fx, ITestOutputHelper output)
         }));
 
         var successes = results.Count(r => r == null);
-        // Classify how the losers failed — clean rejection vs transient/raw error worth hardening.
-        var byType = results.Where(r => r != null)
-            .GroupBy(r => r!.GetType().Name)
-            .ToDictionary(g => g.Key, g => g.Count());
-        output.WriteLine($"50-way leave overrun: {successes} approved (cap {entitlement}h).");
-        foreach (var kv in byType) output.WriteLine($"  loser: {kv.Key} x{kv.Value}");
+        output.WriteLine($"50-way leave overrun: {successes} reported approved (cap {entitlement}h).");
 
-        // The hard safety invariant: the DB must NEVER hold more approved hours than the entitlement.
         await using var verify = fx.NewDb();
         var approved = await verify.LeaveRequests
             .Where(l => l.EmployeeId == empId && l.LeaveType == AppConstants.Leave.Annual
@@ -176,13 +170,9 @@ public class LoadConcurrencyTests(PostgresFixture fx, ITestOutputHelper output)
         Assert.True(approved <= entitlement, $"OVERDRAW: {approved}h approved exceeds {entitlement}h entitlement.");
         // (2) Capacity is used and progress is made (the cap isn't starving everyone out).
         Assert.InRange((int)approved, 1, (int)entitlement);
-        // (3) No phantom success: every request told "approved" MUST have a committed row. The
-        //     reverse (a row committed while the caller saw an error) is possible under heavy
-        //     contention — benign (no overdraw) but worth surfacing — so we log, not fail, on it.
-        Assert.True(successes <= (int)approved,
-            $"PHANTOM SUCCESS: {successes} reported success but only {approved} rows committed.");
-        if (successes < (int)approved)
-            output.WriteLine($"  NOTE: {(int)approved - successes} request(s) committed but reported an error " +
-                             "(retry re-checked the now-full balance). Safe (no overdraw) but a reporting anomaly.");
+        // (3) Reporting matches reality: the count the callers were told "approved" EXACTLY equals
+        //     the rows committed. The idempotency guard in UpsertLeaveCommand makes a retried-after-
+        //     commit attempt return its own committed row instead of falsely reporting "insufficient".
+        Assert.Equal((int)approved, successes);
     }
 }

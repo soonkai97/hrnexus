@@ -56,6 +56,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public Task<T> ExecuteInStrategyAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
         => Database.CreateExecutionStrategy().ExecuteAsync(operation, ct);
 
+    public void ClearChangeTracker() => ChangeTracker.Clear();
+
     protected override void OnModelCreating(ModelBuilder mb)
     {
         mb.ApplyConfiguration(new StaffConfiguration());

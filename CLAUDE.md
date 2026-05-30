@@ -908,12 +908,13 @@ dotnet test                                         # run everything
 >
 > `LoadConcurrencyTests` drives **50 concurrent** ops: 50 distinct staff clock in (all succeed),
 > 50 clock-ins for one staff (exactly 1 wins), and 50 leave approvals vs a 10h cap (never
-> overdraws). **Known benign finding:** under heavy leave contention the Serializable +
-> `EnableRetryOnFailure` retry can occasionally commit a leave row while the caller still gets an
-> error response — direction is always SAFE (never "told approved but not saved", never
-> overdraws), but a follow-up could move post-commit side-effects out of the retry scope to make
-> the response match the persisted state. `scripts/load-test-50-live.ps1` runs the same 50-way
-> guard + rate-limiter burst against the live API.
+> overdraws, and reported successes EXACTLY equal committed rows). The last assertion guards a
+> subtlety: `EnableRetryOnFailure` isn't transaction-aware, so a create that committed and was then
+> retried used to re-check the now-full balance and falsely report "insufficient" while its row
+> stayed committed. `UpsertLeaveCommand` fixes this with an **idempotency guard** — it pre-generates
+> the leave Id, clears the change tracker at the start of each attempt, and on entry returns the
+> already-committed row instead of re-inserting. `scripts/load-test-50-live.ps1` runs the same
+> 50-way guard + rate-limiter burst against the live API.
 
 ### Auth hardening (login defense)
 Two complementary layers guard `/api/auth`:

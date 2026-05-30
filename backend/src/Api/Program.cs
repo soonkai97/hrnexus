@@ -66,6 +66,13 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // the complementary single-account brute-force defence. The "auth" policy is applied via
 // [EnableRateLimiting("auth")] on AuthController.
 const string AuthRateLimitPolicy = "auth";
+// Coarse anti-flood ceiling, NOT the primary brute-force control (that's the per-account lockout
+// in LoginCommand, which a shared IP can't dilute). Whole venues sit behind ONE wifi/NAT public IP,
+// so at shift change dozens of legitimate staff log in from the same IP — the limit must clear that
+// burst comfortably while still capping a genuine flood. Tunable via config (RateLimit:Auth*) so ops
+// can adjust per environment without a code change; tests set it low to exercise the 429 path.
+var authPermitLimit   = builder.Configuration.GetValue<int?>("RateLimit:AuthPermitLimit")   ?? 100;
+var authWindowSeconds = builder.Configuration.GetValue<int?>("RateLimit:AuthWindowSeconds") ?? 60;
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -81,8 +88,8 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 30,                  // generous enough for a shared office/NAT IP…
-                Window      = TimeSpan.FromMinutes(1), // …but far below a brute-force flood rate
+                PermitLimit = authPermitLimit,
+                Window      = TimeSpan.FromSeconds(authWindowSeconds),
                 QueueLimit  = 0,
             }));
 });

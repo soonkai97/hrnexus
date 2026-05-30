@@ -9,7 +9,7 @@ namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/staff-entries")]
-[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+[Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LedgerManage)]
 public class StaffEntriesController(ISender sender) : ControllerBase
 {
     // ── Entries ───────────────────────────────────────────────────────────────

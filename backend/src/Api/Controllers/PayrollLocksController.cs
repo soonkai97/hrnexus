@@ -14,7 +14,7 @@ namespace HRNexus.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/payroll-locks")]
-[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+[Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollLock)]
 public class PayrollLocksController(IMediator mediator) : ControllerBase
 {
     // The JWT carries the display name in a custom "fullName" claim (see TokenService), not ClaimTypes.Name.

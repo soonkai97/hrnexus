@@ -116,7 +116,7 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
 
     // Admin: get all work logs (paginated)
     [HttpGet]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.WorkLogManage)]
     public async Task<IActionResult> GetAll([FromQuery] GetAllWorkLogsParams p, CancellationToken ct)
     {
         var pageSize = Math.Min(p.PageSize, AppConstants.Limits.MaxPageSize);

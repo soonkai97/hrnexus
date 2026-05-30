@@ -249,30 +249,43 @@ export class ReportsComponent implements OnInit {
     this._reportTrigger$.next();
   }
 
-  setPreset(preset: 'today' | 'yesterday' | 'week' | 'month' | 'last-month'): void {
+  /** The From/To range a preset produces, computed against today. */
+  private presetRange(preset: 'today' | 'yesterday' | 'week' | 'month' | 'last-month'): { from: string; to: string } {
     const now = new Date();
     const fmt = (d: Date) => toLocalDateString(d);
     switch (preset) {
-      case 'today':
-        this.dateFrom = this.dateTo = fmt(now); break;
+      case 'today': return { from: fmt(now), to: fmt(now) };
       case 'yesterday': {
         const y = new Date(now); y.setDate(now.getDate() - 1);
-        this.dateFrom = this.dateTo = fmt(y); break;
+        return { from: fmt(y), to: fmt(y) };
       }
       case 'week': {
         const mon = new Date(now);
         mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); // Monday
-        this.dateFrom = fmt(mon); this.dateTo = fmt(now); break;
+        return { from: fmt(mon), to: fmt(now) };
       }
       case 'month':
-        this.dateFrom = fmt(this.firstDayOfMonth()); this.dateTo = fmt(now); break;
+        return { from: fmt(this.firstDayOfMonth()), to: fmt(now) };
       case 'last-month': {
         const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const last  = new Date(now.getFullYear(), now.getMonth(), 0);
-        this.dateFrom = fmt(first); this.dateTo = fmt(last); break;
+        return { from: fmt(first), to: fmt(last) };
       }
     }
+  }
+
+  setPreset(preset: 'today' | 'yesterday' | 'week' | 'month' | 'last-month'): void {
+    const r = this.presetRange(preset);
+    this.dateFrom = r.from;
+    this.dateTo   = r.to;
     this.runReport();
+  }
+
+  /** Active when the current From/To exactly matches this preset — drives the highlight.
+   *  Auto-deselects when the user picks a custom range (no preset will match). */
+  isPresetActive(preset: 'today' | 'yesterday' | 'week' | 'month' | 'last-month'): boolean {
+    const r = this.presetRange(preset);
+    return this.dateFrom === r.from && this.dateTo === r.to;
   }
 
   // ── Workforce Report CSV export ─────────────────────────────────────────────

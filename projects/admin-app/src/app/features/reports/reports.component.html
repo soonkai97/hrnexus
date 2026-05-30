@@ -116,7 +116,10 @@
       <!-- Date range presets -->
       <div class="preset-row d-flex flex-wrap gap-2 mt-2">
         @for (p of datePresets; track p.value) {
-          <p-button [label]="p.label" size="small" [outlined]="true" severity="secondary" (click)="setPreset(p.value)" />
+          <p-button [label]="p.label" size="small"
+            [severity]="isPresetActive(p.value) ? 'primary' : 'secondary'"
+            [outlined]="!isPresetActive(p.value)"
+            (click)="setPreset(p.value)" />
         }
       </div>
     </p-card>

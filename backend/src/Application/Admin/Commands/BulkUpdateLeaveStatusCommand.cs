@@ -38,6 +38,12 @@ public class BulkUpdateLeaveStatusCommandHandler(
             .ToListAsync(ct);
 
         int count = 0;
+        // Collect the live notifications to dispatch AFTER the status changes commit. We do not
+        // send inside the loop because notifHub/pushSvc are external I/O: a single flaky send
+        // would throw and abort the whole batch before SaveChanges ever runs, so none of the
+        // approvals would persist. The in-app Notification rows below are saved transactionally,
+        // so employees still see the result in the bell even if live delivery fails.
+        var toDispatch = new List<(Guid EmployeeId, Notification Notif)>();
         foreach (var leave in leaves)
         {
             var prevStatus = leave.Status;
@@ -52,7 +58,7 @@ public class BulkUpdateLeaveStatusCommandHandler(
             await audit.LogAsync("LeaveRequest", leave.Id.ToString(), "BulkStatusUpdate",
                 null, "Admin", $"Status → {req.Status}", ct);
 
-            // Notify the employee
+            // Persist the employee notification (durable, in the same transaction as the status)
             var approved = req.Status.Equals(AppConstants.Leave.Approved, StringComparison.OrdinalIgnoreCase);
             var notif = Notification.Create(
                 leave.EmployeeId,
@@ -61,11 +67,7 @@ public class BulkUpdateLeaveStatusCommandHandler(
                 approved ? AppConstants.NotificationType.LeaveApproved : AppConstants.NotificationType.LeaveRejected,
                 leave.Id.ToString());
             db.Notifications.Add(notif);
-            await notifHub.SendToUserAsync(leave.EmployeeId,
-                new NotificationPayload(notif.Id.ToString(), notif.Title, notif.Message,
-                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("yyyy-MM-dd HH:mm")), ct);
-            await pushSvc.SendAsync(leave.EmployeeId,
-                notif.Title, notif.Message, "/my-leave", ct);
+            toDispatch.Add((leave.EmployeeId, notif));
 
             count++;
         }
@@ -82,6 +84,27 @@ public class BulkUpdateLeaveStatusCommandHandler(
             throw new InvalidOperationException(
                 "One or more leave requests were modified concurrently. Please refresh and try again.");
         }
+
+        // Best-effort live delivery — only after the batch has durably committed. Each send is
+        // isolated so one dead WebSocket connection or push failure can't stop the rest. The
+        // persisted Notification rows above guarantee the employee still sees the outcome in-app.
+        foreach (var (employeeId, notif) in toDispatch)
+        {
+            try
+            {
+                await notifHub.SendToUserAsync(employeeId,
+                    new NotificationPayload(notif.Id.ToString(), notif.Title, notif.Message,
+                        notif.Type, notif.RelatedId, notif.CreatedAt.ToString("yyyy-MM-dd HH:mm")), ct);
+            }
+            catch { /* live push is best-effort; in-app notification is already persisted */ }
+
+            try
+            {
+                await pushSvc.SendAsync(employeeId, notif.Title, notif.Message, "/my-leave", ct);
+            }
+            catch { /* best-effort */ }
+        }
+
         return count;
     }
 }

@@ -133,9 +133,21 @@ public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime,
             req.LocationId, req.LocationName, shiftDateUtc, req.TotalAmount, req.SplitMethod);
         pool.MarkDistributed(activeWorkLogs.Count);
         db.TipsPools.Add(pool);
+
+        // pool.Id is assigned client-side by TipsPool.Create (Guid.NewGuid), so the allocation
+        // records can be built and added now — no need to flush the pool first. Persisting the
+        // pool and its allocations in a SINGLE SaveChanges keeps them atomic: EF wraps all
+        // inserts in one DB transaction, so a failure on the allocation rows rolls the pool back
+        // too. Previously these were two separate saves — a crash between them left an orphan
+        // pool marked Distributed with zero allocation records.
+        foreach (var alloc in allocations)
+        {
+            db.TipsAllocations.Add(TipsAllocationRecord.Create(
+                pool.Id, alloc.EmployeeId, alloc.FullName, alloc.Amount, alloc.HoursWorked));
+        }
         try
         {
-            await db.SaveChangesAsync(ct); // flush pool first so we have pool.Id
+            await db.SaveChangesAsync(ct);
         }
         catch (DbUpdateException)
         {
@@ -145,13 +157,6 @@ public class DistributeTipsHandler(IAppDbContext db, IDateTimeProvider dateTime,
                 "Tips have already been distributed for this location and date. " +
                 "Check the existing pool entry before distributing again.");
         }
-
-        foreach (var alloc in allocations)
-        {
-            db.TipsAllocations.Add(TipsAllocationRecord.Create(
-                pool.Id, alloc.EmployeeId, alloc.FullName, alloc.Amount, alloc.HoursWorked));
-        }
-        await db.SaveChangesAsync(ct);
 
         await audit.LogAsync(
             "TipsPool", pool.Id.ToString(), "Distributed",

@@ -1319,6 +1319,44 @@ public class LeaveCommandTests
         Assert.Equal("approved", l2!.Status);
     }
 
+    private sealed class ThrowingNotificationHub : INotificationHub
+    {
+        public Task SendToUserAsync(Guid id, NotificationPayload p, CancellationToken ct = default)
+            => throw new InvalidOperationException("simulated dead WebSocket connection");
+        public Task BroadcastLiveStatsAsync(LiveStatsDto s, CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task BulkUpdateLeaveStatus_StillCommitsBatch_WhenLiveNotificationSendThrows()
+    {
+        // A flaky SignalR/push send must not abort the approval batch: the status changes and
+        // the in-app Notification rows are persisted first, and live delivery is best-effort.
+        await using var db = CreateDb();
+        var staff  = MakeStaff();
+        var leave1 = MakeLeave(staff.Id, "pending");
+        var leave2 = MakeLeave(staff.Id, "pending");
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(leave1);
+        db.LeaveRequests.Add(leave2);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new BulkUpdateLeaveStatusCommandHandler(
+            db, new ThrowingNotificationHub(), new NullPushSvc(), new NullAuditService());
+
+        var count = await handler.Handle(
+            new BulkUpdateLeaveStatusCommand([leave1.Id, leave2.Id], "approved"),
+            CancellationToken.None);
+
+        Assert.Equal(2, count);
+        var l1 = await db.LeaveRequests.FindAsync(leave1.Id);
+        var l2 = await db.LeaveRequests.FindAsync(leave2.Id);
+        Assert.Equal("approved", l1!.Status);
+        Assert.Equal("approved", l2!.Status);
+        // The durable in-app notifications are still written despite the live-send failure.
+        Assert.Equal(2, await db.Notifications.CountAsync());
+    }
+
     [Fact]
     public async Task BulkUpdateLeaveStatus_StoresRejectionReason_WhenRejectingWithReason()
     {

@@ -47,6 +47,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         return await Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
     }
 
+    public async Task<IDbContextTransaction?> BeginSerializableAsync(CancellationToken ct = default)
+    {
+        if (!Database.IsRelational()) return null;
+        return await Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+    }
+
     public Task<T> ExecuteInStrategyAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
         => Database.CreateExecutionStrategy().ExecuteAsync(operation, ct);
 

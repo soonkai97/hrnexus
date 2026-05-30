@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.WorkLog.Queries;
 
@@ -25,7 +26,11 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
             throw new ArgumentException("End time must be different from the shift start time.");
 
         log.End(req.EndTime);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new InvalidOperationException("This shift was just changed by someone else. Please refresh and try again.");
+        }
 
         // Broadcast updated live stats to all connected dashboard clients
         var stats = await sender.Send(new GetLiveStatsQuery(), ct);

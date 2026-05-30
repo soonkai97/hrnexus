@@ -17,5 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Application\HRNexus.Application.csproj" />
     <ProjectReference Include="..\..\src\Domain\HRNexus.Domain.csproj" />
+    <!-- For PermissionResolver tests (Infrastructure types: PermissionResolver, PermissionCacheState). -->
+    <ProjectReference Include="..\..\src\Infrastructure\HRNexus.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

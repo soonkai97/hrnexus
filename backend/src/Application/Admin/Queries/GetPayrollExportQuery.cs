@@ -14,11 +14,8 @@ public record PayrollExportRow(
     string  Roles,
     decimal HourlyRate,
     decimal TotalHours,
-    decimal GrossPay,           // work-hours pay only (total hours × hourly rate)
-    int     ApprovedLeaveDays,  // total approved leave days (all types)
-    int     PaidLeaveDays,      // annual + sick only
-    decimal PaidLeavePay,       // PaidLeaveDays × 8h × HourlyRate
-    decimal GrandTotal);        // GrossPay + PaidLeavePay
+    decimal GrossPay,            // work-hours pay = total hours × hourly rate. ALL leave is unpaid, so this is the full payout.
+    int     ApprovedLeaveDays);  // total approved leave days taken in the period (informational; unpaid)
 
 public record PayrollExportResult(
     string                 Month,
@@ -27,8 +24,6 @@ public record PayrollExportResult(
 public class GetPayrollExportQueryHandler(IAppDbContext db)
     : IRequestHandler<GetPayrollExportQuery, PayrollExportResult>
 {
-    private const decimal PaidLeaveHoursPerDay = 8m;
-
     public async Task<PayrollExportResult> Handle(GetPayrollExportQuery req, CancellationToken ct)
     {
         var start   = new DateOnly(req.Year, req.Month, 1);
@@ -85,21 +80,10 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
                                      .FirstOrDefault()?.HourlyRateSnapshot
                            ?? latestRates.GetValueOrDefault(emp.Id, 0m);
 
-            // Leave breakdown for this employee
+            // Leave taken in the period (informational only — all leave is UNPAID, so it adds no pay).
             var empLeaves = leaves.Where(l => l.EmployeeId == emp.Id).ToList();
-
             var totalLeaveDays = empLeaves.Sum(l =>
                 (int)Math.Round((l.EndDate.Date - l.StartDate.Date).TotalDays) + 1);
-
-            // Only annual + sick are compensated; unpaid / no-show are not
-            var paidLeaves = empLeaves.Where(l =>
-                l.LeaveType == "annual" || l.LeaveType == "sick").ToList();
-
-            var paidLeaveDays = paidLeaves.Sum(l =>
-                (int)Math.Round((l.EndDate.Date - l.StartDate.Date).TotalDays) + 1);
-
-            var paidLeavePay  = Math.Round(paidLeaveDays * PaidLeaveHoursPerDay * displayRate, 2);
-            var grossWorkPay  = Math.Round(grossWork, 2);
 
             rows.Add(new PayrollExportRow(
                 StaffId:          emp.StaffId,
@@ -107,11 +91,8 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
                 Roles:            string.Join(" / ", emp.Roles),
                 HourlyRate:       displayRate,
                 TotalHours:       Math.Round(totalHours, 2),
-                GrossPay:         grossWorkPay,
-                ApprovedLeaveDays: totalLeaveDays,
-                PaidLeaveDays:    paidLeaveDays,
-                PaidLeavePay:     paidLeavePay,
-                GrandTotal:       grossWorkPay + paidLeavePay));
+                GrossPay:         Math.Round(grossWork, 2),
+                ApprovedLeaveDays: totalLeaveDays));
         }
 
         return new PayrollExportResult(startDt.ToString("yyyy-MM"), rows);

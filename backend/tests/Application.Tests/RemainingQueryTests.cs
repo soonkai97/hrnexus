@@ -257,17 +257,17 @@ public class RemainingQueryTests
 
         Assert.Single(result.Rows);
         Assert.Equal(0m, result.Rows[0].TotalHours);
-        Assert.Equal(0m, result.Rows[0].GrandTotal);
+        Assert.Equal(0m, result.Rows[0].GrossPay);
     }
 
-    // 5. Paid leave (annual/sick) is included in PaidLeavePay; unpaid leave is not
+    // 5. ALL leave is unpaid — approved leave (any type) adds NO pay; it only shows as days taken.
     [Fact]
-    public async Task GetPayrollExport_IncludesPaidLeave_ExcludesUnpaidLeave()
+    public async Task GetPayrollExport_LeaveIsUnpaid_AddsNoPay_OnlyCountsDays()
     {
         await using var db = CreateDb();
         var emp = MakeStaff();
         db.Staff.Add(emp);
-        // 1 day annual leave @ 8h × 20/h = 160
+        // 5h shift @ 20/h = 100 work pay — the only pay this employee should receive.
         db.WorkLogs.Add(MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 5), "18:00", "23:00", 20m));
         var annualLeave = E.LeaveRequest.Create(emp.Id, "annual",
             new DateTime(2026, 5, 20, 0, 0, 0, DateTimeKind.Utc),
@@ -289,9 +289,8 @@ public class RemainingQueryTests
 
         Assert.Single(result.Rows);
         var row = result.Rows[0];
-        Assert.Equal(1, row.PaidLeaveDays);           // annual only
-        Assert.Equal(2, row.ApprovedLeaveDays);        // annual + unpaid
-        Assert.Equal(160m, row.PaidLeavePay);          // 1 day × 8h × 20/h
+        Assert.Equal(100m, row.GrossPay);          // work pay only — annual leave adds nothing
+        Assert.Equal(2, row.ApprovedLeaveDays);    // annual + unpaid both counted as days taken (unpaid)
     }
 
     // 6. Month label is formatted correctly

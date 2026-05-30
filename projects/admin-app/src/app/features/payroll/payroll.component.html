@@ -43,9 +43,6 @@
             <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
             <th pSortableColumn="totalHours">Total Hrs <p-sortIcon field="totalHours" /></th>
             <th pSortableColumn="totalPay">Work Pay (RM) <p-sortIcon field="totalPay" /></th>
-            <th pSortableColumn="paidLeaveDays">Paid Leave Days <p-sortIcon field="paidLeaveDays" /></th>
-            <th pSortableColumn="paidLeavePay">Leave Pay (RM) <p-sortIcon field="paidLeavePay" /></th>
-            <th pSortableColumn="grandTotal">Grand Total (RM) <p-sortIcon field="grandTotal" /></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
@@ -53,29 +50,12 @@
             <td class="td-muted mono"><span class="p-column-title">Staff ID</span>{{ row.staffId }}</td>
             <td><span class="p-column-title">Name</span>{{ row.name }}</td>
             <td><span class="p-column-title">Total Hrs</span>{{ row.totalHours | number:'1.1-1' }}</td>
-            <td><span class="p-column-title">Work Pay (RM)</span>{{ row.totalPay | number:'1.2-2' }}</td>
-            <td class="td-center">
-              <span class="p-column-title">Paid Leave</span>
-              @if (row.paidLeaveDays > 0) {
-                <p-tag [value]="row.paidLeaveDays + 'd'" severity="info" />
-              } @else {
-                <span class="td-muted">—</span>
-              }
-            </td>
-            <td>
-              <span class="p-column-title">Leave Pay (RM)</span>
-              @if (row.paidLeavePay > 0) {
-                {{ row.paidLeavePay | number:'1.2-2' }}
-              } @else {
-                <span class="td-muted">—</span>
-              }
-            </td>
-            <td class="td-bold"><span class="p-column-title">Grand Total (RM)</span>{{ row.grandTotal | number:'1.2-2' }}</td>
+            <td class="td-bold"><span class="p-column-title">Work Pay (RM)</span>{{ row.totalPay | number:'1.2-2' }}</td>
           </tr>
         </ng-template>
       </p-table>
       <p class="payroll-note">
-        <i class="pi pi-lightbulb"></i> Leave Pay = paid annual &amp; sick leave days x 8h x hourly rate. Unpaid leave is excluded.
+        <i class="pi pi-lightbulb"></i> Work Pay = total shift hours x hourly rate. All leave is unpaid.
       </p>
     </p-card>
   } @else if (!loading()) {

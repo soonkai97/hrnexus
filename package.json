@@ -18,8 +18,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:admin": "playwright test --project=admin",
-    "test:e2e:staff": "playwright test --project=staff",
-    "lint": "ng lint"
+    "test:e2e:staff": "playwright test --project=staff"
   },
   "private": true,
   "packageManager": "npm@11.13.0",

@@ -4,7 +4,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AuthService, StaffStore, RegisterStaffRequest,
+import { StaffStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
          passwordChecks, isStrongPassword } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -35,7 +35,6 @@ import { Skeleton } from 'primeng/skeleton';
   styleUrl: './staff.component.scss',
 })
 export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate {
-  protected readonly auth      = inject(AuthService);
   private readonly staffStore  = inject(StaffStore);
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);

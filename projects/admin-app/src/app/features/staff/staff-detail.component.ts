@@ -3,7 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, AuthService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -24,7 +24,6 @@ import { Paginator } from 'primeng/paginator';
 })
 export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
-  private readonly auth        = inject(AuthService);
   private readonly staffSvc    = inject(StaffManagementService);
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);

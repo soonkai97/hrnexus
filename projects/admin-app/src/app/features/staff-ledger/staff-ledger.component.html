@@ -274,7 +274,7 @@
                         [severity]="settlementSeverity(entry.settlement)">
                       </p-tag>
                     </td>
-                    <td class="notes-col">{{ entry.notes ?? 'â€”' }}</td>
+                    <td class="notes-col">{{ entry.notes ?? '—' }}</td>
                     <td class="action-col">
                       <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="openEdit(entry)" />
                       <p-button icon="pi pi-trash"  [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="remove(entry)" />
@@ -379,7 +379,7 @@
                     <tr>
                       <td>{{ expenseCategoryLabel(exp.category) }}</td>
                       <td class="num-col red">{{ exp.amount | number:'1.2-2' }}</td>
-                      <td class="notes-col">{{ exp.notes ?? 'â€”' }}</td>
+                      <td class="notes-col">{{ exp.notes ?? '—' }}</td>
                       <td class="action-col">
                         <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="openEditExpense(exp)" />
                         <p-button icon="pi pi-trash"  [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="removeExpense(exp)" />
@@ -497,7 +497,7 @@
                         </p-tag>
                       </td>
                       <td class="num-col">{{ loan.amount | number:'1.2-2' }}</td>
-                      <td class="notes-col">{{ loan.purpose ?? 'â€”' }}</td>
+                      <td class="notes-col">{{ loan.purpose ?? '—' }}</td>
                       <td class="action-col">
                         <p-button icon="pi pi-trash" [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="removeLoan(loan)" />
                       </td>
@@ -538,7 +538,7 @@
           </div>
           <div class="summary-row">
             <span class="summary-label">{{ 'staffLedger.totalDeductions' | translate }}</span>
-            <span class="summary-value" [class.red]="totalExpenses() > 0">â€“ RM {{ totalExpenses() | number:'1.2-2' }}</span>
+            <span class="summary-value" [class.red]="totalExpenses() > 0">- RM {{ totalExpenses() | number:'1.2-2' }}</span>
           </div>
           <p-divider />
           <div class="summary-row summary-row--total">

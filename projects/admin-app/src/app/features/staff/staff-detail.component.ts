@@ -1,4 +1,6 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -81,12 +83,20 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   readonly activeOverrides = computed(() =>
     this.permKeys().filter(k => (this.permChoices()[k] ?? 'inherit') !== 'inherit'));
 
+  // Ticks on language (re)load so instant()-based label computeds re-evaluate — otherwise the
+  // SelectButton option labels would cache in the first language and never switch.
+  private readonly _langTick = toSignal(
+    merge(this.translate.onLangChange, this.translate.onDefaultLangChange), { initialValue: null });
+
   /** Options for each tri-state p-selectButton (labels resolved at runtime via translate). */
-  readonly permOptions = computed<{ label: string; value: OverrideChoice }[]>(() => [
-    { label: this.translate.instant('permissions.inherit'), value: 'inherit' },
-    { label: this.translate.instant('permissions.grant'),   value: 'grant'   },
-    { label: this.translate.instant('permissions.revoke'),  value: 'revoke'  },
-  ]);
+  readonly permOptions = computed<{ label: string; value: OverrideChoice }[]>(() => {
+    this._langTick();   // dependency: recompute when the language changes
+    return [
+      { label: this.translate.instant('permissions.inherit'), value: 'inherit' },
+      { label: this.translate.instant('permissions.grant'),   value: 'grant'   },
+      { label: this.translate.instant('permissions.revoke'),  value: 'revoke'  },
+    ];
+  });
 
   permChoiceLabel(c: OverrideChoice | undefined): string { return this.translate.instant('permissions.' + (c ?? 'inherit')); }
   permChoiceSeverity(c: OverrideChoice | undefined): 'success' | 'danger' | 'secondary' {

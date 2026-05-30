@@ -3,7 +3,6 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, PayrollSummaryResponse, MONTH_NAMES } from 'shared-lib';
 import { Button } from 'primeng/button';
-import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
@@ -12,7 +11,7 @@ import { Message } from 'primeng/message';
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, Button, InputNumber, TableModule, Card, Select, Message],
+  imports: [DecimalPipe, FormsModule, Button, TableModule, Card, Select, Message],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })
@@ -29,6 +28,11 @@ export class PayrollComponent {
   readonly monthOptions = MONTH_NAMES.map((label, i) => ({ label, value: i + 1 }));
 
   readonly now = new Date();
+  // Current year back 5 years — payroll is only viewed for the current or a recent period.
+  readonly yearOptions = Array.from({ length: 6 }, (_, i) => {
+    const y = this.now.getFullYear() - i;
+    return { value: y, label: `${y}` };
+  });
   isCurrentOrFutureMonth = computed(() => {
     const y = this.year();
     const m = this.month();

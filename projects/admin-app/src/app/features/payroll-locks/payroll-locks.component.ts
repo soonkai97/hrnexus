@@ -7,7 +7,6 @@ import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { InputText } from 'primeng/inputtext';
-import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import {
@@ -17,7 +16,7 @@ import {
 @Component({
   selector: 'app-payroll-locks',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslatePipe, Card, Button, TableModule, Tag, InputText, InputNumber, Select, Skeleton],
+  imports: [DatePipe, FormsModule, TranslatePipe, Card, Button, TableModule, Tag, InputText, Select, Skeleton],
   templateUrl: './payroll-locks.component.html',
   styleUrl: './payroll-locks.component.scss',
 })
@@ -35,6 +34,11 @@ export class PayrollLocksComponent implements OnInit {
   form = { year: this.now.getFullYear(), month: this.now.getMonth() + 1, note: '' };
 
   readonly monthOptions = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: this.pad2(i + 1) }));
+  // Current year back 5 years — locks are only ever created for the current or a recent period.
+  readonly yearOptions = Array.from({ length: 6 }, (_, i) => {
+    const y = this.now.getFullYear() - i;
+    return { value: y, label: `${y}` };
+  });
 
   ngOnInit(): void { this.load(); }
 

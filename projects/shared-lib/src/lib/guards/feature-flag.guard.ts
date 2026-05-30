@@ -1,6 +1,5 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FeatureFlagService, FeatureKey } from '../services/feature-flag.service';
 

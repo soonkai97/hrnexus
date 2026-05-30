@@ -1,0 +1,15 @@
+<Project>
+  <!-- Applies to every project under backend/. Runs the IDE code-style analyzers (e.g. IDE0005
+       unused-usings) during build so the .editorconfig severities are enforced, not just shown
+       in the IDE. The C# compiler already warns on unused locals/private fields by default. -->
+  <PropertyGroup>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- IDE0005 (unused usings) is only reported on build when a doc file is generated
+         (Roslyn issue 41640). Enable it, but suppress CS1591 — we don't require XML doc
+         comments on every public member. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Fail the build on unused locals / unused private fields (the C# analog of FE noUnusedLocals). -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS0168;CS0219;CS0169;CS0414</WarningsAsErrors>
+  </PropertyGroup>
+</Project>

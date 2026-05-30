@@ -5,7 +5,6 @@ import {
   StaffEntryDto,
   StaffExpenseDto,
   StaffLoanDto,
-  StaffSummaryDto,
   StaffLedgerPayoutDto,
   StaffOutstandingDto,
   UpsertEntryRequest,

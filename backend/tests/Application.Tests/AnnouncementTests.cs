@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Announcements.Commands;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Tests.Infrastructure;

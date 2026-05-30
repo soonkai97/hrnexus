@@ -1379,7 +1379,6 @@ describe('StaffLedgerComponent', () => {
         email: '', roles: [], isActive: true, phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: null, age: null },
     ];
 
-    let clickSpy: ReturnType<typeof vi.fn>;
     let createObjectURLSpy: ReturnType<typeof vi.fn>;
     let revokeObjectURLSpy: ReturnType<typeof vi.fn>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1423,7 +1422,6 @@ describe('StaffLedgerComponent', () => {
       component.selectedYear.set(2026);
       component.selectedMonth.set(4);
       component.exportStatementCsv();
-      const blobArg: string = (createObjectURLSpy.mock.calls[0][0] as Blob).toString();
       // We verify the Blob was created — content is checked via string matching on CSV rows
       expect(createObjectURLSpy).toHaveBeenCalledOnce();
     });

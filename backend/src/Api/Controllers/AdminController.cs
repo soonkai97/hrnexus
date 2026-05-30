@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Admin.Queries;
-using HRNexus.Application.Common;
 using HRNexus.Domain.Constants;
 using System.Security.Claims;
 using HRNexus.Api.Filters;

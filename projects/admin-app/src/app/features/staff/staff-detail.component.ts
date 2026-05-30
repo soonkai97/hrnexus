@@ -68,6 +68,18 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   permChoices  = signal<Record<string, OverrideChoice>>({});
   permLoading  = signal(true);
   permSaving   = signal(false);
+  permEditMode = signal(false);
+  /** Snapshot of choices taken on load / entering edit — basis for dirty detection + Cancel. */
+  permInitial  = signal<Record<string, OverrideChoice>>({});
+
+  /** Save is enabled only when at least one choice differs from the snapshot. */
+  readonly permDirty = computed(() => {
+    const cur = this.permChoices(), init = this.permInitial();
+    return this.permKeys().some(k => (cur[k] ?? 'inherit') !== (init[k] ?? 'inherit'));
+  });
+  /** Keys with a non-inherit choice — what the read-only view lists. */
+  readonly activeOverrides = computed(() =>
+    this.permKeys().filter(k => (this.permChoices()[k] ?? 'inherit') !== 'inherit'));
 
   /** Options for each tri-state p-selectButton (labels resolved at runtime via translate). */
   readonly permOptions = computed<{ label: string; value: OverrideChoice }[]>(() => [
@@ -75,6 +87,13 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     { label: this.translate.instant('permissions.grant'),   value: 'grant'   },
     { label: this.translate.instant('permissions.revoke'),  value: 'revoke'  },
   ]);
+
+  permChoiceLabel(c: OverrideChoice | undefined): string { return this.translate.instant('permissions.' + (c ?? 'inherit')); }
+  permChoiceSeverity(c: OverrideChoice | undefined): 'success' | 'danger' | 'secondary' {
+    return c === 'grant' ? 'success' : c === 'revoke' ? 'danger' : 'secondary';
+  }
+  startPermEdit():  void { this.permInitial.set({ ...this.permChoices() }); this.permEditMode.set(true); }
+  cancelPermEdit(): void { this.permChoices.set({ ...this.permInitial() }); this.permEditMode.set(false); }
 
   ngOnInit(): void {
     this.staffId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -195,6 +214,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
             for (const k of keys) choices[k] = 'inherit';
             for (const o of overrides) choices[o.permissionKey] = o.granted ? 'grant' : 'revoke';
             this.permChoices.set(choices);
+            this.permInitial.set({ ...choices });
             this.permLoading.set(false);
           },
           error: () => { this.toast.error(this.translate.instant('permissions.loadFailed')); this.permLoading.set(false); },
@@ -217,7 +237,12 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
       .filter(k => choices[k] && choices[k] !== 'inherit')
       .map(k => ({ permissionKey: k, granted: choices[k] === 'grant' }));
     this.permSvc.setUserOverrides(this.staffId, overrides).subscribe({
-      next:  () => { this.toast.success(this.translate.instant('permissions.saved')); this.permSaving.set(false); },
+      next:  () => {
+        this.toast.success(this.translate.instant('permissions.saved'));
+        this.permInitial.set({ ...choices });   // new clean baseline
+        this.permEditMode.set(false);            // back to view mode
+        this.permSaving.set(false);
+      },
       error: () => { this.toast.error(this.translate.instant('permissions.saveFailed')); this.permSaving.set(false); },
     });
   }

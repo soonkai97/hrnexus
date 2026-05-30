@@ -1,7 +1,8 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inject, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
@@ -76,6 +77,13 @@ export class ShellComponent implements AfterViewInit {
   readonly lang              = inject(LangService);
   private readonly translate = inject(TranslateService);
   readonly featureSvc        = inject(FeatureFlagService);
+
+  // Translation files load asynchronously after bootstrap, so instant() inside a computed
+  // returns the raw key on first render. Tick this on translation (re)loads so label
+  // computeds (e.g. the avatar menu) re-evaluate once the file has arrived.
+  private readonly _i18nReady = toSignal(
+    merge(this.translate.onLangChange, this.translate.onDefaultLangChange),
+    { initialValue: null });
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
   constructor() {
@@ -132,6 +140,7 @@ export class ShellComponent implements AfterViewInit {
 
   readonly avatarMenuItems = computed<MenuItem[]>(() => {
     this.lang.current(); // re-evaluate labels on language change
+    this._i18nReady();   // re-evaluate once translation files finish loading
     return [
       { label: this.user()?.fullName ?? '', disabled: true },
       { separator: true },

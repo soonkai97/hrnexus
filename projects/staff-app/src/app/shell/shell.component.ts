@@ -1,8 +1,8 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inject, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
-import { interval } from 'rxjs';
+import { interval, merge } from 'rxjs';
 import { filter, startWith } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
@@ -95,6 +95,13 @@ export class ShellComponent implements AfterViewInit {
   private readonly leaveSvc        = inject(LeaveService);
   private readonly toast           = inject(ToastService);
   private readonly translate       = inject(TranslateService);
+
+  // Translation files load asynchronously after bootstrap, so instant() inside a computed
+  // returns the raw key on first render. Tick this on translation (re)loads so label
+  // computeds (e.g. the avatar menu) re-evaluate once the file has arrived.
+  private readonly _i18nReady = toSignal(
+    merge(this.translate.onLangChange, this.translate.onDefaultLangChange),
+    { initialValue: null });
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
   unreadAnnouncements = signal(0);
@@ -224,13 +231,17 @@ export class ShellComponent implements AfterViewInit {
     return this.allNavItems.filter(item => !item.featureFlag || flags[item.featureFlag]);
   });
 
-  readonly avatarMenuItems = computed<MenuItem[]>(() => [
-    { label: this.user()?.fullName ?? '', disabled: true },
-    { separator: true },
-    { label: this.translate.instant('nav.profile'), icon: 'pi pi-user', routerLink: '/profile' },
-    { separator: true },
-    { label: this.translate.instant('profile.signOut'), icon: 'pi pi-power-off', command: () => this.logout() },
-  ]);
+  readonly avatarMenuItems = computed<MenuItem[]>(() => {
+    this.lang.current(); // re-evaluate labels on language change
+    this._i18nReady();   // re-evaluate once translation files finish loading
+    return [
+      { label: this.user()?.fullName ?? '', disabled: true },
+      { separator: true },
+      { label: this.translate.instant('nav.profile'), icon: 'pi pi-user', routerLink: '/profile' },
+      { separator: true },
+      { label: this.translate.instant('profile.signOut'), icon: 'pi pi-power-off', command: () => this.logout() },
+    ];
+  });
 
   // Shown the instant Sign Out is tapped so the navigation/teardown gap doesn't
   // look like a frozen screen.

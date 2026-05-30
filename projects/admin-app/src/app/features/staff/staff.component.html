@@ -19,30 +19,31 @@
       </div>
       <div class="row g-3">
         <div class="col-12 col-md-6 field">
-          <label><span class="req">*</span> {{ 'staff.staffId' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="newStaff.staffId" [placeholder]="'staff.staffIdPlaceholder' | translate" maxlength="20" style="text-transform:uppercase"
+          <label for="st-staff-id"><span class="req">*</span> {{ 'staff.staffId' | translate }}</label>
+          <input id="st-staff-id" pInputText type="text" [(ngModel)]="newStaff.staffId" [placeholder]="'staff.staffIdPlaceholder' | translate" maxlength="20" style="text-transform:uppercase"
                  (blur)="markTouched('staffId')" [class.input-invalid]="!!fieldError('staffId')" />
           @if (fieldError('staffId'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
-          <label><span class="req">*</span> {{ 'staff.firstName' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="newStaff.firstName" [placeholder]="'staff.firstNamePlaceholder' | translate" maxlength="100"
+          <label for="st-first-name"><span class="req">*</span> {{ 'staff.firstName' | translate }}</label>
+          <input id="st-first-name" pInputText type="text" [(ngModel)]="newStaff.firstName" [placeholder]="'staff.firstNamePlaceholder' | translate" maxlength="100"
                  (blur)="markTouched('firstName')" [class.input-invalid]="!!fieldError('firstName')" />
           @if (fieldError('firstName'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
-          <label>{{ 'staff.lastName' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="newStaff.lastName" [placeholder]="'staff.lastNamePlaceholder' | translate" maxlength="100" />
+          <label for="st-last-name">{{ 'staff.lastName' | translate }}</label>
+          <input id="st-last-name" pInputText type="text" [(ngModel)]="newStaff.lastName" [placeholder]="'staff.lastNamePlaceholder' | translate" maxlength="100" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label>{{ 'staff.email' | translate }}</label>
-          <input pInputText type="email" [(ngModel)]="newStaff.email" [placeholder]="'staff.emailPlaceholder' | translate" maxlength="254" autocomplete="off"
+          <label for="st-email">{{ 'staff.email' | translate }}</label>
+          <input id="st-email" pInputText type="email" [(ngModel)]="newStaff.email" [placeholder]="'staff.emailPlaceholder' | translate" maxlength="254" autocomplete="off"
                  (blur)="markTouched('email')" [class.input-invalid]="!!fieldError('email')" />
           @if (fieldError('email'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
-          <label>{{ 'staff.roles' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
+          <label for="st-roles">{{ 'staff.roles' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
           <p-multiselect
+            inputId="st-roles"
             [(ngModel)]="newStaff.roles"
             [options]="availableRoles()"
             optionLabel="name"
@@ -53,13 +54,13 @@
             styleClass="w-full" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label>{{ 'staff.phoneNumber' | translate }}</label>
-          <input pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" [placeholder]="'staff.phonePlaceholder' | translate" maxlength="20" />
+          <label for="st-phone-number">{{ 'staff.phoneNumber' | translate }}</label>
+          <input id="st-phone-number" pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" [placeholder]="'staff.phonePlaceholder' | translate" maxlength="20" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label><span class="req">*</span> {{ 'staff.initialPassword' | translate }}</label>
+          <label for="st-initial-password"><span class="req">*</span> {{ 'staff.initialPassword' | translate }}</label>
           <div class="pwd-wrap">
-            <input pInputText [type]="showNewStaffPwd() ? 'text' : 'password'"
+            <input id="st-initial-password" pInputText [type]="showNewStaffPwd() ? 'text' : 'password'"
                    [(ngModel)]="newStaff.password"
                    [placeholder]="showNewStaffPwd() ? ('staff.minChars' | translate) : ''"
                    autocomplete="new-password" class="w-full"
@@ -81,23 +82,23 @@
           <small style="color:var(--p-text-muted-color)">{{ 'staff.changeOnFirstLogin' | translate }}</small>
         </div>
         <div class="col-12 col-md-6 field">
-          <label>{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
-          <input pInputText type="text" [(ngModel)]="newStaff.icNo" [placeholder]="'staff.icNoPlaceholder' | translate" />
+          <label for="st-ic-no">{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
+          <input id="st-ic-no" pInputText type="text" [(ngModel)]="newStaff.icNo" [placeholder]="'staff.icNoPlaceholder' | translate" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label>{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
-          <input pInputText type="text" [(ngModel)]="newStaff.passportNo" [placeholder]="'staff.passportNoPlaceholder' | translate" />
+          <label for="st-passport-no">{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
+          <input id="st-passport-no" pInputText type="text" [(ngModel)]="newStaff.passportNo" [placeholder]="'staff.passportNoPlaceholder' | translate" />
         </div>
         <div class="col-12 col-md-6 field">
           <div class="d-flex justify-content-between align-items-center">
-            <label>{{ 'staff.dateOfBirth' | translate }}</label>
+            <label for="st-date-of-birth">{{ 'staff.dateOfBirth' | translate }}</label>
             @if (newStaff.dateOfBirth) {
               <button type="button" class="dob-clear-link" (click)="newStaff.dateOfBirth = null">
                 <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
               </button>
             }
           </div>
-          <p-datepicker [(ngModel)]="newStaff.dateOfBirth"
+          <p-datepicker inputId="st-date-of-birth" [(ngModel)]="newStaff.dateOfBirth"
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
@@ -221,8 +222,8 @@
     </p>
 
     <div class="field">
-      <label>{{ 'staff.newPassword' | translate }}</label>
-      <p-password [(ngModel)]="newPassword" [feedback]="false" [toggleMask]="true"
+      <label for="st-new-password">{{ 'staff.newPassword' | translate }}</label>
+      <p-password inputId="st-new-password" [(ngModel)]="newPassword" [feedback]="false" [toggleMask]="true"
                   [placeholder]="'staff.minChars' | translate" autocomplete="new-password" />
       <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
         <li [class.met]="resetPwdChecks.minLength"><i [class]="resetPwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>

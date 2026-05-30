@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class PushService {
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getPublicKey(): Observable<{ publicKey: string }> {
     return this.http.get<{ publicKey: string }>('/api/push/vapid-public-key');

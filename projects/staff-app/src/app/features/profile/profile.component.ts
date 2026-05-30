@@ -56,7 +56,7 @@ export class ProfileComponent implements OnInit {
   async togglePush(): Promise<void> {
     // iOS Safari requires the PWA to be installed to the home screen for push notifications
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isStandalone = ('standalone' in navigator) && (navigator as any).standalone;
+    const isStandalone = ('standalone' in navigator) && (navigator as Navigator & { standalone?: boolean }).standalone;
     if (isIos && !isStandalone) {
       this.toast.warning(this.translate.instant('profile.toast.iosHomeScreen'));
       return;

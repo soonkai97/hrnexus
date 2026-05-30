@@ -1381,7 +1381,6 @@ describe('StaffLedgerComponent', () => {
 
     let createObjectURLSpy: ReturnType<typeof vi.fn>;
     let revokeObjectURLSpy: ReturnType<typeof vi.fn>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let anchorEl: any;
 
     beforeEach(() => {

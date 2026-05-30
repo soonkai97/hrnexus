@@ -134,7 +134,7 @@ public class GetReportQueryHandler(IAppDbContext db)
 
         var summary = new ReportSummary(shifts.Count, Math.Round(shifts.Sum(s => s.Hours), 1), Math.Round(shifts.Sum(s => s.Cost), 2), shifts.Select(s => s.StaffId).Distinct().Count(), shifts.Select(s => s.LocationName).Distinct().Count(), shifts.Count > 0 ? Math.Round(shifts.Average(s => s.Hours), 2) : 0m);
 
-        var byStaff    = shifts.GroupBy(s => new { s.StaffId, s.StaffName, s.Role }).Select(g => new StaffReportRow(g.Key.StaffId, g.Key.StaffName, g.Key.Role, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), g.Count() > 0 ? Math.Round(g.Average(s => s.Hours), 2) : 0m)).OrderByDescending(r => r.Cost).ToList();
+        var byStaff    = shifts.GroupBy(s => new { s.StaffId, s.StaffName, s.Role }).Select(g => new StaffReportRow(g.Key.StaffId, g.Key.StaffName, g.Key.Role, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), g.Any() ? Math.Round(g.Average(s => s.Hours), 2) : 0m)).OrderByDescending(r => r.Cost).ToList();
         var byLocation = shifts.GroupBy(s => s.LocationName).Select(g => new LocationReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2))).OrderByDescending(r => r.Cost).ToList();
         var byRole     = shifts.GroupBy(s => s.Role).Select(g => new RoleReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), g.Select(s => s.StaffId).Distinct().Count())).OrderByDescending(r => r.Cost).ToList();
         var byDate     = shifts.GroupBy(s => DateOnly.FromDateTime(s.ClockedIn)).Select(g => new DateReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2))).OrderBy(r => r.Date).ToList();

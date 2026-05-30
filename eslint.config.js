@@ -29,6 +29,14 @@ module.exports = tseslint.config(
     },
   },
   {
+    // `any` is idiomatic in test mocks (vi.fn() casts, partial stubs) — enforcing real types there
+    // is high-noise/low-value, so no-explicit-any stays a warning for app/lib code but is off in specs.
+    files: ['projects/**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  {
     files: ['projects/**/*.html'],
     extends: [
       ...angular.configs.templateRecommended,

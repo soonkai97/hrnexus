@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { AppNotification } from '../models';
@@ -11,7 +11,7 @@ export class NotificationService {
   readonly unreadCount    = computed(() =>
     this._notifications().filter(n => !n.isRead).length);
 
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   load(): Observable<AppNotification[]> {
     return this.http.get<AppNotification[]>('/api/notifications').pipe(

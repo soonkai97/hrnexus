@@ -16,7 +16,7 @@
 
   @if (panelOpen()) {
     <!-- Mobile backdrop -->
-    <div class="notif-backdrop" (click)="close()"></div>
+    <div class="notif-backdrop" (click)="close()" tabindex="0" role="button" (keydown.enter)="close()"></div>
 
     <!-- Notification panel -->
     <div class="notif-panel" role="dialog" [attr.aria-label]="'notifications.title' | translate">
@@ -41,7 +41,10 @@
           <div class="notif-item"
                [class.unread]="!n.isRead"
                [class.clickable]="!!routeFor(n)"
-               (click)="onNotifClick(n)">
+               (click)="onNotifClick(n)"
+               tabindex="0"
+               role="button"
+               (keydown.enter)="onNotifClick(n)">
             <div class="notif-icon">{{ iconFor(n.type) }}</div>
             <div class="notif-body">
               <div class="notif-title">{{ n.title }}</div>

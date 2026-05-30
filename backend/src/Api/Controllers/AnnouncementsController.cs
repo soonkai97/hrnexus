@@ -26,7 +26,7 @@ public class AnnouncementsController(IMediator mediator, IAppDbContext db) : Con
     public async Task<IActionResult> GetMine(CancellationToken ct)
     {
         var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
-        if (!roles.Any()) roles.Add(CallerRole);
+        if (roles.Count == 0) roles.Add(CallerRole);
 
         var result = await mediator.Send(new GetAnnouncementsQuery(EmployeeId, roles), ct);
         return Ok(result);

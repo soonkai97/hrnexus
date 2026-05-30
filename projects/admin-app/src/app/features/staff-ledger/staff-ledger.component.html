@@ -103,14 +103,15 @@
             <div class="form-grid">
               <!-- Date -->
               <div class="field">
-                <label>{{ 'staffLedger.dateLabel' | translate }} <span class="req">*</span></label>
-                <input pInputText type="date" [(ngModel)]="form.entryDate" />
+                <label for="sl-entry-date">{{ 'staffLedger.dateLabel' | translate }} <span class="req">*</span></label>
+                <input id="sl-entry-date" pInputText type="date" [(ngModel)]="form.entryDate" />
               </div>
 
               <!-- Work type -->
               <div class="field">
-                <label>{{ 'staffLedger.workTypeLabel' | translate }} <span class="req">*</span></label>
+                <label for="sl-work-type">{{ 'staffLedger.workTypeLabel' | translate }} <span class="req">*</span></label>
                 <p-select
+                  inputId="sl-work-type"
                   [options]="workTypes()"
                   [(ngModel)]="form.workType"
                   optionLabel="label"
@@ -121,8 +122,9 @@
 
               <!-- Units -->
               <div class="field">
-                <label>{{ 'staffLedger.venueUnitsLabel' | translate }}</label>
+                <label for="sl-venue-units">{{ 'staffLedger.venueUnitsLabel' | translate }}</label>
                 <p-inputnumber
+                  inputId="sl-venue-units"
                   [(ngModel)]="form.venueUnits"
                   [minFractionDigits]="0"
                   [maxFractionDigits]="2"
@@ -134,8 +136,9 @@
 
               <!-- Rate -->
               <div class="field">
-                <label>{{ 'staffLedger.venueRateLabel' | translate }}</label>
+                <label for="sl-venue-rate">{{ 'staffLedger.venueRateLabel' | translate }}</label>
                 <p-inputnumber
+                  inputId="sl-venue-rate"
                   [(ngModel)]="form.venueRate"
                   [minFractionDigits]="2"
                   [maxFractionDigits]="2"
@@ -148,8 +151,9 @@
 
               <!-- Venue earnings -->
               <div class="field">
-                <label>{{ 'staffLedger.venueEarningsLabel' | translate }}</label>
+                <label for="sl-venue-earnings">{{ 'staffLedger.venueEarningsLabel' | translate }}</label>
                 <p-inputnumber
+                  inputId="sl-venue-earnings"
                   [(ngModel)]="form.venueEarnings"
                   [minFractionDigits]="2"
                   [maxFractionDigits]="2"
@@ -162,8 +166,9 @@
               <!-- Private gross (overnight / private hours only) -->
               @if (hasPrivateFields()) {
                 <div class="field">
-                  <label>{{ 'staffLedger.privateGrossLabel' | translate }}</label>
+                  <label for="sl-private-gross">{{ 'staffLedger.privateGrossLabel' | translate }}</label>
                   <p-inputnumber
+                    inputId="sl-private-gross"
                     [(ngModel)]="form.privateGross"
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
@@ -174,8 +179,9 @@
                 </div>
 
                 <div class="field">
-                  <label>{{ 'staffLedger.privateNetLabel' | translate }}</label>
+                  <label for="sl-private-net">{{ 'staffLedger.privateNetLabel' | translate }}</label>
                   <p-inputnumber
+                    inputId="sl-private-net"
                     [(ngModel)]="form.privateNet"
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
@@ -188,8 +194,9 @@
 
               <!-- Settlement -->
               <div class="field">
-                <label>{{ 'staffLedger.settlementLabel' | translate }}</label>
+                <label for="sl-settlement">{{ 'staffLedger.settlementLabel' | translate }}</label>
                 <p-select
+                  inputId="sl-settlement"
                   [options]="settlements()"
                   [(ngModel)]="form.settlement"
                   optionLabel="label"
@@ -200,8 +207,8 @@
 
               <!-- Notes -->
               <div class="field field--full">
-                <label>{{ 'staffLedger.notesLabel' | translate }}</label>
-                <input pInputText type="text" [(ngModel)]="form.notes" />
+                <label for="sl-notes">{{ 'staffLedger.notesLabel' | translate }}</label>
+                <input id="sl-notes" pInputText type="text" [(ngModel)]="form.notes" />
               </div>
             </div>
 
@@ -304,8 +311,9 @@
 
               <div class="form-grid">
                 <div class="field">
-                  <label>{{ 'staffLedger.categoryLabel' | translate }}</label>
+                  <label for="sl-expense-category">{{ 'staffLedger.categoryLabel' | translate }}</label>
                   <p-select
+                    inputId="sl-expense-category"
                     [options]="expenseCategories()"
                     [(ngModel)]="expenseForm.category"
                     optionLabel="label"
@@ -315,8 +323,9 @@
                 </div>
 
                 <div class="field">
-                  <label>{{ 'staffLedger.amountLabel' | translate }}</label>
+                  <label for="sl-expense-amount">{{ 'staffLedger.amountLabel' | translate }}</label>
                   <p-inputnumber
+                    inputId="sl-expense-amount"
                     [(ngModel)]="expenseForm.amount"
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
@@ -327,8 +336,8 @@
                 </div>
 
                 <div class="field field--full">
-                  <label>{{ 'staffLedger.notesLabel' | translate }}</label>
-                  <input pInputText type="text" [(ngModel)]="expenseForm.notes" />
+                  <label for="sl-expense-notes">{{ 'staffLedger.notesLabel' | translate }}</label>
+                  <input id="sl-expense-notes" pInputText type="text" [(ngModel)]="expenseForm.notes" />
                 </div>
               </div>
 
@@ -409,13 +418,14 @@
 
               <div class="form-grid">
                 <div class="field">
-                  <label>{{ 'staffLedger.loanDateLabel' | translate }}</label>
-                  <input pInputText type="date" [(ngModel)]="loanForm.loanDate" />
+                  <label for="sl-loan-date">{{ 'staffLedger.loanDateLabel' | translate }}</label>
+                  <input id="sl-loan-date" pInputText type="date" [(ngModel)]="loanForm.loanDate" />
                 </div>
 
                 <div class="field">
-                  <label>{{ 'staffLedger.loanTypeLabel' | translate }}</label>
+                  <label for="sl-loan-type">{{ 'staffLedger.loanTypeLabel' | translate }}</label>
                   <p-select
+                    inputId="sl-loan-type"
                     [options]="loanTypeOptions()"
                     [(ngModel)]="loanForm.loanType"
                     optionLabel="label"
@@ -425,8 +435,9 @@
                 </div>
 
                 <div class="field">
-                  <label>{{ 'staffLedger.loanAmountLabel' | translate }}</label>
+                  <label for="sl-loan-amount">{{ 'staffLedger.loanAmountLabel' | translate }}</label>
                   <p-inputnumber
+                    inputId="sl-loan-amount"
                     [(ngModel)]="loanForm.amount"
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
@@ -437,8 +448,8 @@
                 </div>
 
                 <div class="field field--full">
-                  <label>{{ 'staffLedger.purposeLabel' | translate }}</label>
-                  <input pInputText type="text" [(ngModel)]="loanForm.purpose" />
+                  <label for="sl-loan-purpose">{{ 'staffLedger.purposeLabel' | translate }}</label>
+                  <input id="sl-loan-purpose" pInputText type="text" [(ngModel)]="loanForm.purpose" />
                 </div>
               </div>
 

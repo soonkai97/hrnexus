@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PagedResult } from './work-log.service';
@@ -18,7 +18,7 @@ export interface UpsertAnnouncementDto {
 
 @Injectable({ providedIn: 'root' })
 export class AnnouncementService {
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
   getMine(): Observable<AnnouncementDto[]> { return this.http.get<AnnouncementDto[]>('/api/announcements'); }
   markRead(id: string): Observable<void> { return this.http.post<void>(`/api/announcements/${id}/read`, {}); }
   getAll(page = 1, pageSize = 10): Observable<PagedResult<AdminAnnouncementDto>> {

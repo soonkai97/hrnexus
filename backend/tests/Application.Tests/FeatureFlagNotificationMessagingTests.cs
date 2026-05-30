@@ -49,7 +49,7 @@ public class FeatureFlagNotificationMessagingTests
     // ── GetFeatureFlagsQuery ──────────────────────────────────────────────────
 
     // Each test uses a fresh MemoryCache so cached results from one test don't bleed into another.
-    private static IMemoryCache NewCache() => new MemoryCache(new MemoryCacheOptions());
+    private static MemoryCache NewCache() => new MemoryCache(new MemoryCacheOptions());
 
     [Fact]
     public async Task GetFeatureFlags_ReturnsEmptyDictionary_WhenNoFlagsExist()

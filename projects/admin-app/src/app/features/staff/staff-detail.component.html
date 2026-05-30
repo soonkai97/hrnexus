@@ -29,20 +29,20 @@
     <p-card styleClass="nc-card" class="mb-4">
       @if (!editMode()) {
         <div class="detail-info-grid">
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.fullName' | translate }}</label><div>{{ s.fullName }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.staffId' | translate }}</label><div>{{ s.staffId }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.email' | translate }}</label><div>{{ s.email }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.phone' | translate }}</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.icNo' | translate }}</label><div>{{ s.icNo ?? '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.passport' | translate }}</label><div>{{ s.passportNo ?? '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'dd/MM/yyyy') : '—' }}</div></div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.status' | translate }}</label>
+          <div><label for="sd-view-fullName" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.fullName' | translate }}</label><div>{{ s.fullName }}</div></div>
+          <div><label for="sd-view-staffId" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.staffId' | translate }}</label><div>{{ s.staffId }}</div></div>
+          <div><label for="sd-view-email" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.email' | translate }}</label><div>{{ s.email }}</div></div>
+          <div><label for="sd-view-phone" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.phone' | translate }}</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
+          <div><label for="sd-view-icNo" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.icNo' | translate }}</label><div>{{ s.icNo ?? '—' }}</div></div>
+          <div><label for="sd-view-passport" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.passport' | translate }}</label><div>{{ s.passportNo ?? '—' }}</div></div>
+          <div><label for="sd-view-dob" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'dd/MM/yyyy') : '—' }}</div></div>
+          <div><label for="sd-view-status" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.status' | translate }}</label>
             <div>
               @if (s.isActive) { <p-tag [value]="'common.active' | translate" severity="success" /> }
               @else            { <p-tag [value]="'common.inactive' | translate" severity="secondary" /> }
             </div>
           </div>
-          <div><label style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.roles' | translate }}</label>
+          <div><label for="sd-view-roles" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.roles' | translate }}</label>
             <div class="d-flex flex-wrap gap-1">
               @for (r of s.roles; track r) { <p-tag [value]="r" severity="info" styleClass="mr-1" /> }
             </div>
@@ -52,41 +52,41 @@
         <!-- Edit form -->
         <div class="row g-3">
           <div class="col-12 col-md-6 field">
-            <label><span class="req">*</span> {{ 'staffDetail.staffId' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="editForm.staffId"
+            <label for="sd-staffId"><span class="req">*</span> {{ 'staffDetail.staffId' | translate }}</label>
+            <input id="sd-staffId" pInputText type="text" [(ngModel)]="editForm.staffId"
                    (blur)="markTouched('staffId')" [class.input-invalid]="!!fieldError('staffId')" />
             @if (fieldError('staffId'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
-            <label>{{ 'staffDetail.email' | translate }}</label>
-            <input pInputText type="email" [(ngModel)]="editForm.email"
+            <label for="sd-email">{{ 'staffDetail.email' | translate }}</label>
+            <input id="sd-email" pInputText type="email" [(ngModel)]="editForm.email"
                    (blur)="markTouched('email')" [class.input-invalid]="!!fieldError('email')" />
             @if (fieldError('email'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
-            <label><span class="req">*</span> {{ 'staffDetail.firstName' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="editForm.firstName"
+            <label for="sd-firstName"><span class="req">*</span> {{ 'staffDetail.firstName' | translate }}</label>
+            <input id="sd-firstName" pInputText type="text" [(ngModel)]="editForm.firstName"
                    (blur)="markTouched('firstName')" [class.input-invalid]="!!fieldError('firstName')" />
             @if (fieldError('firstName'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
-            <label>{{ 'staffDetail.lastName' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="editForm.lastName" />
+            <label for="sd-lastName">{{ 'staffDetail.lastName' | translate }}</label>
+            <input id="sd-lastName" pInputText type="text" [(ngModel)]="editForm.lastName" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label>{{ 'staffDetail.phone' | translate }}</label>
-            <input pInputText type="tel" [(ngModel)]="editForm.phoneNumber" />
+            <label for="sd-phone">{{ 'staffDetail.phone' | translate }}</label>
+            <input id="sd-phone" pInputText type="tel" [(ngModel)]="editForm.phoneNumber" />
           </div>
           <div class="col-12 col-md-6 field">
             <div class="d-flex justify-content-between align-items-center">
-              <label>{{ 'staffDetail.dateOfBirth' | translate }}</label>
+              <label for="sd-dob">{{ 'staffDetail.dateOfBirth' | translate }}</label>
               @if (editForm.dateOfBirth) {
                 <button type="button" class="dob-clear-link" (click)="editForm.dateOfBirth = null">
                   <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
                 </button>
               }
             </div>
-            <p-datepicker [(ngModel)]="editForm.dateOfBirth"
+            <p-datepicker inputId="sd-dob" [(ngModel)]="editForm.dateOfBirth"
               dateFormat="yy-mm-dd"
               dataType="string"
               [showIcon]="true"
@@ -96,18 +96,19 @@
               appendTo="body" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label>{{ 'staffDetail.icNoOptional' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="editForm.icNo" />
+            <label for="sd-icNo">{{ 'staffDetail.icNoOptional' | translate }}</label>
+            <input id="sd-icNo" pInputText type="text" [(ngModel)]="editForm.icNo" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label>{{ 'staffDetail.passportNoOptional' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="editForm.passportNo" />
+            <label for="sd-passportNo">{{ 'staffDetail.passportNoOptional' | translate }}</label>
+            <input id="sd-passportNo" pInputText type="text" [(ngModel)]="editForm.passportNo" />
           </div>
           <!-- Roles — admins only; managers can't change role assignments -->
           @if (!isManager()) {
             <div class="field col-12">
-              <label>{{ 'staffDetail.roles' | translate }}</label>
+              <label for="sd-roles">{{ 'staffDetail.roles' | translate }}</label>
               <p-multiselect
+                inputId="sd-roles"
                 [(ngModel)]="editForm.roles"
                 [options]="availableRoles()"
                 optionLabel="name"

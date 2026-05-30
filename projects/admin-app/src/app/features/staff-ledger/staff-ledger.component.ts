@@ -489,7 +489,7 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
   settlementSeverity(key: string): 'success' | 'warn' | 'danger' | 'info' | 'secondary' | 'contrast' {
     const severity = this.configSvc.settlements().find(s => s.key === key)?.severity ?? 'secondary';
     const known = ['success','warn','danger','info','secondary','contrast'] as const;
-    return known.includes(severity as any) ? severity as any : 'secondary';
+    return (known as readonly string[]).includes(severity) ? severity as typeof known[number] : 'secondary';
   }
 
   workTypeLabel(key: string): string {

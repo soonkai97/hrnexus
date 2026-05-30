@@ -13,15 +13,15 @@
       </div>
       <div class="add-form-grid">
         <div class="field">
-          <label><span class="req">*</span> {{ 'roles.roleNameCol' | translate }}</label>
-          <input pInputText type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
+          <label for="rl-role-name"><span class="req">*</span> {{ 'roles.roleNameCol' | translate }}</label>
+          <input id="rl-role-name" pInputText type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
                  [placeholder]="'roles.rolePlaceholder' | translate" maxlength="50" (keydown.enter)="addRole()"
                  (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" />
           @if (fieldError('name'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="field rate-field">
-          <label>{{ 'roles.rateLabel' | translate }}</label>
-          <p-inputnumber [(ngModel)]="newRoleRate" [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2" [pt]="$any({ input: { inputmode: 'decimal' } })" />
+          <label for="rl-role-rate">{{ 'roles.rateLabel' | translate }}</label>
+          <p-inputnumber inputId="rl-role-rate" [(ngModel)]="newRoleRate" [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2" [pt]="$any({ input: { inputmode: 'decimal' } })" />
         </div>
         <p-button icon="pi pi-plus" [label]="'roles.addBtn' | translate" severity="primary" styleClass="btn-add"
                   (click)="addRole()" [disabled]="saving() || !newRoleName.trim()" [loading]="saving()" />

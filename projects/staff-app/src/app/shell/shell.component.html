@@ -2,7 +2,7 @@
 
   <!-- Mobile sidebar backdrop — click outside to close -->
   @if (!collapsed()) {
-    <div class="sidebar-backdrop" (click)="collapsed.set(true)"></div>
+    <div class="sidebar-backdrop" (click)="collapsed.set(true)" tabindex="0" role="button" (keydown.enter)="collapsed.set(true)"></div>
   }
 
   <!-- Sidebar -->

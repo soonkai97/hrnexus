@@ -11,8 +11,8 @@
   <p-card styleClass="filter-bar">
     <div class="filter-row d-flex flex-wrap gap-2 align-items-end">
       <div class="field filter-staff">
-        <label>{{ 'leave.staffLabel' | translate }}</label>
-        <p-select [(ngModel)]="filterEmployeeId" (onChange)="load(1)"
+        <label for="leave-filter-staff">{{ 'leave.staffLabel' | translate }}</label>
+        <p-select inputId="leave-filter-staff" [(ngModel)]="filterEmployeeId" (onChange)="load(1)"
           [options]="staffStore.staff()" optionLabel="fullName" optionValue="id"
           [placeholder]="'leave.allStaff' | translate" [showClear]="!!filterEmployeeId"
           [filter]="true" [filterPlaceholder]="'leave.searchStaff' | translate"
@@ -22,31 +22,31 @@
       @if (tab() === 'records') {
       <div class="field filter-date">
         <div class="d-flex justify-content-between align-items-center">
-          <label>{{ 'leave.fromLabel' | translate }}</label>
+          <label for="leave-filter-from">{{ 'leave.fromLabel' | translate }}</label>
           @if (filterFrom) {
             <button type="button" class="dob-clear-link" (click)="filterFrom = ''; load(1)">
               <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
             </button>
           }
         </div>
-        <p-datepicker [(ngModel)]="filterFrom" dateFormat="yy-mm-dd" dataType="string"
+        <p-datepicker inputId="leave-filter-from" [(ngModel)]="filterFrom" dateFormat="yy-mm-dd" dataType="string"
           [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-date">
         <div class="d-flex justify-content-between align-items-center">
-          <label>{{ 'leave.toLabel' | translate }}</label>
+          <label for="leave-filter-to">{{ 'leave.toLabel' | translate }}</label>
           @if (filterTo) {
             <button type="button" class="dob-clear-link" (click)="filterTo = ''; load(1)">
               <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
             </button>
           }
         </div>
-        <p-datepicker [(ngModel)]="filterTo" dateFormat="yy-mm-dd" dataType="string"
+        <p-datepicker inputId="leave-filter-to" [(ngModel)]="filterTo" dateFormat="yy-mm-dd" dataType="string"
           [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="load(1)" />
       </div>
       <div class="field filter-status">
-        <label>{{ 'leave.statusLabel' | translate }}</label>
-        <p-select [(ngModel)]="filterStatus" (onChange)="load(1)"
+        <label for="leave-filter-status">{{ 'leave.statusLabel' | translate }}</label>
+        <p-select inputId="leave-filter-status" [(ngModel)]="filterStatus" (onChange)="load(1)"
           [options]="statusOptions" optionLabel="label" optionValue="value"
           [placeholder]="'leave.allStatus' | translate"
           [showClear]="!!filterStatus" styleClass="w-full" />
@@ -96,7 +96,7 @@
     <!-- Overdue pending banner -->
     @if (overdueLeaves().length > 0) {
       <div class="overdue-banner">
-        <div class="overdue-banner-header" (click)="overdueExpanded.update(v => !v)">
+        <div class="overdue-banner-header" tabindex="0" role="button" (click)="overdueExpanded.update(v => !v)" (keydown.enter)="overdueExpanded.update(v => !v)">
           <span class="overdue-banner-title">
             <i class="pi pi-exclamation-triangle"></i> {{ overdueLeaves().length }} {{ 'leave.overdueSection' | translate }}
           </span>
@@ -139,8 +139,8 @@
         </div>
         <div class="row g-3">
           <div class="col-12 col-md-6 field">
-            <label><span class="req">*</span> {{ 'leave.staffMember' | translate }}</label>
-            <p-select [(ngModel)]="form.employeeId" [options]="staffStore.staff()"
+            <label for="leave-form-staff"><span class="req">*</span> {{ 'leave.staffMember' | translate }}</label>
+            <p-select inputId="leave-form-staff" [(ngModel)]="form.employeeId" [options]="staffStore.staff()"
               optionLabel="fullName" optionValue="id"
               [placeholder]="'leave.selectOption' | translate"
               [filter]="true" [filterPlaceholder]="'leave.searchStaff' | translate"
@@ -161,18 +161,18 @@
             }
           </div>
           <div class="col-12 col-md-6 field">
-            <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
-            <p-select [(ngModel)]="form.leaveType" [options]="leaveTypeOptions"
+            <label for="leave-form-type"><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
+            <p-select inputId="leave-form-type" [(ngModel)]="form.leaveType" [options]="leaveTypeOptions"
               optionLabel="label" optionValue="value" styleClass="w-full" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
-            <p-datepicker [(ngModel)]="form.startDate" dateFormat="yy-mm-dd" dataType="string"
+            <label for="leave-form-start-date"><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
+            <p-datepicker inputId="leave-form-start-date" [(ngModel)]="form.startDate" dateFormat="yy-mm-dd" dataType="string"
               [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" (ngModelChange)="onStartDateChange($event)" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="startTimeDate"
+            <label for="leave-form-start-time"><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
+            <p-datepicker inputId="leave-form-start-time" [(ngModel)]="startTimeDate"
               [timeOnly]="true"
               [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
@@ -183,13 +183,13 @@
               styleClass="w-full" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
-            <p-datepicker [(ngModel)]="form.endDate" dateFormat="yy-mm-dd" dataType="string"
+            <label for="leave-form-end-date"><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
+            <p-datepicker inputId="leave-form-end-date" [(ngModel)]="form.endDate" dateFormat="yy-mm-dd" dataType="string"
               [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="endTimeDate"
+            <label for="leave-form-end-time"><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
+            <p-datepicker inputId="leave-form-end-time" [(ngModel)]="endTimeDate"
               [timeOnly]="true"
               [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
@@ -200,18 +200,18 @@
               styleClass="w-full" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label>{{ 'leave.statusLabel' | translate }}</label>
-            <p-select [(ngModel)]="form.status" [options]="statusOptions"
+            <label for="leave-form-status">{{ 'leave.statusLabel' | translate }}</label>
+            <p-select inputId="leave-form-status" [(ngModel)]="form.status" [options]="statusOptions"
               optionLabel="label" optionValue="value" styleClass="w-full" />
           </div>
           <div class="col-12 field">
-            <label>{{ 'leave.notesLabel' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="form.notes" [placeholder]="'leave.notesPlaceholder' | translate" />
+            <label for="leave-form-notes">{{ 'leave.notesLabel' | translate }}</label>
+            <input id="leave-form-notes" pInputText type="text" [(ngModel)]="form.notes" [placeholder]="'leave.notesPlaceholder' | translate" />
           </div>
           @if (form.status === 'rejected') {
             <div class="col-12 field">
-              <label>{{ 'leave.rejectionReason' | translate }}</label>
-              <input pInputText type="text" [(ngModel)]="form.rejectionReason"
+              <label for="leave-form-rejection-reason">{{ 'leave.rejectionReason' | translate }}</label>
+              <input id="leave-form-rejection-reason" pInputText type="text" [(ngModel)]="form.rejectionReason"
                 [placeholder]="'leave.rejectionReasonPlaceholder' | translate" />
             </div>
           }
@@ -293,19 +293,22 @@
             @for (_ of calDays().length > 0 ? leadingBlanks() : []; track $index) { <div class="cal-cell cal-blank"></div> }
             @for (day of calDays(); track day.iso) {
               <div class="cal-cell"
+                   tabindex="0" role="button"
                    [class.cal-weekend]="day.isWeekend"
                    [class.cal-today]="day.iso === todayIso"
                    [class.cal-selected]="day.iso === selectedCalDay()"
                    (click)="selectCalDay(day.iso)"
+                   (keydown.enter)="selectCalDay(day.iso)"
                    style="cursor:pointer">
                 <span class="cal-day-num">{{ day.day }}</span>
                 @if (day.leaves.length > 0) {
                   <div class="cal-leaves">
                     @for (r of day.leaves.slice(0, 2); track r.id) {
-                      <div class="cal-leave-chip" [class]="'cal-leave-' + r.leaveType"
+                      <div class="cal-leave-chip" tabindex="0" role="button" [class]="'cal-leave-' + r.leaveType"
                            [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
                            [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — ' + ('leave.overdue' | translate) : '')"
-                           (click)="openCalLeave(r, $event)">
+                           (click)="openCalLeave(r, $event)"
+                           (keydown.enter)="openCalLeave(r, $event)">
                         {{ calChipLabel(r.staffName) }}
                       </div>
                     }
@@ -533,16 +536,16 @@
         @if (editingEntitlement()) {
           <div class="entitlement-form">
             <div class="field m-0">
-              <label>{{ 'leave.annualHours' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" [pt]="$any({ input: { inputmode: 'decimal' } })" />
+              <label for="leave-ent-annual">{{ 'leave.annualHours' | translate }}</label>
+              <p-inputnumber inputId="leave-ent-annual" [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <div class="field m-0">
-              <label>{{ 'leave.sickHours' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" [pt]="$any({ input: { inputmode: 'decimal' } })" />
+              <label for="leave-ent-sick">{{ 'leave.sickHours' | translate }}</label>
+              <p-inputnumber inputId="leave-ent-sick" [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <div class="field m-0">
-              <label>{{ 'common.year' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.year" [pt]="$any({ input: { inputmode: 'decimal' } })" />
+              <label for="leave-ent-year">{{ 'common.year' | translate }}</label>
+              <p-inputnumber inputId="leave-ent-year" [(ngModel)]="entitlementForm.year" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <p-button [label]="savingEntitlement() ? ('common.saving' | translate) : ('leave.saveEntitlement' | translate)"
                       severity="primary" styleClass="ent-save-btn" (click)="saveEntitlement()"
@@ -571,12 +574,12 @@
           <span class="bulk-ent-label">{{ 'leave.bulkEntLabel' | translate:{ year: balanceYear() } }}</span>
           <div class="bulk-ent-fields d-flex align-items-center gap-3 flex-wrap mt-2">
             <div class="field m-0">
-              <label>{{ 'leave.annualHours' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" [pt]="$any({ input: { inputmode: 'decimal' } })" />
+              <label for="leave-bulk-annual">{{ 'leave.annualHours' | translate }}</label>
+              <p-inputnumber inputId="leave-bulk-annual" [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <div class="field m-0">
-              <label>{{ 'leave.sickHours' | translate }}</label>
-              <p-inputnumber [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" [pt]="$any({ input: { inputmode: 'decimal' } })" />
+              <label for="leave-bulk-sick">{{ 'leave.sickHours' | translate }}</label>
+              <p-inputnumber inputId="leave-bulk-sick" [(ngModel)]="entitlementForm.sickHours" [min]="0" [max]="999" suffix="h" styleClass="bulk-ent-input" [pt]="$any({ input: { inputmode: 'decimal' } })" />
             </div>
             <p-button icon="pi pi-check" [label]="bulkSaving() ? ('common.saving' | translate) : ('leave.bulkApply' | translate)"
               severity="primary" [loading]="bulkSaving()" [disabled]="bulkSaving()"
@@ -601,7 +604,7 @@
       } @else {
         <div class="staff-balance-list">
           @for (b of allBalances(); track b.employeeId) {
-            <div class="staff-bal-row" (click)="filterEmployeeId = b.employeeId; load()">
+            <div class="staff-bal-row" tabindex="0" role="button" (click)="filterEmployeeId = b.employeeId; load()" (keydown.enter)="filterEmployeeId = b.employeeId; load()">
               <div class="staff-bal-name">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                   <span class="staff-bal-fullname">{{ b.fullName }}</span>
@@ -678,7 +681,7 @@
             <span class="ls-data-col ls-total-col">{{ 'leave.summaryTotal' | translate }}</span>
           </div>
           @for (s of leaveSummary(); track s.employeeId) {
-            <div class="ls-row" (click)="filterEmployeeId = s.employeeId; tab.set('records'); load()">
+            <div class="ls-row" tabindex="0" role="button" (click)="filterEmployeeId = s.employeeId; tab.set('records'); load()" (keydown.enter)="filterEmployeeId = s.employeeId; tab.set('records'); load()">
               <div class="ls-name-col">
                 <span class="ls-fullname">{{ s.fullName }}</span>
                 <span class="ls-sid">{{ s.staffId }}</span>
@@ -710,7 +713,7 @@
       } @else {
         <div class="pattern-warning-list">
           @for (w of patternWarnings(); track w.employeeId) {
-            <div class="pattern-warning-row" (click)="filterEmployeeId = w.employeeId; tab.set('records'); load()">
+            <div class="pattern-warning-row" tabindex="0" role="button" (click)="filterEmployeeId = w.employeeId; tab.set('records'); load()" (keydown.enter)="filterEmployeeId = w.employeeId; tab.set('records'); load()">
               <div class="pw-info">
                 <span class="pw-name">{{ w.fullName }}</span>
                 <span class="pw-id">{{ w.staffId }}</span>

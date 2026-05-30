@@ -42,8 +42,7 @@ export class PaySummaryComponent implements OnInit {
 
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
-
-  constructor(private payroll: PayrollService) {}
+  private readonly payroll = inject(PayrollService);
 
   ngOnInit(): void { this.load(); }
 

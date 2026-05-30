@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
@@ -22,7 +22,10 @@ export class AuthService {
     return null;
   });
 
-  constructor(private http: HttpClient, private router: Router) {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+
+  constructor() {
     this.evictStaleTokens();
     this.evictLowercaseRoleTokens();
   }

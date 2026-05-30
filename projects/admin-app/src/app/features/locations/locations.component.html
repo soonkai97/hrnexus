@@ -16,8 +16,8 @@
         <p-button [label]="'locations.close' | translate" [text]="true" severity="secondary" (click)="cancel()" />
       </div>
       <div class="field">
-        <label><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
-        <input pInputText type="text" [ngModel]="form.name" (ngModelChange)="form.name = $event.toUpperCase()"
+        <label for="loc-name"><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
+        <input id="loc-name" pInputText type="text" [ngModel]="form.name" (ngModelChange)="form.name = $event.toUpperCase()"
                [placeholder]="'locations.namePlaceholder' | translate" maxlength="100"
                (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" />
         @if (fieldError('name'); as err) { <small class="field-err">{{ err }}</small> }

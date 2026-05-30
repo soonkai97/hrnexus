@@ -23,7 +23,7 @@ hrnexus/
 │   │       ├── stores/              # Signal-based state (StaffStore, LocationStore)
 │   │       ├── guards/              # authGuard, roleGuard, featureFlagGuard
 │   │       └── components/          # Toast, ConfirmDialog, ThemeToggle, etc.
-│   ├── admin-app/                   # Manager / admin dashboard (desktop-first)
+│   ├── admin-app/                   # Manager / admin dashboard — PWA (desktop-first)
 │   └── staff-app/                   # Staff-facing PWA (mobile-first)
 └── nginx/                           # Reverse proxy config (Docker)
 ```
@@ -107,11 +107,15 @@ Staff are **commission-based**. Two systems exist with distinct roles:
 
 | Role | Portals | Notes |
 |---|---|---|
-| `admin` | Admin only | Full access including feature flags |
-| `manager` | Admin only | All features except feature flag management |
-| `employee` | Staff only | Own data only |
+| `admin` (SuperAdmin) | Both | Full admin access incl. feature flags; can also use the staff portal as a normal user |
+| `manager` | Both | All admin features except feature-flag management; can also use the staff portal |
+| `employee` | Staff only | Own data only; blocked from the admin portal |
+
+The admin portal is gated to manager/admin; the staff portal is open to any active account (a manager/admin logging in there is treated as a normal staff user — e.g. to log their own shift).
 
 JWT (access + refresh token), stored in `localStorage`. Feature flags require an additional PIN unlock stored in `sessionStorage`.
+
+**Login hardening:** an account locks for 15 min after 5 consecutive failed logins (per-account, returns 429), plus a per-client-IP rate limiter on `/api/auth/*` (default 100/min, tunable via `RateLimit:Auth*`) as a coarse flood ceiling.
 
 ---
 

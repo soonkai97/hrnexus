@@ -905,6 +905,15 @@ dotnet test                                         # run everything
 > `WebApplicationFactory<Program>`). If Docker isn't available these tests fail to start — run
 > the Application suite instead. `scripts/seed-and-demo-hardening.ps1` seeds sample data and
 > demonstrates lockout + a live clock-in race against the running local stack.
+>
+> `LoadConcurrencyTests` drives **50 concurrent** ops: 50 distinct staff clock in (all succeed),
+> 50 clock-ins for one staff (exactly 1 wins), and 50 leave approvals vs a 10h cap (never
+> overdraws). **Known benign finding:** under heavy leave contention the Serializable +
+> `EnableRetryOnFailure` retry can occasionally commit a leave row while the caller still gets an
+> error response — direction is always SAFE (never "told approved but not saved", never
+> overdraws), but a follow-up could move post-commit side-effects out of the retry scope to make
+> the response match the persisted state. `scripts/load-test-50-live.ps1` runs the same 50-way
+> guard + rate-limiter burst against the live API.
 
 ### Auth hardening (login defense)
 Two complementary layers guard `/api/auth`:

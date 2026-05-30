@@ -150,6 +150,26 @@ public class StaffMiscCommandTests
         Assert.Equal(0, count);
     }
 
+    [Fact]
+    public async Task DeleteRole_ThrowsInvalidOperation_WhenRoleIsAssignedToStaff()
+    {
+        // A role still assigned to staff must not be deletable — StaffRole stores the role as a
+        // plain string (no FK), so deleting it would leave dangling role references.
+        await using var db = CreateDb();
+        db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
+        db.Staff.Add(E.Staff.Create("S001", "Jane", "Doe", "jane@test.com", "hash",
+            new List<string> { "BARTENDER" }));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new DeleteRoleCommandHandler(db);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new DeleteRoleCommand("BARTENDER"), CancellationToken.None));
+
+        Assert.Equal(1, await db.Roles.CountAsync());   // still there — not deleted
+    }
+
     // ── UpdateProfileCommand ──────────────────────────────────────────────────
 
     [Fact]

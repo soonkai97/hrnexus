@@ -6,17 +6,17 @@
   <p-card styleClass="filter-card">
     <div class="d-flex gap-3 align-items-end flex-wrap">
       <div class="field">
-        <label>Year</label>
-        <p-inputnumber [ngModel]="year()" (ngModelChange)="year.set($event)" [min]="2020" [max]="2099" [useGrouping]="false" [pt]="$any({ input: { inputmode: 'decimal' } })" />
+        <label for="pr-year">Year</label>
+        <p-inputnumber inputId="pr-year" [ngModel]="year()" (ngModelChange)="year.set($event)" [min]="2020" [max]="2099" [useGrouping]="false" [pt]="$any({ input: { inputmode: 'decimal' } })" />
       </div>
       <div class="field">
-        <label>Month</label>
-        <p-select [ngModel]="month()" (onChange)="month.set($event.value)"
+        <label for="pr-month">Month</label>
+        <p-select inputId="pr-month" [ngModel]="month()" (onChange)="month.set($event.value)"
           [options]="monthOptions" optionLabel="label" optionValue="value" styleClass="w-full" />
       </div>
       <div class="field">
-        <label>&nbsp;</label>
-        <p-button label="View" severity="primary" class="w-full" styleClass="w-full" (click)="load()" [disabled]="loading()" [loading]="loading()" />
+        <label for="pr-view">&nbsp;</label>
+        <p-button inputId="pr-view" label="View" severity="primary" class="w-full" styleClass="w-full" (click)="load()" [disabled]="loading()" [loading]="loading()" />
       </div>
     </div>
   </p-card>

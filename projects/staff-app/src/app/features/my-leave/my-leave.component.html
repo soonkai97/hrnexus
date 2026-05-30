@@ -58,8 +58,9 @@
       <h3 class="form-title">{{ 'leave.applyLeave' | translate }}</h3>
       <div class="form-grid">
         <div class="field full-span">
-          <label><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
+          <label for="ml-leave-type"><span class="req">*</span> {{ 'leave.leaveType' | translate }}</label>
           <p-select
+            inputId="ml-leave-type"
             [options]="leaveTypeOptions"
             [(ngModel)]="form.leaveType"
             optionLabel="label"
@@ -73,8 +74,8 @@
           }
         </div>
         <div class="field">
-          <label><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
-          <p-datepicker [(ngModel)]="form.startDate"
+          <label for="ml-start-date"><span class="req">*</span> {{ 'leave.startDate' | translate }}</label>
+          <p-datepicker inputId="ml-start-date" [(ngModel)]="form.startDate"
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
@@ -87,8 +88,8 @@
             (ngModelChange)="onStartDateChange($event)" />
         </div>
         <div class="field">
-          <label><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
-          <p-datepicker [(ngModel)]="form.startTime"
+          <label for="ml-start-time"><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
+          <p-datepicker inputId="ml-start-time" [(ngModel)]="form.startTime"
             [timeOnly]="true"
             [hourFormat]="'12'"
             [showIcon]="true" icon="pi pi-clock"
@@ -99,8 +100,8 @@
             styleClass="w-full" />
         </div>
         <div class="field">
-          <label><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
-          <p-datepicker [(ngModel)]="form.endDate"
+          <label for="ml-end-date"><span class="req">*</span> {{ 'leave.endDate' | translate }}</label>
+          <p-datepicker inputId="ml-end-date" [(ngModel)]="form.endDate"
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
@@ -112,8 +113,8 @@
             appendTo="body" />
         </div>
         <div class="field">
-          <label><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
-          <p-datepicker [(ngModel)]="form.endTime"
+          <label for="ml-end-time"><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
+          <p-datepicker inputId="ml-end-time" [(ngModel)]="form.endTime"
             [timeOnly]="true"
             [hourFormat]="'12'"
             [showIcon]="true" icon="pi pi-clock"
@@ -134,8 +135,8 @@
         }
 
         <div class="field full-span">
-          <label>{{ 'leave.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
-          <input pInputText type="text" [(ngModel)]="form.notes" [placeholder]="'leave.notesLabel' | translate" />
+          <label for="ml-notes">{{ 'leave.notesLabel' | translate }} <span class="opt">({{ 'leave.optional' | translate }})</span></label>
+          <input id="ml-notes" pInputText type="text" [(ngModel)]="form.notes" [placeholder]="'leave.notesLabel' | translate" />
         </div>
       </div>
 
@@ -219,11 +220,14 @@
             <!-- Day cells -->
             @for (day of calDays(); track day.iso) {
               <div class="staff-cal-cell"
+                   tabindex="0"
+                   role="button"
                    [class.staff-cal-weekend]="day.isWeekend"
                    [class.staff-cal-today]="day.iso === todayIso"
                    [class.staff-cal-selected]="day.iso === selectedCalDay()"
                    [class.staff-cal-has-leave]="day.leaves.length > 0"
-                   (click)="selectCalDay(day.iso)">
+                   (click)="selectCalDay(day.iso)"
+                   (keydown.enter)="selectCalDay(day.iso)">
                 <span class="staff-cal-day-num">{{ day.day }}</span>
                 @if (day.leaves.length > 0) {
                   <div class="staff-cal-dots">

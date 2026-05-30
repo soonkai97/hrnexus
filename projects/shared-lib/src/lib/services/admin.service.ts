@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -135,7 +135,7 @@ export interface PayrollSummaryResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getDashboard(): Observable<DashboardResponse> {
     return this.http.get<DashboardResponse>('/api/admin/dashboard');

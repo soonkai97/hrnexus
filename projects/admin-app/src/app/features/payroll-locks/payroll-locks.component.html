@@ -8,17 +8,17 @@
   <p-card styleClass="form-card">
     <div class="lock-form">
       <div class="field">
-        <label><span class="req">*</span> {{ 'payrollLocks.year' | translate }}</label>
+        <label for="lock-year"><span class="req">*</span> {{ 'payrollLocks.year' | translate }}</label>
         <p-inputNumber [(ngModel)]="form.year" [useGrouping]="false" [min]="2000" [max]="2200" inputId="lock-year" />
       </div>
       <div class="field">
-        <label><span class="req">*</span> {{ 'payrollLocks.month' | translate }}</label>
+        <label for="lock-month"><span class="req">*</span> {{ 'payrollLocks.month' | translate }}</label>
         <p-select [(ngModel)]="form.month" [options]="monthOptions" optionLabel="label" optionValue="value"
                   appendTo="body" inputId="lock-month" />
       </div>
       <div class="field field-grow">
-        <label>{{ 'payrollLocks.note' | translate }}</label>
-        <input pInputText [(ngModel)]="form.note" [placeholder]="'payrollLocks.notePlaceholder' | translate" maxlength="500" />
+        <label for="pl-note">{{ 'payrollLocks.note' | translate }}</label>
+        <input id="pl-note" pInputText [(ngModel)]="form.note" [placeholder]="'payrollLocks.notePlaceholder' | translate" maxlength="500" />
       </div>
       <div class="field field-action">
         <p-button [label]="'payrollLocks.lockBtn' | translate" icon="pi pi-lock" severity="primary"

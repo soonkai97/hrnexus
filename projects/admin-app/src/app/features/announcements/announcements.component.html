@@ -11,22 +11,23 @@
         <p-button [label]="'announcements.close' | translate" [text]="true" severity="secondary" [attr.aria-label]="'announcements.closeForm' | translate" (click)="cancel()" />
       </div>
       <div class="field">
-        <label><span class="req">*</span> {{ 'announcements.titleLabel' | translate }}</label>
-        <input pInputText [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" maxlength="200"
+        <label for="ann-title"><span class="req">*</span> {{ 'announcements.titleLabel' | translate }}</label>
+        <input id="ann-title" pInputText [(ngModel)]="form.title" [placeholder]="'announcements.titlePlaceholder' | translate" maxlength="200"
                (blur)="markTouched('title')" [class.input-invalid]="!!fieldError('title')" />
         @if (fieldError('title'); as err) { <small class="field-err">{{ err }}</small> }
         <small class="char-counter" [class.char-counter--warn]="form.title.length > 180">{{ form.title.length }}/200</small>
       </div>
       <div class="field">
-        <label><span class="req">*</span> {{ 'announcements.bodyLabel' | translate }}</label>
-        <textarea pTextarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate" maxlength="5000"
+        <label for="ann-body"><span class="req">*</span> {{ 'announcements.bodyLabel' | translate }}</label>
+        <textarea id="ann-body" pTextarea [(ngModel)]="form.body" rows="4" [placeholder]="'announcements.bodyPlaceholder' | translate" maxlength="5000"
                   (blur)="markTouched('body')" [class.input-invalid]="!!fieldError('body')"></textarea>
         @if (fieldError('body'); as err) { <small class="field-err">{{ err }}</small> }
         <small class="char-counter" [class.char-counter--warn]="form.body.length > 4500">{{ form.body.length }}/5000</small>
       </div>
       <div class="field">
-        <label>{{ 'announcements.targetRoles' | translate }}</label>
+        <label for="ann-roles">{{ 'announcements.targetRoles' | translate }}</label>
         <p-multiselect
+          inputId="ann-roles"
           [options]="roleOptions()"
           [(ngModel)]="form.targetRoles"
           optionLabel="label"
@@ -38,7 +39,7 @@
       </div>
       <div class="field">
         <div class="d-flex justify-content-between align-items-center">
-          <label>{{ 'announcements.expiresAt' | translate }} <span class="field-hint">{{ 'announcements.expiresAtHint' | translate }}</span></label>
+          <label for="ann-expires">{{ 'announcements.expiresAt' | translate }} <span class="field-hint">{{ 'announcements.expiresAtHint' | translate }}</span></label>
           @if (form.expiresAt) {
             <button type="button" class="dob-clear-link" (click)="form.expiresAt = null">
               <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
@@ -46,6 +47,7 @@
           }
         </div>
         <p-datepicker [(ngModel)]="form.expiresAt"
+          inputId="ann-expires"
           dateFormat="yy-mm-dd"
           dataType="string"
           [showIcon]="true"

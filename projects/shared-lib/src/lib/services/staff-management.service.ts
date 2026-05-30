@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Staff, RegisterStaffRequest, StaffDetail, UpdateStaffRequest, StaffRole } from '../models';
@@ -8,7 +8,7 @@ export interface VenueLocation { id: string; name: string; }
 
 @Injectable({ providedIn: 'root' })
 export class StaffManagementService {
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getAll(search?: string, page = 1, pageSize = 10): Observable<PagedResult<Staff>> {
     let params = new HttpParams()

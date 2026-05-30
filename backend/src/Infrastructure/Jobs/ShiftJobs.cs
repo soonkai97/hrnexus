@@ -86,7 +86,7 @@ public class ShiftJobs(
                     wl.EmployeeId,
                     "⏰ Shift still active",
                     $"Your shift at {wl.LocationName} has been running for over 12 hours. Please end it if you're done.",
-                    "/log-shift");
+                    "/log-shift", ct);
             }
             catch { /* non-critical */ }
         }
@@ -151,7 +151,7 @@ public class ShiftJobs(
             {
                 await notifHub.SendToUserAsync(employeeId, new NotificationPayload(
                     notif.Id.ToString(), notif.Title, notif.Message,
-                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("O")));
+                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("O")), ct);
             }
             catch { /* non-critical */ }
         }
@@ -162,12 +162,12 @@ public class ShiftJobs(
             {
                 await notifHub.SendToUserAsync(supId, new NotificationPayload(
                     notif.Id.ToString(), notif.Title, notif.Message,
-                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("O")));
+                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("O")), ct);
             }
             catch { /* non-critical */ }
         }
 
-        try { await pushSvc.SendToManyAsync(supervisorIds, "⚠️ Staff haven't clocked out", supervisorBody, "/"); }
+        try { await pushSvc.SendToManyAsync(supervisorIds, "⚠️ Staff haven't clocked out", supervisorBody, "/", ct); }
         catch { /* non-critical */ }
 
         logger.LogInformation(
@@ -233,7 +233,7 @@ public class ShiftJobs(
                     $"Your {leave.LeaveType} leave " +
                     $"({leave.StartDate:MMM d}–{leave.EndDate:MMM d}) was auto-rejected " +
                     "as it wasn't reviewed before it ended. Contact your manager to correct this.",
-                    "/leave");
+                    "/leave", ct);
             }
             catch { /* push is non-critical */ }
         }

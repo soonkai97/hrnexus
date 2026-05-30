@@ -34,7 +34,7 @@ public static class PhoneNormalizer
         if (clean.StartsWith("60") && clean.Length >= 11)
             return "+" + clean;  // 60123456789 → +60123456789
 
-        if (clean.StartsWith("0") && clean.Length >= 10)
+        if (clean.StartsWith('0') && clean.Length >= 10)
             return "+6" + clean; // 0123456789  → +60123456789
 
         // Unrecognised format — prepend + as best effort

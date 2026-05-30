@@ -22,7 +22,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     /// so this is always false — no staff-management action (viewing/editing/deleting admin
     /// accounts, etc.) is withheld from managers.
     /// </summary>
-    private bool IsManagerCaller => false;
+    private static bool IsManagerCaller => false;
 
     private static bool HasAdminRole(IEnumerable<string> roles) =>
         roles.Any(r => r.Equals(AppConstants.Roles.Admin, StringComparison.OrdinalIgnoreCase));

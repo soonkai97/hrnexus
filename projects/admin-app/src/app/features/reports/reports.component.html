@@ -26,7 +26,7 @@
       <div class="filter-row d-flex flex-wrap gap-2 align-items-end">
         <div class="field">
           <div class="d-flex justify-content-between align-items-center">
-            <label>{{ 'reports.from' | translate }}</label>
+            <label for="rep-date-from">{{ 'reports.from' | translate }}</label>
             @if (dateFrom) {
               <button type="button" class="dob-clear-link" (click)="dateFrom = ''">
                 <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
@@ -34,6 +34,7 @@
             }
           </div>
           <p-datepicker [(ngModel)]="dateFrom"
+            inputId="rep-date-from"
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
@@ -44,7 +45,7 @@
         </div>
         <div class="field">
           <div class="d-flex justify-content-between align-items-center">
-            <label>{{ 'reports.to' | translate }}</label>
+            <label for="rep-date-to">{{ 'reports.to' | translate }}</label>
             @if (dateTo) {
               <button type="button" class="dob-clear-link" (click)="dateTo = ''">
                 <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
@@ -52,6 +53,7 @@
             }
           </div>
           <p-datepicker [(ngModel)]="dateTo"
+            inputId="rep-date-to"
             dateFormat="yy-mm-dd"
             dataType="string"
             [showIcon]="true"
@@ -63,8 +65,9 @@
 
         <!-- Staff multi-select -->
         <div class="field">
-          <label>{{ 'reports.staff' | translate }}</label>
+          <label for="rep-staff">{{ 'reports.staff' | translate }}</label>
           <p-multiselect [(ngModel)]="staffIds"
+            inputId="rep-staff"
             [options]="allStaff()"
             optionLabel="fullName"
             optionValue="id"
@@ -79,8 +82,9 @@
 
         <!-- Location multi-select -->
         <div class="field">
-          <label>{{ 'reports.location' | translate }}</label>
+          <label for="rep-location">{{ 'reports.location' | translate }}</label>
           <p-multiselect [(ngModel)]="locationNames"
+            inputId="rep-location"
             [options]="locations()"
             [placeholder]="'reports.allLocations' | translate"
             [filter]="true"
@@ -93,8 +97,9 @@
 
         <!-- Role multi-select -->
         <div class="field">
-          <label>{{ 'reports.role' | translate }}</label>
+          <label for="rep-role">{{ 'reports.role' | translate }}</label>
           <p-multiselect [(ngModel)]="roles"
+            inputId="rep-role"
             [options]="staffRoles()"
             optionLabel="name"
             optionValue="name"
@@ -108,8 +113,8 @@
         </div>
 
         <div class="field field-btn">
-          <label class="field-btn-label">&nbsp;</label>
-          <p-button [label]="loading() ? ('reports.loading' | translate) : ('reports.runReport' | translate)"
+          <label class="field-btn-label" for="rep-run-report">&nbsp;</label>
+          <p-button inputId="rep-run-report" [label]="loading() ? ('reports.loading' | translate) : ('reports.runReport' | translate)"
                     severity="primary" (click)="runReport()" [disabled]="loading()" [loading]="loading()" />
         </div>
       </div>
@@ -420,41 +425,41 @@
 
       <div class="form-grid">
         <div class="field">
-          <label><span class="req">*</span> {{ 'dashboard.role' | translate }}</label>
-          <p-select [options]="roleOptions()" [(ngModel)]="editShiftForm.roleName"
+          <label for="rep-edit-role"><span class="req">*</span> {{ 'dashboard.role' | translate }}</label>
+          <p-select inputId="rep-edit-role" [options]="roleOptions()" [(ngModel)]="editShiftForm.roleName"
             optionLabel="label" optionValue="value"
             [placeholder]="'reports.selectRole' | translate"
             [filter]="true" appendTo="body" styleClass="w-full" />
         </div>
         <div class="field">
-          <label><span class="req">*</span> {{ 'dashboard.location' | translate }}</label>
-          <p-select [options]="locationOptions()" [(ngModel)]="editShiftForm.locationId"
+          <label for="rep-edit-location"><span class="req">*</span> {{ 'dashboard.location' | translate }}</label>
+          <p-select inputId="rep-edit-location" [options]="locationOptions()" [(ngModel)]="editShiftForm.locationId"
             optionLabel="label" optionValue="value"
             [placeholder]="'reports.selectLocation' | translate"
             [filter]="true" appendTo="body" styleClass="w-full" />
         </div>
         <div class="field">
-          <label><span class="req">*</span> {{ 'reports.shiftDate' | translate }}</label>
-          <p-datepicker [(ngModel)]="editShiftForm.workDate" dateFormat="yy-mm-dd"
+          <label for="rep-edit-shift-date"><span class="req">*</span> {{ 'reports.shiftDate' | translate }}</label>
+          <p-datepicker inputId="rep-edit-shift-date" [(ngModel)]="editShiftForm.workDate" dateFormat="yy-mm-dd"
             dataType="string" [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
         </div>
         <div class="row g-2">
           <div class="col-6 field">
-            <label><span class="req">*</span> {{ 'reports.shiftStartTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="editShiftStartTimeDate" [timeOnly]="true" [hourFormat]="'12'"
+            <label for="rep-edit-start-time"><span class="req">*</span> {{ 'reports.shiftStartTime' | translate }}</label>
+            <p-datepicker inputId="rep-edit-start-time" [(ngModel)]="editShiftStartTimeDate" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'leave.selectTime' | translate" appendTo="body" styleClass="w-full" />
           </div>
           <div class="col-6 field">
-            <label><span class="req">*</span> {{ 'reports.shiftEndTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="editShiftEndTimeDate" [timeOnly]="true" [hourFormat]="'12'"
+            <label for="rep-edit-end-time"><span class="req">*</span> {{ 'reports.shiftEndTime' | translate }}</label>
+            <p-datepicker inputId="rep-edit-end-time" [(ngModel)]="editShiftEndTimeDate" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'leave.selectTime' | translate" appendTo="body" styleClass="w-full" />
           </div>
         </div>
         <div class="field">
-          <label>{{ 'reports.shiftNotes' | translate }}</label>
-          <input pInputText type="text" [(ngModel)]="editShiftForm.notes"
+          <label for="rep-edit-notes">{{ 'reports.shiftNotes' | translate }}</label>
+          <input pInputText id="rep-edit-notes" type="text" [(ngModel)]="editShiftForm.notes"
             [placeholder]="'reports.shiftNotesPlaceholder' | translate" />
         </div>
       </div>
@@ -480,8 +485,9 @@
     <p-card styleClass="filter-bar">
       <div class="filter-row d-flex flex-wrap gap-2 align-items-end">
         <div class="field">
-          <label>{{ 'reports.ledgerMonth' | translate }}</label>
+          <label for="rep-ledger-month">{{ 'reports.ledgerMonth' | translate }}</label>
           <p-select
+            inputId="rep-ledger-month"
             [options]="MONTH_OPTS"
             [ngModel]="ledgerMonth()"
             (ngModelChange)="ledgerMonth.set($event)"
@@ -491,8 +497,9 @@
             appendTo="body" />
         </div>
         <div class="field">
-          <label>{{ 'reports.ledgerYear' | translate }}</label>
+          <label for="rep-ledger-year">{{ 'reports.ledgerYear' | translate }}</label>
           <p-select
+            inputId="rep-ledger-year"
             [options]="yearOpts"
             [ngModel]="ledgerYear()"
             (ngModelChange)="ledgerYear.set($event)"
@@ -502,8 +509,9 @@
             appendTo="body" />
         </div>
         <div class="field field-btn">
-          <label class="field-btn-label">&nbsp;</label>
+          <label class="field-btn-label" for="rep-load-ledger">&nbsp;</label>
           <p-button
+            inputId="rep-load-ledger"
             [label]="ledgerLoading() ? ('reports.loading' | translate) : ('reports.loadLedger' | translate)"
             severity="primary"
             (onClick)="loadLedgerData()"

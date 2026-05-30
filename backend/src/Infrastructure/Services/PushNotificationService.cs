@@ -74,7 +74,7 @@ public class PushNotificationService(
                     P256DH   = sub.P256dh,
                     Auth     = sub.Auth,
                 };
-                await client.SendNotificationAsync(webPushSub, payload, vapid);
+                await client.SendNotificationAsync(webPushSub, payload, vapid, ct);
             }
             catch (WebPushException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Gone)
             {

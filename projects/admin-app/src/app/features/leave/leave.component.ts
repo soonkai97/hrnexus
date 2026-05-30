@@ -664,7 +664,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     const r = this.records().find(r => r.id === id);
     if (!r) return;
     const req: UpsertLeaveRequest = {
-      employeeId: r.employeeId, leaveType: r.leaveType as any,
+      employeeId: r.employeeId, leaveType: r.leaveType,
       startDate: r.startDate, endDate: r.endDate,
       startTime: r.startTime, endTime: r.endTime, hours: r.hours,
       notes: r.notes, status, rejectionReason: rejectionReason ?? null,
@@ -738,10 +738,10 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   }
 
   startEdit(r: LeaveRecord): void {
-    this.form = { employeeId: r.employeeId, leaveType: r.leaveType as any,
+    this.form = { employeeId: r.employeeId, leaveType: r.leaveType,
       startDate: r.startDate, endDate: r.endDate,
       startTime: r.startTime, endTime: r.endTime, hours: r.hours,
-      notes: r.notes, status: r.status as any,
+      notes: r.notes, status: r.status,
       rejectionReason: r.rejectionReason };
     this.startTimeDate = this.parseTime(r.startTime);
     this.endTimeDate   = this.parseTime(r.endTime);

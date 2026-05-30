@@ -29,8 +29,8 @@
         </div>
         @if (endingId() === a.id) {
           <div class="end-panel">
-            <label class="field-label">{{ 'logShift.endTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="endTimeDate" [timeOnly]="true" [hourFormat]="'12'"
+            <label class="field-label" for="ls-end-time">{{ 'logShift.endTime' | translate }}</label>
+            <p-datepicker inputId="ls-end-time" [(ngModel)]="endTimeDate" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="w-full" />
             <div class="d-flex gap-2 mt-2">
@@ -57,8 +57,9 @@
       @if (mode() === 'live') {
         <p-card styleClass="form-card">
           <div class="field">
-            <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
+            <label for="ls-live-role"><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
             <p-select
+              inputId="ls-live-role"
               [options]="myRoleOptions()"
               [(ngModel)]="liveForm.roleName"
               optionLabel="label"
@@ -67,8 +68,9 @@
               styleClass="w-full" />
           </div>
           <div class="field">
-            <label><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
+            <label for="ls-live-location"><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
             <p-select
+              inputId="ls-live-location"
               [options]="locationOptions()"
               [(ngModel)]="liveForm.locationId"
               optionLabel="label"
@@ -79,14 +81,14 @@
               styleClass="w-full" />
           </div>
           <div class="field">
-            <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
-            <p-datepicker [(ngModel)]="liveFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
+            <label for="ls-live-start-time"><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
+            <p-datepicker inputId="ls-live-start-time" [(ngModel)]="liveFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="w-full" />
           </div>
           <div class="field">
-            <label>{{ 'logShift.notesLabel' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="liveForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
+            <label for="ls-live-notes">{{ 'logShift.notesLabel' | translate }}</label>
+            <input id="ls-live-notes" pInputText type="text" [(ngModel)]="liveForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
           </div>
           @if (formError()) {
             <p-message severity="error" [text]="formError()" />
@@ -99,8 +101,8 @@
       @if (mode() === 'manual') {
         <p-card styleClass="form-card">
           <div class="field">
-            <label><span class="req">*</span> {{ 'logShift.date' | translate }}</label>
-            <p-datepicker [(ngModel)]="manualForm.workDate"
+            <label for="ls-manual-date"><span class="req">*</span> {{ 'logShift.date' | translate }}</label>
+            <p-datepicker inputId="ls-manual-date" [(ngModel)]="manualForm.workDate"
               dateFormat="yy-mm-dd"
               dataType="string"
               [showIcon]="true"
@@ -110,8 +112,9 @@
               appendTo="body" />
           </div>
           <div class="field">
-            <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
+            <label for="ls-manual-role"><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
             <p-select
+              inputId="ls-manual-role"
               [options]="myRoleOptions()"
               [(ngModel)]="manualForm.roleName"
               optionLabel="label"
@@ -120,8 +123,9 @@
               styleClass="w-full" />
           </div>
           <div class="field">
-            <label><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
+            <label for="ls-manual-location"><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
             <p-select
+              inputId="ls-manual-location"
               [options]="locationOptions()"
               [(ngModel)]="manualForm.locationId"
               optionLabel="label"
@@ -133,14 +137,14 @@
           </div>
           <div class="row g-2">
             <div class="col-6 field">
-              <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
-              <p-datepicker [(ngModel)]="manualFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
+              <label for="ls-manual-start-time"><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
+              <p-datepicker inputId="ls-manual-start-time" [(ngModel)]="manualFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
                 [showIcon]="true" icon="pi pi-clock"
                 [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="w-full" />
             </div>
             <div class="col-6 field">
-              <label><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
-              <p-datepicker [(ngModel)]="manualFormEndTime" [timeOnly]="true" [hourFormat]="'12'"
+              <label for="ls-manual-end-time"><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
+              <p-datepicker inputId="ls-manual-end-time" [(ngModel)]="manualFormEndTime" [timeOnly]="true" [hourFormat]="'12'"
                 [showIcon]="true" icon="pi pi-clock"
                 [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="w-full" />
             </div>
@@ -152,8 +156,8 @@
             </small>
           }
           <div class="field">
-            <label>{{ 'logShift.notesLabel' | translate }}</label>
-            <input pInputText type="text" [(ngModel)]="manualForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
+            <label for="ls-manual-notes">{{ 'logShift.notesLabel' | translate }}</label>
+            <input id="ls-manual-notes" pInputText type="text" [(ngModel)]="manualForm.notes" [placeholder]="'logShift.notesPlaceholder' | translate" />
           </div>
           @if (formError()) {
             <p-message severity="error" [text]="formError()" />
@@ -213,32 +217,32 @@
               <div class="edit-panel">
                 <div class="row g-2">
                   <div class="col-12 field">
-                    <label><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
-                    <p-select [options]="myRoleOptions()" [(ngModel)]="editForm.roleName"
+                    <label for="ls-edit-role"><span class="req">*</span> {{ 'logShift.role' | translate }}</label>
+                    <p-select inputId="ls-edit-role" [options]="myRoleOptions()" [(ngModel)]="editForm.roleName"
                       optionLabel="label" optionValue="value"
                       [placeholder]="'logShift.selectRole' | translate" styleClass="w-full" />
                   </div>
                   <div class="col-12 field">
-                    <label><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
-                    <p-select [options]="locationOptions()" [(ngModel)]="editForm.locationId"
+                    <label for="ls-edit-location"><span class="req">*</span> {{ 'logShift.location' | translate }}</label>
+                    <p-select inputId="ls-edit-location" [options]="locationOptions()" [(ngModel)]="editForm.locationId"
                       optionLabel="label" optionValue="value"
                       [placeholder]="'logShift.selectLocation' | translate"
                       [filter]="true" appendTo="body" styleClass="w-full" />
                   </div>
                   <div class="col-12 field">
-                    <label><span class="req">*</span> {{ 'logShift.date' | translate }}</label>
-                    <p-datepicker [(ngModel)]="editForm.workDate" dateFormat="yy-mm-dd"
+                    <label for="ls-edit-date"><span class="req">*</span> {{ 'logShift.date' | translate }}</label>
+                    <p-datepicker inputId="ls-edit-date" [(ngModel)]="editForm.workDate" dateFormat="yy-mm-dd"
                       dataType="string" [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
                   </div>
                   <div class="col-6 field">
-                    <label><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
-                    <p-datepicker [(ngModel)]="editFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
+                    <label for="ls-edit-start-time"><span class="req">*</span> {{ 'logShift.startTime' | translate }}</label>
+                    <p-datepicker inputId="ls-edit-start-time" [(ngModel)]="editFormStartTime" [timeOnly]="true" [hourFormat]="'12'"
                       [showIcon]="true" icon="pi pi-clock"
                       [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="w-full" />
                   </div>
                   <div class="col-6 field">
-                    <label><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
-                    <p-datepicker [(ngModel)]="editFormEndTime" [timeOnly]="true" [hourFormat]="'12'"
+                    <label for="ls-edit-end-time"><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
+                    <p-datepicker inputId="ls-edit-end-time" [(ngModel)]="editFormEndTime" [timeOnly]="true" [hourFormat]="'12'"
                       [showIcon]="true" icon="pi pi-clock"
                       [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="w-full" />
                   </div>
@@ -251,8 +255,8 @@
                     </div>
                   }
                   <div class="col-12 field">
-                    <label>{{ 'logShift.notesLabel' | translate }}</label>
-                    <input pInputText type="text" [(ngModel)]="editForm.notes"
+                    <label for="ls-edit-notes">{{ 'logShift.notesLabel' | translate }}</label>
+                    <input id="ls-edit-notes" pInputText type="text" [(ngModel)]="editForm.notes"
                       [placeholder]="'logShift.notesPlaceholder' | translate" />
                   </div>
                 </div>

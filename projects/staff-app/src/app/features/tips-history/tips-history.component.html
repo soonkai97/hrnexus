@@ -6,8 +6,9 @@
   <p-card styleClass="period-picker">
     <div class="d-flex gap-3 align-items-end flex-wrap">
       <div class="field">
-        <label>{{ 'pay.year' | translate }}</label>
+        <label for="th-year">{{ 'pay.year' | translate }}</label>
         <p-inputnumber
+          inputId="th-year"
           [ngModel]="selectedYear()"
           (ngModelChange)="selectedYear.set($event)"
           [min]="2020"
@@ -16,8 +17,9 @@
           [pt]="$any({ input: { inputmode: 'decimal' } })" />
       </div>
       <div class="field">
-        <label>{{ 'pay.month' | translate }}</label>
+        <label for="th-month">{{ 'pay.month' | translate }}</label>
         <p-select
+          inputId="th-month"
           [options]="monthOptions"
           [ngModel]="selectedMonth()"
           (ngModelChange)="selectedMonth.set($event)"
@@ -25,8 +27,8 @@
           optionValue="value" />
       </div>
       <div class="field">
-        <label>&nbsp;</label>
-        <p-button [label]="'pay.view' | translate" severity="primary" [loading]="loading()" (click)="load()" />
+        <label for="th-view">&nbsp;</label>
+        <p-button inputId="th-view" [label]="'pay.view' | translate" severity="primary" [loading]="loading()" (click)="load()" />
       </div>
     </div>
   </p-card>

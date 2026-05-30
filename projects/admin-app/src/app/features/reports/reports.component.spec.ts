@@ -673,37 +673,17 @@ describe('ReportsComponent', () => {
     });
   });
 
-  // ── Separation of duties: manager can't edit own shift ───────────────────────
-  // WHY: a manager editing their own shift is a payroll conflict of interest. The backend
-  // enforces it, but the edit pencil must also be disabled on the manager's own rows so the
-  // block is visible upfront — not surfaced only after the manager fills the form and saves.
-  describe('isOwnShiftForManager()', () => {
-    const row = (staffId: string) => ({ id: 'w1', staffId, role: 'bartender', locationId: 'L1' }) as never;
+  // ── Shift editing: managers + admins both allowed (same power) ───────────────
+  describe('openEditShift()', () => {
+    const row = (staffId: string) => ({ id: 'w1', staffId, role: 'bartender', locationId: 'L1',
+      workDate: '2026-05-10', startTime: '18:00', endTime: '23:00', notes: null }) as never;
 
-    it('is true when a manager views their own shift row', () => {
-      mockAuthSvc.userRole.mockReturnValue('manager');
-      mockAuthSvc.user.mockReturnValue({ staffId: 'MGR001' });
-      expect(component.isOwnShiftForManager(row('MGR001'))).toBe(true);
-    });
-
-    it('is false when a manager views another staff member\'s shift', () => {
-      mockAuthSvc.userRole.mockReturnValue('manager');
-      mockAuthSvc.user.mockReturnValue({ staffId: 'MGR001' });
-      expect(component.isOwnShiftForManager(row('STAFF002'))).toBe(false);
-    });
-
-    it('is false for an admin even on their own shift (admins may edit any shift)', () => {
-      mockAuthSvc.userRole.mockReturnValue('admin');
-      mockAuthSvc.user.mockReturnValue({ staffId: 'ADM001' });
-      expect(component.isOwnShiftForManager(row('ADM001'))).toBe(false);
-    });
-
-    it('openEditShift() is a no-op for a manager\'s own shift (does not open the dialog)', () => {
+    it('opens the edit dialog for any shift, including the caller\'s own', () => {
       mockAuthSvc.userRole.mockReturnValue('manager');
       mockAuthSvc.user.mockReturnValue({ staffId: 'MGR001' });
       component.editShiftVisible.set(false);
       component.openEditShift(row('MGR001'));
-      expect(component.editShiftVisible()).toBe(false);
+      expect(component.editShiftVisible()).toBe(true);
     });
   });
 });

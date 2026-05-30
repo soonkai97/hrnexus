@@ -379,8 +379,7 @@
                 </td>
                 <td>
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small"
-                    [disabled]="isOwnShiftForManager(s)"
-                    [pTooltip]="(isOwnShiftForManager(s) ? 'reports.ownShiftNoEdit' : 'common.edit') | translate"
+                    [pTooltip]="'common.edit' | translate"
                     (click)="openEditShift(s)" />
                 </td>
               </tr>

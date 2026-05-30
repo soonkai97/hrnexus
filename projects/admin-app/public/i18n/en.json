@@ -46,7 +46,13 @@
     "staffLedger":   "Staff Ledger",
     "staffSettings": "Staff Settings",
     "payrollLocks":  "Payroll Locks",
-    "account":         "My Account"
+    "account":         "My Account",
+    "group": {
+      "operations": "Operations",
+      "finance":    "Finance",
+      "comms":      "Communication",
+      "setup":      "Setup"
+    }
   },
   "payrollLocks": {
     "title":           "Payroll Locks",

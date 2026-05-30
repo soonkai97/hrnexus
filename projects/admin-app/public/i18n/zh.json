@@ -46,7 +46,13 @@
     "staffLedger":   "员工账本",
     "staffSettings": "员工设置",
     "payrollLocks":  "薪资锁定",
-    "account":         "我的账户"
+    "account":         "我的账户",
+    "group": {
+      "operations": "运营",
+      "finance":    "财务",
+      "comms":      "沟通",
+      "setup":      "设置"
+    }
   },
   "payrollLocks": {
     "title":           "薪资锁定",

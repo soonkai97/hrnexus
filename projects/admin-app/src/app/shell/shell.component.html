@@ -27,16 +27,23 @@
     </div>
 
     <nav class="sidebar-nav">
-      @for (item of navItems(); track item.path) {
-        <a [routerLink]="item.path" routerLinkActive="active" class="nav-item"
-           [pTooltip]="collapsed() ? (item.labelKey | translate) : ''"
-           tooltipPosition="right">
-          <span class="nav-icon"><i [class]="item.icon"></i></span>
-          @if (!collapsed()) {
-            <span class="nav-label">{{ item.labelKey | translate }}</span>
-          }
-          <span class="nav-indicator"></span>
-        </a>
+      @for (group of navGroups(); track group.labelKey; let first = $first) {
+        @if (!collapsed()) {
+          <div class="nav-group-title">{{ group.labelKey | translate }}</div>
+        } @else if (!first) {
+          <div class="nav-group-sep"></div>
+        }
+        @for (item of group.items; track item.path) {
+          <a [routerLink]="item.path" routerLinkActive="active" class="nav-item"
+             [pTooltip]="collapsed() ? (item.labelKey | translate) : ''"
+             tooltipPosition="right">
+            <span class="nav-icon"><i [class]="item.icon"></i></span>
+            @if (!collapsed()) {
+              <span class="nav-label">{{ item.labelKey | translate }}</span>
+            }
+            <span class="nav-indicator"></span>
+          </a>
+        }
       }
     </nav>
 

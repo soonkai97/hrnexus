@@ -49,6 +49,11 @@ Thumbs.db
 docker-compose.local.yml
 docker-compose.override.yml
 
+# Database dumps / backups — never commit (may contain real PII)
+*.dump
+*.sql.gz
+nightclub_workforce_backup.dump
+
 # Maintenance flag — created by deploy.sh, must never be committed
 maintenance/on
 

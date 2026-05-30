@@ -25,15 +25,27 @@
   flex-direction: column;
 }
 
+// Each permission group is a bordered card with a tinted header band, so it's
+// immediately obvious which rows belong to which group (a plain uppercase title
+// reads as just another list item — the source of the "which one is a group?" confusion).
+.perm-group {
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  overflow: hidden;
+  & + .perm-group { margin-top: 0.85rem; }
+}
+
 .perm-group-title {
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: $text-muted;
-  margin: 0.85rem 0 0.25rem;
+  letter-spacing: 0.06em;
+  color: $text-secondary;
+  background: $bg-raised;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid $border-subtle;
+  margin: 0;
 }
-.perm-group:first-child .perm-group-title { margin-top: 0; }
 
 .perm-row {
   display: flex;
@@ -45,6 +57,9 @@
   border-bottom: 1px solid $border-subtle;
   &:last-child { border-bottom: none; }
 }
+
+// Rows inside a group card align with the header band's horizontal padding
+.perm-group .perm-row { padding-left: 1rem; padding-right: 1rem; }
 
 .perm-label {
   font-size: 0.9rem;

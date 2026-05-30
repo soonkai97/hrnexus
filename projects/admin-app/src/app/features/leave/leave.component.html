@@ -70,7 +70,7 @@
           [label]="p.label"
           size="small"
           [outlined]="filterLeaveType !== p.value"
-          [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'secondary' : 'primary'"
+          [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'contrast' : 'primary'"
           (click)="setTypeFilter(p.value)" />
       }
     </div>

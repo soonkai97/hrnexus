@@ -213,10 +213,9 @@
             </div>
 
             <div class="form-actions">
-              <p-button [label]="'common.cancel' | translate" [text]="true" (onClick)="cancel()" />
+              <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (onClick)="cancel()" />
               <p-button
                 [label]="'staffLedger.saveEntry' | translate"
-                icon="pi pi-check"
                 severity="primary"
                 [loading]="saving()"
                 [disabled]="!form.entryDate || !form.workType || saving()"
@@ -283,8 +282,8 @@
                     </td>
                     <td class="notes-col">{{ entry.notes ?? '—' }}</td>
                     <td class="action-col">
-                      <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="openEdit(entry)" />
-                      <p-button icon="pi pi-trash"  [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="remove(entry)" />
+                      <p-button icon="pi pi-pencil" [text]="true" size="small" severity="secondary" (onClick)="openEdit(entry)" />
+                      <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="remove(entry)" />
                     </td>
                   </tr>
                 }
@@ -342,10 +341,9 @@
               </div>
 
               <div class="form-actions">
-                <p-button [label]="'common.cancel' | translate" [text]="true" (onClick)="cancelExpense()" />
+                <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (onClick)="cancelExpense()" />
                 <p-button
                   [label]="'staffLedger.saveExpense' | translate"
-                  icon="pi pi-check"
                   severity="primary"
                   [loading]="savingExpense()"
                   [disabled]="savingExpense()"
@@ -390,8 +388,8 @@
                       <td class="num-col red">{{ exp.amount | number:'1.2-2' }}</td>
                       <td class="notes-col">{{ exp.notes ?? '—' }}</td>
                       <td class="action-col">
-                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" (onClick)="openEditExpense(exp)" />
-                        <p-button icon="pi pi-trash"  [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="removeExpense(exp)" />
+                        <p-button icon="pi pi-pencil" [text]="true" size="small" severity="secondary" (onClick)="openEditExpense(exp)" />
+                        <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="removeExpense(exp)" />
                       </td>
                     </tr>
                   }
@@ -454,10 +452,9 @@
               </div>
 
               <div class="form-actions">
-                <p-button [label]="'common.cancel' | translate" [text]="true" (onClick)="cancelLoan()" />
+                <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (onClick)="cancelLoan()" />
                 <p-button
                   [label]="'staffLedger.saveLoan' | translate"
-                  icon="pi pi-check"
                   severity="primary"
                   [loading]="savingLoan()"
                   [disabled]="savingLoan()"
@@ -510,7 +507,7 @@
                       <td class="num-col">{{ loan.amount | number:'1.2-2' }}</td>
                       <td class="notes-col">{{ loan.purpose ?? '—' }}</td>
                       <td class="action-col">
-                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" size="small" severity="danger" (onClick)="removeLoan(loan)" />
+                        <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="removeLoan(loan)" />
                       </td>
                     </tr>
                   }

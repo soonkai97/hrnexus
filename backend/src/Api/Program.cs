@@ -12,18 +12,27 @@ using HRNexus.Application.Auth.Commands;
 using HRNexus.Infrastructure;
 using HRNexus.Infrastructure.Hubs;
 using HRNexus.Infrastructure.Persistence;
+using HRNexus.Api.Logging;
 using Serilog;
+using Serilog.Formatting.Compact;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .WriteTo.File("logs/hrnexus-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+    // Stamp CorrelationId + authenticated StaffId on every event for the current request.
+    .Enrich.With<HttpContextEnricher>()
+    // Console stays human-readable; {Properties:j} surfaces CorrelationId/StaffId inline for local dev.
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    // File is structured JSON (one object per line) — greppable by CorrelationId/StaffId and ready to
+    // ship to an aggregator later (Phase 2).
+    .WriteTo.File(new CompactJsonFormatter(), "logs/hrnexus-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
+// Required so HttpContextEnricher (and its AsyncLocal-backed accessor) sees the per-request context.
+builder.Services.AddHttpContextAccessor();
 
 // ── Services ──────────────────────────────────────────────────────────────────
 // Force all incoming DateTime (query params + JSON body) to Kind=Utc.
@@ -108,7 +117,9 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
             ?? ["http://localhost:4200", "http://localhost:4300"])
      .AllowAnyHeader()
      .AllowAnyMethod()
-     .AllowCredentials()));
+     .AllowCredentials()
+     // Let browser JS read the correlation id off the response (for FE error reporting in a later phase).
+     .WithExposedHeaders(HRNexus.Api.Middleware.CorrelationIdMiddleware.HeaderName)));
 
 // ── App pipeline ──────────────────────────────────────────────────────────────
 var app = builder.Build();
@@ -141,6 +152,9 @@ forwardedOptions.KnownIPNetworks.Clear();
 forwardedOptions.KnownProxies.Clear();
 app.UseForwardedHeaders(forwardedOptions);
 
+// First after IP resolution: assign/echo the correlation id so it's present in HttpContext.Items
+// before anything (including ExceptionMiddleware) logs.
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseStaticFiles();
 app.UseCors();

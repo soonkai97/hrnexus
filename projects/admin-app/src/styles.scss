@@ -669,6 +669,44 @@ input, textarea, select,
   font-size: max(1rem, 16px) !important;
 }
 
+// ── Standardize form-control height across the whole app ──────────────────────
+// Every single-line control (text, number, date, select, multiselect, password,
+// autocomplete) renders at ONE consistent height so filter rows / forms line up.
+// Textareas are intentionally excluded (multi-line); multiselect uses min-height
+// so chip values can still wrap to additional rows.
+:root { --nc-field-h: 2.75rem; }
+
+input.p-inputtext,
+.p-inputnumber-input,
+.p-datepicker-input,
+.p-autocomplete-input,
+.p-password input.p-inputtext {
+  height: var(--nc-field-h) !important;
+}
+
+// Component wrappers stretch their inner input to the same height.
+.p-inputnumber,
+.p-password,
+.p-datepicker,
+.p-autocomplete { height: var(--nc-field-h); }
+.p-inputnumber > .p-inputtext,
+.p-password > .p-inputtext,
+.p-datepicker > .p-inputtext,
+.p-autocomplete > .p-inputtext { height: 100% !important; }
+
+// Select / multiselect: fix the root height and vertically centre the label.
+.p-select { height: var(--nc-field-h) !important; }
+.p-multiselect { min-height: var(--nc-field-h); }
+.p-select,
+.p-multiselect { display: inline-flex; align-items: center; }
+.p-select-label,
+.p-multiselect-label {
+  display: flex;
+  align-items: center;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
 // ── Empty states (shared across all features) ─────────────────────────────────
 .empty-state {
   padding: 3rem 1rem;

@@ -648,6 +648,38 @@
     "imageUploaded":"图片已上传。",
     "uploadFailed": "上传失败。"
   },
+  "permissions": {
+    "roleTitle":   "职位权限",
+    "roleDesc":    "授予该职位所有成员的默认权限。",
+    "userTitle":   "权限覆盖",
+    "userDesc":    "在该员工所属职位的基础上，单独授予或撤销特定权限。",
+    "save":        "保存权限",
+    "saved":       "权限已更新。",
+    "saveFailed":  "保存权限失败。",
+    "loadFailed":  "加载权限失败。",
+    "inherit":     "继承",
+    "grant":       "授予",
+    "revoke":      "撤销",
+    "effective":   "有效",
+    "keys": {
+      "portal.admin":         "管理后台访问",
+      "staff.view":           "查看员工",
+      "staff.manage":         "管理员工",
+      "leave.approve":        "审批请假",
+      "leave.manage":         "管理请假额度",
+      "worklog.manage":       "管理班次",
+      "reports.view":         "查看报表",
+      "payroll.view":         "查看薪资",
+      "payroll.manage":       "管理薪资",
+      "payroll.lock":         "锁定薪资周期",
+      "tips.manage":          "管理小费",
+      "ledger.manage":        "管理员工账目",
+      "roles.manage":         "管理职位与权限",
+      "locations.manage":     "管理场地",
+      "announcements.manage": "管理公告",
+      "config.manage":        "管理设置"
+    }
+  },
   "roles": {
     "title":            "员工职位",
     "subtitle":         "管理员工注册的可用职位",

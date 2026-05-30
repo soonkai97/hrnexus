@@ -3,7 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -13,12 +13,16 @@ import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
 import { Paginator } from 'primeng/paginator';
+import { SelectButton } from 'primeng/selectbutton';
+
+/** Tri-state choice for a per-user permission override. */
+type OverrideChoice = 'inherit' | 'grant' | 'revoke';
 
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, TrimInputDirective,
-    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Paginator],
+    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Paginator, SelectButton],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
@@ -29,6 +33,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly route       = inject(ActivatedRoute);
   private readonly workLogSvc  = inject(WorkLogService);
+  private readonly permSvc     = inject(PermissionAdminService);
   private readonly translate   = inject(TranslateService);
 
   staff            = signal<StaffDetail | null>(null);
@@ -57,11 +62,26 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
 
   private staffId = '';
 
+  // ── Per-user permission overrides ───────────────────────────────────────────
+  permKeys     = signal<string[]>([]);
+  /** permissionKey → tri-state choice; defaults to 'inherit' for every catalog key. */
+  permChoices  = signal<Record<string, OverrideChoice>>({});
+  permLoading  = signal(true);
+  permSaving   = signal(false);
+
+  /** Options for each tri-state p-selectButton (labels resolved at runtime via translate). */
+  readonly permOptions = computed<{ label: string; value: OverrideChoice }[]>(() => [
+    { label: this.translate.instant('permissions.inherit'), value: 'inherit' },
+    { label: this.translate.instant('permissions.grant'),   value: 'grant'   },
+    { label: this.translate.instant('permissions.revoke'),  value: 'revoke'  },
+  ]);
+
   ngOnInit(): void {
     this.staffId = this.route.snapshot.paramMap.get('id') ?? '';
     this.staffStore.loadRoles();
     this.loadStaff();
     this.loadWorkLogs(1);
+    this.loadPermissions();
   }
 
   loadStaff(): void {
@@ -158,6 +178,47 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     this.staffStore.update(this.staffId, req).subscribe({
       next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success(this.translate.instant('staffDetail.profileUpdated')); },
       error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('staffDetail.updateFailed')); this.saving.set(false); },
+    });
+  }
+
+  // ── Permission overrides ────────────────────────────────────────────────────
+
+  /** Loads the catalog of permission keys, then seeds each tri-state from stored overrides. */
+  loadPermissions(): void {
+    this.permLoading.set(true);
+    this.permSvc.catalog().subscribe({
+      next: keys => {
+        this.permKeys.set(keys);
+        this.permSvc.getUserOverrides(this.staffId).subscribe({
+          next: overrides => {
+            const choices: Record<string, OverrideChoice> = {};
+            for (const k of keys) choices[k] = 'inherit';
+            for (const o of overrides) choices[o.permissionKey] = o.granted ? 'grant' : 'revoke';
+            this.permChoices.set(choices);
+            this.permLoading.set(false);
+          },
+          error: () => { this.toast.error(this.translate.instant('permissions.loadFailed')); this.permLoading.set(false); },
+        });
+      },
+      error: () => { this.toast.error(this.translate.instant('permissions.loadFailed')); this.permLoading.set(false); },
+    });
+  }
+
+  /** Updates a single key's tri-state choice. Coerces null (p-selectButton deselect) back to 'inherit'. */
+  setPermChoice(key: string, value: OverrideChoice | null): void {
+    this.permChoices.update(c => ({ ...c, [key]: value ?? 'inherit' }));
+  }
+
+  /** Persists only the non-inherit (grant/revoke) choices as StaffOverride[]. */
+  savePermissions(): void {
+    this.permSaving.set(true);
+    const choices = this.permChoices();
+    const overrides: StaffOverride[] = this.permKeys()
+      .filter(k => choices[k] && choices[k] !== 'inherit')
+      .map(k => ({ permissionKey: k, granted: choices[k] === 'grant' }));
+    this.permSvc.setUserOverrides(this.staffId, overrides).subscribe({
+      next:  () => { this.toast.success(this.translate.instant('permissions.saved')); this.permSaving.set(false); },
+      error: () => { this.toast.error(this.translate.instant('permissions.saveFailed')); this.permSaving.set(false); },
     });
   }
 }

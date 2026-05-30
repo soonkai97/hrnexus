@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { RolesComponent } from './roles.component';
-import { StaffStore, ToastService, ConfirmService } from 'shared-lib';
+import { StaffStore, ToastService, ConfirmService, PermissionAdminService } from 'shared-lib';
 
 /**
  * RolesComponent — job-role CRUD with inline rate editing.
@@ -32,6 +32,11 @@ describe('RolesComponent', () => {
   };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
+  let mockPermSvc: {
+    catalog:            ReturnType<typeof vi.fn>;
+    getRolePermissions: ReturnType<typeof vi.fn>;
+    setRolePermissions: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     mockStaffStore = {
@@ -44,6 +49,11 @@ describe('RolesComponent', () => {
     };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
+    mockPermSvc    = {
+      catalog:            vi.fn().mockReturnValue(of(['portal.admin', 'staff.view'])),
+      getRolePermissions: vi.fn().mockReturnValue(of(['staff.view'])),
+      setRolePermissions: vi.fn().mockReturnValue(of(undefined)),
+    };
 
     await TestBed.configureTestingModule({
       imports: [RolesComponent],
@@ -54,6 +64,7 @@ describe('RolesComponent', () => {
         { provide: StaffStore,    useValue: mockStaffStore },
         { provide: ToastService,  useValue: mockToastSvc },
         { provide: ConfirmService, useValue: mockConfirmSvc },
+        { provide: PermissionAdminService, useValue: mockPermSvc },
         MessageService,
         ConfirmationService,
       ],
@@ -222,6 +233,79 @@ describe('RolesComponent', () => {
       mockStaffStore.deleteRole.mockReturnValue(throwError(() => ({ error: { error: 'Role in use.' } })));
       component.deleteRole('bartender');
       expect(component.error()).toBe('Role in use.');
+    });
+  });
+
+  // ── Role permissions editor ─────────────────────────────────────────────────
+
+  describe('openPermissions()', () => {
+    it('opens the dialog for the given role', () => {
+      component.openPermissions('BARTENDER');
+      expect(component.permRole()).toBe('BARTENDER');
+    });
+
+    it('loads the catalog and pre-checks the role\'s current permissions', () => {
+      component.openPermissions('BARTENDER');
+      expect(component.permCatalog()).toEqual(['portal.admin', 'staff.view']);
+      expect(component.permSelected()).toEqual(['staff.view']);
+    });
+
+    it('only fetches the catalog once across opens', () => {
+      component.openPermissions('BARTENDER');
+      component.openPermissions('HOST');
+      expect(mockPermSvc.catalog).toHaveBeenCalledTimes(1);
+    });
+
+    it('toasts loadFailed when current permissions cannot be loaded', () => {
+      mockPermSvc.getRolePermissions.mockReturnValue(throwError(() => new Error('boom')));
+      component.openPermissions('BARTENDER');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('permissions.loadFailed');
+    });
+  });
+
+  describe('togglePermission()', () => {
+    it('adds a key when checked', () => {
+      component.permSelected.set([]);
+      component.togglePermission('staff.view', true);
+      expect(component.permSelected()).toEqual(['staff.view']);
+    });
+
+    it('removes a key when unchecked', () => {
+      component.permSelected.set(['staff.view', 'portal.admin']);
+      component.togglePermission('staff.view', false);
+      expect(component.permSelected()).toEqual(['portal.admin']);
+    });
+  });
+
+  describe('savePermissions()', () => {
+    beforeEach(() => {
+      component.permRole.set('BARTENDER');
+      component.permSelected.set(['staff.view']);
+    });
+
+    it('persists the selected keys for the open role', () => {
+      component.savePermissions();
+      expect(mockPermSvc.setRolePermissions).toHaveBeenCalledWith('BARTENDER', ['staff.view']);
+    });
+
+    it('toasts success and closes the dialog after saving', () => {
+      component.savePermissions();
+      expect(mockToastSvc.success).toHaveBeenCalledWith('permissions.saved');
+      expect(component.permRole()).toBeNull();
+    });
+
+    it('toasts saveFailed and keeps the dialog open on error', () => {
+      mockPermSvc.setRolePermissions.mockReturnValue(throwError(() => new Error('boom')));
+      component.savePermissions();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('permissions.saveFailed');
+      expect(component.permRole()).toBe('BARTENDER');
+      expect(component.permSaving()).toBe(false);
+    });
+
+    it('does nothing when no role is open', () => {
+      component.permRole.set(null);
+      component.savePermissions();
+      expect(mockPermSvc.setRolePermissions).not.toHaveBeenCalled();
     });
   });
 });

@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { StaffDetailComponent } from './staff-detail.component';
-import { StaffStore, StaffManagementService, AuthService, ToastService, WorkLogService, StaffDetail } from 'shared-lib';
+import { StaffStore, StaffManagementService, AuthService, ToastService, WorkLogService, StaffDetail, PermissionAdminService } from 'shared-lib';
 
 /**
  * StaffDetailComponent — per-staff profile + edit form + work log history.
@@ -44,6 +44,7 @@ describe('StaffDetailComponent', () => {
   let mockAuth:      { hasRole: ReturnType<typeof vi.fn> };
   let mockToast:     { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockWorkLogSvc: { getAll: ReturnType<typeof vi.fn> };
+  let mockPermSvc:    { catalog: ReturnType<typeof vi.fn>; getUserOverrides: ReturnType<typeof vi.fn>; setUserOverrides: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockStaffStore = {
@@ -59,6 +60,11 @@ describe('StaffDetailComponent', () => {
     mockWorkLogSvc = {
       getAll: vi.fn().mockReturnValue(of({ items: [], total: 0 })),
     };
+    mockPermSvc = {
+      catalog:          vi.fn().mockReturnValue(of([])),
+      getUserOverrides: vi.fn().mockReturnValue(of([])),
+      setUserOverrides: vi.fn().mockReturnValue(of(undefined)),
+    };
 
     await TestBed.configureTestingModule({
       imports: [StaffDetailComponent],
@@ -71,6 +77,7 @@ describe('StaffDetailComponent', () => {
         { provide: AuthService,            useValue: mockAuth },
         { provide: ToastService,           useValue: mockToast },
         { provide: WorkLogService,         useValue: mockWorkLogSvc },
+        { provide: PermissionAdminService, useValue: mockPermSvc },
         MessageService,
         ConfirmationService,
       ],
@@ -357,6 +364,73 @@ describe('StaffDetailComponent', () => {
     it('returns exact count when total divides evenly', () => {
       component.totalLogs.set(20);
       expect(component.totalPages()).toBe(2);
+    });
+  });
+
+  // ── permission overrides ──────────────────────────────────────────────────────
+
+  describe('permission overrides', () => {
+    it('seeds every catalog key to inherit when there are no stored overrides', () => {
+      mockPermSvc.catalog.mockReturnValue(of(['staff.view', 'staff.manage']));
+      mockPermSvc.getUserOverrides.mockReturnValue(of([]));
+      const c2 = TestBed.createComponent(StaffDetailComponent).componentInstance;
+      c2.loadPermissions();
+      expect(c2.permChoices()).toEqual({ 'staff.view': 'inherit', 'staff.manage': 'inherit' });
+      expect(c2.permLoading()).toBe(false);
+    });
+
+    it('maps stored overrides to grant/revoke and leaves the rest inherit', () => {
+      mockPermSvc.catalog.mockReturnValue(of(['staff.view', 'staff.manage', 'payroll.view']));
+      mockPermSvc.getUserOverrides.mockReturnValue(of([
+        { permissionKey: 'staff.manage', granted: true },
+        { permissionKey: 'payroll.view', granted: false },
+      ]));
+      const c2 = TestBed.createComponent(StaffDetailComponent).componentInstance;
+      c2.loadPermissions();
+      expect(c2.permChoices()).toEqual({
+        'staff.view': 'inherit', 'staff.manage': 'grant', 'payroll.view': 'revoke',
+      });
+    });
+
+    it('persists ONLY non-inherit choices — grant=>true, revoke=>false, inherit omitted', () => {
+      component.permKeys.set(['staff.view', 'staff.manage', 'payroll.view']);
+      component.permChoices.set({ 'staff.view': 'inherit', 'staff.manage': 'grant', 'payroll.view': 'revoke' });
+      component.savePermissions();
+      expect(mockPermSvc.setUserOverrides).toHaveBeenCalledWith('', [
+        { permissionKey: 'staff.manage', granted: true },
+        { permissionKey: 'payroll.view', granted: false },
+      ]);
+    });
+
+    it('shows success toast and clears saving after a successful save', () => {
+      component.permKeys.set(['staff.view']);
+      component.permChoices.set({ 'staff.view': 'grant' });
+      component.savePermissions();
+      expect(mockToast.success).toHaveBeenCalledWith('permissions.saved');
+      expect(component.permSaving()).toBe(false);
+    });
+
+    it('shows error toast and clears saving when save fails', () => {
+      mockPermSvc.setUserOverrides.mockReturnValue(throwError(() => new Error('boom')));
+      component.permKeys.set(['staff.view']);
+      component.permChoices.set({ 'staff.view': 'grant' });
+      component.savePermissions();
+      expect(mockToast.error).toHaveBeenCalledWith('permissions.saveFailed');
+      expect(component.permSaving()).toBe(false);
+    });
+
+    it('coerces a null selection (deselect) back to inherit', () => {
+      component.permChoices.set({ 'staff.view': 'grant' });
+      component.setPermChoice('staff.view', null);
+      expect(component.permChoices()['staff.view']).toBe('inherit');
+    });
+
+    it('surfaces a load-failed toast when the catalog call errors', () => {
+      mockPermSvc.catalog.mockReturnValue(throwError(() => new Error('nope')));
+      const c2 = TestBed.createComponent(StaffDetailComponent).componentInstance;
+      c2.loadPermissions();
+      expect(mockToast.error).toHaveBeenCalledWith('permissions.loadFailed');
+      expect(c2.permLoading()).toBe(false);
     });
   });
 

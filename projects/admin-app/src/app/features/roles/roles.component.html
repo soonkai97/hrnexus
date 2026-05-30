@@ -87,12 +87,18 @@
             }
           </td>
           <td>
-            @if (!role.isSystem) {
-              <span class="p-column-title">{{ 'roles.actionsCol' | translate }}</span>
-              <p-button icon="pi pi-trash" [label]="'roles.deleteRole' | translate" [text]="true" severity="danger"
-                        [loading]="deletingRole() === role.name" [disabled]="!!deletingRole()"
-                        (click)="deleteRole(role.name)" />
-            }
+            <span class="p-column-title">{{ 'roles.actionsCol' | translate }}</span>
+            <div class="d-inline-flex align-items-center gap-1">
+              <p-button icon="pi pi-shield" [text]="true" severity="secondary"
+                        [pTooltip]="'permissions.roleTitle' | translate"
+                        [attr.aria-label]="('permissions.roleTitle' | translate) + ' — ' + role.name"
+                        (click)="openPermissions(role.name)" />
+              @if (!role.isSystem) {
+                <p-button icon="pi pi-trash" [label]="'roles.deleteRole' | translate" [text]="true" severity="danger"
+                          [loading]="deletingRole() === role.name" [disabled]="!!deletingRole()"
+                          (click)="deleteRole(role.name)" />
+              }
+            </div>
           </td>
         </tr>
       </ng-template>
@@ -100,3 +106,34 @@
   </p-card>
   } <!-- end @else -->
 </div>
+
+<!-- Role permissions editor -->
+<p-dialog
+  [visible]="!!permRole()"
+  (visibleChange)="!$event && closePermissions()"
+  [header]="('permissions.roleTitle' | translate) + (permRole() ? ' — ' + permRole() : '')"
+  [modal]="true"
+  [style]="{'width':'min(480px, 92vw)'}"
+  [closable]="true">
+
+  <p class="modal-desc">{{ 'permissions.roleDesc' | translate }}</p>
+
+  <div class="perm-list">
+    @for (key of permCatalog(); track key) {
+      <div class="perm-row">
+        <p-checkbox [inputId]="'perm-' + key" [binary]="true"
+                    [ngModel]="permSelected().includes(key)"
+                    (ngModelChange)="togglePermission(key, $event)"
+                    [disabled]="permLoading()" />
+        <label [for]="'perm-' + key">{{ ('permissions.keys.' + key) | translate }}</label>
+      </div>
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary"
+              (click)="closePermissions()" />
+    <p-button [label]="'permissions.save' | translate" icon="pi pi-check" severity="primary"
+              (click)="savePermissions()" [disabled]="permLoading() || permSaving()" [loading]="permSaving()" />
+  </ng-template>
+</p-dialog>

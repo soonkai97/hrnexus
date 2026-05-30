@@ -1,5 +1,30 @@
 @use 'styles/theme' as *;
 
+// ── Role permissions dialog ───────────────────────────────────────────────────
+.modal-desc {
+  margin: 0 0 1rem;
+  color: $text-secondary;
+  font-size: 0.9rem;
+}
+
+.perm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+
+  .perm-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+
+    label {
+      margin: 0;
+      cursor: pointer;
+      color: $text-primary;
+    }
+  }
+}
+
 // ── Add-role form card ────────────────────────────────────────────────────────
 .add-card {
   max-width: 560px;

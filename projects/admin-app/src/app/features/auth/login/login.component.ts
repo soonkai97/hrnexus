@@ -54,9 +54,9 @@ export class AdminLoginComponent {
         }
         this.router.navigate(['/dashboard']);
       },
-      error: (e: any) => {
+      error: (e: { error?: string | { error?: string; message?: string } }) => {
         const raw = e?.error;
-        const msg: string = raw?.error ?? raw?.message ?? (typeof raw === 'string' ? raw : '') ?? '';
+        const msg: string = (typeof raw === 'string' ? raw : raw?.error ?? raw?.message) ?? '';
         this.error.set(
           msg.includes('Manager or Admin')
             ? this.translate.instant('auth.errAccessDeniedRole')

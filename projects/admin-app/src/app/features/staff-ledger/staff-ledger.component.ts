@@ -231,7 +231,7 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
       this.toast.success(this.translate.instant('staffLedger.savedSuccess'));
       this.loadEntries();
     };
-    const onFail = (e: any) => {
+    const onFail = (e: { error?: { error?: string } }) => {
       const msg = e?.error?.error ?? this.translate.instant('staffLedger.saveFailed');
       this.formError.set(msg);
       this.toast.error(msg);
@@ -303,7 +303,7 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
       this.toast.success(this.translate.instant('staffLedger.expenseSaved'));
       this.loadExpenses();
     };
-    const onFail = (e: any) => {
+    const onFail = (e: { error?: { error?: string } }) => {
       const msg = e?.error?.error ?? this.translate.instant('staffLedger.expenseFailed');
       this.expenseFormError.set(msg);
       this.toast.error(msg);
@@ -358,7 +358,7 @@ export class StaffLedgerComponent implements OnInit, CanComponentDeactivate {
       this.toast.success(this.translate.instant('staffLedger.loanSaved'));
       this.loadLoans();
     };
-    const onFail = (e: any) => {
+    const onFail = (e: { error?: { error?: string } }) => {
       const msg = e?.error?.error ?? this.translate.instant('staffLedger.loanFailed');
       this.loanFormError.set(msg);
       this.toast.error(msg);

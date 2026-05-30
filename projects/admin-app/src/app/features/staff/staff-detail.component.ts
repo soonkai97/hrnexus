@@ -157,7 +157,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     };
     this.staffStore.update(this.staffId, req).subscribe({
       next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success(this.translate.instant('staffDetail.profileUpdated')); },
-      error: (e: any) => { this.toast.error(e?.error?.error ?? this.translate.instant('staffDetail.updateFailed')); this.saving.set(false); },
+      error: (e: { error?: { error?: string } }) => { this.toast.error(e?.error?.error ?? this.translate.instant('staffDetail.updateFailed')); this.saving.set(false); },
     });
   }
 }

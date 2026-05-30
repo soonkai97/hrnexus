@@ -291,7 +291,7 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
       this.cancellingId.set(r.id);
       this.leaveSvc.cancel(r.id).subscribe({
         next:  () => { this.cancellingId.set(null); this.load(); this.toast.success(this.translate.instant('leave.toast.withdrawn')); },
-        error: (e: any) => {
+        error: (e: { error?: { error?: string; message?: string } }) => {
           this.cancellingId.set(null);
           const msg: string = e?.error?.error ?? e?.error?.message ?? '';
           this.toast.error(

@@ -47,9 +47,9 @@ export class LoginComponent {
       next: () => {
         this.router.navigate(['/home']);
       },
-      error: (e: any) => {
+      error: (e: { error?: string | { error?: string; message?: string } }) => {
         const raw = e?.error;
-        const msg: string = raw?.error ?? raw?.message ?? (typeof raw === 'string' ? raw : '') ?? '';
+        const msg: string = (typeof raw === 'string' ? raw : raw?.error ?? raw?.message) ?? '';
         this.error.set(
           msg.includes('Admin accounts')
             ? this.translate.instant('auth.errAdminPortal')

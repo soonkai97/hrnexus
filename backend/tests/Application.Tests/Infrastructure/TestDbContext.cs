@@ -48,6 +48,8 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public Task<T> ExecuteInStrategyAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
         => operation(ct);
 
+    public void ClearChangeTracker() => ChangeTracker.Clear();
+
     protected override void OnModelCreating(ModelBuilder mb)
     {
         // AnnouncementRead: composite PK (no Id column)

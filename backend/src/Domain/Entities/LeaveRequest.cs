@@ -24,10 +24,12 @@ public class LeaveRequest
     public static LeaveRequest Create(Guid employeeId, string leaveType,
         DateTime startDate, DateTime endDate,
         string? startTime, string? endTime, decimal? hours,
-        string? notes) =>
+        string? notes, Guid? id = null) =>
         new()
         {
-            Id         = Guid.NewGuid(),
+            // Caller may supply a stable Id so a retried create (EnableRetryOnFailure) can detect
+            // its own already-committed row and stay idempotent. Defaults to a fresh Guid.
+            Id         = id ?? Guid.NewGuid(),
             EmployeeId = employeeId,
             LeaveType  = leaveType.ToLower(),
             StartDate  = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc),

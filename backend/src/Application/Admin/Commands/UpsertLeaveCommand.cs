@@ -58,9 +58,20 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
 
+        // Stable Id for the create path so a retried attempt can recognise its own committed row.
+        // EnableRetryOnFailure re-runs the whole delegate on a transient; without this, an attempt
+        // that already COMMITTED could be retried, the retry would re-read the now-full balance and
+        // wrongly throw "insufficient" — leaving a committed row while the caller sees an error.
+        var newLeaveId = Guid.NewGuid();
+
         // Validation runs outside the strategy; transactional DB work runs inside.
         return await db.ExecuteInStrategyAsync(async ct =>
         {
+            // Start each attempt from a clean tracker so a retry can't collide with entities the
+            // previous (rolled-back) attempt left tracked — especially the create entity, which now
+            // carries a stable Id across attempts.
+            db.ClearChangeTracker();
+
             var isRejectedOrCancelled = req.Status.Equals(AppConstants.Leave.Rejected,  StringComparison.OrdinalIgnoreCase)
                                      || req.Status.Equals(AppConstants.Leave.Cancelled, StringComparison.OrdinalIgnoreCase);
             var isEmergency         = req.LeaveType.Equals(AppConstants.Leave.Emergency, StringComparison.OrdinalIgnoreCase);
@@ -75,6 +86,15 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             IDbContextTransaction? tx = await db.BeginSerializableAsync(ct);
             try
             {
+                // Idempotency guard: if a prior (committed) attempt of this create already inserted
+                // the row, the execution strategy is retrying us — return that row rather than
+                // re-running the balance check (which would now see a full balance and falsely fail).
+                if (!req.Id.HasValue && await db.LeaveRequests.AnyAsync(l => l.Id == newLeaveId, ct))
+                {
+                    if (tx != null) { await tx.CommitAsync(ct); tx.Dispose(); tx = null; }
+                    return newLeaveId;
+                }
+
                 if (!isRejectedOrCancelled && (isAnnualOrEmergency || isSick))
                 {
                     var year = req.StartDate.Year;
@@ -162,7 +182,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                     var leave = LeaveRequest.Create(req.EmployeeId, req.LeaveType,
                         req.StartDate, req.EndDate,
                         req.StartTime, req.EndTime, req.Hours,
-                        req.Notes);
+                        req.Notes, id: newLeaveId);
                     if (!resolvedStatus.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
                         leave.Update(req.LeaveType, req.StartDate, req.EndDate,
                             req.StartTime, req.EndTime, req.Hours,

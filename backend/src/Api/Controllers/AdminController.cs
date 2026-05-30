@@ -11,7 +11,7 @@ namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+[Authorize]
 public class AdminController(IMediator mediator) : ControllerBase
 {
     private Guid   CallerId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -20,12 +20,14 @@ public class AdminController(IMediator mediator) : ControllerBase
     // ── Dashboard ─────────────────────────────────────────────────────────────
 
     [HttpGet("dashboard")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.ReportsView)]
     public async Task<IActionResult> Dashboard(CancellationToken ct) =>
         Ok(await mediator.Send(new GetDashboardQuery(), ct));
 
     // ── Reports ───────────────────────────────────────────────────────────────
 
     [HttpGet("report")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.ReportsView)]
     public async Task<IActionResult> Report(
         [FromQuery] DateTime      dateFrom,
         [FromQuery] DateTime      dateTo,
@@ -47,6 +49,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     // ── Leave ─────────────────────────────────────────────────────────────────
 
     [HttpGet("leave")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
     public async Task<IActionResult> GetLeave(
         [FromQuery] Guid?     employeeId = null,
         [FromQuery] DateTime? dateFrom   = null,
@@ -64,6 +67,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("leave")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
     public async Task<IActionResult> CreateLeave([FromBody] UpsertLeaveBody body, CancellationToken ct)
     {
         try
@@ -81,6 +85,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("leave/{id:guid}")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
     public async Task<IActionResult> UpdateLeave(Guid id, [FromBody] UpsertLeaveBody body, CancellationToken ct)
     {
         try
@@ -98,6 +103,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("leave/{id:guid}")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
     public async Task<IActionResult> DeleteLeave(Guid id, CancellationToken ct)
     {
         try
@@ -111,6 +117,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     // ── Leave Balance ─────────────────────────────────────────────────────────
 
     [HttpGet("leave-balance")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveManage)]
     public async Task<IActionResult> GetAllLeaveBalances(
         [FromQuery] int? year = null, CancellationToken ct = default)
     {
@@ -119,6 +126,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("leave-balance/{employeeId:guid}")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveManage)]
     public async Task<IActionResult> GetLeaveBalance(Guid employeeId,
         [FromQuery] int? year = null, CancellationToken ct = default)
     {
@@ -127,6 +135,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("leave-balance/{employeeId:guid}")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveManage)]
     public async Task<IActionResult> SetLeaveBalance(Guid employeeId,
         [FromBody] LeaveEntitlementBody body, CancellationToken ct)
     {
@@ -141,6 +150,7 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     /// <summary>Set the same entitlement for all active staff for a given year.</summary>
     [HttpPost("leave-balance/bulk")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveManage)]
     public async Task<IActionResult> BulkSetLeaveBalance([FromBody] BulkLeaveEntitlementBody body, CancellationToken ct)
     {
         try
@@ -154,6 +164,7 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     /// <summary>Carry over unused annual leave from one year to the next for all active staff.</summary>
     [HttpPost("leave-balance/carry-over")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveManage)]
     public async Task<IActionResult> CarryOverLeave([FromBody] CarryOverBody body, CancellationToken ct)
     {
         try
@@ -167,6 +178,7 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     /// <summary>Bulk approve or reject a list of pending leave requests.</summary>
     [HttpPost("leave/bulk-status")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
     public async Task<IActionResult> BulkUpdateLeaveStatus(
         [FromBody] BulkUpdateLeaveStatusBody body, CancellationToken ct)
     {
@@ -181,6 +193,7 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     /// <summary>Aggregated leave usage summary for all active staff for a given year.</summary>
     [HttpGet("leave/summary")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
     public async Task<IActionResult> GetLeaveSummary(
         [FromQuery] int? year = null, CancellationToken ct = default)
     {
@@ -190,12 +203,14 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     /// <summary>Staff with frequent sick leave (3+ requests in rolling 90 days).</summary>
     [HttpGet("leave/pattern-warnings")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
     public async Task<IActionResult> GetLeavePatternWarnings(CancellationToken ct) =>
         Ok(await mediator.Send(new GetLeavePatternWarningsQuery(), ct));
 
     // ── Payroll ───────────────────────────────────────────────────────────────
 
     [HttpGet("payroll/summary")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollView)]
     [FeatureRequired("payroll")]
     public async Task<IActionResult> PayrollSummary(
         [FromQuery] int year,
@@ -225,6 +240,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("payroll/export")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollManage)]
     [FeatureRequired("payroll")]
     public async Task<IActionResult> ExportPayroll(
         [FromQuery] int year,
@@ -261,6 +277,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     // ── Tips Pools ────────────────────────────────────────────────────────────
 
     [HttpGet("tips-pools")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.TipsManage)]
     [FeatureRequired("tips")]
     public async Task<IActionResult> GetTipsPools(
         [FromQuery] DateTime? dateFrom = null,
@@ -269,6 +286,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         Ok(await mediator.Send(new GetTipsPoolsQuery(dateFrom, dateTo), ct));
 
     [HttpPost("tips-pools/distribute")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.TipsManage)]
     [FeatureRequired("tips")]
     public async Task<IActionResult> DistributeTips(
         [FromBody] DistributeTipsBody body, CancellationToken ct)

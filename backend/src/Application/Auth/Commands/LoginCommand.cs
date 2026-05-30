@@ -17,7 +17,9 @@ public record LoginResult(string AccessToken, string RefreshToken, int ExpiresIn
 
 public record UserDto(Guid Id, string StaffId, string FullName, string? Email, List<string> Roles);
 
-public class LoginCommandHandler(IAppDbContext db, IPasswordHasher hasher, ITokenService tokens, IDateTimeProvider clock)
+public class LoginCommandHandler(
+    IAppDbContext db, IPasswordHasher hasher, ITokenService tokens, IDateTimeProvider clock,
+    IPermissionResolver permissions)
     : IRequestHandler<LoginCommand, LoginResult>
 {
     public async Task<LoginResult> Handle(LoginCommand req, CancellationToken ct)
@@ -48,14 +50,13 @@ public class LoginCommandHandler(IAppDbContext db, IPasswordHasher hasher, IToke
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
 
-        // Portal access control. Superadmins/managers are treated as normal users in the
-        // staff portal (they can log their own shifts / leave there); only the admin portal
-        // is gated to elevated roles.
-        var isAdmin    = employee.Roles.Any(r => r.Equals(AppConstants.Roles.Admin,   StringComparison.OrdinalIgnoreCase));
-        var isElevated = isAdmin || employee.Roles.Any(r => r.Equals(AppConstants.Roles.Manager, StringComparison.OrdinalIgnoreCase));
-
-        if (req.Portal == "admin" && !isElevated)
-            throw new UnauthorizedAccessException("Access denied. Manager or Admin role required.");
+        // Portal access control. The staff portal is open to all staff (admins/managers can log
+        // their own shifts/leave there). The admin portal is gated by the portal.admin PERMISSION
+        // (role-default or per-user override), resolved fresh from the DB so a revocation takes
+        // effect on the next login rather than waiting out the token lifetime.
+        if (req.Portal == "admin" &&
+            !await permissions.HasAsync(employee.Id, AppConstants.Permissions.PortalAdmin, ct))
+            throw new UnauthorizedAccessException("Access denied. You do not have admin portal access.");
 
         // Successful auth — clear any accumulated failed-attempt state and issue tokens.
         employee.RegisterSuccessfulLogin();

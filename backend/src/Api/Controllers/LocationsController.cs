@@ -23,7 +23,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
     }
 
     [HttpPost]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LocationsManage)]
     public async Task<IActionResult> Create([FromBody] UpsertLocationBody body, CancellationToken ct)
     {
         var name = body.Name.Trim().ToUpperInvariant();
@@ -37,7 +37,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LocationsManage)]
     public async Task<IActionResult> Update(string id, [FromBody] UpsertLocationBody body, CancellationToken ct)
     {
         var loc = await db.Locations.FindAsync([id], ct);
@@ -52,7 +52,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
     }
 
     [HttpPost("{id}/image")]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LocationsManage)]
     public async Task<IActionResult> UploadImage(string id, IFormFile file, CancellationToken ct)
     {
         var loc = await db.Locations.FindAsync([id], ct);
@@ -74,7 +74,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LocationsManage)]
     public async Task<IActionResult> Delete(string id, CancellationToken ct)
     {
         var loc = await db.Locations.FindAsync([id], ct);

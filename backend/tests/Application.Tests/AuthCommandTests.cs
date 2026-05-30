@@ -4,6 +4,8 @@ using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Tests.Infrastructure;
 using HRNexus.Domain.Constants;
+using HRNexus.Infrastructure.Auth;
+using Microsoft.Extensions.Caching.Memory;
 using E = HRNexus.Domain.Entities;
 using Xunit;
 
@@ -66,13 +68,21 @@ public class AuthCommandTests
             hasher.Hash(password), roles ?? new List<string> { "BARTENDER" });
     }
 
+    private static PermissionResolver MakeResolver(TestDbContext db) =>
+        new(db, new MemoryCache(new MemoryCacheOptions()), new PermissionCacheState());
+
+    /// <summary>Login handler wired with the REAL permission resolver, so the admin-portal gate
+    /// reflects actual portal.admin permissions in the test DB.</summary>
+    private static LoginCommandHandler MakeLoginHandler(TestDbContext db, IDateTimeProvider? clock = null) =>
+        new(db, new StubHasher(), new StubTokenService(), clock ?? new StubClock(), MakeResolver(db));
+
     // ── LoginCommand ──────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Login_ThrowsUnauthorized_WhenStaffNotFound()
     {
         await using var db = CreateDb();
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
+        var handler = MakeLoginHandler(db);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new LoginCommand("NOBODY", "pass"), CancellationToken.None));
@@ -86,7 +96,7 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
+        var handler = MakeLoginHandler(db);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
@@ -102,7 +112,7 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
+        var handler = MakeLoginHandler(db);
 
         var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
 
@@ -118,7 +128,7 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
+        var handler = MakeLoginHandler(db);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new LoginCommand("S001", "pass", Portal: "admin"), CancellationToken.None));
@@ -129,10 +139,12 @@ public class AuthCommandTests
     {
         await using var db = CreateDb();
         db.Staff.Add(MakeStaff(roles: new List<string> { "MANAGER" }));
+        // MANAGER role grants admin-portal access (matches the seeded backfill).
+        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
+        var handler = MakeLoginHandler(db);
         var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "admin"), CancellationToken.None);
 
         Assert.NotNull(result.AccessToken);
@@ -147,7 +159,7 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
+        var handler = MakeLoginHandler(db);
         var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
 
         Assert.Equal("stub-access", result.AccessToken);
@@ -168,7 +180,7 @@ public class AuthCommandTests
         db.ChangeTracker.Clear();
 
         var clock   = new StubClock();
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), clock);
+        var handler = MakeLoginHandler(db, clock);
 
         // First (MaxFailedAttempts - 1) failures return the generic 401…
         for (var i = 0; i < AppConstants.Lockout.MaxFailedAttempts - 1; i++)
@@ -193,7 +205,7 @@ public class AuthCommandTests
         db.ChangeTracker.Clear();
 
         var clock   = new StubClock();
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), clock);
+        var handler = MakeLoginHandler(db, clock);
 
         for (var i = 0; i < AppConstants.Lockout.MaxFailedAttempts; i++)
             await Assert.ThrowsAnyAsync<Exception>(() =>
@@ -214,7 +226,7 @@ public class AuthCommandTests
         db.ChangeTracker.Clear();
 
         var clock   = new StubClock();
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), clock);
+        var handler = MakeLoginHandler(db, clock);
 
         // A couple of failures (below threshold) then a success must clear the counter,
         // so a later failure starts a fresh window rather than tipping into a lockout.

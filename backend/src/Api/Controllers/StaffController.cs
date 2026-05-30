@@ -12,7 +12,7 @@ namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/staff")]
-[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+[Authorize]
 public class StaffController(IMediator mediator) : ControllerBase
 {
     private Guid   CallerId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -32,6 +32,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffView)]
     public async Task<IActionResult> List(
         [FromQuery] string? search,
         [FromQuery] int     page     = 1,
@@ -44,6 +45,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffView)]
     public async Task<IActionResult> GetById(Guid id,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -58,6 +60,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
     public async Task<IActionResult> Register([FromBody] RegisterStaffCommand cmd, CancellationToken ct)
     {
         try
@@ -76,6 +79,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStaffBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -114,6 +118,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("{id}/activate")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
     public async Task<IActionResult> Activate(Guid id,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -130,6 +135,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("{id}/deactivate")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
     public async Task<IActionResult> Deactivate(Guid id,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -146,7 +152,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
     public async Task<IActionResult> Delete(Guid id,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -164,6 +170,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{id:guid}/reset-password")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
     public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetPasswordBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -182,6 +189,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     // --- Role management ---
 
     [HttpGet("roles")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffView)]
     public async Task<IActionResult> GetRoles(CancellationToken ct)
     {
         var result = await mediator.Send(new GetRolesQuery(), ct);
@@ -189,7 +197,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("roles")]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.RolesManage)]
     public async Task<IActionResult> CreateRole([FromBody] CreateRoleBody body, CancellationToken ct)
     {
         try
@@ -202,7 +210,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("roles/{name}/rate")]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.RolesManage)]
     public async Task<IActionResult> UpdateRoleRate(string name, [FromBody] UpdateRoleRateBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
@@ -223,7 +231,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("roles/{name}")]
-    [Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.RolesManage)]
     public async Task<IActionResult> DeleteRole(string name, CancellationToken ct)
     {
         try

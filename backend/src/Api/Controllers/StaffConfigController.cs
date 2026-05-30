@@ -9,7 +9,7 @@ namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/staff-config")]
-[Authorize(Roles = AppConstants.Roles.ManagerOrAdminClaim)]
+[Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.ConfigManage)]
 public class StaffConfigController(IAppDbContext db) : ControllerBase
 {
     // ── Work Types ────────────────────────────────────────────────────────────

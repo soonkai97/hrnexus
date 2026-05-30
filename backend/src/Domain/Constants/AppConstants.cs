@@ -22,6 +22,43 @@ public static class AppConstants
         public const string ManagerOrAdminClaim = ManagerClaim + "," + AdminClaim;
     }
 
+    // ── Permissions ──────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Permission catalog — the named capabilities that gate portal access and each admin
+    /// feature. Access is resolved from these (role defaults + per-user overrides), NOT from
+    /// roles directly. One key per existing controller/feature gate.
+    /// </summary>
+    public static class Permissions
+    {
+        public const string PortalAdmin        = "portal.admin";        // sign into the admin portal
+        public const string StaffView          = "staff.view";          // view staff list/details
+        public const string StaffManage        = "staff.manage";        // create/edit/deactivate staff
+        public const string LeaveApprove       = "leave.approve";       // approve/reject leave
+        public const string LeaveManage        = "leave.manage";        // entitlements / leave admin
+        public const string WorkLogManage      = "worklog.manage";      // edit others' shifts, approve
+        public const string ReportsView        = "reports.view";        // workforce/leave reports
+        public const string PayrollView        = "payroll.view";        // view payroll
+        public const string PayrollManage      = "payroll.manage";      // run/export payroll
+        public const string PayrollLock        = "payroll.lock";        // lock/reopen payroll periods
+        public const string TipsManage         = "tips.manage";         // tips pools/distribution
+        public const string LedgerManage       = "ledger.manage";       // staff earnings ledger
+        public const string RolesManage        = "roles.manage";        // roles + rates + permissions
+        public const string LocationsManage    = "locations.manage";    // venue locations
+        public const string AnnouncementsManage = "announcements.manage"; // create/delete announcements
+        public const string ConfigManage       = "config.manage";       // work types / settlements config
+
+        /// <summary>Every catalog key — used for validation and seeding system roles.</summary>
+        public static readonly IReadOnlyList<string> All = new[]
+        {
+            PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage, WorkLogManage,
+            ReportsView, PayrollView, PayrollManage, PayrollLock, TipsManage, LedgerManage,
+            RolesManage, LocationsManage, AnnouncementsManage, ConfigManage,
+        };
+
+        /// <summary>Authorization policy-name prefix: [Authorize(Policy = "perm:staff.manage")].</summary>
+        public const string PolicyPrefix = "perm:";
+    }
+
     // ── Leave ──────────────────────────────────────────────────────────────────
     public static class Leave
     {

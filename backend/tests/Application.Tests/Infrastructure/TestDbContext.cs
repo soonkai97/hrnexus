@@ -18,6 +18,8 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.Location>         Locations         => Set<E.Location>();
     public DbSet<E.Role>             Roles             => Set<E.Role>();
     public DbSet<E.RoleRate>         RoleRates         => Set<E.RoleRate>();
+    public DbSet<E.RolePermission>          RolePermissions          => Set<E.RolePermission>();
+    public DbSet<E.StaffPermissionOverride> StaffPermissionOverrides => Set<E.StaffPermissionOverride>();
     public DbSet<E.WorkLog>          WorkLogs          => Set<E.WorkLog>();
     public DbSet<E.LeaveRequest>     LeaveRequests     => Set<E.LeaveRequest>();
     public DbSet<E.LeaveEntitlement> LeaveEntitlements => Set<E.LeaveEntitlement>();
@@ -73,5 +75,11 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
         // Role: string PK on "Name" property (not "Id")
         mb.Entity<E.Role>()
             .HasKey(r => r.Name);
+
+        // Permission tables: composite PKs (no auto-discovered Id)
+        mb.Entity<E.RolePermission>()
+            .HasKey(r => new { r.RoleName, r.PermissionKey });
+        mb.Entity<E.StaffPermissionOverride>()
+            .HasKey(o => new { o.EmployeeId, o.PermissionKey });
     }
 }

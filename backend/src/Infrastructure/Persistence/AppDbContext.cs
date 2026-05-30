@@ -17,6 +17,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<Location>         Locations         => Set<Location>();
     public DbSet<Role>             Roles             => Set<Role>();
     public DbSet<RoleRate>         RoleRates         => Set<RoleRate>();
+    public DbSet<RolePermission>          RolePermissions          => Set<RolePermission>();
+    public DbSet<StaffPermissionOverride> StaffPermissionOverrides => Set<StaffPermissionOverride>();
     public DbSet<WorkLog>          WorkLogs          => Set<WorkLog>();
     public DbSet<LeaveRequest>     LeaveRequests     => Set<LeaveRequest>();
     public DbSet<LeaveEntitlement> LeaveEntitlements => Set<LeaveEntitlement>();
@@ -67,6 +69,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new LocationConfiguration());
         mb.ApplyConfiguration(new RoleConfiguration());
         mb.ApplyConfiguration(new RoleRateConfiguration());
+        mb.ApplyConfiguration(new RolePermissionConfiguration());
+        mb.ApplyConfiguration(new StaffPermissionOverrideConfiguration());
         mb.ApplyConfiguration(new WorkLogConfiguration());
         mb.ApplyConfiguration(new LeaveRequestConfiguration());
         mb.ApplyConfiguration(new LeaveEntitlementConfiguration());

@@ -76,7 +76,13 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
                 if (carryOver <= 0m) continue;
 
                 if (toMap.TryGetValue(empId, out var te))
+                {
+                    // Idempotency: CarryOverHours is only ever set by a carry-over. If it's
+                    // already > 0, this employee was carried over into ToYear before — skip so
+                    // a re-run (double-click, retry) can't inflate the balance with `+=`.
+                    if (te.CarryOverHours > 0m) continue;
                     te.AddCarryOver(carryOver);
+                }
                 else
                 {
                     var newEnt = LeaveEntitlement.Create(empId, req.ToYear, 0m, 0m);

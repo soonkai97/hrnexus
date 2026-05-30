@@ -1019,6 +1019,36 @@ public class LeaveCommandTests
     }
 
     [Fact]
+    public async Task CarryOverLeaveEntitlement_IsIdempotent_WhenRunTwice()
+    {
+        // Re-running carry-over for the same year pair must NOT double-apply (AddCarryOver is +=).
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m));
+        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m));
+        var used = E.LeaveRequest.Create(staff.Id, "annual",
+            new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2025, 3, 5, 0, 0, 0, DateTimeKind.Utc), null, null, 30m, null);
+        used.Update("annual",
+            new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2025, 3, 5, 0, 0, 0, DateTimeKind.Utc), null, null, 30m, null, "approved");
+        db.Staff.Add(staff);
+        db.LeaveRequests.Add(used);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
+        var first = await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+        db.ChangeTracker.Clear();
+        var second = await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+
+        Assert.Equal(1, first);
+        Assert.Equal(0, second);   // second run skips the already-carried employee
+        var ent = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
+        Assert.Equal(90m, ent.AnnualHours);   // still 80 + 10, NOT 80 + 20
+    }
+
+    [Fact]
     public async Task CarryOverLeaveEntitlement_CapsAtMaxCarryOver()
     {
         // Staff has 40h for 2025, used 0h → 40h remaining → capped at 14h

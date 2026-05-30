@@ -5,7 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { AuthService, ThemeToggleComponent, LangService, apiErrorMessage } from 'shared-lib';
+import { AuthService, PermissionService, ThemeToggleComponent, LangService, apiErrorMessage } from 'shared-lib';
 
 @Component({
   selector: 'app-admin-login',
@@ -17,6 +17,7 @@ import { AuthService, ThemeToggleComponent, LangService, apiErrorMessage } from 
 export class AdminLoginComponent {
   private readonly fb     = inject(FormBuilder);
   private readonly auth   = inject(AuthService);
+  private readonly permissions = inject(PermissionService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   readonly lang           = inject(LangService);
@@ -44,21 +45,24 @@ export class AdminLoginComponent {
     this.loading.set(true);
     this.error.set('');
     this.auth.login({ ...this.form.value, staffId, portal: 'admin' }).subscribe({
-      next: (res) => {
-        const roles = (res.user?.roles ?? []).map(r => r.toUpperCase());
-        if (!roles.includes('SUPERADMIN') && !roles.includes('MANAGER')) {
-          this.auth.logout();
-          this.error.set(this.translate.instant('auth.errAccessDeniedPortal'));
-          this.loading.set(false);
-          return;
-        }
-        this.router.navigate(['/dashboard']);
+      next: () => {
+        // Server already enforced portal.admin (401 otherwise). Load the effective permission set
+        // so in-app guards/UI work, then double-check portal.admin as defense-in-depth.
+        this.permissions.load().subscribe(() => {
+          if (!this.permissions.has('portal.admin')) {
+            this.auth.logout();
+            this.error.set(this.translate.instant('auth.errAccessDeniedPortal'));
+            this.loading.set(false);
+            return;
+          }
+          this.router.navigate(['/dashboard']);
+        });
       },
       error: (e: unknown) => {
         const msg = apiErrorMessage(e) ?? '';
         this.error.set(
-          msg.includes('Manager or Admin')
-            ? this.translate.instant('auth.errAccessDeniedRole')
+          msg.toLowerCase().includes('admin portal')
+            ? this.translate.instant('auth.errAccessDeniedPortal')
             : this.translate.instant('auth.errInvalidCredentials')
         );
         this.loading.set(false);

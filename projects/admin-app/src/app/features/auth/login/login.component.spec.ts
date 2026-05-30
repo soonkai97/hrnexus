@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AdminLoginComponent } from './login.component';
-import { AuthService, LangService } from 'shared-lib';
+import { AuthService, LangService, PermissionService } from 'shared-lib';
 
 @Component({ template: '', standalone: true }) class StubComponent {}
 
@@ -30,6 +30,7 @@ describe('AdminLoginComponent', () => {
     logout: ReturnType<typeof vi.fn>;
   };
   let mockLang:   { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
+  let mockPermissions: { load: ReturnType<typeof vi.fn>; has: ReturnType<typeof vi.fn>; clear: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockAuth = {
@@ -37,6 +38,8 @@ describe('AdminLoginComponent', () => {
       logout: vi.fn(),
     };
     mockLang = { current: vi.fn().mockReturnValue('en'), set: vi.fn() };
+    // By default the signed-in user HAS admin-portal access; gate tests override has().
+    mockPermissions = { load: vi.fn().mockReturnValue(of(void 0)), has: vi.fn().mockReturnValue(true), clear: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [AdminLoginComponent],
@@ -48,6 +51,7 @@ describe('AdminLoginComponent', () => {
         provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService, useValue: mockAuth },
         { provide: LangService, useValue: mockLang },
+        { provide: PermissionService, useValue: mockPermissions },
         MessageService,
         ConfirmationService,
       ],
@@ -129,25 +133,24 @@ describe('AdminLoginComponent', () => {
 
   // ── submit() — role guard ─────────────────────────────────────────────────────
 
-  describe('submit() — role guard: non-admin/manager user', () => {
+  describe('submit() — portal.admin gate: user without admin-portal permission', () => {
     beforeEach(() => {
       component.form.patchValue({ staffId: 'NC002', password: 'pass123' });
+      // Login succeeded (defense-in-depth) but the effective permissions lack portal.admin.
+      mockPermissions.has.mockReturnValue(false);
     });
 
-    it('calls auth.logout() when the logged-in user is not admin or manager', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['BARTENDER'] } }));
+    it('calls auth.logout() when the user lacks portal.admin', () => {
       component.submit();
       expect(mockAuth.logout).toHaveBeenCalled();
     });
 
-    it('sets access-denied error when user has employee role only', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['BARTENDER'] } }));
+    it('sets access-denied error when the user lacks portal.admin', () => {
       component.submit();
       expect(component.error()).toBe('auth.errAccessDeniedPortal');
     });
 
-    it('clears loading after rejecting a non-admin user', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['BARTENDER'] } }));
+    it('clears loading after rejecting a user without portal.admin', () => {
       component.submit();
       expect(component.loading()).toBe(false);
     });
@@ -166,10 +169,10 @@ describe('AdminLoginComponent', () => {
       expect(component.error()).toBe('auth.errInvalidCredentials');
     });
 
-    it('sets access-denied message when error contains "Manager or Admin"', () => {
-      mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Manager or Admin role required.' } })));
+    it('sets access-denied message when the API reports no admin-portal access', () => {
+      mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Access denied. You do not have admin portal access.' } })));
       component.submit();
-      expect(component.error()).toBe('auth.errAccessDeniedRole');
+      expect(component.error()).toBe('auth.errAccessDeniedPortal');
     });
 
     it('clears loading flag after an API error', () => {

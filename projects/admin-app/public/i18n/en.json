@@ -699,6 +699,7 @@
     "close":            "Close",
     "closeForm":        "Close form",
     "rateLabel":        "Rate (RM/hr)",
+    "editRate":         "Edit rate",
     "hourlyRateCol":    "Hourly Rate (RM)",
     "nameRequired":     "Role name is required.",
     "created":          "Role created.",

@@ -71,11 +71,7 @@
                 <p-button icon="pi pi-times" [label]="'common.cancel' | translate" [text]="true" severity="secondary" styleClass="btn-sm" (click)="cancelEditRate()" />
               </div>
             } @else {
-              <span class="d-inline-flex align-items-center gap-2">
-                RM {{ role.hourlyRate | number:'1.2-2' }}/hr
-                <p-button icon="pi pi-pencil" [label]="'common.edit' | translate" [text]="true" severity="secondary" styleClass="btn-sm"
-                          (click)="startEditRate(role.name, role.hourlyRate)" />
-              </span>
+              <span>RM {{ role.hourlyRate | number:'1.2-2' }}/hr</span>
             }
           </td>
           <td>
@@ -86,25 +82,19 @@
               <p-tag [value]="'roles.custom' | translate" severity="info" />
             }
           </td>
-          <td>
+          <td class="td-actions">
             <span class="p-column-title">{{ 'roles.actionsCol' | translate }}</span>
-            <div class="d-inline-flex align-items-center gap-1">
-              <p-button icon="pi pi-shield" [text]="true" severity="secondary"
-                        [pTooltip]="'permissions.roleTitle' | translate"
-                        [attr.aria-label]="('permissions.roleTitle' | translate) + ' — ' + role.name"
-                        (click)="openPermissions(role.name)" />
-              @if (!role.isSystem) {
-                <p-button icon="pi pi-trash" [label]="'roles.deleteRole' | translate" [text]="true" severity="danger"
-                          [loading]="deletingRole() === role.name" [disabled]="!!deletingRole()"
-                          (click)="deleteRole(role.name)" />
-              }
-            </div>
+            <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small" rounded
+                      [attr.aria-label]="('roles.actionsCol' | translate) + ' — ' + role.name"
+                      (click)="openRoleMenu(role, $event)" />
           </td>
         </tr>
       </ng-template>
     </p-table>
   </p-card>
   } <!-- end @else -->
+
+  <p-menu #roleMenu [popup]="true" [model]="roleMenuItems()" [appendTo]="'body'" />
 </div>
 
 <!-- Role permissions editor -->

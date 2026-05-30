@@ -14,12 +14,14 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 import { Dialog } from 'primeng/dialog';
 import { Checkbox } from 'primeng/checkbox';
+import { Menu } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-roles',
   standalone: true,
   imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective,
-    Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Message, Dialog, Checkbox],
+    Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Message, Dialog, Checkbox, Menu],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })
@@ -32,6 +34,8 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   private readonly featureSvc = inject(FeatureFlagService);
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('roleMenu') private roleMenu!: Menu;
+  roleMenuItems = signal<MenuItem[]>([]);
 
   readonly roles   = this.store.roles;
   readonly loading = this.store.loading;
@@ -146,6 +150,23 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   }
 
   // ── Role permissions editor ────────────────────────────────────────────────
+
+  /** Per-row actions via the ellipsis menu (Delete only for custom roles). */
+  openRoleMenu(role: { name: string; hourlyRate: number; isSystem: boolean }, event: Event): void {
+    const items: MenuItem[] = [
+      { label: this.translate.instant('roles.editRate'), icon: 'pi pi-pencil',
+        command: () => this.startEditRate(role.name, role.hourlyRate) },
+      { label: this.translate.instant('permissions.roleTitle'), icon: 'pi pi-shield',
+        command: () => this.openPermissions(role.name) },
+    ];
+    if (!role.isSystem) {
+      items.push({ separator: true });
+      items.push({ label: this.translate.instant('roles.deleteRole'), icon: 'pi pi-trash',
+        styleClass: 'nc-danger-item', command: () => this.deleteRole(role.name) });
+    }
+    this.roleMenuItems.set(items);
+    this.roleMenu.toggle(event);
+  }
 
   openPermissions(name: string): void {
     this.permRole.set(name);

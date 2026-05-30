@@ -39,6 +39,9 @@ jobs:
       - name: Unit tests — admin-app
         run: npm run test:admin
 
+      - name: Unit tests — staff-app
+        run: npm run test:staff
+
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -46,6 +49,32 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 14
+
+  backend:
+    name: Backend Build & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore backend/HRNexus.sln
+
+      # --configuration Release with the analyzers enabled: unused usings (IDE0005) and unused
+      # locals/fields fail the build here, same as locally.
+      - name: Build
+        run: dotnet build backend/HRNexus.sln --no-restore --configuration Release
+
+      # Integration.Tests spins up a throwaway PostgreSQL via Testcontainers — Docker is available
+      # on ubuntu-latest, so the full suite (Application + Integration + Infrastructure) runs.
+      - name: Test
+        run: dotnet test backend/HRNexus.sln --no-build --configuration Release --verbosity minimal
 
   # E2E tests require Docker infrastructure — run separately on push to main only
   e2e:

@@ -4,6 +4,9 @@
        in the IDE. The C# compiler already warns on unused locals/private fields by default. -->
   <PropertyGroup>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- Enable the .NET (Roslyn CA) analyzers at the Recommended level — security / reliability /
+         performance bug-catchers. Findings surface as warnings (not build-breaking) for triage. -->
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
     <!-- IDE0005 (unused usings) is only reported on build when a doc file is generated
          (Roslyn issue 41640). Enable it, but suppress CS1591 — we don't require XML doc
          comments on every public member. -->

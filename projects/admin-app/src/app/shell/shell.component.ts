@@ -114,17 +114,22 @@ export class ShellComponent implements AfterViewInit {
   });
 
   private readonly allNavItems: NavItem[] = [
+    // Ordered by importance / daily-use frequency: operations → finance → comms → setup.
+    // Daily operations
     { path: '/dashboard',     labelKey: 'nav.dashboard',     icon: 'pi pi-th-large'                                   },
-    { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                   },
-    { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'    },
     { path: '/staff',         labelKey: 'nav.staff',         icon: 'pi pi-users'                                      },
+    { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                   },
     { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar'                                  },
-    { path: '/tips',           labelKey: 'nav.tips',           icon: 'pi pi-dollar',    featureFlag: 'tips'             },
+    // Finance
+    { path: '/staff-ledger',   labelKey: 'nav.staffLedger',   icon: 'pi pi-book',      featureFlag: 'staffLedger'     },
     { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    featureFlag: 'payroll'          },
-    { path: '/staff-ledger',   labelKey: 'nav.staffLedger',   icon: 'pi pi-book',         featureFlag: 'staffLedger' },
-    { path: '/staff-settings', labelKey: 'nav.staffSettings', icon: 'pi pi-sliders-h',  featureFlag: 'staffLedger' },
+    { path: '/tips',           labelKey: 'nav.tips',           icon: 'pi pi-dollar',    featureFlag: 'tips'             },
+    // Communication
+    { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'    },
+    // Setup / governance (configured rarely)
     { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker'                                },
     { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card'                                    },
+    { path: '/staff-settings', labelKey: 'nav.staffSettings', icon: 'pi pi-sliders-h', featureFlag: 'staffLedger'     },
     { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock'                                       },
   ];
 

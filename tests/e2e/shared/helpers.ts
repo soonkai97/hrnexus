@@ -27,37 +27,47 @@ export async function loginAs(page: Page, staffId: string, password: string): Pr
  * does.  Bypasses the reactive-form / readonly-input interaction that can be
  * flaky with Playwright's Mobile Chrome emulation.
  */
+interface AuthSession { accessToken: string; refreshToken: string; user: object; }
+
+// Cache one session per (staffId, portal) for the whole worker run. The suite authenticates on
+// every test; without caching that's ~90 logins from a single source IP, which trips the per-IP
+// auth rate limiter (a real prod safeguard) and floods the run with 429s. Logging in ONCE per
+// account and replaying the tokens into localStorage avoids hammering the endpoint. JWTs last an
+// hour, far longer than a test run.
+const sessionCache = new Map<string, AuthSession>();
+
 async function setAuthState(
   page: Page,
   staffId: string,
   password: string,
   portal: 'admin' | 'staff',
 ): Promise<void> {
-  // Navigate first so fetch() runs in the correct origin context
-  await page.goto('/auth/login');
+  const key = `${staffId}:${portal}`;
+  let session = sessionCache.get(key);
 
-  await page.evaluate(
-    async ({ staffId, password, portal }) => {
-      const res = await fetch('/api/auth/login', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ staffId, password, portal }),
+  if (!session) {
+    // Log in once (Node-side request), with a short back-off if the limiter is warm.
+    let lastStatus = 0, lastBody = '';
+    for (let attempt = 0; attempt < 4 && !session; attempt++) {
+      const res = await page.request.post('/api/auth/login', {
+        data: { staffId, password, portal },
       });
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(`setAuthState: login failed ${res.status} — ${text}`);
-      }
-      const data = await res.json() as {
-        accessToken: string;
-        refreshToken: string;
-        user: object;
-      };
-      localStorage.setItem('access_token',  data.accessToken);
-      localStorage.setItem('refresh_token', data.refreshToken);
-      localStorage.setItem('auth_user',     JSON.stringify(data.user));
-    },
-    { staffId, password, portal },
-  );
+      lastStatus = res.status();
+      if (res.ok()) { session = await res.json() as AuthSession; break; }
+      lastBody = await res.text().catch(() => '');
+      if (lastStatus === 429) await page.waitForTimeout(2000); else break;
+    }
+    if (!session) throw new Error(`setAuthState: login failed ${lastStatus} — ${lastBody}`);
+    sessionCache.set(key, session);
+  }
+
+  // Navigate first so localStorage is written for the correct origin.
+  await page.goto('/auth/login');
+  await page.evaluate((s: AuthSession) => {
+    localStorage.setItem('access_token',  s.accessToken);
+    localStorage.setItem('refresh_token', s.refreshToken);
+    localStorage.setItem('auth_user',     JSON.stringify(s.user));
+  }, session);
 }
 
 /**

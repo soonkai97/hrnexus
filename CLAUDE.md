@@ -918,7 +918,7 @@ dotnet test                                         # run everything
 ### Auth hardening (login defense)
 Two complementary layers guard `/api/auth`:
 - **Per-account lockout** — `Staff.AccessFailedCount` / `LockoutEnd`; after `AppConstants.Lockout.MaxFailedAttempts` (5) consecutive failures the account locks for `Lockout.Duration` (15 min) and `LoginCommand` returns **429** (even for the correct password) until it expires; a success resets the counter.
-- **Per-IP fixed-window rate limiter** — `[EnableRateLimiting("auth")]` on `AuthController`, 30 req/min/IP, configured in `Program.cs`; overflow returns **429**.
+- **Per-IP fixed-window rate limiter** — `[EnableRateLimiting("auth")]` on `AuthController`; overflow returns **429**. This is only a coarse anti-flood ceiling, NOT the brute-force control. Default **100/60s** per client IP, tunable via `RateLimit:AuthPermitLimit` / `RateLimit:AuthWindowSeconds` (env: `RateLimit__AuthPermitLimit`). It must clear a shift-change burst because a whole venue shares one wifi/NAT public IP. `Program.cs` adds `UseForwardedHeaders` (X-Forwarded-For) so behind nginx the limiter partitions by the REAL client IP, not the proxy's — without it the limit degenerates into one global bucket. Any single-source client that authenticates in bulk (e.g. the E2E suite) must reuse a token rather than logging in per request.
 
 ### Boilerplate
 ```csharp

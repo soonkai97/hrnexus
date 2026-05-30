@@ -20,6 +20,11 @@ public sealed class TestApiFactory(string connectionString) : WebApplicationFact
     {
         // Point the app at the test container instead of the docker-compose 'postgres' host.
         builder.UseSetting("ConnectionStrings:DefaultConnection", connectionString);
+        // Force a small auth rate-limit window so the flood test deterministically trips 429
+        // (10 per minute). The lockout test uses a distinct IP and only 6 requests, so it stays
+        // under this and continues to exercise the per-account lockout path, not the IP limiter.
+        builder.UseSetting("RateLimit:AuthPermitLimit", "10");
+        builder.UseSetting("RateLimit:AuthWindowSeconds", "60");
 
         builder.ConfigureTestServices(services =>
         {

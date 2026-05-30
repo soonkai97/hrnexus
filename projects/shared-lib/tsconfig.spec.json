@@ -4,7 +4,10 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/spec",
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    // noUncheckedIndexedAccess stays ON for app/lib code (real null-safety) but is relaxed in
+    // tests: mocks have known fixed shapes, so `mockArray[0]` would only force noise `!` assertions.
+    "noUncheckedIndexedAccess": false
   },
   "include": ["src/**/*.d.ts", "src/**/*.spec.ts"]
 }

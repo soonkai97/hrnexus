@@ -45,13 +45,13 @@ export class ShellComponent implements AfterViewInit {
 
   private readonly onTouchStart = (e: TouchEvent) => {
     if (this.mainContent?.nativeElement.scrollTop === 0) {
-      this.ptStartY = e.touches[0].clientY;
+      this.ptStartY = e.touches[0]?.clientY ?? 0;
       this.ptPulling = true;
     }
   };
   private readonly onTouchMove = (e: TouchEvent) => {
     if (!this.ptPulling) return;
-    const delta = e.touches[0].clientY - this.ptStartY;
+    const delta = (e.touches[0]?.clientY ?? 0) - this.ptStartY;
     if (delta > 0 && this.mainContent?.nativeElement.scrollTop === 0) {
       e.preventDefault();
       this.pullProgress.set(Math.min(100, Math.round((delta / this.PULL_THRESHOLD) * 100)));

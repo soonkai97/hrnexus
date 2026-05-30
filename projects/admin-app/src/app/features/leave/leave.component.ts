@@ -307,7 +307,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   };
   get leaveTypeOptions() {
     return LEAVE_TYPES.map(t => ({
-      label: this.translate.instant(this.leaveTypeLabelKeys[t]),
+      label: this.translate.instant(this.leaveTypeLabelKeys[t] ?? ''),
       value: t,
     }));
   }
@@ -416,7 +416,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   };
   get statusOptions() {
     return STATUSES.map(s => ({
-      label: this.translate.instant(this.statusLabelKeys[s]),
+      label: this.translate.instant(this.statusLabelKeys[s] ?? ''),
       value: s,
     }));
   }
@@ -436,8 +436,15 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
 
   private parseTime(t: string | null | undefined): Date | null {
     if (!t) return null;
-    const [h, m] = t.split(':').map(Number);
+    const [h = 0, m = 0] = t.split(':').map(Number);
     const d = new Date(); d.setHours(h, m, 0, 0); return d;
+  }
+
+  /** Calendar chip label: first name + initial of the second name (e.g. "John D."). */
+  calChipLabel(staffName: string): string {
+    const parts = staffName.split(' ');
+    const initial = parts[1]?.[0];
+    return (parts[0] ?? '') + (initial ? ` ${initial}.` : '');
   }
 
   get calcHours(): number {

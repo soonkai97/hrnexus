@@ -12,7 +12,9 @@
          comments on every public member. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
-    <!-- Fail the build on unused locals / unused private fields (the C# analog of FE noUnusedLocals). -->
-    <WarningsAsErrors>$(WarningsAsErrors);CS0168;CS0219;CS0169;CS0414</WarningsAsErrors>
+    <!-- Fail the build on unused locals / unused private fields (the C# analog of FE noUnusedLocals).
+         `nullable` promotes ALL nullability warnings (CS8600-CS8655: possible null deref, null
+         passed to non-null param, etc.) to errors — null-safety violations break the build. -->
+    <WarningsAsErrors>$(WarningsAsErrors);nullable;CS0168;CS0219;CS0169;CS0414</WarningsAsErrors>
   </PropertyGroup>
 </Project>

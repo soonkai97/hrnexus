@@ -204,7 +204,7 @@ export class ReportsComponent implements OnInit {
 
   private parseTime(t: string): Date | null {
     if (!t) return null;
-    const [h, m] = t.split(':').map(Number);
+    const [h = NaN, m = NaN] = t.split(':').map(Number);
     if (isNaN(h) || isNaN(m)) return null;
     const d = new Date();
     d.setHours(h, m, 0, 0);
@@ -243,8 +243,8 @@ export class ReportsComponent implements OnInit {
     }
     const startTime = this.toTimeStr(this.editShiftStartTimeDate);
     const endTime   = this.toTimeStr(this.editShiftEndTimeDate);
-    const [sh, sm] = startTime.split(':').map(Number);
-    const [eh, em] = endTime.split(':').map(Number);
+    const [sh = 0, sm = 0] = startTime.split(':').map(Number);
+    const [eh = 0, em = 0] = endTime.split(':').map(Number);
     const durationMins = (eh * 60 + em) >= (sh * 60 + sm)
       ? (eh * 60 + em) - (sh * 60 + sm)
       : (eh * 60 + em) + 1440 - (sh * 60 + sm);

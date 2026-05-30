@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Auth.Commands;
 using HRNexus.Application.Staff.Commands;
@@ -11,6 +12,7 @@ namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[EnableRateLimiting("auth")]   // per-IP fixed-window flood protection (see Program.cs)
 public class AuthController(IMediator mediator) : ControllerBase
 {
     [HttpPost("login")]

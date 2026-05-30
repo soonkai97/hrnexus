@@ -1,5 +1,8 @@
-﻿using Hangfire;
+﻿using System.Text.Json;
+using System.Threading.RateLimiting;
+using Hangfire;
 using MediatR;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using HRNexus.Api.Converters;
@@ -56,6 +59,33 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginCommand).Assembly));
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// ── Rate limiting ───────────────────────────────────────────────────────────
+// Per-IP fixed-window limiter on the auth endpoints. This is the FLOOD/credential-stuffing
+// defence (many accounts probed from one source); per-account lockout (see LoginCommand) is
+// the complementary single-account brute-force defence. The "auth" policy is applied via
+// [EnableRateLimiting("auth")] on AuthController.
+const string AuthRateLimitPolicy = "auth";
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (ctx, token) =>
+    {
+        ctx.HttpContext.Response.ContentType = "application/json";
+        await ctx.HttpContext.Response.WriteAsync(
+            JsonSerializer.Serialize(new { error = "Too many requests. Please slow down and try again shortly." }),
+            token);
+    };
+    options.AddPolicy(AuthRateLimitPolicy, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,                  // generous enough for a shared office/NAT IP…
+                Window      = TimeSpan.FromMinutes(1), // …but far below a brute-force flood rate
+                QueueLimit  = 0,
+            }));
+});
+
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.WithOrigins(
         builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
@@ -88,6 +118,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseStaticFiles();
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 // Hangfire dashboard — development only; not exposed in production builds
@@ -99,3 +130,6 @@ app.MapHub<ShiftHub>("/hubs/shift");
 DependencyInjection.RegisterHangfireJobs(app.Services);
 
 app.Run();
+
+// Exposed so the integration test project can host the real pipeline via WebApplicationFactory<Program>.
+public partial class Program;

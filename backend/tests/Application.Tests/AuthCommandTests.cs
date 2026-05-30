@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Auth.Commands;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Tests.Infrastructure;
+using HRNexus.Domain.Constants;
 using E = HRNexus.Domain.Entities;
 using Xunit;
 
@@ -35,6 +37,15 @@ public class AuthCommandTests
         public Task BroadcastLiveStatsAsync(LiveStatsDto s, CancellationToken ct = default) => Task.CompletedTask;
     }
 
+    /// <summary>Mutable clock so lockout-window tests can advance time deterministically.</summary>
+    private sealed class StubClock : IDateTimeProvider
+    {
+        public DateTime UtcNow { get; set; } = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        public DateOnly TodayUtc => DateOnly.FromDateTime(UtcNow);
+        public TimeZoneInfo VenueTimeZone => TimeZoneInfo.Utc;
+        public DateTime LocalNow => UtcNow;
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static TestDbContext CreateDb()
@@ -61,7 +72,7 @@ public class AuthCommandTests
     public async Task Login_ThrowsUnauthorized_WhenStaffNotFound()
     {
         await using var db = CreateDb();
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService());
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new LoginCommand("NOBODY", "pass"), CancellationToken.None));
@@ -75,7 +86,7 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService());
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
@@ -91,7 +102,7 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService());
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
 
         var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
 
@@ -107,7 +118,7 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService());
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new LoginCommand("S001", "pass", Portal: "admin"), CancellationToken.None));
@@ -121,7 +132,7 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService());
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
         var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "admin"), CancellationToken.None);
 
         Assert.NotNull(result.AccessToken);
@@ -136,11 +147,90 @@ public class AuthCommandTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService());
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), new StubClock());
         var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
 
         Assert.Equal("stub-access", result.AccessToken);
         Assert.Contains("BARTENDER", result.User.Roles);
+    }
+
+    // ── LoginCommand: brute-force lockout ─────────────────────────────────────
+    // WHY: without a lockout an attacker can try unlimited passwords against one account.
+    // After N consecutive failures the account must refuse logins (even with the CORRECT
+    // password) for a cooldown, then recover automatically once the window passes.
+
+    [Fact]
+    public async Task Login_LocksAccount_AfterMaxFailedAttempts_ThenRefusesEvenCorrectPassword()
+    {
+        await using var db = CreateDb();
+        db.Staff.Add(MakeStaff(password: "correct"));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var clock   = new StubClock();
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), clock);
+
+        // First (MaxFailedAttempts - 1) failures return the generic 401…
+        for (var i = 0; i < AppConstants.Lockout.MaxFailedAttempts - 1; i++)
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
+
+        // …the failure that hits the threshold flips to 429 (TooManyRequests).
+        await Assert.ThrowsAsync<TooManyRequestsException>(() =>
+            handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
+
+        // Now even the CORRECT password is refused with 429 while the lockout holds.
+        await Assert.ThrowsAsync<TooManyRequestsException>(() =>
+            handler.Handle(new LoginCommand("S001", "correct"), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Login_Recovers_AfterLockoutWindowExpires()
+    {
+        await using var db = CreateDb();
+        db.Staff.Add(MakeStaff(password: "correct"));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var clock   = new StubClock();
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), clock);
+
+        for (var i = 0; i < AppConstants.Lockout.MaxFailedAttempts; i++)
+            await Assert.ThrowsAnyAsync<Exception>(() =>
+                handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
+
+        // Advance past the lockout window — the correct password now succeeds.
+        clock.UtcNow = clock.UtcNow.Add(AppConstants.Lockout.Duration).AddMinutes(1);
+        var result = await handler.Handle(new LoginCommand("S001", "correct"), CancellationToken.None);
+        Assert.Equal("stub-access", result.AccessToken);
+    }
+
+    [Fact]
+    public async Task Login_ResetsFailedCount_OnSuccessfulLogin()
+    {
+        await using var db = CreateDb();
+        db.Staff.Add(MakeStaff(password: "correct"));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var clock   = new StubClock();
+        var handler = new LoginCommandHandler(db, new StubHasher(), new StubTokenService(), clock);
+
+        // A couple of failures (below threshold) then a success must clear the counter,
+        // so a later failure starts a fresh window rather than tipping into a lockout.
+        for (var i = 0; i < AppConstants.Lockout.MaxFailedAttempts - 1; i++)
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
+
+        await handler.Handle(new LoginCommand("S001", "correct"), CancellationToken.None);
+
+        var staff = await db.Staff.FirstAsync();
+        Assert.Equal(0, staff.AccessFailedCount);
+        Assert.Null(staff.LockoutEnd);
+
+        // One more wrong attempt should be a plain 401, not a lockout.
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
     }
 
     // ── ChangePasswordCommand ─────────────────────────────────────────────────

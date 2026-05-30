@@ -1,5 +1,19 @@
 @use 'styles/theme' as *;
 
+// ── Payroll-period lock quick-action ──────────────────────────────────────────
+.period-lock {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .4rem .75rem;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  background: $bg-surface;
+
+  .pi-calendar-clock { color: $text-muted; }
+  .period-lock-label { font-size: .85rem; color: $text-secondary; }
+}
+
 // ── Page-level tabs (Report / Payroll) ────────────────────────────────────────
 
 .page-tab-bar {

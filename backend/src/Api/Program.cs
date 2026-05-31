@@ -5,9 +5,11 @@ using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HRNexus.Api.Authorization;
 using HRNexus.Api.Converters;
 using HRNexus.Api.Filters;
+using HRNexus.Api.Health;
 using HRNexus.Api.Middleware;
 using HRNexus.Api.ModelBinders;
 using HRNexus.Application.Auth.Commands;
@@ -15,10 +17,16 @@ using HRNexus.Infrastructure;
 using HRNexus.Infrastructure.Hubs;
 using HRNexus.Infrastructure.Persistence;
 using HRNexus.Api.Logging;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Formatting.Compact;
 
-Log.Logger = new LoggerConfiguration()
+// Phase-2 sink is env-gated: set Seq__ServerUrl (e.g. http://seq:5341) to ship structured logs to
+// Seq for search/dashboards/alerts. Unset (local/CI) → console + rolling JSON file exactly as before.
+var seqServerUrl = Environment.GetEnvironmentVariable("Seq__ServerUrl");
+var loggerConfig = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
     .Enrich.FromLogContext()
@@ -26,10 +34,11 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.With<HttpContextEnricher>()
     // Console stays human-readable; {Properties:j} surfaces CorrelationId/StaffId inline for local dev.
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
-    // File is structured JSON (one object per line) — greppable by CorrelationId/StaffId and ready to
-    // ship to an aggregator later (Phase 2).
-    .WriteTo.File(new CompactJsonFormatter(), "logs/hrnexus-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
-    .CreateLogger();
+    // File is structured JSON (one object per line) — greppable by CorrelationId/StaffId.
+    .WriteTo.File(new CompactJsonFormatter(), "logs/hrnexus-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7);
+if (!string.IsNullOrWhiteSpace(seqServerUrl))
+    loggerConfig.WriteTo.Seq(seqServerUrl, apiKey: Environment.GetEnvironmentVariable("Seq__ApiKey"));
+Log.Logger = loggerConfig.CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
@@ -84,6 +93,34 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+// ── Health checks ───────────────────────────────────────────────────────────
+// /health/live  = process is up (no dependency probes) — liveness.
+// /health/ready = database reachable — readiness gating for orchestrators / load balancers.
+// The existing /api/health (HealthController) is left untouched — maintenance mode polls it.
+builder.Services.AddHealthChecks()
+    .AddCheck<DbReadyHealthCheck>("database", tags: ["ready"]);
+
+// ── OpenTelemetry (traces + metrics) ──────────────────────────────────────────
+// Env-gated: set OTEL_EXPORTER_OTLP_ENDPOINT (e.g. an OTLP collector, or Seq's OTLP ingest for
+// traces) to export. Unset (local/CI) → OTel is not wired at all, zero overhead. ASP.NET +
+// HttpClient spans, plus runtime/ASP.NET metrics, tagged with the service name.
+var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]
+                ?? builder.Configuration["Otel:Endpoint"];
+if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+{
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(r => r.AddService("hrnexus-api"))
+        .WithTracing(t => t
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint)))
+        .WithMetrics(m => m
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddOtlpExporter(o => o.Endpoint = new Uri(otlpEndpoint)));
+}
 
 // ── Rate limiting ───────────────────────────────────────────────────────────
 // Per-IP fixed-window limiter on the auth endpoints. This is the FLOOD/credential-stuffing
@@ -160,9 +197,16 @@ forwardedOptions.KnownIPNetworks.Clear();
 forwardedOptions.KnownProxies.Clear();
 app.UseForwardedHeaders(forwardedOptions);
 
+// (Security response headers — X-Content-Type-Options, X-Frame-Options, X-XSS-Protection,
+// Referrer-Policy, Permissions-Policy — are already applied at the nginx edge for ALL responses,
+// including the SPA HTML. An API-level duplicate produced invalid doubled values, so it's omitted.)
+
 // First after IP resolution: assign/echo the correlation id so it's present in HttpContext.Items
 // before anything (including ExceptionMiddleware) logs.
 app.UseMiddleware<CorrelationIdMiddleware>();
+// One structured completion log per request (method, path, status, elapsed ms), carrying the
+// CorrelationId/StaffId enrichers — request-level observability in both the file and Seq.
+app.UseSerilogRequestLogging();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseStaticFiles();
 app.UseCors();
@@ -174,6 +218,10 @@ if (app.Environment.IsDevelopment())
     app.UseHangfireDashboard("/hangfire");
 app.MapControllers();
 app.MapHub<ShiftHub>("/hubs/shift");
+
+// Liveness has no dependency probes; readiness includes the "ready"-tagged DB check.
+app.MapHealthChecks("/health/live",  new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = static c => c.Tags.Contains("ready") });
 
 DependencyInjection.RegisterHangfireJobs(app.Services);
 

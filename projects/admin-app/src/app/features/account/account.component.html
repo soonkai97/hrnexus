@@ -65,58 +65,6 @@
         (click)="togglePush()" />
     </p-card>
 
-    <!-- Two-factor authentication -->
-    <p-card styleClass="action-card">
-      <h3 class="card-heading"><i class="pi pi-shield"></i> {{ 'account.twoFaTitle' | translate }}</h3>
-      <p class="card-sub">{{ 'account.twoFaDesc' | translate }}</p>
-
-      @if (recoveryCodes(); as codes) {
-        <!-- One-time recovery codes shown immediately after enabling -->
-        <div class="twofa-recovery">
-          <p class="twofa-recovery-warn"><i class="pi pi-exclamation-triangle"></i> {{ 'account.twoFaRecoveryWarn' | translate }}</p>
-          <ul class="twofa-recovery-list">
-            @for (c of codes; track c) { <li class="mono">{{ c }}</li> }
-          </ul>
-          <p-button [label]="'account.twoFaRecoveryDone' | translate" severity="primary" (click)="dismissRecoveryCodes()" />
-        </div>
-      } @else if (enrollInfo(); as info) {
-        <!-- Enrollment: scan QR + confirm a code -->
-        <div class="twofa-enroll">
-          <p class="card-sub">{{ 'account.twoFaScan' | translate }}</p>
-          <img class="twofa-qr" [src]="info.qrPngDataUri" alt="2FA QR code" width="200" height="200" />
-          <p class="twofa-secret">{{ 'account.twoFaManualKey' | translate }} <span class="mono">{{ info.secret }}</span></p>
-          <label for="twofa-confirm-code">{{ 'account.twoFaEnterCode' | translate }}</label>
-          <input id="twofa-confirm-code" pInputText [(ngModel)]="twoFaCode" inputmode="numeric"
-                 maxlength="6" class="twofa-code-input" autocomplete="one-time-code"
-                 (keydown.enter)="confirmEnroll()" />
-          <div class="twofa-actions">
-            <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEnroll()" />
-            <p-button [label]="'account.twoFaConfirm' | translate" severity="primary"
-                      [loading]="twoFaLoading()" [disabled]="twoFaLoading() || !twoFaCode" (click)="confirmEnroll()" />
-          </div>
-        </div>
-      } @else if (twoFaEnabled()) {
-        <div class="twofa-status"><p-tag [value]="'account.twoFaOn' | translate" severity="success" /></div>
-        @if (disablingTwoFa()) {
-          <label for="twofa-disable-code">{{ 'account.twoFaEnterCodeDisable' | translate }}</label>
-          <input id="twofa-disable-code" pInputText [(ngModel)]="twoFaCode" inputmode="numeric"
-                 maxlength="14" class="twofa-code-input" autocomplete="one-time-code"
-                 (keydown.enter)="confirmDisable()" />
-          <div class="twofa-actions">
-            <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelDisable()" />
-            <p-button [label]="'account.twoFaDisable' | translate" severity="danger"
-                      [loading]="twoFaLoading()" [disabled]="twoFaLoading() || !twoFaCode" (click)="confirmDisable()" />
-          </div>
-        } @else {
-          <p-button [label]="'account.twoFaDisable' | translate" severity="secondary" (click)="startDisable()" />
-        }
-      } @else {
-        <div class="twofa-status"><p-tag [value]="'account.twoFaOff' | translate" severity="warn" /></div>
-        <p-button [label]="'account.twoFaEnable' | translate" severity="primary"
-                  [loading]="twoFaLoading()" (click)="startEnroll()" />
-      }
-    </p-card>
-
     <!-- Language -->
     <p-card styleClass="lang-card">
       <h3 class="card-heading"><i class="pi pi-globe"></i> {{ 'account.language' | translate }}</h3>

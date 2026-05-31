@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Auth.Commands;
-using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Staff.Commands;
 using HRNexus.Application.Staff.Queries;
 using HRNexus.Domain.Constants;
@@ -15,21 +14,14 @@ namespace HRNexus.Api.Controllers;
 [ApiController]
 [Route("api/auth")]
 [EnableRateLimiting("auth")]   // per-IP fixed-window flood protection (see Program.cs)
-public class AuthController(IMediator mediator, ITokenService tokenService) : ControllerBase
+public class AuthController(IMediator mediator) : ControllerBase
 {
-    private Guid CurrentUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginCommand cmd, CancellationToken ct)
     {
         try
         {
             var result = await mediator.Send(cmd, ct);
-            // 2FA-enabled admin login: no cookies yet — hand back the challenge token to exchange
-            // at /api/auth/2fa/verify.
-            if (result.RequiresTwoFactor)
-                return Ok(new { requiresTwoFactor = true, twoFactorToken = result.TwoFactorToken });
-
             SetAuthCookies(result.AccessToken, result.RefreshToken);
             // Tokens live ONLY in httpOnly cookies — never in the body (XSS can't read them).
             return Ok(new { user = result.User, expiresIn = result.ExpiresIn });
@@ -73,66 +65,6 @@ public class AuthController(IMediator mediator, ITokenService tokenService) : Co
             await mediator.Send(new LogoutCommand(refreshToken), ct);
         ClearAuthCookies();
         return NoContent();
-    }
-
-    // ── Two-factor authentication ──────────────────────────────────────────────
-
-    /// <summary>Step 2 of a 2FA login: exchange the challenge token + a code (TOTP or recovery)
-    /// for real session cookies. Public — the challenge token is the credential here.</summary>
-    [HttpPost("2fa/verify")]
-    public async Task<IActionResult> VerifyTwoFactor([FromBody] TwoFactorVerifyBody body, CancellationToken ct)
-    {
-        var staffId = tokenService.ValidateTwoFactorToken(body.TwoFactorToken);
-        if (staffId is null)
-            return Unauthorized(new { error = "Your verification session expired. Please sign in again." });
-        try
-        {
-            var result = await mediator.Send(new VerifyTwoFactorCommand(staffId.Value, body.Code), ct);
-            SetAuthCookies(result.AccessToken, result.RefreshToken);
-            return Ok(new { user = result.User, expiresIn = result.ExpiresIn });
-        }
-        catch (UnauthorizedAccessException ex) { return Unauthorized(new { error = ex.Message }); }
-    }
-
-    /// <summary>Whether the signed-in user currently has 2FA enabled (drives the account-page UI).</summary>
-    [HttpGet("2fa/status")]
-    [Authorize]
-    public async Task<IActionResult> TwoFactorStatus([FromServices] IAppDbContext db, CancellationToken ct)
-    {
-        var id = CurrentUserId();
-        var enabled = await db.Staff.Where(e => e.Id == id).Select(e => e.TwoFactorEnabled).FirstOrDefaultAsync(ct);
-        return Ok(new { enabled });
-    }
-
-    /// <summary>Begin enrollment: generates a secret and returns the QR + otpauth URI to scan.</summary>
-    [HttpPost("2fa/enroll/begin")]
-    [Authorize]
-    public async Task<IActionResult> BeginTwoFactorEnroll(CancellationToken ct)
-    {
-        try { return Ok(await mediator.Send(new BeginTwoFactorEnrollCommand(CurrentUserId()), ct)); }
-        catch (KeyNotFoundException ex)     { return NotFound(new { error = ex.Message }); }
-        catch (InvalidOperationException ex){ return BadRequest(new { error = ex.Message }); }
-    }
-
-    /// <summary>Confirm enrollment with the first code; returns the one-time recovery codes.</summary>
-    [HttpPost("2fa/enroll/confirm")]
-    [Authorize]
-    public async Task<IActionResult> ConfirmTwoFactorEnroll([FromBody] TwoFactorCodeBody body, CancellationToken ct)
-    {
-        try { return Ok(await mediator.Send(new ConfirmTwoFactorEnrollCommand(CurrentUserId(), body.Code), ct)); }
-        catch (KeyNotFoundException ex)     { return NotFound(new { error = ex.Message }); }
-        catch (InvalidOperationException ex){ return BadRequest(new { error = ex.Message }); }
-        catch (ArgumentException ex)        { return BadRequest(new { error = ex.Message }); }
-    }
-
-    /// <summary>Disable 2FA — requires a current code (TOTP or recovery) to prove possession.</summary>
-    [HttpPost("2fa/disable")]
-    [Authorize]
-    public async Task<IActionResult> DisableTwoFactor([FromBody] TwoFactorCodeBody body, CancellationToken ct)
-    {
-        try { await mediator.Send(new DisableTwoFactorCommand(CurrentUserId(), body.Code), ct); return NoContent(); }
-        catch (KeyNotFoundException ex)       { return NotFound(new { error = ex.Message }); }
-        catch (UnauthorizedAccessException ex){ return Unauthorized(new { error = ex.Message }); }
     }
 
     /// <summary>Effective permission keys for the signed-in user — drives FE guards/UI gating.</summary>
@@ -254,8 +186,6 @@ public class AuthController(IMediator mediator, ITokenService tokenService) : Co
     }
 }
 
-public record TwoFactorVerifyBody(string TwoFactorToken, string Code);
-public record TwoFactorCodeBody(string Code);
 public record ChangePasswordBody(string CurrentPassword, string NewPassword);
 public record UpdateProfileBody(string? PhoneNumber);
 public record UpdateLanguageBody(string Language);

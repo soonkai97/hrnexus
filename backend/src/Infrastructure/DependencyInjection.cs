@@ -46,7 +46,6 @@ public static class DependencyInjection
         // Auth
         services.AddScoped<ITokenService, TokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
-        services.AddSingleton<ITotpService, TotpService>();
         services.AddSingleton<IFieldEncryptor, FieldEncryptor>();
         // Permission resolution: DB-backed effective permissions, in-process cached (singleton
         // generation counter enables whole-cache invalidation on role-permission changes).

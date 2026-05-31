@@ -52,10 +52,6 @@ public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfigur
         // 0 rows (token already rotated) and throws DbUpdateConcurrencyException.
         b.Property(e => e.RefreshToken).IsConcurrencyToken();
 
-        // Two-factor auth: secret is a short base32 string; recovery codes are newline-joined hashes.
-        b.Property(e => e.TwoFactorSecret).HasMaxLength(64);
-        b.Property(e => e.TwoFactorRecoveryCodes);   // text — joined SHA-256 hex hashes
-
         b.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
         b.Property(e => e.CreatedBy).HasMaxLength(100);
         b.Property(e => e.ModifiedAt).HasColumnType("timestamp with time zone");

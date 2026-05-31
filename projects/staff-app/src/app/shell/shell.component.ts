@@ -9,7 +9,7 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, AnnouncementService, LangService, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, LangService, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
 
 const LEAVE_SNAPSHOT_KEY = 'nc_leave_status_snapshot';
 const POLL_INTERVAL_MS   = 60_000;
@@ -90,7 +90,6 @@ export class ShellComponent implements AfterViewInit {
   private readonly signalR         = inject(SignalRService);
   readonly lang                    = inject(LangService);
   readonly featureSvc              = inject(FeatureFlagService);
-  private readonly announcementSvc = inject(AnnouncementService);
   readonly notifSvc                = inject(NotificationService);
   private readonly leaveSvc        = inject(LeaveService);
   private readonly toast           = inject(ToastService);
@@ -104,22 +103,20 @@ export class ShellComponent implements AfterViewInit {
     { initialValue: null });
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
-  unreadAnnouncements = signal(0);
   unreadNotifications = computed(() => this.notifSvc.unreadCount());
   leaveChangeCount    = signal(0);
 
   constructor() {
-    this.featureSvc.load().subscribe(() => { this.refreshUnread(); });
+    this.featureSvc.load().subscribe();
     this.lang.syncFromApi();
     this.signalR.startConnection();
 
-    // Background poll: refresh announcement badge + detect leave status changes
+    // Background poll: detect leave status changes
     interval(POLL_INTERVAL_MS).pipe(
       startWith(0),
       takeUntilDestroyed(),
       filter(() => !!this.auth.user()),
     ).subscribe(() => {
-      this.refreshUnread();
       this.checkLeaveChanges();
     });
 
@@ -128,24 +125,11 @@ export class ShellComponent implements AfterViewInit {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(e => {
       this.collapsed.set(true);
-      this.refreshUnread();
       // Clear leave badge when the user opens My Leave
       if ((e as NavigationEnd).urlAfterRedirects.startsWith('/my-leave')) {
         this.leaveChangeCount.set(0);
         this.syncLeaveSnapshot();
       }
-    });
-  }
-
-  private isRefreshingUnread = false;
-
-  private refreshUnread(): void {
-    if (!this.featureSvc.isEnabled('announcements')) return;
-    if (this.isRefreshingUnread) return; // dedup: previous poll still in-flight
-    this.isRefreshingUnread = true;
-    this.announcementSvc.getMine().subscribe({
-      next:  list => { this.unreadAnnouncements.set(list.filter(a => !a.isRead).length); this.isRefreshingUnread = false; },
-      error: ()   => { this.isRefreshingUnread = false; },
     });
   }
 
@@ -221,9 +205,7 @@ export class ShellComponent implements AfterViewInit {
     { path: '/home',          labelKey: 'nav.home',          icon: 'pi pi-home'                                      },
     { path: '/log-shift',     labelKey: 'nav.logShift',      icon: 'pi pi-clock'                                     },
     { path: '/pay-summary',   labelKey: 'nav.pay',           icon: 'pi pi-wallet',    featureFlag: 'paySummary'      },
-    { path: '/tips-history',  labelKey: 'nav.tipsHistory',   icon: 'pi pi-dollar',    featureFlag: 'tipsHistory'     },
     { path: '/my-leave',      labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                  },
-    { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', featureFlag: 'announcements'   },
   ];
 
   navItems = computed(() => {

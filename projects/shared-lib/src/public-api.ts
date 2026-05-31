@@ -36,7 +36,6 @@ export * from './lib/directives/picker-only.directive';
 export * from './lib/directives/trim-input.directive';
 export * from './lib/guards/unsaved-changes.guard';
 export * from './lib/provide-no-autofill';
-export * from './lib/services/announcement.service'; // exports AnnouncementDto, AdminAnnouncementDto, UpsertAnnouncementDto
 export * from './lib/services/push.service';
 export * from './lib/services/feature-flag.service';
 export * from './lib/services/payroll-lock.service';

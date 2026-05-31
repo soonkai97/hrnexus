@@ -35,9 +35,6 @@
           @if (!collapsed()) {
             <span class="nav-label">{{ item.labelKey | translate }}</span>
           }
-          @if (item.path === '/announcements' && unreadAnnouncements() > 0) {
-            <span class="nav-badge">{{ unreadAnnouncements() > 99 ? '99+' : unreadAnnouncements() }}</span>
-          }
           @if (item.path === '/my-leave' && leaveChangeCount() > 0) {
             <span class="nav-badge">{{ leaveChangeCount() > 99 ? '99+' : leaveChangeCount() }}</span>
           }

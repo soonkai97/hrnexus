@@ -7,7 +7,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { HomeComponent } from './home.component';
 import {
   AuthService, PayrollService, LeaveService, WorkLogService,
-  FeatureFlagService, AnnouncementService, WorkLogDto,
+  FeatureFlagService, WorkLogDto,
 } from 'shared-lib';
 
 /**
@@ -40,7 +40,7 @@ const fakeBalance = {
 
 const fakePaySummary = {
   employeeId: 'e1', periodStart: '2026-05-01', periodEnd: '2026-05-31',
-  totalHours: 40, grossPay: 600, tipsAllocated: 0,
+  totalHours: 40, grossPay: 600,
 };
 
 // ── Suite ─────────────────────────────────────────────────────────────────────
@@ -50,14 +50,13 @@ describe('HomeComponent', () => {
   let mockLeaveSvc:        { getMyBalance: ReturnType<typeof vi.fn> };
   let mockWorkLogSvc:      { getActive: ReturnType<typeof vi.fn>; getMy: ReturnType<typeof vi.fn> };
   let mockFeatureSvc:      { isEnabled: ReturnType<typeof vi.fn> };
-  let mockAnnouncementSvc: { getMine: ReturnType<typeof vi.fn> };
   let mockAuth:            { user: () => any };
 
   /**
    * Create (and optionally configure) a fresh component instance.
    * `flags` controls what isEnabled() returns before the computed is first evaluated.
    */
-  function createComponent(flags: { paySummary?: boolean; announcements?: boolean } = {}): HomeComponent {
+  function createComponent(flags: { paySummary?: boolean } = {}): HomeComponent {
     mockFeatureSvc.isEnabled.mockImplementation(
       (key: string) => (flags as Record<string, boolean>)[key] ?? false,
     );
@@ -72,7 +71,6 @@ describe('HomeComponent', () => {
       getMy:     vi.fn().mockReturnValue(of({ items: [], total: 0 })),
     };
     mockFeatureSvc      = { isEnabled: vi.fn().mockReturnValue(false) };
-    mockAnnouncementSvc = { getMine: vi.fn().mockReturnValue(of([])) };
     mockAuth            = { user: () => ({ id: 'u1', staffId: 'NC001', fullName: 'Test User', email: 't@test.com', roles: ['employee'] }) };
 
     await TestBed.configureTestingModule({
@@ -86,7 +84,6 @@ describe('HomeComponent', () => {
         { provide: LeaveService,         useValue: mockLeaveSvc },
         { provide: WorkLogService,       useValue: mockWorkLogSvc },
         { provide: FeatureFlagService,   useValue: mockFeatureSvc },
-        { provide: AnnouncementService,  useValue: mockAnnouncementSvc },
         MessageService,
         ConfirmationService,
       ],
@@ -145,9 +142,9 @@ describe('HomeComponent', () => {
     });
   });
 
-  // ── showPay / showAnnouncements ───────────────────────────────────────────────
+  // ── showPay ─────────────────────────────────────────────────────────────────
 
-  describe('showPay and showAnnouncements feature flag gates', () => {
+  describe('showPay feature flag gate', () => {
     it('showPay is false when paySummary flag is disabled', () => {
       const c = createComponent({ paySummary: false });
       expect(c.showPay()).toBe(false);
@@ -156,16 +153,6 @@ describe('HomeComponent', () => {
     it('showPay is true when paySummary flag is enabled', () => {
       const c = createComponent({ paySummary: true });
       expect(c.showPay()).toBe(true);
-    });
-
-    it('showAnnouncements is false when announcements flag is disabled', () => {
-      const c = createComponent({ announcements: false });
-      expect(c.showAnnouncements()).toBe(false);
-    });
-
-    it('showAnnouncements is true when announcements flag is enabled', () => {
-      const c = createComponent({ announcements: true });
-      expect(c.showAnnouncements()).toBe(true);
     });
   });
 
@@ -222,25 +209,6 @@ describe('HomeComponent', () => {
       const c = createComponent();
       c.ngOnInit();
       expect(c.recentShifts().length).toBe(4);
-    });
-
-    it('counts unread announcements when announcements feature is enabled', () => {
-      const notices = [
-        { id: 'a1', title: 'T', body: 'B', createdByName: 'M', createdAt: '', expiresAt: null, isRead: false },
-        { id: 'a2', title: 'T', body: 'B', createdByName: 'M', createdAt: '', expiresAt: null, isRead: true  },
-        { id: 'a3', title: 'T', body: 'B', createdByName: 'M', createdAt: '', expiresAt: null, isRead: false },
-      ];
-      mockAnnouncementSvc.getMine.mockReturnValue(of(notices));
-      const c = createComponent({ announcements: true });
-      c.ngOnInit();
-      expect(c.unreadNotices()).toBe(2);
-    });
-
-    it('unreadNotices is 0 when announcements feature is disabled — getMine() is not called', () => {
-      const c = createComponent({ announcements: false });
-      c.ngOnInit();
-      expect(c.unreadNotices()).toBe(0);
-      expect(mockAnnouncementSvc.getMine).not.toHaveBeenCalled();
     });
   });
 

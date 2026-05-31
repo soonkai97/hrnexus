@@ -36,10 +36,8 @@
   "nav": {
     "dashboard":     "Dashboard",
     "leave":         "Leave",
-    "announcements": "Announcements",
     "staff":         "Staff",
     "reports":       "Reports",
-    "tips":          "Tips",
     "locations":     "Locations",
     "roles":         "Roles",
     "payroll":       "Payroll",
@@ -694,10 +692,8 @@
       "payroll.view":         "View payroll",
       "payroll.manage":       "Manage payroll",
       "payroll.lock":         "Lock payroll periods",
-      "tips.manage":          "Manage tips",
       "roles.manage":         "Manage roles & permissions",
-      "locations.manage":     "Manage locations",
-      "announcements.manage": "Manage announcements"
+      "locations.manage":     "Manage locations"
     }
   },
   "roles": {

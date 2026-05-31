@@ -8,11 +8,6 @@
         <p class="greeting-role">{{ user()!.roles[0] | uppercase }}</p>
       }
     </div>
-    @if (showAnnouncements() && unreadNotices() > 0) {
-      <a routerLink="/announcements" class="notice-chip">
-        <i class="pi pi-megaphone"></i> {{ unreadNotices() }} {{ 'home.unreadAnnouncements' | translate }}
-      </a>
-    }
   </div>
 
   @if (loading()) {

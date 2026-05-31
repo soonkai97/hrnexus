@@ -25,7 +25,6 @@ public class DeleteStaffCommandHandler(IAppDbContext db)
         db.LeaveEntitlements.RemoveRange(db.LeaveEntitlements.Where(l => l.EmployeeId == req.Id));
         db.Notifications    .RemoveRange(db.Notifications    .Where(n => n.EmployeeId == req.Id));
         db.PushSubscriptions.RemoveRange(db.PushSubscriptions.Where(p => p.EmployeeId == req.Id));
-        db.AnnouncementReads.RemoveRange(db.AnnouncementReads.Where(a => a.EmployeeId == req.Id));
 
         // StaffRoles are cascade-deleted automatically via EF config
         db.Staff.Remove(staff);

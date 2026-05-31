@@ -6,7 +6,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
   AuthService, PayrollService, LeaveService, WorkLogService,
-  FeatureFlagService, AnnouncementService, AmPmPipe,
+  FeatureFlagService, AmPmPipe,
   PaySummary, LeaveBalance, WorkLogDto, toLocalDateString,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -26,7 +26,6 @@ export class HomeComponent implements OnInit {
   private readonly leaveSvc        = inject(LeaveService);
   private readonly workLogSvc      = inject(WorkLogService);
   private readonly featureSvc      = inject(FeatureFlagService);
-  private readonly announcementSvc = inject(AnnouncementService);
 
   loading = signal(true);
 
@@ -35,11 +34,9 @@ export class HomeComponent implements OnInit {
   leave         = signal<LeaveBalance | null>(null);
   activeShift   = signal<WorkLogDto | null>(null);
   recentShifts  = signal<WorkLogDto[]>([]);
-  unreadNotices = signal(0);
 
   // Feature flags
   showPay           = computed(() => this.featureSvc.isEnabled('paySummary'));
-  showAnnouncements = computed(() => this.featureSvc.isEnabled('announcements'));
 
   // Greeting
   user      = computed(() => this.auth.user());
@@ -71,18 +68,12 @@ export class HomeComponent implements OnInit {
       leave:       this.leaveSvc.getMyBalance().pipe(catchError(() => of(null))),
       active:      this.workLogSvc.getActive().pipe(catchError(() => of(null))),
       recent:      this.workLogSvc.getMy(1, 5).pipe(catchError(() => of(null))),
-      notices:     this.showAnnouncements()
-                     ? this.announcementSvc.getMine().pipe(catchError(() => of([])))
-                     : of([]),
     }).subscribe(res => {
       this.pay.set(res.pay);
       this.leave.set(res.leave);
       this.activeShift.set(res.active);
       this.recentShifts.set(
         (res.recent?.items ?? []).filter(s => !s.isActive).slice(0, 4)
-      );
-      this.unreadNotices.set(
-        Array.isArray(res.notices) ? res.notices.filter((a: { isRead: boolean }) => !a.isRead).length : 0
       );
       this.loading.set(false);
     });

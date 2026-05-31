@@ -22,69 +22,6 @@ namespace HRNexus.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.Announcement", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CreatedByName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("TargetRoles")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("IsActive");
-
-                    b.ToTable("Announcements");
-                });
-
-            modelBuilder.Entity("HRNexus.Domain.Entities.AnnouncementRead", b =>
-                {
-                    b.Property<Guid>("AnnouncementId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ReadAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("AnnouncementId", "EmployeeId");
-
-                    b.ToTable("AnnouncementReads", (string)null);
-                });
-
             modelBuilder.Entity("HRNexus.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -542,52 +479,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("Staff", (string)null);
                 });
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.StaffMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("RecipientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("RecipientName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("SenderIsAdmin")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("SenderName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecipientId");
-
-                    b.HasIndex("SenderId");
-
-                    b.HasIndex("SentAt");
-
-                    b.ToTable("StaffMessages");
-                });
-
             modelBuilder.Entity("HRNexus.Domain.Entities.StaffPermissionOverride", b =>
                 {
                     b.Property<Guid>("EmployeeId")
@@ -617,90 +508,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.HasKey("EmployeeId", "Role");
 
                     b.ToTable("StaffRoles", (string)null);
-                });
-
-            modelBuilder.Entity("HRNexus.Domain.Entities.TipsAllocationRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<decimal>("HoursWorked")
-                        .HasPrecision(6, 2)
-                        .HasColumnType("numeric(6,2)");
-
-                    b.Property<Guid>("PoolId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PoolId", "EmployeeId");
-
-                    b.ToTable("TipsAllocations", (string)null);
-                });
-
-            modelBuilder.Entity("HRNexus.Domain.Entities.TipsPool", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDistributed")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<Guid>("LocationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("LocationName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("ShiftDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SplitMethod")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<int>("StaffCount")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("ShiftDate");
-
-                    b.HasIndex("LocationId", "ShiftDate")
-                        .IsUnique();
-
-                    b.ToTable("TipsPools", (string)null);
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.WorkLog", b =>
@@ -801,15 +608,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("WorkLogs");
                 });
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.AnnouncementRead", b =>
-                {
-                    b.HasOne("HRNexus.Domain.Entities.Announcement", null)
-                        .WithMany("Reads")
-                        .HasForeignKey("AnnouncementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("HRNexus.Domain.Entities.LeaveEntitlement", b =>
                 {
                     b.HasOne("HRNexus.Domain.Entities.Staff", "Employee")
@@ -861,11 +659,6 @@ namespace HRNexus.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
-                });
-
-            modelBuilder.Entity("HRNexus.Domain.Entities.Announcement", b =>
-                {
-                    b.Navigation("Reads");
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>

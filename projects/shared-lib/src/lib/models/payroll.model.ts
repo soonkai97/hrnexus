@@ -3,7 +3,6 @@ export interface PaySummary {
   periodStart: string;
   periodEnd: string;
   totalHours: number;
-  tipsAllocated: number;
   grossPay: number;
   shifts: PayShiftLine[];
 }

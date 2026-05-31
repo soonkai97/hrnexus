@@ -18,8 +18,6 @@ export const routes: Routes = [
       { path: 'pay-summary',   canActivate: [featureFlagGuard('paySummary',     '/home')], loadComponent: () => import('./features/pay-summary/pay-summary.component').then(m => m.PaySummaryComponent) },
       { path: 'profile',       loadChildren:  () => import('./features/profile/profile.routes').then(m => m.PROFILE_ROUTES) },
       { path: 'my-leave',      canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/my-leave/my-leave.component').then(m => m.MyLeaveComponent) },
-      { path: 'tips-history',  canActivate: [featureFlagGuard('tipsHistory',    '/home')], loadComponent: () => import('./features/tips-history/tips-history.component').then(m => m.TipsHistoryComponent) },
-      { path: 'announcements', canActivate: [featureFlagGuard('announcements',  '/home')], loadComponent: () => import('./features/announcements/announcements.component').then(m => m.AnnouncementsComponent) },
     ],
   },
   { path: '**', redirectTo: 'home' },

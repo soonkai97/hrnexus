@@ -35,7 +35,7 @@ public class PermissionCommandTests
     {
         await using var db = CreateDb();
         db.Roles.Add(E.Role.Create("MANAGER", isSystem: true));
-        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.TipsManage)); // stale
+        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.RolesManage)); // stale
         await db.SaveChangesAsync();
         var spy = new SpyResolver();
 
@@ -48,7 +48,7 @@ public class PermissionCommandTests
             .Select(rp => rp.PermissionKey).ToListAsync();
         Assert.Equal(2, keys.Count);
         Assert.Contains(AppConstants.Permissions.PortalAdmin, keys);
-        Assert.DoesNotContain(AppConstants.Permissions.TipsManage, keys); // replaced, not merged
+        Assert.DoesNotContain(AppConstants.Permissions.RolesManage, keys); // replaced, not merged
         Assert.Equal(1, spy.InvalidateAllCount);
     }
 

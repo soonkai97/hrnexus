@@ -23,13 +23,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<LeaveRequest>     LeaveRequests     => Set<LeaveRequest>();
     public DbSet<LeaveEntitlement> LeaveEntitlements => Set<LeaveEntitlement>();
     public DbSet<Notification>     Notifications     => Set<Notification>();
-    public DbSet<Announcement>      Announcements      => Set<Announcement>();
-    public DbSet<AnnouncementRead>  AnnouncementReads  => Set<AnnouncementRead>();
     public DbSet<AuditLog>          AuditLogs          => Set<AuditLog>();
-    public DbSet<TipsPool>             TipsPools           => Set<TipsPool>();
-    public DbSet<TipsAllocationRecord> TipsAllocations     => Set<TipsAllocationRecord>();
     public DbSet<PushSubscription>     PushSubscriptions   => Set<PushSubscription>();
-    public DbSet<StaffMessage>       StaffMessages        => Set<StaffMessage>();
     public DbSet<FeatureFlag>        FeatureFlags         => Set<FeatureFlag>();
     public DbSet<PayrollLock>          PayrollLocks           => Set<PayrollLock>();
 
@@ -68,13 +63,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new LeaveRequestConfiguration());
         mb.ApplyConfiguration(new LeaveEntitlementConfiguration());
         mb.ApplyConfiguration(new NotificationConfiguration());
-        mb.ApplyConfiguration(new AnnouncementConfiguration());
-        mb.ApplyConfiguration(new AnnouncementReadConfiguration());
         mb.ApplyConfiguration(new AuditLogConfiguration());
         mb.ApplyConfiguration(new PushSubscriptionConfiguration());
-        mb.ApplyConfiguration(new TipsPoolConfiguration());
-        mb.ApplyConfiguration(new TipsAllocationConfiguration());
-        mb.ApplyConfiguration(new StaffMessageConfiguration());
         mb.ApplyConfiguration(new FeatureFlagConfiguration());
         mb.ApplyConfiguration(new PayrollLockConfiguration());
         SeedData.Seed(mb);

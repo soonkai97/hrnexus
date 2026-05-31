@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.FeatureFlags.Queries;
-using HRNexus.Application.Messaging.Commands;
 using HRNexus.Application.Notifications.Commands;
 using HRNexus.Application.Notifications.Queries;
 using HRNexus.Application.Tests.Infrastructure;
@@ -16,19 +14,10 @@ namespace HRNexus.Application.Tests;
 /// Handler-level tests for:
 /// - FeatureFlags (GetFeatureFlags)
 /// - Notifications (MarkNotificationsRead, GetNotifications)
-/// - Messaging (SendMessage, MarkMessageRead)
 /// - WorkLog (CreateManualWorkLog)
 /// </summary>
 public class FeatureFlagNotificationMessagingTests
 {
-    // ── Stubs ─────────────────────────────────────────────────────────────────
-
-    private sealed class NullNotificationHub : INotificationHub
-    {
-        public Task SendToUserAsync(Guid id, NotificationPayload p, CancellationToken ct = default) => Task.CompletedTask;
-        public Task BroadcastLiveStatsAsync(LiveStatsDto s, CancellationToken ct = default) => Task.CompletedTask;
-    }
-
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static TestDbContext CreateDb()
@@ -233,143 +222,6 @@ public class FeatureFlagNotificationMessagingTests
         var result = await handler.Handle(new GetNotificationsQuery(empId), CancellationToken.None);
 
         Assert.Equal(50, result.Count);
-    }
-
-    // ── SendMessageCommand ────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task SendMessage_ThrowsArgument_WhenContentIsEmpty()
-    {
-        await using var db = CreateDb();
-        var handler = new SendMessageHandler(db, new NullNotificationHub());
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new SendMessageCommand(Guid.NewGuid(), "Alice", true, null, null, "   "),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task SendMessage_ThrowsArgument_WhenContentExceedsMaxLength()
-    {
-        await using var db = CreateDb();
-        var handler = new SendMessageHandler(db, new NullNotificationHub());
-        var tooLong = new string('x', 2001);
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new SendMessageCommand(Guid.NewGuid(), "Alice", true, null, null, tooLong),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task SendMessage_ThrowsArgument_WhenSelfMessaging()
-    {
-        await using var db = CreateDb();
-        var empId = Guid.NewGuid();
-        var handler = new SendMessageHandler(db, new NullNotificationHub());
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new SendMessageCommand(empId, "Alice", false, empId, "Alice", "Hello me"),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task SendMessage_ThrowsKeyNotFound_WhenRecipientDoesNotExist()
-    {
-        await using var db = CreateDb();
-        var handler = new SendMessageHandler(db, new NullNotificationHub());
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new SendMessageCommand(Guid.NewGuid(), "Alice", true, Guid.NewGuid(), "Bob", "Hi"),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task SendMessage_Succeeds_SavesMessageAndCreatesNotification()
-    {
-        await using var db = CreateDb();
-        var sender = MakeStaff("S001");
-        var recipient = MakeStaff("S002");
-        db.Staff.Add(sender);
-        db.Staff.Add(recipient);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new SendMessageHandler(db, new NullNotificationHub());
-        var msgId = await handler.Handle(
-            new SendMessageCommand(sender.Id, "Alice", false, recipient.Id, "Bob", "Hello Bob!"),
-            CancellationToken.None);
-
-        Assert.NotEqual(Guid.Empty, msgId);
-        Assert.Equal(1, await db.StaffMessages.CountAsync());
-        // Notification created for recipient
-        Assert.Equal(1, await db.Notifications.CountAsync());
-    }
-
-    [Fact]
-    public async Task SendMessage_Succeeds_BroadcastMessage_NoNotificationCreated()
-    {
-        await using var db = CreateDb();
-        var handler = new SendMessageHandler(db, new NullNotificationHub());
-
-        // Broadcast: RecipientId = null
-        var msgId = await handler.Handle(
-            new SendMessageCommand(Guid.NewGuid(), "Admin", true, null, null, "Broadcast!"),
-            CancellationToken.None);
-
-        Assert.NotEqual(Guid.Empty, msgId);
-        // No individual notification for broadcast
-        Assert.Equal(0, await db.Notifications.CountAsync());
-    }
-
-    // ── MarkMessageReadCommand ────────────────────────────────────────────────
-
-    [Fact]
-    public async Task MarkMessageRead_DoesNothing_WhenMessageNotFound()
-    {
-        await using var db = CreateDb();
-        var handler = new MarkMessageReadHandler(db);
-
-        // Should not throw
-        await handler.Handle(new MarkMessageReadCommand(Guid.NewGuid(), Guid.NewGuid()),
-            CancellationToken.None);
-    }
-
-    [Fact]
-    public async Task MarkMessageRead_DoesNotMark_WhenUserIsNotRecipient()
-    {
-        await using var db = CreateDb();
-        var senderId = Guid.NewGuid();
-        var recipientId = Guid.NewGuid();
-        var otherId = Guid.NewGuid();
-        var msg = E.StaffMessage.Create(senderId, "Alice", false, recipientId, "Bob", "Hi");
-        db.StaffMessages.Add(msg);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new MarkMessageReadHandler(db);
-        // "other" tries to mark recipient's message — should be silently ignored
-        await handler.Handle(new MarkMessageReadCommand(msg.Id, otherId), CancellationToken.None);
-
-        var unchanged = await db.StaffMessages.FirstAsync(m => m.Id == msg.Id);
-        Assert.Null(unchanged.ReadAt); // ReadAt null means unread
-    }
-
-    [Fact]
-    public async Task MarkMessageRead_Succeeds_WhenUserIsRecipient()
-    {
-        await using var db = CreateDb();
-        var senderId = Guid.NewGuid();
-        var recipientId = Guid.NewGuid();
-        var msg = E.StaffMessage.Create(senderId, "Alice", false, recipientId, "Bob", "Hi");
-        db.StaffMessages.Add(msg);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new MarkMessageReadHandler(db);
-        await handler.Handle(new MarkMessageReadCommand(msg.Id, recipientId), CancellationToken.None);
-
-        var updated = await db.StaffMessages.FirstAsync(m => m.Id == msg.Id);
-        Assert.NotNull(updated.ReadAt); // ReadAt non-null means read
     }
 
     // ── CreateManualWorkLogCommand ────────────────────────────────────────────

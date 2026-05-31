@@ -36,10 +36,8 @@
   "nav": {
     "dashboard":     "仪表盘",
     "leave":         "请假",
-    "announcements": "公告",
     "staff":         "员工",
     "reports":       "报告",
-    "tips":          "小费",
     "locations":     "地点",
     "roles":         "职位",
     "payroll":       "薪资报表",
@@ -692,10 +690,8 @@
       "payroll.view":         "查看薪资",
       "payroll.manage":       "管理薪资",
       "payroll.lock":         "锁定薪资周期",
-      "tips.manage":          "管理小费",
       "roles.manage":         "管理职位与权限",
-      "locations.manage":     "管理场地",
-      "announcements.manage": "管理公告"
+      "locations.manage":     "管理场地"
     }
   },
   "roles": {

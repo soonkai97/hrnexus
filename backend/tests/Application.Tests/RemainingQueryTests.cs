@@ -136,35 +136,6 @@ public class RemainingQueryTests
         Assert.Equal(200m, result.GrossPay);
     }
 
-    // 5. Tips within the period are included in GrossPay
-    [Fact]
-    public async Task GetPaySummary_IncludesTipsAllocated_InGrossPay()
-    {
-        await using var db = CreateDb();
-        var emp = MakeStaff();
-        db.Staff.Add(emp);
-
-        // 5h shift @ 20/h = 100
-        var log = MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "18:00", "23:00", 20m);
-        db.WorkLogs.Add(log);
-
-        // Tips pool for same date
-        var pool = E.TipsPool.Create(Guid.NewGuid(), "Main Bar",
-            new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc), 200m, "equal");
-        db.TipsPools.Add(pool);
-        db.TipsAllocations.Add(E.TipsAllocationRecord.Create(pool.Id, emp.Id, emp.FullName, 50m, 0m));
-        await db.SaveChangesAsync();
-
-        var result = await new GetPaySummaryQueryHandler(db).Handle(
-            new GetPaySummaryQuery(emp.Id,
-                new DateOnly(2026, 5, 1),
-                new DateOnly(2026, 5, 31)),
-            CancellationToken.None);
-
-        Assert.Equal(50m,  result.TipsAllocated);
-        Assert.Equal(150m, result.GrossPay);  // 100 (work) + 50 (tips)
-    }
-
     // 6. Logs outside the requested period are excluded
     [Fact]
     public async Task GetPaySummary_ExcludesLogsOutsidePeriod()

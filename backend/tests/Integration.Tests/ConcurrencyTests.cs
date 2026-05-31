@@ -102,24 +102,6 @@ public class ConcurrencyTests(PostgresFixture fx)
         Assert.Equal(1, await verify.WorkLogs.CountAsync(w => w.EmployeeId == empId && w.EndTime == null));
     }
 
-    // ── Fix #3 guard: tips pool unique index (LocationId, ShiftDate) ───────────────
-    [Fact]
-    public async Task TipsPoolUniqueIndex_BlocksDuplicateDistributionForSameLocationAndDate()
-    {
-        var locId = Guid.NewGuid();
-        var date  = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-        await using var ctx1 = fx.NewDb();
-        await using var ctx2 = fx.NewDb();
-        ctx1.TipsPools.Add(E.TipsPool.Create(locId, "Main", date, 100m, "equal"));
-        ctx2.TipsPools.Add(E.TipsPool.Create(locId, "Main", date, 200m, "equal"));
-
-        await ctx1.SaveChangesAsync();
-        await Assert.ThrowsAsync<DbUpdateException>(() => ctx2.SaveChangesAsync());
-
-        await using var verify = fx.NewDb();
-        Assert.Equal(1, await verify.TipsPools.CountAsync(p => p.LocationId == locId));
-    }
 
     // ── Fix #1: balance overrun under Serializable isolation ──────────────────────
     [Fact]

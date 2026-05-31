@@ -34,19 +34,16 @@
     "toggle": "Toggle colour theme"
   },
   "nav": {
-    "clockIn":         "Clock In",
     "home":            "Home",
     "logShift":        "Log Shift",
     "pay":             "Pay",
     "leave":           "Leave",
-    "profile":         "Profile",
-    "more":            "More"
+    "profile":         "Profile"
   },
   "home": {
     "goodMorning":          "Good morning",
     "goodAfternoon":        "Good afternoon",
     "goodEvening":          "Good evening",
-    "unreadAnnouncements":  "unread",
     "manageShift":          "Manage Shift",
     "notClockedIn":         "You're not clocked in.",
     "logShift":             "Log Shift",
@@ -61,18 +58,6 @@
     "noRecentShifts":       "No shifts logged yet. Tap Log Shift to get started.",
     "dataUnavailable":      "Unavailable"
   },
-  "announcements": {
-    "subtitle":       "Stay up to date with venue notices",
-    "noAnnouncements":"No announcements at the moment.",
-    "markAllRead":    "Mark all read",
-    "unread":         "unread",
-    "postedBy":       "Posted by",
-    "clickToRead":    "Tap to mark as read",
-    "new":            "NEW",
-    "errLoad":        "Failed to load announcements.",
-    "errMarkRead":    "Failed to mark as read."
-  },
-  "topbar": { "signOut": "Sign out" },
   "shell": {
     "expandSidebar":    "Expand sidebar",
     "collapseSidebar":  "Collapse sidebar",
@@ -91,19 +76,12 @@
     "signingIn":      "Signing in…",
     "forgotPassword": "Forgot password?",
     "resetPassword":  "Reset Password",
-    "setNewPassword": "Set New Password",
-    "newPassword":    "New Password",
-    "confirmPassword":"Confirm Password",
-    "setPassword":    "Set Password",
     "backToSignIn":   "← Back to Sign In",
     "notifyManager":  "Notify Manager",
     "notifying":      "Sending…",
-    "tempPasswordInfo":"You're using a temporary password. Please set a new password to continue.",
     "forgotDesc":     "Enter your Staff ID and your manager will be notified to reset your password.",
     "requestSent":    "Your request has been sent to your manager.",
     "requestSentHint":"They will contact you with a new password. Please wait for them to reach out.",
-    "minCharsHint":        "Min. 8 characters",
-    "confirmPasswordHint": "Re-enter new password",
     "yourStaffId":         "Your Staff ID",
     "yourPassword":        "Your password",
     "showPassword":        "Show password",
@@ -116,25 +94,18 @@
     "title":         "Pay Summary",
     "workHours":     "Work Hours",
     "grossPay":      "Gross Pay",
-    "tips":          "Tips",
     "noData":        "No pay data for this period.",
     "year":          "Year",
     "month":         "Month",
     "view":          "View",
     "breakdown":     "Breakdown",
     "rate":          "rate",
-    "poolDist":      "Pool distribution",
     "shifts":        "Shifts",
     "totalSuffix":   "total",
     "errLoad":       "Failed to load pay summary."
   },
-  "tipsHistory": {
-    "earned":  "Tips Earned",
-    "noData":  "No tips data for this period."
-  },
   "leave": {
     "title":      "My Leave",
-    "balance":    "Leave Balance",
     "annual":     "Annual",
     "sick":       "Sick",
     "hrs":        "h",
@@ -203,7 +174,6 @@
     }
   },
   "profile": {
-    "title":           "Profile",
     "staffId":         "Staff ID",
     "email":           "Email",
     "role":            "Role",
@@ -283,15 +253,12 @@
     "leaveRejected":  "Your leave request has been rejected."
   },
   "common": {
-    "loading": "Loading…",
     "save":    "Save",
     "saving":  "Saving…",
     "signingOut": "Signing out…",
     "cancel":  "Cancel",
-    "confirm": "Confirm",
     "delete":  "Delete",
     "edit":    "Edit",
-    "back":    "Back",
-    "of":      "of"
+    "back":    "Back"
   }
 }

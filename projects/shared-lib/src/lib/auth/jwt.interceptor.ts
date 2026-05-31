@@ -16,13 +16,17 @@ const refreshDone$ = new BehaviorSubject<AuthResponse | null>(null);
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Auth is carried by httpOnly cookies, so there's no Bearer header to attach — instead every
+ * request opts in to sending cookies via `withCredentials`. On a 401 we still transparently
+ * refresh (the refresh token rides in its cookie) and replay, de-duping concurrent refreshes.
+ */
 export const jwtInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
   const auth = inject(AuthService);
 
-  // Attach the current access token to every outbound request
-  const authReq = withBearer(req, auth.getAccessToken());
+  const credReq = withCredentials(req);
 
-  return next(authReq).pipe(
+  return next(credReq).pipe(
     catchError((err: HttpErrorResponse) => {
       // Only intercept 401s that aren't from auth endpoints (avoid refresh loops)
       if (err.status !== 401 || req.url.includes('/api/auth/')) {
@@ -34,7 +38,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
         return refreshDone$.pipe(
           filter(res => res !== null),
           take(1),
-          switchMap(res => next(withBearer(req, res!.accessToken))),
+          switchMap(() => next(withCredentials(req))),
         );
       }
 
@@ -46,7 +50,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
         switchMap(res => {
           refreshing$ = null;
           refreshDone$.next(res);        // unblock any waiting requests
-          return next(withBearer(req, res.accessToken));
+          return next(withCredentials(req));
         }),
         catchError(refreshErr => {
           refreshing$ = null;
@@ -59,8 +63,6 @@ export const jwtInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
   );
 };
 
-function withBearer(req: HttpRequest<unknown>, token: string | null): HttpRequest<unknown> {
-  return token
-    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : req;
+function withCredentials(req: HttpRequest<unknown>): HttpRequest<unknown> {
+  return req.clone({ withCredentials: true });
 }

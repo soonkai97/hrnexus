@@ -38,7 +38,9 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   }
 
   // ── Step 1: Authenticate as HRADMIN ─────────────────────────────────────────
-  let accessToken: string;
+  // Tokens come back as httpOnly Set-Cookie headers (not in the body), so we capture and replay
+  // them as a Cookie header on the follow-up request.
+  let cookieHeader: string;
   try {
     const loginRes = await fetch(`${ADMIN_BASE}/api/auth/login`, {
       method:  'POST',
@@ -51,10 +53,13 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
       return;
     }
 
-    const data = await loginRes.json() as { accessToken?: string };
-    accessToken = data.accessToken ?? '';
-    if (!accessToken) {
-      console.warn('[global-setup] No accessToken in login response. Staff E2E tests will fail.');
+    const setCookies = loginRes.headers.getSetCookie?.() ?? [];
+    cookieHeader = setCookies
+      .map(c => c.split(';')[0])   // "name=value"
+      .filter(c => c.startsWith('hrnexus_at=') || c.startsWith('hrnexus_rt='))
+      .join('; ');
+    if (!cookieHeader) {
+      console.warn('[global-setup] No auth cookies in login response. Staff E2E tests will fail.');
       return;
     }
   } catch (err) {
@@ -67,8 +72,8 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
     const registerRes = await fetch(`${ADMIN_BASE}/api/staff`, {
       method:  'POST',
       headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'Cookie':       cookieHeader,
       },
       body: JSON.stringify({
         staffId:   STAFF_CREDS.staffId,

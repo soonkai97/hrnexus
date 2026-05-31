@@ -207,7 +207,14 @@ if (app.Environment.IsDevelopment())
 // proxy and the per-IP rate limiter degenerates into a single global bucket (false 429s at shift
 // change). KnownProxies/Networks are cleared because only nginx can reach this container (internal
 // docker network, no host port in prod), so the forwarded header is trusted.
-var forwardedOptions = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor };
+// XForwardedProto is also honoured so Request.IsHttps reflects the ORIGINAL client scheme (nginx
+// terminates TLS and proxies to the api over http). The auth cookies key their Secure flag off this,
+// so it must be accurate: https at the edge → Secure cookies in prod; plain http on the local stack
+// → non-Secure (or the browser would silently drop them).
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+};
 forwardedOptions.KnownIPNetworks.Clear();
 forwardedOptions.KnownProxies.Clear();
 app.UseForwardedHeaders(forwardedOptions);

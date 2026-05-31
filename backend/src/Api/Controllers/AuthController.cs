@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Auth.Commands;
 using HRNexus.Application.Staff.Commands;
 using HRNexus.Application.Staff.Queries;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Api.Controllers;
 
@@ -21,7 +22,9 @@ public class AuthController(IMediator mediator) : ControllerBase
         try
         {
             var result = await mediator.Send(cmd, ct);
-            return Ok(result);
+            SetAuthCookies(result.AccessToken, result.RefreshToken);
+            // Tokens live ONLY in httpOnly cookies — never in the body (XSS can't read them).
+            return Ok(new { user = result.User, expiresIn = result.ExpiresIn });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -29,18 +32,39 @@ public class AuthController(IMediator mediator) : ControllerBase
         }
     }
 
+    /// <summary>Rotates the session using the refresh token carried in the httpOnly cookie.</summary>
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand cmd, CancellationToken ct)
+    public async Task<IActionResult> Refresh(CancellationToken ct)
     {
+        var refreshToken = Request.Cookies[AppConstants.AuthCookies.RefreshToken];
+        if (string.IsNullOrEmpty(refreshToken))
+            return Unauthorized(new { error = "No refresh token." });
+
         try
         {
-            var result = await mediator.Send(cmd, ct);
-            return Ok(result);
+            var result = await mediator.Send(new RefreshTokenCommand(refreshToken), ct);
+            SetAuthCookies(result.AccessToken, result.RefreshToken);
+            return Ok(new { user = result.User, expiresIn = result.ExpiresIn });
         }
         catch (UnauthorizedAccessException ex)
         {
+            // Stale / already-used refresh token — clear the cookies so the client stops retrying.
+            ClearAuthCookies();
             return Unauthorized(new { error = ex.Message });
         }
+    }
+
+    /// <summary>Clears the session: expires the auth cookies and invalidates the server-side
+    /// refresh token. Works even with an expired access token (no [Authorize]) — the refresh
+    /// cookie identifies the session to revoke.</summary>
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(CancellationToken ct)
+    {
+        var refreshToken = Request.Cookies[AppConstants.AuthCookies.RefreshToken];
+        if (!string.IsNullOrEmpty(refreshToken))
+            await mediator.Send(new LogoutCommand(refreshToken), ct);
+        ClearAuthCookies();
+        return NoContent();
     }
 
     /// <summary>Effective permission keys for the signed-in user — drives FE guards/UI gating.</summary>
@@ -130,6 +154,36 @@ public class AuthController(IMediator mediator) : ControllerBase
         catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
+    // ── Auth-cookie helpers ────────────────────────────────────────────────────
+    // HttpOnly        → JS (and therefore XSS) cannot read the token.
+    // SameSite=Strict → the cookie is never sent on cross-site requests, which is our CSRF defense
+    //                   (the SPA is same-origin with the API via the nginx proxy).
+    // Secure          → only over HTTPS. Request.IsHttps is accurate behind nginx because
+    //                   X-Forwarded-Proto is honoured (see Program.cs ForwardedHeaders), so this is
+    //                   true in prod (https) and false on the local http stack — both correct.
+    private CookieOptions CookieOpts(DateTimeOffset? expires = null) => new()
+    {
+        HttpOnly = true,
+        Secure   = Request.IsHttps,
+        SameSite = SameSiteMode.Strict,
+        Path     = "/",
+        Expires  = expires,
+    };
+
+    private void SetAuthCookies(string accessToken, string refreshToken)
+    {
+        // Persistent (survives browser restart) to preserve the existing 30-day "stay signed in"
+        // UX. The JWT's own exp claim — not the cookie lifetime — is the real access gate.
+        var expires = DateTimeOffset.UtcNow.AddDays(30);
+        Response.Cookies.Append(AppConstants.AuthCookies.AccessToken, accessToken, CookieOpts(expires));
+        Response.Cookies.Append(AppConstants.AuthCookies.RefreshToken, refreshToken, CookieOpts(expires));
+    }
+
+    private void ClearAuthCookies()
+    {
+        Response.Cookies.Delete(AppConstants.AuthCookies.AccessToken, CookieOpts());
+        Response.Cookies.Delete(AppConstants.AuthCookies.RefreshToken, CookieOpts());
+    }
 }
 
 public record ChangePasswordBody(string CurrentPassword, string NewPassword);

@@ -46,9 +46,9 @@ export class SignalRService implements OnDestroy {
     if (this.hub) return;
 
     this.hub = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrl, {
-        accessTokenFactory: () => localStorage.getItem('access_token') ?? '',
-      })
+      // Auth rides in the httpOnly cookie — withCredentials makes the browser send it on the
+      // negotiate request and the WebSocket upgrade (same-origin), so no accessTokenFactory needed.
+      .withUrl(hubUrl, { withCredentials: true })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(new FilteredLogger())
       .build();

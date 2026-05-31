@@ -9,25 +9,23 @@ import { ADMIN, STAFF } from '../shared/helpers';
  *  - a policy-protected endpoint returns 403 without the permission and 200 with it,
  *  - the effective-permissions endpoint reflects the override.
  *
+ * Auth is now carried by an httpOnly cookie (no Bearer token in the body), so each identity gets
+ * its OWN APIRequestContext: logging in on a context populates that context's cookie jar, and the
+ * cookie is auto-sent on every subsequent request from it. This keeps the admin operator and the
+ * employee subject cleanly separated without juggling tokens.
+ *
  * Uses the seeded HRADMIN (SUPERADMIN, has every permission) as the operator and TESTSTAFF01
  * (EMPLOYEE, created by global-setup) as the subject. afterAll resets TESTSTAFF01's overrides so
  * the staff-portal specs still see a plain EMPLOYEE.
  */
 
-const adminLogin = (request: APIRequestContext) =>
-  request.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password, portal: 'admin' } });
+const ADMIN_BASE = process.env['BASE_URL_ADMIN'] ?? 'http://localhost:8080';
 
-const employeeAdminLogin = (request: APIRequestContext) =>
-  request.post('/api/auth/login', { data: { staffId: STAFF.staffId, password: STAFF.password, portal: 'admin' } });
+const login = (ctx: APIRequestContext, staffId: string, password: string) =>
+  ctx.post('/api/auth/login', { data: { staffId, password, portal: 'admin' } });
 
-async function adminToken(request: APIRequestContext): Promise<string> {
-  const res = await adminLogin(request);
-  expect(res.ok(), 'HRADMIN admin login should succeed').toBeTruthy();
-  return (await res.json()).accessToken as string;
-}
-
-async function findEmployeeId(request: APIRequestContext, token: string): Promise<string> {
-  const res = await request.get('/api/staff?page=1&pageSize=100', { headers: { Authorization: `Bearer ${token}` } });
+async function findEmployeeId(admin: APIRequestContext): Promise<string> {
+  const res = await admin.get('/api/staff?page=1&pageSize=100');
   expect(res.ok()).toBeTruthy();
   const body = await res.json() as { items?: { id: string; staffId: string }[]; data?: { id: string; staffId: string }[] };
   const items = body.items ?? body.data ?? (body as unknown as { id: string; staffId: string }[]);
@@ -37,77 +35,90 @@ async function findEmployeeId(request: APIRequestContext, token: string): Promis
 }
 
 function setOverrides(
-  request: APIRequestContext, token: string, empId: string,
+  admin: APIRequestContext, empId: string,
   overrides: { permissionKey: string; granted: boolean }[],
 ) {
-  return request.put(`/api/permissions/users/${empId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    data: { overrides },
-  });
+  return admin.put(`/api/permissions/users/${empId}`, { data: { overrides } });
 }
 
 test.describe('Admin — permission framework', () => {
-  let token = '';
   let empId = '';
 
   test.beforeAll(async ({ request }) => {
-    token = await adminToken(request);
-    empId = await findEmployeeId(request, token);
-    await setOverrides(request, token, empId, []);   // clean slate
+    expect((await login(request, ADMIN.staffId, ADMIN.password)).ok(), 'HRADMIN admin login should succeed').toBeTruthy();
+    empId = await findEmployeeId(request);
+    await setOverrides(request, empId, []);   // clean slate
   });
 
   test.afterAll(async ({ request }) => {
     // Reset so other specs (and live use) see TESTSTAFF01 as a plain EMPLOYEE again.
-    const t = await adminToken(request);
-    const id = await findEmployeeId(request, t);
-    await setOverrides(request, t, id, []);
+    await login(request, ADMIN.staffId, ADMIN.password);
+    const id = await findEmployeeId(request);
+    await setOverrides(request, id, []);
   });
 
-  test('admin-portal login gate: SUPERADMIN allowed, EMPLOYEE rejected', async ({ request }) => {
-    const admin = await adminLogin(request);
-    expect(admin.ok()).toBeTruthy();
+  test('admin-portal login gate: SUPERADMIN allowed, EMPLOYEE rejected', async ({ playwright }) => {
+    const adminCtx = await playwright.request.newContext({ baseURL: ADMIN_BASE });
+    expect((await login(adminCtx, ADMIN.staffId, ADMIN.password)).ok()).toBeTruthy();
+    await adminCtx.dispose();
 
-    const emp = await employeeAdminLogin(request);
-    expect(emp.ok(), 'a plain EMPLOYEE must not be able to sign into the admin portal').toBeFalsy();
+    const empCtx = await playwright.request.newContext({ baseURL: ADMIN_BASE });
+    expect((await login(empCtx, STAFF.staffId, STAFF.password)).ok(),
+      'a plain EMPLOYEE must not be able to sign into the admin portal').toBeFalsy();
+    await empCtx.dispose();
   });
 
-  test('a per-user GRANT override unlocks admin login immediately; revoking re-locks it', async ({ request }) => {
+  test('a per-user GRANT override unlocks admin login immediately; revoking re-locks it', async ({ request, playwright }) => {
+    await login(request, ADMIN.staffId, ADMIN.password);
+
     // Grant portal.admin to the employee…
-    expect((await setOverrides(request, token, empId, [{ permissionKey: 'portal.admin', granted: true }])).ok()).toBeTruthy();
-    const afterGrant = await employeeAdminLogin(request);
-    expect(afterGrant.ok(), 'granting portal.admin should let the employee in on the very next login').toBeTruthy();
+    expect((await setOverrides(request, empId, [{ permissionKey: 'portal.admin', granted: true }])).ok()).toBeTruthy();
+    const grantCtx = await playwright.request.newContext({ baseURL: ADMIN_BASE });
+    expect((await login(grantCtx, STAFF.staffId, STAFF.password)).ok(),
+      'granting portal.admin should let the employee in on the very next login').toBeTruthy();
+    await grantCtx.dispose();
 
     // …then clear it again.
-    expect((await setOverrides(request, token, empId, [])).ok()).toBeTruthy();
-    const afterClear = await employeeAdminLogin(request);
-    expect(afterClear.ok(), 'clearing the grant should lock the employee back out immediately').toBeFalsy();
+    expect((await setOverrides(request, empId, [])).ok()).toBeTruthy();
+    const clearCtx = await playwright.request.newContext({ baseURL: ADMIN_BASE });
+    expect((await login(clearCtx, STAFF.staffId, STAFF.password)).ok(),
+      'clearing the grant should lock the employee back out immediately').toBeFalsy();
+    await clearCtx.dispose();
   });
 
-  test('a policy-protected endpoint is 403 without the permission, 200 with it', async ({ request }) => {
+  test('a policy-protected endpoint is 403 without the permission, 200 with it', async ({ request, playwright }) => {
+    await login(request, ADMIN.staffId, ADMIN.password);
+
     // Grant ONLY portal.admin so the employee can authenticate to admin, but NOT roles.manage.
-    await setOverrides(request, token, empId, [{ permissionKey: 'portal.admin', granted: true }]);
-    const empToken = (await (await employeeAdminLogin(request)).json()).accessToken as string;
+    await setOverrides(request, empId, [{ permissionKey: 'portal.admin', granted: true }]);
+    const empCtx = await playwright.request.newContext({ baseURL: ADMIN_BASE });
+    expect((await login(empCtx, STAFF.staffId, STAFF.password)).ok()).toBeTruthy();
 
     // GET /api/permissions (the catalog) requires roles.manage.
-    const forbidden = await request.get('/api/permissions', { headers: { Authorization: `Bearer ${empToken}` } });
+    const forbidden = await empCtx.get('/api/permissions');
     expect(forbidden.status(), 'employee without roles.manage should get 403').toBe(403);
+    await empCtx.dispose();
 
-    const allowed = await request.get('/api/permissions', { headers: { Authorization: `Bearer ${token}` } });
+    const allowed = await request.get('/api/permissions');
     expect(allowed.ok(), 'HRADMIN has roles.manage → 200').toBeTruthy();
 
-    await setOverrides(request, token, empId, []);
+    await setOverrides(request, empId, []);
   });
 
-  test('effective-permissions endpoint reflects the granted override', async ({ request }) => {
-    await setOverrides(request, token, empId, [{ permissionKey: 'portal.admin', granted: true }]);
-    const empToken = (await (await employeeAdminLogin(request)).json()).accessToken as string;
+  test('effective-permissions endpoint reflects the granted override', async ({ request, playwright }) => {
+    await login(request, ADMIN.staffId, ADMIN.password);
 
-    const res = await request.get('/api/auth/me/permissions', { headers: { Authorization: `Bearer ${empToken}` } });
+    await setOverrides(request, empId, [{ permissionKey: 'portal.admin', granted: true }]);
+    const empCtx = await playwright.request.newContext({ baseURL: ADMIN_BASE });
+    expect((await login(empCtx, STAFF.staffId, STAFF.password)).ok()).toBeTruthy();
+
+    const res = await empCtx.get('/api/auth/me/permissions');
     expect(res.ok()).toBeTruthy();
     const body = await res.json() as string[] | { permissions?: string[]; keys?: string[] };
     const list = Array.isArray(body) ? body : (body.permissions ?? body.keys ?? []);
     expect(list).toContain('portal.admin');
+    await empCtx.dispose();
 
-    await setOverrides(request, token, empId, []);
+    await setOverrides(request, empId, []);
   });
 });

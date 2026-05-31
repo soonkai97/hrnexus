@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, UrlTree } from '@angular/router';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
-import { makeJwt, fakeUser } from '../../testing/test-helpers';
+import { fakeUser } from '../../testing/test-helpers';
 import { authGuard, roleGuard } from './auth.guard';
 
 // Stub ActivatedRouteSnapshot / RouterStateSnapshot — guards don't use them
@@ -16,8 +16,8 @@ const state = {} as RouterStateSnapshot;
  * WHY these tests matter:
  *  - Without this guard, unauthenticated requests reach the API and produce
  *    noisy 401 storms that confuse users and waste bandwidth.
- *  - Expired-token check prevents a window where the JS session looks valid
- *    but every API call fails before the interceptor can redirect.
+ *  - The access token now lives in an httpOnly cookie JS can't read, so the guard
+ *    gates purely on the locally-known user session; the server enforces expiry.
  */
 describe('authGuard', () => {
   let auth: AuthService;
@@ -32,34 +32,14 @@ describe('authGuard', () => {
 
   afterEach(() => localStorage.clear());
 
-  it('returns true when user is authenticated and token is valid', () => {
+  it('returns true when a user session is known', () => {
     (auth as any)._user.set(fakeUser(['BARTENDER']));
-    localStorage.setItem('access_token', makeJwt(3600)); // 1 hour ahead
 
     const result = TestBed.runInInjectionContext(() => authGuard(route, state));
     expect(result).toBe(true);
   });
 
   it('redirects to /auth/login when no user is set', () => {
-    // No user, no token
-    const result = TestBed.runInInjectionContext(() => authGuard(route, state));
-    expect(result).toBeInstanceOf(UrlTree);
-    expect((result as UrlTree).toString()).toBe('/auth/login');
-  });
-
-  it('redirects to /auth/login when user exists but token is expired — prevents 401 storms', () => {
-    (auth as any)._user.set(fakeUser(['BARTENDER']));
-    localStorage.setItem('access_token', makeJwt(-60)); // 1 minute ago
-
-    const result = TestBed.runInInjectionContext(() => authGuard(route, state));
-    expect(result).toBeInstanceOf(UrlTree);
-    expect((result as UrlTree).toString()).toBe('/auth/login');
-  });
-
-  it('redirects to /auth/login when user exists but no token is stored', () => {
-    (auth as any)._user.set(fakeUser(['BARTENDER']));
-    // no access_token in localStorage
-
     const result = TestBed.runInInjectionContext(() => authGuard(route, state));
     expect(result).toBeInstanceOf(UrlTree);
     expect((result as UrlTree).toString()).toBe('/auth/login');

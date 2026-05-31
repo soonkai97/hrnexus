@@ -98,7 +98,11 @@ export class ShellComponent implements AfterViewInit {
       filter(e => e instanceof NavigationEnd),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => {
-      this.collapsed.set(true);
+      // Auto-close the drawer after navigating on mobile only; on desktop the sidebar
+      // stays expanded so nav labels remain visible (icons-only hurt discoverability).
+      if (typeof window !== 'undefined' && window.innerWidth < 769) {
+        this.collapsed.set(true);
+      }
     });
   }
 

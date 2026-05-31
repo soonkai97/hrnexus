@@ -54,6 +54,9 @@ docker-compose.override.yml
 *.sql.gz
 nightclub_workforce_backup.dump
 
+# Ad-hoc E2E screenshot captures (local UI/UX review)
+tmp-e2e-capture/
+
 # Maintenance flag — created by deploy.sh, must never be committed
 maintenance/on
 

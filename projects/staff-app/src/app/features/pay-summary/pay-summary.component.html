@@ -9,14 +9,13 @@
     <div class="d-flex gap-3 align-items-end flex-wrap">
       <div class="field">
         <label for="ps-year">{{ 'pay.year' | translate }}</label>
-        <p-inputnumber
+        <p-select
           inputId="ps-year"
+          [options]="yearOptions"
           [ngModel]="selectedYear()"
           (ngModelChange)="selectedYear.set($event)"
-          [min]="2020"
-          [max]="2099"
-          [useGrouping]="false"
-          [pt]="$any({ input: { inputmode: 'decimal' } })" />
+          optionLabel="label"
+          optionValue="value" />
       </div>
       <div class="field">
         <label for="ps-month">{{ 'pay.month' | translate }}</label>

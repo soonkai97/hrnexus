@@ -6,13 +6,12 @@ import { PayrollService, PaySummary, MONTH_NAMES } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
-import { InputNumber } from 'primeng/inputnumber';
 import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-tips-history',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, InputNumber, Skeleton],
+  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, Skeleton],
   templateUrl: './tips-history.component.html',
   styleUrl: './tips-history.component.scss',
 })
@@ -26,6 +25,11 @@ export class TipsHistoryComponent implements OnInit {
 
   readonly months = MONTH_NAMES;
   readonly monthOptions = MONTH_NAMES.map((m, i) => ({ label: m, value: i + 1 }));
+  // Current year back 5 years — tips are only viewed for the current or a recent period.
+  readonly yearOptions = Array.from({ length: 6 }, (_, i) => {
+    const y = new Date().getFullYear() - i;
+    return { label: `${y}`, value: y };
+  });
 
   ngOnInit() { this.load(); }
 

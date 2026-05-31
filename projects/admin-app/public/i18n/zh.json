@@ -743,6 +743,7 @@
     "noAnnouncements":  "暂无公告。",
     "titleCol":         "标题",
     "targetRolesCol":   "目标职位",
+    "allRolesTag":      "所有职位",
     "readsCol":         "阅读数",
     "createdByCol":     "创建人",
     "expiresCol":       "过期时间",

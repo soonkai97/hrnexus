@@ -32,6 +32,7 @@ services:
       Jwt__Key: "${JWT_SECRET:-HRNexus_Dev_Secret_Change_In_Production_Min32Chars}"
       Jwt__Issuer: hrnexus
       Jwt__Audience: hrnexus-clients
+      Pii__Key: "${PII_ENCRYPTION_KEY:-HRNexus_Dev_PII_Key_Change_In_Production_32c}"
       Cors__AllowedOrigins__0: "http://admin.${DOMAIN}"
       Cors__AllowedOrigins__1: "http://staff.${DOMAIN}"
       Cors__AllowedOrigins__2: "https://admin.${DOMAIN}"

@@ -58,6 +58,17 @@ builder.Services.AddHttpContextAccessor();
     if (jwtKey == DevDefaultJwtKey || jwtKey.Length < 32)
         Log.Error("SECURITY: Jwt:Key is the dev default or shorter than 32 chars — tokens are forgeable. " +
                   "Set a strong unique JWT_SECRET in the environment before exposing this instance.");
+
+    // PII-at-rest encryption key. Like the JWT key, the local stack falls back to a compose default;
+    // real prod MUST set a strong unique PII_ENCRYPTION_KEY (and must NOT change it once data is
+    // encrypted, or that data becomes unreadable).
+    const string DevDefaultPiiKey = "HRNexus_Dev_PII_Key_Change_In_Production_32c";
+    var piiKey = builder.Configuration["Pii:Key"];
+    if (string.IsNullOrWhiteSpace(piiKey))
+        throw new InvalidOperationException("Pii:Key is not configured — set PII_ENCRYPTION_KEY in the environment.");
+    if (piiKey == DevDefaultPiiKey || piiKey.Length < 32)
+        Log.Error("SECURITY: Pii:Key is the dev default or shorter than 32 chars — encrypted PII is weakly protected. " +
+                  "Set a strong unique PII_ENCRYPTION_KEY in the environment before exposing this instance.");
 }
 
 // ── Services ──────────────────────────────────────────────────────────────────
@@ -194,6 +205,8 @@ await using (var scope = app.Services.CreateAsyncScope())
     var hasher = scope.ServiceProvider.GetRequiredService<HRNexus.Application.Common.Interfaces.IPasswordHasher>();
     await db.Database.MigrateAsync();
     await HRNexus.Infrastructure.Persistence.SeedData.SeedDemoUsersAsync(db, hasher);
+    // Encrypt any pre-existing plaintext PII left over from before field encryption (idempotent).
+    await HRNexus.Infrastructure.Persistence.PiiBackfill.EncryptExistingAsync(db);
 }
 
 if (app.Environment.IsDevelopment())

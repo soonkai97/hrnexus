@@ -9,7 +9,7 @@ using HRNexus.Infrastructure.Persistence.Configurations;
 
 namespace HRNexus.Infrastructure.Persistence;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUser)
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUser, IFieldEncryptor encryptor)
     : DbContext(options), IAppDbContext
 {
     public DbSet<Staff>            Staff             => Set<Staff>();
@@ -64,7 +64,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.ApplyConfiguration(new StaffConfiguration());
+        mb.ApplyConfiguration(new StaffConfiguration(encryptor));
         mb.ApplyConfiguration(new StaffRoleConfiguration());
         mb.ApplyConfiguration(new LocationConfiguration());
         mb.ApplyConfiguration(new RoleConfiguration());

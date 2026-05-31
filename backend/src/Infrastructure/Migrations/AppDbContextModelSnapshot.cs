@@ -462,8 +462,8 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime?>("DateOfBirth")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("DateOfBirth")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -482,8 +482,7 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("IcNo")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -507,8 +506,7 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("PassportNo")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

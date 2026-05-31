@@ -93,7 +93,9 @@ services:
     environment:
       ACCEPT_EULA: "Y"
     ports:
-      - "5341:80"    # Seq UI + ingestion → http://localhost:5341
+      # Bind to loopback ONLY — Seq has no auth in the free tier, so it must never be public.
+      # Access the UI in prod via an SSH tunnel (see below); apps reach it intra-network at http://seq.
+      - "127.0.0.1:5341:80"    # Seq UI + ingestion → http://localhost:5341 (local / via tunnel)
     volumes:
       - seq_data:/data
     networks:

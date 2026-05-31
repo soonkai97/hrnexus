@@ -101,7 +101,9 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
 
     /// <summary>Returns a pay summary (hours, pay breakdown, per-shift lines) for the current employee.</summary>
     [HttpGet("pay-summary")]
-    [FeatureRequired("paySummary")]
+    // OR semantics: this self-summary endpoint backs BOTH the staff Pay Summary (paySummary)
+    // and Tips History (tipsHistory) pages, so either flag being on must allow it.
+    [FeatureRequired("paySummary", "tipsHistory")]
     public async Task<IActionResult> GetPaySummary(
         [FromQuery] DateOnly? start,
         [FromQuery] DateOnly? end,

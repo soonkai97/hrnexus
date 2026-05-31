@@ -43,6 +43,11 @@ services:
       WebPush__Subject: "${VAPID_SUBJECT:-mailto:chiansoonkai97@gmail.com}"
       WebPush__PublicKey: "${VAPID_PUBLIC_KEY:-}"
       WebPush__PrivateKey: "${VAPID_PRIVATE_KEY:-}"
+      # Observability (Phase 2) — opt-in, empty by default so logs/traces stay local until enabled.
+      # Set SEQ_SERVER_URL=http://seq in .env (and start the 'observability' profile) to ship logs to Seq.
+      Seq__ServerUrl: "${SEQ_SERVER_URL:-}"
+      Seq__ApiKey: "${SEQ_API_KEY:-}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
     volumes:
       - uploads:/app/wwwroot/uploads       # location images
       - logs:/app/logs                     # Serilog files
@@ -76,10 +81,29 @@ services:
     networks:
       - internal
 
+  # ── Seq — structured-log / trace sink (OPT-IN) ───────────────────────────────
+  # Dormant by default. Enable with:
+  #   1) set SEQ_SERVER_URL=http://seq  (and optionally OTEL_EXPORTER_OTLP_ENDPOINT=http://seq/ingest/otlp/v1/traces) in .env
+  #   2) docker compose --profile observability up -d
+  # Browse the UI at http://localhost:5341. Without the profile, `docker compose up -d` never starts it.
+  seq:
+    image: datalust/seq:latest
+    profiles: ["observability"]
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "5341:80"    # Seq UI + ingestion → http://localhost:5341
+    volumes:
+      - seq_data:/data
+    networks:
+      - internal
+
 volumes:
   pg_data:
   uploads:
   logs:
+  seq_data:
 
 networks:
   internal:

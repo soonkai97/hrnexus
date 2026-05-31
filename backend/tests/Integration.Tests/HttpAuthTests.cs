@@ -86,6 +86,73 @@ public class HttpAuthTests(PostgresFixture fx) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Login_SetsHttpOnlyAuthCookies_NoBodyTokens_AndCookieAuthenticates()
+    {
+        await SeedLoginAccountAsync("COOKIETEST", "Correct@123");
+        const string ip = "10.0.0.20";
+        var client = _factory.CreateClient();   // Mvc.Testing client auto-persists Set-Cookie
+
+        var login = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login")
+        {
+            Content = JsonContent.Create(new { staffId = "COOKIETEST", password = "Correct@123", portal = (string?)null }),
+        };
+        login.Headers.Add("X-Test-Ip", ip);
+        var loginResp = await client.SendAsync(login);
+        Assert.Equal(HttpStatusCode.OK, loginResp.StatusCode);
+
+        // Both auth cookies are set and HttpOnly (JS/XSS can't read them).
+        var setCookies = loginResp.Headers.TryGetValues("Set-Cookie", out var values)
+            ? values.ToList() : new List<string>();
+        Assert.Contains(setCookies, c => c.StartsWith("hrnexus_at=", StringComparison.Ordinal)
+            && c.Contains("httponly", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(setCookies, c => c.StartsWith("hrnexus_rt=", StringComparison.Ordinal)
+            && c.Contains("httponly", StringComparison.OrdinalIgnoreCase));
+
+        // The response body must NOT carry the tokens any more.
+        var body = await loginResp.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("accessToken", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("refreshToken", body, StringComparison.OrdinalIgnoreCase);
+
+        // The cookie alone authenticates a protected endpoint (no Authorization header sent).
+        var me = new HttpRequestMessage(HttpMethod.Get, "/api/auth/me");
+        me.Headers.Add("X-Test-Ip", ip);
+        var meResp = await client.SendAsync(me);
+        Assert.Equal(HttpStatusCode.OK, meResp.StatusCode);
+    }
+
+    [Fact]
+    public async Task Logout_ExpiresAuthCookies_AndClearsRefreshToken()
+    {
+        await SeedLoginAccountAsync("LOGOUTTEST", "Correct@123");
+        const string ip = "10.0.0.21";
+        var client = _factory.CreateClient();
+
+        var login = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login")
+        {
+            Content = JsonContent.Create(new { staffId = "LOGOUTTEST", password = "Correct@123", portal = (string?)null }),
+        };
+        login.Headers.Add("X-Test-Ip", ip);
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(login)).StatusCode);
+
+        var logout = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        logout.Headers.Add("X-Test-Ip", ip);
+        var logoutResp = await client.SendAsync(logout);
+        Assert.Equal(HttpStatusCode.NoContent, logoutResp.StatusCode);
+
+        // Cookies are expired (emitted with an empty value).
+        var setCookies = logoutResp.Headers.TryGetValues("Set-Cookie", out var values)
+            ? values.ToList() : new List<string>();
+        Assert.Contains(setCookies, c => c.StartsWith("hrnexus_at=;", StringComparison.Ordinal));
+        Assert.Contains(setCookies, c => c.StartsWith("hrnexus_rt=;", StringComparison.Ordinal));
+
+        // The server-side refresh token is gone, so the session can't be resurrected.
+        await using var db = fx.NewDb();
+        var refresh = await db.Staff.Where(s => s.StaffId == "LOGOUTTEST")
+            .Select(s => s.RefreshToken).FirstOrDefaultAsync();
+        Assert.Null(refresh);
+    }
+
+    [Fact]
     public async Task AuthEndpoint_Returns429_WhenIpFloodsBeyondWindowLimit()
     {
         // PermitLimit is 30/min per IP. Fire 40 from one (unique) IP; the overflow must be 429.

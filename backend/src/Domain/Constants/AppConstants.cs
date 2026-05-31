@@ -97,6 +97,18 @@ public static class AppConstants
         public const string ByHours = "by_hours";
     }
 
+    // ── Auth cookies ─────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Names of the httpOnly auth cookies. Tokens live ONLY in these cookies (never in the JSON
+    /// body or localStorage) so XSS can't exfiltrate them. Referenced by both the API controller
+    /// (which writes them) and the JWT bearer setup in Infrastructure (which reads the access cookie).
+    /// </summary>
+    public static class AuthCookies
+    {
+        public const string AccessToken  = "hrnexus_at";
+        public const string RefreshToken = "hrnexus_rt";
+    }
+
     // ── Brute-force lockout ──────────────────────────────────────────────────────
     public static class Lockout
     {

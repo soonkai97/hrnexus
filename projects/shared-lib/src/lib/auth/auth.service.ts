@@ -2,12 +2,16 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
-import { AuthResponse, AuthUser, ChangePasswordRequest, ForgotPasswordResponse, LoginRequest, RefreshTokenRequest, UserRole } from '../models';
+import { AuthResponse, AuthUser, ChangePasswordRequest, ForgotPasswordResponse, LoginRequest, UserRole } from '../models';
 import { PermissionService } from '../services/permission.service';
 
-const ACCESS_TOKEN_KEY = 'access_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
+// Tokens now live in httpOnly cookies set by the server (the browser sends them automatically with
+// withCredentials). JS never sees them, so XSS can't exfiltrate them. We still keep the NON-sensitive
+// user profile in localStorage so the UI knows who's signed in without a round-trip on boot.
 const USER_KEY = 'auth_user';
+// Legacy keys from the pre-cookie scheme — proactively purged on init so stale JWTs don't linger.
+const LEGACY_ACCESS_TOKEN_KEY = 'access_token';
+const LEGACY_REFRESH_TOKEN_KEY = 'refresh_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -28,29 +32,20 @@ export class AuthService {
   private readonly permissions = inject(PermissionService);
 
   constructor() {
-    this.evictStaleTokens();
-    this.evictLowercaseRoleTokens();
+    this.clearLegacyTokenStorage();
   }
 
-  // Clears any leftover mock tokens that can't pass real JWT validation
-  private evictStaleTokens(): void {
-    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (token && token.startsWith('mock-')) {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      this._user.set(null);
-    }
+  // One-time migration cleanup: tokens used to be stored in localStorage; they're now httpOnly
+  // cookies. Remove any leftover token keys so the old (now-meaningless) JWTs don't hang around.
+  private clearLegacyTokenStorage(): void {
+    localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
+    localStorage.removeItem(LEGACY_REFRESH_TOKEN_KEY);
   }
-
-  // No-op: role case is now normalised at read-time (.map toUpperCase) so no eviction needed.
-  private evictLowercaseRoleTokens(): void {}
 
   login(request: LoginRequest): Observable<AuthResponse> {
+    // Server sets the httpOnly auth cookies on this response; we only persist the user profile.
     return this.http.post<AuthResponse>('/api/auth/login', request).pipe(
-      tap(res => {
-        this.storeSession(res);
-      })
+      tap(res => this.storeSession(res))
     );
   }
 
@@ -67,10 +62,9 @@ export class AuthService {
   }
 
   refreshToken(): Observable<AuthResponse> {
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    if (!refreshToken) return throwError(() => new Error('No refresh token'));
-    const body: RefreshTokenRequest = { refreshToken };
-    return this.http.post<AuthResponse>('/api/auth/refresh', body).pipe(
+    // The refresh token rides along in its httpOnly cookie — no body needed. The server rotates it
+    // and re-sets both cookies on the response.
+    return this.http.post<AuthResponse>('/api/auth/refresh', {}).pipe(
       tap(res => this.storeSession(res)),
       catchError(err => {
         this.logout();
@@ -80,30 +74,14 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    // Best-effort server-side logout: expires the auth cookies and clears the DB refresh token.
+    // We clear local state and navigate immediately regardless of the network result; the in-flight
+    // request still completes and its Set-Cookie clears the cookies.
+    this.http.post<void>('/api/auth/logout', {}).subscribe({ error: () => { /* ignore */ } });
     localStorage.removeItem(USER_KEY);
     this._user.set(null);
     this.permissions.clear();   // don't let the next user inherit cached permissions
     this.router.navigate(['/auth/login']);
-  }
-
-  getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
-  }
-
-  /** Returns false if the stored access token is missing or its `exp` claim has passed. */
-  hasValidToken(): boolean {
-    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (!token) return false;
-    try {
-      const part = token.split('.')[1];
-      if (!part) return false;
-      const payload = JSON.parse(atob(part));
-      return (payload.exp ?? 0) > Date.now() / 1000;
-    } catch {
-      return false;
-    }
   }
 
   hasRole(...checkRoles: UserRole[]): boolean {
@@ -112,8 +90,6 @@ export class AuthService {
   }
 
   private storeSession(res: AuthResponse): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, res.accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(res.user));
     this._user.set(res.user);
   }

@@ -22,18 +22,19 @@ export async function loginAs(page: Page, staffId: string, password: string): Pr
 }
 
 /**
- * Authenticate by calling the API directly from the browser context and
- * writing the tokens to localStorage — exactly what AuthService.storeSession()
- * does.  Bypasses the reactive-form / readonly-input interaction that can be
- * flaky with Playwright's Mobile Chrome emulation.
+ * Authenticate by calling the API directly from the browser context. The tokens come back as
+ * httpOnly cookies (which land in the page's browser context automatically); we capture them and
+ * replay them into each fresh context, plus seed the non-sensitive `auth_user` the SPA reads to
+ * know who's signed in. Bypasses the reactive-form / readonly-input interaction that can be flaky
+ * with Playwright's Mobile Chrome emulation.
  */
-interface AuthSession { accessToken: string; refreshToken: string; user: object; }
+interface AuthSession { user: object; cookies: import('@playwright/test').Cookie[]; }
 
 // Cache one session per (staffId, portal) for the whole worker run. The suite authenticates on
 // every test; without caching that's ~90 logins from a single source IP, which trips the per-IP
 // auth rate limiter (a real prod safeguard) and floods the run with 429s. Logging in ONCE per
-// account and replaying the tokens into localStorage avoids hammering the endpoint. JWTs last an
-// hour, far longer than a test run.
+// account and replaying the auth COOKIES into each context avoids hammering the endpoint. The
+// access-token JWT lasts far longer than a test run.
 const sessionCache = new Map<string, AuthSession>();
 
 async function setAuthState(
@@ -46,28 +47,31 @@ async function setAuthState(
   let session = sessionCache.get(key);
 
   if (!session) {
-    // Log in once (Node-side request), with a short back-off if the limiter is warm.
-    let lastStatus = 0, lastBody = '';
-    for (let attempt = 0; attempt < 4 && !session; attempt++) {
+    // Log in once (the Set-Cookie lands in this page's context), with a short back-off if warm.
+    let lastStatus = 0, lastBody = '', user: object | null = null;
+    for (let attempt = 0; attempt < 4 && !user; attempt++) {
       const res = await page.request.post('/api/auth/login', {
         data: { staffId, password, portal },
       });
       lastStatus = res.status();
-      if (res.ok()) { session = await res.json() as AuthSession; break; }
+      if (res.ok()) { user = ((await res.json()) as { user: object }).user; break; }
       lastBody = await res.text().catch(() => '');
       if (lastStatus === 429) await page.waitForTimeout(2000); else break;
     }
-    if (!session) throw new Error(`setAuthState: login failed ${lastStatus} — ${lastBody}`);
+    if (!user) throw new Error(`setAuthState: login failed ${lastStatus} — ${lastBody}`);
+
+    const cookies = (await page.context().cookies())
+      .filter(c => c.name === 'hrnexus_at' || c.name === 'hrnexus_rt');
+    session = { user, cookies };
     sessionCache.set(key, session);
   }
 
-  // Navigate first so localStorage is written for the correct origin.
+  // Replay the auth cookies into this (possibly fresh) context, then seed the user profile.
+  await page.context().addCookies(session.cookies);
   await page.goto('/auth/login');
-  await page.evaluate((s: AuthSession) => {
-    localStorage.setItem('access_token',  s.accessToken);
-    localStorage.setItem('refresh_token', s.refreshToken);
-    localStorage.setItem('auth_user',     JSON.stringify(s.user));
-  }, session);
+  await page.evaluate((u: object) => {
+    localStorage.setItem('auth_user', JSON.stringify(u));
+  }, session.user);
 }
 
 /**

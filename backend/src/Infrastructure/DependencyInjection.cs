@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 using HRNexus.Infrastructure.Auth;
 using HRNexus.Infrastructure.Hubs;
 using HRNexus.Infrastructure.Jobs;
@@ -91,16 +92,28 @@ public static class DependencyInjection
                     ValidAudience    = config["Jwt:Audience"],
                     ClockSkew        = TimeSpan.Zero,
                 };
-                // Allow SignalR to get token from query string
+                // Token source resolution (the Authorization header is no longer used — the SPA
+                // holds the token in an httpOnly cookie that JS/XSS can't read):
+                //   1. The hrnexus_at cookie — set by AuthController on login/refresh. Primary path.
+                //   2. The ?access_token= query string, but ONLY for /hubs — SignalR's WebSocket
+                //      transport can't attach cookies/headers in every browser, so it falls back to
+                //      the query string during negotiation.
                 opts.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = ctx =>
                     {
-                        var token = ctx.Request.Query["access_token"];
-                        if (!string.IsNullOrEmpty(token) &&
+                        var cookieToken = ctx.Request.Cookies[AppConstants.AuthCookies.AccessToken];
+                        if (!string.IsNullOrEmpty(cookieToken))
+                        {
+                            ctx.Token = cookieToken;
+                            return Task.CompletedTask;
+                        }
+
+                        var queryToken = ctx.Request.Query["access_token"];
+                        if (!string.IsNullOrEmpty(queryToken) &&
                             ctx.HttpContext.Request.Path.StartsWithSegments("/hubs"))
                         {
-                            ctx.Token = token;
+                            ctx.Token = queryToken;
                         }
                         return Task.CompletedTask;
                     },

@@ -5,31 +5,26 @@ import { provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 import { AuthResponse } from '../models';
-import { makeJwt, fakeUser } from '../../testing/test-helpers';
+import { fakeUser } from '../../testing/test-helpers';
 
 const ACCESS_TOKEN_KEY  = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY          = 'auth_user';
 
 function makeAuthResponse(roles: string[] = ['employee']): AuthResponse {
-  return {
-    accessToken:  makeJwt(3600),
-    refreshToken: 'rt-abc',
-    expiresIn:    3600,
-    user: fakeUser(roles),
-  };
+  // Tokens are no longer in the body — they're set as httpOnly cookies by the server.
+  return { expiresIn: 3600, user: fakeUser(roles) };
 }
 
 /**
- * AuthService — HTTP-backed methods (login, refresh, password flows)
+ * AuthService — HTTP-backed methods (login, refresh, logout, password flows)
  *
- * WHY these tests matter:
- *  - login() must persist all three localStorage keys atomically — a partial
- *    write leaves the user in a broken half-authenticated state.
- *  - refreshToken() is called by the JWT interceptor on 401s; if it silently
- *    fails without calling logout(), the user sees a blank page.
- *  - forgotPassword / forceChangePassword / changePassword are security-critical
- *    paths that must forward payloads to the API unmodified.
+ * WHY these tests matter (post httpOnly-cookie migration):
+ *  - login() must persist ONLY the non-sensitive user profile; tokens live in httpOnly cookies
+ *    the browser manages, so they must NOT be written to localStorage anymore (XSS-readable).
+ *  - refreshToken() is called by the JWT interceptor on 401s; it sends an empty body (the refresh
+ *    token rides in its cookie) and must call logout() on failure so the user isn't stuck.
+ *  - logout() must hit the server so the cookies are expired + the DB refresh token cleared.
  */
 describe('AuthService — login()', () => {
   let service: AuthService;
@@ -55,20 +50,12 @@ describe('AuthService — login()', () => {
     await promise;
   });
 
-  it('stores access_token in localStorage after successful login', async () => {
-    const res = makeAuthResponse();
+  it('does NOT write tokens to localStorage after login (they are httpOnly cookies)', async () => {
     const promise = firstValueFrom(service.login({ staffId: 'NC001', password: 'p' }));
-    http.expectOne('/api/auth/login').flush(res);
+    http.expectOne('/api/auth/login').flush(makeAuthResponse());
     await promise;
-    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe(res.accessToken);
-  });
-
-  it('stores refresh_token in localStorage after successful login', async () => {
-    const res = makeAuthResponse();
-    const promise = firstValueFrom(service.login({ staffId: 'NC001', password: 'p' }));
-    http.expectOne('/api/auth/login').flush(res);
-    await promise;
-    expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBe(res.refreshToken);
+    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull();
+    expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull();
   });
 
   it('stores auth_user JSON in localStorage after successful login', async () => {
@@ -80,13 +67,25 @@ describe('AuthService — login()', () => {
   });
 
   it('sets _user signal so isAuthenticated() returns true', async () => {
-    const res = makeAuthResponse();
     const promise = firstValueFrom(service.login({ staffId: 'NC001', password: 'p' }));
-    http.expectOne('/api/auth/login').flush(res);
+    http.expectOne('/api/auth/login').flush(makeAuthResponse());
     await promise;
     expect(service.isAuthenticated()).toBe(true);
   });
 
+  it('purges any legacy localStorage tokens on construction', () => {
+    // (service already constructed in beforeEach with empty storage; assert keys stay clear)
+    localStorage.setItem(ACCESS_TOKEN_KEY, 'old-jwt');
+    localStorage.setItem(REFRESH_TOKEN_KEY, 'old-rt');
+    // Re-create the service to trigger the constructor cleanup.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    TestBed.inject(AuthService);
+    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull();
+    expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull();
+  });
 });
 
 describe('AuthService — refreshToken()', () => {
@@ -105,29 +104,70 @@ describe('AuthService — refreshToken()', () => {
 
   afterEach(() => { http.verify(); localStorage.clear(); });
 
-  it('POST /api/auth/refresh with the stored refresh token', async () => {
-    localStorage.setItem(REFRESH_TOKEN_KEY, 'stored-rt');
+  it('POST /api/auth/refresh with an empty body (refresh token rides in the cookie)', async () => {
     const promise = firstValueFrom(service.refreshToken());
     const req = http.expectOne('/api/auth/refresh');
-    expect(req.request.body).toEqual({ refreshToken: 'stored-rt' });
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
     req.flush(makeAuthResponse());
     await promise;
   });
 
-  it('throws immediately when no refresh token is stored', async () => {
-    await expect(firstValueFrom(service.refreshToken())).rejects.toThrow('No refresh token');
-    http.expectNone('/api/auth/refresh');
+  it('stores the refreshed user profile on success', async () => {
+    const res = makeAuthResponse(['manager']);
+    const promise = firstValueFrom(service.refreshToken());
+    http.expectOne('/api/auth/refresh').flush(res);
+    await promise;
+    expect(JSON.parse(localStorage.getItem(USER_KEY)!)).toEqual(res.user);
   });
 
   it('calls logout() and re-throws on API 401 — prevents infinite retry loop', async () => {
-    localStorage.setItem(REFRESH_TOKEN_KEY, 'expired-rt');
     (service as any)._user.set(fakeUser(['employee']));
 
     const promise = firstValueFrom(service.refreshToken());
     http.expectOne('/api/auth/refresh').flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
 
+    // logout() fires a best-effort server call to expire the cookies.
+    http.expectOne('/api/auth/logout').flush(null);
+
     await expect(promise).rejects.toBeTruthy();
     expect(service.isAuthenticated()).toBe(false); // logout() was called
+  });
+});
+
+describe('AuthService — logout()', () => {
+  let service: AuthService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([{ path: 'auth/login', redirectTo: '' }])],
+    });
+    service = TestBed.inject(AuthService);
+    http    = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => { http.verify(); localStorage.clear(); });
+
+  it('POSTs /api/auth/logout and clears the local user + auth_user key', () => {
+    localStorage.setItem(USER_KEY, JSON.stringify(fakeUser(['employee'])));
+    (service as any)._user.set(fakeUser(['employee']));
+
+    service.logout();
+
+    http.expectOne('/api/auth/logout').flush(null);
+    expect(service.isAuthenticated()).toBe(false);
+    expect(localStorage.getItem(USER_KEY)).toBeNull();
+  });
+
+  it('still clears local state even if the server logout call errors', () => {
+    (service as any)._user.set(fakeUser(['employee']));
+
+    service.logout();
+
+    http.expectOne('/api/auth/logout').flush(null, { status: 500, statusText: 'Server Error' });
+    expect(service.isAuthenticated()).toBe(false);
   });
 });
 
@@ -170,5 +210,4 @@ describe('AuthService — password flows', () => {
     const result = await promise;
     expect(result.found).toBe(false);
   });
-
 });

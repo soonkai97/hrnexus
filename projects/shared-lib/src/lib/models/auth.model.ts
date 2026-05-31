@@ -11,9 +11,11 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+/**
+ * Login/refresh response. Tokens are NOT in the body — they're set by the server as httpOnly
+ * cookies (XSS can't read them). The body carries only the non-sensitive user info the UI needs.
+ */
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
   expiresIn: number;
   user: AuthUser;
 }
@@ -25,10 +27,6 @@ export interface AuthUser {
   email: string;
   /** All job roles assigned to this employee (e.g. ["bartender", "manager"]) */
   roles: string[];
-}
-
-export interface RefreshTokenRequest {
-  refreshToken: string;
 }
 
 export interface ForgotPasswordRequest  { staffId: string; }

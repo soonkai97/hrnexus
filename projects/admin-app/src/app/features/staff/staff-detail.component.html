@@ -211,6 +211,8 @@
         <div>
           <h3 class="m-0">{{ 'permissions.userTitle' | translate }}</h3>
           <p style="color:var(--p-text-muted-color);font-size:.85rem;margin:.35rem 0 0">{{ 'permissions.userDesc' | translate }}</p>
+          <p style="color:var(--p-text-muted-color);font-size:.78rem;margin:.4rem 0 0;line-height:1.45;max-width:60ch">
+            <i class="pi pi-info-circle" style="margin-right:.35rem"></i>{{ 'permissions.howItWorks' | translate }}</p>
         </div>
         @if (!permLoading() && !permEditMode()) {
           <p-button [label]="'common.edit' | translate" icon="pi pi-pencil" severity="primary"

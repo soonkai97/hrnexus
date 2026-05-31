@@ -677,6 +677,8 @@
       "leave":      "请假",
       "operations": "运营",
       "finance":    "财务",
+      "comms":      "沟通",
+      "setup":      "设置",
       "settings":   "设置",
       "other":      "其他"
     },
@@ -696,7 +698,7 @@
       "roles.manage":         "管理职位与权限",
       "locations.manage":     "管理场地",
       "announcements.manage": "管理公告",
-      "config.manage":        "管理设置"
+      "config.manage":        "管理员工设置"
     }
   },
   "roles": {

@@ -6,7 +6,7 @@ import { FeatureFlagService, FeatureKey } from './feature-flag.service';
 
 const ALL_KEYS: FeatureKey[] = [
   'payroll', 'tips', 'tipsHistory', 'paySummary',
-  'announcements', 'staffLedger',
+  'announcements',
 ];
 
 /**

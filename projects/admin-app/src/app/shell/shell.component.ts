@@ -126,13 +126,11 @@ export class ShellComponent implements AfterViewInit {
     { path: '/staff',         labelKey: 'nav.staff',         icon: 'pi pi-users',     group: 'operations' },
     { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar',  group: 'operations' },
     { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar', group: 'operations' },
-    { path: '/staff-ledger',   labelKey: 'nav.staffLedger',   icon: 'pi pi-book',      group: 'finance', featureFlag: 'staffLedger'  },
     { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    group: 'finance', featureFlag: 'payroll'      },
     { path: '/tips',           labelKey: 'nav.tips',           icon: 'pi pi-dollar',    group: 'finance', featureFlag: 'tips'         },
     { path: '/announcements', labelKey: 'nav.announcements', icon: 'pi pi-megaphone', group: 'comms', featureFlag: 'announcements'    },
     { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker', group: 'setup'                              },
     { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card',   group: 'setup'    },
-    { path: '/staff-settings', labelKey: 'nav.staffSettings', icon: 'pi pi-sliders-h', group: 'setup', featureFlag: 'staffLedger'    },
     { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock',      group: 'setup', featureFlag: 'payroll'    },
   ];
 

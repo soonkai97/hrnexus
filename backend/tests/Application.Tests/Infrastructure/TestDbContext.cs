@@ -32,13 +32,6 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.PushSubscription> PushSubscriptions => Set<E.PushSubscription>();
     public DbSet<E.StaffMessage>     StaffMessages     => Set<E.StaffMessage>();
     public DbSet<E.FeatureFlag>      FeatureFlags      => Set<E.FeatureFlag>();
-    public DbSet<E.StaffEntry>           StaffEntries           => Set<E.StaffEntry>();
-    public DbSet<E.StaffExpense>         StaffExpenses          => Set<E.StaffExpense>();
-    public DbSet<E.StaffLoan>            StaffLoans             => Set<E.StaffLoan>();
-    public DbSet<E.StaffWorkType>        StaffWorkTypes         => Set<E.StaffWorkType>();
-    public DbSet<E.StaffSettlement>      StaffSettlements       => Set<E.StaffSettlement>();
-    public DbSet<E.StaffExpenseCategory> StaffExpenseCategories => Set<E.StaffExpenseCategory>();
-    public DbSet<E.StaffLoanType>        StaffLoanTypes         => Set<E.StaffLoanType>();
     public DbSet<E.PayrollLock>          PayrollLocks           => Set<E.PayrollLock>();
 
     // InMemory provider does not support transactions — return null so handlers skip tx logic.

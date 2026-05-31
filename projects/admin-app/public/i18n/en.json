@@ -43,8 +43,6 @@
     "locations":     "Locations",
     "roles":         "Roles",
     "payroll":       "Payroll",
-    "staffLedger":   "Staff Ledger",
-    "staffSettings": "Staff Settings",
     "payrollLocks":  "Payroll Locks",
     "account":         "My Account",
     "group": {
@@ -704,11 +702,9 @@
       "payroll.manage":       "Manage payroll",
       "payroll.lock":         "Lock payroll periods",
       "tips.manage":          "Manage tips",
-      "ledger.manage":        "Manage staff ledger",
       "roles.manage":         "Manage roles & permissions",
       "locations.manage":     "Manage locations",
-      "announcements.manage": "Manage announcements",
-      "config.manage":        "Manage staff settings"
+      "announcements.manage": "Manage announcements"
     }
   },
   "roles": {

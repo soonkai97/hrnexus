@@ -42,7 +42,7 @@ describe('ShellComponent', () => {
       load:      vi.fn().mockReturnValue(of(undefined)),
       flags:     vi.fn().mockReturnValue({
         payroll: false, tips: false, tipsHistory: false,
-        paySummary: false, announcements: false, staffLedger: false,
+        paySummary: false, announcements: false,
       }),
       isEnabled: vi.fn().mockReturnValue(false),
     };
@@ -134,17 +134,11 @@ describe('ShellComponent', () => {
     it('includes /tips when the tips flag is enabled', () => {
       mockFeature.flags.mockReturnValue({
         payroll: false, tips: true, tipsHistory: false,
-        paySummary: false, announcements: false, staffLedger: false,
+        paySummary: false, announcements: false,
       });
       const c = createComponent();
       const paths = c.navItems().map((n: any) => n.path);
       expect(paths).toContain('/tips');
-    });
-
-    it('excludes /staff-ledger when staffLedger flag is disabled', () => {
-      const c = createComponent();
-      const paths = c.navItems().map((n: any) => n.path);
-      expect(paths).not.toContain('/staff-ledger');
     });
   });
 

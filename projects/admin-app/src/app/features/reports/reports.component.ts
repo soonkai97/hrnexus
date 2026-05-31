@@ -9,9 +9,6 @@ import {
   AdminService, ReportResponse, ShiftDetailRow,
   StaffStore, StaffManagementService, ToastService, Staff,
   toLocalDateString,
-  StaffService, FeatureFlagService,
-  StaffLedgerPayoutDto, StaffOutstandingDto,
-  WORK_TYPE_LABELS, SETTLEMENT_LABELS,
   WorkLogService, UpdateWorkLogRequest, LocationStore,
   TrimInputDirective,
   PayrollLockService, ConfirmService, apiErrorMessage,
@@ -27,7 +24,6 @@ import { Message } from 'primeng/message';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
-import { Skeleton } from 'primeng/skeleton';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 
@@ -36,7 +32,7 @@ import { InputText } from 'primeng/inputtext';
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
-    Tabs, TabList, Tab, MultiSelect, Select, Skeleton, Dialog, InputText],
+    Tabs, TabList, Tab, MultiSelect, Select, Dialog, InputText],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -45,8 +41,6 @@ export class ReportsComponent implements OnInit {
   private readonly staffStore         = inject(StaffStore);
   private readonly staffSvc           = inject(StaffManagementService);
   private readonly toast              = inject(ToastService);
-  private readonly staffLedgerSvc     = inject(StaffService);
-  private readonly featureFlagSvc     = inject(FeatureFlagService);
   private readonly workLogSvc         = inject(WorkLogService);
   private readonly locationStore      = inject(LocationStore);
   private readonly translate          = inject(TranslateService);
@@ -137,11 +131,6 @@ export class ReportsComponent implements OnInit {
       this.refreshPeriodLock();
     });
   }
-
-  // ── Section switcher ─────────────────────────────────────────────────────────
-
-  activeSection = signal<'workforce' | 'ledger'>('workforce');
-  isStaffLedgerEnabled = computed(() => this.featureFlagSvc.isEnabled('staffLedger'));
 
   // ── Workforce Report ─────────────────────────────────────────────────────────
 
@@ -379,121 +368,6 @@ export class ReportsComponent implements OnInit {
     URL.revokeObjectURL(url);
     this.reportExporting.set(false);
     this.toast.success(this.translate.instant('reports.reportDownloaded'));
-  }
-
-  // ── Staff Ledger Payout ───────────────────────────────────────────────────────
-
-  get MONTH_OPTS() {
-    return [
-      { label: this.translate.instant('reports.month1'),  value: 1  },
-      { label: this.translate.instant('reports.month2'),  value: 2  },
-      { label: this.translate.instant('reports.month3'),  value: 3  },
-      { label: this.translate.instant('reports.month4'),  value: 4  },
-      { label: this.translate.instant('reports.month5'),  value: 5  },
-      { label: this.translate.instant('reports.month6'),  value: 6  },
-      { label: this.translate.instant('reports.month7'),  value: 7  },
-      { label: this.translate.instant('reports.month8'),  value: 8  },
-      { label: this.translate.instant('reports.month9'),  value: 9  },
-      { label: this.translate.instant('reports.month10'), value: 10 },
-      { label: this.translate.instant('reports.month11'), value: 11 },
-      { label: this.translate.instant('reports.month12'), value: 12 },
-    ];
-  }
-
-  readonly yearOpts = [-2, -1, 0, 1].map(offset => {
-    const y = new Date().getFullYear() + offset;
-    return { label: String(y), value: y };
-  });
-
-  ledgerYear    = signal(new Date().getFullYear());
-  ledgerMonth   = signal(new Date().getMonth() + 1);
-  ledgerPayout  = signal<StaffLedgerPayoutDto[]>([]);
-  ledgerOutstanding = signal<StaffOutstandingDto[]>([]);
-  ledgerLoading = signal(false);
-  ledgerExporting = signal(false);
-
-  ledgerTotalVenue   = computed(() => this.ledgerPayout().reduce((s, r) => s + r.venueEarnings, 0));
-  ledgerTotalPrivate = computed(() => this.ledgerPayout().reduce((s, r) => s + r.privateNet, 0));
-  ledgerTotalPayout  = computed(() => this.ledgerPayout().reduce((s, r) => s + r.netPayout, 0));
-
-  loadLedgerData(): void {
-    if (this.ledgerLoading()) return; // dedup: skip if a fetch is already in flight
-    this.ledgerLoading.set(true);
-    this.staffLedgerSvc.summary(this.ledgerYear(), this.ledgerMonth()).subscribe({
-      next:  rows => { this.ledgerPayout.set(rows); this.ledgerLoading.set(false); },
-      error: ()   => { this.toast.error(this.translate.instant('reports.ledgerLoadFailed')); this.ledgerLoading.set(false); },
-    });
-    this.staffLedgerSvc.outstanding().subscribe({
-      next:  rows => this.ledgerOutstanding.set(rows),
-      error: ()   => {},
-    });
-  }
-
-  workTypeLabel(key: string): string {
-    return (WORK_TYPE_LABELS as Record<string, string>)[key] ?? key;
-  }
-
-  settlementLabel(key: string): string {
-    return (SETTLEMENT_LABELS as Record<string, string>)[key] ?? key;
-  }
-
-  // ── Outstanding bulk-settle ───────────────────────────────────────────────────
-
-  /** Settlement options for the bulk-settle dropdown — only the "resolved" states. */
-  get SETTLE_OPTIONS() {
-    return [
-      { label: this.translate.instant('reports.settleSettled'), value: 'SETTLED' },
-      { label: this.translate.instant('reports.settleCash'),    value: 'CASH'    },
-      { label: this.translate.instant('reports.settleBankIn'),  value: 'BANKIN'  },
-    ];
-  }
-
-  /** Rows selected in the outstanding table (PrimeNG two-way binding target). */
-  outstandingSelection: StaffOutstandingDto[] = [];
-  settleWith  = signal('SETTLED');
-  settling    = signal(false);
-
-  bulkSettle(): void {
-    const selected = this.outstandingSelection;
-    if (!selected.length) return;
-    this.settling.set(true);
-    const entryIds = selected.map(e => e.entryId);
-    this.staffLedgerSvc.bulkSettle(entryIds, this.settleWith()).subscribe({
-      next: (res) => {
-        const n = res.updated;
-        this.toast.success(this.translate.instant(n === 1 ? 'reports.settledSingular' : 'reports.settledPlural', { n }));
-        this.outstandingSelection = [];
-        this.loadLedgerData();
-        this.settling.set(false);
-      },
-      error: () => {
-        this.toast.error(this.translate.instant('reports.settleFailed'));
-        this.settling.set(false);
-      },
-    });
-  }
-
-  downloadLedgerCsv(): void {
-    const rows = this.ledgerPayout();
-    if (!rows.length) return;
-    this.ledgerExporting.set(true);
-
-    const monthStr = String(this.ledgerMonth()).padStart(2, '0');
-    const t = (k: string) => this.translate.instant(k);
-    let csv = [t('reports.csvStaffCode'), t('reports.csvName'), t('reports.ledgerVenueCol'), t('reports.ledgerPrivateCol'), t('reports.ledgerPayoutCol'), t('reports.ledgerEntriesCol'), t('reports.ledgerPendingCol'), t('reports.ledgerNotCollectedCol')].join(',') + '\n';
-    csv += rows.map(r =>
-      `${r.staffCode},"${r.staffName}",${r.venueEarnings.toFixed(2)},${r.privateNet.toFixed(2)},${r.netPayout.toFixed(2)},${r.entryCount},${r.pendingCount},${r.notCollectedCount}`
-    ).join('\n');
-
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `staff-ledger-payout-${this.ledgerYear()}-${monthStr}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    this.ledgerExporting.set(false);
-    this.toast.success(this.translate.instant('reports.payoutDownloaded'));
   }
 
   private firstDayOfMonth(): Date {

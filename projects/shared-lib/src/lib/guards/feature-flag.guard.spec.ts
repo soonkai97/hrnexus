@@ -98,10 +98,10 @@ describe('featureFlagGuard', () => {
 
     it('returns an Observable and redirects after load() returns a disabled flag', async () => {
       const obs$ = TestBed.runInInjectionContext(() =>
-        featureFlagGuard('staffLedger', '/home')(route, state)) as Observable<boolean | UrlTree>;
+        featureFlagGuard('payroll', '/home')(route, state)) as Observable<boolean | UrlTree>;
 
       const promise = firstValueFrom(obs$);
-      http.expectOne('/api/feature-flags').flush({}); // staffLedger not in response → false
+      http.expectOne('/api/feature-flags').flush({}); // payroll not in response → false
 
       const result = await promise;
       expect(result).toBeInstanceOf(UrlTree);

@@ -776,6 +776,56 @@ All three cron jobs are documented in the **Production infrastructure services �
 
 ---
 
+## Observability
+
+Two phases. **Phase 1** (always on): Serilog structured logging + a `CorrelationId`/`StaffId`
+enricher on every event (`HttpContextEnricher`), written to console (human-readable) and a rolling
+JSON file (`logs/hrnexus-.log`, 7-day retention, in the `logs` volume). **Phase 2** (opt-in,
+**dormant by default** — local/CI/prod are unchanged until explicitly enabled):
+
+| Piece | What | Toggle |
+|---|---|---|
+| **Seq log sink** | Ships structured logs to Seq for search/dashboards/alerts | env `Seq__ServerUrl` (+ optional `Seq__ApiKey`) |
+| **Request logging** | One completion log per request (method/path/status/elapsed), with the enrichers | always on (`UseSerilogRequestLogging`) |
+| **OpenTelemetry** | Traces + metrics (ASP.NET + HttpClient + runtime) via OTLP | env `OTEL_EXPORTER_OTLP_ENDPOINT` |
+| **Seq container** | `datalust/seq`, **loopback-bound** (`127.0.0.1:5341`), no public exposure | compose profile `observability` |
+
+When the env vars are unset the Seq sink and OpenTelemetry are **not wired at all** (zero overhead);
+the rolling file + console logging still work.
+
+### Health checks
+- `GET /api/health` — simple liveness JSON; **polled by maintenance mode + the container healthcheck — do not change.**
+- `GET /health/live` — ASP.NET liveness (process up, no dependency probes).
+- `GET /health/ready` — readiness; includes a DB-reachability probe (`DbReadyHealthCheck`).
+- `/health/*` are **not** proxied by nginx (internal probes). Hit them on the api container directly.
+
+### Security headers
+Set at the **nginx edge** for all responses (incl. the SPA HTML): `X-Content-Type-Options`,
+`X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy`, `Permissions-Policy` (see `nginx/nginx.conf`).
+Do **not** duplicate these at the API — doing so produces invalid doubled header values.
+
+### Enabling Seq in prod (opt-in)
+Seq has **no authentication** in the free tier, so it's loopback-bound + behind ufw — reach the UI
+**only via an SSH tunnel**, never a public port.
+
+```bash
+# On the droplet — add to /root/hrnexus/.env:
+#   SEQ_SERVER_URL=http://seq
+#   OTEL_EXPORTER_OTLP_ENDPOINT=http://seq/ingest/otlp/v1/traces   # optional traces
+cd /root/hrnexus
+docker compose -f docker-compose.yml -f docker-compose.uat.yml --profile observability up -d
+
+# From your laptop — tunnel, then browse http://localhost:5341:
+ssh -L 5341:localhost:5341 root@hrnexus.duckdns.org
+```
+Disable: remove `SEQ_SERVER_URL` from `.env`, `… up -d` (recreates api without the sink), then
+`… --profile observability stop seq`. Future `./deploy.sh` runs don't stop an already-running `seq`
+(profiles only affect what a command targets) and the api keeps shipping logs (env lives in `.env`).
+Seq uses ~150–300 MB RAM (fine on the 4 GB droplet). Seq stores logs + traces, not metrics — point
+`OTEL_EXPORTER_OTLP_ENDPOINT` at a real OTLP collector if you later want metrics dashboards.
+
+---
+
 ## Staff pay model — design intent
 
 Two systems exist and intentionally serve different purposes. Do not conflate them:

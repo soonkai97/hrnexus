@@ -45,6 +45,21 @@ builder.Host.UseSerilog();
 // Required so HttpContextEnricher (and its AsyncLocal-backed accessor) sees the per-request context.
 builder.Services.AddHttpContextAccessor();
 
+// ── JWT signing-key safety check ──────────────────────────────────────────────
+// A missing key can't sign tokens (fatal). The dev-default or a short key allows token forgery, so
+// surface it LOUDLY at startup (also lands in Seq). Not a hard throw: the zero-config local Docker
+// stack runs as Production with the compose default, and we must not break it — but in real prod the
+// env MUST set a strong unique JWT_SECRET (see the .env section in CLAUDE.md).
+{
+    const string DevDefaultJwtKey = "HRNexus_Dev_Secret_Change_In_Production_Min32Chars";
+    var jwtKey = builder.Configuration["Jwt:Key"];
+    if (string.IsNullOrWhiteSpace(jwtKey))
+        throw new InvalidOperationException("Jwt:Key is not configured — set JWT_SECRET in the environment.");
+    if (jwtKey == DevDefaultJwtKey || jwtKey.Length < 32)
+        Log.Error("SECURITY: Jwt:Key is the dev default or shorter than 32 chars — tokens are forgeable. " +
+                  "Set a strong unique JWT_SECRET in the environment before exposing this instance.");
+}
+
 // ── Services ──────────────────────────────────────────────────────────────────
 // Force all incoming DateTime (query params + JSON body) to Kind=Utc.
 // Prevents "Cannot write DateTime with Kind=Unspecified" on PostgreSQL timestamptz columns.

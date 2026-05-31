@@ -13,7 +13,9 @@ namespace HRNexus.Application.Auth.Commands;
 /// </summary>
 public record LoginCommand(string StaffId, string Password, string? Portal = null) : IRequest<LoginResult>;
 
-public record LoginResult(string AccessToken, string RefreshToken, int ExpiresIn, UserDto User);
+public record LoginResult(
+    string AccessToken, string RefreshToken, int ExpiresIn, UserDto User,
+    bool RequiresTwoFactor = false, string? TwoFactorToken = null);
 
 public record UserDto(Guid Id, string StaffId, string FullName, string? Email, List<string> Roles);
 
@@ -58,8 +60,23 @@ public class LoginCommandHandler(
             !await permissions.HasAsync(employee.Id, AppConstants.Permissions.PortalAdmin, ct))
             throw new UnauthorizedAccessException("Access denied. You do not have admin portal access.");
 
-        // Successful auth — clear any accumulated failed-attempt state and issue tokens.
+        // Password is correct — clear any accumulated failed-attempt state.
         employee.RegisterSuccessfulLogin();
+
+        // Admin-portal 2FA challenge: with 2FA enabled, the correct password alone is NOT enough.
+        // Return a short-lived challenge token; the real session cookies are only issued once the
+        // user passes /api/auth/2fa/verify. (Staff-portal logins are not gated by 2FA.)
+        if (req.Portal == "admin" && employee.TwoFactorEnabled)
+        {
+            await db.SaveChangesAsync(ct);   // persist the lockout reset
+            return new LoginResult("", "", 0,
+                new UserDto(employee.Id, employee.StaffId, employee.FullName, employee.Email,
+                    employee.Roles.ToList()),
+                RequiresTwoFactor: true,
+                TwoFactorToken: tokens.GenerateTwoFactorToken(employee.Id));
+        }
+
+        // No 2FA — issue session tokens immediately.
         var access  = tokens.GenerateAccessToken(employee);
         var refresh = tokens.GenerateRefreshToken();
         employee.SetRefreshToken(refresh, now.AddDays(30));

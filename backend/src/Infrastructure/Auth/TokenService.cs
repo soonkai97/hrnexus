@@ -41,6 +41,47 @@ public class TokenService(IConfiguration config) : ITokenService
         return Convert.ToBase64String(bytes);
     }
 
+    // The 2FA challenge token uses a distinct audience so AddJwtBearer (which validates the access
+    // audience) refuses it for [Authorize] endpoints — it's only honoured at /api/auth/2fa/verify.
+    private string TwoFactorAudience => $"{config["Jwt:Audience"]}.2fa";
+
+    public string GenerateTwoFactorToken(Guid staffId)
+    {
+        var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            issuer:   config["Jwt:Issuer"],
+            audience: TwoFactorAudience,
+            claims:   new[] { new Claim(JwtRegisteredClaimNames.Sub, staffId.ToString()) },
+            expires:  DateTime.UtcNow.AddMinutes(5),
+            signingCredentials: creds);
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public Guid? ValidateTwoFactorToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
+        try
+        {
+            handler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey        = key,
+                ValidateIssuer          = true,
+                ValidIssuer             = config["Jwt:Issuer"],
+                ValidateAudience        = true,
+                ValidAudience           = TwoFactorAudience,
+                ClockSkew               = TimeSpan.Zero,
+            }, out var validated);
+            return Guid.Parse(((JwtSecurityToken)validated).Subject);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public Guid? ValidateAccessToken(string token)
     {
         var handler = new JwtSecurityTokenHandler();

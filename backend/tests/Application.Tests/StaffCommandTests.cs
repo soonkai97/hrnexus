@@ -2,6 +2,7 @@
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Staff.Commands;
 using HRNexus.Application.Tests.Infrastructure;
+using HRNexus.Domain.Constants;
 using E = HRNexus.Domain.Entities;
 using Xunit;
 
@@ -573,5 +574,88 @@ public class StaffCommandTests
 
         var updated = await db.Staff.FindAsync(staff.Id);
         Assert.False(updated!.IsActive);
+    }
+
+    // ── Last-admin lockout guard (deactivate + role removal) ──────────────────
+
+    private static E.Staff MakeAdmin(string staffId, string email) =>
+        E.Staff.Create(staffId, "Meg", "Boss", email, "hash",
+            new List<string> { "MANAGER" }, icNo: staffId, dateOfBirth: new DateTime(1990, 1, 1));
+
+    [Fact]
+    public async Task Deactivate_Throws_WhenLastActiveAdmin()
+    {
+        // Deactivating the only user who can reach the admin portal would lock everyone out.
+        await using var db = CreateDb();
+        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
+        var admin = MakeAdmin("MGR1", "meg@test.com");
+        db.Staff.Add(admin);
+        await db.SaveChangesAsync();
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            DeactivateHandler(db).Handle(new DeactivateStaffCommand(admin.Id), CancellationToken.None));
+        Assert.Contains("admin-portal access", ex.Message);
+
+        await db.Entry(admin).ReloadAsync();
+        Assert.True(admin.IsActive);   // unchanged — deactivation was refused
+    }
+
+    [Fact]
+    public async Task Deactivate_Allows_WhenAnotherActiveAdminRemains()
+    {
+        await using var db = CreateDb();
+        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
+        var a = MakeAdmin("MGR1", "meg@test.com");
+        var b = MakeAdmin("MGR2", "moe@test.com");
+        db.Staff.AddRange(a, b);
+        await db.SaveChangesAsync();
+
+        await DeactivateHandler(db).Handle(new DeactivateStaffCommand(a.Id), CancellationToken.None);
+
+        await db.Entry(a).ReloadAsync();
+        Assert.False(a.IsActive);   // allowed — b still covers admin access
+    }
+
+    [Fact]
+    public async Task Update_Throws_WhenRolesChangeRemovesAdminFromLastAdmin()
+    {
+        // Re-roling the only admin to a non-admin role would lock everyone out.
+        await using var db = CreateDb();
+        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
+        var admin = MakeAdmin("MGR1", "meg@test.com");
+        db.Staff.Add(admin);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            UpdateHandler(db).Handle(new UpdateStaffCommand(
+                admin.Id, "MGR1", "Meg", "Boss", "meg@test.com",
+                new List<string> { "BARTENDER" }, null, IcNo: "MGR1", DateOfBirth: new DateTime(1990, 1, 1)),
+                CancellationToken.None));
+        Assert.Contains("last administrator", ex.Message);
+    }
+
+    [Fact]
+    public async Task Update_Allows_RemovingAdminRole_WhenAnotherAdminRemains()
+    {
+        await using var db = CreateDb();
+        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
+        var a = MakeAdmin("MGR1", "meg@test.com");
+        var b = MakeAdmin("MGR2", "moe@test.com");
+        db.Staff.AddRange(a, b);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        await UpdateHandler(db).Handle(new UpdateStaffCommand(
+            a.Id, "MGR1", "Meg", "Boss", "meg@test.com",
+            new List<string> { "BARTENDER" }, null, IcNo: "MGR1", DateOfBirth: new DateTime(1990, 1, 1)),
+            CancellationToken.None);
+
+        // Reaching here without an ArgumentException is the assertion: the guard ALLOWED the role
+        // change because admin b still covers admin-portal access. (Role reconciliation itself is
+        // exercised by Update_ChangesFirstAndLastName / the resolver tests.)
+        var still = await db.Staff.FindAsync(a.Id);
+        Assert.NotNull(still);
+        Assert.True(still!.IsActive);
     }
 }

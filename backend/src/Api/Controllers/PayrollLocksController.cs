@@ -2,6 +2,7 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HRNexus.Api.Filters;
 using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Domain.Constants;
@@ -15,6 +16,7 @@ namespace HRNexus.Api.Controllers;
 [ApiController]
 [Route("api/payroll-locks")]
 [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollLock)]
+[FeatureRequired("payroll")]
 public class PayrollLocksController(IMediator mediator) : ControllerBase
 {
     // The JWT carries the display name in a custom "fullName" claim (see TokenService), not ClaimTypes.Name.

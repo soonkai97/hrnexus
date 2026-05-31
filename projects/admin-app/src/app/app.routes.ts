@@ -27,7 +27,7 @@ export const routes: Routes = [
       { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard'), permissionGuard('payroll.view', '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
       { path: 'staff-ledger',   canActivate: [featureFlagGuard('staffLedger', '/dashboard'), permissionGuard('ledger.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/staff-ledger/staff-ledger.component').then(m => m.StaffLedgerComponent) },
       { path: 'staff-settings', canActivate: [permissionGuard('config.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/staff-settings/staff-settings.component').then(m => m.StaffSettingsComponent) },
-      { path: 'payroll-locks',  canActivate: [permissionGuard('payroll.lock', '/dashboard')], loadComponent: () => import('./features/payroll-locks/payroll-locks.component').then(m => m.PayrollLocksComponent) },
+      { path: 'payroll-locks',  canActivate: [featureFlagGuard('payroll', '/dashboard'), permissionGuard('payroll.lock', '/dashboard')], loadComponent: () => import('./features/payroll-locks/payroll-locks.component').then(m => m.PayrollLocksComponent) },
       { path: 'account',       loadChildren:  () => import('./features/account/account.routes').then(m => m.ACCOUNT_ROUTES) },
     ],
   },

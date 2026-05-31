@@ -133,7 +133,7 @@ export class ShellComponent implements AfterViewInit {
     { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker', group: 'setup'                              },
     { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card',   group: 'setup'    },
     { path: '/staff-settings', labelKey: 'nav.staffSettings', icon: 'pi pi-sliders-h', group: 'setup', featureFlag: 'staffLedger'    },
-    { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock',      group: 'setup'    },
+    { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock',      group: 'setup', featureFlag: 'payroll'    },
   ];
 
   /** Section order for the grouped sidebar. */

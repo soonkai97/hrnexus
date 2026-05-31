@@ -107,6 +107,8 @@
   [closable]="true">
 
   <p class="modal-desc">{{ 'permissions.roleDesc' | translate }}</p>
+  <p class="modal-desc" style="font-size:.78rem;line-height:1.45">
+    <i class="pi pi-info-circle" style="margin-right:.35rem"></i>{{ 'permissions.howItWorks' | translate }}</p>
 
   <div class="perm-list">
     @for (group of visiblePermGroups(); track group.labelKey) {

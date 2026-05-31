@@ -664,6 +664,7 @@
     "roleDesc":    "Default permissions granted to everyone with this role.",
     "userTitle":   "Permission overrides",
     "userDesc":    "Grant or revoke specific permissions for this person, on top of their roles.",
+    "howItWorks":  "How it works: a person gets the combined permissions of all their roles. On their profile, an override can grant an extra permission or revoke one — revoke always wins. Changes take effect immediately.",
     "noOverrides": "No overrides — this person inherits all permissions from their roles.",
     "save":        "Save permissions",
     "saved":       "Permissions updated.",

@@ -15,47 +15,75 @@
     </div>
 
     <div [formGroup]="form">
-      <div class="field">
-        <label for="login-staff-id"><span class="req">*</span> {{ 'auth.staffId' | translate }}</label>
-        <input id="login-staff-id" pInputText type="text" formControlName="staffId" [placeholder]="'auth.staffIdPlaceholder' | translate"
-               class="w-full" readonly autocomplete="off"
-               (mousedown)="removeReadonly($event)"
-               (touchstart)="removeReadonly($event)"
-               (keydown)="removeReadonly($event)" />
-      </div>
-      <div class="field">
-        <label for="login-password"><span class="req">*</span> {{ 'auth.password' | translate }}</label>
-        <div class="pwd-wrap">
-          <input id="login-password" pInputText [type]="showPwd() ? 'text' : 'password'" formControlName="password"
-                 class="w-full" [placeholder]="'auth.passwordPlaceholder' | translate" readonly autocomplete="new-password"
+      @if (!twoFactorRequired()) {
+        <div class="field">
+          <label for="login-staff-id"><span class="req">*</span> {{ 'auth.staffId' | translate }}</label>
+          <input id="login-staff-id" pInputText type="text" formControlName="staffId" [placeholder]="'auth.staffIdPlaceholder' | translate"
+                 class="w-full" readonly autocomplete="off"
                  (mousedown)="removeReadonly($event)"
                  (touchstart)="removeReadonly($event)"
-                 (keydown)="removeReadonly($event)"
-                 (keydown.enter)="submit()" />
-          <span class="eye-btn" role="button" tabindex="0"
-                [attr.aria-label]="(showPwd() ? 'auth.hidePassword' : 'auth.showPassword') | translate"
-                (click)="showPwd.set(!showPwd())"
-                (keydown.enter)="showPwd.set(!showPwd())"
-                (keydown.space)="showPwd.set(!showPwd())">
-            <i [class]="showPwd() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
-          </span>
+                 (keydown)="removeReadonly($event)" />
         </div>
-      </div>
-      @if (error()) {
-        <p-message severity="error" [text]="error()" styleClass="w-full mb-3" />
+        <div class="field">
+          <label for="login-password"><span class="req">*</span> {{ 'auth.password' | translate }}</label>
+          <div class="pwd-wrap">
+            <input id="login-password" pInputText [type]="showPwd() ? 'text' : 'password'" formControlName="password"
+                   class="w-full" [placeholder]="'auth.passwordPlaceholder' | translate" readonly autocomplete="new-password"
+                   (mousedown)="removeReadonly($event)"
+                   (touchstart)="removeReadonly($event)"
+                   (keydown)="removeReadonly($event)"
+                   (keydown.enter)="submit()" />
+            <span class="eye-btn" role="button" tabindex="0"
+                  [attr.aria-label]="(showPwd() ? 'auth.hidePassword' : 'auth.showPassword') | translate"
+                  (click)="showPwd.set(!showPwd())"
+                  (keydown.enter)="showPwd.set(!showPwd())"
+                  (keydown.space)="showPwd.set(!showPwd())">
+              <i [class]="showPwd() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+            </span>
+          </div>
+        </div>
+        @if (error()) {
+          <p-message severity="error" [text]="error()" styleClass="w-full mb-3" />
+        }
+        <p-button
+          type="button"
+          [label]="loading() ? ('auth.signingIn' | translate) : ('auth.signIn' | translate)"
+          severity="primary"
+          class="w-full"
+          styleClass="w-full mt-1"
+          [loading]="loading()"
+          [disabled]="loading() || form.get('staffId')?.invalid || form.get('password')?.invalid"
+          (onClick)="submit()" />
+        <div class="text-center mt-3">
+          <a routerLink="/auth/forgot-password" class="forgot-link">{{ 'auth.forgotPassword' | translate }}</a>
+        </div>
+      } @else {
+        <!-- ── Two-factor code entry ─────────────────────────────────────────── -->
+        <div class="field">
+          <label for="login-2fa-code">{{ 'auth.twoFactorCode' | translate }}</label>
+          <input id="login-2fa-code" pInputText type="text" formControlName="code" inputmode="numeric"
+                 autocomplete="one-time-code" class="w-full" maxlength="14"
+                 [placeholder]="'auth.twoFactorCodePlaceholder' | translate"
+                 (keydown.enter)="verifyCode()" />
+          <small class="hint">{{ 'auth.twoFactorHint' | translate }}</small>
+        </div>
+        @if (error()) {
+          <p-message severity="error" [text]="error()" styleClass="w-full mb-3" />
+        }
+        <p-button
+          type="button"
+          [label]="loading() ? ('auth.verifying' | translate) : ('auth.verify' | translate)"
+          severity="primary"
+          class="w-full"
+          styleClass="w-full mt-1"
+          [loading]="loading()"
+          [disabled]="loading()"
+          (onClick)="verifyCode()" />
+        <div class="text-center mt-3">
+          <a class="forgot-link" role="button" tabindex="0"
+             (click)="cancelTwoFactor()" (keydown.enter)="cancelTwoFactor()">{{ 'common.cancel' | translate }}</a>
+        </div>
       }
-      <p-button
-        type="button"
-        [label]="loading() ? ('auth.signingIn' | translate) : ('auth.signIn' | translate)"
-        severity="primary"
-        class="w-full"
-        styleClass="w-full mt-1"
-        [loading]="loading()"
-        [disabled]="loading() || form.invalid"
-        (onClick)="submit()" />
-      <div class="text-center mt-3">
-        <a routerLink="/auth/forgot-password" class="forgot-link">{{ 'auth.forgotPassword' | translate }}</a>
-      </div>
     </div>
   </div>
 </div>

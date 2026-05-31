@@ -44,15 +44,7 @@ export class AuthService {
 
   login(request: LoginRequest): Observable<AuthResponse> {
     // Server sets the httpOnly auth cookies on this response; we only persist the user profile.
-    // If 2FA is required there's no session yet (no user) — the caller must call verifyTwoFactor().
     return this.http.post<AuthResponse>('/api/auth/login', request).pipe(
-      tap(res => { if (!res.requiresTwoFactor && res.user) this.storeSession(res); })
-    );
-  }
-
-  /** Step 2 of a 2FA login: exchange the challenge token + a code for a real session. */
-  verifyTwoFactor(twoFactorToken: string, code: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/2fa/verify', { twoFactorToken, code }).pipe(
       tap(res => { if (res.user) this.storeSession(res); })
     );
   }

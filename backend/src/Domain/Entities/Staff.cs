@@ -42,14 +42,6 @@ public class Staff : IHasAudit, ISoftDelete
     public string? RefreshToken    { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
 
-    // ── Two-factor authentication (TOTP) ─────────────────────────────────────
-    /// <summary>Base32 TOTP shared secret. Set during enrollment; non-null while enrolling/enrolled.</summary>
-    public string? TwoFactorSecret { get; private set; }
-    /// <summary>True once enrollment is confirmed — admin-portal login then requires a TOTP code.</summary>
-    public bool TwoFactorEnabled { get; private set; }
-    /// <summary>Newline-joined hashes of the UNUSED single-use recovery codes (high-entropy → fast hash).</summary>
-    public string? TwoFactorRecoveryCodes { get; private set; }
-
     // ── Brute-force lockout ──────────────────────────────────────────────────
     /// <summary>Consecutive failed login attempts since the last success. Reset to 0 on success.</summary>
     public int AccessFailedCount { get; private set; }
@@ -107,43 +99,6 @@ public class Staff : IHasAudit, ISoftDelete
     }
 
     public void ChangePassword(string newHash) => PasswordHash = newHash;
-
-    // ── Two-factor authentication behaviour ──────────────────────────────────
-
-    /// <summary>Stores a freshly-generated secret for an in-progress enrollment (not yet enabled).</summary>
-    public void BeginTwoFactorEnrollment(string secret)
-    {
-        TwoFactorSecret        = secret;
-        TwoFactorEnabled       = false;
-        TwoFactorRecoveryCodes = null;
-    }
-
-    /// <summary>Confirms enrollment: enables 2FA and stores the (already-hashed) recovery codes.</summary>
-    public void EnableTwoFactor(IEnumerable<string> recoveryCodeHashes)
-    {
-        if (string.IsNullOrEmpty(TwoFactorSecret))
-            throw new InvalidOperationException("Cannot enable two-factor before a secret has been generated.");
-        TwoFactorEnabled       = true;
-        TwoFactorRecoveryCodes = string.Join('\n', recoveryCodeHashes);
-    }
-
-    /// <summary>Turns 2FA off and forgets the secret + recovery codes.</summary>
-    public void DisableTwoFactor()
-    {
-        TwoFactorSecret        = null;
-        TwoFactorEnabled       = false;
-        TwoFactorRecoveryCodes = null;
-    }
-
-    /// <summary>Single-use recovery code: if <paramref name="codeHash"/> is unused, consume it and return true.</summary>
-    public bool ConsumeRecoveryCode(string codeHash)
-    {
-        if (string.IsNullOrEmpty(TwoFactorRecoveryCodes)) return false;
-        var remaining = TwoFactorRecoveryCodes.Split('\n', StringSplitOptions.RemoveEmptyEntries).ToList();
-        if (!remaining.Remove(codeHash)) return false;
-        TwoFactorRecoveryCodes = remaining.Count > 0 ? string.Join('\n', remaining) : null;
-        return true;
-    }
 
     // ── Brute-force lockout behaviour ────────────────────────────────────────
 

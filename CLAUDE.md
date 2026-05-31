@@ -805,9 +805,6 @@ Do **not** duplicate these at the API — doing so produces invalid doubled head
   (`HttpOnly; SameSite=Strict; Secure when HTTPS`); the bearer pipeline reads the access cookie.
   `POST /api/auth/logout` expires them + clears the DB refresh token. nginx forwards
   `X-Forwarded-Proto` so the Secure flag is correct behind the proxy.
-- **Admin 2FA (TOTP)**: opt-in per user (Account page). When enabled, admin login returns a
-  challenge token; `POST /api/auth/2fa/verify` exchanges a TOTP/recovery code for the session.
-  Staff-portal logins are not gated.
 - **PII encrypted at rest**: `IFieldEncryptor` (AES-256-GCM) encrypts `Staff` IcNo / PassportNo /
   PhoneNumber / DateOfBirth via EF value converters; ciphertext carries an `enc1:` marker and reads
   fall back to legacy plaintext, so a guarded startup `PiiBackfill` lazily encrypts old rows. Email

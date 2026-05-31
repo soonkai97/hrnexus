@@ -531,16 +531,6 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("TwoFactorRecoveryCodes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TwoFactorSecret")
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Email")

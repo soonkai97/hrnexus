@@ -6,13 +6,12 @@ import { PayrollService, PaySummary, ToastService, MONTH_NAMES } from 'shared-li
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
-import { InputNumber } from 'primeng/inputnumber';
 import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-pay-summary',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, InputNumber, Skeleton],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, Button, Card, Select, Skeleton],
   templateUrl: './pay-summary.component.html',
   styleUrl: './pay-summary.component.scss',
 })
@@ -26,6 +25,11 @@ export class PaySummaryComponent implements OnInit {
   readonly months = MONTH_NAMES;
 
   readonly monthOptions = MONTH_NAMES.map((m, i) => ({ label: m, value: i + 1 }));
+  // Current year back 5 years — pay is only viewed for the current or a recent period.
+  readonly yearOptions = Array.from({ length: 6 }, (_, i) => {
+    const y = new Date().getFullYear() - i;
+    return { label: `${y}`, value: y };
+  });
 
   /** First and last day of the selected month */
   periodStart = computed(() => {

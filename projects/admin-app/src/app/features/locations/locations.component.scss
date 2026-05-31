@@ -44,11 +44,13 @@
   cursor: pointer;
 
   .upload-btn {
+    // Dark scrim pill so the label stays legible over ANY uploaded photo (not just the dark placeholder).
     display: inline-block;
-    background: none; border: none; color: var(--p-text-muted-color);
-    font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px;
-    transition: color 0.15s, background 0.15s; cursor: pointer;
-    &:hover { color: var(--p-text-color); background: var(--p-surface-section); }
+    background: rgba(0, 0, 0, 0.55); border: none; color: #fff;
+    font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 6px;
+    backdrop-filter: blur(2px);
+    transition: background 0.15s; cursor: pointer;
+    &:hover { background: rgba(0, 0, 0, 0.78); }
   }
 
   input[type="file"] { display: none; }

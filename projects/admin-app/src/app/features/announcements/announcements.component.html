@@ -104,7 +104,7 @@
         <ng-template pTemplate="body" let-item>
           <tr>
             <td class="col-title"><span class="p-column-title">{{ 'announcements.titleCol' | translate }}</span>{{ item.title }}</td>
-            <td><span class="p-column-title">{{ 'announcements.targetRolesCol' | translate }}</span><p-tag [value]="item.targetRoles" severity="info" /></td>
+            <td><span class="p-column-title">{{ 'announcements.targetRolesCol' | translate }}</span><p-tag [value]="(item.targetRoles === '*' || !item.targetRoles) ? ('announcements.allRolesTag' | translate) : item.targetRoles" severity="info" /></td>
             <td class="col-muted"><span class="p-column-title">{{ 'announcements.readsCol' | translate }}</span>{{ item.readCount }}</td>
             <td class="col-muted"><span class="p-column-title">{{ 'announcements.createdByCol' | translate }}</span>{{ item.createdByName }}</td>
             <td class="col-muted"><span class="p-column-title">{{ 'announcements.expiresCol' | translate }}</span>{{ item.expiresAt ? (item.expiresAt | date:'dd/MM/yyyy') : '—' }}</td>

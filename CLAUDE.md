@@ -652,6 +652,7 @@ Uses `docker-compose.uat.yml` overlay on top of the base `docker-compose.yml`. T
 DOMAIN=hrnexus.duckdns.org
 UAT_HOST=hrnexus.duckdns.org
 JWT_SECRET=<random-long-string-min-32-chars>
+PII_ENCRYPTION_KEY=<random-long-string-min-32-chars>   # encrypts staff IC/passport/phone/DOB at rest
 POSTGRES_USER=ncuser
 POSTGRES_PASSWORD=<password>
 POSTGRES_DB=hr_nexus
@@ -802,7 +803,24 @@ the rolling file + console logging still work.
 ### Security headers
 Set at the **nginx edge** for all responses (incl. the SPA HTML): `X-Content-Type-Options`,
 `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy`, `Permissions-Policy` (see `nginx/nginx.conf`).
-Do **not** duplicate these at the API — doing so produces invalid doubled header values.
+Do **not** duplicate these at the API — doing so produces invalid doubled header values. The CSP is
+**enforced** (not report-only); `inlineCritical:false` keeps `script-src 'self'` strict.
+
+### Auth & data-protection hardening
+- **Tokens in httpOnly cookies** (not localStorage): login/refresh set `hrnexus_at` + `hrnexus_rt`
+  (`HttpOnly; SameSite=Strict; Secure when HTTPS`); the bearer pipeline reads the access cookie.
+  `POST /api/auth/logout` expires them + clears the DB refresh token. nginx forwards
+  `X-Forwarded-Proto` so the Secure flag is correct behind the proxy.
+- **Admin 2FA (TOTP)**: opt-in per user (Account page). When enabled, admin login returns a
+  challenge token; `POST /api/auth/2fa/verify` exchanges a TOTP/recovery code for the session.
+  Staff-portal logins are not gated.
+- **PII encrypted at rest**: `IFieldEncryptor` (AES-256-GCM) encrypts `Staff` IcNo / PassportNo /
+  PhoneNumber / DateOfBirth via EF value converters; ciphertext carries an `enc1:` marker and reads
+  fall back to legacy plaintext, so a guarded startup `PiiBackfill` lazily encrypts old rows. Email
+  stays plaintext (it has a unique index + lookups). Key = `PII_ENCRYPTION_KEY` (≥32 chars).
+  **⚠️ Never change `PII_ENCRYPTION_KEY` once data is encrypted — the data becomes unreadable.**
+  The `EncryptStaffPii` migration changes DOB `timestamptz → text`; deploy it in a maintenance
+  window with a fresh DB backup.
 
 ### Enabling Seq in prod (opt-in)
 Seq has **no authentication** in the free tier, so it's loopback-bound + behind ufw — reach the UI

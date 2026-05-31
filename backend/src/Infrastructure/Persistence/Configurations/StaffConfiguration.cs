@@ -1,10 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Entities;
 
 namespace HRNexus.Infrastructure.Persistence.Configurations;
 
-public class StaffConfiguration : IEntityTypeConfiguration<Staff>
+public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfiguration<Staff>
 {
     public void Configure(EntityTypeBuilder<Staff> b)
     {
@@ -15,10 +18,26 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
         b.Property(e => e.FirstName).HasMaxLength(50).IsRequired();
         b.Property(e => e.LastName).HasMaxLength(50).IsRequired();
         b.Property(e => e.Email).HasMaxLength(200);  // nullable — email is optional at registration
-        b.HasIndex(e => e.Email).IsUnique();
+        b.HasIndex(e => e.Email).IsUnique();          // stays plaintext so this unique index works
         b.Property(e => e.PasswordHash).IsRequired();
-        b.Property(e => e.IcNo).HasMaxLength(20);
-        b.Property(e => e.PassportNo).HasMaxLength(30);
+
+        // ── PII encrypted at rest (AES-GCM via value converters) ─────────────────
+        // IcNo/PassportNo/PhoneNumber become opaque ciphertext text columns (the old length caps are
+        // dropped — ciphertext is longer). DateOfBirth is serialized round-trip and encrypted to text.
+        // None of these are queried/indexed, so randomised encryption is safe here.
+        // The encryptor passes null straight through, so a nullable converter keeps NULLs as NULL.
+        var stringCipher = new ValueConverter<string?, string?>(
+            v => encryptor.Encrypt(v),
+            v => encryptor.Decrypt(v));
+        b.Property(e => e.IcNo).HasConversion(stringCipher);
+        b.Property(e => e.PassportNo).HasConversion(stringCipher);
+        b.Property(e => e.PhoneNumber).HasConversion(stringCipher);
+
+        var dobCipher = new ValueConverter<DateTime, string>(
+            v => encryptor.Encrypt(v.ToString("O", CultureInfo.InvariantCulture))!,
+            v => DateTime.Parse(encryptor.Decrypt(v)!, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal));
+        b.Property(e => e.DateOfBirth).HasConversion(dobCipher).HasColumnType("text");
 
         // Roles are normalised into a child EmployeeRoles table (one-to-many).
         // AutoInclude means every LINQ query loads roles without an explicit Include().

@@ -24,6 +24,8 @@ public sealed class TestApiFactory(string connectionString) : WebApplicationFact
         // under this and continues to exercise the per-account lockout path, not the IP limiter.
         builder.UseSetting("RateLimit:AuthPermitLimit", "10");
         builder.UseSetting("RateLimit:AuthWindowSeconds", "60");
+        // PII field-encryption key (otherwise the encryptor throws when any Staff PII is written).
+        builder.UseSetting("Pii:Key", "Integration_Test_PII_Key_0123456789_abcdefXYZ");
 
         builder.ConfigureTestServices(services =>
         {

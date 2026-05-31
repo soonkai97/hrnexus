@@ -1,6 +1,8 @@
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Infrastructure.Auth;
 using HRNexus.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -23,6 +25,12 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public string ConnectionString => _container.GetConnectionString();
 
+    // Real field encryptor with a fixed test key, so the Staff PII converters work against Postgres.
+    private static readonly IFieldEncryptor Encryptor = new FieldEncryptor(
+        new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Pii:Key"] = "Integration_Test_PII_Key_0123456789_abcdefXYZ" })
+            .Build());
+
     public async Task InitializeAsync()
     {
         await _container.StartAsync();
@@ -43,7 +51,7 @@ public sealed class PostgresFixture : IAsyncLifetime
             .UseNpgsql(ConnectionString, npgsql => npgsql.EnableRetryOnFailure(
                 maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null))
             .Options;
-        return new AppDbContext(opts, new TestCurrentUser());
+        return new AppDbContext(opts, new TestCurrentUser(), Encryptor);
     }
 
     private sealed class TestCurrentUser : ICurrentUserService

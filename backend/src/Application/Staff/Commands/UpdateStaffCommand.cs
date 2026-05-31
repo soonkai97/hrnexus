@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Permissions.Commands;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.Staff.Commands;
 
@@ -44,6 +46,31 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
 
         // Resolve email: keep existing if not supplied
         var resolvedEmail = string.IsNullOrWhiteSpace(req.Email) ? emp.Email : req.Email;
+
+        // Lockout guard: if this role change strips the user's admin-portal access and they're the last
+        // active admin, reject — otherwise nobody could sign in to undo it. A grant/revoke override on
+        // the user wins over role defaults (so changing roles can't remove access a grant pins on, and
+        // can't restore access a revoke pins off).
+        var key       = AppConstants.Permissions.PortalAdmin;
+        var newRoles  = req.Roles.Select(r => r.Trim().ToUpperInvariant()).ToList();
+        var ownOverride = await db.StaffPermissionOverrides
+            .Where(o => o.EmployeeId == req.Id && o.PermissionKey == key)
+            .Select(o => o.Granted).ToListAsync(ct);
+        var willHaveAdmin = ownOverride.Count > 0
+            ? ownOverride[0]
+            : newRoles.Count > 0 && await db.RolePermissions.AnyAsync(
+                  rp => newRoles.Contains(rp.RoleName) && rp.PermissionKey == key, ct);
+
+        if (!willHaveAdmin && await PortalAdminInvariant.UserHasAdminAsync(db, req.Id, ct))
+        {
+            var adminRoles = await db.RolePermissions
+                .Where(rp => rp.PermissionKey == key)
+                .Select(rp => rp.RoleName).Distinct().ToListAsync(ct);
+            if (await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.Id, ct) == 0)
+                throw new ArgumentException(
+                    "This change would remove admin-portal access from the last administrator. " +
+                    "Grant admin-portal access to another user or role first.");
+        }
 
         emp.UpdateDetails(normalizedId, req.FirstName, req.LastName, resolvedEmail, req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),

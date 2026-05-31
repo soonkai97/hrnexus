@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Api.Filters;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
@@ -10,6 +11,7 @@ namespace HRNexus.Api.Controllers;
 [ApiController]
 [Route("api/staff-config")]
 [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.ConfigManage)]
+[FeatureRequired("staffLedger")]
 public class StaffConfigController(IAppDbContext db) : ControllerBase
 {
     // ── Work Types ────────────────────────────────────────────────────────────

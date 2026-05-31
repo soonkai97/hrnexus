@@ -34,19 +34,16 @@
     "toggle": "切换主题颜色"
   },
   "nav": {
-    "clockIn":       "打卡",
     "home":          "主页",
     "logShift":      "记录班次",
     "pay":           "薪资",
     "leave":         "请假",
-    "profile":       "个人",
-    "more":          "更多"
+    "profile":       "个人"
   },
   "home": {
     "goodMorning":         "早上好",
     "goodAfternoon":       "下午好",
     "goodEvening":         "晚上好",
-    "unreadAnnouncements": "条未读公告",
     "manageShift":         "管理班次",
     "notClockedIn":        "您尚未打卡。",
     "logShift":            "记录班次",
@@ -61,18 +58,6 @@
     "noRecentShifts":      "暂无班次记录，点击「记录班次」开始。",
     "dataUnavailable":     "暂无数据"
   },
-  "announcements": {
-    "subtitle":        "了解最新场地通知",
-    "noAnnouncements": "暂无公告。",
-    "markAllRead":     "全部标为已读",
-    "unread":          "条未读",
-    "postedBy":        "发布人：",
-    "clickToRead":     "点击标为已读",
-    "new":             "新",
-    "errLoad":         "加载公告失败。",
-    "errMarkRead":     "标为已读失败。"
-  },
-  "topbar": { "signOut": "退出" },
   "shell": {
     "expandSidebar":    "展开侧边栏",
     "collapseSidebar":  "收起侧边栏",
@@ -91,19 +76,12 @@
     "signingIn":      "登录中…",
     "forgotPassword": "忘记密码？",
     "resetPassword":  "重置密码",
-    "setNewPassword": "设置新密码",
-    "newPassword":    "新密码",
-    "confirmPassword":"确认密码",
-    "setPassword":    "设置密码",
     "backToSignIn":   "← 返回登录",
     "notifyManager":  "通知经理",
     "notifying":      "发送中…",
-    "tempPasswordInfo":"您正在使用临时密码，请设置新密码以继续。",
     "forgotDesc":     "请输入您的员工编号，系统将通知经理为您重置密码。",
     "requestSent":    "您的申请已发送给经理。",
     "requestSentHint":"他们将联系您并提供新密码，请等待他们与您联系。",
-    "minCharsHint":        "至少 8 个字符",
-    "confirmPasswordHint": "再次输入新密码",
     "yourStaffId":         "您的员工编号",
     "yourPassword":        "您的密码",
     "showPassword":        "显示密码",
@@ -116,25 +94,18 @@
     "title":         "薪资概览",
     "workHours":     "工时",
     "grossPay":      "应发工资",
-    "tips":          "小费",
     "noData":        "本期间暂无薪资数据。",
     "year":          "年",
     "month":         "月",
     "view":          "查看",
     "breakdown":     "明细",
     "rate":          "单价",
-    "poolDist":      "小费分配",
     "shifts":        "班次",
     "totalSuffix":   "共计",
     "errLoad":       "加载薪资概览失败。"
   },
-  "tipsHistory": {
-    "earned":  "已获小费",
-    "noData":  "本期间暂无小费记录。"
-  },
   "leave": {
     "title":      "我的假期",
-    "balance":    "假期余额",
     "annual":     "年假",
     "sick":       "病假",
     "hrs":        "小时",
@@ -203,7 +174,6 @@
     }
   },
   "profile": {
-    "title":           "个人资料",
     "staffId":         "员工编号",
     "email":           "电子邮箱",
     "role":            "职位",
@@ -283,15 +253,12 @@
     "leaveRejected":  "您的请假申请已被拒绝。"
   },
   "common": {
-    "loading": "加载中…",
     "save":    "保存",
     "saving":  "保存中…",
     "signingOut": "正在登出…",
     "cancel":  "取消",
-    "confirm": "确认",
     "delete":  "删除",
     "edit":    "编辑",
-    "back":    "返回",
-    "of":      "/"
+    "back":    "返回"
   }
 }

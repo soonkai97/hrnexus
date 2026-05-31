@@ -266,35 +266,6 @@ public class AdminController(IMediator mediator) : ControllerBase
         var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
         return File(bytes, "text/csv", $"payroll-{result.Month}.csv");
     }
-
-    // ── Tips Pools ────────────────────────────────────────────────────────────
-
-    [HttpGet("tips-pools")]
-    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.TipsManage)]
-    [FeatureRequired("tips")]
-    public async Task<IActionResult> GetTipsPools(
-        [FromQuery] DateTime? dateFrom = null,
-        [FromQuery] DateTime? dateTo   = null,
-        CancellationToken ct = default) =>
-        Ok(await mediator.Send(new GetTipsPoolsQuery(dateFrom, dateTo), ct));
-
-    [HttpPost("tips-pools/distribute")]
-    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.TipsManage)]
-    [FeatureRequired("tips")]
-    public async Task<IActionResult> DistributeTips(
-        [FromBody] DistributeTipsBody body, CancellationToken ct)
-    {
-        try
-        {
-            var result = await mediator.Send(new DistributeTipsCommand(
-                body.LocationId, body.LocationName, body.ShiftDate,
-                body.TotalAmount, body.SplitMethod ?? AppConstants.TipsSplitMethod.Equal,
-                CallerId, CallerName), ct);
-            return Ok(result);
-        }
-        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
-        catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
-    }
 }
 
 public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status, string? RejectionReason = null);
@@ -302,4 +273,3 @@ public record BulkUpdateLeaveStatusBody(List<Guid> Ids, string Status, string? R
 public record LeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record BulkLeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record CarryOverBody(int FromYear, int ToYear, decimal? MaxCarryOver);
-public record DistributeTipsBody(Guid LocationId, string LocationName, DateTime ShiftDate, decimal TotalAmount, string? SplitMethod);

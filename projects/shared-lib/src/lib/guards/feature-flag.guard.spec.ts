@@ -68,15 +68,15 @@ describe('featureFlagGuard', () => {
       await loadFlags();
 
       const result = TestBed.runInInjectionContext(() =>
-        featureFlagGuard('tips')(route, state));
+        featureFlagGuard('payroll')(route, state));
 
       expect(result).toBeInstanceOf(UrlTree);
       expect((result as UrlTree).toString()).toBe('/');
     });
 
     it('does not fire any HTTP request when flags are already loaded', async () => {
-      await loadFlags({ tips: true });
-      TestBed.runInInjectionContext(() => featureFlagGuard('tips')(route, state));
+      await loadFlags({ payroll: true });
+      TestBed.runInInjectionContext(() => featureFlagGuard('payroll')(route, state));
       http.expectNone('/api/feature-flags');
     });
   });
@@ -86,11 +86,11 @@ describe('featureFlagGuard', () => {
   describe('when flags are NOT loaded (fresh page load)', () => {
     it('returns an Observable and resolves true after load() returns an enabled flag', async () => {
       const obs$ = TestBed.runInInjectionContext(() =>
-        featureFlagGuard('announcements', '/home')(route, state)) as Observable<boolean | UrlTree>;
+        featureFlagGuard('paySummary', '/home')(route, state)) as Observable<boolean | UrlTree>;
 
       // Flush the HTTP call BEFORE awaiting the Observable
       const promise = firstValueFrom(obs$);
-      http.expectOne('/api/feature-flags').flush({ announcements: true });
+      http.expectOne('/api/feature-flags').flush({ paySummary: true });
 
       const result = await promise;
       expect(result).toBe(true);

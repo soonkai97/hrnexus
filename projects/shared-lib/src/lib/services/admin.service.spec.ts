@@ -90,44 +90,6 @@ describe('AdminService', () => {
     });
   });
 
-  // ── getTipsPools() ────────────────────────────────────────────────────────
-
-  describe('getTipsPools()', () => {
-    it('calls GET /api/admin/tips-pools with no params when called without args', () => {
-      service.getTipsPools().subscribe();
-      const req = http.expectOne(r => r.url.includes('/api/admin/tips-pools'));
-      expect(req.request.method).toBe('GET');
-      req.flush([]);
-    });
-
-    it('includes dateFrom when provided', () => {
-      service.getTipsPools('2026-05-01').subscribe();
-      const req = http.expectOne(r => r.url.includes('/api/admin/tips-pools'));
-      expect(req.request.urlWithParams).toContain('dateFrom=2026-05-01');
-      req.flush([]);
-    });
-
-    it('includes dateTo when provided', () => {
-      service.getTipsPools(undefined, '2026-05-31').subscribe();
-      const req = http.expectOne(r => r.url.includes('/api/admin/tips-pools'));
-      expect(req.request.urlWithParams).toContain('dateTo=2026-05-31');
-      req.flush([]);
-    });
-  });
-
-  // ── distributeTips() ─────────────────────────────────────────────────────
-
-  describe('distributeTips()', () => {
-    it('calls POST /api/admin/tips-pools/distribute with the payload', () => {
-      const payload = { locationId: 'loc-1', locationName: 'Main Bar', shiftDate: '2026-05-30', totalAmount: 1000, splitMethod: 'equal' };
-      service.distributeTips(payload).subscribe();
-      const req = http.expectOne('/api/admin/tips-pools/distribute');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(payload);
-      req.flush({ staffCount: 2, allocations: [], excludedStaff: [] });
-    });
-  });
-
   // ── getPayrollSummary() ───────────────────────────────────────────────────
 
   describe('getPayrollSummary()', () => {

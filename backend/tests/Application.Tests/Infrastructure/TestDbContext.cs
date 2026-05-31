@@ -24,13 +24,8 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.LeaveRequest>     LeaveRequests     => Set<E.LeaveRequest>();
     public DbSet<E.LeaveEntitlement> LeaveEntitlements => Set<E.LeaveEntitlement>();
     public DbSet<E.Notification>     Notifications     => Set<E.Notification>();
-    public DbSet<E.Announcement>     Announcements     => Set<E.Announcement>();
-    public DbSet<E.AnnouncementRead> AnnouncementReads => Set<E.AnnouncementRead>();
     public DbSet<E.AuditLog>         AuditLogs         => Set<E.AuditLog>();
-    public DbSet<E.TipsPool>             TipsPools       => Set<E.TipsPool>();
-    public DbSet<E.TipsAllocationRecord> TipsAllocations => Set<E.TipsAllocationRecord>();
     public DbSet<E.PushSubscription> PushSubscriptions => Set<E.PushSubscription>();
-    public DbSet<E.StaffMessage>     StaffMessages     => Set<E.StaffMessage>();
     public DbSet<E.FeatureFlag>      FeatureFlags      => Set<E.FeatureFlag>();
     public DbSet<E.PayrollLock>          PayrollLocks           => Set<E.PayrollLock>();
 
@@ -49,10 +44,6 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        // AnnouncementRead: composite PK (no Id column)
-        mb.Entity<E.AnnouncementRead>()
-            .HasKey(r => new { r.AnnouncementId, r.EmployeeId });
-
         // StaffRole: composite PK + auto-include so Staff.RoleEntries is always loaded,
         // matching AppDbContext behaviour (SetRoles relies on the collection being populated).
         mb.Entity<E.StaffRole>()

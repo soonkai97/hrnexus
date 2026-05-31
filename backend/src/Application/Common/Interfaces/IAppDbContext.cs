@@ -38,13 +38,8 @@ public interface IAppDbContext
     DbSet<LeaveRequest>     LeaveRequests     { get; }
     DbSet<LeaveEntitlement> LeaveEntitlements { get; }
     DbSet<Notification>       Notifications       { get; }
-    DbSet<Announcement>       Announcements       { get; }
-    DbSet<AnnouncementRead>   AnnouncementReads   { get; }
     DbSet<AuditLog>           AuditLogs           { get; }
-    DbSet<TipsPool>             TipsPools           { get; }
-    DbSet<TipsAllocationRecord> TipsAllocations     { get; }
     DbSet<PushSubscription>   PushSubscriptions   { get; }
-    DbSet<StaffMessage>       StaffMessages        { get; }
     DbSet<FeatureFlag>        FeatureFlags         { get; }
     DbSet<PayrollLock>           PayrollLocks            { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);

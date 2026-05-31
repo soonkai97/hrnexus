@@ -40,17 +40,15 @@ public static class AppConstants
         public const string PayrollView        = "payroll.view";        // view payroll
         public const string PayrollManage      = "payroll.manage";      // run/export payroll
         public const string PayrollLock        = "payroll.lock";        // lock/reopen payroll periods
-        public const string TipsManage         = "tips.manage";         // tips pools/distribution
         public const string RolesManage        = "roles.manage";        // roles + rates + permissions
         public const string LocationsManage    = "locations.manage";    // venue locations
-        public const string AnnouncementsManage = "announcements.manage"; // create/delete announcements
 
         /// <summary>Every catalog key — used for validation and seeding system roles.</summary>
         public static readonly IReadOnlyList<string> All = new[]
         {
             PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage, WorkLogManage,
-            ReportsView, PayrollView, PayrollManage, PayrollLock, TipsManage,
-            RolesManage, LocationsManage, AnnouncementsManage,
+            ReportsView, PayrollView, PayrollManage, PayrollLock,
+            RolesManage, LocationsManage,
         };
 
         /// <summary>Authorization policy-name prefix: [Authorize(Policy = "perm:staff.manage")].</summary>
@@ -83,16 +81,6 @@ public static class AppConstants
         public const string LeaveApproved  = "leave_approved";
         public const string LeaveRejected  = "leave_rejected";
         public const string LeavePending   = "leave_pending";
-        public const string Message        = "message";
-        public const string Announcement   = "announcement";
-        public const string Tips           = "tips";
-    }
-
-    // ── Tips split methods ─────────────────────────────────────────────────────
-    public static class TipsSplitMethod
-    {
-        public const string Equal   = "equal";
-        public const string ByHours = "by_hours";
     }
 
     // ── Auth cookies ─────────────────────────────────────────────────────────────
@@ -128,16 +116,8 @@ public static class AppConstants
         public const int PhoneMaxLength        = 20;
         public const int PushSubscriptionsCap  = 5;
 
-        // Messages
-        public const int MessageMaxLength      = 2000;
+        // Notifications
         public const int NotificationSnippetLength = 80;
-
-        // Announcements
-        public const int AnnouncementTitleMaxLength = 200;
-        public const int AnnouncementBodyMaxLength  = 5_000;
-
-        // Tips
-        public const decimal TipsMaxAmount = 50_000m;
 
         // Locations
         public const int LocationNameMaxLength = 100;
@@ -151,10 +131,7 @@ public static class AppConstants
     // ── Feature flag keys ──────────────────────────────────────────────────────
     public static class FeatureFlags
     {
-        public const string Tips          = "tips";
-        public const string TipsHistory   = "tipsHistory";
         public const string Payroll       = "payroll";
         public const string PaySummary    = "paySummary";
-        public const string Announcements = "announcements";
     }
 }

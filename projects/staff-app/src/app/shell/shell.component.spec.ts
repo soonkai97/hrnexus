@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ShellComponent } from './shell.component';
-import { AuthService, LangService, FeatureFlagService, SignalRService, NotificationService, AnnouncementService, AppUpdateService } from 'shared-lib';
+import { AuthService, LangService, FeatureFlagService, SignalRService, NotificationService, AppUpdateService } from 'shared-lib';
 
 /**
  * Staff ShellComponent — layout shell with bottom navigation bar.
@@ -18,8 +18,6 @@ import { AuthService, LangService, FeatureFlagService, SignalRService, Notificat
  *  - userRoleLabel must reflect the correct role for the top-bar label.
  *  - toggleSidebar() must toggle collapsed state for mobile drawer behaviour.
  *  - logout() must stop SignalR before logging out to avoid dangling connections.
- *  - refreshUnread() must only call announcementSvc.getMine() when announcements
- *    flag is enabled — calling it while disabled wastes a network request.
  */
 
 describe('ShellComponent (staff-app)', () => {
@@ -28,7 +26,6 @@ describe('ShellComponent (staff-app)', () => {
   let mockFeature:         { load: ReturnType<typeof vi.fn>; flags: ReturnType<typeof vi.fn>; isEnabled: ReturnType<typeof vi.fn> };
   let mockSignalR:         { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn>; notifications$: unknown };
   let mockNotifSvc:        { notifications: ReturnType<typeof vi.fn>; unreadCount: ReturnType<typeof vi.fn>; load: ReturnType<typeof vi.fn>; push: ReturnType<typeof vi.fn> };
-  let mockAnnouncementSvc: { getMine: ReturnType<typeof vi.fn> };
   let mockAppUpdate:       { init: ReturnType<typeof vi.fn> };
 
   function createComponent(userRoles: string[] = ['BARTENDER'], fullName = 'Jane Doe') {
@@ -41,15 +38,11 @@ describe('ShellComponent (staff-app)', () => {
     mockLang            = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn() };
     mockFeature         = {
       load:      vi.fn().mockReturnValue(of(undefined)),
-      flags:     vi.fn().mockReturnValue({
-        payroll: false, tips: false, tipsHistory: false,
-        paySummary: false, announcements: false, staffLedger: false,
-      }),
+      flags:     vi.fn().mockReturnValue({ payroll: false, paySummary: false }),
       isEnabled: vi.fn().mockReturnValue(false),
     };
     mockSignalR         = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
     mockNotifSvc        = { notifications: vi.fn().mockReturnValue([]), unreadCount: vi.fn().mockReturnValue(0), load: vi.fn().mockReturnValue(of(undefined)), push: vi.fn() };
-    mockAnnouncementSvc = { getMine: vi.fn().mockReturnValue(of([])) };
     mockAppUpdate       = { init: vi.fn() };
 
     await TestBed.configureTestingModule({
@@ -63,7 +56,6 @@ describe('ShellComponent (staff-app)', () => {
         { provide: FeatureFlagService,   useValue: mockFeature },
         { provide: SignalRService,       useValue: mockSignalR },
         { provide: NotificationService,  useValue: mockNotifSvc },
-        { provide: AnnouncementService,  useValue: mockAnnouncementSvc },
         { provide: AppUpdateService,     useValue: mockAppUpdate },
         MessageService,
         ConfirmationService,
@@ -135,25 +127,10 @@ describe('ShellComponent (staff-app)', () => {
     });
 
     it('includes /pay-summary when paySummary flag is enabled', () => {
-      mockFeature.flags.mockReturnValue({
-        payroll: false, tips: false, tipsHistory: false,
-        paySummary: true, announcements: false, staffLedger: false,
-      });
+      mockFeature.flags.mockReturnValue({ payroll: false, paySummary: true });
       const c = createComponent();
       const paths = c.navItems().map((n: any) => n.path);
       expect(paths).toContain('/pay-summary');
-    });
-
-    it('excludes /tips-history when tipsHistory flag is disabled', () => {
-      const c = createComponent();
-      const paths = c.navItems().map((n: any) => n.path);
-      expect(paths).not.toContain('/tips-history');
-    });
-
-    it('excludes /announcements when announcements flag is disabled', () => {
-      const c = createComponent();
-      const paths = c.navItems().map((n: any) => n.path);
-      expect(paths).not.toContain('/announcements');
     });
   });
 
@@ -237,19 +214,6 @@ describe('ShellComponent (staff-app)', () => {
     it('starts the SignalR connection on construction', () => {
       createComponent();
       expect(mockSignalR.startConnection).toHaveBeenCalled();
-    });
-
-    it('does NOT call announcementSvc.getMine when announcements flag is disabled', () => {
-      mockFeature.isEnabled.mockReturnValue(false);
-      createComponent();
-      expect(mockAnnouncementSvc.getMine).not.toHaveBeenCalled();
-    });
-
-    it('calls announcementSvc.getMine when announcements flag is enabled', () => {
-      mockFeature.isEnabled.mockReturnValue(true);
-      mockAnnouncementSvc.getMine.mockReturnValue(of([]));
-      createComponent();
-      expect(mockAnnouncementSvc.getMine).toHaveBeenCalled();
     });
   });
 });

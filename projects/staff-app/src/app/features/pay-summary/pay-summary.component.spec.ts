@@ -24,7 +24,6 @@ const fakeSummary = {
   periodStart: '2026-05-01',
   periodEnd: '2026-05-31',
   totalHours: 80,
-  tipsAllocated: 200,
   grossPay: 1400,
   shifts: [],
 };

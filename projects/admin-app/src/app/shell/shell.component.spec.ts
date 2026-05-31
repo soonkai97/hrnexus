@@ -40,10 +40,7 @@ describe('ShellComponent', () => {
     mockLang      = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn() };
     mockFeature   = {
       load:      vi.fn().mockReturnValue(of(undefined)),
-      flags:     vi.fn().mockReturnValue({
-        payroll: false, tips: false, tipsHistory: false,
-        paySummary: false, announcements: false,
-      }),
+      flags:     vi.fn().mockReturnValue({ payroll: false, paySummary: false }),
       isEnabled: vi.fn().mockReturnValue(false),
     };
     mockSignalR   = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
@@ -125,20 +122,11 @@ describe('ShellComponent', () => {
       expect(paths).toContain('/dashboard');
     });
 
-    it('excludes /tips when the tips flag is disabled', () => {
+    it('includes /payroll when the payroll flag is enabled', () => {
+      mockFeature.flags.mockReturnValue({ payroll: true, paySummary: false });
       const c = createComponent();
       const paths = c.navItems().map((n: any) => n.path);
-      expect(paths).not.toContain('/tips');
-    });
-
-    it('includes /tips when the tips flag is enabled', () => {
-      mockFeature.flags.mockReturnValue({
-        payroll: false, tips: true, tipsHistory: false,
-        paySummary: false, announcements: false,
-      });
-      const c = createComponent();
-      const paths = c.navItems().map((n: any) => n.path);
-      expect(paths).toContain('/tips');
+      expect(paths).toContain('/payroll');
     });
   });
 

@@ -73,19 +73,7 @@
           <span class="brow-title">{{ 'pay.workHours' | translate }}</span>
           <span class="brow-sub">{{ summary()!.totalHours }}h <i class="pi pi-times"></i> {{ 'pay.rate' | translate }}</span>
         </div>
-        <span class="brow-amount">RM {{ (summary()!.grossPay - summary()!.tipsAllocated) | number:'1.2-2' }}</span>
-      </div>
-      <div class="divider"></div>
-      <div class="breakdown-row">
-        <div class="brow-left">
-          <span class="brow-title">{{ 'pay.tips' | translate }}</span>
-          <span class="brow-sub">{{ 'pay.poolDist' | translate }}</span>
-        </div>
-        @if (summary()!.tipsAllocated > 0) {
-          <span class="brow-amount accent-pink">RM {{ summary()!.tipsAllocated | number:'1.2-2' }}</span>
-        } @else {
-          <span class="td-muted">—</span>
-        }
+        <span class="brow-amount">RM {{ summary()!.grossPay | number:'1.2-2' }}</span>
       </div>
     </p-card>
 

@@ -62,11 +62,9 @@ projects/
 │       ├── staff/                # staff list + staff-detail
 │       ├── leave/
 │       ├── payroll/
-│       ├── tips/
 │       ├── reports/
 │       ├── roles/
 │       ├── locations/
-│       ├── announcements/
 │       └── account/
 │
 ├── staff-app/src/app/
@@ -76,8 +74,6 @@ projects/
 │       ├── log-shift/
 │       ├── pay-summary/
 │       ├── my-leave/
-│       ├── tips-history/
-│       ├── announcements/
 │       └── profile/
 │
 └── shared-lib/src/lib/
@@ -137,8 +133,6 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /staff/:id             same (StaffDetailComponent)
 /leave                 same
 /payroll               same + featureFlagGuard('payroll', '/dashboard')
-/tips                  same + featureFlagGuard('tips', '/dashboard')
-/announcements         same + featureFlagGuard('announcements', '/dashboard')
 /reports               same
 /roles, /locations     same
 /profile               redirectTo: '/account'
@@ -151,7 +145,6 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /log-shift             authGuard
 /my-leave              authGuard
 /pay-summary           authGuard + featureFlagGuard('paySummary', '/home')
-/tips-history          authGuard + featureFlagGuard('tipsHistory', '/home')
 /profile/**            authGuard (sub-routes: profile, change-password)
 /auth/**               public
 ```
@@ -220,7 +213,7 @@ getAccessToken(): string | null
 **FeatureFlagService** (`shared-lib/src/lib/services/feature-flag.service.ts`):
 
 ```typescript
-type FeatureKey = 'payroll' | 'tips' | 'tipsHistory' | 'paySummary' | 'announcements'
+type FeatureKey = 'payroll' | 'paySummary'
 
 // Signals
 flags = signal<Record<FeatureKey, boolean>>(defaults)   // all false by default
@@ -241,7 +234,7 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 
 ## Shared-lib exports
 
-**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `AnnouncementDto`, `AdminAnnouncementDto`, `UpsertAnnouncementDto`, `Location`, `PayrollData`, `WorkLogDto`, `PagedResult<T>`, `StaffEntryDto`, `StaffExpenseDto`, `StaffLoanDto`, `StaffLedgerPayoutDto`, `StaffOutstandingDto`, `StaffWorkTypeDto`, `StaffSettlementDto`
+**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `Location`, `PayrollData`, `WorkLogDto`, `PagedResult<T>`
 
 **Services:**
 | Service | Purpose |
@@ -252,7 +245,6 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 | `PayrollService` | Payroll data |
 | `LeaveService` | Leave requests + balances |
 | `NotificationService` | Notification list + unread count |
-| `AnnouncementService` | Announcement CRUD |
 | `SignalRService` | WebSocket connection to `/hubs/` |
 | `LangService` | Language toggle (see i18n section) |
 | `ToastService` | `success/error/warning/info(msg)` |

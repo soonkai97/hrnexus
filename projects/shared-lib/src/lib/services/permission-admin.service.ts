@@ -21,6 +21,7 @@ export const PERMISSION_FEATURE_FLAG: Readonly<Record<string, FeatureKey>> = {
   'tips.manage':          'tips',
   'announcements.manage': 'announcements',
   'ledger.manage':        'staffLedger',
+  'config.manage':        'staffLedger',   // Staff Settings (work types/settlements) is part of the staff-ledger feature
 };
 
 /** An ordered, labelled grouping of permission keys for display in the editors. */

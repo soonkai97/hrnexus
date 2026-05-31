@@ -10,9 +10,7 @@ export type FeatureKey =
   | 'tipsHistory'       // staff portal
   | 'paySummary'        // staff portal
   // Phase 2 — Communication
-  | 'announcements'
-  // Phase 3 — Staff Ledger
-  | 'staffLedger';
+  | 'announcements';
 
 export type FlagMap = Record<FeatureKey, boolean>;
 
@@ -24,8 +22,6 @@ const DEFAULTS: FlagMap = {
   paySummary:     false,
   // Phase 2
   announcements:  false,
-  // Phase 3
-  staffLedger:  false,
 };
 
 @Injectable({ providedIn: 'root' })

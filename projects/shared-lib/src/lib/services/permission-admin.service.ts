@@ -20,8 +20,6 @@ export const PERMISSION_FEATURE_FLAG: Readonly<Record<string, FeatureKey>> = {
   'payroll.lock':         'payroll',
   'tips.manage':          'tips',
   'announcements.manage': 'announcements',
-  'ledger.manage':        'staffLedger',
-  'config.manage':        'staffLedger',   // Staff Settings (work types/settlements) is part of the staff-ledger feature
 };
 
 /** An ordered, labelled grouping of permission keys for display in the editors. */
@@ -35,9 +33,9 @@ export interface PermissionGroup { labelKey: string; keys: string[]; }
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   { labelKey: 'permissions.groups.access',     keys: ['portal.admin'] },
   { labelKey: 'permissions.groups.operations', keys: ['staff.view', 'staff.manage', 'leave.approve', 'leave.manage', 'worklog.manage', 'reports.view'] },
-  { labelKey: 'permissions.groups.finance',    keys: ['payroll.view', 'payroll.manage', 'tips.manage', 'ledger.manage'] },
+  { labelKey: 'permissions.groups.finance',    keys: ['payroll.view', 'payroll.manage', 'tips.manage'] },
   { labelKey: 'permissions.groups.comms',      keys: ['announcements.manage'] },
-  { labelKey: 'permissions.groups.setup',      keys: ['roles.manage', 'locations.manage', 'config.manage', 'payroll.lock'] },
+  { labelKey: 'permissions.groups.setup',      keys: ['roles.manage', 'locations.manage', 'payroll.lock'] },
 ];
 
 /**

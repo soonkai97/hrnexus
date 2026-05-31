@@ -31,13 +31,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<PushSubscription>     PushSubscriptions   => Set<PushSubscription>();
     public DbSet<StaffMessage>       StaffMessages        => Set<StaffMessage>();
     public DbSet<FeatureFlag>        FeatureFlags         => Set<FeatureFlag>();
-    public DbSet<StaffEntry>       StaffEntries       => Set<StaffEntry>();
-    public DbSet<StaffExpense>     StaffExpenses      => Set<StaffExpense>();
-    public DbSet<StaffLoan>        StaffLoans         => Set<StaffLoan>();
-    public DbSet<StaffWorkType>         StaffWorkTypes         => Set<StaffWorkType>();
-    public DbSet<StaffSettlement>       StaffSettlements       => Set<StaffSettlement>();
-    public DbSet<StaffExpenseCategory>  StaffExpenseCategories => Set<StaffExpenseCategory>();
-    public DbSet<StaffLoanType>        StaffLoanTypes         => Set<StaffLoanType>();
     public DbSet<PayrollLock>          PayrollLocks           => Set<PayrollLock>();
 
     /// <summary>
@@ -83,13 +76,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new TipsAllocationConfiguration());
         mb.ApplyConfiguration(new StaffMessageConfiguration());
         mb.ApplyConfiguration(new FeatureFlagConfiguration());
-        mb.ApplyConfiguration(new StaffEntryConfiguration());
-        mb.ApplyConfiguration(new StaffExpenseConfiguration());
-        mb.ApplyConfiguration(new StaffLoanConfiguration());
-        mb.ApplyConfiguration(new StaffWorkTypeConfiguration());
-        mb.ApplyConfiguration(new StaffSettlementConfiguration());
-        mb.ApplyConfiguration(new StaffExpenseCategoryConfiguration());
-        mb.ApplyConfiguration(new StaffLoanTypeConfiguration());
         mb.ApplyConfiguration(new PayrollLockConfiguration());
         SeedData.Seed(mb);
     }

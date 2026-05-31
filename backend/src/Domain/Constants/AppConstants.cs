@@ -41,18 +41,16 @@ public static class AppConstants
         public const string PayrollManage      = "payroll.manage";      // run/export payroll
         public const string PayrollLock        = "payroll.lock";        // lock/reopen payroll periods
         public const string TipsManage         = "tips.manage";         // tips pools/distribution
-        public const string LedgerManage       = "ledger.manage";       // staff earnings ledger
         public const string RolesManage        = "roles.manage";        // roles + rates + permissions
         public const string LocationsManage    = "locations.manage";    // venue locations
         public const string AnnouncementsManage = "announcements.manage"; // create/delete announcements
-        public const string ConfigManage       = "config.manage";       // work types / settlements config
 
         /// <summary>Every catalog key — used for validation and seeding system roles.</summary>
         public static readonly IReadOnlyList<string> All = new[]
         {
             PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage, WorkLogManage,
-            ReportsView, PayrollView, PayrollManage, PayrollLock, TipsManage, LedgerManage,
-            RolesManage, LocationsManage, AnnouncementsManage, ConfigManage,
+            ReportsView, PayrollView, PayrollManage, PayrollLock, TipsManage,
+            RolesManage, LocationsManage, AnnouncementsManage,
         };
 
         /// <summary>Authorization policy-name prefix: [Authorize(Policy = "perm:staff.manage")].</summary>
@@ -158,6 +156,5 @@ public static class AppConstants
         public const string Payroll       = "payroll";
         public const string PaySummary    = "paySummary";
         public const string Announcements = "announcements";
-        public const string StaffLedger = "staffLedger";
     }
 }

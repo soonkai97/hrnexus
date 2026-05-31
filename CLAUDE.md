@@ -67,8 +67,6 @@ projects/
 │       ├── roles/
 │       ├── locations/
 │       ├── announcements/
-│       ├── staff-ledger/         # per-staff earnings ledger (featureFlag: staffLedger)
-│       ├── staff-settings/       # work types & settlements config (featureFlag: staffLedger)
 │       └── account/
 │
 ├── staff-app/src/app/
@@ -142,8 +140,6 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /tips                  same + featureFlagGuard('tips', '/dashboard')
 /announcements         same + featureFlagGuard('announcements', '/dashboard')
 /reports               same
-/staff-ledger          authGuard + roleGuard + featureFlagGuard('staffLedger', '/dashboard')
-/staff-settings        authGuard + roleGuard (work types & settlements admin)
 /roles, /locations     same
 /profile               redirectTo: '/account'
 /auth/**               login, forgot-password (public)
@@ -224,7 +220,7 @@ getAccessToken(): string | null
 **FeatureFlagService** (`shared-lib/src/lib/services/feature-flag.service.ts`):
 
 ```typescript
-type FeatureKey = 'payroll' | 'tips' | 'tipsHistory' | 'paySummary' | 'announcements' | 'staffLedger'
+type FeatureKey = 'payroll' | 'tips' | 'tipsHistory' | 'paySummary' | 'announcements'
 
 // Signals
 flags = signal<Record<FeatureKey, boolean>>(defaults)   // all false by default
@@ -252,8 +248,6 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 |---|---|
 | `AuthService` | Login, logout, token refresh, password change |
 | `StaffManagementService` | Employee CRUD (get, register, update, toggleActive, getRoles) |
-| `StaffService` | Staff ledger: entries (CRUD), expenses (CRUD), loans (create/delete), `summary(year,month)`, `outstanding()`, `bulkSettle(entryIds, settlement)` |
-| `StaffConfigService` | Work types & settlements — `/api/staff-config` |
 | `WorkLogService` | Shift log CRUD; exports `PagedResult<T>` |
 | `PayrollService` | Payroll data |
 | `LeaveService` | Leave requests + balances |
@@ -846,16 +840,17 @@ Seq uses ~150–300 MB RAM (fine on the 4 GB droplet). Seq stores logs + traces,
 
 ## Staff pay model — design intent
 
-Two systems exist and intentionally serve different purposes. Do not conflate them:
+**Shift logs** (`WorkLogService`, `/api/work-logs`, staff-app `log-shift`, admin Reports workforce
+tab) record attendance & compliance — who was physically present, clock-in/out times, shift duration.
 
-| System | Where | Purpose |
-|---|---|---|
-| **Shift logs** | `WorkLogService`, `/api/work-logs`, staff-app `log-shift`, admin Reports workforce tab | Attendance & compliance — who was physically present, clock-in/out times, shift duration |
-| **Staff ledger** | `StaffService`, `/api/staff-entries`, admin-app `staff-ledger` | Actual pay — commission earnings by work type (写钟, 跑台, 包夜, etc.), deductions, loan advances/repayments, settlement status |
+**All staff are commission-based** (not hourly), so the "Est. Labour Cost" column in the workforce
+report is a rough estimate only — not an authoritative payout figure.
 
-**All staff are commission-based** (not hourly). The "Est. Labour Cost" column in the workforce report is a rough estimate only — the ledger is the financial source of truth for payouts.
-
-The two systems are intentionally decoupled. A shift log proves presence; a ledger entry records earnings. Managers enter ledger entries manually after each period.
+> The former in-app **Staff Ledger** and **Staff Settings** features (per-staff earnings ledger,
+> work types, settlements) were **removed** — staff self-record their earnings outside the system.
+> The `StaffEntry`/`StaffExpense`/`StaffLoan`/`StaffWorkType`/`StaffSettlement`/… tables were dropped
+> (migration `DropStaffLedgerTables`). Don't reintroduce `ledger.manage`/`config.manage` permissions
+> or the `staffLedger` feature flag.
 
 ---
 

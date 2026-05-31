@@ -7,7 +7,6 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { ReportsComponent } from './reports.component';
 import {
   AdminService, StaffStore, StaffManagementService, ToastService,
-  StaffService, FeatureFlagService, StaffLedgerPayoutDto, StaffOutstandingDto,
   AuthService, PayrollLockService, ConfirmService,
 } from 'shared-lib';
 
@@ -21,9 +20,6 @@ import {
  *    errors mean the report silently excludes the first or last day of the period.
  *  - downloadReportCsv() must use the active tab to choose the correct column layout;
  *    a wrong header row makes the CSV unreadable in Excel.
- *  - loadLedgerData() fetches summary + outstanding in parallel; errors on either leg
- *    must not crash the page — users only see a toast.
- *  - downloadLedgerCsv() must produce correct column headers and skip when empty.
  */
 
 // Minimal ReportResponse shape — real API may have more fields
@@ -40,27 +36,6 @@ const fakeReport = {
   }],
 };
 
-const fakePayout: StaffLedgerPayoutDto[] = [
-  {
-    staffId: 'uuid-1', staffCode: 'NC001', staffName: 'Alice',
-    venueEarnings: 500, privateNet: 200, netPayout: 700,
-    entryCount: 10, pendingCount: 2, notCollectedCount: 1,
-  },
-  {
-    staffId: 'uuid-2', staffCode: 'NC002', staffName: 'Bob',
-    venueEarnings: 300, privateNet: 0, netPayout: 300,
-    entryCount: 6, pendingCount: 0, notCollectedCount: 0,
-  },
-];
-
-const fakeOutstanding: StaffOutstandingDto[] = [
-  {
-    entryId: 'e1', staffId: 'uuid-1', staffCode: 'NC001', staffName: 'Alice',
-    entryDate: '2026-05-01', workType: 'VENUECLOCK',
-    venueEarnings: 120, privateNet: 0, settlement: 'PENDING',
-  },
-];
-
 describe('ReportsComponent', () => {
   let component: ReportsComponent;
 
@@ -74,8 +49,6 @@ describe('ReportsComponent', () => {
     getLocations: ReturnType<typeof vi.fn>;
   };
   let mockToastSvc:       { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
-  let mockStaffLedgerSvc: { summary: ReturnType<typeof vi.fn>; outstanding: ReturnType<typeof vi.fn>; bulkSettle: ReturnType<typeof vi.fn> };
-  let mockFeatureSvc:     { isEnabled: ReturnType<typeof vi.fn> };
   let mockAuthSvc:        { user: ReturnType<typeof vi.fn>; userRole: ReturnType<typeof vi.fn> };
   let mockLockSvc:        { list: ReturnType<typeof vi.fn>; lock: ReturnType<typeof vi.fn>; reopen: ReturnType<typeof vi.fn> };
   let mockConfirmSvc:     { confirm: ReturnType<typeof vi.fn> };
@@ -91,12 +64,6 @@ describe('ReportsComponent', () => {
       getLocations: vi.fn().mockReturnValue(of([])),
     };
     mockToastSvc  = { success: vi.fn(), error: vi.fn() };
-    mockStaffLedgerSvc = {
-      summary:     vi.fn().mockReturnValue(of(fakePayout)),
-      outstanding: vi.fn().mockReturnValue(of(fakeOutstanding)),
-      bulkSettle:  vi.fn().mockReturnValue(of({ updated: 1 })),
-    };
-    mockFeatureSvc = { isEnabled: vi.fn().mockReturnValue(false) };
     mockAuthSvc = { user: vi.fn().mockReturnValue(null), userRole: vi.fn().mockReturnValue(null) };
     mockLockSvc = { list: vi.fn().mockReturnValue(of([])), lock: vi.fn().mockReturnValue(of({ id: 'x' })), reopen: vi.fn().mockReturnValue(of(void 0)) };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
@@ -111,8 +78,6 @@ describe('ReportsComponent', () => {
         { provide: StaffStore,            useValue: mockStaffStore },
         { provide: StaffManagementService, useValue: mockStaffSvc },
         { provide: ToastService,          useValue: mockToastSvc },
-        { provide: StaffService,          useValue: mockStaffLedgerSvc },
-        { provide: FeatureFlagService,    useValue: mockFeatureSvc },
         { provide: AuthService,           useValue: mockAuthSvc },
         { provide: PayrollLockService,    useValue: mockLockSvc },
         { provide: ConfirmService,        useValue: mockConfirmSvc },
@@ -451,184 +416,6 @@ describe('ReportsComponent', () => {
       component.activeTab.set('location');
       component.downloadReportCsv();
       expect(capturedBlob).not.toBeNull();
-    });
-  });
-
-  // ── loadLedgerData() ─────────────────────────────────────────────────────────
-
-  describe('loadLedgerData()', () => {
-    it('calls summary() with current ledgerYear and ledgerMonth', () => {
-      component.ledgerYear.set(2026);
-      component.ledgerMonth.set(5);
-      component.loadLedgerData();
-      expect(mockStaffLedgerSvc.summary).toHaveBeenCalledWith(2026, 5);
-    });
-
-    it('populates ledgerPayout signal with summary results', () => {
-      component.loadLedgerData();
-      expect(component.ledgerPayout()).toEqual(fakePayout);
-    });
-
-    it('populates ledgerOutstanding signal with outstanding results', () => {
-      component.loadLedgerData();
-      expect(component.ledgerOutstanding()).toEqual(fakeOutstanding);
-    });
-
-    it('clears ledgerLoading after successful summary load', () => {
-      component.loadLedgerData();
-      expect(component.ledgerLoading()).toBe(false);
-    });
-
-    it('shows toast and clears loading on summary API error', () => {
-      mockStaffLedgerSvc.summary.mockReturnValue(throwError(() => new Error('Network')));
-      component.loadLedgerData();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('reports.ledgerLoadFailed');
-      expect(component.ledgerLoading()).toBe(false);
-    });
-
-    it('does not crash when outstanding API errors — outstanding is optional', () => {
-      mockStaffLedgerSvc.outstanding.mockReturnValue(throwError(() => new Error('Net')));
-      expect(() => component.loadLedgerData()).not.toThrow();
-    });
-  });
-
-  // ── Ledger computed totals ────────────────────────────────────────────────────
-
-  describe('ledger computed totals', () => {
-    beforeEach(() => component.ledgerPayout.set(fakePayout));
-
-    it('ledgerTotalVenue sums all venueEarnings rows', () => {
-      expect(component.ledgerTotalVenue()).toBe(800); // 500 + 300
-    });
-
-    it('ledgerTotalPrivate sums all privateNet rows', () => {
-      expect(component.ledgerTotalPrivate()).toBe(200); // 200 + 0
-    });
-
-    it('ledgerTotalPayout sums all netPayout rows', () => {
-      expect(component.ledgerTotalPayout()).toBe(1000); // 700 + 300
-    });
-
-    it('totals are 0 when ledgerPayout is empty', () => {
-      component.ledgerPayout.set([]);
-      expect(component.ledgerTotalVenue()).toBe(0);
-      expect(component.ledgerTotalPrivate()).toBe(0);
-      expect(component.ledgerTotalPayout()).toBe(0);
-    });
-  });
-
-  // ── downloadLedgerCsv() ───────────────────────────────────────────────────────
-
-  describe('downloadLedgerCsv()', () => {
-    function stubDomDownload() {
-      const anchor = Object.assign(document.createElement('a'), { click: vi.fn() });
-      vi.spyOn(document, 'createElement').mockReturnValue(anchor as any);
-      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake');
-      vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
-      return anchor;
-    }
-
-    it('does nothing when ledgerPayout is empty', () => {
-      component.ledgerPayout.set([]);
-      component.downloadLedgerCsv();
-      expect(mockToastSvc.success).not.toHaveBeenCalled();
-    });
-
-    it('creates a CSV blob and triggers download when payout rows exist', () => {
-      stubDomDownload();
-      component.ledgerPayout.set(fakePayout);
-      let capturedBlob: Blob | null = null;
-      vi.spyOn(URL, 'createObjectURL').mockImplementation((b) => { capturedBlob = b as Blob; return 'blob:fake'; });
-      component.downloadLedgerCsv();
-      expect(capturedBlob).not.toBeNull();
-    });
-
-    it('shows success toast after download', () => {
-      stubDomDownload();
-      component.ledgerPayout.set(fakePayout);
-      component.downloadLedgerCsv();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('reports.payoutDownloaded');
-    });
-
-    it('clears ledgerExporting flag after download', () => {
-      stubDomDownload();
-      component.ledgerPayout.set(fakePayout);
-      component.downloadLedgerCsv();
-      expect(component.ledgerExporting()).toBe(false);
-    });
-  });
-
-  // ── bulkSettle() ─────────────────────────────────────────────────────────────
-
-  describe('bulkSettle()', () => {
-    beforeEach(() => {
-      component.ledgerOutstanding.set(fakeOutstanding);
-      component.outstandingSelection = [...fakeOutstanding]; // select all
-    });
-
-    it('does nothing when no rows are selected', () => {
-      component.outstandingSelection = [];
-      component.bulkSettle();
-      expect(mockStaffLedgerSvc.bulkSettle).not.toHaveBeenCalled();
-    });
-
-    it('calls bulkSettle with the selected entryIds and chosen settlement', () => {
-      component.settleWith.set('CASH');
-      component.bulkSettle();
-      expect(mockStaffLedgerSvc.bulkSettle).toHaveBeenCalledWith(
-        fakeOutstanding.map(e => e.entryId),
-        'CASH',
-      );
-    });
-
-    it('shows success toast with entry count after settle', () => {
-      mockStaffLedgerSvc.bulkSettle.mockReturnValue(of({ updated: 2 }));
-      component.outstandingSelection = [...fakeOutstanding, ...fakeOutstanding]; // 2
-      component.bulkSettle();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('reports.settledPlural');
-    });
-
-    it('shows singular "entry" for a single settle', () => {
-      mockStaffLedgerSvc.bulkSettle.mockReturnValue(of({ updated: 1 }));
-      component.bulkSettle();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('reports.settledSingular');
-    });
-
-    it('clears selection after successful settle', () => {
-      component.bulkSettle();
-      expect(component.outstandingSelection).toHaveLength(0);
-    });
-
-    it('reloads payout data after settle so counts update', () => {
-      mockStaffLedgerSvc.summary.mockClear();
-      component.bulkSettle();
-      expect(mockStaffLedgerSvc.summary).toHaveBeenCalled();
-    });
-
-    it('clears settling flag after success', () => {
-      component.bulkSettle();
-      expect(component.settling()).toBe(false);
-    });
-
-    it('shows error toast and clears settling flag on API failure', () => {
-      mockStaffLedgerSvc.bulkSettle.mockReturnValue(throwError(() => new Error('Network')));
-      component.bulkSettle();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('reports.settleFailed');
-      expect(component.settling()).toBe(false);
-    });
-  });
-
-  // ── isStaffLedgerEnabled computed ─────────────────────────────────────────────
-
-  describe('isStaffLedgerEnabled computed', () => {
-    it('returns false when FeatureFlagService.isEnabled returns false', () => {
-      mockFeatureSvc.isEnabled.mockReturnValue(false);
-      expect(component.isStaffLedgerEnabled()).toBe(false);
-    });
-
-    it('returns true when FeatureFlagService.isEnabled returns true', () => {
-      mockFeatureSvc.isEnabled.mockReturnValue(true);
-      expect(component.isStaffLedgerEnabled()).toBe(true);
     });
   });
 

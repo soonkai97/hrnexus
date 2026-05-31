@@ -15,11 +15,9 @@ export type PermissionKey =
   | 'reports.view'
   | 'payroll.view' | 'payroll.manage' | 'payroll.lock'
   | 'tips.manage'
-  | 'ledger.manage'
   | 'roles.manage'
   | 'locations.manage'
-  | 'announcements.manage'
-  | 'config.manage';
+  | 'announcements.manage';
 
 /**
  * Loads the signed-in user's effective permissions from the API and answers has(key).

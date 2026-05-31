@@ -43,8 +43,6 @@
     "locations":     "地点",
     "roles":         "职位",
     "payroll":       "薪资报表",
-    "staffLedger":   "员工账本",
-    "staffSettings": "员工设置",
     "payrollLocks":  "薪资锁定",
     "account":         "我的账户",
     "group": {
@@ -702,11 +700,9 @@
       "payroll.manage":       "管理薪资",
       "payroll.lock":         "锁定薪资周期",
       "tips.manage":          "管理小费",
-      "ledger.manage":        "管理员工账目",
       "roles.manage":         "管理职位与权限",
       "locations.manage":     "管理场地",
-      "announcements.manage": "管理公告",
-      "config.manage":        "管理员工设置"
+      "announcements.manage": "管理公告"
     }
   },
   "roles": {

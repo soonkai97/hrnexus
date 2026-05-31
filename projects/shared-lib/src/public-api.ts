@@ -19,7 +19,6 @@ export * from './lib/services/admin.service';
 export * from './lib/services/work-log.service';  // also exports PagedResult<T>
 export * from './lib/services/payroll.service';
 export * from './lib/services/staff-management.service';
-export * from './lib/services/staff.service';
 export * from './lib/services/signalr.service';
 export * from './lib/components/change-password/change-password.component';
 export * from './lib/stores/location.store';
@@ -41,7 +40,6 @@ export * from './lib/services/announcement.service'; // exports AnnouncementDto,
 export * from './lib/services/push.service';
 export * from './lib/services/feature-flag.service';
 export * from './lib/services/two-factor.service';
-export * from './lib/services/staff-config.service';
 export * from './lib/services/payroll-lock.service';
 export * from './lib/pipes/am-pm.pipe';
 export * from './lib/utils/date.utils';

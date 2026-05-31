@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HRNexus.Api.Filters;
 using HRNexus.Application.StaffEntries.Commands;
 using HRNexus.Application.StaffEntries.Queries;
 using HRNexus.Domain.Constants;
@@ -10,6 +11,7 @@ namespace HRNexus.Api.Controllers;
 [ApiController]
 [Route("api/staff-entries")]
 [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LedgerManage)]
+[FeatureRequired("staffLedger")]
 public class StaffEntriesController(ISender sender) : ControllerBase
 {
     // ── Entries ───────────────────────────────────────────────────────────────

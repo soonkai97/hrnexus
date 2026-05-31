@@ -53,7 +53,7 @@
               "serviceWorker": "projects/staff-app/ngsw-config.json",
               "optimization": {
                 "scripts": true,
-                "styles": { "minify": true, "inlineCritical": true },
+                "styles": { "minify": true, "inlineCritical": false },
                 "fonts": { "inline": false }
               }
             },
@@ -133,7 +133,7 @@
               "serviceWorker": "projects/admin-app/ngsw-config.json",
               "optimization": {
                 "scripts": true,
-                "styles": { "minify": true, "inlineCritical": true },
+                "styles": { "minify": true, "inlineCritical": false },
                 "fonts": { "inline": false }
               }
             },

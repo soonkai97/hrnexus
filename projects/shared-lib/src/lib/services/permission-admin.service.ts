@@ -27,13 +27,16 @@ export const PERMISSION_FEATURE_FLAG: Readonly<Record<string, FeatureKey>> = {
 export interface PermissionGroup { labelKey: string; keys: string[]; }
 
 /** Permission catalog organised into sections (display order). Every catalog key belongs to one. */
+// Mirrors the sidebar nav grouping (Access + Operations / Finance / Communication / Setup) so the
+// permission editors read the same way as the menu. Each key sits in the same group as the page it
+// gates: Announcements → Communication, Payroll Locks → Setup, etc. 'access' has no nav page (it's the
+// portal gate). Keep this in lockstep with ShellComponent.navGroupOrder + the page→group assignments.
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   { labelKey: 'permissions.groups.access',     keys: ['portal.admin'] },
-  { labelKey: 'permissions.groups.staff',      keys: ['staff.view', 'staff.manage'] },
-  { labelKey: 'permissions.groups.leave',      keys: ['leave.approve', 'leave.manage'] },
-  { labelKey: 'permissions.groups.operations', keys: ['worklog.manage', 'reports.view'] },
-  { labelKey: 'permissions.groups.finance',    keys: ['payroll.view', 'payroll.manage', 'payroll.lock', 'tips.manage', 'ledger.manage'] },
-  { labelKey: 'permissions.groups.settings',   keys: ['roles.manage', 'locations.manage', 'announcements.manage', 'config.manage'] },
+  { labelKey: 'permissions.groups.operations', keys: ['staff.view', 'staff.manage', 'leave.approve', 'leave.manage', 'worklog.manage', 'reports.view'] },
+  { labelKey: 'permissions.groups.finance',    keys: ['payroll.view', 'payroll.manage', 'tips.manage', 'ledger.manage'] },
+  { labelKey: 'permissions.groups.comms',      keys: ['announcements.manage'] },
+  { labelKey: 'permissions.groups.setup',      keys: ['roles.manage', 'locations.manage', 'config.manage', 'payroll.lock'] },
 ];
 
 /**

@@ -679,6 +679,8 @@
       "leave":      "Leave",
       "operations": "Operations",
       "finance":    "Finance",
+      "comms":      "Communication",
+      "setup":      "Setup",
       "settings":   "Settings",
       "other":      "Other"
     },
@@ -698,7 +700,7 @@
       "roles.manage":         "Manage roles & permissions",
       "locations.manage":     "Manage locations",
       "announcements.manage": "Manage announcements",
-      "config.manage":        "Manage settings"
+      "config.manage":        "Manage staff settings"
     }
   },
   "roles": {

@@ -1,6 +1,6 @@
 # HRNexus — Workforce Management System
 
-Internal web application for managing venue staff — attendance, leave, earnings, and payout tracking.
+Internal web application for managing venue staff — attendance, leave, and payroll reporting.
 
 **Stack:** Angular 21 (standalone components, signals) · ASP.NET Core 10 · Entity Framework Core · SignalR · PostgreSQL 17
 
@@ -21,7 +21,7 @@ hrnexus/
 │   │       ├── models/              # DTOs and interfaces
 │   │       ├── services/            # HTTP services, ToastService, ConfirmService
 │   │       ├── stores/              # Signal-based state (StaffStore, LocationStore)
-│   │       ├── guards/              # authGuard, roleGuard, featureFlagGuard
+│   │       ├── guards/              # authGuard, permissionGuard, featureFlagGuard
 │   │       └── components/          # Toast, ConfirmDialog, ThemeToggle, etc.
 │   ├── admin-app/                   # Manager / admin dashboard — PWA (desktop-first)
 │   └── staff-app/                   # Staff-facing PWA (mobile-first)
@@ -63,74 +63,79 @@ npx ng serve staff-app        # → localhost:4201
 
 ### Admin app (`/`)
 
-| Route | Feature | Flag |
+| Route | Feature | Gate |
 |---|---|---|
-| `/dashboard` | Live KPIs (on-shift count, hours, est. cost) + SignalR activity feed | — |
-| `/staff` | Staff list, register, edit, deactivate, reset password | — |
-| `/staff/:id` | Staff detail — profile, documents | — |
-| `/leave` | Leave requests — approve / reject, create, edit, balance overview | — |
-| `/reports` | Workforce attendance report + Staff Ledger payout report | — |
-| `/staff-ledger` | Per-staff commission ledger — entries, deductions, loans, settlement | `staffLedger` |
-| `/staff-settings` | Work types & settlement statuses (ledger configuration) | — |
-| `/tips` | Tips distribution | `tips` |
-| `/payroll` | Payroll reporting | `payroll` |
-| `/announcements` | Compose and manage staff announcements | `announcements` |
-| `/roles` | Role management | — |
-| `/locations` | Location management | — |
-| `/features` | Feature flag toggle (PIN-protected, admin only) | — |
-| `/account` | Own profile, change password | — |
+| `/dashboard` | Live KPIs (on-shift count, hours, est. cost) + SignalR activity feed | `portal.admin` |
+| `/staff` | Staff list, register, edit, deactivate, reset password | `staff.view` |
+| `/staff/:id` | Staff detail — profile, work logs, per-user permission overrides | `staff.view` |
+| `/leave` | Leave requests — approve / reject, create, edit, balance overview | `leave.approve` |
+| `/reports` | Workforce attendance report (date range, by staff / location / role / date) | `reports.view` |
+| `/payroll` | Monthly work-pay report (hours × hourly rate) + CSV export | `payroll` flag + `payroll.view` |
+| `/payroll-locks` | Freeze a month so its shift logs can no longer be edited | `payroll` flag + `payroll.lock` |
+| `/roles` | Role management + per-role default permissions | `roles.manage` |
+| `/locations` | Location management | `locations.manage` |
+| `/account` | Own profile, change password, push notifications | — |
 
 ### Staff app (`/`)
 
-| Route | Feature | Flag |
-|---|---|---|
-| `/home` | Overview dashboard | — |
-| `/log-shift` | Clock in / clock out | — |
-| `/my-leave` | Submit leave, view history and balance | — |
-| `/pay-summary` | View monthly payout summary | `paySummary` |
-| `/tips-history` | View tip earnings | `tipsHistory` |
-| `/announcements` | Read venue announcements | `announcements` |
-| `/profile` | Personal info, change password, language | — |
+| Route | Feature |
+|---|---|
+| `/home` | Overview dashboard — greeting, clock-in status, leave balances, recent shifts |
+| `/log-shift` | Clock in / clock out, manual entry, shift history |
+| `/my-leave` | Submit leave, view history and balance |
+| `/profile` | Personal info, change password, push notifications, language |
 
 ---
 
 ## Pay model
 
-Staff are **commission-based**. Two systems exist with distinct roles:
+Staff are **commission-based** and **record their own actual earnings outside the system**. The app
+does not hold a per-staff earnings ledger.
 
-- **Shift logs** (`/log-shift` → workforce report) — attendance tracking. Records clock-in/out times. The "Est. Labour Cost" in Reports is a rough estimate only.
-- **Staff Ledger** — actual pay. Managers manually enter earnings by work type (写钟, 跑台, 包夜, etc.), deductions, loan advances/repayments, and settle entries. The **Export CSV** button on the ledger produces the per-staff monthly payout statement.
+- **Shift logs** (`/log-shift` → workforce report) — attendance tracking. Records clock-in/out times.
+  The "Est. Labour Cost" in Reports and the **Payroll** report (total shift hours × the role's hourly
+  rate, snapshotted on each log) are **estimates** for management, not the staff's actual payout.
+- All leave is **unpaid** for commission-based staff.
+
+Hourly rates are kept as **effective-dated history**, so a rate change never rewrites past pay estimates.
 
 ---
 
-## Auth & roles
+## Auth & permissions
 
 | Role | Portals | Notes |
 |---|---|---|
-| `admin` (SuperAdmin) | Both | Full admin access incl. feature flags; can also use the staff portal as a normal user |
-| `manager` | Both | All admin features except feature-flag management; can also use the staff portal |
-| `employee` | Staff only | Own data only; blocked from the admin portal |
+| `admin` (SuperAdmin) | Both | Full permissions by default; can also use the staff portal as a normal user |
+| `manager` | Both | Full permissions by default; can also use the staff portal |
+| `employee` | Staff only | Own data only; no admin-portal permissions by default |
 
-The admin portal is gated to manager/admin; the staff portal is open to any active account (a manager/admin logging in there is treated as a normal staff user — e.g. to log their own shift).
+Access is controlled by a **permission framework**, not roles directly. Each role carries default
+permissions; each user can have per-user **overrides** (grant/revoke). Admin-portal access requires the
+`portal.admin` permission; the staff portal is open to any active account. Permissions are resolved
+server-side per request (cached, invalidated on change) so a revocation takes effect immediately — they
+are **not** baked into the token.
 
-JWT (access + refresh token), stored in `localStorage`. Feature flags require an additional PIN unlock stored in `sessionStorage`.
+**Sessions** use **httpOnly cookies** (`hrnexus_at` access + `hrnexus_rt` refresh; `SameSite=Strict`,
+`Secure` over HTTPS) — tokens are never exposed to JavaScript. The JWT bearer reads the access token
+from the cookie.
 
-**Login hardening:** an account locks for 15 min after 5 consecutive failed logins (per-account, returns 429), plus a per-client-IP rate limiter on `/api/auth/*` (default 100/min, tunable via `RateLimit:Auth*`) as a coarse flood ceiling.
+**Login hardening:** an account locks for 15 min after 5 consecutive failed logins (per-account, returns
+429), plus a per-client-IP rate limiter on `/api/auth/*` (default 100/min, tunable via `RateLimit:Auth*`)
+as a coarse flood ceiling.
+
+**PII at rest:** IC / passport / phone / date-of-birth are encrypted (AES-256-GCM) in the database via EF
+Core value converters; the key comes from `PII_ENCRYPTION_KEY` (`Pii:Key`).
 
 ---
 
 ## Feature flags
 
-Flags are toggled at runtime via `/features` (admin + PIN required). Default all-off on first deploy.
+Runtime flags fetched from `GET /api/feature-flags` (default all-off; merged with code defaults). Gated
+both in the UI (`featureFlagGuard`) and on the API (`[FeatureRequired]`).
 
 | Key | Feature |
 |---|---|
-| `staffLedger` | Staff Ledger page + ledger payout tab in Reports |
-| `payroll` | Payroll report |
-| `tips` | Tips distribution |
-| `tipsHistory` | Tips history (staff app) |
-| `paySummary` | Pay summary (staff app) |
-| `announcements` | Announcements (both apps) |
+| `payroll` | Admin Payroll report + Payroll Locks |
 
 ---
 

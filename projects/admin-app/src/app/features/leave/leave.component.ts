@@ -287,15 +287,21 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   bulkType   = 'unpaid';
   bulkStart: Date | null = null;
   bulkEnd:   Date | null = null;
+  bulkStartTime: Date | null = null;   // optional — leave blank for a full-day holiday
+  bulkEndTime:   Date | null = null;
   bulkHours: number | null = 8;
   bulkNotes  = '';
+  /** Result after submit: when any employee fails (e.g. not enough entitlement) the dialog stays
+   * open to show exactly who was skipped and why. Null until the first submit. */
+  bulkResult = signal<{ created: number; failed: number; rows: { name: string; reason: string }[] } | null>(null);
 
   bulkStaffOptions = computed(() =>
     this.staffStore.staff().map(s => ({ label: s.fullName, value: s.id })));
 
   openBulkCreate(): void {
     this.bulkStaffIds = []; this.bulkType = 'unpaid';
-    this.bulkStart = null; this.bulkEnd = null; this.bulkHours = 8; this.bulkNotes = '';
+    this.bulkStart = null; this.bulkEnd = null; this.bulkStartTime = null; this.bulkEndTime = null;
+    this.bulkHours = 8; this.bulkNotes = ''; this.bulkResult.set(null);
     this.staffStore.loadStaff('', 1, 200);   // load a full page for the picker
     this.showBulkCreate.set(true);
   }
@@ -306,16 +312,30 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     this.leaveSvc.bulkCreateLeave({
       employeeIds: this.bulkStaffIds, leaveType: this.bulkType,
       startDate: toLocalDateString(this.bulkStart), endDate: toLocalDateString(this.bulkEnd),
-      startTime: null, endTime: null, hours: this.bulkHours, notes: this.bulkNotes || null,
+      startTime: this.bulkStartTime ? this.toTimeStr(this.bulkStartTime) : null,
+      endTime:   this.bulkEndTime   ? this.toTimeStr(this.bulkEndTime)   : null,
+      hours: this.bulkHours, notes: this.bulkNotes || null,
       status: 'approved',
     }).subscribe({
       next: r => {
         this.bulkCreating.set(false);
-        this.showBulkCreate.set(false);
-        this.toast.success(this.translate.instant('leave.bulkCreatedToast', { created: r.created, failed: r.failed }));
-        const firstErr = r.errors[0];
-        if (r.failed > 0 && firstErr) this.toast.warning(firstErr);
         this.load(); this.loadBalances();
+        // Map "{employeeId}: {message}" → friendly {name, reason} (e.g. not enough entitlement).
+        const names = new Map(this.bulkStaffOptions().map(o => [o.value, o.label]));
+        const rows = r.errors.map(e => {
+          const idx = e.indexOf(': ');
+          const id  = idx >= 0 ? e.slice(0, idx) : '';
+          const reason = idx >= 0 ? e.slice(idx + 2) : e;
+          return { name: names.get(id) ?? id, reason };
+        });
+        if (r.failed > 0) {
+          // Keep the dialog open so the admin can see which staff were skipped and why.
+          this.bulkResult.set({ created: r.created, failed: r.failed, rows });
+          this.toast.warning(this.translate.instant('leave.bulkCreatedToast', { created: r.created, failed: r.failed }));
+        } else {
+          this.showBulkCreate.set(false);
+          this.toast.success(this.translate.instant('leave.bulkCreatedToast', { created: r.created, failed: r.failed }));
+        }
       },
       error: (e: unknown) => {
         this.bulkCreating.set(false);

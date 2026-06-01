@@ -1,5 +1,26 @@
 @use 'styles/theme' as *;
 
+// ── Bulk-record dialog helpers ────────────────────────────────────────────────
+.optional-hint { color: $text-muted; font-weight: 400; font-size: 0.75rem; }
+.field-hint    { display: block; margin-top: 0.25rem; color: $text-muted; font-size: 0.72rem; line-height: 1.35; }
+
+.bulk-fail-list {
+  margin-top: 0.5rem;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  overflow: hidden;
+
+  .bulk-fail-head {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: $text-muted; padding: 0.5rem 0.75rem; background: $bg-surface;
+  }
+  .bulk-fail-row {
+    display: flex; justify-content: space-between; gap: 0.75rem;
+    padding: 0.45rem 0.75rem; border-top: 1px solid $border-subtle; font-size: 0.85rem;
+    .bulk-fail-name   { font-weight: 600; }
+    .bulk-fail-reason { color: var(--p-red-500, #ef4444); text-align: right; }
+  }
+}
 
 .tab-badge {
   background: rgba(251,191,36,0.2);

@@ -741,38 +741,69 @@
 <p-dialog [visible]="showBulkCreate()" (visibleChange)="!$event && showBulkCreate.set(false)"
           [header]="'leave.bulkRecord' | translate" [modal]="true"
           [style]="{'width':'min(560px, 94vw)'}" [closable]="true">
-  <p class="modal-desc">{{ 'leave.bulkRecordDesc' | translate }}</p>
-  <div class="field">
-    <label for="bl-staff">{{ 'leave.staffMember' | translate }}</label>
-    <p-multiselect inputId="bl-staff" [(ngModel)]="bulkStaffIds" [options]="bulkStaffOptions()"
-                   optionLabel="label" optionValue="value" [filter]="true" display="chip"
-                   [placeholder]="'leave.selectStaff' | translate" appendTo="body" styleClass="w-full" />
-  </div>
-  <div class="field">
-    <label for="bl-type">{{ 'leave.leaveType' | translate }}</label>
-    <p-select inputId="bl-type" [(ngModel)]="bulkType" [options]="leaveTypeOptions"
-              optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full" />
-  </div>
-  <div class="row g-2">
-    <div class="col-6 field">
-      <label for="bl-start">{{ 'leave.startDate' | translate }}</label>
-      <p-datepicker inputId="bl-start" [(ngModel)]="bulkStart" dateFormat="yy-mm-dd" [showIcon]="true"
-                    appendTo="body" styleClass="w-full" />
+  @if (!bulkResult()) {
+    <p class="modal-desc">{{ 'leave.bulkRecordDesc' | translate }}</p>
+    <div class="field">
+      <label for="bl-staff">{{ 'leave.staffMember' | translate }}</label>
+      <p-multiselect inputId="bl-staff" [(ngModel)]="bulkStaffIds" [options]="bulkStaffOptions()"
+                     optionLabel="label" optionValue="value" [filter]="true" display="chip"
+                     [placeholder]="'leave.selectStaff' | translate" appendTo="body" styleClass="w-full" />
     </div>
-    <div class="col-6 field">
-      <label for="bl-end">{{ 'leave.endDate' | translate }}</label>
-      <p-datepicker inputId="bl-end" [(ngModel)]="bulkEnd" dateFormat="yy-mm-dd" [showIcon]="true"
-                    appendTo="body" styleClass="w-full" />
+    <div class="field">
+      <label for="bl-type">{{ 'leave.leaveType' | translate }}</label>
+      <p-select inputId="bl-type" [(ngModel)]="bulkType" [options]="leaveTypeOptions"
+                optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full" />
     </div>
-  </div>
-  <div class="field">
-    <label for="bl-hours">{{ 'leave.hours' | translate }}</label>
-    <p-inputnumber inputId="bl-hours" [(ngModel)]="bulkHours" [min]="0" [showButtons]="true" styleClass="w-full" />
-  </div>
+    <div class="row g-2">
+      <div class="col-6 field">
+        <label for="bl-start">{{ 'leave.startDate' | translate }}</label>
+        <p-datepicker inputId="bl-start" [(ngModel)]="bulkStart" dateFormat="yy-mm-dd" [showIcon]="true"
+                      appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="col-6 field">
+        <label for="bl-end">{{ 'leave.endDate' | translate }}</label>
+        <p-datepicker inputId="bl-end" [(ngModel)]="bulkEnd" dateFormat="yy-mm-dd" [showIcon]="true"
+                      appendTo="body" styleClass="w-full" />
+      </div>
+    </div>
+    <div class="row g-2">
+      <div class="col-6 field">
+        <label for="bl-start-time">{{ 'leave.startTime' | translate }} <span class="optional-hint">({{ 'common.optional' | translate }})</span></label>
+        <p-datepicker inputId="bl-start-time" [(ngModel)]="bulkStartTime" [timeOnly]="true" [hourFormat]="'12'"
+                      appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="col-6 field">
+        <label for="bl-end-time">{{ 'leave.endTime' | translate }} <span class="optional-hint">({{ 'common.optional' | translate }})</span></label>
+        <p-datepicker inputId="bl-end-time" [(ngModel)]="bulkEndTime" [timeOnly]="true" [hourFormat]="'12'"
+                      appendTo="body" styleClass="w-full" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="bl-hours">{{ 'leave.hours' | translate }}</label>
+      <p-inputnumber inputId="bl-hours" [(ngModel)]="bulkHours" [min]="0" [showButtons]="true" styleClass="w-full" />
+      <small class="field-hint">{{ 'leave.bulkHoursHint' | translate }}</small>
+    </div>
+  } @else {
+    <!-- Per-staff results: who was recorded, and who was skipped (e.g. not enough entitlement). -->
+    <p class="modal-desc">{{ 'leave.bulkCreatedToast' | translate:{ created: bulkResult()!.created, failed: bulkResult()!.failed } }}</p>
+    <div class="bulk-fail-list">
+      <div class="bulk-fail-head">{{ 'leave.bulkSkipped' | translate }}</div>
+      @for (row of bulkResult()!.rows; track $index) {
+        <div class="bulk-fail-row">
+          <span class="bulk-fail-name">{{ row.name }}</span>
+          <span class="bulk-fail-reason">{{ row.reason }}</span>
+        </div>
+      }
+    </div>
+  }
   <ng-template pTemplate="footer">
-    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulkCreate.set(false)" />
-    <p-button [label]="bulkCreating() ? ('common.saving' | translate) : ('common.create' | translate)"
-              severity="primary" (click)="saveBulkCreate()"
-              [disabled]="bulkCreating() || !bulkStaffIds.length || !bulkStart || !bulkEnd" [loading]="bulkCreating()" />
+    @if (!bulkResult()) {
+      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulkCreate.set(false)" />
+      <p-button [label]="bulkCreating() ? ('common.saving' | translate) : ('common.create' | translate)"
+                severity="primary" (click)="saveBulkCreate()"
+                [disabled]="bulkCreating() || !bulkStaffIds.length || !bulkStart || !bulkEnd" [loading]="bulkCreating()" />
+    } @else {
+      <p-button [label]="'common.close' | translate" severity="primary" (click)="showBulkCreate.set(false)" />
+    }
   </ng-template>
 </p-dialog>

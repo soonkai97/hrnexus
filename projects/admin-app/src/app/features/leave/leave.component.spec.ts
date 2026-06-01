@@ -471,13 +471,31 @@ describe('LeaveComponent', () => {
       expect(component.showBulkCreate()).toBe(false);
     });
 
-    it('surfaces the first per-employee error as a warning toast', () => {
+    it('on partial failure keeps the dialog open and lists skipped staff with reasons', () => {
       mockLeaveSvc.bulkCreateLeave.mockReturnValue(of({ created: 1, failed: 1, errors: ['e2: Insufficient balance.'] }));
       component.bulkStaffIds = ['e1', 'e2'];
       component.bulkStart = new Date(2026, 11, 25);
       component.bulkEnd   = new Date(2026, 11, 25);
+      component.showBulkCreate.set(true);
       component.saveBulkCreate();
-      expect(mockToastSvc.warning).toHaveBeenCalledWith('e2: Insufficient balance.');
+      // Dialog stays open with a results panel mapping "{id}: {reason}" → {name, reason}.
+      expect(component.showBulkCreate()).toBe(true);
+      const result = component.bulkResult();
+      expect(result?.failed).toBe(1);
+      expect(result?.rows[0]).toEqual({ name: 'e2', reason: 'Insufficient balance.' });
+      expect(mockToastSvc.warning).toHaveBeenCalled();
+    });
+
+    it('passes optional start/end times as HH:mm when set', () => {
+      component.bulkStaffIds = ['e1'];
+      component.bulkStart = new Date(2026, 11, 25);
+      component.bulkEnd   = new Date(2026, 11, 25);
+      component.bulkStartTime = new Date(2026, 0, 1, 9, 30);
+      component.bulkEndTime   = new Date(2026, 0, 1, 17, 0);
+      component.saveBulkCreate();
+      expect(mockLeaveSvc.bulkCreateLeave).toHaveBeenCalledWith(expect.objectContaining({
+        startTime: '09:30', endTime: '17:00',
+      }));
     });
   });
 

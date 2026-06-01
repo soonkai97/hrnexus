@@ -624,6 +624,15 @@ p-button.w-full { display: block; }
   .report-table-card tbody tr:last-child td { border-bottom: none !important; }
 }
 
+// ── Dialog centring (desktop) ─────────────────────────────────────────────────
+// Keep modal dialogs fixed at the viewport centre; tall content (long forms, import
+// grids) scrolls INSIDE the dialog rather than growing it off-centre or off-screen.
+@media (min-width: 641px) {
+  .p-dialog-mask { align-items: center !important; }
+  .p-dialog { max-height: 90vh; margin: 0 auto; }
+  .p-dialog .p-dialog-content { overflow-y: auto; }
+}
+
 // ── Dialog responsive (§9.6) ──────────────────────────────────────────────────
 // Fullscreen on mobile — overrides inline width set by [style] binding.
 // Intended for large FORM dialogs (reports, staff). Confirm dialogs are excluded

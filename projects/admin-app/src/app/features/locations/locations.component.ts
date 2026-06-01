@@ -87,7 +87,7 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
   bulkRows: { name: string }[] = [];
   bulkSaving = signal(false);
 
-  openBulk(): void { this.bulkRows = [{ name: '' }, { name: '' }, { name: '' }]; this.showBulk.set(true); }
+  openBulk(): void { this.bulkRows = [{ name: '' }]; this.showBulk.set(true); }
   addBulkRow(): void { this.bulkRows = [...this.bulkRows, { name: '' }]; }
   removeBulkRow(i: number): void { this.bulkRows = this.bulkRows.filter((_, idx) => idx !== i); }
 

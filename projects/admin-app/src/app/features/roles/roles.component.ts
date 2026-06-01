@@ -102,7 +102,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   bulkSaving = signal(false);
 
   openBulk(): void {
-    this.bulkRows = [{ name: '', rate: 0 }, { name: '', rate: 0 }, { name: '', rate: 0 }];
+    this.bulkRows = [{ name: '', rate: 0 }];
     this.showBulk.set(true);
   }
   addBulkRow(): void { this.bulkRows = [...this.bulkRows, { name: '', rate: 0 }]; }

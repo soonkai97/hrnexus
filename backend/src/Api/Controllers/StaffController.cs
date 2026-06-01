@@ -186,6 +186,46 @@ public class StaffController(IMediator mediator) : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
     }
 
+    // --- Bulk actions (act on a selected set of staff at once) ---
+
+    [HttpPost("bulk/locations")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
+    public async Task<IActionResult> BulkAssignLocations([FromBody] BulkAssignLocationsBody body, CancellationToken ct)
+    {
+        try
+        {
+            var count = await mediator.Send(new BulkAssignLocationsCommand(body.StaffIds, body.LocationIds), ct);
+            return Ok(new { count });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    [HttpPost("bulk/roles")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
+    public async Task<IActionResult> BulkAssignRoles([FromBody] BulkAssignRolesBody body, CancellationToken ct)
+    {
+        try
+        {
+            var count = await mediator.Send(new BulkAssignRolesCommand(body.StaffIds, body.Roles), ct);
+            return Ok(new { count });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    [HttpPost("bulk/deactivate")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
+    public async Task<IActionResult> BulkDeactivate([FromBody] BulkDeactivateBody body, CancellationToken ct)
+    {
+        if (body.StaffIds.Contains(CallerId))
+            return BadRequest(new { error = "You cannot deactivate your own account." });
+        try
+        {
+            var count = await mediator.Send(new BulkDeactivateStaffCommand(body.StaffIds), ct);
+            return Ok(new { count });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
     // --- Role management ---
 
     [HttpGet("roles")]
@@ -248,3 +288,6 @@ public record CreateRoleBody(string Name, decimal HourlyRate = 0);
 public record UpdateRoleRateBody(decimal HourlyRate);
 public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<string> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth, List<string>? Locations = null);
 public record ResetPasswordBody(string NewPassword);
+public record BulkAssignLocationsBody(List<Guid> StaffIds, List<string> LocationIds);
+public record BulkAssignRolesBody(List<Guid> StaffIds, List<string> Roles);
+public record BulkDeactivateBody(List<Guid> StaffIds);

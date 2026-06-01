@@ -14,7 +14,7 @@
   <!-- Add / edit dialog -->
   <p-dialog [visible]="showForm()" (visibleChange)="!$event && cancel()"
             [header]="editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate)"
-            [modal]="true" [style]="{'width':'min(440px, 92vw)'}" [closable]="true">
+            [modal]="true" [style]="{'width':'min(440px, 92vw)'}" [draggable]="false" [closable]="true">
     <div class="field">
       <label for="loc-name"><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
       <input id="loc-name" pInputText type="text" [ngModel]="form.name" (ngModelChange)="form.name = $event.toUpperCase()"
@@ -84,7 +84,7 @@
 <!-- ── Bulk add Locations ──────────────────────────────────────────────────── -->
 <p-dialog [visible]="showBulk()" (visibleChange)="!$event && showBulk.set(false)"
           [header]="'locations.bulkAdd' | translate" [modal]="true"
-          [style]="{'width':'min(480px, 92vw)'}" [closable]="true">
+          [style]="{'width':'min(480px, 92vw)'}" [draggable]="false" [closable]="true">
   <p class="modal-desc">{{ 'locations.bulkAddDesc' | translate }}</p>
   <div class="bulk-grid">
     @for (row of bulkRows; track $index) {

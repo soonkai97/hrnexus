@@ -134,7 +134,7 @@
     <!-- Add / Edit dialog -->
     <p-dialog [visible]="showForm()" (visibleChange)="!$event && cancelForm()"
               [header]="editing() ? ('leave.editLeave' | translate) : ('leave.recordLeaveForm' | translate)"
-              [modal]="true" [style]="{'width':'min(640px, 96vw)'}" [closable]="true">
+              [modal]="true" [style]="{'width':'min(640px, 96vw)'}" [draggable]="false" [closable]="true">
         <div class="row g-3">
           <div class="col-12 col-md-6 field">
             <label for="leave-form-staff"><span class="req">*</span> {{ 'leave.staffMember' | translate }}</label>
@@ -736,7 +736,7 @@
 <!-- ── Bulk record leave (venue-wide) ──────────────────────────────────────── -->
 <p-dialog [visible]="showBulkCreate()" (visibleChange)="!$event && showBulkCreate.set(false)"
           [header]="'leave.bulkRecord' | translate" [modal]="true"
-          [style]="{'width':'min(560px, 94vw)'}" [closable]="true">
+          [style]="{'width':'min(560px, 94vw)'}" [draggable]="false" [closable]="true">
   @if (!bulkResult()) {
     <p class="modal-desc">{{ 'leave.bulkRecordDesc' | translate }}</p>
     <div class="field">

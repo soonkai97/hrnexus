@@ -1,24 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { FeatureKey } from './feature-flag.service';
 
 /** A per-user permission override: grant (true) adds, revoke (false) removes vs role defaults. */
 export interface StaffOverride {
   permissionKey: string;
   granted: boolean;
 }
-
-/**
- * Permissions that only apply when a feature flag is enabled. The editors hide these keys when the
- * feature is off; the backend catalog stays complete, and any already-assigned rows are preserved
- * on save (only the editable DISPLAY is filtered, not the saved set).
- */
-export const PERMISSION_FEATURE_FLAG: Readonly<Record<string, FeatureKey>> = {
-  'payroll.view':         'payroll',
-  'payroll.manage':       'payroll',
-  'payroll.lock':         'payroll',
-};
 
 /** An ordered, labelled grouping of permission keys for display in the editors. */
 export interface PermissionGroup { labelKey: string; keys: string[]; }

@@ -2,7 +2,6 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HRNexus.Api.Filters;
 using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Domain.Constants;
@@ -10,13 +9,12 @@ using HRNexus.Domain.Constants;
 namespace HRNexus.Api.Controllers;
 
 /// <summary>
-/// Manage payroll-period locks. Locking a month freezes its shift logs and ledger records.
+/// Manage payroll-period locks. Locking a month freezes its shift logs.
 /// Manager + admin may lock and reopen.
 /// </summary>
 [ApiController]
 [Route("api/payroll-locks")]
 [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollLock)]
-[FeatureRequired("payroll")]
 public class PayrollLocksController(IMediator mediator) : ControllerBase
 {
     // The JWT carries the display name in a custom "fullName" claim (see TokenService), not ClaimTypes.Name.

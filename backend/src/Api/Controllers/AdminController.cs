@@ -5,7 +5,6 @@ using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Domain.Constants;
 using System.Security.Claims;
-using HRNexus.Api.Filters;
 
 namespace HRNexus.Api.Controllers;
 
@@ -211,7 +210,6 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     [HttpGet("payroll/summary")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollView)]
-    [FeatureRequired("payroll")]
     public async Task<IActionResult> PayrollSummary(
         [FromQuery] int year,
         [FromQuery] int month,
@@ -238,7 +236,6 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     [HttpGet("payroll/export")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollManage)]
-    [FeatureRequired("payroll")]
     public async Task<IActionResult> ExportPayroll(
         [FromQuery] int year,
         [FromQuery] int month,

@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HRNexus.Api.Authorization;
 using HRNexus.Api.Converters;
-using HRNexus.Api.Filters;
 using HRNexus.Api.Health;
 using HRNexus.Api.Middleware;
 using HRNexus.Api.ModelBinders;
@@ -74,11 +73,9 @@ builder.Services.AddHttpContextAccessor();
 // ── Services ──────────────────────────────────────────────────────────────────
 // Force all incoming DateTime (query params + JSON body) to Kind=Utc.
 // Prevents "Cannot write DateTime with Kind=Unspecified" on PostgreSQL timestamptz columns.
-builder.Services.AddScoped<FeatureFlagFilter>();
 builder.Services.AddControllers(o =>
 {
     o.ModelBinderProviders.Insert(0, new UtcDateTimeModelBinderProvider());
-    o.Filters.AddService<FeatureFlagFilter>();
 })
 .AddJsonOptions(o =>
 {

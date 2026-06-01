@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate,
-         PermissionAdminService, FeatureFlagService, PERMISSION_FEATURE_FLAG, groupedPermissions } from 'shared-lib';
+         PermissionAdminService, groupedPermissions } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -31,7 +31,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   private readonly toast      = inject(ToastService);
   private readonly translate  = inject(TranslateService);
   private readonly permSvc    = inject(PermissionAdminService);
-  private readonly featureSvc = inject(FeatureFlagService);
 
   @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
   @ViewChild('roleMenu') private roleMenu!: Menu;
@@ -59,15 +58,8 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   permLoading     = signal(false);
   permSaving      = signal(false);
 
-  /** Catalog keys to SHOW — hide permissions whose feature flag is disabled. Hidden keys that the
-  /// role already has stay in permSelected and are preserved on save (display-only filter). */
-  readonly visiblePermCatalog = computed(() =>
-    this.permCatalog().filter(k => {
-      const flag = PERMISSION_FEATURE_FLAG[k];
-      return !flag || this.featureSvc.isEnabled(flag);
-    }));
-  /** Visible catalog organised into labelled sections for the dialog. */
-  readonly visiblePermGroups = computed(() => groupedPermissions(this.visiblePermCatalog()));
+  /** Catalog organised into labelled sections for the dialog. */
+  readonly visiblePermGroups = computed(() => groupedPermissions(this.permCatalog()));
 
   readonly touched = signal<Set<string>>(new Set());
   markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }

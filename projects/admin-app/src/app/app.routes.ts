@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, permissionGuard, featureFlagGuard, unsavedChangesGuard } from 'shared-lib';
+import { authGuard, permissionGuard, unsavedChangesGuard } from 'shared-lib';
 import { ShellComponent } from './shell/shell.component';
 
 export const routes: Routes = [
@@ -22,8 +22,8 @@ export const routes: Routes = [
       { path: 'locations',     canActivate: [permissionGuard('locations.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/locations/locations.component').then(m => m.LocationsComponent) },
       { path: 'leave',         canActivate: [permissionGuard('leave.approve', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
 
-      { path: 'payroll',         canActivate: [featureFlagGuard('payroll',        '/dashboard'), permissionGuard('payroll.view', '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
-      { path: 'payroll-locks',  canActivate: [featureFlagGuard('payroll', '/dashboard'), permissionGuard('payroll.lock', '/dashboard')], loadComponent: () => import('./features/payroll-locks/payroll-locks.component').then(m => m.PayrollLocksComponent) },
+      { path: 'payroll',         canActivate: [permissionGuard('payroll.view', '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
+      { path: 'payroll-locks',  canActivate: [permissionGuard('payroll.lock', '/dashboard')], loadComponent: () => import('./features/payroll-locks/payroll-locks.component').then(m => m.PayrollLocksComponent) },
       { path: 'account',       loadChildren:  () => import('./features/account/account.routes').then(m => m.ACCOUNT_ROUTES) },
     ],
   },

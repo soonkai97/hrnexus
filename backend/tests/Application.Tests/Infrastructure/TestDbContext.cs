@@ -26,7 +26,6 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.Notification>     Notifications     => Set<E.Notification>();
     public DbSet<E.AuditLog>         AuditLogs         => Set<E.AuditLog>();
     public DbSet<E.PushSubscription> PushSubscriptions => Set<E.PushSubscription>();
-    public DbSet<E.FeatureFlag>      FeatureFlags      => Set<E.FeatureFlag>();
     public DbSet<E.PayrollLock>          PayrollLocks           => Set<E.PayrollLock>();
 
     // InMemory provider does not support transactions — return null so handlers skip tx logic.
@@ -51,10 +50,6 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
         mb.Entity<E.Staff>()
             .Navigation(s => s.RoleEntries)
             .AutoInclude();
-
-        // FeatureFlag: string PK on "Key" property (not "Id")
-        mb.Entity<E.FeatureFlag>()
-            .HasKey(f => f.Key);
 
         // Role: string PK on "Name" property (not "Id")
         mb.Entity<E.Role>()

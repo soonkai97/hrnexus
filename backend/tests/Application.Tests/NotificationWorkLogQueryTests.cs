@@ -264,6 +264,7 @@ public class NotificationWorkLogQueryTests
         db.LeaveRequests.Add(leave);
         db.Locations.Add(loc);
         db.Roles.Add(role);
+        staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -291,6 +292,7 @@ public class NotificationWorkLogQueryTests
         db.Staff.Add(staff);
         db.Locations.Add(loc);
         db.Roles.Add(role);
+        staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });
         db.WorkLogs.Add(existingLog);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -319,6 +321,7 @@ public class NotificationWorkLogQueryTests
         db.Staff.Add(staff);
         db.Locations.Add(loc);
         db.Roles.Add(role);
+        staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });
         db.WorkLogs.Add(existingLog);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -342,6 +345,7 @@ public class NotificationWorkLogQueryTests
         db.Staff.Add(staff);
         db.Locations.Add(loc);
         db.Roles.Add(role);
+        staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 

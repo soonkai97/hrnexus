@@ -14,6 +14,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
 {
     public DbSet<Staff>            Staff             => Set<Staff>();
     public DbSet<StaffRole>        StaffRoles        => Set<StaffRole>();
+    public DbSet<StaffLocation>    StaffLocations    => Set<StaffLocation>();
     public DbSet<Location>         Locations         => Set<Location>();
     public DbSet<Role>             Roles             => Set<Role>();
     public DbSet<RoleRate>         RoleRates         => Set<RoleRate>();
@@ -53,6 +54,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     {
         mb.ApplyConfiguration(new StaffConfiguration(encryptor));
         mb.ApplyConfiguration(new StaffRoleConfiguration());
+        mb.ApplyConfiguration(new StaffLocationConfiguration());
         mb.ApplyConfiguration(new LocationConfiguration());
         mb.ApplyConfiguration(new RoleConfiguration());
         mb.ApplyConfiguration(new RoleRateConfiguration());

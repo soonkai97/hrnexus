@@ -33,6 +33,12 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         var role = await db.Roles.FindAsync([req.RoleName.ToUpperInvariant()], ct)
             ?? throw new KeyNotFoundException($"Role {req.RoleName} not found.");
 
+        // Verify the employee is assigned to this location (no assignment ⇒ cannot log a shift here).
+        var locationAssigned = await db.Staff
+            .AnyAsync(s => s.Id == req.EmployeeId && s.LocationEntries.Any(l => l.LocationId == req.LocationId), ct);
+        if (!locationAssigned)
+            throw new InvalidOperationException("You are not assigned to this location.");
+
         // Check for approved leave covering this date
         var workDateUtc = DateTime.SpecifyKind(req.WorkDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
         var onLeave = await db.LeaveRequests.AnyAsync(

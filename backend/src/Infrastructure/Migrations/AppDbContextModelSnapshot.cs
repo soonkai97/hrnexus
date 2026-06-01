@@ -462,6 +462,20 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("Staff", (string)null);
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.StaffLocation", b =>
+                {
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LocationId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("EmployeeId", "LocationId");
+
+                    b.ToTable("StaffLocations", (string)null);
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.StaffPermissionOverride", b =>
                 {
                     b.Property<Guid>("EmployeeId")
@@ -624,6 +638,15 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.StaffLocation", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.Staff", null)
+                        .WithMany("LocationEntries")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.StaffRole", b =>
                 {
                     b.HasOne("HRNexus.Domain.Entities.Staff", null)
@@ -646,6 +669,8 @@ namespace HRNexus.Infrastructure.Migrations
 
             modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>
                 {
+                    b.Navigation("LocationEntries");
+
                     b.Navigation("RoleEntries");
                 });
 #pragma warning restore 612, 618

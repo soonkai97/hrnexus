@@ -508,14 +508,16 @@ public class WorkLogCommandTests
     {
         // A shift back-dated to BEFORE a raise must be priced at the historical rate, not today's.
         await using var db = CreateDb();
+        var empId = Guid.NewGuid();
         db.Locations.Add(MakeLocation("loc-1"));
         db.Roles.Add(MakeRole("bartender", 99m));                                  // current rate 99
         db.RoleRates.Add(E.RoleRate.Create("bartender", 50m, new DateOnly(2000, 1, 1)));
         db.RoleRates.Add(E.RoleRate.Create("bartender", 99m, new DateOnly(2026, 5, 1)));
+        db.Staff.Add(MakeStaffWithRole(empId));
         await db.SaveChangesAsync();
 
         var id = await new CreateManualWorkLogCommandHandler(db).Handle(new CreateManualWorkLogCommand(
-            Guid.NewGuid(), "BARTENDER", "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
+            empId, "BARTENDER", "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
             CancellationToken.None);
 
         var log = await db.WorkLogs.FindAsync(id);
@@ -527,12 +529,14 @@ public class WorkLogCommandTests
     {
         // No history rows → fall back to the role's current rate.
         await using var db = CreateDb();
+        var empId = Guid.NewGuid();
         db.Locations.Add(MakeLocation("loc-1"));
         db.Roles.Add(MakeRole("bartender", 77m));
+        db.Staff.Add(MakeStaffWithRole(empId));
         await db.SaveChangesAsync();
 
         var id = await new CreateManualWorkLogCommandHandler(db).Handle(new CreateManualWorkLogCommand(
-            Guid.NewGuid(), "BARTENDER", "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
+            empId, "BARTENDER", "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
             CancellationToken.None);
 
         var log = await db.WorkLogs.FindAsync(id);
@@ -752,7 +756,8 @@ public class WorkLogCommandTests
     private static E.Staff MakeStaffWithRole(Guid empId, string role = "bartender")
     {
         var staff = E.Staff.Create("S001", "Alice", "Wong", "s001@test.com", "hash",
-            new List<string> { role }, dateOfBirth: new DateTime(1990, 1, 1));
+            new List<string> { role }, dateOfBirth: new DateTime(1990, 1, 1),
+            locations: new List<string> { "loc-1" });
         typeof(E.Staff).GetProperty(nameof(E.Staff.Id))!.SetValue(staff, empId);
         return staff;
     }

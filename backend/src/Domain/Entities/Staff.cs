@@ -18,6 +18,10 @@ public class Staff : IHasAudit, ISoftDelete
 
     /// <summary>Computed role names derived from RoleEntries. Not stored directly.</summary>
     public List<string> Roles => RoleEntries.Select(r => r.Role).ToList();
+    /// <summary>Normalized location-assignment rows — loaded automatically via AutoInclude.</summary>
+    public List<StaffLocation> LocationEntries { get; private set; } = new();
+    /// <summary>Computed assigned location IDs derived from LocationEntries. Not stored directly.</summary>
+    public List<string> LocationIds => LocationEntries.Select(l => l.LocationId).ToList();
     public bool   IsActive         { get; private set; }
     public DateTime  CreatedAt   { get; private set; }
     public string    CreatedBy   { get; private set; } = string.Empty;
@@ -52,7 +56,8 @@ public class Staff : IHasAudit, ISoftDelete
 
     public static Staff Create(string staffId, string firstName, string? lastName, string? email, string passwordHash,
         List<string> roles, string? phoneNumber = null,
-        string? icNo = null, string? passportNo = null, DateTime? dateOfBirth = null)
+        string? icNo = null, string? passportNo = null, DateTime? dateOfBirth = null,
+        List<string>? locations = null)
     {
         var emp = new Staff
         {
@@ -72,6 +77,7 @@ public class Staff : IHasAudit, ISoftDelete
             CreatedAt = DateTime.UtcNow,
         };
         emp.SetRoles(roles);
+        emp.SetLocations(locations ?? new());
         return emp;
     }
 
@@ -139,7 +145,7 @@ public class Staff : IHasAudit, ISoftDelete
 
     public void UpdateDetails(string staffId, string firstName, string? lastName, string? email, List<string> roles,
         string? phoneNumber, string? icNo = null, string? passportNo = null,
-        DateTime? dateOfBirth = null)
+        DateTime? dateOfBirth = null, List<string>? locations = null)
     {
         StaffId     = staffId.Trim().ToUpperInvariant();
         FirstName   = firstName.Trim();
@@ -152,6 +158,22 @@ public class Staff : IHasAudit, ISoftDelete
             ? DateTime.SpecifyKind(dateOfBirth.Value.Date, DateTimeKind.Utc)
             : null;
         SetRoles(roles);
+        if (locations != null) SetLocations(locations);
+    }
+
+    /// <summary>True when the staff member is assigned to the given location (required to log a shift there).</summary>
+    public bool IsAssignedToLocation(string locationId) =>
+        LocationEntries.Any(l => l.LocationId == locationId);
+
+    /// <summary>Replaces all location assignments with the supplied IDs. Mutates the collection in place
+    /// (removes dropped, adds new) so the EF change tracker never holds two rows with the same key.</summary>
+    private void SetLocations(IEnumerable<string> locationIds)
+    {
+        var incoming = locationIds.Select(l => l.Trim()).Where(l => l.Length > 0).ToHashSet();
+        LocationEntries.RemoveAll(le => !incoming.Contains(le.LocationId));
+        var existing = LocationEntries.Select(le => le.LocationId).ToHashSet();
+        foreach (var id in incoming.Where(l => !existing.Contains(l)))
+            LocationEntries.Add(new StaffLocation { EmployeeId = Id, LocationId = id });
     }
 
     /// <summary>Replaces all role assignments with the supplied list (uppercase-normalised).

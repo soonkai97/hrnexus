@@ -47,6 +47,13 @@ public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfigur
             .OnDelete(DeleteBehavior.Cascade);
         b.Navigation(e => e.RoleEntries).AutoInclude();
 
+        // Location assignments — same normalised child-table + AutoInclude pattern as roles.
+        b.HasMany(e => e.LocationEntries)
+            .WithOne()
+            .HasForeignKey(l => l.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+        b.Navigation(e => e.LocationEntries).AutoInclude();
+
         // RefreshToken as a concurrency token: EF includes it in the UPDATE WHERE clause.
         // If two concurrent 401s both read the same token, the second SaveChanges finds
         // 0 rows (token already rotated) and throws DbUpdateConcurrencyException.
@@ -63,6 +70,7 @@ public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfigur
 
         // Computed properties — not mapped to columns.
         b.Ignore(e => e.Roles);
+        b.Ignore(e => e.LocationIds);
         b.Ignore(e => e.FullName);
         b.Ignore(e => e.Age);
         b.Ignore(e => e.PermissionLevel);

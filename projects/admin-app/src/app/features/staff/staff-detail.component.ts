@@ -5,7 +5,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, LocationStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -33,6 +33,7 @@ type DetailTab = 'profile' | 'worklogs' | 'permissions';
 })
 export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
+  private readonly locationStore = inject(LocationStore);
   private readonly staffSvc    = inject(StaffManagementService);
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);
@@ -52,6 +53,9 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
 
   // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
   availableRoles = computed(() => this.staffStore.roles());
+  availableLocations = computed(() => this.locationStore.locations());
+  /** Resolve a location ID to its display name (for the read-only assigned-locations tags). */
+  locationName(id: string): string { return this.availableLocations().find(l => l.id === id)?.name ?? id; }
 
   workLogs        = signal<WorkLogDto[]>([]);
   workLogsLoading = signal(false);
@@ -61,10 +65,10 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalLogs() / this.pageSize)));
 
   editForm: UpdateStaffRequest = {
-    staffId: '', firstName: '', lastName: '', email: null, roles: [],
+    staffId: '', firstName: '', lastName: '', email: null, roles: [], locations: [],
     phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: null,
   };
-  private _initialEditForm: UpdateStaffRequest = { ...this.editForm, roles: [] };
+  private _initialEditForm: UpdateStaffRequest = { ...this.editForm, roles: [], locations: [] };
 
   private staffId = '';
 
@@ -115,6 +119,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   ngOnInit(): void {
     this.staffId = this.route.snapshot.paramMap.get('id') ?? '';
     this.staffStore.loadRoles();
+    this.locationStore.load();
     this.loadStaff();
     this.loadWorkLogs(1);
     this.loadPermissions();
@@ -146,11 +151,11 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     this.editForm = {
       staffId: s.staffId, firstName: s.firstName, lastName: s.lastName,
       email: s.email || null,
-      roles: [...s.roles], phoneNumber: s.phoneNumber,
+      roles: [...s.roles], locations: [...(s.locationIds ?? [])], phoneNumber: s.phoneNumber,
       icNo: s.icNo ?? null, passportNo: s.passportNo ?? null,
       dateOfBirth: s.dateOfBirth ?? null,
     };
-    this._initialEditForm = { ...this.editForm, roles: [...this.editForm.roles] };
+    this._initialEditForm = { ...this.editForm, roles: [...this.editForm.roles], locations: [...this.editForm.locations] };
     this.touched.set(new Set());
     this.editMode.set(true);
   }

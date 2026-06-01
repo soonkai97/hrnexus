@@ -193,6 +193,7 @@
     "selectRole":       "Select role…",
     "location":         "Location",
     "selectLocation":   "Select location…",
+    "noLocationsAssigned": "You have no work locations assigned. Ask your manager to assign one before you can log a shift.",
     "startTime":        "Start Time",
     "notesLabel":       "Notes (optional)",
     "notesPlaceholder": "Any notes…",

@@ -17,7 +17,8 @@ public record UpdateStaffCommand(
     string?       PhoneNumber,
     string?       IcNo          = null,
     string?       PassportNo    = null,
-    DateTime?     DateOfBirth   = null) : IRequest;
+    DateTime?     DateOfBirth   = null,
+    List<string>? Locations     = null) : IRequest;
 
 public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : IRequestHandler<UpdateStaffCommand>
 {
@@ -74,7 +75,7 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
 
         emp.UpdateDetails(normalizedId, req.FirstName, req.LastName, resolvedEmail, req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),
-            req.IcNo, req.PassportNo, req.DateOfBirth);
+            req.IcNo, req.PassportNo, req.DateOfBirth, req.Locations);
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException)
         {

@@ -193,6 +193,7 @@
     "selectRole":       "选择职位…",
     "location":         "地点",
     "selectLocation":   "选择地点…",
+    "noLocationsAssigned": "您尚未被分配工作地点。请让经理为您分配后才能记录班次。",
     "startTime":        "开始时间",
     "notesLabel":       "备注（可选）",
     "notesPlaceholder": "任何备注…",

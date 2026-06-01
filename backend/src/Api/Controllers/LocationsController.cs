@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
@@ -16,6 +17,23 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
     public async Task<IActionResult> List(CancellationToken ct)
     {
         var list = await db.Locations
+            .OrderBy(l => l.Name)
+            .Select(l => new LocationDto(l.Id, l.Name, l.ImagePath))
+            .ToListAsync(ct);
+        return Ok(list);
+    }
+
+    /// <summary>The locations the signed-in staff member is assigned to (the only ones they may log shifts at).</summary>
+    [HttpGet("mine")]
+    public async Task<IActionResult> Mine(CancellationToken ct)
+    {
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var assignedIds = await db.StaffLocations
+            .Where(sl => sl.EmployeeId == callerId)
+            .Select(sl => sl.LocationId)
+            .ToListAsync(ct);
+        var list = await db.Locations
+            .Where(l => assignedIds.Contains(l.Id))
             .OrderBy(l => l.Name)
             .Select(l => new LocationDto(l.Id, l.Name, l.ImagePath))
             .ToListAsync(ct);

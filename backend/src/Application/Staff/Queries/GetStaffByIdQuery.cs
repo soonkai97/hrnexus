@@ -14,6 +14,7 @@ public record StaffDetailDto(
     string       FullName,
     string?      Email,
     List<string> Roles,
+    List<string> LocationIds,
     bool         IsActive,
     string?      PhoneNumber,
     string?      IcNo,
@@ -35,6 +36,7 @@ public class GetStaffByIdQueryHandler(IAppDbContext db)
         return new StaffDetailDto(
             emp.Id, emp.StaffId, emp.FirstName, emp.LastName, emp.FullName, emp.Email,
             emp.Roles.ToList(),
+            emp.LocationIds.ToList(),
             emp.IsActive, emp.PhoneNumber,
             emp.IcNo, emp.PassportNo,
             emp.DateOfBirth?.ToString("yyyy-MM-dd"), emp.Age,

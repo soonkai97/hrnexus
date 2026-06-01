@@ -44,6 +44,12 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         if (!isAssigned)
             throw new InvalidOperationException($"You are not assigned the role '{req.RoleName}'.");
 
+        // Verify the employee is assigned to this location (no assignment ⇒ cannot log a shift here).
+        var locationAssigned = await db.Staff
+            .AnyAsync(s => s.Id == req.EmployeeId && s.LocationEntries.Any(l => l.LocationId == req.LocationId), ct);
+        if (!locationAssigned)
+            throw new InvalidOperationException("You are not assigned to this location.");
+
         var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes);
         db.WorkLogs.Add(log);
         try

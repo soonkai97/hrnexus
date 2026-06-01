@@ -55,6 +55,20 @@
             styleClass="w-full" />
         </div>
         <div class="col-12 col-md-6 field">
+          <label for="st-locations">{{ 'staff.locations' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.locationsHint' | translate }}</span></label>
+          <p-multiselect
+            inputId="st-locations"
+            [(ngModel)]="newStaff.locations"
+            [options]="availableLocations()"
+            optionLabel="name"
+            optionValue="id"
+            [placeholder]="'staff.selectLocations' | translate"
+            [filter]="true"
+            display="chip"
+            [maxSelectedLabels]="50"
+            styleClass="w-full" />
+        </div>
+        <div class="col-12 col-md-6 field">
           <label for="st-phone-number">{{ 'staff.phoneNumber' | translate }}</label>
           <input id="st-phone-number" pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" [placeholder]="'staff.phonePlaceholder' | translate" maxlength="20" />
         </div>

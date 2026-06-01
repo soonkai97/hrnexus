@@ -15,6 +15,7 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
 {
     public DbSet<E.Staff>            Staff             => Set<E.Staff>();
     public DbSet<E.StaffRole>        StaffRoles        => Set<E.StaffRole>();
+    public DbSet<E.StaffLocation>    StaffLocations    => Set<E.StaffLocation>();
     public DbSet<E.Location>         Locations         => Set<E.Location>();
     public DbSet<E.Role>             Roles             => Set<E.Role>();
     public DbSet<E.RoleRate>         RoleRates         => Set<E.RoleRate>();
@@ -49,6 +50,11 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
             .HasKey(r => new { r.EmployeeId, r.Role });
         mb.Entity<E.Staff>()
             .Navigation(s => s.RoleEntries)
+            .AutoInclude();
+        mb.Entity<E.StaffLocation>()
+            .HasKey(l => new { l.EmployeeId, l.LocationId });
+        mb.Entity<E.Staff>()
+            .Navigation(s => s.LocationEntries)
             .AutoInclude();
 
         // Role: string PK on "Name" property (not "Id")

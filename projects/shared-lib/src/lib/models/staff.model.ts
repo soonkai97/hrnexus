@@ -6,6 +6,7 @@ export interface Staff {
   fullName: string;
   email: string | null;
   roles: string[];
+  locationIds: string[];
   isActive: boolean;
   phoneNumber: string | null;
   icNo: string | null;
@@ -21,6 +22,7 @@ export interface RegisterStaffRequest {
   email: string | null;
   password: string;
   roles: string[];
+  locations: string[];
   phoneNumber: string;
   icNo: string | null;
   passportNo: string | null;
@@ -33,6 +35,7 @@ export interface UpdateStaffRequest {
   lastName: string;
   email: string | null;
   roles: string[];
+  locations: string[];
   phoneNumber: string | null;
   icNo: string | null;
   passportNo: string | null;

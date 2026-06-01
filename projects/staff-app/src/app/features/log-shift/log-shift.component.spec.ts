@@ -55,7 +55,7 @@ describe('LogShiftComponent', () => {
     createManual: ReturnType<typeof vi.fn>;
     delete:       ReturnType<typeof vi.fn>;
   };
-  let mockLocationStore: { load: ReturnType<typeof vi.fn>; locations: () => any[] };
+  let mockLocationStore: { load: ReturnType<typeof vi.fn>; locations: () => any[]; loadMine: ReturnType<typeof vi.fn>; myLocations: () => any[]; myLoaded: () => boolean };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
   let mockAuth:       { user: () => any };
@@ -70,8 +70,11 @@ describe('LogShiftComponent', () => {
       delete:       vi.fn().mockReturnValue(of(undefined)),
     };
     mockLocationStore = {
-      load:      vi.fn(),
-      locations: () => [{ id: 'loc-1', name: 'Main Bar' }],
+      load:        vi.fn(),
+      locations:   () => [{ id: 'loc-1', name: 'Main Bar' }],
+      loadMine:    vi.fn(),
+      myLocations: () => [{ id: 'loc-1', name: 'Main Bar' }],
+      myLoaded:    () => true,
     };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
@@ -103,9 +106,9 @@ describe('LogShiftComponent', () => {
   // ── ngOnInit() ───────────────────────────────────────────────────────────────
 
   describe('ngOnInit()', () => {
-    it('loads location list so role and location selects are populated', () => {
+    it('loads the assigned-location list so role and location selects are populated', () => {
       component.ngOnInit();
-      expect(mockLocationStore.load).toHaveBeenCalled();
+      expect(mockLocationStore.loadMine).toHaveBeenCalled();
     });
 
     it('fetches the active shift so the "clock out" panel shows if already clocked in', () => {

@@ -18,6 +18,11 @@
   <!-- ═══════════════════════════ LOG VIEW ════════════════════════════════════ -->
   @if (view() === 'log') {
 
+    <!-- No assigned locations → shift logging is blocked until a manager assigns one -->
+    @if (noLocations()) {
+      <p-message severity="warn" styleClass="w-full mb-2" [text]="'logShift.noLocationsAssigned' | translate" />
+    }
+
     <!-- Active shift -->
     @if (activeLog(); as a) {
       <p-card styleClass="active-card">

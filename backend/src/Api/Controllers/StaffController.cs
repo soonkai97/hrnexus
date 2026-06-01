@@ -103,7 +103,7 @@ public class StaffController(IMediator mediator) : ControllerBase
         {
             await mediator.Send(new UpdateStaffCommand(id, body.StaffId, body.FirstName, body.LastName, body.Email,
                 body.Roles, body.PhoneNumber,
-                body.IcNo, body.PassportNo, body.DateOfBirth), ct);
+                body.IcNo, body.PassportNo, body.DateOfBirth, body.Locations), ct);
             return NoContent();
         }
         catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }
@@ -246,5 +246,5 @@ public class StaffController(IMediator mediator) : ControllerBase
 
 public record CreateRoleBody(string Name, decimal HourlyRate = 0);
 public record UpdateRoleRateBody(decimal HourlyRate);
-public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<string> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth);
+public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<string> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth, List<string>? Locations = null);
 public record ResetPasswordBody(string NewPassword);

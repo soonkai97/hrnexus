@@ -29,6 +29,7 @@ public interface IAppDbContext
 
     DbSet<HRNexus.Domain.Entities.Staff>    Staff      { get; }
     DbSet<HRNexus.Domain.Entities.StaffRole> StaffRoles { get; }
+    DbSet<HRNexus.Domain.Entities.StaffLocation> StaffLocations { get; }
     DbSet<Location>         Locations         { get; }
     DbSet<Role>             Roles             { get; }
     DbSet<RoleRate>         RoleRates         { get; }

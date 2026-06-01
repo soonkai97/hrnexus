@@ -29,7 +29,7 @@ import {
 function makeStaff(overrides: Partial<Staff> = {}): Staff {
   return {
     id: 's1', staffId: 'NC001', firstName: 'Jane', lastName: 'Doe',
-    fullName: 'Jane Doe', email: 'jane@test.com', roles: ['employee'],
+    fullName: 'Jane Doe', email: 'jane@test.com', roles: ['employee'], locationIds: [],
     isActive: true, phoneNumber: null, icNo: 'IC12345', passportNo: null,
     dateOfBirth: '1990-01-01', age: 36,
     ...overrides,
@@ -291,7 +291,7 @@ describe('StaffComponent', () => {
       mockStaffStore.roles.mockReturnValue([makeRole('employee')]);
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: ['employee'],
+        password: 'Password1!', roles: ['employee'], locations: [],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
@@ -303,7 +303,7 @@ describe('StaffComponent', () => {
       mockStaffStore.roles.mockReturnValue([makeRole('employee')]);
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: [],
+        password: 'Password1!', roles: [], locations: [],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
@@ -315,7 +315,7 @@ describe('StaffComponent', () => {
       // roles() already returns [] by default
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: [],
+        password: 'Password1!', roles: [], locations: [],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
@@ -329,7 +329,7 @@ describe('StaffComponent', () => {
     function fillAndSubmit(): void {
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: ['employee'],
+        password: 'Password1!', roles: ['employee'], locations: [],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
@@ -377,7 +377,7 @@ describe('StaffComponent', () => {
     beforeEach(() => {
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: ['employee'],
+        password: 'Password1!', roles: ['employee'], locations: [],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
     });

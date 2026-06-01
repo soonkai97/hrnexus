@@ -21,4 +21,10 @@ test.describe('Admin — locations', () => {
     ).toBeVisible({ timeout: 8_000 });
   });
 
+  // Bulk import: the "Bulk Add" dialog lets an admin paste many location names at once.
+  test('Bulk Add dialog opens with a paste textarea', async ({ page }) => {
+    await page.getByRole('button', { name: /bulk add/i }).click();
+    await expect(page.locator('.p-dialog textarea')).toBeVisible({ timeout: 5_000 });
+  });
+
 });

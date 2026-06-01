@@ -10,7 +10,7 @@
   <!-- Add new role dialog -->
   <p-dialog [visible]="showForm()" (visibleChange)="!$event && cancel()"
             [header]="'roles.addNewRole' | translate" [modal]="true"
-            [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true">
+            [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     <div class="field">
       <label for="rl-role-name"><span class="req">*</span> {{ 'roles.roleNameCol' | translate }}</label>
       <input id="rl-role-name" pInputText type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
@@ -104,7 +104,7 @@
   [header]="('permissions.roleTitle' | translate) + (permRole() ? ' — ' + permRole() : '')"
   [modal]="true"
   [style]="{'width':'min(480px, 92vw)'}"
-  [draggable]="false" [closable]="true">
+  [draggable]="false" [closable]="true" appendTo="body">
 
   <p class="modal-desc">{{ 'permissions.roleDesc' | translate }}</p>
   <p class="modal-desc" style="font-size:.78rem;line-height:1.45">
@@ -141,7 +141,7 @@
 <!-- ── Bulk add Roles ──────────────────────────────────────────────────────── -->
 <p-dialog [visible]="showBulk()" (visibleChange)="!$event && showBulk.set(false)"
           [header]="'roles.bulkAdd' | translate" [modal]="true"
-          [style]="{'width':'min(480px, 92vw)'}" [draggable]="false" [closable]="true">
+          [style]="{'width':'min(480px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
   <p class="modal-desc">{{ 'roles.bulkAddDesc' | translate }}</p>
   <div class="bulk-grid">
     <div class="bulk-grid-head">

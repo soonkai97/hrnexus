@@ -11,7 +11,7 @@ export interface BulkStaffImportRow {
   roles: string[]; locations?: string[] | null; password?: string | null;
 }
 export interface BulkStaffRowResult {
-  staffId: string; success: boolean; error: string | null; tempPassword: string | null;
+  staffId: string; success: boolean; error: string | null;
 }
 export interface BulkStaffImportResult {
   created: number; failed: number; rows: BulkStaffRowResult[];

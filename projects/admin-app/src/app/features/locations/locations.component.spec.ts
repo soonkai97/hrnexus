@@ -198,20 +198,20 @@ describe('LocationsComponent', () => {
   // ── saveBulk() — bulk add ──────────────────────────────────────────────────────
 
   describe('saveBulk()', () => {
-    it('parses one name per line (trims, drops blanks) and calls store.bulkCreate', () => {
-      component.bulkText = '  Main Bar \n\nRooftop\n   ';
+    it('collects non-blank row names (trimmed) and calls store.bulkCreate', () => {
+      component.bulkRows = [{ name: '  Main Bar ' }, { name: '' }, { name: 'Rooftop' }];
       component.saveBulk();
       expect(mockLocationStore.bulkCreate).toHaveBeenCalledWith(['Main Bar', 'Rooftop']);
     });
 
-    it('does nothing when the textarea has no usable names', () => {
-      component.bulkText = '   \n  ';
+    it('does nothing when no row has a usable name', () => {
+      component.bulkRows = [{ name: '  ' }, { name: '' }];
       component.saveBulk();
       expect(mockLocationStore.bulkCreate).not.toHaveBeenCalled();
     });
 
     it('shows a created/skipped toast and closes the dialog on success', () => {
-      component.bulkText = 'Main Bar\nRooftop';
+      component.bulkRows = [{ name: 'Main Bar' }, { name: 'Rooftop' }];
       component.showBulk.set(true);
       component.saveBulk();
       expect(mockToastSvc.success).toHaveBeenCalledWith('locations.bulkAddedToast');
@@ -220,9 +220,17 @@ describe('LocationsComponent', () => {
 
     it('shows an error toast on failure', () => {
       mockLocationStore.bulkCreate.mockReturnValue(throwError(() => ({ error: { error: 'Bad.' } })));
-      component.bulkText = 'Main Bar';
+      component.bulkRows = [{ name: 'Main Bar' }];
       component.saveBulk();
       expect(mockToastSvc.error).toHaveBeenCalledWith('Bad.');
+    });
+
+    it('addBulkRow / removeBulkRow manage the row list', () => {
+      component.bulkRows = [{ name: 'A' }];
+      component.addBulkRow();
+      expect(component.bulkRows.length).toBe(2);
+      component.removeBulkRow(0);
+      expect(component.bulkRows).toEqual([{ name: '' }]);
     });
   });
 

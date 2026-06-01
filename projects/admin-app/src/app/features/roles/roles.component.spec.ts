@@ -143,8 +143,13 @@ describe('RolesComponent', () => {
   // ── saveBulk() — bulk add ──────────────────────────────────────────────────────
 
   describe('saveBulk()', () => {
-    it('parses "name, rate" lines (defaulting a missing rate to 0) and calls store.bulkCreateRoles', () => {
-      component.bulkText = 'Supervisor, 25\nHost\n  Security , 22 ';
+    it('maps Name + Rate rows (trims, blank name dropped, null/negative rate → 0) and calls bulkCreateRoles', () => {
+      component.bulkRows = [
+        { name: ' Supervisor ', rate: 25 },
+        { name: '', rate: 10 },          // blank name → dropped
+        { name: 'Host', rate: null },    // null rate → 0
+        { name: 'Security', rate: 22 },
+      ];
       component.saveBulk();
       expect(mockStaffStore.bulkCreateRoles).toHaveBeenCalledWith([
         { name: 'Supervisor', hourlyRate: 25 },
@@ -153,14 +158,14 @@ describe('RolesComponent', () => {
       ]);
     });
 
-    it('does nothing when no usable rows are present', () => {
-      component.bulkText = '  \n ';
+    it('does nothing when no row has a name', () => {
+      component.bulkRows = [{ name: '  ', rate: 0 }];
       component.saveBulk();
       expect(mockStaffStore.bulkCreateRoles).not.toHaveBeenCalled();
     });
 
     it('shows a created/skipped toast and closes the dialog on success', () => {
-      component.bulkText = 'Host, 18';
+      component.bulkRows = [{ name: 'Host', rate: 18 }];
       component.showBulk.set(true);
       component.saveBulk();
       expect(mockToastSvc.success).toHaveBeenCalledWith('roles.bulkAddedToast');
@@ -169,9 +174,17 @@ describe('RolesComponent', () => {
 
     it('shows an error toast on failure', () => {
       mockStaffStore.bulkCreateRoles.mockReturnValue(throwError(() => ({ error: { error: 'Nope.' } })));
-      component.bulkText = 'Host, 18';
+      component.bulkRows = [{ name: 'Host', rate: 18 }];
       component.saveBulk();
       expect(mockToastSvc.error).toHaveBeenCalledWith('Nope.');
+    });
+
+    it('addBulkRow / removeBulkRow manage the row list', () => {
+      component.bulkRows = [{ name: 'A', rate: 0 }];
+      component.addBulkRow();
+      expect(component.bulkRows.length).toBe(2);
+      component.removeBulkRow(0);
+      expect(component.bulkRows).toEqual([{ name: '', rate: 0 }]);
     });
   });
 

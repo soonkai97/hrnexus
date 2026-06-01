@@ -56,6 +56,9 @@ describe('StaffComponent', () => {
     toggleActive: ReturnType<typeof vi.fn>;
     deleteStaff:  ReturnType<typeof vi.fn>;
     resetPassword: ReturnType<typeof vi.fn>;
+    bulkAssignLocations: ReturnType<typeof vi.fn>;
+    bulkAssignRoles:     ReturnType<typeof vi.fn>;
+    bulkDeactivate:      ReturnType<typeof vi.fn>;
   };
   let mockAuth:       { user: () => any; hasRole: ReturnType<typeof vi.fn> };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
@@ -73,6 +76,9 @@ describe('StaffComponent', () => {
       toggleActive:  vi.fn().mockReturnValue(of(undefined)),
       deleteStaff:   vi.fn().mockReturnValue(of(undefined)),
       resetPassword: vi.fn().mockReturnValue(of(undefined)),
+      bulkAssignLocations: vi.fn().mockReturnValue(of({ count: 2 })),
+      bulkAssignRoles:     vi.fn().mockReturnValue(of({ count: 2 })),
+      bulkDeactivate:      vi.fn().mockReturnValue(of({ count: 2 })),
     };
     mockAuth       = { user: () => null, hasRole: vi.fn().mockReturnValue(false) };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
@@ -557,6 +563,80 @@ describe('StaffComponent', () => {
       mockStaffStore.resetPassword.mockReturnValue(throwError(() => ({})));
       component.saveResetPassword();
       expect(component.savingReset()).toBe(false);
+    });
+  });
+
+  // ── Bulk actions ──────────────────────────────────────────────────────────────
+
+  describe('bulk selection', () => {
+    it('toggleBulkMode() enters bulk mode and clears selection on exit', () => {
+      component.toggleBulkMode();
+      expect(component.bulkSelecting()).toBe(true);
+      component.selectedIds.set(new Set(['a', 'b']));
+      component.toggleBulkMode();
+      expect(component.bulkSelecting()).toBe(false);
+      expect(component.selectedCount()).toBe(0);
+    });
+
+    it('toggleSelect() adds then removes an id', () => {
+      component.toggleSelect('s1');
+      expect(component.selectedIds().has('s1')).toBe(true);
+      component.toggleSelect('s1');
+      expect(component.selectedIds().has('s1')).toBe(false);
+    });
+
+    it('allVisibleSelected() is true only when every row on the page is selected', () => {
+      mockStaffStore.staff.mockReturnValue([makeStaff({ id: 'a' }), makeStaff({ id: 'b' })]);
+      const c = TestBed.createComponent(StaffComponent).componentInstance;
+      expect(c.allVisibleSelected()).toBe(false);
+      c.selectedIds.set(new Set(['a', 'b']));
+      expect(c.allVisibleSelected()).toBe(true);
+    });
+  });
+
+  describe('bulk actions', () => {
+    beforeEach(() => component.selectedIds.set(new Set(['a', 'b'])));
+
+    it('saveBulkLocations() calls the store with selected ids + chosen locations', () => {
+      component.bulkLocations = ['loc1'];
+      component.saveBulkLocations();
+      expect(mockStaffStore.bulkAssignLocations).toHaveBeenCalledWith(['a', 'b'], ['loc1']);
+      expect(mockToastSvc.success).toHaveBeenCalled();
+      expect(component.selectedCount()).toBe(0);   // cleared after success
+    });
+
+    it('saveBulkRoles() calls the store with selected ids + chosen roles', () => {
+      component.bulkRoles = ['BARTENDER'];
+      component.saveBulkRoles();
+      expect(mockStaffStore.bulkAssignRoles).toHaveBeenCalledWith(['a', 'b'], ['BARTENDER']);
+    });
+
+    it('saveBulkLocations() does nothing when no locations are chosen', () => {
+      component.bulkLocations = [];
+      component.saveBulkLocations();
+      expect(mockStaffStore.bulkAssignLocations).not.toHaveBeenCalled();
+    });
+
+    it('bulkDeactivateSelected() confirms then calls the store', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      component.bulkDeactivateSelected();
+      expect(mockConfirmSvc.confirm).toHaveBeenCalled();
+      expect(mockStaffStore.bulkDeactivate).toHaveBeenCalledWith(['a', 'b']);
+    });
+
+    it('bulkDeactivateSelected() does NOT call the store when cancelled', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(false));
+      component.bulkDeactivateSelected();
+      expect(mockStaffStore.bulkDeactivate).not.toHaveBeenCalled();
+    });
+
+    it('surfaces the API error (e.g. last-admin guard) as a toast', () => {
+      mockConfirmSvc.confirm.mockReturnValue(of(true));
+      mockStaffStore.bulkDeactivate.mockReturnValue(
+        throwError(() => ({ error: { error: 'Keep at least one administrator active.' } })),
+      );
+      component.bulkDeactivateSelected();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Keep at least one administrator active.');
     });
   });
 

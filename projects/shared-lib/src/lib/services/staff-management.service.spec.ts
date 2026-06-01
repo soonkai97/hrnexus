@@ -217,4 +217,36 @@ describe('StaffManagementService', () => {
       req.flush({});
     });
   });
+
+  // ── bulk actions ──────────────────────────────────────────────────────────
+
+  describe('bulkAssignLocations()', () => {
+    it('POSTs /api/staff/bulk/locations with staffIds and locationIds', () => {
+      service.bulkAssignLocations(['a', 'b'], ['loc1']).subscribe();
+      const req = http.expectOne('/api/staff/bulk/locations');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ staffIds: ['a', 'b'], locationIds: ['loc1'] });
+      req.flush({ count: 2 });
+    });
+  });
+
+  describe('bulkAssignRoles()', () => {
+    it('POSTs /api/staff/bulk/roles with staffIds and roles', () => {
+      service.bulkAssignRoles(['a'], ['BARTENDER', 'STAFF']).subscribe();
+      const req = http.expectOne('/api/staff/bulk/roles');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ staffIds: ['a'], roles: ['BARTENDER', 'STAFF'] });
+      req.flush({ count: 1 });
+    });
+  });
+
+  describe('bulkDeactivate()', () => {
+    it('POSTs /api/staff/bulk/deactivate with staffIds', () => {
+      service.bulkDeactivate(['a', 'b', 'c']).subscribe();
+      const req = http.expectOne('/api/staff/bulk/deactivate');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ staffIds: ['a', 'b', 'c'] });
+      req.flush({ count: 3 });
+    });
+  });
 });

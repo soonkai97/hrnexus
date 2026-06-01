@@ -103,4 +103,17 @@ export class StaffStore {
   deleteStaff(id: string) {
     return this.svc.delete(id);
   }
+
+  // ── Bulk actions ────────────────────────────────────────────────────────────
+  bulkAssignLocations(staffIds: string[], locationIds: string[]) {
+    return this.svc.bulkAssignLocations(staffIds, locationIds);
+  }
+
+  bulkAssignRoles(staffIds: string[], roles: string[]) {
+    return this.svc.bulkAssignRoles(staffIds, roles);
+  }
+
+  bulkDeactivate(staffIds: string[]) {
+    return this.svc.bulkDeactivate(staffIds);
+  }
 }

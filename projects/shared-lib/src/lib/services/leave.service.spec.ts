@@ -203,4 +203,16 @@ describe('LeaveService', () => {
       req.flush(null);
     });
   });
+
+  // ── bulkMarkNoShow() ──────────────────────────────────────────────────────
+
+  describe('bulkMarkNoShow()', () => {
+    it('POSTs /api/admin/leave/bulk-no-show with the id list', () => {
+      service.bulkMarkNoShow(['l1', 'l2']).subscribe();
+      const req = http.expectOne('/api/admin/leave/bulk-no-show');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ ids: ['l1', 'l2'] });
+      req.flush({ count: 2 });
+    });
+  });
 });

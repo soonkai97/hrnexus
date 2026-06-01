@@ -268,6 +268,11 @@
             [disabled]="selectedCount() === 0 || bulkStatusSaving()"
             [loading]="bulkStatusSaving()"
             (click)="bulkRejectSelected()" />
+          <p-button icon="pi pi-user-minus" [label]="'leave.bulkNoShow' | translate" severity="warn"
+            [outlined]="true" size="small"
+            [disabled]="selectedCount() === 0 || bulkStatusSaving()"
+            [loading]="bulkStatusSaving()"
+            (click)="bulkMarkNoShowSelected()" />
         </div>
       </div>
     }

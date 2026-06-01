@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, LocationStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
-         passwordChecks, isStrongPassword } from 'shared-lib';
+         passwordChecks, isStrongPassword, BulkStaffImportResult, BulkStaffImportRow } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -433,6 +433,60 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
         },
       });
     });
+  }
+
+  // ── Bulk import (paste CSV rows) ────────────────────────────────────────────
+  showImport   = signal(false);
+  importText   = '';
+  importing    = signal(false);
+  importResult = signal<BulkStaffImportResult | null>(null);
+
+  openImport(): void { this.importText = ''; this.importResult.set(null); this.showImport.set(true); }
+
+  /** Parse pasted CSV: "staffId, firstName, lastName, email, role1;role2" — one staff per line. */
+  private parseImport(): BulkStaffImportRow[] {
+    return this.importText.split('\n').map(l => l.trim()).filter(l => l.length > 0).map(line => {
+      const [staffId, firstName, lastName, email, roles] = line.split(',').map(c => (c ?? '').trim());
+      return {
+        staffId: staffId ?? '', firstName: firstName ?? '', lastName: lastName || null,
+        email: email || null,
+        roles: (roles ?? '').split(';').map(r => r.trim()).filter(r => r.length > 0),
+      } as BulkStaffImportRow;
+    });
+  }
+
+  runImport(): void {
+    const rows = this.parseImport();
+    if (!rows.length) return;
+    this.importing.set(true);
+    this.staffStore.bulkImportStaff(rows).subscribe({
+      next: (res) => {
+        this.importing.set(false);
+        this.importResult.set(res);
+        if (res.created > 0) {
+          this.toast.success(this.translate.instant('staff.importedToast', { created: res.created, failed: res.failed }));
+          this.loadPage(1);
+        } else {
+          this.toast.warning(this.translate.instant('staff.importedToast', { created: res.created, failed: res.failed }));
+        }
+      },
+      error: (e) => {
+        this.importing.set(false);
+        this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
+      },
+    });
+  }
+
+  /** Copy "staffId  password" for every successfully-imported row to the clipboard. */
+  copyCredentials(): void {
+    const lines = (this.importResult()?.rows ?? [])
+      .filter(r => r.success && r.tempPassword)
+      .map(r => `${r.staffId}\t${r.tempPassword}`);
+    if (!lines.length) return;
+    navigator.clipboard?.writeText(lines.join('\n')).then(
+      () => this.toast.success(this.translate.instant('staff.credentialsCopied')),
+      () => this.toast.error(this.translate.instant('staff.bulkFailed')),
+    );
   }
 
   hasUnsavedChanges(): boolean {

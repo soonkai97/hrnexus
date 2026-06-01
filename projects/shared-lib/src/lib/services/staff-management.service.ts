@@ -6,6 +6,17 @@ import { PagedResult } from './work-log.service';
 
 export interface VenueLocation { id: string; name: string; }
 
+export interface BulkStaffImportRow {
+  staffId: string; firstName: string; lastName?: string | null; email?: string | null;
+  roles: string[]; locations?: string[] | null; password?: string | null;
+}
+export interface BulkStaffRowResult {
+  staffId: string; success: boolean; error: string | null; tempPassword: string | null;
+}
+export interface BulkStaffImportResult {
+  created: number; failed: number; rows: BulkStaffRowResult[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class StaffManagementService {
   private readonly http = inject(HttpClient);
@@ -72,6 +83,16 @@ export class StaffManagementService {
   /** Deactivate all selected staff (backend refuses if it would remove the last active admin). */
   bulkDeactivate(staffIds: string[]): Observable<{ count: number }> {
     return this.http.post<{ count: number }>('/api/staff/bulk/deactivate', { staffIds });
+  }
+
+  /** Create many custom roles at once from a list of {name, hourlyRate} (duplicates skipped). */
+  bulkCreateRoles(roles: { name: string; hourlyRate: number }[]): Observable<{ created: number; skipped: number }> {
+    return this.http.post<{ created: number; skipped: number }>('/api/staff/roles/bulk', { roles });
+  }
+
+  /** Import many staff at once (partial success). Returns per-row outcomes incl. generated passwords. */
+  bulkImportStaff(rows: BulkStaffImportRow[]): Observable<BulkStaffImportResult> {
+    return this.http.post<BulkStaffImportResult>('/api/staff/bulk-import', { rows });
   }
 
   getLocations(): Observable<VenueLocation[]> {

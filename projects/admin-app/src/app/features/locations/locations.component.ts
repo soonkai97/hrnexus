@@ -7,11 +7,12 @@ import { InputText } from 'primeng/inputtext';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
+import { Dialog } from 'primeng/dialog';
 
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Message],
+  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Message, Dialog],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })
@@ -84,6 +85,30 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
         next: () => { this.deletingId.set(null); this.toast.success(this.translate.instant('locations.deleted')); },
         error: (e) => { this.deletingId.set(null); const msg = e?.error?.error ?? this.translate.instant('locations.deleteFailed'); this.error.set(msg); this.toast.error(msg); },
       });
+    });
+  }
+
+  // ── Bulk add (paste one location name per line) ─────────────────────────────
+  showBulk   = signal(false);
+  bulkText   = '';
+  bulkSaving = signal(false);
+
+  openBulk(): void { this.bulkText = ''; this.showBulk.set(true); }
+
+  saveBulk(): void {
+    const names = this.bulkText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+    if (!names.length) return;
+    this.bulkSaving.set(true);
+    this.store.bulkCreate(names).subscribe({
+      next: (r) => {
+        this.bulkSaving.set(false);
+        this.showBulk.set(false);
+        this.toast.success(this.translate.instant('locations.bulkAddedToast', { created: r.created, skipped: r.skipped }));
+      },
+      error: (e) => {
+        this.bulkSaving.set(false);
+        this.toast.error(apiErrorMessage(e) ?? this.translate.instant('locations.saveFailed'));
+      },
     });
   }
 

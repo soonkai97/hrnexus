@@ -1,8 +1,10 @@
 ﻿using System.Security.Claims;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Locations.Commands;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 
@@ -11,7 +13,7 @@ namespace HRNexus.Api.Controllers;
 [ApiController]
 [Route("api/locations")]
 [Authorize]
-public class LocationsController(IAppDbContext db, IFileStorage files) : ControllerBase
+public class LocationsController(IAppDbContext db, IFileStorage files, IMediator mediator) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> List(CancellationToken ct)
@@ -52,6 +54,19 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
         db.Locations.Add(loc);
         await db.SaveChangesAsync(ct);
         return CreatedAtAction(nameof(List), new { }, new { loc.Id });
+    }
+
+    /// <summary>Create many locations at once from a list of names (duplicates skipped).</summary>
+    [HttpPost("bulk")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LocationsManage)]
+    public async Task<IActionResult> BulkCreate([FromBody] BulkCreateLocationsBody body, CancellationToken ct)
+    {
+        try
+        {
+            var result = await mediator.Send(new BulkCreateLocationsCommand(body.Names), ct);
+            return Ok(result);
+        }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
     [HttpPut("{id}")]
@@ -105,3 +120,4 @@ public class LocationsController(IAppDbContext db, IFileStorage files) : Control
 
 public record LocationDto(string Id, string Name, string? ImagePath);
 public record UpsertLocationBody(string Name);
+public record BulkCreateLocationsBody(List<string> Names);

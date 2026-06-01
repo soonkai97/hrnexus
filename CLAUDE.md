@@ -79,7 +79,7 @@ projects/
     ├── models/                   # DTOs and interfaces
     ├── services/                 # HTTP services + LangService + ToastService + ConfirmService
     ├── stores/                   # signal-based state (StaffStore, LocationStore, …)
-    ├── guards/                   # authGuard, roleGuard, featureFlagGuard
+    ├── guards/                   # authGuard, permissionGuard
     ├── auth/                     # AuthService + jwtInterceptor
     ├── pipes/                    # AmPmPipe
     ├── directives/               # PickerOnlyDirective
@@ -131,7 +131,7 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /staff                 same
 /staff/:id             same (StaffDetailComponent)
 /leave                 same
-/payroll               same + featureFlagGuard('payroll', '/dashboard')
+/payroll               same
 /reports               same
 /roles, /locations     same
 /profile               redirectTo: '/account'
@@ -149,8 +149,7 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 
 **Guards:**
 - `authGuard` — checks `auth.isAuthenticated() && auth.hasValidToken()`
-- `roleGuard(...roles)` — checks `auth.userRole()` is one of the given roles
-- `featureFlagGuard(key, fallback)` — triggers `featureSvc.load()` on fresh load; falls back to `fallback` route if disabled
+- `permissionGuard(key, fallback)` — checks the current user holds `key`; redirects to `fallback` otherwise
 
 ---
 
@@ -206,30 +205,6 @@ getAccessToken(): string | null
 
 ---
 
-## Feature flags
-
-**FeatureFlagService** (`shared-lib/src/lib/services/feature-flag.service.ts`):
-
-```typescript
-type FeatureKey = 'payroll'   // admin Payroll report/export (staff Pay Summary removed)
-
-// Signals
-flags = signal<Record<FeatureKey, boolean>>(defaults)   // all false by default
-loaded = signal(false)
-
-// Methods
-load(): Observable<void>        // GET /api/feature-flags (called by guard + shell)
-isEnabled(key): boolean
-```
-
-To check a flag in a component:
-```typescript
-private readonly featureSvc = inject(FeatureFlagService);
-isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
-```
-
----
-
 ## Shared-lib exports
 
 **Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `Location`, `WorkLogDto`, `PagedResult<T>`
@@ -247,9 +222,8 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 | `ToastService` | `success/error/warning/info(msg)` |
 | `ConfirmService` | `confirm(opts) → Observable<boolean>` |
 | `ThemeService` | Dark/light toggle |
-| `FeatureFlagService` | Feature flag queries (`load`, `isEnabled`) |
 
-**Guards:** `authGuard`, `roleGuard`, `featureFlagGuard`
+**Guards:** `authGuard`, `permissionGuard`
 
 **Components:**
 - `ToastComponent` (`<nc-toast />`) — mount once in each app shell
@@ -835,8 +809,7 @@ report is a rough estimate only — not an authoritative payout figure.
 > The former in-app **Staff Ledger** and **Staff Settings** features (per-staff earnings ledger,
 > work types, settlements) were **removed** — staff self-record their earnings outside the system.
 > The `StaffEntry`/`StaffExpense`/`StaffLoan`/`StaffWorkType`/`StaffSettlement`/… tables were dropped
-> (migration `DropStaffLedgerTables`). Don't reintroduce `ledger.manage`/`config.manage` permissions
-> or the `staffLedger` feature flag.
+> (migration `DropStaffLedgerTables`). Don't reintroduce the `ledger.manage`/`config.manage` permissions.
 
 ---
 

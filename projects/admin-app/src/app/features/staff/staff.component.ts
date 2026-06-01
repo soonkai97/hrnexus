@@ -24,13 +24,14 @@ import { MultiSelect } from 'primeng/multiselect';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { Skeleton } from 'primeng/skeleton';
+import { Checkbox } from 'primeng/checkbox';
 
 @Component({
   selector: 'app-staff',
   standalone: true,
   imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective,
     Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
-    MultiSelect, Menu, Paginator, Skeleton],
+    MultiSelect, Menu, Paginator, Skeleton, Checkbox],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })
@@ -326,6 +327,111 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.toast.error(msg);
         this.savingReset.set(false);
       },
+    });
+  }
+
+  // ── Bulk actions ──────────────────────────────────────────────────────────
+  bulkSelecting    = signal(false);
+  selectedIds      = signal<Set<string>>(new Set());
+  bulkSaving       = signal(false);
+  showBulkLocations = signal(false);
+  showBulkRoles     = signal(false);
+  bulkLocations: string[] = [];
+  bulkRoles:     string[] = [];
+
+  selectedCount = computed(() => this.selectedIds().size);
+  allVisibleSelected = computed(() => {
+    const ids = this.selectedIds();
+    const rows = this.staff();
+    return rows.length > 0 && rows.every(s => ids.has(s.id));
+  });
+
+  toggleBulkMode(): void {
+    this.bulkSelecting.update(v => !v);
+    if (!this.bulkSelecting()) this.selectedIds.set(new Set());
+  }
+
+  toggleSelectAll(): void {
+    const rows = this.staff();
+    const next = new Set(this.selectedIds());
+    if (this.allVisibleSelected()) rows.forEach(s => next.delete(s.id));
+    else                           rows.forEach(s => next.add(s.id));
+    this.selectedIds.set(next);
+  }
+
+  toggleSelect(id: string): void {
+    const next = new Set(this.selectedIds());
+    if (next.has(id)) next.delete(id); else next.add(id);
+    this.selectedIds.set(next);
+  }
+
+  openBulkLocations(): void { this.bulkLocations = []; this.showBulkLocations.set(true); }
+  openBulkRoles():     void { this.bulkRoles = [];     this.showBulkRoles.set(true); }
+
+  private afterBulk(): void {
+    this.selectedIds.set(new Set());
+    this.bulkSelecting.set(false);
+    this.loadPage(this.currentPage());
+  }
+
+  saveBulkLocations(): void {
+    const ids = [...this.selectedIds()];
+    if (!ids.length || !this.bulkLocations.length) return;
+    this.bulkSaving.set(true);
+    this.staffStore.bulkAssignLocations(ids, this.bulkLocations).subscribe({
+      next: (r) => {
+        this.bulkSaving.set(false);
+        this.showBulkLocations.set(false);
+        this.toast.success(this.translate.instant('staff.bulkLocationsToast', { n: r.count }));
+        this.afterBulk();
+      },
+      error: (e) => {
+        this.bulkSaving.set(false);
+        this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
+      },
+    });
+  }
+
+  saveBulkRoles(): void {
+    const ids = [...this.selectedIds()];
+    if (!ids.length || !this.bulkRoles.length) return;
+    this.bulkSaving.set(true);
+    this.staffStore.bulkAssignRoles(ids, this.bulkRoles).subscribe({
+      next: (r) => {
+        this.bulkSaving.set(false);
+        this.showBulkRoles.set(false);
+        this.toast.success(this.translate.instant('staff.bulkRolesToast', { n: r.count }));
+        this.afterBulk();
+      },
+      error: (e) => {
+        this.bulkSaving.set(false);
+        this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
+      },
+    });
+  }
+
+  bulkDeactivateSelected(): void {
+    const ids = [...this.selectedIds()];
+    if (!ids.length) return;
+    this.confirmSvc.confirm({
+      title:        this.translate.instant('staff.bulkDeactivateTitle'),
+      message:      this.translate.instant('staff.bulkDeactivateMessage', { n: ids.length }),
+      confirmLabel: this.translate.instant('staff.deactivate'),
+      danger:       true,
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.bulkSaving.set(true);
+      this.staffStore.bulkDeactivate(ids).subscribe({
+        next: (r) => {
+          this.bulkSaving.set(false);
+          this.toast.success(this.translate.instant('staff.bulkDeactivatedToast', { n: r.count }));
+          this.afterBulk();
+        },
+        error: (e) => {
+          this.bulkSaving.set(false);
+          this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
+        },
+      });
     });
   }
 

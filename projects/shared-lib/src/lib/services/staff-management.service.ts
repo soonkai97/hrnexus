@@ -58,6 +58,22 @@ export class StaffManagementService {
     return this.http.delete<void>(`/api/staff/${id}`);
   }
 
+  // ── Bulk actions (act on a selected set of staff at once) ───────────────────
+  /** Additively assign one or more work locations to all selected staff. */
+  bulkAssignLocations(staffIds: string[], locationIds: string[]): Observable<{ count: number }> {
+    return this.http.post<{ count: number }>('/api/staff/bulk/locations', { staffIds, locationIds });
+  }
+
+  /** Additively assign one or more roles to all selected staff. */
+  bulkAssignRoles(staffIds: string[], roles: string[]): Observable<{ count: number }> {
+    return this.http.post<{ count: number }>('/api/staff/bulk/roles', { staffIds, roles });
+  }
+
+  /** Deactivate all selected staff (backend refuses if it would remove the last active admin). */
+  bulkDeactivate(staffIds: string[]): Observable<{ count: number }> {
+    return this.http.post<{ count: number }>('/api/staff/bulk/deactivate', { staffIds });
+  }
+
   getLocations(): Observable<VenueLocation[]> {
     return this.http.get<VenueLocation[]>('/api/locations');
   }

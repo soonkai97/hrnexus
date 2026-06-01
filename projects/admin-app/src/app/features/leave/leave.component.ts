@@ -278,6 +278,28 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
+  bulkMarkNoShowSelected(): void {
+    const ids = [...this.selectedIds()];
+    if (!ids.length) return;
+    this.confirmSvc.confirm({
+      title: this.translate.instant('leave.bulkNoShowTitle', { n: ids.length }),
+      message: this.translate.instant('leave.bulkNoShowMessage', { n: ids.length }),
+      confirmLabel: this.translate.instant('leave.bulkNoShowConfirm'),
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.bulkStatusSaving.set(true);
+      this.leaveSvc.bulkMarkNoShow(ids).subscribe({
+        next: r => {
+          this.bulkStatusSaving.set(false);
+          this.toast.success(this.translate.instant('leave.bulkNoShowToast', { n: r.count }));
+          this.selectedIds.set(new Set());
+          this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
+        },
+        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.updateFailed')); this.bulkStatusSaving.set(false); },
+      });
+    });
+  }
+
   processingId    = signal<string | null>(null);
   deletingLeaveId = signal<string | null>(null);
 

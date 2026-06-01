@@ -62,6 +62,11 @@ export class LeaveService {
       { ids, status, rejectionReason: rejectionReason ?? null });
   }
 
+  /** Admin: bulk-mark a list of leave requests as "no-show" (rostered but did not turn up). */
+  bulkMarkNoShow(ids: string[]): Observable<{ count: number }> {
+    return this.http.post<{ count: number }>('/api/admin/leave/bulk-no-show', { ids });
+  }
+
   /** Admin: aggregated leave usage summary per employee for a year. */
   getSummary(year?: number): Observable<LeaveSummary[]> {
     const q = year ? `?year=${year}` : '';

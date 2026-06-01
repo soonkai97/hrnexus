@@ -144,6 +144,25 @@
     </p-iconfield>
   </div>
 
+  <!-- Bulk actions -->
+  <div class="bulk-toolbar d-flex align-items-center gap-2 flex-wrap">
+    <p-button [label]="bulkSelecting() ? ('common.cancel' | translate) : ('staff.bulkSelect' | translate)"
+              [icon]="bulkSelecting() ? 'pi pi-times' : 'pi pi-check-square'"
+              [text]="true" severity="secondary" size="small" (onClick)="toggleBulkMode()" />
+    @if (bulkSelecting()) {
+      <span class="bulk-count">{{ 'staff.bulkSelected' | translate:{ n: selectedCount() } }}</span>
+      <p-button [label]="'staff.bulkAssignLocations' | translate" icon="pi pi-map-marker"
+                size="small" severity="secondary" [outlined]="true"
+                [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="openBulkLocations()" />
+      <p-button [label]="'staff.bulkAssignRoles' | translate" icon="pi pi-id-card"
+                size="small" severity="secondary" [outlined]="true"
+                [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="openBulkRoles()" />
+      <p-button [label]="'staff.bulkDeactivate' | translate" icon="pi pi-power-off"
+                size="small" severity="danger" [outlined]="true"
+                [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="bulkDeactivateSelected()" />
+    }
+  </div>
+
   <!-- Table -->
   @if (loading()) {
     <p-card styleClass="skeleton-table">
@@ -174,6 +193,12 @@
       sortField="firstName" [sortOrder]="1">
       <ng-template pTemplate="header">
         <tr>
+          @if (bulkSelecting()) {
+            <th scope="col" class="td-check">
+              <p-checkbox [binary]="true" [ngModel]="allVisibleSelected()" (onChange)="toggleSelectAll()"
+                          [attr.aria-label]="'staff.bulkSelectAll' | translate" />
+            </th>
+          }
           <th scope="col" pSortableColumn="staffId">{{ 'staff.staffId' | translate }} <p-sortIcon field="staffId" /></th>
           <th scope="col" pSortableColumn="firstName">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }} <p-sortIcon field="firstName" /></th>
           <th scope="col" pSortableColumn="roles">{{ 'staff.roleCol' | translate }} <p-sortIcon field="roles" /></th>
@@ -183,6 +208,13 @@
       </ng-template>
       <ng-template pTemplate="body" let-s>
         <tr>
+          @if (bulkSelecting()) {
+            <td class="td-check">
+              <span class="p-column-title">{{ 'staff.bulkSelect' | translate }}</span>
+              <p-checkbox [binary]="true" [ngModel]="selectedIds().has(s.id)" (onChange)="toggleSelect(s.id)"
+                          [attr.aria-label]="('staff.actionsFor' | translate:{ name: s.fullName })" />
+            </td>
+          }
           <td class="td-muted mono"><span class="p-column-title">{{ 'staff.staffId' | translate }}</span>{{ s.staffId }}</td>
           <td>
             <span class="p-column-title">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</span>
@@ -257,5 +289,43 @@
     <p-button [label]="savingReset() ? ('common.saving' | translate) : ('staff.saveReset' | translate)"
               severity="primary" (click)="saveResetPassword()"
               [disabled]="savingReset() || !isResetPwdValid" [loading]="savingReset()" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── Bulk: Assign Locations Dialog ───────────────────────────────────────── -->
+<p-dialog [visible]="showBulkLocations()" (visibleChange)="!$event && showBulkLocations.set(false)"
+          [header]="'staff.bulkAssignLocations' | translate" [modal]="true"
+          [style]="{'width':'min(480px, 92vw)'}" [closable]="true">
+  <p class="modal-desc">{{ 'staff.bulkAssignLocationsDesc' | translate:{ n: selectedCount() } }}</p>
+  <div class="field">
+    <label for="bulk-locations">{{ 'staff.locations' | translate }}</label>
+    <p-multiselect inputId="bulk-locations" [(ngModel)]="bulkLocations" [options]="availableLocations()"
+                   optionLabel="name" optionValue="id" [filter]="true" display="chip"
+                   [placeholder]="'staff.selectLocations' | translate" appendTo="body" styleClass="w-full" />
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulkLocations.set(false)" />
+    <p-button [label]="bulkSaving() ? ('common.saving' | translate) : ('common.apply' | translate)"
+              severity="primary" (click)="saveBulkLocations()"
+              [disabled]="bulkSaving() || !bulkLocations.length" [loading]="bulkSaving()" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── Bulk: Assign Roles Dialog ───────────────────────────────────────────── -->
+<p-dialog [visible]="showBulkRoles()" (visibleChange)="!$event && showBulkRoles.set(false)"
+          [header]="'staff.bulkAssignRoles' | translate" [modal]="true"
+          [style]="{'width':'min(480px, 92vw)'}" [closable]="true">
+  <p class="modal-desc">{{ 'staff.bulkAssignRolesDesc' | translate:{ n: selectedCount() } }}</p>
+  <div class="field">
+    <label for="bulk-roles">{{ 'staff.roleCol' | translate }}</label>
+    <p-multiselect inputId="bulk-roles" [(ngModel)]="bulkRoles" [options]="availableRoles()"
+                   optionLabel="name" optionValue="name" [filter]="true" display="chip"
+                   [placeholder]="'staff.selectRoles' | translate" appendTo="body" styleClass="w-full" />
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulkRoles.set(false)" />
+    <p-button [label]="bulkSaving() ? ('common.saving' | translate) : ('common.apply' | translate)"
+              severity="primary" (click)="saveBulkRoles()"
+              [disabled]="bulkSaving() || !bulkRoles.length" [loading]="bulkSaving()" />
   </ng-template>
 </p-dialog>

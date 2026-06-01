@@ -120,7 +120,10 @@
                         [ngModel]="permSelected().includes(key)"
                         (ngModelChange)="togglePermission(key, $event)"
                         [disabled]="permLoading()" />
-            <label [for]="'perm-' + key">{{ ('permissions.keys.' + key) | translate }}</label>
+            <label [for]="'perm-' + key" class="perm-label-block">
+              <span class="perm-label-text">{{ ('permissions.keys.' + key) | translate }}</span>
+              <small class="perm-desc">{{ ('permissions.desc.' + key) | translate }}</small>
+            </label>
           </div>
         }
       </div>

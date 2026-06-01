@@ -108,7 +108,7 @@
             @for (r of overdueLeaves(); track r.id) {
               <div class="overdue-row">
                 <div class="overdue-row-info">
-                  <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
+                  <p-tag [value]="leaveTypeKey(r.leaveType) | translate" [severity]="leaveTypeSeverity(r.leaveType)" />
                   <span class="overdue-staff">{{ r.staffName }}</span>
                   <span class="overdue-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' ' + ('leave.dateTo' | translate) + ' ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                 </div>
@@ -306,7 +306,7 @@
                     @for (r of day.leaves.slice(0, 2); track r.id) {
                       <div class="cal-leave-chip" tabindex="0" role="button" [class]="'cal-leave-' + r.leaveType"
                            [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
-                           [title]="r.staffName + ' — ' + (r.leaveType | titlecase) + ' (' + r.status + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — ' + ('leave.overdue' | translate) : '')"
+                           [title]="r.staffName + ' — ' + (leaveTypeKey(r.leaveType) | translate) + ' (' + (statusKey(r.status) | translate) + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — ' + ('leave.overdue' | translate) : '')"
                            (click)="openCalLeave(r, $event)"
                            (keydown.enter)="openCalLeave(r, $event)">
                         {{ calChipLabel(r.staffName) }}
@@ -320,7 +320,7 @@
           </div>
           <div class="cal-legend">
             @for (t of leaveTypes; track t) {
-              <span class="cal-legend-item"><span class="cal-legend-dot" [class]="'cal-leave-' + t"></span>{{ t | titlecase }}</span>
+              <span class="cal-legend-item"><span class="cal-legend-dot" [class]="'cal-leave-' + t"></span>{{ leaveTypeKey(t) | translate }}</span>
             }
           </div>
 
@@ -338,7 +338,7 @@
                   @for (r of selectedCalDayLeaves(); track r.id) {
                     <div class="cal-day-row">
                       <div class="cal-day-row-left">
-                        <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
+                        <p-tag [value]="leaveTypeKey(r.leaveType) | translate" [severity]="leaveTypeSeverity(r.leaveType)" />
                         @if (r.status === 'pending' && r.endDate < todayIso) {
                           <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
@@ -346,7 +346,7 @@
                         <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' ' + ('leave.dateTo' | translate) + ' ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
                       </div>
                       <div class="cal-day-row-right">
-                        <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
+                        <p-tag [value]="statusKey(r.status) | translate" [severity]="statusSeverity(r.status)" />
                         @if (r.status === 'pending') {
                           <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve cal-approve-btn" severity="primary"
                             [loading]="processingId() === r.id" [disabled]="!!processingId()"
@@ -411,14 +411,14 @@
                       [binary]="true"
                       (click)="$event.stopPropagation()" />
                   }
-                  <p-tag [value]="r.leaveType | titlecase" [severity]="leaveTypeSeverity(r.leaveType)" />
+                  <p-tag [value]="leaveTypeKey(r.leaveType) | translate" [severity]="leaveTypeSeverity(r.leaveType)" />
                   @if (r.status === 'pending' && r.endDate < todayIso) {
                     <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                   }
                 </div>
                 <div class="leave-top-right">
                   <!-- Item 10: use statusSeverity() for correct cancelled colour -->
-                  <p-tag [value]="r.status | titlecase" [severity]="statusSeverity(r.status)" />
+                  <p-tag [value]="statusKey(r.status) | translate" [severity]="statusSeverity(r.status)" />
                   <!-- Item 7: edit for ALL statuses -->
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" styleClass="lc-icon-btn" (click)="startEdit(r)" />
                   <p-button icon="pi pi-trash" [text]="true" severity="danger" styleClass="lc-icon-btn lc-icon-danger"

@@ -879,9 +879,9 @@ Separate from the mutate actions — each setup page can create many records at 
   `BulkCreateRolesCommand` (`Application/Staff/Commands`, `POST staff/roles/bulk`): normalise + dedupe
   names, skip existing, return `BulkCreateResult { Created, Skipped }`.
 - `BulkRegisterStaffCommand` (`POST staff/bulk-import`): **partial success** — validates each row
-  (required fields, intra-batch + DB duplicate Staff ID/email), generates a policy-compliant temp
-  password per row via `PasswordPolicy`, returns `BulkStaffImportResult { Created, Failed, Rows[] }`
-  where each row carries `{ staffId, success, error, tempPassword }` (plaintext password returned ONCE).
+  (required fields, intra-batch + DB duplicate Staff ID/email, and a **required admin-set password**
+  via `PasswordPolicy` — no auto-generation), returns `BulkStaffImportResult { Created, Failed, Rows[] }`
+  where each row carries `{ staffId, success, error }`.
 - `BulkCreateLeaveCommand` (`POST admin/leave/bulk-create`): delegates each employee to
   `UpsertLeaveCommand` via `ISender` (full overlap/balance/notify validation), partial success →
   `BulkLeaveResult { Created, Failed, Errors[] }`. Requires positive `hours` (same rule as single create).
@@ -889,7 +889,7 @@ Separate from the mutate actions — each setup page can create many records at 
 FE dialogs: all four are **editable row grids** (Locations: name-per-row `bulkRows:{name}[]`; Roles:
 Name+Rate `bulkRows:{name,rate}[]` → mapped to `{name,hourlyRate}`); Staff "Import" is an **editable row grid**
 (`importRows` model → `importRowsToSubmit` maps/trims/drops-blank → `bulkImportStaff`; per-row inputs
-+ a roles `p-multiselect`, Add/remove row) showing a per-row results table + "Copy credentials";
++ an admin-set **password** column + a roles `p-multiselect`, Add/remove row) showing a per-row results table;
 Leave "Bulk Record" is a staff-multiselect + type + dates + hours form. Note: staff import collects
 **roles** (from the roles dropdown) but **not** locations (location is ID-keyed — assign via the
 bulk-assign-locations action after import). Grid inputs start readonly (anti-autofill) — E2E must

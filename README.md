@@ -140,10 +140,10 @@ Each setup page also supports creating many records at once (max 100 per request
 - **Locations** / **Roles** — a *Bulk Add* dialog with an editable **row grid** (Locations: a name per
   row; Roles: Name + hourly-rate per row), with *Add row* / remove. Existing names are skipped.
 - **Staff** — an *Import* dialog with an **editable row grid**: one row per staff (Staff ID, name,
-  email, and a roles multiselect), with *Add row* / remove controls. Each row gets a generated
-  temporary password; the result table reports per-row success/failure with a *Copy credentials*
-  action (passwords are shown once). **Partial success** — a bad row is reported and skipped, the
-  rest still import.
+  email, an admin-set **password**, and a roles multiselect), with *Add row* / remove controls. The
+  password you enter is the one the staff logs in with (validated against the password policy). The
+  result table reports per-row success/failure. **Partial success** — a bad row is reported and
+  skipped, the rest still import.
 - **Leave** — a *Bulk Record* dialog: pick staff + type + date range + hours to record the same leave
   (e.g. a public holiday) for many staff; each goes through the normal leave validation.
 

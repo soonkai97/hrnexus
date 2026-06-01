@@ -39,4 +39,14 @@ test.describe('Admin — staff list', () => {
     await expect(page).toHaveURL(/\/staff\//, { timeout: 5_000 });
   });
 
+  // ── Staff ↔ location assignment ─────────────────────────────────────────────
+  // The Add Staff form must let an admin assign the work location(s) a staff member
+  // is allowed to clock in at, alongside roles.
+  test('Add Staff form exposes a work-location assignment field', async ({ page }) => {
+    await page.getByRole('button', { name: /add staff/i }).first().click();
+    // The Locations multiselect's label is bound to for="st-locations" — deterministic
+    // regardless of how many venues exist in the seed data.
+    await expect(page.locator('label[for="st-locations"]')).toBeVisible({ timeout: 5_000 });
+  });
+
 });

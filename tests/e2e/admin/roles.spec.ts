@@ -47,11 +47,11 @@ test.describe('Admin — Roles', () => {
     await expect(page.locator('.add-card')).toBeVisible({ timeout: 5_000 });
   });
 
-  // Bulk import: the "Bulk Add" dialog accepts "name, hourly-rate" lines.
-  test('Bulk Add dialog opens with a paste textarea', async ({ page }) => {
+  // Bulk import: the "Bulk Add" dialog is an editable Name + Rate row grid.
+  test('Bulk Add dialog opens with an editable Name/Rate grid', async ({ page }) => {
     const bulkBtn = page.getByRole('button', { name: /bulk add/i });
     await expect(bulkBtn).toBeVisible({ timeout: 10_000 });   // let the page settle first
     await bulkBtn.click();
-    await expect(page.locator('.p-dialog textarea')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('.p-dialog .bulk-grid-row input').first()).toBeVisible({ timeout: 5_000 });
   });
 });

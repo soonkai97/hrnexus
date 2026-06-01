@@ -146,13 +146,29 @@
           [header]="'roles.bulkAdd' | translate" [modal]="true"
           [style]="{'width':'min(480px, 92vw)'}" [closable]="true">
   <p class="modal-desc">{{ 'roles.bulkAddDesc' | translate }}</p>
-  <div class="field">
-    <textarea [(ngModel)]="bulkText" rows="8" class="bulk-textarea w-full"
-              [placeholder]="'roles.bulkAddPlaceholder' | translate"></textarea>
+  <div class="bulk-grid">
+    <div class="bulk-grid-head">
+      <span>{{ 'roles.roleNameCol' | translate }}</span>
+      <span>{{ 'roles.rateLabel' | translate }}</span>
+      <span></span>
+    </div>
+    @for (row of bulkRows; track $index) {
+      <div class="bulk-grid-row">
+        <input pInputText [(ngModel)]="row.name" [placeholder]="'roles.rolePlaceholder' | translate"
+               [attr.aria-label]="'roles.roleNameCol' | translate" />
+        <p-inputnumber [(ngModel)]="row.rate" [min]="0" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2"
+                       [attr.aria-label]="'roles.rateLabel' | translate" styleClass="w-full" />
+        <p-button icon="pi pi-times" [text]="true" severity="danger" size="small" rounded
+                  [attr.aria-label]="'common.delete' | translate"
+                  [disabled]="bulkRows.length <= 1" (onClick)="removeBulkRow($index)" />
+      </div>
+    }
+    <p-button icon="pi pi-plus" [label]="'common.addRow' | translate" [text]="true" severity="secondary"
+              size="small" (onClick)="addBulkRow()" />
   </div>
   <ng-template pTemplate="footer">
     <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulk.set(false)" />
     <p-button [label]="bulkSaving() ? ('common.saving' | translate) : ('common.create' | translate)"
-              severity="primary" (click)="saveBulk()" [disabled]="bulkSaving() || !bulkText.trim()" [loading]="bulkSaving()" />
+              severity="primary" (click)="saveBulk()" [disabled]="bulkSaving() || !bulkRoles.length" [loading]="bulkSaving()" />
   </ng-template>
 </p-dialog>

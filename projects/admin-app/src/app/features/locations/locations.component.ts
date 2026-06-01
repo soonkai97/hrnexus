@@ -88,15 +88,21 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  // ── Bulk add (paste one location name per line) ─────────────────────────────
+  // ── Bulk add (editable row grid — one location name per row) ────────────────
   showBulk   = signal(false);
-  bulkText   = '';
+  bulkRows: { name: string }[] = [];
   bulkSaving = signal(false);
 
-  openBulk(): void { this.bulkText = ''; this.showBulk.set(true); }
+  openBulk(): void { this.bulkRows = [{ name: '' }, { name: '' }, { name: '' }]; this.showBulk.set(true); }
+  addBulkRow(): void { this.bulkRows = [...this.bulkRows, { name: '' }]; }
+  removeBulkRow(i: number): void { this.bulkRows = this.bulkRows.filter((_, idx) => idx !== i); }
+
+  get bulkNames(): string[] {
+    return this.bulkRows.map(r => r.name.trim()).filter(n => n.length > 0);
+  }
 
   saveBulk(): void {
-    const names = this.bulkText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+    const names = this.bulkNames;
     if (!names.length) return;
     this.bulkSaving.set(true);
     this.store.bulkCreate(names).subscribe({

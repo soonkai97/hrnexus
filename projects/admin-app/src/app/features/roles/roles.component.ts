@@ -98,22 +98,26 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  // ── Bulk add (paste "name, hourly-rate" per line) ───────────────────────────
+  // ── Bulk add (editable row grid — Name + Rate per row) ──────────────────────
   showBulk   = signal(false);
-  bulkText   = '';
+  bulkRows: { name: string; rate: number | null }[] = [];
   bulkSaving = signal(false);
 
-  openBulk(): void { this.bulkText = ''; this.showBulk.set(true); }
+  openBulk(): void {
+    this.bulkRows = [{ name: '', rate: 0 }, { name: '', rate: 0 }, { name: '', rate: 0 }];
+    this.showBulk.set(true);
+  }
+  addBulkRow(): void { this.bulkRows = [...this.bulkRows, { name: '', rate: 0 }]; }
+  removeBulkRow(i: number): void { this.bulkRows = this.bulkRows.filter((_, idx) => idx !== i); }
+
+  get bulkRoles(): { name: string; hourlyRate: number }[] {
+    return this.bulkRows
+      .map(r => ({ name: r.name.trim(), hourlyRate: r.rate != null && r.rate >= 0 ? r.rate : 0 }))
+      .filter(r => r.name.length > 0);
+  }
 
   saveBulk(): void {
-    const roles = this.bulkText.split('\n')
-      .map(line => line.trim()).filter(line => line.length > 0)
-      .map(line => {
-        const [name, rate] = line.split(',');
-        const r = parseFloat((rate ?? '').trim());
-        return { name: (name ?? '').trim(), hourlyRate: Number.isFinite(r) ? r : 0 };
-      })
-      .filter(r => r.name.length > 0);
+    const roles = this.bulkRoles;
     if (!roles.length) return;
     this.bulkSaving.set(true);
     this.store.bulkCreateRoles(roles).subscribe({

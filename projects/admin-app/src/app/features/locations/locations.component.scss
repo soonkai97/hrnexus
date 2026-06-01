@@ -1,5 +1,19 @@
 @use 'styles/theme' as *;
 
+// ── Bulk-add row grid ─────────────────────────────────────────────────────────
+.bulk-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  .bulk-grid-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    input { width: 100%; }
+  }
+}
+
 .form-card {
   max-width: 420px;
   margin-bottom: 1.5rem;

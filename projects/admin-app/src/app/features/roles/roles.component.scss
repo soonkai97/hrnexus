@@ -1,5 +1,24 @@
 @use 'styles/theme' as *;
 
+// ── Bulk-add row grid (Name + Rate) ───────────────────────────────────────────
+.bulk-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  .bulk-grid-head,
+  .bulk-grid-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .bulk-grid-head {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: $text-muted;
+  }
+  .bulk-grid-row input { width: 100%; }
+}
+
 // ── Role permissions dialog ───────────────────────────────────────────────────
 .modal-desc {
   margin: 0 0 1rem;

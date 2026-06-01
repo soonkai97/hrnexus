@@ -645,8 +645,12 @@ describe('StaffComponent', () => {
   // ── Bulk import (CSV paste) ─────────────────────────────────────────────────────
 
   describe('runImport()', () => {
-    it('parses CSV rows (semicolon-separated roles, blanks → null) and calls bulkImportStaff', () => {
-      component.importText = 'NC1, Alice, Tan, alice@t.com, BARTENDER;STAFF\nNC2, Bob';
+    it('maps grid rows (trims, blank → null) and drops fully-empty rows before calling bulkImportStaff', () => {
+      component.importRows = [
+        { staffId: ' NC1 ', firstName: ' Alice ', lastName: ' Tan ', email: ' alice@t.com ', roles: ['BARTENDER', 'STAFF'] },
+        { staffId: 'NC2', firstName: 'Bob', lastName: '', email: '', roles: [] },
+        { staffId: '', firstName: '', lastName: '', email: '', roles: [] },   // fully blank → dropped
+      ];
       component.runImport();
       expect(mockStaffStore.bulkImportStaff).toHaveBeenCalledWith([
         { staffId: 'NC1', firstName: 'Alice', lastName: 'Tan', email: 'alice@t.com', roles: ['BARTENDER', 'STAFF'] },
@@ -654,8 +658,8 @@ describe('StaffComponent', () => {
       ]);
     });
 
-    it('does nothing when the textarea is empty', () => {
-      component.importText = '  \n ';
+    it('does nothing when every row is blank', () => {
+      component.importRows = [{ staffId: '  ', firstName: ' ', lastName: '', email: '', roles: [] }];
       component.runImport();
       expect(mockStaffStore.bulkImportStaff).not.toHaveBeenCalled();
     });
@@ -666,7 +670,7 @@ describe('StaffComponent', () => {
         rows: [{ staffId: 'NC1', success: true, error: null, tempPassword: 'Abc12345' }],
       }));
       mockStaffStore.loadStaff.mockClear();
-      component.importText = 'NC1, Alice, , , STAFF';
+      component.importRows = [{ staffId: 'NC1', firstName: 'Alice', lastName: '', email: '', roles: ['STAFF'] }];
       component.runImport();
       expect(component.importResult()?.created).toBe(1);
       expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('', 1, 10);
@@ -674,9 +678,18 @@ describe('StaffComponent', () => {
 
     it('shows an error toast when the request fails', () => {
       mockStaffStore.bulkImportStaff.mockReturnValue(throwError(() => ({ error: { error: 'Too many rows.' } })));
-      component.importText = 'NC1, Alice, , , STAFF';
+      component.importRows = [{ staffId: 'NC1', firstName: 'Alice', lastName: '', email: '', roles: ['STAFF'] }];
       component.runImport();
       expect(mockToastSvc.error).toHaveBeenCalledWith('Too many rows.');
+    });
+
+    it('addImportRow appends a blank row; removeImportRow drops by index', () => {
+      component.importRows = [{ staffId: 'A', firstName: '', lastName: '', email: '', roles: [] }];
+      component.addImportRow();
+      expect(component.importRows.length).toBe(2);
+      component.removeImportRow(0);
+      expect(component.importRows.length).toBe(1);
+      expect(component.importRows[0].staffId).toBe('');
     });
   });
 

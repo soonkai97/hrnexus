@@ -1,5 +1,40 @@
 @use 'styles/theme' as *;
 
+// ── Bulk-import row grid ──────────────────────────────────────────────────────
+.import-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  .import-grid-head,
+  .import-grid-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 1.2fr 1.6fr 1.8fr auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .import-grid-head {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $text-muted;
+    .req { color: var(--p-red-500, #ef4444); margin-right: 0.15rem; }
+  }
+  .import-grid-row input { width: 100%; }
+
+  // Stack each row into a labelled card on narrow screens
+  @media (max-width: 720px) {
+    .import-grid-head { display: none; }
+    .import-grid-row {
+      grid-template-columns: 1fr;
+      border: 1px solid $border-subtle;
+      border-radius: $radius-md;
+      padding: 0.6rem;
+    }
+  }
+}
+
 .form-card { margin-bottom: 1.25rem; }
 .form-title { font-size: 1rem; margin-bottom: 1rem; color: $text-primary; }
 .form-actions { margin-top: 0.5rem; }

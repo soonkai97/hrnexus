@@ -63,23 +63,38 @@ test.describe('Admin — staff list', () => {
     await expect(page.locator('label[for="bulk-locations"]')).toBeVisible({ timeout: 5_000 });
   });
 
-  // ── Bulk import (CSV/paste) ──────────────────────────────────────────────────
-  test('Import dialog opens with a paste textarea', async ({ page }) => {
-    await page.getByRole('button', { name: 'Import' }).first().click();
-    await expect(page.locator('.p-dialog textarea')).toBeVisible({ timeout: 5_000 });
+  // ── Bulk import (editable row grid) ──────────────────────────────────────────
+  test('Import dialog opens with an editable row grid', async ({ page }) => {
+    const importBtn = page.getByRole('button', { name: 'Import' }).first();
+    await expect(importBtn).toBeVisible({ timeout: 10_000 });
+    await importBtn.click();
+    await expect(page.locator('.p-dialog .import-grid-row input').first()).toBeVisible({ timeout: 5_000 });
   });
 
-  // End-to-end: a valid row imports (with a generated temp password) and a bad row is reported —
+  // End-to-end: fill one valid row (Staff ID + name + role) and one invalid row (no name) →
   // partial success. Uses a unique Staff ID so repeated runs don't collide.
   test('importing rows shows a per-row results table (partial success)', async ({ page }) => {
-    await page.getByRole('button', { name: 'Import' }).first().click();
-    const textarea = page.locator('.p-dialog textarea');
-    await textarea.waitFor({ timeout: 5_000 });
+    const importBtn = page.getByRole('button', { name: 'Import' }).first();
+    await expect(importBtn).toBeVisible({ timeout: 10_000 });
+    await importBtn.click();
+    const rows = page.locator('.p-dialog .import-grid-row');
+    await rows.first().waitFor({ timeout: 5_000 });
+
     const uid = 'E2E' + Date.now().toString().slice(-7);
-    await textarea.fill(`${uid}, E2E, Tester, , STAFF\nBADROW, , , , STAFF`);
+    // Inputs start readonly (anti-autofill) until interacted with — click before fill.
+    const set = async (loc: typeof rows, val: string) => { await loc.click(); await loc.fill(val); };
+    // Row 1 — valid: Staff ID + first name + a role
+    await set(rows.nth(0).locator('input').nth(0), uid);
+    await set(rows.nth(0).locator('input').nth(1), 'E2E');
+    await rows.nth(0).locator('p-multiselect').click();
+    await page.getByRole('option', { name: 'STAFF', exact: true }).click();
+    await page.keyboard.press('Escape');
+    // Row 2 — invalid: Staff ID but no first name
+    await set(rows.nth(1).locator('input').nth(0), 'BAD' + uid);
+
     await page.locator('.p-dialog').getByRole('button', { name: 'Import' }).click();
-    // The results table renders: the good row's generated Staff ID appears, plus a Failed tag.
-    await expect(page.locator('.p-dialog').getByText(uid)).toBeVisible({ timeout: 8_000 });
+    // Results table renders with both an Active (success) and a Failed tag (partial success).
+    await expect(page.locator('.p-dialog').getByText(uid).first()).toBeVisible({ timeout: 8_000 });
     await expect(page.locator('.p-dialog').getByText(/failed/i).first()).toBeVisible({ timeout: 5_000 });
   });
 

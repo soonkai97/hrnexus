@@ -563,6 +563,20 @@
       "payroll.lock":         "锁定薪资周期",
       "roles.manage":         "管理职位与权限",
       "locations.manage":     "管理地点"
+    },
+    "desc": {
+      "portal.admin":         "登录此管理门户。没有此权限的账号只能使用员工端应用。",
+      "staff.view":           "查看员工列表并打开员工资料（只读）。",
+      "staff.manage":         "添加、编辑、停用员工并重置其密码。",
+      "leave.approve":        "批准或拒绝请假申请，并为员工录入请假。",
+      "leave.manage":         "设置每位员工的年度假期配额（年假 / 病假小时）。",
+      "worklog.manage":       "在报告中编辑或删除员工的班次记录。",
+      "reports.view":         "打开报告页面并下载考勤 CSV。",
+      "payroll.view":         "打开薪资报表（按员工的工时 × 时薪）。",
+      "payroll.manage":       "将薪资数据导出为 CSV。",
+      "payroll.lock":         "锁定或重新开放某月份以冻结其排班记录。",
+      "roles.manage":         "创建职位、设置时薪并分配这些权限。",
+      "locations.manage":     "添加、编辑和删除场地地点。"
     }
   },
   "roles": {

@@ -563,6 +563,20 @@
       "payroll.lock":         "Lock payroll periods",
       "roles.manage":         "Manage roles & permissions",
       "locations.manage":     "Manage locations"
+    },
+    "desc": {
+      "portal.admin":         "Sign in to this management portal. Without it, the account can only use the staff app.",
+      "staff.view":           "See the staff list and open staff profiles (read-only).",
+      "staff.manage":         "Add, edit, deactivate staff and reset their passwords.",
+      "leave.approve":        "Approve or reject leave requests, and record leave for staff.",
+      "leave.manage":         "Set each staff member's yearly leave entitlement (annual / sick hours).",
+      "worklog.manage":       "Edit or delete staff shift records in Reports.",
+      "reports.view":         "Open the Reports page and download attendance CSV exports.",
+      "payroll.view":         "Open the Payroll report (hours × hourly rate per staff).",
+      "payroll.manage":       "Export the payroll data to CSV.",
+      "payroll.lock":         "Lock or reopen a month to freeze its shift logs.",
+      "roles.manage":         "Create roles, set their hourly rate, and assign these permissions.",
+      "locations.manage":     "Add, edit and remove venue locations."
     }
   },
   "roles": {

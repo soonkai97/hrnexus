@@ -253,7 +253,10 @@
                 <div class="perm-row"
                      [class.choice-grant]="permChoices()[key] === 'grant'"
                      [class.choice-revoke]="permChoices()[key] === 'revoke'">
-                  <span class="perm-label" [id]="'perm-label-' + key">{{ ('permissions.keys.' + key) | translate }}</span>
+                  <span class="perm-label" [id]="'perm-label-' + key">
+                    <span class="perm-label-text">{{ ('permissions.keys.' + key) | translate }}</span>
+                    <small class="perm-desc">{{ ('permissions.desc.' + key) | translate }}</small>
+                  </span>
                   <p-selectButton
                     [options]="permOptions()"
                     optionLabel="label"

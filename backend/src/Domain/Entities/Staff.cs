@@ -165,6 +165,28 @@ public class Staff : IHasAudit, ISoftDelete
     public bool IsAssignedToLocation(string locationId) =>
         LocationEntries.Any(l => l.LocationId == locationId);
 
+    /// <summary>Additively assigns the supplied location IDs ON TOP of the existing ones (union) —
+    /// used by bulk-assign, which adds venues without clearing a staff member's current assignments.
+    /// Duplicates are ignored so the change tracker never holds two rows with the same key.</summary>
+    public void AddLocations(IEnumerable<string> locationIds)
+    {
+        var existing = LocationEntries.Select(le => le.LocationId).ToHashSet();
+        foreach (var id in locationIds.Select(l => l.Trim()).Where(l => l.Length > 0).Distinct())
+            if (existing.Add(id))
+                LocationEntries.Add(new StaffLocation { EmployeeId = Id, LocationId = id });
+    }
+
+    /// <summary>Additively assigns the supplied roles ON TOP of the existing ones (union, uppercase-
+    /// normalised) — used by bulk-assign. Duplicates are ignored so the change tracker never holds
+    /// two rows with the same composite key.</summary>
+    public void AddRoles(IEnumerable<string> roles)
+    {
+        var existing = RoleEntries.Select(re => re.Role).ToHashSet();
+        foreach (var role in roles.Select(r => r.Trim().ToUpperInvariant()).Where(r => r.Length > 0).Distinct())
+            if (existing.Add(role))
+                RoleEntries.Add(new StaffRole { EmployeeId = Id, Role = role });
+    }
+
     /// <summary>Replaces all location assignments with the supplied IDs. Mutates the collection in place
     /// (removes dropped, adds new) so the EF change tracker never holds two rows with the same key.</summary>
     private void SetLocations(IEnumerable<string> locationIds)

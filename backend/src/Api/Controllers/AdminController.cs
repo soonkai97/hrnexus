@@ -190,6 +190,21 @@ public class AdminController(IMediator mediator) : ControllerBase
         catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
+    /// <summary>Bulk-mark a list of leave requests as "no-show" (rostered but did not turn up).</summary>
+    [HttpPost("leave/bulk-no-show")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveManage)]
+    public async Task<IActionResult> BulkMarkLeaveNoShow(
+        [FromBody] BulkMarkLeaveNoShowBody body, CancellationToken ct)
+    {
+        try
+        {
+            var count = await mediator.Send(new BulkMarkLeaveNoShowCommand(body.Ids), ct);
+            return Ok(new { count });
+        }
+        catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
+    }
+
     /// <summary>Aggregated leave usage summary for all active staff for a given year.</summary>
     [HttpGet("leave/summary")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
@@ -267,6 +282,7 @@ public class AdminController(IMediator mediator) : ControllerBase
 
 public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status, string? RejectionReason = null);
 public record BulkUpdateLeaveStatusBody(List<Guid> Ids, string Status, string? RejectionReason = null);
+public record BulkMarkLeaveNoShowBody(List<Guid> Ids);
 public record LeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record BulkLeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record CarryOverBody(int FromYear, int ToYear, decimal? MaxCarryOver);

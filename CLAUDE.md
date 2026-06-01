@@ -848,6 +848,32 @@ expose `availableLocations`, and bind a `p-multiselect` (`optionValue="id"`). `R
 
 ---
 
+## Bulk admin actions
+
+Bulk operations act on a selected set of records in one request. **Canonical backend pattern**
+(`BulkUpdateLeaveStatusCommand`): validate a **≤100** batch, load all rows, mutate in a loop, **one**
+`SaveChangesAsync`, and `audit.LogAsync(...)` per row *inside the loop* (so audit rows commit in the
+same transaction); catch `DbUpdateConcurrencyException` → clean "refresh and try again" `InvalidOperationException`.
+
+Current bulk commands:
+- **Staff** (`Application/Staff/Commands/BulkStaffCommands.cs`, `StaffController` `POST bulk/locations`,
+  `bulk/roles`, `bulk/deactivate`, gated `staff.manage`): `BulkAssignLocationsCommand` /
+  `BulkAssignRolesCommand` are **additive** — they call the **`Staff.AddLocations`/`AddRoles`** union
+  helpers (NOT `SetLocations`/`SetRoles`, which replace). `BulkDeactivateStaffCommand` applies a
+  **whole-selection** last-admin guard (counts active admins, refuses if the batch is all of them) —
+  the per-row `DeactivateStaffCommand` guard can't catch that because un-saved in-memory changes still
+  read as committed-active. Roles are validated against the `Roles` table (the admin dropdown source).
+- **Leave** (`Application/Admin/Commands/BulkMarkLeaveNoShowCommand.cs`, `AdminController`
+  `POST leave/bulk-no-show`, gated `leave.manage`): flips each record's type to `no-show`, preserving
+  status; skips already-no-show rows.
+
+**Frontend:** the leave page owns the original selection UI (`bulkSelecting`/`selectedIds` signals +
+checkbox column + action bar); the staff list mirrors it. Service methods live on
+`StaffManagementService` / `LeaveService` (+ `StaffStore` delegators). Bulk commands return
+`{ count }`. Backend `ArgumentException` → 400 surfaced as a toast.
+
+---
+
 ## Process rules
 
 These rules apply to every task unless explicitly overridden.

@@ -49,9 +49,24 @@
       "setup":      "设置"
     }
   },
+  "payroll": {
+    "title":             "薪资报表",
+    "year":              "年份",
+    "month":             "月份",
+    "view":              "查看",
+    "totalGross":        "应发薪资总额",
+    "exportCsv":         "导出 CSV",
+    "incompleteWarning": "本期间尚未结束——数据不完整。进行中的班次不计入薪资。",
+    "colStaffId":        "员工编号",
+    "colName":           "姓名",
+    "colTotalHrs":       "总时数",
+    "colWorkPay":        "工作薪资 (RM)",
+    "note":              "工作薪资 = 总班次时数 × 时薪。所有假期均为无薪。",
+    "emptyState":        "选择年份和月份，然后点击「查看」加载薪资数据。"
+  },
   "payrollLocks": {
     "title":           "薪资锁定",
-    "subtitle":        "锁定某个月份以冻结其排班记录和账本记录。锁定的周期在重新开放前无法编辑。",
+    "subtitle":        "锁定某个月份以冻结其排班记录。锁定的周期在重新开放前无法编辑。",
     "year":            "年份",
     "month":           "月份",
     "note":            "备注",
@@ -61,7 +76,7 @@
     "lockedBy":        "锁定人",
     "lockedAt":        "锁定时间",
     "reopen":          "重新开放",
-    "reopenConfirm":   "重新开放 {{period}}？其排班记录和账本记录将再次变为可编辑。",
+    "reopenConfirm":   "重新开放 {{period}}？其排班记录将再次变为可编辑。",
     "noLocks":         "没有锁定的周期。",
     "lockedToast":     "周期已锁定。",
     "reopenedToast":   "周期已重新开放。",

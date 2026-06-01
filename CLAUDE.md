@@ -886,10 +886,13 @@ Separate from the mutate actions — each setup page can create many records at 
   `UpsertLeaveCommand` via `ISender` (full overlap/balance/notify validation), partial success →
   `BulkLeaveResult { Created, Failed, Errors[] }`. Requires positive `hours` (same rule as single create).
 
-FE dialogs: Locations/Roles paste-list textareas; Staff "Import" shows a per-row results table +
-"Copy credentials"; Leave "Bulk Record" is a staff-multiselect + type + dates + hours form. Note:
-staff import takes **role names** (matching the roles dropdown) but **not** locations (location is
-ID-keyed — assign via the bulk-assign-locations action after import).
+FE dialogs: Locations/Roles paste-list textareas; Staff "Import" is an **editable row grid**
+(`importRows` model → `importRowsToSubmit` maps/trims/drops-blank → `bulkImportStaff`; per-row inputs
++ a roles `p-multiselect`, Add/remove row) showing a per-row results table + "Copy credentials";
+Leave "Bulk Record" is a staff-multiselect + type + dates + hours form. Note: staff import collects
+**roles** (from the roles dropdown) but **not** locations (location is ID-keyed — assign via the
+bulk-assign-locations action after import). Grid inputs start readonly (anti-autofill) — E2E must
+click-then-fill.
 
 ---
 

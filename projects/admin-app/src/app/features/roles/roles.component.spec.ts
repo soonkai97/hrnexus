@@ -29,6 +29,7 @@ describe('RolesComponent', () => {
     createRole:     ReturnType<typeof vi.fn>;
     updateRoleRate: ReturnType<typeof vi.fn>;
     deleteRole:     ReturnType<typeof vi.fn>;
+    bulkCreateRoles: ReturnType<typeof vi.fn>;
   };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
@@ -46,6 +47,7 @@ describe('RolesComponent', () => {
       createRole:     vi.fn().mockReturnValue(of(undefined)),
       updateRoleRate: vi.fn().mockReturnValue(of(undefined)),
       deleteRole:     vi.fn().mockReturnValue(of(undefined)),
+      bulkCreateRoles: vi.fn().mockReturnValue(of({ created: 2, skipped: 0 })),
     };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
@@ -135,6 +137,41 @@ describe('RolesComponent', () => {
       component.newRoleName = 'host';
       component.addRole();
       expect(component.saving()).toBe(false);
+    });
+  });
+
+  // ── saveBulk() — bulk add ──────────────────────────────────────────────────────
+
+  describe('saveBulk()', () => {
+    it('parses "name, rate" lines (defaulting a missing rate to 0) and calls store.bulkCreateRoles', () => {
+      component.bulkText = 'Supervisor, 25\nHost\n  Security , 22 ';
+      component.saveBulk();
+      expect(mockStaffStore.bulkCreateRoles).toHaveBeenCalledWith([
+        { name: 'Supervisor', hourlyRate: 25 },
+        { name: 'Host', hourlyRate: 0 },
+        { name: 'Security', hourlyRate: 22 },
+      ]);
+    });
+
+    it('does nothing when no usable rows are present', () => {
+      component.bulkText = '  \n ';
+      component.saveBulk();
+      expect(mockStaffStore.bulkCreateRoles).not.toHaveBeenCalled();
+    });
+
+    it('shows a created/skipped toast and closes the dialog on success', () => {
+      component.bulkText = 'Host, 18';
+      component.showBulk.set(true);
+      component.saveBulk();
+      expect(mockToastSvc.success).toHaveBeenCalledWith('roles.bulkAddedToast');
+      expect(component.showBulk()).toBe(false);
+    });
+
+    it('shows an error toast on failure', () => {
+      mockStaffStore.bulkCreateRoles.mockReturnValue(throwError(() => ({ error: { error: 'Nope.' } })));
+      component.bulkText = 'Host, 18';
+      component.saveBulk();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Nope.');
     });
   });
 

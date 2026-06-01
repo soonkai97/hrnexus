@@ -59,6 +59,7 @@ describe('StaffComponent', () => {
     bulkAssignLocations: ReturnType<typeof vi.fn>;
     bulkAssignRoles:     ReturnType<typeof vi.fn>;
     bulkDeactivate:      ReturnType<typeof vi.fn>;
+    bulkImportStaff:     ReturnType<typeof vi.fn>;
   };
   let mockAuth:       { user: () => any; hasRole: ReturnType<typeof vi.fn> };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
@@ -79,6 +80,7 @@ describe('StaffComponent', () => {
       bulkAssignLocations: vi.fn().mockReturnValue(of({ count: 2 })),
       bulkAssignRoles:     vi.fn().mockReturnValue(of({ count: 2 })),
       bulkDeactivate:      vi.fn().mockReturnValue(of({ count: 2 })),
+      bulkImportStaff:     vi.fn().mockReturnValue(of({ created: 1, failed: 0, rows: [] })),
     };
     mockAuth       = { user: () => null, hasRole: vi.fn().mockReturnValue(false) };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
@@ -637,6 +639,60 @@ describe('StaffComponent', () => {
       );
       component.bulkDeactivateSelected();
       expect(mockToastSvc.error).toHaveBeenCalledWith('Keep at least one administrator active.');
+    });
+  });
+
+  // ── Bulk import (CSV paste) ─────────────────────────────────────────────────────
+
+  describe('runImport()', () => {
+    it('parses CSV rows (semicolon-separated roles, blanks → null) and calls bulkImportStaff', () => {
+      component.importText = 'NC1, Alice, Tan, alice@t.com, BARTENDER;STAFF\nNC2, Bob';
+      component.runImport();
+      expect(mockStaffStore.bulkImportStaff).toHaveBeenCalledWith([
+        { staffId: 'NC1', firstName: 'Alice', lastName: 'Tan', email: 'alice@t.com', roles: ['BARTENDER', 'STAFF'] },
+        { staffId: 'NC2', firstName: 'Bob', lastName: null, email: null, roles: [] },
+      ]);
+    });
+
+    it('does nothing when the textarea is empty', () => {
+      component.importText = '  \n ';
+      component.runImport();
+      expect(mockStaffStore.bulkImportStaff).not.toHaveBeenCalled();
+    });
+
+    it('stores the result and reloads page 1 when at least one row imported', () => {
+      mockStaffStore.bulkImportStaff.mockReturnValue(of({
+        created: 1, failed: 1,
+        rows: [{ staffId: 'NC1', success: true, error: null, tempPassword: 'Abc12345' }],
+      }));
+      mockStaffStore.loadStaff.mockClear();
+      component.importText = 'NC1, Alice, , , STAFF';
+      component.runImport();
+      expect(component.importResult()?.created).toBe(1);
+      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('', 1, 10);
+    });
+
+    it('shows an error toast when the request fails', () => {
+      mockStaffStore.bulkImportStaff.mockReturnValue(throwError(() => ({ error: { error: 'Too many rows.' } })));
+      component.importText = 'NC1, Alice, , , STAFF';
+      component.runImport();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Too many rows.');
+    });
+  });
+
+  describe('copyCredentials()', () => {
+    it('copies "staffId<TAB>password" lines for successful rows only', () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+      component.importResult.set({
+        created: 1, failed: 1,
+        rows: [
+          { staffId: 'NC1', success: true,  error: null,  tempPassword: 'Abc12345' },
+          { staffId: 'BAD', success: false, error: 'bad', tempPassword: null },
+        ],
+      });
+      component.copyCredentials();
+      expect(writeText).toHaveBeenCalledWith('NC1\tAbc12345');
     });
   });
 

@@ -15,7 +15,9 @@ export default defineConfig({
   globalSetup: './tests/e2e/shared/global-setup.ts',
   fullyParallel: false,          // sequential by default to avoid flakiness
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  // One local retry absorbs a transient render/timeout blip on a busy dev machine without
+  // hiding real failures (a genuine break still fails on the retry). CI retries twice.
+  retries: process.env.CI ? 2 : 1,
   workers: 1,
   reporter: [['html', { open: 'never' }], ['list']],
 

@@ -63,4 +63,24 @@ test.describe('Admin — staff list', () => {
     await expect(page.locator('label[for="bulk-locations"]')).toBeVisible({ timeout: 5_000 });
   });
 
+  // ── Bulk import (CSV/paste) ──────────────────────────────────────────────────
+  test('Import dialog opens with a paste textarea', async ({ page }) => {
+    await page.getByRole('button', { name: 'Import' }).first().click();
+    await expect(page.locator('.p-dialog textarea')).toBeVisible({ timeout: 5_000 });
+  });
+
+  // End-to-end: a valid row imports (with a generated temp password) and a bad row is reported —
+  // partial success. Uses a unique Staff ID so repeated runs don't collide.
+  test('importing rows shows a per-row results table (partial success)', async ({ page }) => {
+    await page.getByRole('button', { name: 'Import' }).first().click();
+    const textarea = page.locator('.p-dialog textarea');
+    await textarea.waitFor({ timeout: 5_000 });
+    const uid = 'E2E' + Date.now().toString().slice(-7);
+    await textarea.fill(`${uid}, E2E, Tester, , STAFF\nBADROW, , , , STAFF`);
+    await page.locator('.p-dialog').getByRole('button', { name: 'Import' }).click();
+    // The results table renders: the good row's generated Staff ID appears, plus a Failed tag.
+    await expect(page.locator('.p-dialog').getByText(uid)).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator('.p-dialog').getByText(/failed/i).first()).toBeVisible({ timeout: 5_000 });
+  });
+
 });

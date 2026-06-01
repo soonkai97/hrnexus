@@ -41,4 +41,10 @@ test.describe('Admin — Roles', () => {
     // .add-card contains the inline form for creating a custom role
     await expect(page.locator('.add-card')).toBeVisible({ timeout: 5_000 });
   });
+
+  // Bulk import: the "Bulk Add" dialog accepts "name, hourly-rate" lines.
+  test('Bulk Add dialog opens with a paste textarea', async ({ page }) => {
+    await page.getByRole('button', { name: /bulk add/i }).click();
+    await expect(page.locator('.p-dialog textarea')).toBeVisible({ timeout: 5_000 });
+  });
 });

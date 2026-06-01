@@ -6,8 +6,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { HomeComponent } from './home.component';
 import {
-  AuthService, PayrollService, LeaveService, WorkLogService,
-  FeatureFlagService, WorkLogDto,
+  AuthService, LeaveService, WorkLogService, WorkLogDto,
 } from 'shared-lib';
 
 /**
@@ -15,8 +14,7 @@ import {
  *
  * WHY these tests matter:
  *  - The greeting is the first thing staff see — wrong time-of-day message undermines trust.
- *  - showPay and showAnnouncements gate entire card sections; an off flag disables revenue-critical info.
- *  - ngOnInit fans out to 5 APIs via forkJoin. Any signal left empty or set to wrong data
+ *  - ngOnInit fans out to 3 APIs via forkJoin. Any signal left empty or set to wrong data
  *    results in a blank dashboard without a visible error.
  *  - catchError on each branch means a single API failure must NOT prevent the rest
  *    of the dashboard from loading.
@@ -38,39 +36,23 @@ const fakeBalance = {
   sickEntitlement: 14, sickUsed: 0, sickRemaining: 14, unpaidUsed: 0,
 };
 
-const fakePaySummary = {
-  employeeId: 'e1', periodStart: '2026-05-01', periodEnd: '2026-05-31',
-  totalHours: 40, grossPay: 600,
-};
-
 // ── Suite ─────────────────────────────────────────────────────────────────────
 
 describe('HomeComponent', () => {
-  let mockPayrollSvc:      { getMySummary: ReturnType<typeof vi.fn> };
   let mockLeaveSvc:        { getMyBalance: ReturnType<typeof vi.fn> };
   let mockWorkLogSvc:      { getActive: ReturnType<typeof vi.fn>; getMy: ReturnType<typeof vi.fn> };
-  let mockFeatureSvc:      { isEnabled: ReturnType<typeof vi.fn> };
   let mockAuth:            { user: () => any };
 
-  /**
-   * Create (and optionally configure) a fresh component instance.
-   * `flags` controls what isEnabled() returns before the computed is first evaluated.
-   */
-  function createComponent(flags: { paySummary?: boolean } = {}): HomeComponent {
-    mockFeatureSvc.isEnabled.mockImplementation(
-      (key: string) => (flags as Record<string, boolean>)[key] ?? false,
-    );
+  function createComponent(): HomeComponent {
     return TestBed.createComponent(HomeComponent).componentInstance;
   }
 
   beforeEach(async () => {
-    mockPayrollSvc      = { getMySummary: vi.fn().mockReturnValue(of(fakePaySummary)) };
     mockLeaveSvc        = { getMyBalance: vi.fn().mockReturnValue(of(fakeBalance)) };
     mockWorkLogSvc      = {
       getActive: vi.fn().mockReturnValue(of(null)),
       getMy:     vi.fn().mockReturnValue(of({ items: [], total: 0 })),
     };
-    mockFeatureSvc      = { isEnabled: vi.fn().mockReturnValue(false) };
     mockAuth            = { user: () => ({ id: 'u1', staffId: 'NC001', fullName: 'Test User', email: 't@test.com', roles: ['employee'] }) };
 
     await TestBed.configureTestingModule({
@@ -80,10 +62,8 @@ describe('HomeComponent', () => {
         provideRouter([]),
         provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,          useValue: mockAuth },
-        { provide: PayrollService,       useValue: mockPayrollSvc },
         { provide: LeaveService,         useValue: mockLeaveSvc },
         { provide: WorkLogService,       useValue: mockWorkLogSvc },
-        { provide: FeatureFlagService,   useValue: mockFeatureSvc },
         MessageService,
         ConfirmationService,
       ],
@@ -142,20 +122,6 @@ describe('HomeComponent', () => {
     });
   });
 
-  // ── showPay ─────────────────────────────────────────────────────────────────
-
-  describe('showPay feature flag gate', () => {
-    it('showPay is false when paySummary flag is disabled', () => {
-      const c = createComponent({ paySummary: false });
-      expect(c.showPay()).toBe(false);
-    });
-
-    it('showPay is true when paySummary flag is enabled', () => {
-      const c = createComponent({ paySummary: true });
-      expect(c.showPay()).toBe(true);
-    });
-  });
-
   // ── ngOnInit() — data loading ─────────────────────────────────────────────────
 
   describe('ngOnInit() — data population', () => {
@@ -209,29 +175,6 @@ describe('HomeComponent', () => {
       const c = createComponent();
       c.ngOnInit();
       expect(c.recentShifts().length).toBe(4);
-    });
-  });
-
-  // ── ngOnInit() — pay feature flag gate ───────────────────────────────────────
-
-  describe('ngOnInit() — pay feature flag gate', () => {
-    it('does not call getMySummary when paySummary flag is disabled', () => {
-      const c = createComponent({ paySummary: false });
-      c.ngOnInit();
-      expect(mockPayrollSvc.getMySummary).not.toHaveBeenCalled();
-    });
-
-    it('pay signal remains null when paySummary flag is disabled', () => {
-      const c = createComponent({ paySummary: false });
-      c.ngOnInit();
-      expect(c.pay()).toBeNull();
-    });
-
-    it('calls getMySummary and populates pay signal when paySummary is enabled', () => {
-      const c = createComponent({ paySummary: true });
-      c.ngOnInit();
-      expect(mockPayrollSvc.getMySummary).toHaveBeenCalled();
-      expect(c.pay()).toEqual(fakePaySummary);
     });
   });
 

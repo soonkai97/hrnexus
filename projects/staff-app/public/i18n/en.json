@@ -36,7 +36,6 @@
   "nav": {
     "home":            "Home",
     "logShift":        "Log Shift",
-    "pay":             "Pay",
     "leave":           "Leave",
     "profile":         "Profile"
   },
@@ -50,9 +49,6 @@
     "annualLeave":          "Annual Leave",
     "sickLeave":            "Sick Leave",
     "used":                 "used",
-    "grossPay":             "Gross Pay",
-    "thisMonth":            "This Month",
-    "totalHours":           "Total Hours",
     "recentShifts":         "Recent Shifts",
     "viewAllShifts":        "View All Shifts",
     "noRecentShifts":       "No shifts logged yet. Tap Log Shift to get started.",
@@ -89,20 +85,6 @@
     "errEnterStaffId":     "Please enter your Staff ID.",
     "errAdminPortal":      "Admin accounts must use the admin portal.",
     "errInvalidCredentials": "Invalid Staff ID or password."
-  },
-"pay": {
-    "title":         "Pay Summary",
-    "workHours":     "Work Hours",
-    "grossPay":      "Gross Pay",
-    "noData":        "No pay data for this period.",
-    "year":          "Year",
-    "month":         "Month",
-    "view":          "View",
-    "breakdown":     "Breakdown",
-    "rate":          "rate",
-    "shifts":        "Shifts",
-    "totalSuffix":   "total",
-    "errLoad":       "Failed to load pay summary."
   },
   "leave": {
     "title":      "My Leave",

@@ -72,7 +72,6 @@ projects/
 │   └── features/
 │       ├── home/
 │       ├── log-shift/
-│       ├── pay-summary/
 │       ├── my-leave/
 │       └── profile/
 │
@@ -144,7 +143,6 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /home                  authGuard
 /log-shift             authGuard
 /my-leave              authGuard
-/pay-summary           authGuard + featureFlagGuard('paySummary', '/home')
 /profile/**            authGuard (sub-routes: profile, change-password)
 /auth/**               public
 ```
@@ -213,7 +211,7 @@ getAccessToken(): string | null
 **FeatureFlagService** (`shared-lib/src/lib/services/feature-flag.service.ts`):
 
 ```typescript
-type FeatureKey = 'payroll' | 'paySummary'
+type FeatureKey = 'payroll'   // admin Payroll report/export (staff Pay Summary removed)
 
 // Signals
 flags = signal<Record<FeatureKey, boolean>>(defaults)   // all false by default
@@ -234,7 +232,7 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 
 ## Shared-lib exports
 
-**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `Location`, `PayrollData`, `WorkLogDto`, `PagedResult<T>`
+**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `Location`, `WorkLogDto`, `PagedResult<T>`
 
 **Services:**
 | Service | Purpose |
@@ -242,7 +240,6 @@ isPayrollEnabled = computed(() => this.featureSvc.isEnabled('payroll'));
 | `AuthService` | Login, logout, token refresh, password change |
 | `StaffManagementService` | Employee CRUD (get, register, update, toggleActive, getRoles) |
 | `WorkLogService` | Shift log CRUD; exports `PagedResult<T>` |
-| `PayrollService` | Payroll data |
 | `LeaveService` | Leave requests + balances |
 | `NotificationService` | Notification list + unread count |
 | `SignalRService` | WebSocket connection to `/hubs/` |

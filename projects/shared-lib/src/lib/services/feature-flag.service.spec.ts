@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { firstValueFrom } from 'rxjs';
 import { FeatureFlagService, FeatureKey } from './feature-flag.service';
 
-const ALL_KEYS: FeatureKey[] = ['payroll', 'paySummary'];
+const ALL_KEYS: FeatureKey[] = ['payroll'];
 
 /**
  * FeatureFlagService — load, isEnabled
@@ -39,10 +39,9 @@ describe('FeatureFlagService', () => {
 
   it('load() merges returned flags with DEFAULTS — keys missing from API stay false', async () => {
     const promise = firstValueFrom(service.load());
-    http.expectOne('/api/feature-flags').flush({ payroll: true });
+    http.expectOne('/api/feature-flags').flush({}); // API returns no flags
     await promise;
-    expect(service.isEnabled('payroll')).toBe(true);
-    expect(service.isEnabled('paySummary')).toBe(false); // default
+    expect(service.isEnabled('payroll')).toBe(false); // default preserved
   });
 
   it('load() sets loaded=true even on API error — guards must not block indefinitely', async () => {

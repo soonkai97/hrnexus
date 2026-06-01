@@ -9,8 +9,7 @@ using Xunit;
 namespace HRNexus.Application.Tests;
 
 /// <summary>
-/// Tests for three handlers that were not covered by previous test files:
-///   - GetPaySummaryQueryHandler  : staff-facing pay breakdown with OT calculation and tips
+/// Tests for two handlers that were not covered by previous test files:
 ///   - GetPayrollExportQueryHandler : admin CSV-ready payroll per employee
 ///   - GetLiveStatsQueryHandler   : real-time dashboard counters (on-shift, total staff, hours, cost)
 /// WHY: incorrect pay figures directly mislead staff and managers; live-stats errors show
@@ -46,117 +45,6 @@ public class RemainingQueryTests
     private static E.WorkLog MakeCompletedLog(
         Guid empId, DateOnly date, string start, string end, decimal rate = 20m) =>
         E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", date, start, end, rate);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // GetPaySummaryQuery
-    // ══════════════════════════════════════════════════════════════════════════
-
-    // 1. No logs → all zeros
-    [Fact]
-    public async Task GetPaySummary_ReturnsZeros_WhenNoLogsInPeriod()
-    {
-        await using var db = CreateDb();
-        var empId = Guid.NewGuid();
-
-        var result = await new GetPaySummaryQueryHandler(db).Handle(
-            new GetPaySummaryQuery(empId,
-                new DateOnly(2026, 5, 1),
-                new DateOnly(2026, 5, 31)),
-            CancellationToken.None);
-
-        Assert.Equal(0m, result.TotalHours);
-        Assert.Equal(0m, result.GrossPay);
-        Assert.Empty(result.Shifts);
-    }
-
-    // 2. Single shift — hours and pay calculated correctly
-    [Fact]
-    public async Task GetPaySummary_CalculatesHoursAndPay_ForCompletedShift()
-    {
-        await using var db = CreateDb();
-        var emp = MakeStaff();
-        db.Staff.Add(emp);
-        // 18:00 → 23:00 = 5 hours @ 20/h = 100
-        var log = MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "18:00", "23:00", 20m);
-        db.WorkLogs.Add(log);
-        await db.SaveChangesAsync();
-
-        var result = await new GetPaySummaryQueryHandler(db).Handle(
-            new GetPaySummaryQuery(emp.Id,
-                new DateOnly(2026, 5, 1),
-                new DateOnly(2026, 5, 31)),
-            CancellationToken.None);
-
-        Assert.Equal(5m,   result.TotalHours);
-        Assert.Equal(100m, result.GrossPay);
-        Assert.Single(result.Shifts);
-    }
-
-    // 3. Open shift (no EndTime) is excluded from pay summary
-    [Fact]
-    public async Task GetPaySummary_ExcludesOpenShifts()
-    {
-        await using var db = CreateDb();
-        var emp = MakeStaff();
-        db.Staff.Add(emp);
-        // Open shift — StartLive sets EndTime = null
-        db.WorkLogs.Add(E.WorkLog.StartLive(emp.Id, "BARTENDER", "loc-1", "Main Bar",
-            new DateOnly(2026, 5, 10), "18:00", 20m));
-        await db.SaveChangesAsync();
-
-        var result = await new GetPaySummaryQueryHandler(db).Handle(
-            new GetPaySummaryQuery(emp.Id,
-                new DateOnly(2026, 5, 1),
-                new DateOnly(2026, 5, 31)),
-            CancellationToken.None);
-
-        Assert.Equal(0m, result.TotalHours);
-        Assert.Empty(result.Shifts);
-    }
-
-    // 4. Pay = total shift hours × hourly rate (straight time, no overtime tiers)
-    [Fact]
-    public async Task GetPaySummary_PaysAllHoursAtHourlyRate()
-    {
-        await using var db = CreateDb();
-        var emp = MakeStaff();
-        db.Staff.Add(emp);
-        // 10 hours @ 20/h = 200 (no overtime)
-        var log = MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "08:00", "18:00", 20m);
-        db.WorkLogs.Add(log);
-        await db.SaveChangesAsync();
-
-        var result = await new GetPaySummaryQueryHandler(db).Handle(
-            new GetPaySummaryQuery(emp.Id,
-                new DateOnly(2026, 5, 1),
-                new DateOnly(2026, 5, 31)),
-            CancellationToken.None);
-
-        Assert.Equal(10m,  result.TotalHours);
-        Assert.Equal(200m, result.GrossPay);
-    }
-
-    // 6. Logs outside the requested period are excluded
-    [Fact]
-    public async Task GetPaySummary_ExcludesLogsOutsidePeriod()
-    {
-        await using var db = CreateDb();
-        var emp = MakeStaff();
-        db.Staff.Add(emp);
-
-        // Log in April — outside the May query
-        db.WorkLogs.Add(MakeCompletedLog(emp.Id, new DateOnly(2026, 4, 30), "18:00", "23:00", 20m));
-        await db.SaveChangesAsync();
-
-        var result = await new GetPaySummaryQueryHandler(db).Handle(
-            new GetPaySummaryQuery(emp.Id,
-                new DateOnly(2026, 5, 1),
-                new DateOnly(2026, 5, 31)),
-            CancellationToken.None);
-
-        Assert.Equal(0m, result.TotalHours);
-        Assert.Empty(result.Shifts);
-    }
 
     // ══════════════════════════════════════════════════════════════════════════
     // GetPayrollExportQuery

@@ -36,7 +36,6 @@
   "nav": {
     "home":          "主页",
     "logShift":      "记录班次",
-    "pay":           "薪资",
     "leave":         "请假",
     "profile":       "个人"
   },
@@ -50,9 +49,6 @@
     "annualLeave":         "年假余额",
     "sickLeave":           "病假余额",
     "used":                "已用",
-    "grossPay":            "应发工资",
-    "thisMonth":           "本月",
-    "totalHours":          "总工时",
     "recentShifts":        "近期班次",
     "viewAllShifts":       "查看全部班次",
     "noRecentShifts":      "暂无班次记录，点击「记录班次」开始。",
@@ -89,20 +85,6 @@
     "errEnterStaffId":     "请输入您的员工编号。",
     "errAdminPortal":      "管理员账号必须使用管理员门户。",
     "errInvalidCredentials": "员工编号或密码无效。"
-  },
-"pay": {
-    "title":         "薪资概览",
-    "workHours":     "工时",
-    "grossPay":      "应发工资",
-    "noData":        "本期间暂无薪资数据。",
-    "year":          "年",
-    "month":         "月",
-    "view":          "查看",
-    "breakdown":     "明细",
-    "rate":          "单价",
-    "shifts":        "班次",
-    "totalSuffix":   "共计",
-    "errLoad":       "加载薪资概览失败。"
   },
   "leave": {
     "title":      "我的假期",

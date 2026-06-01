@@ -1,19 +1,17 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.WorkLog.Commands;
 using HRNexus.Application.WorkLog.Queries;
 using HRNexus.Domain.Constants;
 using System.Security.Claims;
-using HRNexus.Api.Filters;
 
 namespace HRNexus.Api.Controllers;
 
 [ApiController]
 [Route("api/worklogs")]
 [Authorize]
-public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : ControllerBase
+public class WorkLogController(IMediator mediator) : ControllerBase
 {
     private Guid CallerId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -97,23 +95,6 @@ public class WorkLogController(IMediator mediator, IDateTimeProvider dt) : Contr
         catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }
         catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
         catch (UnauthorizedAccessException)  { return Forbid(); }
-    }
-
-    /// <summary>Returns a pay summary (hours, pay breakdown, per-shift lines) for the current employee.</summary>
-    [HttpGet("pay-summary")]
-    // OR semantics: this self-summary endpoint backs BOTH the staff Pay Summary (paySummary)
-    // and Tips History (tipsHistory) pages, so either flag being on must allow it.
-    [FeatureRequired("paySummary", "tipsHistory")]
-    public async Task<IActionResult> GetPaySummary(
-        [FromQuery] DateOnly? start,
-        [FromQuery] DateOnly? end,
-        CancellationToken ct)
-    {
-        var today       = DateOnly.FromDateTime(dt.LocalNow);
-        var periodStart = start ?? new DateOnly(today.Year, today.Month, 1);
-        var periodEnd   = end   ?? today;
-        var result = await mediator.Send(new GetPaySummaryQuery(CallerId, periodStart, periodEnd), ct);
-        return Ok(result);
     }
 
     // Admin: get all work logs (paginated)

@@ -204,7 +204,6 @@ export class ShellComponent implements AfterViewInit {
   private readonly allNavItems: NavItem[] = [
     { path: '/home',          labelKey: 'nav.home',          icon: 'pi pi-home'                                      },
     { path: '/log-shift',     labelKey: 'nav.logShift',      icon: 'pi pi-clock'                                     },
-    { path: '/pay-summary',   labelKey: 'nav.pay',           icon: 'pi pi-wallet',    featureFlag: 'paySummary'      },
     { path: '/my-leave',      labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                  },
   ];
 

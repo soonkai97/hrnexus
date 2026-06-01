@@ -86,11 +86,11 @@ describe('featureFlagGuard', () => {
   describe('when flags are NOT loaded (fresh page load)', () => {
     it('returns an Observable and resolves true after load() returns an enabled flag', async () => {
       const obs$ = TestBed.runInInjectionContext(() =>
-        featureFlagGuard('paySummary', '/home')(route, state)) as Observable<boolean | UrlTree>;
+        featureFlagGuard('payroll', '/home')(route, state)) as Observable<boolean | UrlTree>;
 
       // Flush the HTTP call BEFORE awaiting the Observable
       const promise = firstValueFrom(obs$);
-      http.expectOne('/api/feature-flags').flush({ paySummary: true });
+      http.expectOne('/api/feature-flags').flush({ payroll: true });
 
       const result = await promise;
       expect(result).toBe(true);

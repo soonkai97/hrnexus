@@ -37,7 +37,12 @@ test.describe('Admin — Roles', () => {
   });
 
   test('opens the add role form when button is clicked', async ({ page }) => {
-    await page.getByRole('button', { name: /add.*role|new.*role/i }).click();
+    // Wait for the button to be actionable first — the header now holds two buttons
+    // (Bulk Add + Add New Role), and under heavy parallel load an immediate click can
+    // race the page settling. getByRole's regex still matches only "Add New Role".
+    const addBtn = page.getByRole('button', { name: /add.*role|new.*role/i });
+    await expect(addBtn).toBeVisible({ timeout: 10_000 });
+    await addBtn.click();
     // .add-card contains the inline form for creating a custom role
     await expect(page.locator('.add-card')).toBeVisible({ timeout: 5_000 });
   });

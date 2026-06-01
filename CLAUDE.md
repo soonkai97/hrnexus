@@ -872,6 +872,25 @@ checkbox column + action bar); the staff list mirrors it. Service methods live o
 `StaffManagementService` / `LeaveService` (+ `StaffStore` delegators). Bulk commands return
 `{ count }`. Backend `ArgumentException` → 400 surfaced as a toast.
 
+### Bulk create (import)
+
+Separate from the mutate actions — each setup page can create many records at once (≤100):
+- `BulkCreateLocationsCommand` (`Application/Locations/Commands`, `POST locations/bulk`) and
+  `BulkCreateRolesCommand` (`Application/Staff/Commands`, `POST staff/roles/bulk`): normalise + dedupe
+  names, skip existing, return `BulkCreateResult { Created, Skipped }`.
+- `BulkRegisterStaffCommand` (`POST staff/bulk-import`): **partial success** — validates each row
+  (required fields, intra-batch + DB duplicate Staff ID/email), generates a policy-compliant temp
+  password per row via `PasswordPolicy`, returns `BulkStaffImportResult { Created, Failed, Rows[] }`
+  where each row carries `{ staffId, success, error, tempPassword }` (plaintext password returned ONCE).
+- `BulkCreateLeaveCommand` (`POST admin/leave/bulk-create`): delegates each employee to
+  `UpsertLeaveCommand` via `ISender` (full overlap/balance/notify validation), partial success →
+  `BulkLeaveResult { Created, Failed, Errors[] }`. Requires positive `hours` (same rule as single create).
+
+FE dialogs: Locations/Roles paste-list textareas; Staff "Import" shows a per-row results table +
+"Copy credentials"; Leave "Bulk Record" is a staff-multiselect + type + dates + hours form. Note:
+staff import takes **role names** (matching the roles dropdown) but **not** locations (location is
+ID-keyed — assign via the bulk-assign-locations action after import).
+
 ---
 
 ## Process rules

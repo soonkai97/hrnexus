@@ -133,6 +133,19 @@ Both list pages support acting on many records at once (max 100 per request, ser
 All bulk endpoints follow one backend pattern (load → mutate → single save → per-row audit in the same
 transaction); see `BulkUpdateLeaveStatusCommand` and the `Bulk*` staff commands.
 
+### Bulk create (import)
+
+Each setup page also supports creating many records at once (max 100 per request):
+
+- **Locations** / **Roles** — a *Bulk Add* dialog: paste one per line (roles as `name, hourly-rate`);
+  existing names are skipped.
+- **Staff** — an *Import* dialog: paste CSV rows (`Staff ID, First, Last, Email, Role1;Role2`). Each
+  row gets a generated temporary password; the result table reports per-row success/failure with a
+  *Copy credentials* action (passwords are shown once). **Partial success** — a bad row is reported
+  and skipped, the rest still import.
+- **Leave** — a *Bulk Record* dialog: pick staff + type + date range + hours to record the same leave
+  (e.g. a public holiday) for many staff; each goes through the normal leave validation.
+
 ---
 
 ## Auth & permissions

@@ -66,14 +66,14 @@ npx ng serve staff-app        # → localhost:4201
 | Route | Feature | Gate |
 |---|---|---|
 | `/dashboard` | Live KPIs (on-shift count, hours, est. cost) + SignalR activity feed | `portal.admin` |
-| `/staff` | Staff list, register, edit, deactivate, reset password | `staff.view` |
-| `/staff/:id` | Staff detail — profile, work logs, per-user permission overrides | `staff.view` |
+| `/staff` | Staff list, register, edit, deactivate, reset password, assign roles + work locations | `staff.view` |
+| `/staff/:id` | Staff detail — profile, work logs, per-user permission overrides, assigned locations | `staff.view` |
 | `/leave` | Leave requests — approve / reject, create, edit, balance overview | `leave.approve` |
 | `/reports` | Workforce attendance report (date range, by staff / location / role / date) | `reports.view` |
 | `/payroll` | Monthly work-pay report (hours × hourly rate) + CSV export | `payroll.view` |
 | `/payroll-locks` | Freeze a month so its shift logs can no longer be edited | `payroll.lock` |
 | `/roles` | Role management + per-role default permissions | `roles.manage` |
-| `/locations` | Location management | `locations.manage` |
+| `/locations` | Location management (venues staff can be assigned to and clock in at) | `locations.manage` |
 | `/account` | Own profile, change password, push notifications | — |
 
 ### Staff app (`/`)
@@ -81,7 +81,7 @@ npx ng serve staff-app        # → localhost:4201
 | Route | Feature |
 |---|---|
 | `/home` | Overview dashboard — greeting, clock-in status, leave balances, recent shifts |
-| `/log-shift` | Clock in / clock out, manual entry, shift history |
+| `/log-shift` | Clock in / clock out, manual entry, shift history (location list limited to assigned venues) |
 | `/my-leave` | Submit leave, view history and balance |
 | `/profile` | Personal info, change password, push notifications, language |
 
@@ -98,6 +98,24 @@ does not hold a per-staff earnings ledger.
 - All leave is **unpaid** for commission-based staff.
 
 Hourly rates are kept as **effective-dated history**, so a rate change never rewrites past pay estimates.
+
+---
+
+## Staff ↔ location assignment
+
+Each staff member is assigned the **work location(s)** they're allowed to clock in at (many-to-many,
+independent of roles). Assignment is managed by an admin on the **Staff add / detail** pages.
+
+- **Enforcement is two-layered:** the staff `/log-shift` location dropdown shows **only the venues the
+  staff is assigned to** (fetched from `GET /api/locations/mine`), and the backend independently
+  re-checks the assignment when a shift is started or a manual entry is created — a clock-in for an
+  unassigned location is rejected with *"You are not assigned to this location."*
+- **No assignment ⇒ blocked from clocking in.** A staff with zero assigned locations sees an empty
+  dropdown and a warning banner ("ask your manager"); they cannot start a shift until an admin assigns
+  at least one location.
+
+Stored as a `StaffLocations` join table (composite PK `EmployeeId` + `LocationId`, additive migration
+`AddStaffLocations`). Roles are untouched — pay and display still derive from roles.
 
 ---
 

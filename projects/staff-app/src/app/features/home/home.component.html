@@ -87,51 +87,6 @@
         </p-card>
       }
 
-      <!-- Pay summary (feature flagged) -->
-      @if (showPay()) {
-        @if (pay(); as p) {
-          <p-card styleClass="stat-card">
-            <div class="d-flex align-items-start gap-3">
-              <div class="stat-icon"><i class="pi pi-wallet"></i></div>
-              <div class="stat-body">
-                <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
-                <div class="stat-value">RM {{ p.grossPay | number:'1.2-2' }}</div>
-                <div class="stat-sub">{{ 'home.thisMonth' | translate }}</div>
-              </div>
-            </div>
-          </p-card>
-          <p-card styleClass="stat-card">
-            <div class="d-flex align-items-start gap-3">
-              <div class="stat-icon"><i class="pi pi-stopwatch"></i></div>
-              <div class="stat-body">
-                <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
-                <div class="stat-value">{{ p.totalHours | number:'1.1-1' }}<span class="stat-unit">h</span></div>
-              </div>
-            </div>
-          </p-card>
-        } @else {
-          <!-- Pay API unavailable -->
-          <p-card styleClass="stat-card stat-card-muted">
-            <div class="d-flex align-items-start gap-3">
-              <div class="stat-icon"><i class="pi pi-wallet"></i></div>
-              <div class="stat-body">
-                <div class="stat-label">{{ 'home.grossPay' | translate }}</div>
-                <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
-              </div>
-            </div>
-          </p-card>
-          <p-card styleClass="stat-card stat-card-muted">
-            <div class="d-flex align-items-start gap-3">
-              <div class="stat-icon"><i class="pi pi-stopwatch"></i></div>
-              <div class="stat-body">
-                <div class="stat-label">{{ 'home.totalHours' | translate }}</div>
-                <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
-              </div>
-            </div>
-          </p-card>
-        }
-      }
-
     </div>
 
     <!-- Recent shifts -->

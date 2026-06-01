@@ -4,14 +4,12 @@ import { Observable, of } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
 
 export type FeatureKey =
-  | 'payroll'
-  | 'paySummary';       // staff portal
+  | 'payroll';          // admin portal
 
 export type FlagMap = Record<FeatureKey, boolean>;
 
 const DEFAULTS: FlagMap = {
   payroll:        false,
-  paySummary:     false,
 };
 
 @Injectable({ providedIn: 'root' })

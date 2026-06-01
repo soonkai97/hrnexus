@@ -5,9 +5,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
-  AuthService, PayrollService, LeaveService, WorkLogService,
-  FeatureFlagService, AmPmPipe,
-  PaySummary, LeaveBalance, WorkLogDto, toLocalDateString,
+  AuthService, LeaveService, WorkLogService, AmPmPipe,
+  LeaveBalance, WorkLogDto,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -22,21 +21,15 @@ import { Tag } from 'primeng/tag';
 })
 export class HomeComponent implements OnInit {
   private readonly auth            = inject(AuthService);
-  private readonly payrollSvc      = inject(PayrollService);
   private readonly leaveSvc        = inject(LeaveService);
   private readonly workLogSvc      = inject(WorkLogService);
-  private readonly featureSvc      = inject(FeatureFlagService);
 
   loading = signal(true);
 
   // Data signals
-  pay           = signal<PaySummary | null>(null);
   leave         = signal<LeaveBalance | null>(null);
   activeShift   = signal<WorkLogDto | null>(null);
   recentShifts  = signal<WorkLogDto[]>([]);
-
-  // Feature flags
-  showPay           = computed(() => this.featureSvc.isEnabled('paySummary'));
 
   // Greeting
   user      = computed(() => this.auth.user());
@@ -48,28 +41,12 @@ export class HomeComponent implements OnInit {
     return 'home.goodEvening';
   });
 
-  // This month's pay period
-  private get monthStart(): string {
-    const d = new Date();
-    return toLocalDateString(new Date(d.getFullYear(), d.getMonth(), 1));
-  }
-  private get monthEnd(): string {
-    const d = new Date();
-    return toLocalDateString(new Date(d.getFullYear(), d.getMonth() + 1, 0));
-  }
-
   ngOnInit(): void {
-    const pay$  = this.showPay()
-      ? this.payrollSvc.getMySummary(this.monthStart, this.monthEnd).pipe(catchError(() => of(null)))
-      : of(null);
-
     forkJoin({
-      pay:         pay$,
       leave:       this.leaveSvc.getMyBalance().pipe(catchError(() => of(null))),
       active:      this.workLogSvc.getActive().pipe(catchError(() => of(null))),
       recent:      this.workLogSvc.getMy(1, 5).pipe(catchError(() => of(null))),
     }).subscribe(res => {
-      this.pay.set(res.pay);
       this.leave.set(res.leave);
       this.activeShift.set(res.active);
       this.recentShifts.set(

@@ -12,7 +12,7 @@ import { AuthService, LangService, FeatureFlagService, SignalRService, Notificat
  *
  * WHY these tests matter:
  *  - navItems computed filters feature-flag-gated routes — if the filter is broken,
- *    disabled features (e.g. pay-summary) appear in the nav before they are enabled.
+ *    disabled features would appear in the nav before they are enabled.
  *  - initials computed drives the staff avatar in the top bar; empty or wrong initials
  *    are visible on every page.
  *  - userRoleLabel must reflect the correct role for the top-bar label.
@@ -38,7 +38,7 @@ describe('ShellComponent (staff-app)', () => {
     mockLang            = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn() };
     mockFeature         = {
       load:      vi.fn().mockReturnValue(of(undefined)),
-      flags:     vi.fn().mockReturnValue({ payroll: false, paySummary: false }),
+      flags:     vi.fn().mockReturnValue({ payroll: false }),
       isEnabled: vi.fn().mockReturnValue(false),
     };
     mockSignalR         = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
@@ -113,24 +113,12 @@ describe('ShellComponent (staff-app)', () => {
   // ── navItems computed ─────────────────────────────────────────────────────────
 
   describe('navItems computed', () => {
-    it('always includes /home and /log-shift', () => {
+    it('includes the core staff routes', () => {
       const c = createComponent();
       const paths = c.navItems().map((n: any) => n.path);
       expect(paths).toContain('/home');
       expect(paths).toContain('/log-shift');
-    });
-
-    it('excludes /pay-summary when paySummary flag is disabled', () => {
-      const c = createComponent();
-      const paths = c.navItems().map((n: any) => n.path);
-      expect(paths).not.toContain('/pay-summary');
-    });
-
-    it('includes /pay-summary when paySummary flag is enabled', () => {
-      mockFeature.flags.mockReturnValue({ payroll: false, paySummary: true });
-      const c = createComponent();
-      const paths = c.navItems().map((n: any) => n.path);
-      expect(paths).toContain('/pay-summary');
+      expect(paths).toContain('/my-leave');
     });
   });
 

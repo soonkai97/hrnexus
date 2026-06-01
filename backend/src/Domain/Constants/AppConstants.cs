@@ -132,6 +132,5 @@ public static class AppConstants
     public static class FeatureFlags
     {
         public const string Payroll       = "payroll";
-        public const string PaySummary    = "paySummary";
     }
 }

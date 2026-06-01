@@ -435,28 +435,37 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     });
   }
 
-  // ── Bulk import (paste CSV rows) ────────────────────────────────────────────
+  // ── Bulk import (editable row grid) ─────────────────────────────────────────
   showImport   = signal(false);
-  importText   = '';
   importing    = signal(false);
   importResult = signal<BulkStaffImportResult | null>(null);
+  /** One editable row per staff to import. Roles is a multiselect; password is auto-generated. */
+  importRows: { staffId: string; firstName: string; lastName: string; email: string; roles: string[] }[] = [];
 
-  openImport(): void { this.importText = ''; this.importResult.set(null); this.showImport.set(true); }
+  private blankImportRow() { return { staffId: '', firstName: '', lastName: '', email: '', roles: [] as string[] }; }
 
-  /** Parse pasted CSV: "staffId, firstName, lastName, email, role1;role2" — one staff per line. */
-  private parseImport(): BulkStaffImportRow[] {
-    return this.importText.split('\n').map(l => l.trim()).filter(l => l.length > 0).map(line => {
-      const [staffId, firstName, lastName, email, roles] = line.split(',').map(c => (c ?? '').trim());
-      return {
-        staffId: staffId ?? '', firstName: firstName ?? '', lastName: lastName || null,
-        email: email || null,
-        roles: (roles ?? '').split(';').map(r => r.trim()).filter(r => r.length > 0),
-      } as BulkStaffImportRow;
-    });
+  openImport(): void {
+    this.importResult.set(null);
+    this.importRows = [this.blankImportRow(), this.blankImportRow(), this.blankImportRow()];
+    this.showImport.set(true);
+  }
+
+  addImportRow(): void { this.importRows = [...this.importRows, this.blankImportRow()]; }
+  removeImportRow(i: number): void { this.importRows = this.importRows.filter((_, idx) => idx !== i); }
+
+  /** Rows with at least a Staff ID or first name — fully-blank rows are ignored. */
+  get importRowsToSubmit(): BulkStaffImportRow[] {
+    return this.importRows
+      .map(r => ({
+        staffId: r.staffId?.trim() ?? '', firstName: r.firstName?.trim() ?? '',
+        lastName: r.lastName?.trim() || null, email: r.email?.trim() || null,
+        roles: r.roles ?? [],
+      }) as BulkStaffImportRow)
+      .filter(r => r.staffId.length > 0 || r.firstName.length > 0 || r.roles.length > 0);
   }
 
   runImport(): void {
-    const rows = this.parseImport();
+    const rows = this.importRowsToSubmit;
     if (!rows.length) return;
     this.importing.set(true);
     this.staffStore.bulkImportStaff(rows).subscribe({

@@ -813,6 +813,41 @@ report is a rough estimate only — not an authoritative payout figure.
 
 ---
 
+## Staff ↔ location assignment
+
+Staff are assigned the **work location(s)** they may clock in at — a **many-to-many** relationship
+**independent of roles** (roles still drive pay + display; locations gate where a shift can be logged).
+
+**Data model** mirrors the `StaffRole` join-entity pattern:
+- `StaffLocation` entity — composite key `(EmployeeId, LocationId)`, table `StaffLocations`, additive
+  migration `AddStaffLocations` (creates the table; no destructive change).
+- `Staff.LocationEntries` (`List<StaffLocation>`, `private set`, `AutoInclude()`) + computed
+  `Staff.LocationIds`. `Staff.Create(...)` / `UpdateDetails(...)` take an optional `List<string>?
+  locations`; `SetLocations(...)` mutates the collection in place (trim, remove dropped, add new with
+  `EmployeeId = Id`). `StaffConfiguration` ignores `LocationIds` and `Navigation(...).AutoInclude()`.
+
+**Enforcement = filter + backend guard (both layers):**
+- Staff `/log-shift` location dropdown is populated from `GET /api/locations/mine` (caller's assigned
+  locations, via `LocationStore.loadMine()` → `myLocations` signal). Zero assignments ⇒ empty dropdown
+  + a warning banner (`logShift.noLocationsAssigned`) and the staff **cannot start a shift**.
+- `StartWorkLogCommand` and `CreateManualWorkLogCommand` independently re-check
+  `db.Staff.Any(s => s.Id == req.EmployeeId && s.LocationEntries.Any(l => l.LocationId == req.LocationId))`
+  and throw `InvalidOperationException("You are not assigned to this location.")` if not. **Order
+  matters in the manual command:** the location guard runs *after* the role-lookup so a missing-role
+  test still throws `KeyNotFound`.
+
+**Admin UI:** Staff add (`staff.component`) + detail (`staff-detail.component`) inject `LocationStore`,
+expose `availableLocations`, and bind a `p-multiselect` (`optionValue="id"`). `RegisterStaffCommand` /
+`UpdateStaffCommand` (+ `UpdateStaffBody`) carry `List<string>? Locations`; `StaffDetailDto` returns
+`LocationIds`.
+
+> **InMemory test gotcha:** to seed an assignment, mutate the **navigation collection**
+> (`staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id })`), **not**
+> `db.StaffLocations.Add(new { EmployeeId = ... })` — under the InMemory provider a manually-set shadow
+> FK does **not** link the row to the parent, so the guard query won't see it.
+
+---
+
 ## Process rules
 
 These rules apply to every task unless explicitly overridden.

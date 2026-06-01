@@ -1,7 +1,8 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminService, PayrollSummaryResponse, MONTH_NAMES } from 'shared-lib';
+import { TranslatePipe } from '@ngx-translate/core';
+import { AdminService, PayrollSummaryResponse } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Card } from 'primeng/card';
@@ -11,7 +12,7 @@ import { Message } from 'primeng/message';
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, Button, TableModule, Card, Select, Message],
+  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, TableModule, Card, Select, Message],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })
@@ -24,8 +25,8 @@ export class PayrollComponent {
   exporting = signal(false);
   data      = signal<PayrollSummaryResponse | null>(null);
 
-  readonly months = MONTH_NAMES;
-  readonly monthOptions = MONTH_NAMES.map((label, i) => ({ label, value: i + 1 }));
+  // Numeric, language-neutral month labels (01–12) — matches the Payroll Locks page.
+  readonly monthOptions = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: String(i + 1).padStart(2, '0') }));
 
   readonly now = new Date();
   // Current year back 5 years — payroll is only viewed for the current or a recent period.

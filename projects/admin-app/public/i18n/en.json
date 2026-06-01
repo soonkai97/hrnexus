@@ -49,9 +49,24 @@
       "setup":      "Setup"
     }
   },
+  "payroll": {
+    "title":             "Payroll",
+    "year":              "Year",
+    "month":             "Month",
+    "view":              "View",
+    "totalGross":        "Total Gross Payroll",
+    "exportCsv":         "Export CSV",
+    "incompleteWarning": "This period hasn't ended yet — data is incomplete. Active shifts are excluded from payroll.",
+    "colStaffId":        "Staff ID",
+    "colName":           "Name",
+    "colTotalHrs":       "Total Hrs",
+    "colWorkPay":        "Work Pay (RM)",
+    "note":              "Work Pay = total shift hours × hourly rate. All leave is unpaid.",
+    "emptyState":        "Select a year and month, then click View to load payroll data."
+  },
   "payrollLocks": {
     "title":           "Payroll Locks",
-    "subtitle":        "Lock a month to freeze its shift logs and ledger records. Locked periods can't be edited until reopened.",
+    "subtitle":        "Lock a month to freeze its shift logs. Locked periods can't be edited until reopened.",
     "year":            "Year",
     "month":           "Month",
     "note":            "Note",
@@ -61,7 +76,7 @@
     "lockedBy":        "Locked by",
     "lockedAt":        "Locked at",
     "reopen":          "Reopen",
-    "reopenConfirm":   "Reopen {{period}}? Its shift logs and ledger records will become editable again.",
+    "reopenConfirm":   "Reopen {{period}}? Its shift logs will become editable again.",
     "noLocks":         "No periods are locked.",
     "lockedToast":     "Period locked.",
     "reopenedToast":   "Period reopened.",

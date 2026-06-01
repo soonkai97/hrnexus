@@ -21,7 +21,7 @@ hrnexus/
 │   │       ├── models/              # DTOs and interfaces
 │   │       ├── services/            # HTTP services, ToastService, ConfirmService
 │   │       ├── stores/              # Signal-based state (StaffStore, LocationStore)
-│   │       ├── guards/              # authGuard, permissionGuard, featureFlagGuard
+│   │       ├── guards/              # authGuard, permissionGuard
 │   │       └── components/          # Toast, ConfirmDialog, ThemeToggle, etc.
 │   ├── admin-app/                   # Manager / admin dashboard — PWA (desktop-first)
 │   └── staff-app/                   # Staff-facing PWA (mobile-first)
@@ -70,8 +70,8 @@ npx ng serve staff-app        # → localhost:4201
 | `/staff/:id` | Staff detail — profile, work logs, per-user permission overrides | `staff.view` |
 | `/leave` | Leave requests — approve / reject, create, edit, balance overview | `leave.approve` |
 | `/reports` | Workforce attendance report (date range, by staff / location / role / date) | `reports.view` |
-| `/payroll` | Monthly work-pay report (hours × hourly rate) + CSV export | `payroll` flag + `payroll.view` |
-| `/payroll-locks` | Freeze a month so its shift logs can no longer be edited | `payroll` flag + `payroll.lock` |
+| `/payroll` | Monthly work-pay report (hours × hourly rate) + CSV export | `payroll.view` |
+| `/payroll-locks` | Freeze a month so its shift logs can no longer be edited | `payroll.lock` |
 | `/roles` | Role management + per-role default permissions | `roles.manage` |
 | `/locations` | Location management | `locations.manage` |
 | `/account` | Own profile, change password, push notifications | — |
@@ -125,17 +125,6 @@ as a coarse flood ceiling.
 
 **PII at rest:** IC / passport / phone / date-of-birth are encrypted (AES-256-GCM) in the database via EF
 Core value converters; the key comes from `PII_ENCRYPTION_KEY` (`Pii:Key`).
-
----
-
-## Feature flags
-
-Runtime flags fetched from `GET /api/feature-flags` (default all-off; merged with code defaults). Gated
-both in the UI (`featureFlagGuard`) and on the API (`[FeatureRequired]`).
-
-| Key | Feature |
-|---|---|
-| `payroll` | Admin Payroll report + Payroll Locks |
 
 ---
 

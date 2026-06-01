@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef, Des
 import { Subject, EMPTY } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -33,7 +33,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
 @Component({
   selector: 'app-leave',
   standalone: true,
-  imports: [DatePipe, TitleCasePipe, FormsModule, TranslatePipe, TrimInputDirective,
+  imports: [DatePipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
     Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox],
   templateUrl: './leave.component.html',
@@ -414,6 +414,10 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     approved: 'common.approved', pending: 'common.pending',
     rejected: 'common.rejected', cancelled: 'leave.cancelled',
   };
+
+  /** i18n keys for leave-type / status enums, for the translate pipe in badges, chips and tooltips. */
+  leaveTypeKey(t: string): string { return this.leaveTypeLabelKeys[t] ?? t; }
+  statusKey(s: string): string { return this.statusLabelKeys[s] ?? s; }
   get statusOptions() {
     return STATUSES.map(s => ({
       label: this.translate.instant(this.statusLabelKeys[s] ?? ''),

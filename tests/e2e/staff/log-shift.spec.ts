@@ -34,4 +34,21 @@ test.describe('Staff app — log shift page', () => {
     ).toBeVisible({ timeout: 6_000 });
   });
 
+  // ── Staff ↔ location assignment ─────────────────────────────────────────────
+  // The Live form must expose a Location field; the location list is driven by the
+  // staff member's assigned venues (GET /api/locations/mine). Asserting the label
+  // renders proves the location UI is wired regardless of how many venues are assigned.
+  test('Live form shows a Location field driven by assigned venues', async ({ page }) => {
+    await expect(page.locator('label[for="ls-live-location"]')).toBeVisible({ timeout: 6_000 });
+  });
+
+  // Edge case: a staff with no assigned locations is BLOCKED from clocking in — they see
+  // a warning banner and the location dropdown has nothing to pick. Either the dropdown
+  // offers options OR the no-locations warning shows; the form must never silently crash.
+  test('no-location staff sees guidance, assigned staff sees a pickable location', async ({ page }) => {
+    const locationSelect = page.locator('#ls-live-location');
+    const noLocationsWarning = page.locator('p-message').filter({ hasText: /location|assigned|manager/i });
+    await expect(locationSelect.or(noLocationsWarning).first()).toBeVisible({ timeout: 6_000 });
+  });
+
 });

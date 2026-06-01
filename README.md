@@ -137,8 +137,8 @@ transaction); see `BulkUpdateLeaveStatusCommand` and the `Bulk*` staff commands.
 
 Each setup page also supports creating many records at once (max 100 per request):
 
-- **Locations** / **Roles** — a *Bulk Add* dialog: paste one per line (roles as `name, hourly-rate`);
-  existing names are skipped.
+- **Locations** / **Roles** — a *Bulk Add* dialog with an editable **row grid** (Locations: a name per
+  row; Roles: Name + hourly-rate per row), with *Add row* / remove. Existing names are skipped.
 - **Staff** — an *Import* dialog with an **editable row grid**: one row per staff (Staff ID, name,
   email, and a roles multiselect), with *Add row* / remove controls. Each row gets a generated
   temporary password; the result table reports per-row success/failure with a *Copy credentials*

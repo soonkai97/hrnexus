@@ -119,6 +119,22 @@ Stored as a `StaffLocations` join table (composite PK `EmployeeId` + `LocationId
 
 ---
 
+## Bulk admin actions
+
+Both list pages support acting on many records at once (max 100 per request, server-validated):
+
+- **Staff list** — a *Bulk select* toggle reveals a checkbox column and an action bar:
+  **Assign locations** and **Assign roles** (both *additive* — they add to each staff member's
+  existing set, never replacing it) and **Deactivate**. Bulk-deactivate is refused if the selection
+  would remove the last active admin-portal user.
+- **Leave records** — bulk **Approve** / **Reject** (pending only) and **Mark no-show**, alongside the
+  per-row actions.
+
+All bulk endpoints follow one backend pattern (load → mutate → single save → per-row audit in the same
+transaction); see `BulkUpdateLeaveStatusCommand` and the `Bulk*` staff commands.
+
+---
+
 ## Auth & permissions
 
 | Role | Portals | Notes |

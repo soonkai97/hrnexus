@@ -965,7 +965,7 @@ dotnet test                                         # run everything
 
 > **`tests/Integration.Tests/` requires Docker.** It spins up a throwaway `postgres:17-alpine`
 > via Testcontainers to prove things EF InMemory cannot: optimistic concurrency (the `xmin`
-> token), partial unique indexes (double clock-in, tips dedupe), Serializable balance-overrun
+> token), partial unique indexes (e.g. double clock-in), Serializable balance-overrun
 > arbitration, and the HTTP pipeline (rate limiter + exception→status mapping via
 > `WebApplicationFactory<Program>`). If Docker isn't available these tests fail to start — run
 > the Application suite instead. `scripts/seed-and-demo-hardening.ps1` seeds sample data and

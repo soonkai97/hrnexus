@@ -56,6 +56,7 @@ describe('LeaveComponent', () => {
     setEntitlement:       ReturnType<typeof vi.fn>;
     bulkSetEntitlement:   ReturnType<typeof vi.fn>;
       bulkUpdateStatus:     ReturnType<typeof vi.fn>;
+    bulkCreateLeave:      ReturnType<typeof vi.fn>;
     getSummary:           ReturnType<typeof vi.fn>;
     getPatternWarnings:   ReturnType<typeof vi.fn>;
   };
@@ -80,6 +81,7 @@ describe('LeaveComponent', () => {
       setEntitlement:       vi.fn().mockReturnValue(of(undefined)),
       bulkSetEntitlement:   vi.fn().mockReturnValue(of({ count: 3 })),
       bulkUpdateStatus:     vi.fn().mockReturnValue(of({ count: 2 })),
+      bulkCreateLeave:      vi.fn().mockReturnValue(of({ created: 2, failed: 0, errors: [] })),
       getSummary:           vi.fn().mockReturnValue(of([])),
       getPatternWarnings:   vi.fn().mockReturnValue(of([])),
     };
@@ -433,6 +435,49 @@ describe('LeaveComponent', () => {
       component.cancelForm();
       expect(component.showForm()).toBe(false);
       expect(component.editing()).toBeNull();
+    });
+  });
+
+  // ── saveBulkCreate() — venue-wide bulk record ─────────────────────────────────
+
+  describe('saveBulkCreate()', () => {
+    it('does nothing without staff or a date range', () => {
+      component.bulkStaffIds = [];
+      component.saveBulkCreate();
+      expect(mockLeaveSvc.bulkCreateLeave).not.toHaveBeenCalled();
+    });
+
+    it('posts the chosen staff, type, formatted dates and hours', () => {
+      component.bulkStaffIds = ['e1', 'e2'];
+      component.bulkType = 'unpaid';
+      component.bulkStart = new Date(2026, 11, 25);
+      component.bulkEnd   = new Date(2026, 11, 25);
+      component.bulkHours = 8;
+      component.bulkNotes = 'Holiday';
+      component.saveBulkCreate();
+      expect(mockLeaveSvc.bulkCreateLeave).toHaveBeenCalledWith(expect.objectContaining({
+        employeeIds: ['e1', 'e2'], leaveType: 'unpaid',
+        startDate: '2026-12-25', endDate: '2026-12-25', hours: 8, notes: 'Holiday', status: 'approved',
+      }));
+    });
+
+    it('shows a created/failed toast and closes the dialog on success', () => {
+      component.bulkStaffIds = ['e1'];
+      component.bulkStart = new Date(2026, 11, 25);
+      component.bulkEnd   = new Date(2026, 11, 25);
+      component.showBulkCreate.set(true);
+      component.saveBulkCreate();
+      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.bulkCreatedToast');
+      expect(component.showBulkCreate()).toBe(false);
+    });
+
+    it('surfaces the first per-employee error as a warning toast', () => {
+      mockLeaveSvc.bulkCreateLeave.mockReturnValue(of({ created: 1, failed: 1, errors: ['e2: Insufficient balance.'] }));
+      component.bulkStaffIds = ['e1', 'e2'];
+      component.bulkStart = new Date(2026, 11, 25);
+      component.bulkEnd   = new Date(2026, 11, 25);
+      component.saveBulkCreate();
+      expect(mockToastSvc.warning).toHaveBeenCalledWith('e2: Insufficient balance.');
     });
   });
 

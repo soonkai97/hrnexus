@@ -49,7 +49,9 @@ test.describe('Admin — Roles', () => {
 
   // Bulk import: the "Bulk Add" dialog accepts "name, hourly-rate" lines.
   test('Bulk Add dialog opens with a paste textarea', async ({ page }) => {
-    await page.getByRole('button', { name: /bulk add/i }).click();
+    const bulkBtn = page.getByRole('button', { name: /bulk add/i });
+    await expect(bulkBtn).toBeVisible({ timeout: 10_000 });   // let the page settle first
+    await bulkBtn.click();
     await expect(page.locator('.p-dialog textarea')).toBeVisible({ timeout: 5_000 });
   });
 });

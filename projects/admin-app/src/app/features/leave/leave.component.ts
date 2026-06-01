@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef, DestroyRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
 import { Subject, EMPTY } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -83,7 +83,6 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
 
   records  = signal<LeaveRecord[]>([]);
   loading  = signal(false);
@@ -810,10 +809,6 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     return this.showForm() && !!this.form.employeeId;
   }
 
-  private scrollToForm(): void {
-    setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  }
-
   openAdd(): void {
     this.form = { employeeId: '', leaveType: 'sick',
       startDate: toLocalDateString(new Date()),
@@ -826,7 +821,6 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     this.editing.set(null);
     this.formError.set('');
     this.showForm.set(true);
-    this.scrollToForm();
   }
 
   startEdit(r: LeaveRecord): void {
@@ -845,7 +839,6 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
       error: () => {},
     });
     this.showForm.set(true);
-    this.scrollToForm();
   }
 
   cancelForm(): void {

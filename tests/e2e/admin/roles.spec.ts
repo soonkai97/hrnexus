@@ -36,15 +36,14 @@ test.describe('Admin — Roles', () => {
     expect(count).toBeGreaterThanOrEqual(1);
   });
 
-  test('opens the add role form when button is clicked', async ({ page }) => {
-    // Wait for the button to be actionable first — the header now holds two buttons
-    // (Bulk Add + Add New Role), and under heavy parallel load an immediate click can
-    // race the page settling. getByRole's regex still matches only "Add New Role".
+  test('opens the add role dialog when button is clicked', async ({ page }) => {
+    // Wait for the button to be actionable first — the header holds two buttons
+    // (Bulk Add + Add New Role). getByRole's regex still matches only "Add New Role".
     const addBtn = page.getByRole('button', { name: /add.*role|new.*role/i });
     await expect(addBtn).toBeVisible({ timeout: 10_000 });
     await addBtn.click();
-    // .add-card contains the inline form for creating a custom role
-    await expect(page.locator('.add-card')).toBeVisible({ timeout: 5_000 });
+    // The create form is now a modal dialog — assert its name input is shown.
+    await expect(page.locator('.p-dialog #rl-role-name')).toBeVisible({ timeout: 5_000 });
   });
 
   // Bulk import: the "Bulk Add" dialog is an editable Name + Rate row grid.

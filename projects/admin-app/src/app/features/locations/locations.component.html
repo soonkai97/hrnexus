@@ -11,27 +11,23 @@
     <p-message severity="error" [text]="error()" />
   }
 
-  <!-- Form -->
-  @if (showForm()) {
-    <p-card #formAnchor styleClass="form-card">
-      <div class="form-header d-flex align-items-center justify-content-between">
-        <h3>{{ editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate) }}</h3>
-        <p-button [label]="'locations.close' | translate" [text]="true" severity="secondary" (click)="cancel()" />
-      </div>
-      <div class="field">
-        <label for="loc-name"><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
-        <input id="loc-name" pInputText type="text" [ngModel]="form.name" (ngModelChange)="form.name = $event.toUpperCase()"
-               [placeholder]="'locations.namePlaceholder' | translate" maxlength="100"
-               (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" />
-        @if (fieldError('name'); as err) { <small class="field-err">{{ err }}</small> }
-      </div>
-      <div class="form-actions d-flex gap-3 justify-content-end">
-        <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
-        <p-button [label]="saving() ? ('common.saving' | translate) : (editing() ? ('common.update' | translate) : ('common.create' | translate))"
-                  severity="primary" (click)="save()" [disabled]="saving() || !form.name" [loading]="saving()" />
-      </div>
-    </p-card>
-  }
+  <!-- Add / edit dialog -->
+  <p-dialog [visible]="showForm()" (visibleChange)="!$event && cancel()"
+            [header]="editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate)"
+            [modal]="true" [style]="{'width':'min(440px, 92vw)'}" [closable]="true">
+    <div class="field">
+      <label for="loc-name"><span class="req">*</span> {{ 'locations.nameLabel' | translate }}</label>
+      <input id="loc-name" pInputText type="text" [ngModel]="form.name" (ngModelChange)="form.name = $event.toUpperCase()"
+             [placeholder]="'locations.namePlaceholder' | translate" maxlength="100"
+             (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" styleClass="w-full" />
+      @if (fieldError('name'); as err) { <small class="field-err">{{ err }}</small> }
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
+      <p-button [label]="saving() ? ('common.saving' | translate) : (editing() ? ('common.update' | translate) : ('common.create' | translate))"
+                severity="primary" (click)="save()" [disabled]="saving() || !form.name" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
 
   <!-- Loading -->
   @if (loading()) {

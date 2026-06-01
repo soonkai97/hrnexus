@@ -13,13 +13,10 @@
     <p-message severity="error" [text]="error()" styleClass="mb-3 w-full" />
   }
 
-  <!-- Add staff form -->
-  @if (showForm()) {
-    <p-card #formAnchor styleClass="form-card">
-      <div class="form-header d-flex align-items-center justify-content-between">
-        <h3>{{ 'staff.newStaffMember' | translate }}</h3>
-        <p-button [label]="'common.close' | translate" [text]="true" severity="secondary" [attr.aria-label]="'staff.closeForm' | translate" (click)="closeForm()" />
-      </div>
+  <!-- Add staff dialog -->
+  <p-dialog [visible]="showForm()" (visibleChange)="!$event && closeForm()"
+            [header]="'staff.newStaffMember' | translate" [modal]="true"
+            [style]="{'width':'min(760px, 96vw)'}" [closable]="true">
       <div class="row g-3">
         <div class="col-12 col-md-6 field">
           <label for="st-staff-id"><span class="req">*</span> {{ 'staff.staffId' | translate }}</label>
@@ -127,13 +124,12 @@
             appendTo="body" />
         </div>
       </div>
-      <div class="form-actions d-flex justify-content-end">
+      <ng-template pTemplate="footer">
         <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="closeForm()" />
         <p-button [label]="saving() ? ('common.saving' | translate) : ('staff.saveStaff' | translate)"
                   severity="primary" (click)="saveStaff()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
-      </div>
-    </p-card>
-  }
+      </ng-template>
+  </p-dialog>
 
   <!-- Search -->
   <div class="search-wrap">

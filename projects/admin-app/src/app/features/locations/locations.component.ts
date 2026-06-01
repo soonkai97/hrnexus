@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
@@ -25,8 +25,6 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
   readonly locations = this.store.locations;
   readonly loading   = this.store.loading;
 
-  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
-
   showForm   = signal(false);
   editing    = signal<Location | null>(null);
   saving     = signal(false);
@@ -48,12 +46,8 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     return this.showForm() && !!this.form.name.trim();
   }
 
-  private scrollToForm(): void {
-    setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  }
-
-  openAdd(): void    { this.form = { name: '' }; this.editing.set(null); this.touched.set(new Set()); this.showForm.set(true); this.scrollToForm(); }
-  openEdit(loc: Location): void { this.form = { name: loc.name }; this.editing.set(loc); this.touched.set(new Set()); this.showForm.set(true); this.scrollToForm(); }
+  openAdd(): void    { this.form = { name: '' }; this.editing.set(null); this.touched.set(new Set()); this.showForm.set(true); }
+  openEdit(loc: Location): void { this.form = { name: loc.name }; this.editing.set(loc); this.touched.set(new Set()); this.showForm.set(true); }
   cancel(): void     { this.showForm.set(false); this.editing.set(null); this.touched.set(new Set()); }
 
   save(): void {

@@ -43,12 +43,10 @@ test.describe('Admin — Leave Management', () => {
     expect(hasCards + hasEmpty).toBeGreaterThan(0);
   });
 
-  test('opens the Record Leave form when button is clicked', async ({ page }) => {
+  test('opens the Record Leave dialog when button is clicked', async ({ page }) => {
     await page.getByRole('button', { name: /record leave/i }).click();
-    // Form should appear — look for a leave type selector or submit button
-    await expect(
-      page.locator('.form-card, [class*="form"]').first()
-    ).toBeVisible({ timeout: 5_000 });
+    // The record form is now a modal dialog — assert its staff-member field is shown.
+    await expect(page.locator('.p-dialog label[for="leave-form-staff"]')).toBeVisible({ timeout: 5_000 });
   });
 
   // Bulk import: the "Bulk Record" dialog records the same leave for many staff at once.

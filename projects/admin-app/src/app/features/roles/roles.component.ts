@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ViewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -32,7 +32,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   private readonly translate  = inject(TranslateService);
   private readonly permSvc    = inject(PermissionAdminService);
 
-  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
   @ViewChild('roleMenu') private roleMenu!: Menu;
   roleMenuItems = signal<MenuItem[]>([]);
 
@@ -76,7 +75,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     this.error.set('');
     this.touched.set(new Set());
     this.showForm.set(true);
-    setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
   cancel(): void { this.showForm.set(false); this.error.set(''); this.touched.set(new Set()); }

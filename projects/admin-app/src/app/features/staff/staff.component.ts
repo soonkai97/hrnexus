@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, ViewChild } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
@@ -42,7 +42,6 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly translate   = inject(TranslateService);
 
-  @ViewChild('formAnchor', { read: ElementRef }) private formAnchor?: ElementRef<HTMLElement>;
   @ViewChild('staffMenu') staffMenu!: Menu;
 
   readonly staff      = this.staffStore.staff;
@@ -192,7 +191,6 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.error.set('');
     this.touched.set(new Set());
     this.showForm.set(true);
-    setTimeout(() => this.formAnchor?.nativeElement?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
   closeForm(): void {

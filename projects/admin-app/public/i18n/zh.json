@@ -181,6 +181,7 @@
     "rolesHint":          "（可多选）",
     "selectRoles":        "选择职位…",
     "phoneNumber":        "手机号码",
+    "initialPassword":    "初始密码",
     "icNo":               "身份证号",
     "icNoHint":           "（马来西亚）",
     "passportNo":         "护照号码",
@@ -460,8 +461,8 @@
     "shiftEndTime":          "结束时间",
     "shiftNotes":            "备注",
     "shiftNotesPlaceholder": "可选备注…",
-    "selectRole":            "— 选择角色 —",
-    "selectLocation":        "— 选择位置 —",
+    "selectRole":            "— 选择职位 —",
+    "selectLocation":        "— 选择地点 —",
     "allStaff":              "所有员工",
     "allLocations":          "所有地点",
     "allRoles":              "所有职位",
@@ -478,7 +479,7 @@
     "periodLocked":          "已锁定",
     "lockPeriod":            "锁定本月",
     "reopenPeriod":          "重新开放",
-    "reopenConfirm":         "重新开放 {{period}}？其排班记录和账本记录将再次变为可编辑。",
+    "reopenConfirm":         "重新开放 {{period}}？其排班记录将再次变为可编辑。",
     "periodLockedToast":     "周期已锁定。",
     "periodReopenedToast":   "周期已重新开放。",
     "periodLockFailed":      "锁定周期失败。",
@@ -561,7 +562,7 @@
       "payroll.manage":       "管理薪资",
       "payroll.lock":         "锁定薪资周期",
       "roles.manage":         "管理职位与权限",
-      "locations.manage":     "管理场地"
+      "locations.manage":     "管理地点"
     }
   },
   "roles": {
@@ -575,7 +576,7 @@
     "system":           "系统",
     "custom":           "自定义",
     "deleteRole":       "删除",
-    "noRoles":          "未找到角色。",
+    "noRoles":          "未找到职位。",
     "close":            "关闭",
     "closeForm":        "关闭表单",
     "rateLabel":        "时薪（马币/小时）",

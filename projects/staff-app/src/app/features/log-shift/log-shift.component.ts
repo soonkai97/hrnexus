@@ -72,11 +72,16 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     this.myRoles().map(r => ({ label: r, value: r }))
   );
 
+  // Staff may only log shifts at the locations they're assigned to.
   readonly locationOptions = computed(() =>
-    this.locationStore.locations().map(l => ({ label: l.name, value: l.id }))
+    this.locationStore.myLocations().map(l => ({ label: l.name, value: l.id }))
   );
 
-  readonly locations = this.locationStore.locations;
+  readonly locations = this.locationStore.myLocations;
+  /** True once the assigned-locations fetch has returned and found none — blocks shift logging. */
+  readonly noLocations = computed(() =>
+    this.locationStore.myLoaded() && this.locationStore.myLocations().length === 0
+  );
 
   // Live form
   liveForm = {
@@ -171,7 +176,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   }
 
   ngOnInit(): void {
-    this.locationStore.load();
+    this.locationStore.loadMine();
     this.loadActive();
     this.loadHistory();
   }

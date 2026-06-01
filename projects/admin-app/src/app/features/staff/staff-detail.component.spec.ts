@@ -25,7 +25,7 @@ import { StaffStore, StaffManagementService, AuthService, ToastService, WorkLogS
 function makeStaffDetail(overrides: Partial<StaffDetail> = {}): StaffDetail {
   return {
     id: 's1', staffId: 'NC001', firstName: 'Jane', lastName: 'Doe',
-    fullName: 'Jane Doe', email: 'jane@test.com', roles: ['employee'],
+    fullName: 'Jane Doe', email: 'jane@test.com', roles: ['employee'], locationIds: [],
     isActive: true, phoneNumber: null, icNo: 'IC12345', passportNo: null,
     dateOfBirth: '1990-01-01', age: 36, createdAt: '2024-01-01T00:00:00Z',
     ...overrides,
@@ -149,7 +149,7 @@ describe('StaffDetailComponent', () => {
     function fillValid(): void {
       component.editForm = {
         staffId: 'NC001', firstName: 'Jane', lastName: 'Doe',
-        email: 'jane@test.com', roles: ['employee'],
+        email: 'jane@test.com', roles: ['employee'], locations: [],
         phoneNumber: null, icNo: 'IC12345', passportNo: null, dateOfBirth: '1990-01-01',
       };
     }
@@ -256,7 +256,7 @@ describe('StaffDetailComponent', () => {
     beforeEach(() => {
       component.editForm = {
         staffId: 'NC001', firstName: 'Jane', lastName: 'Doe',
-        email: 'jane@test.com', roles: ['employee'],
+        email: 'jane@test.com', roles: ['employee'], locations: [],
         phoneNumber: null, icNo: 'IC12345', passportNo: null, dateOfBirth: '1990-01-01',
       };
     });
@@ -296,7 +296,7 @@ describe('StaffDetailComponent', () => {
     beforeEach(() => {
       component.editForm = {
         staffId: 'NC001', firstName: 'Jane', lastName: 'Doe',
-        email: 'jane@test.com', roles: ['employee'],
+        email: 'jane@test.com', roles: ['employee'], locations: [],
         phoneNumber: null, icNo: 'IC12345', passportNo: null, dateOfBirth: '1990-01-01',
       };
       mockStaffStore.update.mockReturnValue(

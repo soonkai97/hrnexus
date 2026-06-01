@@ -56,6 +56,12 @@
               @for (r of s.roles; track r) { <p-tag [value]="r" severity="info" styleClass="mr-1" /> }
             </div>
           </div>
+          <div><label for="sd-view-locations" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.locations' | translate }}</label>
+            <div class="d-flex flex-wrap gap-1">
+              @for (id of s.locationIds; track id) { <p-tag [value]="locationName(id)" severity="success" styleClass="mr-1" /> }
+              @if (!s.locationIds.length) { <span style="color:var(--p-text-muted-color)">—</span> }
+            </div>
+          </div>
         </div>
       } @else {
         <!-- Edit form -->
@@ -129,6 +135,20 @@
                 styleClass="w-full" />
             </div>
           }
+          <div class="field col-12">
+            <label for="sd-locations">{{ 'staffDetail.locations' | translate }}</label>
+            <p-multiselect
+              inputId="sd-locations"
+              [(ngModel)]="editForm.locations"
+              [options]="availableLocations()"
+              optionLabel="name"
+              optionValue="id"
+              [placeholder]="'staffDetail.selectLocations' | translate"
+              [filter]="true"
+              display="chip"
+              [maxSelectedLabels]="50"
+              styleClass="w-full" />
+          </div>
         </div>
         <div class="d-flex gap-2 mt-4">
           <p-button [label]="'common.save' | translate" severity="primary"

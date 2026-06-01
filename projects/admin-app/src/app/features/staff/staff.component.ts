@@ -4,7 +4,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffStore, RegisterStaffRequest,
+import { StaffStore, LocationStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
          passwordChecks, isStrongPassword } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -36,6 +36,7 @@ import { Skeleton } from 'primeng/skeleton';
 })
 export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate {
   private readonly staffStore  = inject(StaffStore);
+  private readonly locationStore = inject(LocationStore);
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly translate   = inject(TranslateService);
@@ -63,7 +64,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   staffMenuItems   = signal<MenuItem[]>([]);
 
   newStaff: RegisterStaffRequest = {
-    staffId: '', firstName: '', lastName: '', email: null, password: '', roles: [],
+    staffId: '', firstName: '', lastName: '', email: null, password: '', roles: [], locations: [],
     phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
   };
 
@@ -127,10 +128,12 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
   availableRoles = computed(() => this.roles());
+  availableLocations = computed(() => this.locationStore.locations());
 
   ngOnInit(): void {
     this.staffStore.loadStaff('', 1, this.pageSize);
     this.staffStore.loadRoles();
+    this.locationStore.load();
     this.searchSub = this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -197,7 +200,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.touched.set(new Set());
     this.showNewStaffPwd.set(false);
     this.newStaff = { staffId: '', firstName: '', lastName: '', email: null, password: '',
-      roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
+      roles: [], locations: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
   }
 
   saveStaff(): void {
@@ -223,7 +226,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.staffStore.register(req).subscribe({
       next: () => {
         this.newStaff = { staffId: '', firstName: '', lastName: '', email: null, password: '',
-          roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
+          roles: [], locations: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
         this.showNewStaffPwd.set(false);
         this.saving.set(false);
         this.showForm.set(false);

@@ -437,10 +437,10 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   showImport   = signal(false);
   importing    = signal(false);
   importResult = signal<BulkStaffImportResult | null>(null);
-  /** One editable row per staff to import. Roles is a multiselect; password is auto-generated. */
-  importRows: { staffId: string; firstName: string; lastName: string; email: string; roles: string[] }[] = [];
+  /** One editable row per staff to import. Roles is a multiselect; the admin sets the password. */
+  importRows: { staffId: string; firstName: string; lastName: string; email: string; password: string; roles: string[] }[] = [];
 
-  private blankImportRow() { return { staffId: '', firstName: '', lastName: '', email: '', roles: [] as string[] }; }
+  private blankImportRow() { return { staffId: '', firstName: '', lastName: '', email: '', password: '', roles: [] as string[] }; }
 
   openImport(): void {
     this.importResult.set(null);
@@ -457,6 +457,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
       .map(r => ({
         staffId: r.staffId?.trim() ?? '', firstName: r.firstName?.trim() ?? '',
         lastName: r.lastName?.trim() || null, email: r.email?.trim() || null,
+        password: r.password?.trim() || undefined,
         roles: r.roles ?? [],
       }) as BulkStaffImportRow)
       .filter(r => r.staffId.length > 0 || r.firstName.length > 0 || r.roles.length > 0);
@@ -482,18 +483,6 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
       },
     });
-  }
-
-  /** Copy "staffId  password" for every successfully-imported row to the clipboard. */
-  copyCredentials(): void {
-    const lines = (this.importResult()?.rows ?? [])
-      .filter(r => r.success && r.tempPassword)
-      .map(r => `${r.staffId}\t${r.tempPassword}`);
-    if (!lines.length) return;
-    navigator.clipboard?.writeText(lines.join('\n')).then(
-      () => this.toast.success(this.translate.instant('staff.credentialsCopied')),
-      () => this.toast.error(this.translate.instant('staff.bulkFailed')),
-    );
   }
 
   hasUnsavedChanges(): boolean {

@@ -74,7 +74,7 @@ public class BulkCreateCommandTests
     // ── Staff (partial success) ──────────────────────────────────────────────────
 
     [Fact]
-    public async Task BulkRegisterStaff_ImportsValidRows_ReportsBadOnes_WithGeneratedPasswords()
+    public async Task BulkRegisterStaff_ImportsValidRows_AndReportsBadOnes()
     {
         await using var db = CreateDb();
         db.Staff.Add(E.Staff.Create("EXISTING", "Al", "Ready", "taken@t.com", "hash",
@@ -84,20 +84,21 @@ public class BulkCreateCommandTests
 
         var rows = new List<BulkStaffRow>
         {
-            new("NEW1", "Alice", "Tan", "alice@t.com", new List<string> { "STAFF" }),  // ok
-            new("EXISTING", "Dup", null, null, new List<string> { "STAFF" }),          // dup id
-            new("NOROLE", "Bob", null, null, new List<string>()),                       // no role
-            new("NEW2", "", null, null, new List<string> { "STAFF" }),                  // no first name
+            new("NEW1", "Alice", "Tan", "alice@t.com", new List<string> { "STAFF" }, null, "Passw0rd!"),  // ok
+            new("EXISTING", "Dup", null, null, new List<string> { "STAFF" }, null, "Passw0rd!"),          // dup id
+            new("NOROLE", "Bob", null, null, new List<string>(), null, "Passw0rd!"),                       // no role
+            new("NEW2", "", null, null, new List<string> { "STAFF" }, null, "Passw0rd!"),                  // no first name
+            new("NOPWD", "Cara", null, null, new List<string> { "STAFF" }),                                // no password
         };
 
         var result = await new BulkRegisterStaffCommandHandler(db, new StubHasher(), new NullAudit())
             .Handle(new BulkRegisterStaffCommand(rows), CancellationToken.None);
 
         Assert.Equal(1, result.Created);
-        Assert.Equal(3, result.Failed);
+        Assert.Equal(4, result.Failed);
         var ok = result.Rows.Single(r => r.Success);
         Assert.Equal("NEW1", ok.StaffId);
-        Assert.False(string.IsNullOrWhiteSpace(ok.TempPassword));   // a password was generated
+        Assert.Contains(result.Rows, r => r.StaffId == "NOPWD" && !r.Success && r.Error!.Contains("Password"));
         Assert.Equal(2, await db.Staff.CountAsync());               // existing + NEW1
     }
 
@@ -107,8 +108,8 @@ public class BulkCreateCommandTests
         await using var db = CreateDb();
         var rows = new List<BulkStaffRow>
         {
-            new("DUP", "First", null, null, new List<string> { "STAFF" }),
-            new("dup", "Second", null, null, new List<string> { "STAFF" }),   // same id, different case
+            new("DUP", "First", null, null, new List<string> { "STAFF" }, null, "Passw0rd!"),
+            new("dup", "Second", null, null, new List<string> { "STAFF" }, null, "Passw0rd!"),   // same id, different case
         };
 
         var result = await new BulkRegisterStaffCommandHandler(db, new StubHasher(), new NullAudit())

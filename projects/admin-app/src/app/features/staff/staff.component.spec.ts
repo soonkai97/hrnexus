@@ -642,35 +642,35 @@ describe('StaffComponent', () => {
     });
   });
 
-  // ── Bulk import (CSV paste) ─────────────────────────────────────────────────────
+  // ── Bulk import (editable row grid) ─────────────────────────────────────────────
 
   describe('runImport()', () => {
-    it('maps grid rows (trims, blank → null) and drops fully-empty rows before calling bulkImportStaff', () => {
+    it('maps grid rows (trims, blanks → null, admin-set password) and drops fully-empty rows', () => {
       component.importRows = [
-        { staffId: ' NC1 ', firstName: ' Alice ', lastName: ' Tan ', email: ' alice@t.com ', roles: ['BARTENDER', 'STAFF'] },
-        { staffId: 'NC2', firstName: 'Bob', lastName: '', email: '', roles: [] },
-        { staffId: '', firstName: '', lastName: '', email: '', roles: [] },   // fully blank → dropped
+        { staffId: ' NC1 ', firstName: ' Alice ', lastName: ' Tan ', email: ' alice@t.com ', password: ' Passw0rd! ', roles: ['BARTENDER', 'STAFF'] },
+        { staffId: 'NC2', firstName: 'Bob', lastName: '', email: '', password: '', roles: [] },
+        { staffId: '', firstName: '', lastName: '', email: '', password: '', roles: [] },   // fully blank → dropped
       ];
       component.runImport();
       expect(mockStaffStore.bulkImportStaff).toHaveBeenCalledWith([
-        { staffId: 'NC1', firstName: 'Alice', lastName: 'Tan', email: 'alice@t.com', roles: ['BARTENDER', 'STAFF'] },
-        { staffId: 'NC2', firstName: 'Bob', lastName: null, email: null, roles: [] },
+        { staffId: 'NC1', firstName: 'Alice', lastName: 'Tan', email: 'alice@t.com', password: 'Passw0rd!', roles: ['BARTENDER', 'STAFF'] },
+        { staffId: 'NC2', firstName: 'Bob', lastName: null, email: null, password: undefined, roles: [] },
       ]);
     });
 
     it('does nothing when every row is blank', () => {
-      component.importRows = [{ staffId: '  ', firstName: ' ', lastName: '', email: '', roles: [] }];
+      component.importRows = [{ staffId: '  ', firstName: ' ', lastName: '', email: '', password: '', roles: [] }];
       component.runImport();
       expect(mockStaffStore.bulkImportStaff).not.toHaveBeenCalled();
     });
 
     it('stores the result and reloads page 1 when at least one row imported', () => {
       mockStaffStore.bulkImportStaff.mockReturnValue(of({
-        created: 1, failed: 1,
-        rows: [{ staffId: 'NC1', success: true, error: null, tempPassword: 'Abc12345' }],
+        created: 1, failed: 0,
+        rows: [{ staffId: 'NC1', success: true, error: null }],
       }));
       mockStaffStore.loadStaff.mockClear();
-      component.importRows = [{ staffId: 'NC1', firstName: 'Alice', lastName: '', email: '', roles: ['STAFF'] }];
+      component.importRows = [{ staffId: 'NC1', firstName: 'Alice', lastName: '', email: '', password: 'Passw0rd!', roles: ['STAFF'] }];
       component.runImport();
       expect(component.importResult()?.created).toBe(1);
       expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('', 1, 10);
@@ -678,34 +678,18 @@ describe('StaffComponent', () => {
 
     it('shows an error toast when the request fails', () => {
       mockStaffStore.bulkImportStaff.mockReturnValue(throwError(() => ({ error: { error: 'Too many rows.' } })));
-      component.importRows = [{ staffId: 'NC1', firstName: 'Alice', lastName: '', email: '', roles: ['STAFF'] }];
+      component.importRows = [{ staffId: 'NC1', firstName: 'Alice', lastName: '', email: '', password: 'Passw0rd!', roles: ['STAFF'] }];
       component.runImport();
       expect(mockToastSvc.error).toHaveBeenCalledWith('Too many rows.');
     });
 
     it('addImportRow appends a blank row; removeImportRow drops by index', () => {
-      component.importRows = [{ staffId: 'A', firstName: '', lastName: '', email: '', roles: [] }];
+      component.importRows = [{ staffId: 'A', firstName: '', lastName: '', email: '', password: '', roles: [] }];
       component.addImportRow();
       expect(component.importRows.length).toBe(2);
       component.removeImportRow(0);
       expect(component.importRows.length).toBe(1);
       expect(component.importRows[0].staffId).toBe('');
-    });
-  });
-
-  describe('copyCredentials()', () => {
-    it('copies "staffId<TAB>password" lines for successful rows only', () => {
-      const writeText = vi.fn().mockResolvedValue(undefined);
-      Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
-      component.importResult.set({
-        created: 1, failed: 1,
-        rows: [
-          { staffId: 'NC1', success: true,  error: null,  tempPassword: 'Abc12345' },
-          { staffId: 'BAD', success: false, error: 'bad', tempPassword: null },
-        ],
-      });
-      component.copyCredentials();
-      expect(writeText).toHaveBeenCalledWith('NC1\tAbc12345');
     });
   });
 

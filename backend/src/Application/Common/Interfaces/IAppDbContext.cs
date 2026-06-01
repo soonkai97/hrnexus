@@ -40,7 +40,6 @@ public interface IAppDbContext
     DbSet<Notification>       Notifications       { get; }
     DbSet<AuditLog>           AuditLogs           { get; }
     DbSet<PushSubscription>   PushSubscriptions   { get; }
-    DbSet<FeatureFlag>        FeatureFlags         { get; }
     DbSet<PayrollLock>           PayrollLocks            { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 

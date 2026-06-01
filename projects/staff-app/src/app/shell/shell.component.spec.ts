@@ -5,14 +5,12 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ShellComponent } from './shell.component';
-import { AuthService, LangService, FeatureFlagService, SignalRService, NotificationService, AppUpdateService } from 'shared-lib';
+import { AuthService, LangService, SignalRService, NotificationService, AppUpdateService } from 'shared-lib';
 
 /**
  * Staff ShellComponent — layout shell with bottom navigation bar.
  *
  * WHY these tests matter:
- *  - navItems computed filters feature-flag-gated routes — if the filter is broken,
- *    disabled features would appear in the nav before they are enabled.
  *  - initials computed drives the staff avatar in the top bar; empty or wrong initials
  *    are visible on every page.
  *  - userRoleLabel must reflect the correct role for the top-bar label.
@@ -23,7 +21,6 @@ import { AuthService, LangService, FeatureFlagService, SignalRService, Notificat
 describe('ShellComponent (staff-app)', () => {
   let mockAuth:            { user: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
   let mockLang:            { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn> };
-  let mockFeature:         { load: ReturnType<typeof vi.fn>; flags: ReturnType<typeof vi.fn>; isEnabled: ReturnType<typeof vi.fn> };
   let mockSignalR:         { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn>; notifications$: unknown };
   let mockNotifSvc:        { notifications: ReturnType<typeof vi.fn>; unreadCount: ReturnType<typeof vi.fn>; load: ReturnType<typeof vi.fn>; push: ReturnType<typeof vi.fn> };
   let mockAppUpdate:       { init: ReturnType<typeof vi.fn> };
@@ -36,11 +33,6 @@ describe('ShellComponent (staff-app)', () => {
   beforeEach(async () => {
     mockAuth            = { user: vi.fn().mockReturnValue(null), logout: vi.fn() };
     mockLang            = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn() };
-    mockFeature         = {
-      load:      vi.fn().mockReturnValue(of(undefined)),
-      flags:     vi.fn().mockReturnValue({ payroll: false }),
-      isEnabled: vi.fn().mockReturnValue(false),
-    };
     mockSignalR         = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
     mockNotifSvc        = { notifications: vi.fn().mockReturnValue([]), unreadCount: vi.fn().mockReturnValue(0), load: vi.fn().mockReturnValue(of(undefined)), push: vi.fn() };
     mockAppUpdate       = { init: vi.fn() };
@@ -53,7 +45,6 @@ describe('ShellComponent (staff-app)', () => {
         provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,          useValue: mockAuth },
         { provide: LangService,          useValue: mockLang },
-        { provide: FeatureFlagService,   useValue: mockFeature },
         { provide: SignalRService,       useValue: mockSignalR },
         { provide: NotificationService,  useValue: mockNotifSvc },
         { provide: AppUpdateService,     useValue: mockAppUpdate },
@@ -194,11 +185,6 @@ describe('ShellComponent (staff-app)', () => {
   // ── constructor side effects ──────────────────────────────────────────────────
 
   describe('constructor side effects', () => {
-    it('calls featureSvc.load() on construction', () => {
-      createComponent();
-      expect(mockFeature.load).toHaveBeenCalled();
-    });
-
     it('starts the SignalR connection on construction', () => {
       createComponent();
       expect(mockSignalR.startConnection).toHaveBeenCalled();

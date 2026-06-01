@@ -5,14 +5,13 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ShellComponent } from './shell.component';
-import { AuthService, LangService, FeatureFlagService, SignalRService, NotificationService, AppUpdateService } from 'shared-lib';
+import { AuthService, LangService, SignalRService, NotificationService, AppUpdateService } from 'shared-lib';
 
 /**
  * Admin ShellComponent — layout shell with sidebar navigation.
  *
  * WHY these tests matter:
- *  - navItems computed filters out feature-flag-gated routes — if a flag check
- *    is missing, disabled features appear in the nav and users can navigate to them.
+ *  - navItems computed filters out admin-only routes for non-admins.
  *  - initials computed drives the user avatar badge; incorrect initials are visible
  *    to every logged-in admin on every page.
  *  - userRoleLabel must correctly identify admin vs manager to surface the right
@@ -25,7 +24,6 @@ import { AuthService, LangService, FeatureFlagService, SignalRService, Notificat
 describe('ShellComponent', () => {
   let mockAuth:       { user: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
   let mockLang:       { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn> };
-  let mockFeature:    { load: ReturnType<typeof vi.fn>; flags: ReturnType<typeof vi.fn>; isEnabled: ReturnType<typeof vi.fn> };
   let mockSignalR:    { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn>; notifications$: unknown };
   let mockNotifSvc:   { notifications: ReturnType<typeof vi.fn>; unreadCount: ReturnType<typeof vi.fn>; load: ReturnType<typeof vi.fn>; push: ReturnType<typeof vi.fn> };
   let mockAppUpdate:  { init: ReturnType<typeof vi.fn> };
@@ -38,11 +36,6 @@ describe('ShellComponent', () => {
   beforeEach(async () => {
     mockAuth      = { user: vi.fn().mockReturnValue(null), logout: vi.fn() };
     mockLang      = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn() };
-    mockFeature   = {
-      load:      vi.fn().mockReturnValue(of(undefined)),
-      flags:     vi.fn().mockReturnValue({ payroll: false, paySummary: false }),
-      isEnabled: vi.fn().mockReturnValue(false),
-    };
     mockSignalR   = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
     mockNotifSvc  = { notifications: vi.fn().mockReturnValue([]), unreadCount: vi.fn().mockReturnValue(0), load: vi.fn().mockReturnValue(of(undefined)), push: vi.fn() };
     mockAppUpdate = { init: vi.fn() };
@@ -55,7 +48,6 @@ describe('ShellComponent', () => {
         provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,        useValue: mockAuth },
         { provide: LangService,        useValue: mockLang },
-        { provide: FeatureFlagService, useValue: mockFeature },
         { provide: SignalRService,     useValue: mockSignalR },
         { provide: NotificationService, useValue: mockNotifSvc },
         { provide: AppUpdateService,    useValue: mockAppUpdate },
@@ -116,17 +108,12 @@ describe('ShellComponent', () => {
   // ── navItems computed ─────────────────────────────────────────────────────────
 
   describe('navItems computed', () => {
-    it('always includes /dashboard when flags are all disabled', () => {
+    it('includes the core admin routes', () => {
       const c = createComponent();
       const paths = c.navItems().map((n: any) => n.path);
       expect(paths).toContain('/dashboard');
-    });
-
-    it('includes /payroll when the payroll flag is enabled', () => {
-      mockFeature.flags.mockReturnValue({ payroll: true, paySummary: false });
-      const c = createComponent();
-      const paths = c.navItems().map((n: any) => n.path);
       expect(paths).toContain('/payroll');
+      expect(paths).toContain('/payroll-locks');
     });
   });
 
@@ -202,11 +189,6 @@ describe('ShellComponent', () => {
   // ── constructor effects ───────────────────────────────────────────────────────
 
   describe('constructor side effects', () => {
-    it('calls featureSvc.load() on construction to initialize flags', () => {
-      createComponent();
-      expect(mockFeature.load).toHaveBeenCalled();
-    });
-
     it('starts the SignalR connection on construction', () => {
       createComponent();
       expect(mockSignalR.startConnection).toHaveBeenCalled();

@@ -9,12 +9,12 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, FeatureFlagService, FeatureKey, LangService, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, LangService, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
 
 const LEAVE_SNAPSHOT_KEY = 'nc_leave_status_snapshot';
 const POLL_INTERVAL_MS   = 60_000;
 
-interface NavItem { path: string; labelKey: string; icon: string; featureFlag?: FeatureKey; }
+interface NavItem { path: string; labelKey: string; icon: string; }
 
 @Component({
   selector: 'app-shell',
@@ -89,7 +89,6 @@ export class ShellComponent implements AfterViewInit {
   private readonly router          = inject(Router);
   private readonly signalR         = inject(SignalRService);
   readonly lang                    = inject(LangService);
-  readonly featureSvc              = inject(FeatureFlagService);
   readonly notifSvc                = inject(NotificationService);
   private readonly leaveSvc        = inject(LeaveService);
   private readonly toast           = inject(ToastService);
@@ -107,7 +106,6 @@ export class ShellComponent implements AfterViewInit {
   leaveChangeCount    = signal(0);
 
   constructor() {
-    this.featureSvc.load().subscribe();
     this.lang.syncFromApi();
     this.signalR.startConnection();
 
@@ -207,10 +205,7 @@ export class ShellComponent implements AfterViewInit {
     { path: '/my-leave',      labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                  },
   ];
 
-  navItems = computed(() => {
-    const flags = this.featureSvc.flags();
-    return this.allNavItems.filter(item => !item.featureFlag || flags[item.featureFlag]);
-  });
+  navItems = computed(() => this.allNavItems);
 
   readonly avatarMenuItems = computed<MenuItem[]>(() => {
     this.lang.current(); // re-evaluate labels on language change

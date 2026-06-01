@@ -25,7 +25,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<Notification>     Notifications     => Set<Notification>();
     public DbSet<AuditLog>          AuditLogs          => Set<AuditLog>();
     public DbSet<PushSubscription>     PushSubscriptions   => Set<PushSubscription>();
-    public DbSet<FeatureFlag>        FeatureFlags         => Set<FeatureFlag>();
     public DbSet<PayrollLock>          PayrollLocks           => Set<PayrollLock>();
 
     /// <summary>
@@ -65,7 +64,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new NotificationConfiguration());
         mb.ApplyConfiguration(new AuditLogConfiguration());
         mb.ApplyConfiguration(new PushSubscriptionConfiguration());
-        mb.ApplyConfiguration(new FeatureFlagConfiguration());
         mb.ApplyConfiguration(new PayrollLockConfiguration());
         SeedData.Seed(mb);
     }

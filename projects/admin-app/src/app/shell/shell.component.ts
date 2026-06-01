@@ -9,14 +9,13 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, FeatureFlagService, FeatureKey, PermissionService, LangService, SignalRService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, PermissionService, LangService, SignalRService } from 'shared-lib';
 
 interface NavItem {
   path: string;
   labelKey: string;
   icon: string;
   group: string;
-  featureFlag?: FeatureKey;
   adminOnly?: boolean;
 }
 
@@ -77,7 +76,6 @@ export class ShellComponent implements AfterViewInit {
   private readonly signalR   = inject(SignalRService);
   readonly lang              = inject(LangService);
   private readonly translate = inject(TranslateService);
-  readonly featureSvc        = inject(FeatureFlagService);
   readonly permissions       = inject(PermissionService);
 
   // Translation files load asynchronously after bootstrap, so instant() inside a computed
@@ -89,7 +87,6 @@ export class ShellComponent implements AfterViewInit {
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
   constructor() {
-    this.featureSvc.load().subscribe();
     this.permissions.load().subscribe();   // so in-app guards + *ncHasPermission resolve synchronously
     this.lang.syncFromApi();
     this.signalR.startConnection();
@@ -126,10 +123,10 @@ export class ShellComponent implements AfterViewInit {
     { path: '/staff',         labelKey: 'nav.staff',         icon: 'pi pi-users',     group: 'operations' },
     { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar',  group: 'operations' },
     { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar', group: 'operations' },
-    { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    group: 'finance', featureFlag: 'payroll'      },
-    { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker', group: 'setup'                              },
+    { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    group: 'finance' },
+    { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker', group: 'setup'  },
     { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card',   group: 'setup'    },
-    { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock',      group: 'setup', featureFlag: 'payroll'    },
+    { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock',      group: 'setup' },
   ];
 
   /** Section order for the grouped sidebar. */
@@ -141,14 +138,10 @@ export class ShellComponent implements AfterViewInit {
   ];
 
   navItems = computed(() => {
-    const flags   = this.featureSvc.flags();
     const roles   = this.auth.user()?.roles ?? [];
     const isAdmin = roles.includes('SUPERADMIN');
 
-    return this.allNavItems.filter(item =>
-      (!item.featureFlag || flags[item.featureFlag]) &&
-      (!item.adminOnly   || isAdmin)
-    );
+    return this.allNavItems.filter(item => !item.adminOnly || isAdmin);
   });
 
   /** Visible nav items grouped into labelled sections (empty groups dropped). */

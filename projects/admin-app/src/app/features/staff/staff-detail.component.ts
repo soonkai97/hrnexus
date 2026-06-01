@@ -5,7 +5,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, FeatureFlagService, PERMISSION_FEATURE_FLAG, groupedPermissions } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -39,7 +39,6 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   private readonly route       = inject(ActivatedRoute);
   private readonly workLogSvc  = inject(WorkLogService);
   private readonly permSvc     = inject(PermissionAdminService);
-  private readonly featureSvc  = inject(FeatureFlagService);
   private readonly translate   = inject(TranslateService);
 
   staff            = signal<StaffDetail | null>(null);
@@ -84,20 +83,12 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     const cur = this.permChoices(), init = this.permInitial();
     return this.permKeys().some(k => (cur[k] ?? 'inherit') !== (init[k] ?? 'inherit'));
   });
-  /** Catalog keys to SHOW — hide permissions whose feature flag is disabled. Hidden keys keep their
-   * loaded choice in permChoices and are preserved on save (display-only filter). */
-  readonly visiblePermKeys = computed(() =>
-    this.permKeys().filter(k => {
-      const flag = PERMISSION_FEATURE_FLAG[k];
-      return !flag || this.featureSvc.isEnabled(flag);
-    }));
+  /** Catalog keys organised into labelled sections for the edit list. */
+  readonly visiblePermGroups = computed(() => groupedPermissions(this.permKeys()));
 
-  /** Visible keys organised into labelled sections for the edit list. */
-  readonly visiblePermGroups = computed(() => groupedPermissions(this.visiblePermKeys()));
-
-  /** Visible keys with a non-inherit choice — what the read-only view lists. */
+  /** Keys with a non-inherit choice — what the read-only view lists. */
   readonly activeOverrides = computed(() =>
-    this.visiblePermKeys().filter(k => (this.permChoices()[k] ?? 'inherit') !== 'inherit'));
+    this.permKeys().filter(k => (this.permChoices()[k] ?? 'inherit') !== 'inherit'));
 
   // Ticks on language (re)load so instant()-based label computeds re-evaluate — otherwise the
   // SelectButton option labels would cache in the first language and never switch.

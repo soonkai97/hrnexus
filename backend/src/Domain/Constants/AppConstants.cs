@@ -127,10 +127,4 @@ public static class AppConstants
         public const int DefaultPageSize = 20;
         public const int MaxPageSize     = 100;
     }
-
-    // ── Feature flag keys ──────────────────────────────────────────────────────
-    public static class FeatureFlags
-    {
-        public const string Payroll       = "payroll";
-    }
 }

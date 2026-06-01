@@ -67,6 +67,16 @@ export class LeaveService {
     return this.http.post<{ count: number }>('/api/admin/leave/bulk-no-show', { ids });
   }
 
+  /** Admin: record the same leave (e.g. a public holiday) for many staff at once (partial success). */
+  bulkCreateLeave(req: {
+    employeeIds: string[]; leaveType: string; startDate: string; endDate: string;
+    startTime: string | null; endTime: string | null; hours: number | null;
+    notes: string | null; status: string;
+  }): Observable<{ created: number; failed: number; errors: string[] }> {
+    return this.http.post<{ created: number; failed: number; errors: string[] }>(
+      '/api/admin/leave/bulk-create', req);
+  }
+
   /** Admin: aggregated leave usage summary per employee for a year. */
   getSummary(year?: number): Observable<LeaveSummary[]> {
     const q = year ? `?year=${year}` : '';

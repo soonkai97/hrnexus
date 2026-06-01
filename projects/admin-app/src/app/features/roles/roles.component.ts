@@ -98,6 +98,37 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
+  // ── Bulk add (paste "name, hourly-rate" per line) ───────────────────────────
+  showBulk   = signal(false);
+  bulkText   = '';
+  bulkSaving = signal(false);
+
+  openBulk(): void { this.bulkText = ''; this.showBulk.set(true); }
+
+  saveBulk(): void {
+    const roles = this.bulkText.split('\n')
+      .map(line => line.trim()).filter(line => line.length > 0)
+      .map(line => {
+        const [name, rate] = line.split(',');
+        const r = parseFloat((rate ?? '').trim());
+        return { name: (name ?? '').trim(), hourlyRate: Number.isFinite(r) ? r : 0 };
+      })
+      .filter(r => r.name.length > 0);
+    if (!roles.length) return;
+    this.bulkSaving.set(true);
+    this.store.bulkCreateRoles(roles).subscribe({
+      next: (res) => {
+        this.bulkSaving.set(false);
+        this.showBulk.set(false);
+        this.toast.success(this.translate.instant('roles.bulkAddedToast', { created: res.created, skipped: res.skipped }));
+      },
+      error: (e) => {
+        this.bulkSaving.set(false);
+        this.toast.error(e?.error?.error ?? this.translate.instant('roles.createFailed'));
+      },
+    });
+  }
+
   startEditRate(name: string, currentRate: number): void {
     this.editingRateName.set(name);
     this.editingRateValue.set(currentRate);

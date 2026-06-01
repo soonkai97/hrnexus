@@ -3,6 +3,7 @@
     <h1 class="page-title">{{ 'leave.title' | translate }}</h1>
     <div class="d-flex gap-2">
       <p-button icon="pi pi-download" [label]="'leave.exportCsv' | translate" severity="secondary" [outlined]="true" (click)="exportCsv()" />
+      <p-button icon="pi pi-users" [label]="'leave.bulkRecord' | translate" severity="secondary" [outlined]="true" (click)="openBulkCreate()" />
       <p-button icon="pi pi-plus" [label]="'leave.recordLeave' | translate" severity="primary" (click)="openAdd(); tab.set('records')" />
     </div>
   </div>
@@ -735,3 +736,43 @@
 
   }
 </div>
+
+<!-- ── Bulk record leave (venue-wide) ──────────────────────────────────────── -->
+<p-dialog [visible]="showBulkCreate()" (visibleChange)="!$event && showBulkCreate.set(false)"
+          [header]="'leave.bulkRecord' | translate" [modal]="true"
+          [style]="{'width':'min(560px, 94vw)'}" [closable]="true">
+  <p class="modal-desc">{{ 'leave.bulkRecordDesc' | translate }}</p>
+  <div class="field">
+    <label for="bl-staff">{{ 'leave.staffMember' | translate }}</label>
+    <p-multiselect inputId="bl-staff" [(ngModel)]="bulkStaffIds" [options]="bulkStaffOptions()"
+                   optionLabel="label" optionValue="value" [filter]="true" display="chip"
+                   [placeholder]="'leave.selectStaff' | translate" appendTo="body" styleClass="w-full" />
+  </div>
+  <div class="field">
+    <label for="bl-type">{{ 'leave.leaveType' | translate }}</label>
+    <p-select inputId="bl-type" [(ngModel)]="bulkType" [options]="leaveTypeOptions"
+              optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full" />
+  </div>
+  <div class="row g-2">
+    <div class="col-6 field">
+      <label for="bl-start">{{ 'leave.startDate' | translate }}</label>
+      <p-datepicker inputId="bl-start" [(ngModel)]="bulkStart" dateFormat="yy-mm-dd" [showIcon]="true"
+                    appendTo="body" styleClass="w-full" />
+    </div>
+    <div class="col-6 field">
+      <label for="bl-end">{{ 'leave.endDate' | translate }}</label>
+      <p-datepicker inputId="bl-end" [(ngModel)]="bulkEnd" dateFormat="yy-mm-dd" [showIcon]="true"
+                    appendTo="body" styleClass="w-full" />
+    </div>
+  </div>
+  <div class="field">
+    <label for="bl-hours">{{ 'leave.hours' | translate }}</label>
+    <p-inputnumber inputId="bl-hours" [(ngModel)]="bulkHours" [min]="0" [showButtons]="true" styleClass="w-full" />
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulkCreate.set(false)" />
+    <p-button [label]="bulkCreating() ? ('common.saving' | translate) : ('common.create' | translate)"
+              severity="primary" (click)="saveBulkCreate()"
+              [disabled]="bulkCreating() || !bulkStaffIds.length || !bulkStart || !bulkEnd" [loading]="bulkCreating()" />
+  </ng-template>
+</p-dialog>

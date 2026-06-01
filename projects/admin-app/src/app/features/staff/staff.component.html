@@ -2,7 +2,10 @@
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'staff.title' | translate }}</h1>
     @if (!showForm()) {
-      <p-button icon="pi pi-plus" [label]="'staff.addStaff' | translate" severity="primary" (click)="openAdd()" />
+      <div class="d-flex gap-2">
+        <p-button icon="pi pi-upload" [label]="'staff.import' | translate" severity="secondary" [outlined]="true" (click)="openImport()" />
+        <p-button icon="pi pi-plus" [label]="'staff.addStaff' | translate" severity="primary" (click)="openAdd()" />
+      </div>
     }
   </div>
 
@@ -327,5 +330,54 @@
     <p-button [label]="bulkSaving() ? ('common.saving' | translate) : ('common.apply' | translate)"
               severity="primary" (click)="saveBulkRoles()"
               [disabled]="bulkSaving() || !bulkRoles.length" [loading]="bulkSaving()" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── Bulk import Staff (CSV/paste) ───────────────────────────────────────── -->
+<p-dialog [visible]="showImport()" (visibleChange)="!$event && showImport.set(false)"
+          [header]="'staff.import' | translate" [modal]="true"
+          [style]="{'width':'min(680px, 94vw)'}" [closable]="true">
+  @if (!importResult()) {
+    <p class="modal-desc">{{ 'staff.importDesc' | translate }}</p>
+    <div class="field">
+      <textarea [(ngModel)]="importText" rows="8" class="bulk-textarea w-full"
+                [placeholder]="'staff.importPlaceholder' | translate"></textarea>
+    </div>
+  } @else {
+    <!-- Results -->
+    <p class="modal-desc">{{ 'staff.importedToast' | translate:{ created: importResult()!.created, failed: importResult()!.failed } }}</p>
+    <p-table [value]="importResult()!.rows" styleClass="p-datatable-sm" [scrollable]="true" scrollHeight="320px">
+      <ng-template pTemplate="header">
+        <tr>
+          <th scope="col">{{ 'staff.staffId' | translate }}</th>
+          <th scope="col">{{ 'staff.statusCol' | translate }}</th>
+          <th scope="col">{{ 'staff.importResultDetail' | translate }}</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-r>
+        <tr>
+          <td class="mono">{{ r.staffId }}</td>
+          <td>
+            <p-tag [value]="r.success ? ('common.active' | translate) : ('common.failed' | translate)"
+                   [severity]="r.success ? 'success' : 'danger'" />
+          </td>
+          <td class="mono">{{ r.success ? r.tempPassword : r.error }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+    <p class="modal-desc" style="font-size:.78rem;margin-top:.75rem">
+      <i class="pi pi-info-circle" style="margin-right:.35rem"></i>{{ 'staff.importPasswordHint' | translate }}
+    </p>
+  }
+  <ng-template pTemplate="footer">
+    @if (!importResult()) {
+      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showImport.set(false)" />
+      <p-button [label]="importing() ? ('common.saving' | translate) : ('staff.import' | translate)"
+                severity="primary" (click)="runImport()" [disabled]="importing() || !importText.trim()" [loading]="importing()" />
+    } @else {
+      <p-button icon="pi pi-copy" [label]="'staff.copyCredentials' | translate" [text]="true" severity="secondary"
+                [disabled]="importResult()!.created === 0" (click)="copyCredentials()" />
+      <p-button [label]="'common.close' | translate" severity="primary" (click)="showImport.set(false)" />
+    }
   </ng-template>
 </p-dialog>

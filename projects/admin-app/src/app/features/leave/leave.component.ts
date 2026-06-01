@@ -26,6 +26,8 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 import { Checkbox } from 'primeng/checkbox';
+import { Dialog } from 'primeng/dialog';
+import { MultiSelect } from 'primeng/multiselect';
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show', 'emergency'] as const;
 const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
@@ -35,7 +37,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
-    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox],
+    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, Dialog, MultiSelect],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
@@ -275,6 +277,50 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         },
         error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkRejectFailed')); this.bulkStatusSaving.set(false); },
       });
+    });
+  }
+
+  // ── Bulk record (venue-wide: same leave for many staff) ─────────────────────
+  showBulkCreate = signal(false);
+  bulkCreating   = signal(false);
+  bulkStaffIds: string[] = [];
+  bulkType   = 'unpaid';
+  bulkStart: Date | null = null;
+  bulkEnd:   Date | null = null;
+  bulkHours: number | null = 8;
+  bulkNotes  = '';
+
+  bulkStaffOptions = computed(() =>
+    this.staffStore.staff().map(s => ({ label: s.fullName, value: s.id })));
+
+  openBulkCreate(): void {
+    this.bulkStaffIds = []; this.bulkType = 'unpaid';
+    this.bulkStart = null; this.bulkEnd = null; this.bulkHours = 8; this.bulkNotes = '';
+    this.staffStore.loadStaff('', 1, 200);   // load a full page for the picker
+    this.showBulkCreate.set(true);
+  }
+
+  saveBulkCreate(): void {
+    if (!this.bulkStaffIds.length || !this.bulkStart || !this.bulkEnd) return;
+    this.bulkCreating.set(true);
+    this.leaveSvc.bulkCreateLeave({
+      employeeIds: this.bulkStaffIds, leaveType: this.bulkType,
+      startDate: toLocalDateString(this.bulkStart), endDate: toLocalDateString(this.bulkEnd),
+      startTime: null, endTime: null, hours: this.bulkHours, notes: this.bulkNotes || null,
+      status: 'approved',
+    }).subscribe({
+      next: r => {
+        this.bulkCreating.set(false);
+        this.showBulkCreate.set(false);
+        this.toast.success(this.translate.instant('leave.bulkCreatedToast', { created: r.created, failed: r.failed }));
+        const firstErr = r.errors[0];
+        if (r.failed > 0 && firstErr) this.toast.warning(firstErr);
+        this.load(); this.loadBalances();
+      },
+      error: (e: unknown) => {
+        this.bulkCreating.set(false);
+        this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkCreateFailed'));
+      },
     });
   }
 

@@ -23,12 +23,15 @@ public class TokenService(IConfiguration config) : ITokenService
             new Claim("fullName",                    employee.FullName),
             new Claim("staffId",                     employee.StaffId),
         };
-        var days  = int.TryParse(config["Jwt:AccessTokenDays"], out var d) ? d : 30;
+        // Short-lived access token: the long-lived (30-day) refresh cookie carries the "stay signed
+        // in" session, and every refresh re-checks IsActive and re-issues fresh role/claims — so
+        // deactivating or demoting a user takes effect within this window instead of after 30 days.
+        var minutes = int.TryParse(config["Jwt:AccessTokenMinutes"], out var m) ? m : 30;
         var token = new JwtSecurityToken(
             issuer:   config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
             claims:   claims,
-            expires:  DateTime.UtcNow.AddDays(days),
+            expires:  DateTime.UtcNow.AddMinutes(minutes),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

@@ -143,6 +143,20 @@ public class StaffDomainTests
     }
 
     [Fact]
+    public void Deactivate_ClearsRefreshToken_SoTheSessionCannotBeRenewed()
+    {
+        // With a short-lived access token, clearing the refresh token ends access within the
+        // access-token window instead of lingering for the cookie's 30-day lifetime.
+        var staff = MakeStaff();
+        staff.SetRefreshToken("some-refresh-token", DateTime.UtcNow.AddDays(30));
+
+        staff.Deactivate();
+
+        Assert.Null(staff.RefreshToken);
+        Assert.Null(staff.RefreshTokenExpiry);
+    }
+
+    [Fact]
     public void Activate_SetsIsActive_True()
     {
         // Re-activating staff must restore their ability to log in.

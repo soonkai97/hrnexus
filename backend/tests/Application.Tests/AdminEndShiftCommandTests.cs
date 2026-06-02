@@ -41,27 +41,75 @@ public class AdminEndShiftCommandTests
         new(db, new NullSender(), new NullNotificationHub());
 
     [Fact]
-    public async Task Closes_an_open_shift_at_the_chosen_end_time()
+    public async Task Closes_an_open_shift_at_the_chosen_end_date_and_time()
     {
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
-        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var workDate = new DateOnly(2026, 6, 1);
         var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", 50m);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync();
 
-        await Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), "23:00"), CancellationToken.None);
+        await Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate, "23:00"), CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
         Assert.Equal("23:00", updated!.EndTime);   // shift is now closed → drops off the on-shift list
     }
 
     [Fact]
+    public async Task Allows_an_overnight_close_on_the_next_day_within_24h()
+    {
+        // Clocked in 22:00 on day 1; admin records the finish as 06:00 the NEXT day → an 8h overnight
+        // shift. The model stores only EndTime; the next-day end is valid because the span is ≤ 24h.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = new DateOnly(2026, 6, 1);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "22:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate.AddDays(1), "06:00"), CancellationToken.None);
+
+        var updated = await db.WorkLogs.FindAsync(log.Id);
+        Assert.Equal("06:00", updated!.EndTime);
+    }
+
+    [Fact]
+    public async Task Rejects_an_end_more_than_24h_after_the_start()
+    {
+        // Next day at 18:00 vs a 09:00 start = 33h → cannot be represented by a single ≤24h shift.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = new DateOnly(2026, 6, 1);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "09:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate.AddDays(1), "18:00"), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Rejects_an_end_before_the_start()
+    {
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = new DateOnly(2026, 6, 1);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate, "09:00"), CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Throws_KeyNotFound_when_the_shift_does_not_exist()
     {
         await using var db = CreateDb();
+        var d = new DateOnly(2026, 6, 1);
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            Handler(db).Handle(new AdminEndShiftCommand(Guid.NewGuid(), Guid.NewGuid(), "23:00"), CancellationToken.None));
+            Handler(db).Handle(new AdminEndShiftCommand(Guid.NewGuid(), Guid.NewGuid(), d, "23:00"), CancellationToken.None));
     }
 
     [Fact]
@@ -69,13 +117,13 @@ public class AdminEndShiftCommandTests
     {
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
-        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var workDate = new DateOnly(2026, 6, 1);
         var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), "23:30"), CancellationToken.None));
+            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate, "23:30"), CancellationToken.None));
     }
 
     [Fact]
@@ -83,31 +131,13 @@ public class AdminEndShiftCommandTests
     {
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
-        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var workDate = new DateOnly(2026, 6, 1);
         var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", 50m);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), "99:99"), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task Identical_start_and_end_is_treated_as_24h_not_rejected()
-    {
-        // Per ShiftHours.CalcHours, identical times yield 24h (a full overnight shift), not 0 — the
-        // same intentional behaviour as EndWorkLogCommand. So this saves normally rather than throwing.
-        await using var db = CreateDb();
-        var empId = Guid.NewGuid();
-        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
-        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", 50m);
-        db.WorkLogs.Add(log);
-        await db.SaveChangesAsync();
-
-        await Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), "18:00"), CancellationToken.None);
-
-        var ended = await db.WorkLogs.FindAsync(log.Id);
-        Assert.Equal("18:00", ended!.EndTime);
+            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate, "99:99"), CancellationToken.None));
     }
 
     [Fact]
@@ -122,6 +152,6 @@ public class AdminEndShiftCommandTests
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), "23:00"), CancellationToken.None));
+            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate, "23:00"), CancellationToken.None));
     }
 }

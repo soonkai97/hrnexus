@@ -51,7 +51,7 @@
           <tr>
             <td><p-tag [value]="period(l)" severity="warn" icon="pi pi-lock" /></td>
             <td>{{ l.lockedBy }}</td>
-            <td class="td-muted">{{ l.lockedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="td-muted">{{ l.lockedAt | date:'dd/MM/yyyy HH:mm':'+0800' }}</td>
             <td class="td-muted">{{ l.note || '—' }}</td>
             <td class="td-action">
               <p-button [label]="'payrollLocks.reopen' | translate" icon="pi pi-lock-open" [text]="true"

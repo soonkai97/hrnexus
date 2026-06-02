@@ -3,23 +3,29 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Subject, EMPTY } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { SignalRService, AdminService, ActiveStaffDto, RecentEventDto, DashboardStats, ToastService } from 'shared-lib';
+import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, ToastService, apiErrorMessage } from 'shared-lib';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { Skeleton } from 'primeng/skeleton';
+import { Button } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
+import { DatePicker } from 'primeng/datepicker';
+import { PrimeTemplate } from 'primeng/api';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TranslatePipe, TableModule, Tag, Card, Skeleton],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TableModule, Tag, Card, Skeleton, Button, Dialog, DatePicker, PrimeTemplate],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
   private readonly signalR    = inject(SignalRService);
   private readonly admin      = inject(AdminService);
+  private readonly workLog    = inject(WorkLogService);
   private readonly toast      = inject(ToastService);
   private readonly translate  = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
@@ -82,5 +88,42 @@ export class DashboardComponent implements OnInit {
     const h = Math.floor(min / 60);
     const m = min % 60;
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  }
+
+  // ── Close a forgotten clock-out ───────────────────────────────────────────────
+  // An admin sets the real end time on an open shift (staff forgot to clock out).
+  closeRow      = signal<ActiveStaffDto | null>(null);
+  closeEndTime: Date | null = null;
+  closeSaving   = signal(false);
+
+  openCloseShift(row: ActiveStaffDto): void {
+    this.closeRow.set(row);
+    this.closeEndTime = new Date();   // default to "now" — the admin adjusts to the real finish time
+    this.closeSaving.set(false);
+  }
+
+  cancelCloseShift(): void {
+    this.closeRow.set(null);
+    this.closeEndTime = null;
+  }
+
+  confirmCloseShift(): void {
+    const row = this.closeRow();
+    if (!row || !this.closeEndTime) return;
+    const hh = String(this.closeEndTime.getHours()).padStart(2, '0');
+    const mm = String(this.closeEndTime.getMinutes()).padStart(2, '0');
+    this.closeSaving.set(true);
+    this.workLog.adminEndShift(row.workLogId, `${hh}:${mm}`).subscribe({
+      next: () => {
+        this.closeSaving.set(false);
+        this.cancelCloseShift();
+        this.toast.success(this.translate.instant('dashboard.shiftClosedToast'));
+        this._loadTrigger$.next(false);   // refresh the dashboard so the closed shift drops off
+      },
+      error: (e: unknown) => {
+        this.closeSaving.set(false);
+        this.toast.error(apiErrorMessage(e) ?? this.translate.instant('dashboard.shiftCloseFailed'));
+      },
+    });
   }
 }

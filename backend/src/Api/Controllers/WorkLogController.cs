@@ -84,6 +84,21 @@ public class WorkLogController(IMediator mediator) : ControllerBase
         catch (UnauthorizedAccessException)  { return Forbid(); }
     }
 
+    // Admin/manager: close an OPEN shift (staff forgot to clock out) at a chosen end time.
+    [HttpPut("{id:guid}/admin-end")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.WorkLogManage)]
+    public async Task<IActionResult> AdminEnd(Guid id, [FromBody] EndWorkLogRequest req, CancellationToken ct)
+    {
+        try
+        {
+            await mediator.Send(new AdminEndShiftCommand(id, CallerId, req.EndTime), ct);
+            return NoContent();
+        }
+        catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
+        catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {

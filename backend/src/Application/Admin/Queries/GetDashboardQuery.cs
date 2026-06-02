@@ -19,10 +19,12 @@ public record DashboardStats(
     int     OpenShiftsCount);
 
 public record ActiveStaffDto(
+    Guid     WorkLogId,
     string   StaffId,
     string   Name,
     string   Role,
     string   LocationName,
+    string   StartTime,
     DateTime ClockedInAt,
     int      MinutesOnShift);
 
@@ -103,10 +105,12 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
                 var clockedInUtc  = LocalShiftToUtc(w.WorkDate, w.StartTime);
                 var minutesOnShift = Math.Max(0, (int)(utcNow - clockedInUtc).TotalMinutes);
                 return new ActiveStaffDto(
+                    w.Id,
                     w.Employee!.StaffId,
                     w.Employee.FullName,
                     w.RoleName,
                     w.LocationName,
+                    w.StartTime,
                     clockedInUtc,
                     minutesOnShift);
             })

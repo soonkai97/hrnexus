@@ -11,10 +11,12 @@ export interface DashboardStats {
 }
 
 export interface ActiveStaffDto {
+  workLogId:      string;
   staffId:        string;
   name:           string;
   role:           string;
   locationName:   string;
+  startTime:      string;   // HH:mm — the shift's clock-in time
   clockedInAt:    string;
   minutesOnShift: number;
 }

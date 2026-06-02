@@ -22,15 +22,9 @@
     .req { color: var(--p-red-500, #ef4444); margin-right: 0.15rem; }
   }
   .import-grid-row input { width: 100%; }
-
-  // Password cell: stack the input (with its show/hide eye) above any inline policy error.
-  .import-pwd {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    .pwd-wrap { width: 100%; }
-    .field-err { font-size: 0.68rem; line-height: 1.2; }
-  }
+  // The password cell is a .pwd-wrap (input + show/hide eye); an invalid password is signalled by
+  // the red input border (.input-invalid) so every row keeps a uniform height.
+  .import-grid-row .pwd-wrap { width: 100%; }
 
   // Stack each row into a labelled card on narrow screens
   @media (max-width: 720px) {
@@ -42,6 +36,15 @@
       padding: 0.6rem;
     }
   }
+}
+
+// Blocking summary shown when one or more import rows have an invalid/missing password.
+.import-invalid-note {
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--p-red-500, #ef4444);
 }
 
 .form-card { margin-bottom: 1.25rem; }

@@ -659,10 +659,20 @@ describe('StaffComponent', () => {
       ]);
     });
 
-    it('importPwdError: blank → no error, weak → message, strong → no error', () => {
-      expect(component.importPwdError({ password: '' })).toBe('');
-      expect(component.importPwdError({ password: 'weak' })).toBe('staff.errPasswordWeak');
-      expect(component.importPwdError({ password: 'Passw0rd!' })).toBe('');
+    it('importPwdInvalid: blank → false (row may be empty), weak → true, strong → false', () => {
+      expect(component.importPwdInvalid({ password: '' })).toBe(false);
+      expect(component.importPwdInvalid({ password: 'weak' })).toBe(true);
+      expect(component.importPwdInvalid({ password: 'Passw0rd!' })).toBe(false);
+    });
+
+    it('importInvalidPwdCount counts submittable rows missing a valid password (gates Import)', () => {
+      component.importRows = [
+        { staffId: 'NC1', firstName: 'A', password: 'Passw0rd!', roles: ['STAFF'], locations: [] }, // valid
+        { staffId: 'NC2', firstName: 'B', password: 'weak',      roles: ['STAFF'], locations: [] }, // weak
+        { staffId: 'NC3', firstName: 'C', password: '',          roles: ['STAFF'], locations: [] }, // missing
+        { staffId: '',    firstName: '',  password: '',          roles: [],        locations: [] }, // blank → not submitted
+      ];
+      expect(component.importInvalidPwdCount).toBe(2);
     });
 
     it('does nothing when every row is blank', () => {

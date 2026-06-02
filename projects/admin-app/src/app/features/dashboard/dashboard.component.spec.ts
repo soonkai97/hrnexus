@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DashboardComponent } from './dashboard.component';
-import { SignalRService, AdminService, ToastService } from 'shared-lib';
+import { SignalRService, AdminService, ToastService, WorkLogService } from 'shared-lib';
 
 /**
  * DashboardComponent — live KPI panel with SignalR stat patches.
@@ -25,7 +25,7 @@ const fakeStats = {
 };
 const fakeDashboard = {
   stats: fakeStats,
-  currentlyOnShift: [{ staffId: 'NC001', name: 'Jane', role: 'bartender', locationName: 'Main Bar', clockedInAt: '18:00', minutesOnShift: 90 }],
+  currentlyOnShift: [{ workLogId: 'wl-1', staffId: 'NC001', name: 'Jane', role: 'bartender', locationName: 'Main Bar', startTime: '18:00', clockedInAt: '18:00', minutesOnShift: 90 }],
   recentActivity:   [{ staffName: 'Jane', role: 'bartender', locationName: 'Main Bar', timestamp: '18:00', eventType: 'shift-started' as const }],
 };
 
@@ -34,7 +34,8 @@ describe('DashboardComponent', () => {
 
   let mockSignalR: { isConnected: ReturnType<typeof vi.fn>; liveStats$: ReturnType<typeof vi.fn> };
   let mockAdminSvc: { getDashboard: ReturnType<typeof vi.fn> };
-  let mockToastSvc: { error: ReturnType<typeof vi.fn> };
+  let mockToastSvc: { error: ReturnType<typeof vi.fn>; success: ReturnType<typeof vi.fn> };
+  let mockWorkLogSvc: { adminEndShift: ReturnType<typeof vi.fn> };
 
   function createComponent(connected = false) {
     mockSignalR.isConnected.mockReturnValue(connected);
@@ -46,7 +47,8 @@ describe('DashboardComponent', () => {
 
     mockSignalR  = { isConnected: vi.fn().mockReturnValue(false), liveStats$: liveStats$ as any };
     mockAdminSvc = { getDashboard: vi.fn().mockReturnValue(of(fakeDashboard)) };
-    mockToastSvc = { error: vi.fn() };
+    mockToastSvc = { error: vi.fn(), success: vi.fn() };
+    mockWorkLogSvc = { adminEndShift: vi.fn().mockReturnValue(of(void 0)) };
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -57,6 +59,7 @@ describe('DashboardComponent', () => {
         { provide: SignalRService, useValue: mockSignalR },
         { provide: AdminService,  useValue: mockAdminSvc },
         { provide: ToastService,  useValue: mockToastSvc },
+        { provide: WorkLogService, useValue: mockWorkLogSvc },
         MessageService,
         ConfirmationService,
       ],
@@ -162,6 +165,45 @@ describe('DashboardComponent', () => {
       component.ngOnInit();
       expect(component.onShift()).toEqual(fakeDashboard.currentlyOnShift);
       expect(component.activity()).toHaveLength(1);
+    });
+  });
+
+  // ── Close a forgotten clock-out ───────────────────────────────────────────────
+
+  describe('confirmCloseShift()', () => {
+    let component: DashboardComponent;
+    const row = { workLogId: 'wl-1', staffId: 'NC001', name: 'Jane', role: 'bartender', locationName: 'Main Bar', startTime: '18:00', clockedInAt: '18:00', minutesOnShift: 90 };
+    beforeEach(() => { component = createComponent(); });
+
+    it('openCloseShift seeds the row and a default end time', () => {
+      component.openCloseShift(row);
+      expect(component.closeRow()).toEqual(row);
+      expect(component.closeEndTime).toBeInstanceOf(Date);
+    });
+
+    it('posts the work-log id + chosen end time as HH:mm and closes the dialog', () => {
+      component.openCloseShift(row);
+      component.closeEndTime = new Date(2026, 0, 1, 2, 5);   // 02:05 → must be zero-padded
+      component.confirmCloseShift();
+      expect(mockWorkLogSvc.adminEndShift).toHaveBeenCalledWith('wl-1', '02:05');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('dashboard.shiftClosedToast');
+      expect(component.closeRow()).toBeNull();
+    });
+
+    it('does nothing when no end time is set', () => {
+      component.openCloseShift(row);
+      component.closeEndTime = null;
+      component.confirmCloseShift();
+      expect(mockWorkLogSvc.adminEndShift).not.toHaveBeenCalled();
+    });
+
+    it('shows an error toast and keeps the dialog open on failure', () => {
+      mockWorkLogSvc.adminEndShift.mockReturnValue(throwError(() => ({ error: { error: 'Shift already ended.' } })));
+      component.openCloseShift(row);
+      component.closeEndTime = new Date(2026, 0, 1, 23, 0);
+      component.confirmCloseShift();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Shift already ended.');
+      expect(component.closeRow()).toEqual(row);
     });
   });
 });

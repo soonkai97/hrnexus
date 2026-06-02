@@ -92,8 +92,8 @@ describe('ForgotPasswordComponent', () => {
       component.staffId = 'NC001';
     });
 
-    it('calls forgotPassword with the trimmed staffId', () => {
-      component.staffId = '  NC001  ';
+    it('calls forgotPassword with the trimmed, uppercased staffId', () => {
+      component.staffId = '  nc001  ';
       component.submit();
       expect(mockAuth.forgotPassword).toHaveBeenCalledWith('NC001');
     });

@@ -123,6 +123,12 @@ describe('AdminLoginComponent', () => {
       expect(mockAuth.login).toHaveBeenCalledWith({ staffId: 'NC001', password: 'pass123', portal: 'admin' });
     });
 
+    it('uppercases the Staff ID before submitting (stored uppercase)', () => {
+      component.form.patchValue({ staffId: ' nc001 ', password: 'pass123' });
+      component.submit();
+      expect(mockAuth.login).toHaveBeenCalledWith(expect.objectContaining({ staffId: 'NC001', portal: 'admin' }));
+    });
+
     it('navigates to /dashboard when login succeeds', () => {
       mockAuth.login.mockReturnValue(of({ user: { roles: ['SUPERADMIN'] } }));
       component.submit();

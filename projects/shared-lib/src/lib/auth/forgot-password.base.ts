@@ -19,7 +19,7 @@ export abstract class ForgotPasswordBase {
     if (!this.staffId?.trim() || this.loading()) return;
     this.loading.set(true);
     this.error.set('');
-    this.auth.forgotPassword(this.staffId.trim()).subscribe({
+    this.auth.forgotPassword(this.staffId.trim().toUpperCase()).subscribe({
       next: (res) => {
         this.loading.set(false);
         if (res.found) {

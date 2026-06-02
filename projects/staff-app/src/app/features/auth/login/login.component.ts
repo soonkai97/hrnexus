@@ -5,12 +5,12 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { AuthService, ThemeToggleComponent, LangService, apiErrorMessage } from 'shared-lib';
+import { AuthService, ThemeToggleComponent, LangService, UppercaseInputDirective, apiErrorMessage } from 'shared-lib';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message],
+  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message, UppercaseInputDirective],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -39,7 +39,7 @@ export class LoginComponent {
 
   submit(): void {
     if (this.form.invalid || this.loading()) return;
-    const staffId = (this.form.value.staffId as string).trim();
+    const staffId = (this.form.value.staffId as string).trim().toUpperCase();
     if (!staffId) { this.error.set(this.translate.instant('auth.errEnterStaffId')); return; }
     this.loading.set(true);
     this.error.set('');

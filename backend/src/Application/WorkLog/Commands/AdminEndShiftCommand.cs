@@ -15,14 +15,14 @@ namespace HRNexus.Application.WorkLog.Commands;
 ///   • <see cref="UpdateWorkLogCommand"/> deliberately refuses active shifts ("End it first").
 /// Respects payroll-period locks, writes an audit row, and re-broadcasts live dashboard stats.
 /// </summary>
-public record AdminEndShiftCommand(Guid Id, Guid CallerId, string EndTime) : IRequest;
+public record AdminEndShiftCommand(Guid Id, Guid CallerId, DateOnly EndDate, string EndTime) : IRequest;
 
 public class AdminEndShiftCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub)
     : IRequestHandler<AdminEndShiftCommand>
 {
     public async Task Handle(AdminEndShiftCommand req, CancellationToken ct)
     {
-        if (!TimeOnly.TryParseExact(req.EndTime, "HH:mm", null, DateTimeStyles.None, out _))
+        if (!TimeOnly.TryParseExact(req.EndTime, "HH:mm", null, DateTimeStyles.None, out var endTod))
             throw new ArgumentException("EndTime must be in HH:mm format.");
 
         var log = await db.WorkLogs.FindAsync([req.Id], ct)
@@ -31,12 +31,22 @@ public class AdminEndShiftCommandHandler(IAppDbContext db, ISender sender, INoti
         if (log.EndTime != null)
             throw new InvalidOperationException("Shift already ended.");
 
-        // A forgotten clock-out could sit in a month that has since been locked.
+        // A forgotten clock-out could sit in a month that has since been locked — guard both the
+        // shift's own date and the chosen end date (so a locked period can't be written into).
         await PayrollLockGuard.EnsureDateOpenAsync(db, log.WorkDate, ct);
+        await PayrollLockGuard.EnsureDateOpenAsync(db, req.EndDate, ct);
 
-        var hours = ShiftHours.CalcHours(log.StartTime, req.EndTime);
-        if (hours <= 0)
-            throw new ArgumentException("End time must be different from the shift start time.");
+        // Validate the full end date+time against the start date+time. A single WorkLog stores only an
+        // end-of-day HH:mm (overnight is inferred when end <= start), so the span must be within 24h —
+        // the chosen end date makes the admin's intent explicit and catches "more than a day" mistakes.
+        var startTod  = TimeOnly.Parse(log.StartTime);
+        var startMins = (long)log.WorkDate.DayNumber * 1440 + startTod.Hour * 60 + startTod.Minute;
+        var endMins   = (long)req.EndDate.DayNumber  * 1440 + endTod.Hour   * 60 + endTod.Minute;
+        var spanMins  = endMins - startMins;
+        if (spanMins <= 0)
+            throw new ArgumentException("The end date/time must be after the shift started.");
+        if (spanMins > 1440)
+            throw new ArgumentException("A shift cannot exceed 24 hours. If the staff worked across multiple days, record separate shifts.");
 
         var before = $"Date={log.WorkDate},Start={log.StartTime},End=(open)";
         log.End(req.EndTime);
@@ -52,7 +62,7 @@ public class AdminEndShiftCommandHandler(IAppDbContext db, ISender sender, INoti
             action:          "AdminEnded",
             performedById:   req.CallerId,
             performedByName: actor?.FullName ?? "Unknown",
-            changes:         $"Before: {before} | After: End={req.EndTime} (admin closed a forgotten clock-out)"));
+            changes:         $"Before: {before} | After: End={req.EndDate} {req.EndTime} (admin closed a forgotten clock-out)"));
 
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException)

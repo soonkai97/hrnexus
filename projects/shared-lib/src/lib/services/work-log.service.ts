@@ -72,9 +72,9 @@ export class WorkLogService {
     return this.http.put<void>(`/api/worklogs/${id}/end`, { endTime });
   }
 
-  /** Admin/manager closes an OPEN shift (staff forgot to clock out) at a chosen end time. */
-  adminEndShift(id: string, endTime: string): Observable<void> {
-    return this.http.put<void>(`/api/worklogs/${id}/admin-end`, { endTime });
+  /** Admin/manager closes an OPEN shift (staff forgot to clock out) at a chosen end date + time. */
+  adminEndShift(id: string, endDate: string, endTime: string): Observable<void> {
+    return this.http.put<void>(`/api/worklogs/${id}/admin-end`, { endDate, endTime });
   }
 
   update(id: string, req: UpdateWorkLogRequest): Observable<void> {

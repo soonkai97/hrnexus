@@ -16,6 +16,7 @@ export interface ActiveStaffDto {
   name:           string;
   role:           string;
   locationName:   string;
+  workDate:       string;   // yyyy-MM-dd — the shift's clock-in date
   startTime:      string;   // HH:mm — the shift's clock-in time
   clockedInAt:    string;
   minutesOnShift: number;

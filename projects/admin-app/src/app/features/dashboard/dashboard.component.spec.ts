@@ -25,7 +25,7 @@ const fakeStats = {
 };
 const fakeDashboard = {
   stats: fakeStats,
-  currentlyOnShift: [{ workLogId: 'wl-1', staffId: 'NC001', name: 'Jane', role: 'bartender', locationName: 'Main Bar', startTime: '18:00', clockedInAt: '18:00', minutesOnShift: 90 }],
+  currentlyOnShift: [{ workLogId: 'wl-1', staffId: 'NC001', name: 'Jane', role: 'bartender', locationName: 'Main Bar', workDate: '2026-06-01', startTime: '18:00', clockedInAt: '18:00', minutesOnShift: 90 }],
   recentActivity:   [{ staffName: 'Jane', role: 'bartender', locationName: 'Main Bar', timestamp: '18:00', eventType: 'shift-started' as const }],
 };
 
@@ -172,25 +172,27 @@ describe('DashboardComponent', () => {
 
   describe('confirmCloseShift()', () => {
     let component: DashboardComponent;
-    const row = { workLogId: 'wl-1', staffId: 'NC001', name: 'Jane', role: 'bartender', locationName: 'Main Bar', startTime: '18:00', clockedInAt: '18:00', minutesOnShift: 90 };
+    const row = { workLogId: 'wl-1', staffId: 'NC001', name: 'Jane', role: 'bartender', locationName: 'Main Bar', workDate: '2026-06-01', startTime: '18:00', clockedInAt: '18:00', minutesOnShift: 90 };
     beforeEach(() => { component = createComponent(); });
 
-    it('openCloseShift seeds the row and a default end time', () => {
+    it('openCloseShift seeds the row + a default end date (the clock-in date) and time', () => {
       component.openCloseShift(row);
       expect(component.closeRow()).toEqual(row);
+      expect(component.closeEndDate).toBeInstanceOf(Date);
       expect(component.closeEndTime).toBeInstanceOf(Date);
     });
 
-    it('posts the work-log id + chosen end time as HH:mm and closes the dialog', () => {
+    it('posts the work-log id + chosen end date (yyyy-MM-dd) and time (HH:mm), then closes', () => {
       component.openCloseShift(row);
-      component.closeEndTime = new Date(2026, 0, 1, 2, 5);   // 02:05 → must be zero-padded
+      component.closeEndDate = new Date(2026, 5, 1);          // 2026-06-01
+      component.closeEndTime = new Date(2026, 0, 1, 2, 5);    // 02:05 → must be zero-padded
       component.confirmCloseShift();
-      expect(mockWorkLogSvc.adminEndShift).toHaveBeenCalledWith('wl-1', '02:05');
+      expect(mockWorkLogSvc.adminEndShift).toHaveBeenCalledWith('wl-1', '2026-06-01', '02:05');
       expect(mockToastSvc.success).toHaveBeenCalledWith('dashboard.shiftClosedToast');
       expect(component.closeRow()).toBeNull();
     });
 
-    it('does nothing when no end time is set', () => {
+    it('does nothing when the end date or time is missing', () => {
       component.openCloseShift(row);
       component.closeEndTime = null;
       component.confirmCloseShift();
@@ -198,11 +200,12 @@ describe('DashboardComponent', () => {
     });
 
     it('shows an error toast and keeps the dialog open on failure', () => {
-      mockWorkLogSvc.adminEndShift.mockReturnValue(throwError(() => ({ error: { error: 'Shift already ended.' } })));
+      mockWorkLogSvc.adminEndShift.mockReturnValue(throwError(() => ({ error: { error: 'A shift cannot exceed 24 hours.' } })));
       component.openCloseShift(row);
+      component.closeEndDate = new Date(2026, 5, 1);
       component.closeEndTime = new Date(2026, 0, 1, 23, 0);
       component.confirmCloseShift();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Shift already ended.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('A shift cannot exceed 24 hours.');
       expect(component.closeRow()).toEqual(row);
     });
   });

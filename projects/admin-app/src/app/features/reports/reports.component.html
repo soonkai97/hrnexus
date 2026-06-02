@@ -355,8 +355,8 @@
                 <td class="td-name">{{ s.staffName }}</td>
                 <td><p-tag [value]="s.role" severity="info" /></td>
                 <td class="td-muted">{{ s.locationName }}</td>
-                <td class="td-muted">{{ s.clockedIn | date:'dd/MM h:mm a' }}</td>
-                <td class="td-muted">{{ s.clockedOut ? (s.clockedOut | date:'dd/MM h:mm a') : '—' }}</td>
+                <td class="td-muted">{{ s.workDate }} · {{ s.startTime | amPm }}</td>
+                <td class="td-muted">{{ s.endTime ? ((s.endDate ?? s.workDate) + ' · ') : '' }}{{ s.endTime | amPm }}</td>
                 <td>{{ s.hours }}h</td>
                 <td class="td-pay">RM {{ s.cost | number:'1.2-2' }}</td>
                 <td>

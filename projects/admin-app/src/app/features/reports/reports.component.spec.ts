@@ -31,7 +31,9 @@ const fakeReport = {
   byDate:     [{ date: '2026-05-10', shifts: 2, hours: 16, cost: 240 }],
   shifts:     [{
     staffId: 'NC001', staffName: 'Jane Doe', role: 'bartender',
-    locationName: 'Main Bar', clockedIn: '18:00', clockedOut: '23:00',
+    locationName: 'Main Bar',
+    workDate: '2026-05-10', startTime: '18:00', endDate: '2026-05-10', endTime: '23:00',
+    clockedIn: '2026-05-10T18:00:00', clockedOut: '2026-05-10T23:00:00',
     hours: 5, cost: 75, status: 'completed',
   }],
 };

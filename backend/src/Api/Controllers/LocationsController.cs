@@ -110,10 +110,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files, IMediator
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LocationsManage)]
     public async Task<IActionResult> Delete(string id, CancellationToken ct)
     {
-        var loc = await db.Locations.FindAsync([id], ct);
-        if (loc is null) return NotFound();
-        loc.Delete();
-        await db.SaveChangesAsync(ct);
+        await mediator.Send(new DeleteLocationCommand(id), ct);
         return NoContent();
     }
 }

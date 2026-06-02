@@ -170,6 +170,26 @@ public class StaffMiscCommandTests
         Assert.Equal(1, await db.Roles.CountAsync());   // still there — not deleted
     }
 
+    [Fact]
+    public async Task DeleteRole_AlsoRemovesItsRolePermissionRows()
+    {
+        // RolePermission keys on the role NAME (no FK), so deleting a role must clean up its
+        // default-permission rows or they'd linger as orphans and resurface if the name is reused.
+        await using var db = CreateDb();
+        db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
+        db.RolePermissions.Add(E.RolePermission.Create("BARTENDER", "staff.view"));
+        db.RolePermissions.Add(E.RolePermission.Create("BARTENDER", "reports.view"));
+        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", "staff.manage"));   // other role — must survive
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new DeleteRoleCommandHandler(db);
+        await handler.Handle(new DeleteRoleCommand("BARTENDER"), CancellationToken.None);
+
+        Assert.False(await db.RolePermissions.AnyAsync(rp => rp.RoleName == "BARTENDER"));
+        Assert.True(await db.RolePermissions.AnyAsync(rp => rp.RoleName == "MANAGER"));   // untouched
+    }
+
     // ── UpdateProfileCommand ──────────────────────────────────────────────────
 
     [Fact]

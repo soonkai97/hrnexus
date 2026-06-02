@@ -47,4 +47,28 @@ test.describe('Admin — Reports', () => {
     await expect(page.getByRole('tab', { name: /employee|staff/i }).first()).toBeVisible({ timeout: 5_000 });
     await expect(page.getByRole('tab', { name: /location/i }).first()).toBeVisible({ timeout: 5_000 });
   });
+
+  // The Est. Labour Cost figure is a rough estimate (staff are commission-based), so the card
+  // carries an info tooltip making that explicit. Guards the disclaimer against accidental removal.
+  test('Est. Labour Cost card shows the estimate disclaimer icon', async ({ page }) => {
+    await page.waitForSelector('.filter-bar', { timeout: 8_000 });
+    await page.getByRole('button', { name: /run.*report|generate/i }).click();
+    await page.waitForSelector('.stat-card', { timeout: 15_000 });
+    await expect(page.locator('.stat-info').first()).toBeVisible({ timeout: 5_000 });
+  });
+
+  // Regression guard for the timezone bug: the All-Shifts clock-in/out must render the venue
+  // wall-clock as "yyyy-MM-dd · h:mm AM/PM" (built from the stored WorkDate/StartTime strings),
+  // NOT a browser-localized instant that shifted the time by the UTC offset.
+  test('All-Shifts clock-in renders venue wall-clock, not a timezone-shifted instant', async ({ page }) => {
+    await page.waitForSelector('.filter-bar', { timeout: 8_000 });
+    await page.getByRole('button', { name: /run.*report|generate/i }).click();
+    await page.waitForSelector('.stat-card', { timeout: 15_000 });
+    await page.getByRole('tab', { name: /all.?shift|shift detail/i }).first().click();
+    await page.waitForSelector('table tbody tr', { timeout: 8_000 }).catch(() => {});
+    const rows = await page.locator('table tbody tr').count();
+    test.skip(rows === 0, 'no completed shifts in the test dataset');
+    // e.g. "2026-06-02 · 5:54 PM" — date + 12-hour time, the post-fix wall-clock format.
+    await expect(page.locator('table')).toContainText(/\d{4}-\d{2}-\d{2}\s·\s\d{1,2}:\d{2}\s?(AM|PM)/i);
+  });
 });

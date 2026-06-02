@@ -24,6 +24,7 @@ public record ActiveStaffDto(
     string   Name,
     string   Role,
     string   LocationName,
+    DateOnly WorkDate,
     string   StartTime,
     DateTime ClockedInAt,
     int      MinutesOnShift);
@@ -110,6 +111,7 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
                     w.Employee.FullName,
                     w.RoleName,
                     w.LocationName,
+                    w.WorkDate,
                     w.StartTime,
                     clockedInUtc,
                     minutesOnShift);

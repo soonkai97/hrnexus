@@ -161,6 +161,7 @@
     "closeShift":         "结束班次",
     "closeShiftTitle":    "结束班次",
     "closeShiftDesc":     "设置 {{name}} 实际下班的时间（上班打卡 {{start}}）。这将结束未打卡的班次并重新计算工时。",
+    "endDate":            "结束日期",
     "endTime":            "结束时间",
     "shiftClosedToast":   "班次已结束。",
     "shiftCloseFailed":   "无法结束该班次。",

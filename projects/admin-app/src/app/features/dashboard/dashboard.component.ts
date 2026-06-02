@@ -93,27 +93,35 @@ export class DashboardComponent implements OnInit {
   // ── Close a forgotten clock-out ───────────────────────────────────────────────
   // An admin sets the real end time on an open shift (staff forgot to clock out).
   closeRow      = signal<ActiveStaffDto | null>(null);
+  closeEndDate: Date | null = null;
   closeEndTime: Date | null = null;
   closeSaving   = signal(false);
 
   openCloseShift(row: ActiveStaffDto): void {
     this.closeRow.set(row);
-    this.closeEndTime = new Date();   // default to "now" — the admin adjusts to the real finish time
+    // Default the end date to the shift's clock-in date (the common case is a same-day forgotten
+    // clock-out); the admin can move it to the next day for an overnight shift. Time defaults to now.
+    this.closeEndDate = new Date(`${row.workDate}T00:00:00`);
+    this.closeEndTime = new Date();
     this.closeSaving.set(false);
   }
 
   cancelCloseShift(): void {
     this.closeRow.set(null);
+    this.closeEndDate = null;
     this.closeEndTime = null;
   }
 
   confirmCloseShift(): void {
     const row = this.closeRow();
-    if (!row || !this.closeEndTime) return;
+    if (!row || !this.closeEndDate || !this.closeEndTime) return;
+    const y  = this.closeEndDate.getFullYear();
+    const mo = String(this.closeEndDate.getMonth() + 1).padStart(2, '0');
+    const d  = String(this.closeEndDate.getDate()).padStart(2, '0');
     const hh = String(this.closeEndTime.getHours()).padStart(2, '0');
     const mm = String(this.closeEndTime.getMinutes()).padStart(2, '0');
     this.closeSaving.set(true);
-    this.workLog.adminEndShift(row.workLogId, `${hh}:${mm}`).subscribe({
+    this.workLog.adminEndShift(row.workLogId, `${y}-${mo}-${d}`, `${hh}:${mm}`).subscribe({
       next: () => {
         this.closeSaving.set(false);
         this.cancelCloseShift();

@@ -87,11 +87,11 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     // Admin/manager: close an OPEN shift (staff forgot to clock out) at a chosen end time.
     [HttpPut("{id:guid}/admin-end")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.WorkLogManage)]
-    public async Task<IActionResult> AdminEnd(Guid id, [FromBody] EndWorkLogRequest req, CancellationToken ct)
+    public async Task<IActionResult> AdminEnd(Guid id, [FromBody] AdminEndShiftRequest req, CancellationToken ct)
     {
         try
         {
-            await mediator.Send(new AdminEndShiftCommand(id, CallerId, req.EndTime), ct);
+            await mediator.Send(new AdminEndShiftCommand(id, CallerId, req.EndDate, req.EndTime), ct);
             return NoContent();
         }
         catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
@@ -127,4 +127,5 @@ public record StartWorkLogRequest(string RoleName, string LocationId, string Sta
 public record ManualWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
 public record UpdateWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
 public record EndWorkLogRequest(string EndTime);
+public record AdminEndShiftRequest(DateOnly EndDate, string EndTime);
 public record GetAllWorkLogsParams(DateTime? From, DateTime? To, Guid? EmployeeId, int Page = 1, int PageSize = 10);

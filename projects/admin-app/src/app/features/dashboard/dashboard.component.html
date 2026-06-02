@@ -148,17 +148,24 @@
             [style]="{'width':'min(420px, 94vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     @if (closeRow(); as r) {
       <p class="modal-desc">{{ 'dashboard.closeShiftDesc' | translate:{ name: r.name, start: r.startTime } }}</p>
-      <div class="field mt-2">
-        <label for="close-end-time"><span class="req">*</span> {{ 'dashboard.endTime' | translate }}</label>
-        <p-datepicker inputId="close-end-time" [(ngModel)]="closeEndTime" [timeOnly]="true" [hourFormat]="'12'"
-                      appendTo="body" styleClass="w-full" />
+      <div class="row g-2 mt-1">
+        <div class="col-6 field">
+          <label for="close-end-date"><span class="req">*</span> {{ 'dashboard.endDate' | translate }}</label>
+          <p-datepicker inputId="close-end-date" [(ngModel)]="closeEndDate" dateFormat="yy-mm-dd" [showIcon]="true"
+                        appendTo="body" styleClass="w-full" />
+        </div>
+        <div class="col-6 field">
+          <label for="close-end-time"><span class="req">*</span> {{ 'dashboard.endTime' | translate }}</label>
+          <p-datepicker inputId="close-end-time" [(ngModel)]="closeEndTime" [timeOnly]="true" [hourFormat]="'12'"
+                        appendTo="body" styleClass="w-full" />
+        </div>
       </div>
     }
     <ng-template pTemplate="footer">
       <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (onClick)="cancelCloseShift()" />
       <p-button [label]="closeSaving() ? ('common.saving' | translate) : ('dashboard.closeShift' | translate)"
                 severity="primary" (onClick)="confirmCloseShift()"
-                [disabled]="closeSaving() || !closeEndTime" [loading]="closeSaving()" />
+                [disabled]="closeSaving() || !closeEndDate || !closeEndTime" [loading]="closeSaving()" />
     </ng-template>
   </p-dialog>
 </div>

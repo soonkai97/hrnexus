@@ -346,9 +346,21 @@
       </div>
       @for (row of importRows; track $index) {
         <div class="import-grid-row">
-          <input pInputText [(ngModel)]="row.staffId" [attr.aria-label]="'staff.staffId' | translate" />
+          <input pInputText [(ngModel)]="row.staffId" ncUppercase [attr.aria-label]="'staff.staffId' | translate" />
           <input pInputText [(ngModel)]="row.firstName" [attr.aria-label]="'staff.firstName' | translate" />
-          <input pInputText type="password" [(ngModel)]="row.password" autocomplete="new-password" [attr.aria-label]="'staff.initialPassword' | translate" />
+          <div class="import-pwd">
+            <div class="pwd-wrap">
+              <input pInputText [type]="row.showPwd ? 'text' : 'password'" [(ngModel)]="row.password"
+                     autocomplete="new-password" [attr.aria-label]="'staff.initialPassword' | translate"
+                     [class.input-invalid]="!!importPwdError(row)" />
+              <span class="eye-btn" role="button" tabindex="0"
+                    [attr.aria-label]="(row.showPwd ? 'auth.hidePassword' : 'auth.showPassword') | translate"
+                    (click)="row.showPwd = !row.showPwd" (keydown.enter)="row.showPwd = !row.showPwd">
+                <i [class]="row.showPwd ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </span>
+            </div>
+            @if (importPwdError(row)) { <small class="field-err">{{ importPwdError(row) }}</small> }
+          </div>
           <p-multiselect [(ngModel)]="row.roles" [options]="availableRoles()" optionLabel="name" optionValue="name"
                          [filter]="true" display="chip" [placeholder]="'staff.selectRoles' | translate"
                          appendTo="body" styleClass="w-full" />

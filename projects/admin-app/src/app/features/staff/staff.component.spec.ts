@@ -647,15 +647,22 @@ describe('StaffComponent', () => {
   describe('runImport()', () => {
     it('maps grid rows (trims, optional fields → null, admin-set password, work locations) and drops fully-empty rows', () => {
       component.importRows = [
-        { staffId: ' NC1 ', firstName: ' Alice ', password: ' Passw0rd! ', roles: ['BARTENDER', 'STAFF'], locations: ['loc-1', 'loc-2'] },
-        { staffId: 'NC2', firstName: 'Bob', password: '', roles: [], locations: [] },
+        { staffId: ' nc1 ', firstName: ' Alice ', password: ' Passw0rd! ', roles: ['BARTENDER', 'STAFF'], locations: ['loc-1', 'loc-2'] },
+        { staffId: 'nc2', firstName: 'Bob', password: '', roles: [], locations: [] },
         { staffId: '', firstName: '', password: '', roles: [], locations: [] },   // fully blank → dropped
       ];
       component.runImport();
+      // Staff ID is uppercased (stored uppercase), trimmed; optional fields → null; blank password → undefined.
       expect(mockStaffStore.bulkImportStaff).toHaveBeenCalledWith([
         { staffId: 'NC1', firstName: 'Alice', lastName: null, email: null, password: 'Passw0rd!', roles: ['BARTENDER', 'STAFF'], locations: ['loc-1', 'loc-2'] },
         { staffId: 'NC2', firstName: 'Bob', lastName: null, email: null, password: undefined, roles: [], locations: [] },
       ]);
+    });
+
+    it('importPwdError: blank → no error, weak → message, strong → no error', () => {
+      expect(component.importPwdError({ password: '' })).toBe('');
+      expect(component.importPwdError({ password: 'weak' })).toBe('staff.errPasswordWeak');
+      expect(component.importPwdError({ password: 'Passw0rd!' })).toBe('');
     });
 
     it('does nothing when every row is blank', () => {

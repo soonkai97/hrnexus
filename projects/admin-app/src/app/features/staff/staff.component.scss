@@ -23,6 +23,15 @@
   }
   .import-grid-row input { width: 100%; }
 
+  // Password cell: stack the input (with its show/hide eye) above any inline policy error.
+  .import-pwd {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    .pwd-wrap { width: 100%; }
+    .field-err { font-size: 0.68rem; line-height: 1.2; }
+  }
+
   // Stack each row into a labelled card on narrow screens
   @media (max-width: 720px) {
     .import-grid-head { display: none; }

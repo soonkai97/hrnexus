@@ -205,6 +205,7 @@
     "importDesc":           "为每名员工添加一行。员工ID、名、密码和至少一个职位为必填。",
     "importAddRow":         "添加一行",
     "importGridHint":       "员工将使用您在此设置的密码登录（至少 8 位，含一个大写字母和一个数字）。",
+    "importInvalidPwd":     "有 {{count}} 行的密码无效，无法导入。",
     "importedToast":        "已导入 {{created}} 人，失败 {{failed}} 人。",
     "importResultDetail":   "错误",
     "phoneNumber":        "手机号码",

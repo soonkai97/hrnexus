@@ -348,18 +348,15 @@
         <div class="import-grid-row">
           <input pInputText [(ngModel)]="row.staffId" ncUppercase [attr.aria-label]="'staff.staffId' | translate" />
           <input pInputText [(ngModel)]="row.firstName" [attr.aria-label]="'staff.firstName' | translate" />
-          <div class="import-pwd">
-            <div class="pwd-wrap">
-              <input pInputText [type]="row.showPwd ? 'text' : 'password'" [(ngModel)]="row.password"
-                     autocomplete="new-password" [attr.aria-label]="'staff.initialPassword' | translate"
-                     [class.input-invalid]="!!importPwdError(row)" />
-              <span class="eye-btn" role="button" tabindex="0"
-                    [attr.aria-label]="(row.showPwd ? 'auth.hidePassword' : 'auth.showPassword') | translate"
-                    (click)="row.showPwd = !row.showPwd" (keydown.enter)="row.showPwd = !row.showPwd">
-                <i [class]="row.showPwd ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
-              </span>
-            </div>
-            @if (importPwdError(row)) { <small class="field-err">{{ importPwdError(row) }}</small> }
+          <div class="pwd-wrap">
+            <input pInputText [type]="row.showPwd ? 'text' : 'password'" [(ngModel)]="row.password"
+                   autocomplete="new-password" [attr.aria-label]="'staff.initialPassword' | translate"
+                   [class.input-invalid]="importPwdInvalid(row)" />
+            <span class="eye-btn" role="button" tabindex="0"
+                  [attr.aria-label]="(row.showPwd ? 'auth.hidePassword' : 'auth.showPassword') | translate"
+                  (click)="row.showPwd = !row.showPwd" (keydown.enter)="row.showPwd = !row.showPwd">
+              <i [class]="row.showPwd ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+            </span>
           </div>
           <p-multiselect [(ngModel)]="row.roles" [options]="availableRoles()" optionLabel="name" optionValue="name"
                          [filter]="true" display="chip" [placeholder]="'staff.selectRoles' | translate"
@@ -378,6 +375,11 @@
     <p class="modal-desc" style="font-size:.78rem;margin-top:.5rem">
       <i class="pi pi-info-circle" style="margin-right:.35rem"></i>{{ 'staff.importGridHint' | translate }}
     </p>
+    @if (importInvalidPwdCount > 0) {
+      <p class="import-invalid-note">
+        <i class="pi pi-exclamation-circle" style="margin-right:.35rem"></i>{{ 'staff.importInvalidPwd' | translate:{ count: importInvalidPwdCount } }}
+      </p>
+    }
   } @else {
     <!-- Results -->
     <p class="modal-desc">{{ 'staff.importedToast' | translate:{ created: importResult()!.created, failed: importResult()!.failed } }}</p>
@@ -405,7 +407,7 @@
     @if (!importResult()) {
       <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showImport.set(false)" />
       <p-button [label]="importing() ? ('common.saving' | translate) : ('staff.import' | translate)"
-                severity="primary" (click)="runImport()" [disabled]="importing() || !importRowsToSubmit.length" [loading]="importing()" />
+                severity="primary" (click)="runImport()" [disabled]="importing() || !importRowsToSubmit.length || importInvalidPwdCount > 0" [loading]="importing()" />
     } @else {
       <p-button [label]="'common.close' | translate" severity="primary" (click)="showImport.set(false)" />
     }

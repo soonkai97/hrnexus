@@ -444,12 +444,16 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   private blankImportRow() { return { staffId: '', firstName: '', password: '', roles: [] as string[], locations: [] as string[], showPwd: false }; }
 
-  /** Inline validation for an import row's password: blank → no error (the row may be left empty);
-   *  non-blank but failing the policy → the same "weak password" message used by the single Add form. */
-  importPwdError(row: { password: string }): string {
+  /** True when a row's password is non-blank but fails the policy — drives the red border. */
+  importPwdInvalid(row: { password: string }): boolean {
     const p = row.password?.trim() ?? '';
-    if (!p) return '';
-    return isStrongPassword(p) ? '' : this.translate.instant('staff.errPasswordWeak');
+    return p.length > 0 && !isStrongPassword(p);
+  }
+
+  /** How many rows that would be submitted still lack a valid password — blocks Import and drives the
+   *  summary line, so the requirement is clear without relying on hover or focus (mobile-friendly). */
+  get importInvalidPwdCount(): number {
+    return this.importRowsToSubmit.filter(r => !r.password || !isStrongPassword(r.password)).length;
   }
 
   openImport(): void {

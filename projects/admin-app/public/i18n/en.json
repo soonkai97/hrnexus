@@ -205,6 +205,7 @@
     "importDesc":           "Add a row for each staff member. Staff ID, first name, a password and at least one role are required.",
     "importAddRow":         "Add row",
     "importGridHint":       "Each staff signs in with the password you set here (min 8 characters, one uppercase letter, one number).",
+    "importInvalidPwd":     "{{count}} row(s) need a valid password to import.",
     "importedToast":        "{{created}} imported, {{failed}} failed.",
     "importResultDetail":   "Error",
     "phoneNumber":        "Phone Number",

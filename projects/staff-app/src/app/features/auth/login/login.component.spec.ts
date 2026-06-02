@@ -115,6 +115,14 @@ describe('LoginComponent (staff-app)', () => {
       );
     });
 
+    it('uppercases the Staff ID before submitting (stored uppercase)', () => {
+      component.form.patchValue({ staffId: ' nc001 ', password: 'pass123' });
+      component.submit();
+      expect(mockAuth.login).toHaveBeenCalledWith(
+        expect.objectContaining({ portal: 'staff', staffId: 'NC001' }),
+      );
+    });
+
     it('clears the error before submitting', () => {
       component.error.set('old error');
       component.submit();

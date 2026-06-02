@@ -5,12 +5,12 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { ThemeToggleComponent, ForgotPasswordBase } from 'shared-lib';
+import { ThemeToggleComponent, ForgotPasswordBase, UppercaseInputDirective } from 'shared-lib';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [FormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message],
+  imports: [FormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message, UppercaseInputDirective],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.scss',
 })

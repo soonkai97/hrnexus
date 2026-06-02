@@ -28,6 +28,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { Checkbox } from 'primeng/checkbox';
 import { Dialog } from 'primeng/dialog';
 import { MultiSelect } from 'primeng/multiselect';
+import { PrimeTemplate } from 'primeng/api';   // provides the pTemplate="footer" directive for the dialogs
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show', 'emergency'] as const;
 const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
@@ -37,7 +38,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
-    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, Dialog, MultiSelect],
+    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, Dialog, MultiSelect, PrimeTemplate],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })

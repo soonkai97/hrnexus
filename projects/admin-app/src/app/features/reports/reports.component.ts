@@ -10,7 +10,7 @@ import {
   StaffStore, StaffManagementService, ToastService, Staff,
   toLocalDateString,
   WorkLogService, UpdateWorkLogRequest, LocationStore,
-  TrimInputDirective,
+  TrimInputDirective, AmPmPipe,
   PayrollLockService, ConfirmService, apiErrorMessage,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -30,7 +30,7 @@ import { InputText } from 'primeng/inputtext';
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective,
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, AmPmPipe,
     Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
     Tabs, TabList, Tab, MultiSelect, Select, Dialog, InputText],
   templateUrl: './reports.component.html',
@@ -387,7 +387,7 @@ export class ReportsComponent implements OnInit {
     } else {
       csv  = [t('reports.csvStaffId'), t('reports.csvName'), t('reports.csvRole'), t('reports.csvLocation'), t('reports.csvClockedIn'), t('reports.csvClockedOut'), t('reports.csvHours'), t('reports.csvCost'), t('reports.csvStatus')].join(',') + '\n';
       csv += r.shifts.map(s =>
-        `${s.staffId},"${s.staffName}",${s.role},"${s.locationName}",${s.clockedIn},${s.clockedOut ?? ''},${s.hours},${s.cost.toFixed(2)},${s.status}`
+        `${s.staffId},"${s.staffName}",${s.role},"${s.locationName}","${s.workDate} ${s.startTime}","${s.endTime ? ((s.endDate ?? s.workDate) + ' ' + s.endTime) : ''}",${s.hours},${s.cost.toFixed(2)},${s.status}`
       ).join('\n');
     }
 

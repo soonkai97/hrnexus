@@ -108,6 +108,24 @@ public class AdminEndShiftCommandTests
     }
 
     [Fact]
+    public async Task Rejects_a_close_whose_span_would_overlap_a_later_shift()
+    {
+        // Closing an open shift to a multi-day end must not swallow a later completed shift.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = new DateOnly(2026, 6, 1);
+        var open  = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "08:00", 50m);
+        var later = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate.AddDays(1), "09:00", "17:00", 50m);
+        db.WorkLogs.Add(open);
+        db.WorkLogs.Add(later);
+        await db.SaveChangesAsync();
+
+        // open would span 06-01 08:00 → 06-02 12:00, intersecting `later` (06-02 09:00–17:00).
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Handler(db).Handle(new AdminEndShiftCommand(open.Id, Guid.NewGuid(), workDate.AddDays(1), "12:00"), CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Rejects_an_end_before_the_start()
     {
         await using var db = CreateDb();

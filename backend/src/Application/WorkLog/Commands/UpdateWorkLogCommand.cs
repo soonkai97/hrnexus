@@ -84,28 +84,26 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             newRateSnapshot = await RoleRateLookup.RateAsOfAsync(db, req.RoleName, req.WorkDate, role.HourlyRate, ct);
         }
 
-        // Prevent time overlap: another completed shift for the same employee whose time range
-        // intersects the edited shift (excluding the current record being updated).
-        // Check the day before as well to catch overnight shifts from the previous date.
-        var prevDate = req.WorkDate.AddDays(-1);
+        // Prevent time overlap with another completed shift for the same employee (excluding this
+        // record). Candidates are selected by DATE-interval overlap so a multi-day shift on either
+        // side is caught: its end date is at/after our start date AND its start date is at/before our
+        // end date. The precise check is then on absolute minutes.
         var nearby = await db.WorkLogs
             .Where(w => w.EmployeeId == log.EmployeeId
                      && w.EndTime != null
                      && w.Id != req.Id
-                     && w.WorkDate >= prevDate
-                     && w.WorkDate <= req.WorkDate)
+                     && w.EndDate >= req.WorkDate
+                     && w.WorkDate <= req.EndDate)
             .Select(w => new { w.WorkDate, w.StartTime, w.EndDate, w.EndTime })
             .ToListAsync(ct);
 
-        var newStart = AbsStart(req.WorkDate, req.StartTime);
-        var newEnd   = AbsEnd(req.EndDate, req.EndTime);
+        var newStart = ShiftHours.AbsMinutes(req.WorkDate, req.StartTime);
+        var newEnd   = ShiftHours.AbsMinutes(req.EndDate, req.EndTime);
         foreach (var s in nearby)
         {
-            // Closed shifts carry an explicit EndDate (overnight = next day); fall back to deriving it
-            // for any legacy row not yet backfilled.
             var sEndDate = s.EndDate ?? ShiftHours.DeriveEndDate(s.WorkDate, s.StartTime, s.EndTime!);
-            var sStart = AbsStart(s.WorkDate, s.StartTime);
-            var sEnd   = AbsEnd(sEndDate, s.EndTime!);
+            var sStart = ShiftHours.AbsMinutes(s.WorkDate, s.StartTime);
+            var sEnd   = ShiftHours.AbsMinutes(sEndDate, s.EndTime!);
             if (newStart < sEnd && sStart < newEnd)
                 throw new InvalidOperationException("This shift overlaps with another existing shift.");
         }
@@ -136,13 +134,4 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             throw new InvalidOperationException("This shift was just changed by someone else. Please refresh and try again.");
         }
     }
-
-    private static long AbsStart(DateOnly date, string time) =>
-        (long)date.DayNumber * 1440 + ParseMins(time);
-
-    private static long AbsEnd(DateOnly endDate, string endTime) =>
-        (long)endDate.DayNumber * 1440 + ParseMins(endTime);
-
-    private static int ParseMins(string time) =>
-        int.Parse(time[..2]) * 60 + int.Parse(time[3..]);
 }

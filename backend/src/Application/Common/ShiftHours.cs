@@ -14,4 +14,24 @@ public static class ShiftHours
         var diff = e > s ? e - s : e + TimeSpan.FromHours(24) - s;
         return (decimal)diff.TotalHours;
     }
+
+    /// <summary>
+    /// Duration in hours between an explicit start date+time and end date+time. Use this for stored
+    /// shifts now that an end date is recorded — it supports spans beyond 24 hours (multi-day) rather
+    /// than the single-overnight assumption of the time-only overload.
+    /// </summary>
+    public static decimal CalcHours(DateOnly startDate, string startTime, DateOnly endDate, string endTime)
+    {
+        var start = startDate.ToDateTime(TimeOnly.Parse(startTime));
+        var end   = endDate.ToDateTime(TimeOnly.Parse(endTime));
+        return (decimal)(end - start).TotalHours;
+    }
+
+    /// <summary>
+    /// Infers the end date for paths that capture only an end time (staff clock-out, manual entry):
+    /// the next day when the end time is at or before the start time (overnight), otherwise the same
+    /// day. Preserves the historical single-overnight ≤24h behaviour for those flows.
+    /// </summary>
+    public static DateOnly DeriveEndDate(DateOnly workDate, string startTime, string endTime) =>
+        TimeOnly.Parse(endTime) <= TimeOnly.Parse(startTime) ? workDate.AddDays(1) : workDate;
 }

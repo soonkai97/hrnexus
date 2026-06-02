@@ -1,0 +1,42 @@
+feat(worklog): multi-day shifts — record an explicit end date end-to-end
+
+A WorkLog now stores an explicit EndDate alongside EndTime, so a shift can
+legitimately span more than 24 hours (e.g. an admin closing a long
+forgotten clock-out, or an overnight made explicit). Previously a shift
+was capped at a single overnight (≤24h) because only an end-of-day HH:mm
+was stored and overnight was inferred.
+
+Domain + persistence:
+- WorkLog gains nullable EndDate; End()/CreateManual()/Update() take it,
+  with derive-overnight overloads so callers that only have an end time
+  keep the historical ≤24h behaviour.
+- Migration AddWorkLogEndDate adds the column and backfills closed rows
+  (EndDate = WorkDate, or WorkDate+1 when EndTime <= StartTime). MUST be
+  deployed in a maintenance window with a DB backup.
+
+Hours are date-aware everywhere:
+- ShiftHours.CalcHours(startDate,startTime,endDate,endTime) computes a true
+  datetime span; DeriveEndDate() infers the overnight date for time-only
+  flows. Updated all read sites: GetMyWorkLogs, GetAllWorkLogs, GetReport,
+  GetPayrollExport (the dashboard "tonight" totals stay a same-night
+  estimate). WorkLogDto / ShiftDetailRow / ActiveStaffDto now carry EndDate.
+
+Commands:
+- EndWorkLog (staff clock-out) + CreateManual + the staff edit form derive
+  EndDate (overnight, ≤24h) — no UI change.
+- AdminEndShift (dashboard Close shift) + UpdateWorkLog (Reports Edit shift)
+  take an explicit end date and allow >24h, capped at 14 days as a typo
+  guard; overlap detection is now date-explicit.
+
+Frontend:
+- shared-lib models + WorkLogService.update/adminEndShift carry endDate.
+- Reports Edit-shift dialog gains an End Date picker (defaults to start
+  date); dashboard Close-shift already sends it. i18n en+zh.
+
+Tests: AdminEndShift now covers multi-day accepted + >14-day rejected +
+overnight; entity overloads keep existing suites intact. Backend
+Application 386, shared-lib 310, admin 454, staff 216 — all green.
+Verified live (Docker): migration backfilled 3/3 closed shifts; an edit
+to a >24h span was accepted (24.4h, EndDate next day) and reverted cleanly.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>

@@ -183,12 +183,17 @@ export class ReportsComponent implements OnInit {
   editShiftSaving  = signal(false);
   editShiftError   = signal('');
   editingShift     = signal<ShiftDetailRow | null>(null);
-  editShiftForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endTime: '', notes: '' };
+  editShiftForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endDate: '', endTime: '', notes: '' };
   editShiftStartTimeDate: Date | null = null; // UI binding
+  editShiftEndDate:       Date | null = null; // UI binding (end date)
   editShiftEndTimeDate:   Date | null = null; // UI binding
 
   private toTimeStr(d: Date): string {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  private toDateStr(d: Date): string {
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
   }
 
   private parseTime(t: string): Date | null {
@@ -206,11 +211,13 @@ export class ReportsComponent implements OnInit {
       locationId: s.locationId,
       workDate:   s.workDate,
       startTime:  s.startTime,
+      endDate:    s.endDate ?? s.workDate,
       endTime:    s.endTime ?? '',
       notes:      s.notes ?? '',
     };
     this.editShiftStartTimeDate = this.parseTime(s.startTime);
     this.editShiftEndTimeDate   = this.parseTime(s.endTime ?? '');
+    this.editShiftEndDate       = new Date(`${s.endDate ?? s.workDate}T00:00:00`);
     this.editShiftError.set('');
     this.editingShift.set(s);
     this.editShiftVisible.set(true);
@@ -220,6 +227,7 @@ export class ReportsComponent implements OnInit {
     this.editShiftVisible.set(false);
     this.editingShift.set(null);
     this.editShiftStartTimeDate = null;
+    this.editShiftEndDate       = null;
     this.editShiftEndTimeDate   = null;
   }
 
@@ -227,27 +235,28 @@ export class ReportsComponent implements OnInit {
     const s = this.editingShift();
     if (!s) return;
     if (!this.editShiftForm.roleName || !this.editShiftForm.locationId ||
-        !this.editShiftForm.workDate || !this.editShiftStartTimeDate || !this.editShiftEndTimeDate) {
+        !this.editShiftForm.workDate || !this.editShiftStartTimeDate || !this.editShiftEndDate || !this.editShiftEndTimeDate) {
       this.editShiftError.set(this.translate.instant('reports.errRequiredFields')); return;
     }
     const startTime = this.toTimeStr(this.editShiftStartTimeDate);
     const endTime   = this.toTimeStr(this.editShiftEndTimeDate);
-    const [sh = 0, sm = 0] = startTime.split(':').map(Number);
-    const [eh = 0, em = 0] = endTime.split(':').map(Number);
-    const durationMins = (eh * 60 + em) >= (sh * 60 + sm)
-      ? (eh * 60 + em) - (sh * 60 + sm)
-      : (eh * 60 + em) + 1440 - (sh * 60 + sm);
-    if (durationMins === 0) { this.editShiftError.set(this.translate.instant('reports.errSameTime')); return; }
-    if (durationMins > 1440) { this.editShiftError.set(this.translate.instant('reports.errOver24h')); return; }
+    const endDate   = this.toDateStr(this.editShiftEndDate);
+    // Duration across explicit start/end dates — a multi-day span is allowed; reject only a
+    // non-positive span or an absurd one (likely a date typo).
+    const durationMins = (new Date(`${endDate}T${endTime}:00`).getTime()
+                        - new Date(`${this.editShiftForm.workDate}T${startTime}:00`).getTime()) / 60000;
+    if (durationMins <= 0) { this.editShiftError.set(this.translate.instant('reports.errSameTime')); return; }
+    if (durationMins > 14 * 1440) { this.editShiftError.set(this.translate.instant('reports.errTooLong')); return; }
 
     this.editShiftSaving.set(true);
     this.editShiftError.set('');
-    this.workLogSvc.update(s.id, { ...this.editShiftForm, startTime, endTime, notes: this.editShiftForm.notes || null }).subscribe({
+    this.workLogSvc.update(s.id, { ...this.editShiftForm, startTime, endDate, endTime, notes: this.editShiftForm.notes || null }).subscribe({
       next: () => {
         this.editShiftSaving.set(false);
         this.editShiftVisible.set(false);
         this.editingShift.set(null);
         this.editShiftStartTimeDate = null;
+        this.editShiftEndDate       = null;
         this.editShiftEndTimeDate   = null;
         this.toast.success(this.translate.instant('reports.shiftUpdated'));
         this.runReport();

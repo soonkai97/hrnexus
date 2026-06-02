@@ -31,6 +31,7 @@ function makeLog(overrides: Partial<WorkLogDto> = {}): WorkLogDto {
     locationName:  'Main Bar',
     workDate:      '2026-05-17',
     startTime:     '18:00',
+    endDate:       null,
     endTime:       null,
     hours:         0,
     cost:          0,

@@ -72,6 +72,7 @@ public record ShiftDetailRow(
     string    LocationName,
     string    WorkDate,    // yyyy-MM-dd
     string    StartTime,   // HH:mm
+    string?   EndDate,     // yyyy-MM-dd (null = active; may differ from WorkDate for overnight/multi-day)
     string?   EndTime,     // HH:mm (null = active)
     string?   Notes,
     bool      IsEdited,
@@ -113,20 +114,20 @@ public class GetReportQueryHandler(IAppDbContext db)
 
         var shifts = logs.Select(w =>
         {
-            // Cost estimate = total shift hours × the role's snapshotted hourly rate.
-            var raw   = ShiftHours.CalcHours(w.StartTime, w.EndTime!);
+            // Cost estimate = total shift hours × the role's snapshotted hourly rate. Uses the shift's
+            // recorded end DATE (multi-day aware); legacy rows without one fall back to derive.
+            var endDate = w.EndDate ?? (w.EndTime != null ? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime) : w.WorkDate);
+            var raw   = w.EndTime != null ? ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime) : 0m;
             var cost  = Math.Round(raw * w.HourlyRateSnapshot, 2);
             var hours = Math.Round(raw, 2);
             var startDt = w.WorkDate.ToDateTime(TimeOnly.Parse(w.StartTime));
-            var endDt   = w.EndTime != null ? w.WorkDate.ToDateTime(TimeOnly.Parse(w.EndTime)) : (DateTime?)null;
-            // Handle midnight crossover (e.g. 22:00 → 02:00)
-            if (endDt.HasValue && endDt.Value < startDt) endDt = endDt.Value.AddDays(1);
+            var endDt   = w.EndTime != null ? endDate.ToDateTime(TimeOnly.Parse(w.EndTime)) : (DateTime?)null;
             return new ShiftDetailRow(
                 w.Id,
                 w.Employee?.StaffId ?? "", w.Employee?.FullName ?? "Unknown",
                 w.RoleName,
                 w.LocationId, w.LocationName,
-                w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndTime,
+                w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime,
                 w.Notes,
                 w.IsEdited,
                 startDt, endDt, hours, cost, "Complete");

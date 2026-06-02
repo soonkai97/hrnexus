@@ -38,21 +38,18 @@ public class GetAllWorkLogsQueryHandler(IAppDbContext db, IDateTimeProvider dt) 
         var items = logs.Select(w =>
         {
             var isActive = w.EndTime == null;
-            var endHhMm  = w.EndTime ?? $"{dt.LocalNow.Hour:D2}:{dt.LocalNow.Minute:D2}";
-            var hours    = CalcHours(w.StartTime, endHhMm);
+            // Active shift → measure to "now"; closed shift → use its recorded end date+time
+            // (multi-day aware). Fall back to deriving the end date for any legacy un-backfilled row.
+            var endDate = isActive
+                ? DateOnly.FromDateTime(dt.LocalNow)
+                : (w.EndDate ?? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime!));
+            var endTime = isActive ? $"{dt.LocalNow.Hour:D2}:{dt.LocalNow.Minute:D2}" : w.EndTime!;
+            var hours   = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, endTime);
             return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"),
-                w.StartTime, w.EndTime, Math.Round(hours, 2),
+                w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime, Math.Round(hours, 2),
                 Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
         }).ToList();
 
         return new PagedResult<WorkLogDto>(items, total);
-    }
-
-    private static decimal CalcHours(string start, string end)
-    {
-        var s = TimeSpan.Parse(start);
-        var e = TimeSpan.Parse(end);
-        var diff = e > s ? e - s : e + TimeSpan.FromHours(24) - s;
-        return (decimal)diff.TotalHours;
     }
 }

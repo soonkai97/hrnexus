@@ -75,9 +75,27 @@ public class AdminEndShiftCommandTests
     }
 
     [Fact]
-    public async Task Rejects_an_end_more_than_24h_after_the_start()
+    public async Task Allows_a_multi_day_close_storing_the_end_date()
     {
-        // Next day at 18:00 vs a 09:00 start = 33h → cannot be represented by a single ≤24h shift.
+        // Now that an explicit end date is recorded, a >24h span is permitted: clocked in 09:00 on
+        // day 1, finished 18:00 the next day (33h). The end date is stored.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = new DateOnly(2026, 6, 1);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "09:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate.AddDays(1), "18:00"), CancellationToken.None);
+
+        var updated = await db.WorkLogs.FindAsync(log.Id);
+        Assert.Equal(workDate.AddDays(1), updated!.EndDate);
+        Assert.Equal("18:00", updated.EndTime);
+    }
+
+    [Fact]
+    public async Task Rejects_an_absurd_end_date_more_than_14_days_out()
+    {
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
         var workDate = new DateOnly(2026, 6, 1);
@@ -86,7 +104,7 @@ public class AdminEndShiftCommandTests
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate.AddDays(1), "18:00"), CancellationToken.None));
+            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate.AddDays(20), "18:00"), CancellationToken.None));
     }
 
     [Fact]

@@ -69,7 +69,9 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
             var totalHours = 0m; var grossWork = 0m;
             foreach (var w in empLogs)
             {
-                var h = ShiftHours.CalcHours(w.StartTime, w.EndTime!);
+                if (w.EndTime == null) continue;   // active shift — not yet payable
+                var endDate = w.EndDate ?? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime);
+                var h = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime);
                 if (h <= 0) continue;   // guard against bad data
                 totalHours += h;
                 grossWork  += h * w.HourlyRateSnapshot;

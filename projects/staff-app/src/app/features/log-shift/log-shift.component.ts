@@ -158,12 +158,19 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   editingLogId = signal<string | null>(null);
   editSaving   = signal(false);
   editError    = signal('');
-  editForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endTime: '', notes: '' };
+  editForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endDate: '', endTime: '', notes: '' };
   editFormStartTime: Date | null = null; // UI binding
   editFormEndTime:   Date | null = null; // UI binding
 
   private toTimeStr(d: Date): string {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  /** yyyy-MM-dd of the day after the given yyyy-MM-dd (used to infer an overnight end date). */
+  private nextDay(dateStr: string): string {
+    const d = new Date(`${dateStr}T00:00:00`);
+    d.setDate(d.getDate() + 1);
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
   }
 
   private parseTime(t: string): Date | null {
@@ -326,6 +333,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
       locationId: wl.locationId,
       workDate:   wl.workDate,
       startTime:  wl.startTime,
+      endDate:    wl.endDate ?? wl.workDate,
       endTime:    wl.endTime ?? '',
       notes:      wl.notes ?? '',
     };
@@ -357,9 +365,12 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     if (durationMins === 0) { this.editError.set(this.translate.instant('logShift.errSameTimeEdit')); return; }
     if (durationMins > 1440) { this.editError.set(this.translate.instant('logShift.errMax24')); return; }
 
+    // Staff edits stay single-overnight (≤24h): infer the end date (next day when the shift wraps).
+    const endDate = (eh * 60 + em) <= (sh * 60 + sm) ? this.nextDay(this.editForm.workDate) : this.editForm.workDate;
+
     this.editSaving.set(true);
     this.editError.set('');
-    this.workLogSvc.update(id, { ...this.editForm, startTime, endTime, notes: this.editForm.notes || null }).subscribe({
+    this.workLogSvc.update(id, { ...this.editForm, startTime, endDate, endTime, notes: this.editForm.notes || null }).subscribe({
       next: () => {
         this.editSaving.set(false);
         this.editingLogId.set(null);

@@ -61,7 +61,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
         var isPrivileged = User.IsInRole(AppConstants.Roles.AdminClaim) || User.IsInRole(AppConstants.Roles.ManagerClaim);
         try
         {
-            await mediator.Send(new UpdateWorkLogCommand(id, CallerId, isPrivileged, req.RoleName, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes), ct);
+            await mediator.Send(new UpdateWorkLogCommand(id, CallerId, isPrivileged, req.RoleName, req.LocationId, req.WorkDate, req.StartTime, req.EndDate, req.EndTime, req.Notes), ct);
             return NoContent();
         }
         catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
@@ -125,7 +125,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
 
 public record StartWorkLogRequest(string RoleName, string LocationId, string StartTime, string? Notes);
 public record ManualWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
-public record UpdateWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
+public record UpdateWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, DateOnly EndDate, string EndTime, string? Notes);
 public record EndWorkLogRequest(string EndTime);
 public record AdminEndShiftRequest(DateOnly EndDate, string EndTime);
 public record GetAllWorkLogsParams(DateTime? From, DateTime? To, Guid? EmployeeId, int Page = 1, int PageSize = 10);

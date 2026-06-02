@@ -14,6 +14,9 @@ public class WorkLogConfiguration : IEntityTypeConfiguration<WorkLog>
         b.Property(w => w.LocationName).HasMaxLength(200).IsRequired();
         b.Property(w => w.StartTime).HasMaxLength(5).IsRequired();
         b.Property(w => w.EndTime).HasMaxLength(5);
+        // EndDate is the actual date the shift ended (null while active). It may differ from WorkDate
+        // for overnight (WorkDate+1) or, after an admin multi-day correction, several days later.
+        b.Property(w => w.EndDate);
         b.Property(w => w.HourlyRateSnapshot).HasColumnType("decimal(10,2)");
         b.Property(w => w.Notes).HasMaxLength(500);
         b.Property(w => w.CreatedAt).HasColumnType("timestamp with time zone");

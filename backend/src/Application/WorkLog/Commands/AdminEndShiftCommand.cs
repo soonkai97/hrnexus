@@ -36,20 +36,20 @@ public class AdminEndShiftCommandHandler(IAppDbContext db, ISender sender, INoti
         await PayrollLockGuard.EnsureDateOpenAsync(db, log.WorkDate, ct);
         await PayrollLockGuard.EnsureDateOpenAsync(db, req.EndDate, ct);
 
-        // Validate the full end date+time against the start date+time. A single WorkLog stores only an
-        // end-of-day HH:mm (overnight is inferred when end <= start), so the span must be within 24h —
-        // the chosen end date makes the admin's intent explicit and catches "more than a day" mistakes.
+        // Validate the full end date+time against the start. The shift now records an explicit end
+        // date, so a multi-day span is allowed — we only reject a non-positive span and an absurd one
+        // (a likely typo) so a single shift can't be stretched to weeks.
         var startTod  = TimeOnly.Parse(log.StartTime);
         var startMins = (long)log.WorkDate.DayNumber * 1440 + startTod.Hour * 60 + startTod.Minute;
         var endMins   = (long)req.EndDate.DayNumber  * 1440 + endTod.Hour   * 60 + endTod.Minute;
         var spanMins  = endMins - startMins;
         if (spanMins <= 0)
             throw new ArgumentException("The end date/time must be after the shift started.");
-        if (spanMins > 1440)
-            throw new ArgumentException("A shift cannot exceed 24 hours. If the staff worked across multiple days, record separate shifts.");
+        if (spanMins > 14 * 1440)
+            throw new ArgumentException("That end date is more than 14 days after the shift started — please check it.");
 
         var before = $"Date={log.WorkDate},Start={log.StartTime},End=(open)";
-        log.End(req.EndTime);
+        log.End(req.EndDate, req.EndTime);
 
         var actor = await db.Staff
             .Where(s => s.Id == req.CallerId)

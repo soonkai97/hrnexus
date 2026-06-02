@@ -443,6 +443,12 @@
           </div>
         </div>
         <div class="field">
+          <label for="rep-edit-end-date"><span class="req">*</span> {{ 'reports.shiftEndDate' | translate }}
+            <span style="font-weight:400;font-size:.72rem;text-transform:none;color:var(--p-text-muted-color)">{{ 'reports.shiftEndDateHint' | translate }}</span></label>
+          <p-datepicker inputId="rep-edit-end-date" [(ngModel)]="editShiftEndDate" dateFormat="yy-mm-dd"
+            [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+        </div>
+        <div class="field">
           <label for="rep-edit-notes">{{ 'reports.shiftNotes' | translate }}</label>
           <input pInputText id="rep-edit-notes" type="text" [(ngModel)]="editShiftForm.notes"
             [placeholder]="'reports.shiftNotesPlaceholder' | translate" />

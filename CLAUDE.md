@@ -768,6 +768,11 @@ Do **not** duplicate these at the API — doing so produces invalid doubled head
   (`HttpOnly; SameSite=Strict; Secure when HTTPS`); the bearer pipeline reads the access cookie.
   `POST /api/auth/logout` expires them + clears the DB refresh token. nginx forwards
   `X-Forwarded-Proto` so the Secure flag is correct behind the proxy.
+- **Prompt revocation**: the access JWT is **short-lived** (`Jwt:AccessTokenMinutes`, default **30 min**)
+  and `RefreshTokenCommand` re-checks `IsActive` + re-issues fresh role/permission claims on every
+  rotation, so a deactivation or role change takes effect within the access-token window rather than
+  lingering for the cookie's 30-day lifetime. `Staff.Deactivate()` also **clears the refresh token**,
+  ending the session at the next refresh.
 - **PII encrypted at rest**: `IFieldEncryptor` (AES-256-GCM) encrypts `Staff` IcNo / PassportNo /
   PhoneNumber / DateOfBirth via EF value converters; ciphertext carries an `enc1:` marker and reads
   fall back to legacy plaintext, so a guarded startup `PiiBackfill` lazily encrypts old rows. Email
@@ -865,6 +870,11 @@ Bulk operations act on a selected set of records in one request. **Canonical bac
 (`BulkUpdateLeaveStatusCommand`): validate a **≤100** batch, load all rows, mutate in a loop, **one**
 `SaveChangesAsync`, and `audit.LogAsync(...)` per row *inside the loop* (so audit rows commit in the
 same transaction); catch `DbUpdateConcurrencyException` → clean "refresh and try again" `InvalidOperationException`.
+
+> **Audit performer**: pass `performedById: null` to `audit.LogAsync(...)` and `AuditService` fills in
+> the **authenticated caller** (`ICurrentUserService.UserId`/`UserName`) — so admin/bulk commands record
+> *which* admin acted instead of a `"Admin"`/null placeholder. Pass an explicit performer only when the
+> actor differs from the caller (e.g. a background job, or attributing to a specific staff member).
 
 Current bulk commands:
 - **Staff** (`Application/Staff/Commands/BulkStaffCommands.cs`, `StaffController` `POST bulk/locations`,
@@ -1184,16 +1194,16 @@ Set-Location backend
 dotnet test
 ```
 
-### Baseline — as of 2026-05-30 (0 gaps, all green)
+### Baseline — as of 2026-06-02 (0 gaps, all green)
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 29 | 381 | ✅ |
-| admin-app components | 17 | 695 | ✅ |
-| staff-app components | 11 | 283 | ✅ |
-| backend Application.Tests | — | 423 | ✅ |
-| backend Integration.Tests (Testcontainers) | — | 11 | ✅ |
-| backend Infrastructure.Tests | — | 4 | ✅ |
+| shared-lib (services + stores + guards + auth) | 27 | 310 | ✅ |
+| admin-app components | 14 | 454 | ✅ |
+| staff-app components | 8 | 219 | ✅ |
+| backend Application.Tests | — | 398 | ✅ |
+| backend Integration.Tests (Testcontainers) | — | 17 | ✅ |
+| backend Infrastructure.Tests | — | 10 | ✅ |
 | E2E (Playwright) | 5 | 87 | ✅ |
 
 **Wrapper-component rule**: `change-password-page.component.spec.ts` in both apps intentionally has 1 smoke test — the component is a pure template wrapper around shared-lib's `ChangePasswordComponent`; all logic lives in shared-lib and is tested there.
@@ -1309,13 +1319,13 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 381 tests
-npx ng test admin-app  --no-watch   # 695 tests
-npx ng test staff-app  --no-watch   # 283 tests
+npx ng test shared-lib --no-watch   # 310 tests
+npx ng test admin-app  --no-watch   # 454 tests
+npx ng test staff-app  --no-watch   # 219 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 438 tests (423 Application + 11 Integration + 4 Infrastructure)
+dotnet test                          # 425 tests (398 Application + 17 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```

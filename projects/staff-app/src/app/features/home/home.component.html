@@ -95,7 +95,7 @@
       <p-card styleClass="recent-list">
         @for (s of recentShifts(); track s.id) {
           <div class="recent-row">
-            <div class="recent-date">{{ s.workDate | date:'EEE, dd/MM' }}@if (endDayOffset(s)) { → {{ s.endDate | date:'EEE, dd/MM' }}}</div>
+            <div class="recent-date">{{ s.workDate | date:'EEE, dd/MM':'UTC' }}@if (endDayOffset(s)) { → {{ s.endDate | date:'EEE, dd/MM':'UTC' }}}</div>
             <div class="recent-role">
               <span>{{ s.roleName | uppercase }}</span>
               <span class="recent-time">{{ s.startTime | amPm }}@if (s.endTime) { – {{ s.endTime | amPm }}@if (endDayOffset(s); as off) {<span class="day-offset">+{{ off }}</span>}}</span>

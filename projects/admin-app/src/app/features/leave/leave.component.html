@@ -111,7 +111,7 @@
                 <div class="overdue-row-info">
                   <p-tag [value]="leaveTypeKey(r.leaveType) | translate" [severity]="leaveTypeSeverity(r.leaveType)" />
                   <span class="overdue-staff">{{ r.staffName }}</span>
-                  <span class="overdue-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' ' + ('leave.dateTo' | translate) + ' ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
+                  <span class="overdue-dates">{{ r.startDate | date:'dd/MM':'UTC' }}{{ r.startDate !== r.endDate ? ' ' + ('leave.dateTo' | translate) + ' ' + (r.endDate | date:'dd/MM':'UTC') : '' }} · {{ r.hours }}h</span>
                 </div>
                 <div class="overdue-row-actions">
                   <p-button icon="pi pi-check" [label]="'common.approved' | translate" styleClass="btn-approve overdue-action-btn" severity="primary"
@@ -330,7 +330,7 @@
           @if (selectedCalDay()) {
             <div class="cal-day-panel">
               <div class="cal-day-panel-header">
-                <span class="cal-day-panel-title">{{ selectedCalDay() | date:'EEEE, dd/MM/yyyy' }}</span>
+                <span class="cal-day-panel-title">{{ selectedCalDay() | date:'EEEE, dd/MM/yyyy':'UTC' }}</span>
                 <p-button [label]="'common.close' | translate" [text]="true" severity="secondary" (click)="selectedCalDay.set(null)" />
               </div>
               @if (selectedCalDayLeaves().length === 0) {
@@ -345,7 +345,7 @@
                           <span class="overdue-badge"><i class="pi pi-exclamation-triangle"></i> {{ 'leave.overdue' | translate }}</span>
                         }
                         <span class="cal-day-staff-name">{{ r.staffName }}</span>
-                        <span class="cal-day-dates">{{ r.startDate | date:'dd/MM' }}{{ r.startDate !== r.endDate ? ' ' + ('leave.dateTo' | translate) + ' ' + (r.endDate | date:'dd/MM') : '' }} · {{ r.hours }}h</span>
+                        <span class="cal-day-dates">{{ r.startDate | date:'dd/MM':'UTC' }}{{ r.startDate !== r.endDate ? ' ' + ('leave.dateTo' | translate) + ' ' + (r.endDate | date:'dd/MM':'UTC') : '' }} · {{ r.hours }}h</span>
                       </div>
                       <div class="cal-day-row-right">
                         <p-tag [value]="statusKey(r.status) | translate" [severity]="statusSeverity(r.status)" />

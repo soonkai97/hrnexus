@@ -254,7 +254,7 @@
           @if (selectedCalDay()) {
             <div class="staff-cal-detail">
               <div class="staff-cal-detail-header">
-                <span>{{ selectedCalDay() | date:'EEEE, dd MMM yyyy' }}</span>
+                <span>{{ selectedCalDay() | date:'EEEE, dd MMM yyyy':'UTC' }}</span>
                 <p-button icon="pi pi-times" [text]="true" severity="secondary" size="small" (click)="selectedCalDay.set(null)" />
               </div>
               @if (selectedCalDayLeaves().length === 0) {

@@ -44,7 +44,7 @@
           <div><label for="sd-view-phone" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.phone' | translate }}</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
           <div><label for="sd-view-icNo" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.icNo' | translate }}</label><div>{{ s.icNo ?? '—' }}</div></div>
           <div><label for="sd-view-passport" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.passport' | translate }}</label><div>{{ s.passportNo ?? '—' }}</div></div>
-          <div><label for="sd-view-dob" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'dd/MM/yyyy') : '—' }}</div></div>
+          <div><label for="sd-view-dob" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'dd/MM/yyyy':'UTC') : '—' }}</div></div>
           <div><label for="sd-view-status" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.status' | translate }}</label>
             <div>
               @if (s.isActive) { <p-tag [value]="'common.active' | translate" severity="success" /> }

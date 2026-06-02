@@ -437,14 +437,16 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   showImport   = signal(false);
   importing    = signal(false);
   importResult = signal<BulkStaffImportResult | null>(null);
-  /** One editable row per staff to import. Roles is a multiselect; the admin sets the password. */
-  importRows: { staffId: string; firstName: string; lastName: string; email: string; password: string; roles: string[] }[] = [];
+  /** One editable row per staff to import. Only the required fields + optional work locations are
+   *  shown (last name / email are optional and can be filled in later on the staff detail page).
+   *  Roles and locations are multiselects; the admin sets the password. */
+  importRows: { staffId: string; firstName: string; password: string; roles: string[]; locations: string[] }[] = [];
 
-  private blankImportRow() { return { staffId: '', firstName: '', lastName: '', email: '', password: '', roles: [] as string[] }; }
+  private blankImportRow() { return { staffId: '', firstName: '', password: '', roles: [] as string[], locations: [] as string[] }; }
 
   openImport(): void {
     this.importResult.set(null);
-    this.importRows = [this.blankImportRow(), this.blankImportRow(), this.blankImportRow()];
+    this.importRows = [this.blankImportRow()];   // start with one row; the admin adds more as needed
     this.showImport.set(true);
   }
 
@@ -456,9 +458,9 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     return this.importRows
       .map(r => ({
         staffId: r.staffId?.trim() ?? '', firstName: r.firstName?.trim() ?? '',
-        lastName: r.lastName?.trim() || null, email: r.email?.trim() || null,
+        lastName: null, email: null,
         password: r.password?.trim() || undefined,
-        roles: r.roles ?? [],
+        roles: r.roles ?? [], locations: r.locations ?? [],
       }) as BulkStaffImportRow)
       .filter(r => r.staffId.length > 0 || r.firstName.length > 0 || r.roles.length > 0);
   }

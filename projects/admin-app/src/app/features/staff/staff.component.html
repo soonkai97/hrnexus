@@ -339,21 +339,21 @@
       <div class="import-grid-head">
         <span><span class="req">*</span> {{ 'staff.staffId' | translate }}</span>
         <span><span class="req">*</span> {{ 'staff.firstName' | translate }}</span>
-        <span>{{ 'staff.lastName' | translate }}</span>
-        <span>{{ 'staff.email' | translate }}</span>
         <span><span class="req">*</span> {{ 'staff.initialPassword' | translate }}</span>
-        <span>{{ 'staff.roleCol' | translate }}</span>
+        <span><span class="req">*</span> {{ 'staff.roleCol' | translate }}</span>
+        <span>{{ 'staff.locations' | translate }}</span>
         <span></span>
       </div>
       @for (row of importRows; track $index) {
         <div class="import-grid-row">
           <input pInputText [(ngModel)]="row.staffId" [attr.aria-label]="'staff.staffId' | translate" />
           <input pInputText [(ngModel)]="row.firstName" [attr.aria-label]="'staff.firstName' | translate" />
-          <input pInputText [(ngModel)]="row.lastName" [attr.aria-label]="'staff.lastName' | translate" />
-          <input pInputText [(ngModel)]="row.email" [attr.aria-label]="'staff.email' | translate" />
           <input pInputText type="password" [(ngModel)]="row.password" autocomplete="new-password" [attr.aria-label]="'staff.initialPassword' | translate" />
           <p-multiselect [(ngModel)]="row.roles" [options]="availableRoles()" optionLabel="name" optionValue="name"
                          [filter]="true" display="chip" [placeholder]="'staff.selectRoles' | translate"
+                         appendTo="body" styleClass="w-full" />
+          <p-multiselect [(ngModel)]="row.locations" [options]="availableLocations()" optionLabel="name" optionValue="id"
+                         [filter]="true" display="chip" [placeholder]="'staff.selectLocations' | translate"
                          appendTo="body" styleClass="w-full" />
           <p-button icon="pi pi-times" [text]="true" severity="danger" size="small" rounded
                     [attr.aria-label]="'common.delete' | translate"

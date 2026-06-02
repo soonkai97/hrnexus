@@ -146,8 +146,9 @@ Each setup page also supports creating many records at once (max 100 per request
   enter is the one the staff logs in with (validated against the password policy). The result table
   reports per-row success/failure. **Partial success** — a bad row is reported and skipped, the rest
   still import.
-- **Leave** — a *Bulk Record* dialog: pick staff + type + date range + hours to record the same leave
-  (e.g. a public holiday) for many staff; each goes through the normal leave validation.
+- **Leave** — a *Bulk Record* dialog (same required fields as the single Record-Leave form): pick
+  staff + type + start/end date + start/end time to record the same leave (e.g. a public holiday)
+  for many staff; hours are derived from the times. Each goes through the normal leave validation.
 
 ---
 

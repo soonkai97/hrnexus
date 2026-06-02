@@ -364,7 +364,7 @@
     "bulkRecordDesc":        "Record the same leave for all selected staff (e.g. a public holiday).",
     "selectStaff":           "Select staff…",
     "hours":                 "Hours",
-    "bulkHoursHint":         "Hours of leave per staff (e.g. 8 for a full day). Annual/sick leave is checked against each person's balance.",
+    "bulkHoursComputed":     "{{hours}} hours per staff (from the start/end time). Annual/sick leave is checked against each person's balance.",
     "bulkSkipped":           "Skipped — not recorded:",
     "bulkCreatedToast":      "{{created}} recorded, {{failed}} failed.",
     "bulkCreateFailed":      "Bulk leave failed.",

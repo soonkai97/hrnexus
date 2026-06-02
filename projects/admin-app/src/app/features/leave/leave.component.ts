@@ -287,10 +287,22 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   bulkType   = 'unpaid';
   bulkStart: Date | null = null;
   bulkEnd:   Date | null = null;
-  bulkStartTime: Date | null = null;   // optional — leave blank for a full-day holiday
+  bulkStartTime: Date | null = null;
   bulkEndTime:   Date | null = null;
-  bulkHours: number | null = 8;
   bulkNotes  = '';
+
+  /** Hours derived from the bulk start/end date+time — mirrors the single form's calcHours, so the
+   *  bulk dialog has no manual hours field. */
+  get bulkCalcHours(): number {
+    const { bulkStart, bulkEnd, bulkStartTime, bulkEndTime } = this;
+    if (!bulkStart || !bulkEnd || !bulkStartTime || !bulkEndTime) return 0;
+    const start = new Date(bulkStart);
+    start.setHours(bulkStartTime.getHours(), bulkStartTime.getMinutes(), 0, 0);
+    const end = new Date(bulkEnd);
+    end.setHours(bulkEndTime.getHours(), bulkEndTime.getMinutes(), 0, 0);
+    const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    return Math.round(h * 10) / 10;
+  }
   /** Result after submit: when any employee fails (e.g. not enough entitlement) the dialog stays
    * open to show exactly who was skipped and why. Null until the first submit. */
   bulkResult = signal<{ created: number; failed: number; rows: { name: string; reason: string }[] } | null>(null);
@@ -301,20 +313,20 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   openBulkCreate(): void {
     this.bulkStaffIds = []; this.bulkType = 'unpaid';
     this.bulkStart = null; this.bulkEnd = null; this.bulkStartTime = null; this.bulkEndTime = null;
-    this.bulkHours = 8; this.bulkNotes = ''; this.bulkResult.set(null);
+    this.bulkNotes = ''; this.bulkResult.set(null);
     this.staffStore.loadStaff('', 1, 200);   // load a full page for the picker
     this.showBulkCreate.set(true);
   }
 
   saveBulkCreate(): void {
-    if (!this.bulkStaffIds.length || !this.bulkStart || !this.bulkEnd) return;
+    if (!this.bulkStaffIds.length || !this.bulkStart || !this.bulkEnd || !this.bulkStartTime || !this.bulkEndTime) return;
     this.bulkCreating.set(true);
     this.leaveSvc.bulkCreateLeave({
       employeeIds: this.bulkStaffIds, leaveType: this.bulkType,
       startDate: toLocalDateString(this.bulkStart), endDate: toLocalDateString(this.bulkEnd),
-      startTime: this.bulkStartTime ? this.toTimeStr(this.bulkStartTime) : null,
-      endTime:   this.bulkEndTime   ? this.toTimeStr(this.bulkEndTime)   : null,
-      hours: this.bulkHours, notes: this.bulkNotes || null,
+      startTime: this.toTimeStr(this.bulkStartTime),
+      endTime:   this.toTimeStr(this.bulkEndTime),
+      hours: this.bulkCalcHours, notes: this.bulkNotes || null,
       status: 'approved',
     }).subscribe({
       next: r => {

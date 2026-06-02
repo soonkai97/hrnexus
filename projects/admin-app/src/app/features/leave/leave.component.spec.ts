@@ -441,30 +441,54 @@ describe('LeaveComponent', () => {
   // ── saveBulkCreate() — venue-wide bulk record ─────────────────────────────────
 
   describe('saveBulkCreate()', () => {
+    // Mirrors the single Record-Leave form: staff + dates + start/end TIME are all mandatory, and
+    // hours is derived from the times (no manual hours field).
+    const setValidBulk = () => {
+      component.bulkStaffIds = ['e1', 'e2'];
+      component.bulkType = 'unpaid';
+      component.bulkStart = new Date(2026, 11, 25);
+      component.bulkEnd   = new Date(2026, 11, 25);
+      component.bulkStartTime = new Date(2026, 0, 1, 9, 0);
+      component.bulkEndTime   = new Date(2026, 0, 1, 17, 0);
+    };
+
     it('does nothing without staff or a date range', () => {
       component.bulkStaffIds = [];
       component.saveBulkCreate();
       expect(mockLeaveSvc.bulkCreateLeave).not.toHaveBeenCalled();
     });
 
-    it('posts the chosen staff, type, formatted dates and hours', () => {
-      component.bulkStaffIds = ['e1', 'e2'];
-      component.bulkType = 'unpaid';
+    it('does nothing when start/end time is missing (times are now mandatory)', () => {
+      component.bulkStaffIds = ['e1'];
       component.bulkStart = new Date(2026, 11, 25);
       component.bulkEnd   = new Date(2026, 11, 25);
-      component.bulkHours = 8;
+      component.bulkStartTime = null; component.bulkEndTime = null;
+      component.saveBulkCreate();
+      expect(mockLeaveSvc.bulkCreateLeave).not.toHaveBeenCalled();
+    });
+
+    it('posts staff, type, dates, times and hours COMPUTED from the times', () => {
+      setValidBulk();
       component.bulkNotes = 'Holiday';
       component.saveBulkCreate();
       expect(mockLeaveSvc.bulkCreateLeave).toHaveBeenCalledWith(expect.objectContaining({
         employeeIds: ['e1', 'e2'], leaveType: 'unpaid',
-        startDate: '2026-12-25', endDate: '2026-12-25', hours: 8, notes: 'Holiday', status: 'approved',
+        startDate: '2026-12-25', endDate: '2026-12-25',
+        startTime: '09:00', endTime: '17:00',
+        hours: 8, notes: 'Holiday', status: 'approved',   // 09:00→17:00 = 8h
       }));
     });
 
-    it('shows a created/failed toast and closes the dialog on success', () => {
-      component.bulkStaffIds = ['e1'];
+    it('bulkCalcHours derives fractional hours from the start/end time', () => {
       component.bulkStart = new Date(2026, 11, 25);
       component.bulkEnd   = new Date(2026, 11, 25);
+      component.bulkStartTime = new Date(2026, 0, 1, 9, 30);
+      component.bulkEndTime   = new Date(2026, 0, 1, 17, 0);
+      expect(component.bulkCalcHours).toBe(7.5);
+    });
+
+    it('shows a created/failed toast and closes the dialog on success', () => {
+      setValidBulk();
       component.showBulkCreate.set(true);
       component.saveBulkCreate();
       expect(mockToastSvc.success).toHaveBeenCalledWith('leave.bulkCreatedToast');
@@ -473,9 +497,7 @@ describe('LeaveComponent', () => {
 
     it('on partial failure keeps the dialog open and lists skipped staff with reasons', () => {
       mockLeaveSvc.bulkCreateLeave.mockReturnValue(of({ created: 1, failed: 1, errors: ['e2: Insufficient balance.'] }));
-      component.bulkStaffIds = ['e1', 'e2'];
-      component.bulkStart = new Date(2026, 11, 25);
-      component.bulkEnd   = new Date(2026, 11, 25);
+      setValidBulk();
       component.showBulkCreate.set(true);
       component.saveBulkCreate();
       // Dialog stays open with a results panel mapping "{id}: {reason}" → {name, reason}.
@@ -484,18 +506,6 @@ describe('LeaveComponent', () => {
       expect(result?.failed).toBe(1);
       expect(result?.rows[0]).toEqual({ name: 'e2', reason: 'Insufficient balance.' });
       expect(mockToastSvc.warning).toHaveBeenCalled();
-    });
-
-    it('passes optional start/end times as HH:mm when set', () => {
-      component.bulkStaffIds = ['e1'];
-      component.bulkStart = new Date(2026, 11, 25);
-      component.bulkEnd   = new Date(2026, 11, 25);
-      component.bulkStartTime = new Date(2026, 0, 1, 9, 30);
-      component.bulkEndTime   = new Date(2026, 0, 1, 17, 0);
-      component.saveBulkCreate();
-      expect(mockLeaveSvc.bulkCreateLeave).toHaveBeenCalledWith(expect.objectContaining({
-        startTime: '09:30', endTime: '17:00',
-      }));
     });
   });
 

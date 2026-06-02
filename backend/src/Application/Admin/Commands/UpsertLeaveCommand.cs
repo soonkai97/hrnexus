@@ -118,8 +118,11 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 
                     if (tx != null) { await tx.CommitAsync(ct); tx.Dispose(); tx = null; }
 
+                    // Pass null performer so AuditService attributes the entry to the authenticated
+                    // caller (the admin who recorded it, or the staff member for self-service) rather
+                    // than always crediting the leave's subject employee.
                     await audit.LogAsync("LeaveRequest", leave.Id.ToString(), "Created",
-                        req.EmployeeId, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({req.Hours:0.##}h)", ct);
+                        null, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({req.Hours:0.##}h)", ct);
 
                     if (wasPendingAutoApproved)
                     {

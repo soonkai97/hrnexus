@@ -35,6 +35,19 @@ public class LeaveCommandTests
         public Task LogAsync(string et, string ei, string a, Guid? pid, string pn, string? c = null, CancellationToken ct = default) => Task.CompletedTask;
     }
 
+    /// <summary>Records the performer passed to the most recent LogAsync call so tests can assert
+    /// who the audit entry is attributed to.</summary>
+    private sealed class CapturingAuditService : IAuditService
+    {
+        public bool  Called      { get; private set; }
+        public Guid? PerformedId { get; private set; }
+        public Task LogAsync(string et, string ei, string a, Guid? pid, string pn, string? c = null, CancellationToken ct = default)
+        {
+            Called = true; PerformedId = pid;
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class StubDateTimeProvider : IDateTimeProvider
     {
         private readonly DateTime _now;
@@ -328,6 +341,31 @@ public class LeaveCommandTests
         Assert.NotEqual(Guid.Empty, leaveId);
         var created = await db.LeaveRequests.FirstAsync(l => l.Id == leaveId);
         Assert.Equal("unpaid", created.LeaveType);
+    }
+
+    [Fact]
+    public async Task UpsertLeave_Create_AuditsWithNullPerformer_SoTheActualCallerIsAttributed()
+    {
+        // The create path must NOT credit the leave's subject employee as the performer — it passes
+        // null so AuditService attributes the entry to the authenticated caller (admin or self).
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var audit = new CapturingAuditService();
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(),
+            new NullPushSvc(), audit, new StubDateTimeProvider());
+
+        var start = DateTime.UtcNow.AddDays(1);
+        var cmd = new UpsertLeaveCommand(null, staff.Id, "unpaid",
+            start, start.AddDays(2), null, null, 8m, "reason", "pending");
+
+        await handler.Handle(cmd, CancellationToken.None);
+
+        Assert.True(audit.Called);
+        Assert.Null(audit.PerformedId);   // null → AuditService fills in the real caller
     }
 
     [Fact]

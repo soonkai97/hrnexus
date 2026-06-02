@@ -51,6 +51,57 @@ public class BulkCreateCommandTests
         Assert.Equal(3, await db.Locations.CountAsync());
     }
 
+    // ── Delete location ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task DeleteLocation_ThrowsKeyNotFound_WhenMissing()
+    {
+        await using var db = CreateDb();
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            new DeleteLocationCommandHandler(db, new NullAudit())
+                .Handle(new DeleteLocationCommand("ghost"), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task DeleteLocation_SoftDeletes_WhenNoActiveShift()
+    {
+        await using var db = CreateDb();
+        var loc = E.Location.Create("Main Bar");
+        db.Locations.Add(loc);
+        // A *closed* shift at the location must not block deletion.
+        db.WorkLogs.Add(E.WorkLog.CreateManual(Guid.NewGuid(), "BARTENDER", loc.Id, "Main Bar",
+            new DateOnly(2026, 6, 1), "18:00", "23:00", 50m));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        await new DeleteLocationCommandHandler(db, new NullAudit())
+            .Handle(new DeleteLocationCommand(loc.Id), CancellationToken.None);
+
+        // Soft-deleted (IsDeleted flag set). The real AppDbContext's global query filter then hides it;
+        // the InMemory test double doesn't apply that filter, so assert the flag directly.
+        var stored = await db.Locations.FirstAsync(l => l.Id == loc.Id);
+        Assert.True(stored.IsDeleted);
+    }
+
+    [Fact]
+    public async Task DeleteLocation_ThrowsInvalidOperation_WhenShiftStillInProgress()
+    {
+        // A location someone is actively clocked into must not be deletable mid-shift.
+        await using var db = CreateDb();
+        var loc = E.Location.Create("Main Bar");
+        db.Locations.Add(loc);
+        db.WorkLogs.Add(E.WorkLog.StartLive(Guid.NewGuid(), "BARTENDER", loc.Id, "Main Bar",
+            new DateOnly(2026, 6, 1), "18:00", 50m));   // EndTime == null → active
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            new DeleteLocationCommandHandler(db, new NullAudit())
+                .Handle(new DeleteLocationCommand(loc.Id), CancellationToken.None));
+
+        Assert.Single(await db.Locations.ToListAsync());   // still there — not deleted
+    }
+
     // ── Roles ──────────────────────────────────────────────────────────────────────
 
     [Fact]

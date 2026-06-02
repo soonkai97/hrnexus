@@ -26,6 +26,11 @@ public class DeleteRoleCommandHandler(IAppDbContext db)
             throw new InvalidOperationException(
                 $"Cannot delete role '{normalizedName}' — it is still assigned to one or more staff. Reassign them first.");
 
+        // Clean up the role's default-permission rows so they don't linger as orphans
+        // (RolePermission keys on the role NAME, not an FK, so EF won't cascade them).
+        var perms = await db.RolePermissions.Where(rp => rp.RoleName == normalizedName).ToListAsync(ct);
+        if (perms.Count > 0) db.RolePermissions.RemoveRange(perms);
+
         db.Roles.Remove(role);
         await db.SaveChangesAsync(ct);
     }

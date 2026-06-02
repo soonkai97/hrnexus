@@ -197,6 +197,12 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     return Math.round(h * 10) / 10;
   }
 
+  /** Required fields present — gates the Apply button (consistent with every other form). */
+  get canSubmit(): boolean {
+    return !!this.form.startDate && !!this.form.startTime
+        && !!this.form.endDate   && !!this.form.endTime;
+  }
+
   ngOnInit(): void {
     this.load();
     this.leaveSvc.getMyBalance().subscribe({ next: b => this.balance.set(b), error: () => {} });

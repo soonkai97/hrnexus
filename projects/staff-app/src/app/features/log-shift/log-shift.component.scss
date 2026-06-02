@@ -47,6 +47,8 @@
 }
 
 .end-panel { margin-top: 0.5rem; }
+// Constrain the lone End-Time picker so it doesn't stretch the full card width.
+:host :deep(.time-picker) { max-width: 220px; }
 .time-input { padding: 0.5rem; border-radius: $radius-sm; border: 1px solid $border-subtle; background: $bg-surface; color: $text-primary; }
 
 // Form

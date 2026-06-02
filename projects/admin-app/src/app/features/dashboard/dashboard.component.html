@@ -95,7 +95,7 @@
               <td class="td-name">{{ s.name }}</td>
               <td><p-tag [value]="s.role" severity="info" /></td>
               <td class="td-muted">{{ s.locationName }}</td>
-              <td class="td-muted">{{ s.clockedInAt | date:'h:mm a' }}</td>
+              <td class="td-muted">{{ s.workDate }} · {{ s.clockedInAt | date:'h:mm a' }}</td>
               <td class="td-muted">{{ formatMinutes(s.minutesOnShift) }}</td>
               <td class="td-action">
                 <p-button [label]="'dashboard.closeShift' | translate" icon="pi pi-sign-out"
@@ -127,7 +127,7 @@
             <td class="td-name">{{ a.staffName }}</td>
             <td><p-tag [value]="a.role" severity="info" /></td>
             <td class="td-muted">{{ a.locationName }}</td>
-            <td class="td-muted">{{ a.timestamp | date:'h:mm a' }}</td>
+            <td class="td-muted">{{ a.timestamp | date:'MMM d, h:mm a' }}</td>
             <td>
               <p-tag [value]="(a.eventType === 'shift-started' ? 'dashboard.eventIn' : 'dashboard.eventOut') | translate"
                      [severity]="a.eventType === 'shift-started' ? 'success' : 'secondary'" />

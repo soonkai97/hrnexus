@@ -26,7 +26,7 @@
           <div class="active-details d-flex flex-wrap gap-2 flex-grow-1">
             <span class="active-role">{{ shift.roleName | uppercase }}</span>
             <span class="active-loc"><i class="pi pi-map-marker"></i> {{ shift.locationName }}</span>
-            <span class="active-time"><i class="pi pi-clock"></i> {{ shift.startTime | amPm }}</span>
+            <span class="active-time"><i class="pi pi-clock"></i> {{ shift.workDate }} {{ shift.startTime | amPm }}</span>
           </div>
           <a routerLink="/log-shift" class="btn-end-link">{{ 'home.manageShift' | translate }} <i class="pi pi-arrow-right"></i></a>
         </div>
@@ -95,7 +95,7 @@
       <p-card styleClass="recent-list">
         @for (s of recentShifts(); track s.id) {
           <div class="recent-row">
-            <div class="recent-date">{{ s.workDate | date:'EEE, dd/MM' }}</div>
+            <div class="recent-date">{{ s.workDate | date:'EEE, dd/MM' }}@if (endDayOffset(s)) { → {{ s.endDate | date:'EEE, dd/MM' }}}</div>
             <div class="recent-role">
               <span>{{ s.roleName | uppercase }}</span>
               <span class="recent-time">{{ s.startTime | amPm }}@if (s.endTime) { – {{ s.endTime | amPm }}@if (endDayOffset(s); as off) {<span class="day-offset">+{{ off }}</span>}}</span>

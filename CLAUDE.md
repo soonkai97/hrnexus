@@ -890,7 +890,9 @@ FE dialogs: all four are **editable row grids** (Locations: name-per-row `bulkRo
 Name+Rate `bulkRows:{name,rate}[]` → mapped to `{name,hourlyRate}`); Staff "Import" is an **editable row grid**
 (`importRows` model → `importRowsToSubmit` maps/trims/drops-blank → `bulkImportStaff`; per-row inputs
 + an admin-set **password** column + a roles `p-multiselect`, Add/remove row) showing a per-row results table;
-Leave "Bulk Record" is a staff-multiselect + type + dates + hours form. Note: staff import collects
+Leave "Bulk Record" is a staff-multiselect + type + start/end date + start/end time form (mandatory,
+mirroring the single Record-Leave form; hours are derived from the times — no manual hours field).
+Note: staff import collects
 **roles** (from the roles dropdown) but **not** locations (location is ID-keyed — assign via the
 bulk-assign-locations action after import). Grid inputs start readonly (anti-autofill) — E2E must
 click-then-fill.

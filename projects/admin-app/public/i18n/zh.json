@@ -364,7 +364,7 @@
     "bulkRecordDesc":        "为所选员工记录相同的请假（例如公共假期）。",
     "selectStaff":           "选择员工…",
     "hours":                 "小时",
-    "bulkHoursHint":         "每位员工的请假小时数（例如全天为 8）。年假/病假会根据各人余额进行核对。",
+    "bulkHoursComputed":     "每位员工 {{hours}} 小时（根据开始/结束时间）。年假/病假会根据各人余额进行核对。",
     "bulkSkipped":           "已跳过——未记录：",
     "bulkCreatedToast":      "已记录 {{created}} 条，失败 {{failed}} 条。",
     "bulkCreateFailed":      "批量请假失败。",

@@ -153,7 +153,8 @@
         </div>
         <div class="col">
           <p-card styleClass="stat-card accent-amber h-100">
-            <span class="stat-label">{{ 'reports.labourCost' | translate }}</span>
+            <span class="stat-label">{{ 'reports.labourCost' | translate }}
+              <i class="pi pi-info-circle stat-info" [pTooltip]="'reports.labourCostHint' | translate" tooltipPosition="top"></i></span>
             <span class="stat-value">RM {{ r.summary.totalCost | number:'1.2-2' }}</span>
             <span class="stat-sub">{{ 'reports.grossPayTotal' | translate }}</span>
           </p-card>

@@ -13,12 +13,13 @@ import { Skeleton } from 'primeng/skeleton';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { DatePicker } from 'primeng/datepicker';
+import { TooltipModule } from 'primeng/tooltip';
 import { PrimeTemplate } from 'primeng/api';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TableModule, Tag, Card, Skeleton, Button, Dialog, DatePicker, PrimeTemplate],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TableModule, Tag, Card, Skeleton, Button, Dialog, DatePicker, TooltipModule, PrimeTemplate],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })

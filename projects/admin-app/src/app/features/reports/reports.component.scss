@@ -1,5 +1,13 @@
 @use 'styles/theme' as *;
 
+// Info icon on the Est. Labour Cost stat card
+.stat-info {
+  font-size: 0.7rem;
+  opacity: 0.65;
+  cursor: help;
+  margin-left: 0.15rem;
+}
+
 // ── Payroll-period lock quick-action ──────────────────────────────────────────
 .period-lock {
   display: flex;

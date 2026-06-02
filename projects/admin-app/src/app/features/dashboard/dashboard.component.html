@@ -52,7 +52,8 @@
       </div>
       <div class="col">
         <p-card styleClass="stat-card accent-amber h-100">
-          <span class="stat-label">{{ 'dashboard.estLabourCost' | translate }}</span>
+          <span class="stat-label">{{ 'dashboard.estLabourCost' | translate }}
+            <i class="pi pi-info-circle stat-info" [pTooltip]="'dashboard.estLabourCostHint' | translate" tooltipPosition="top"></i></span>
           <span class="stat-value">RM {{ s.tonightCost | number:'1.2-2' }}</span>
           <span class="stat-sub">{{ 'dashboard.thisShift' | translate }}</span>
         </p-card>

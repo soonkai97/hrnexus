@@ -40,6 +40,17 @@ test.describe('Staff — My Leave', () => {
     await expect(page.locator('.form-card')).toBeVisible({ timeout: 8_000 });
   });
 
+  // Regression guard: the Apply button must stay disabled until the required date/time fields are
+  // filled (canSubmit), consistent with every other form. An always-enabled submit was the bug.
+  test('Apply button is disabled until required date/time fields are filled', async ({ page }) => {
+    await page.waitForSelector('.form-card', { timeout: 8_000 });
+    // The single submit button lives in .form-actions (label is dynamic — target by container).
+    const applyBtn = page.locator('.form-actions button');
+    await expect(applyBtn).toBeVisible({ timeout: 5_000 });
+    // Fresh form (only the default leave type) → start/end date+time are empty → disabled.
+    await expect(applyBtn).toBeDisabled();
+  });
+
   test('switches to History tab and shows records or empty state', async ({ page }) => {
     await page.waitForSelector('.p-selectbutton', { timeout: 8_000 });
     // PrimeNG 21 SelectButton renders options as plain <button> elements inside a role="group".

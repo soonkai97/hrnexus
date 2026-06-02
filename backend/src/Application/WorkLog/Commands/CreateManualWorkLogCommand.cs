@@ -49,23 +49,28 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         if (onLeave)
             throw new InvalidOperationException("Cannot start a shift while on approved leave.");
 
-        // Reject if the new shift overlaps in time with any existing completed shift.
-        // Check the day before and after to catch overnight shifts that span midnight.
-        var prevDate = req.WorkDate.AddDays(-1);
+        // Manual entry stays single-overnight (≤24h, guarded above); derive the end date.
+        var endDate = ShiftHours.DeriveEndDate(req.WorkDate, req.StartTime, req.EndTime);
+
+        // Reject if the new shift overlaps in time with any existing completed shift. Candidates are
+        // selected by DATE-interval overlap (their end date >= our start date AND their start date <=
+        // our end date) so an existing multi-day shift on either side is caught, then compared on
+        // absolute minutes.
         var nearby = await db.WorkLogs
             .Where(w => w.EmployeeId == req.EmployeeId
                      && w.EndTime != null
-                     && w.WorkDate >= prevDate
-                     && w.WorkDate <= req.WorkDate)
-            .Select(w => new { w.WorkDate, w.StartTime, w.EndTime })
+                     && w.EndDate >= req.WorkDate
+                     && w.WorkDate <= endDate)
+            .Select(w => new { w.WorkDate, w.StartTime, w.EndDate, w.EndTime })
             .ToListAsync(ct);
 
-        var newStart = AbsStart(req.WorkDate, req.StartTime);
-        var newEnd   = AbsEnd(req.WorkDate, req.StartTime, req.EndTime);
+        var newStart = ShiftHours.AbsMinutes(req.WorkDate, req.StartTime);
+        var newEnd   = ShiftHours.AbsMinutes(endDate, req.EndTime);
         foreach (var s in nearby)
         {
-            var sStart = AbsStart(s.WorkDate, s.StartTime);
-            var sEnd   = AbsEnd(s.WorkDate, s.StartTime, s.EndTime!);
+            var sEndDate = s.EndDate ?? ShiftHours.DeriveEndDate(s.WorkDate, s.StartTime, s.EndTime!);
+            var sStart = ShiftHours.AbsMinutes(s.WorkDate, s.StartTime);
+            var sEnd   = ShiftHours.AbsMinutes(sEndDate, s.EndTime!);
             if (newStart < sEnd && sStart < newEnd)
                 throw new InvalidOperationException("This shift overlaps with an existing shift.");
         }
@@ -73,27 +78,9 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         // Price the shift at the rate in effect ON its work date, not the role's current rate —
         // so a back-dated entry made after a raise still uses the historical rate.
         var rateAsOf = await RoleRateLookup.RateAsOfAsync(db, req.RoleName, req.WorkDate, role.HourlyRate, ct);
-        // Manual entry stays single-overnight (≤24h, guarded above); derive the end date accordingly.
-        var endDate = ShiftHours.DeriveEndDate(req.WorkDate, req.StartTime, req.EndTime);
         var log = Domain.Entities.WorkLog.CreateManual(req.EmployeeId, req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, endDate, req.EndTime, rateAsOf, req.Notes);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync(ct);
         return log.Id;
     }
-
-    // Absolute start in minutes from a fixed epoch (DateOnly.DayNumber * 1440 + HH*60 + mm)
-    private static long AbsStart(DateOnly date, string time) =>
-        (long)date.DayNumber * 1440 + ParseMins(time);
-
-    // Absolute end — adds 1440 if end wraps past midnight (overnight shift)
-    private static long AbsEnd(DateOnly date, string startTime, string endTime)
-    {
-        var s = ParseMins(startTime);
-        var e = ParseMins(endTime);
-        var dayBase = (long)date.DayNumber * 1440;
-        return e > s ? dayBase + e : dayBase + e + 1440;
-    }
-
-    private static int ParseMins(string time) =>
-        int.Parse(time[..2]) * 60 + int.Parse(time[3..]);
 }

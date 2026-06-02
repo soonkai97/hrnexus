@@ -82,7 +82,7 @@ public class WorkLogCommandTests
         new(db, new NullSender(), new NullNotificationHub(), new NullDateTimeProvider());
 
     private static EndWorkLogCommandHandler EndHandler(IAppDbContext db) =>
-        new(db, new NullSender(), new NullNotificationHub());
+        new(db, new NullSender(), new NullNotificationHub(), new NullDateTimeProvider());
 
     // ── UpdateWorkLogCommand ──────────────────────────────────────────────────
 
@@ -304,6 +304,44 @@ public class WorkLogCommandTests
                 log2.Id, empId, true,
                 "BARTENDER", "loc-1", workDate, "10:00", "18:00", null),
                 CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Update_DetectsOverlap_WithAMultiDayShiftOutsideTheOldOneDayWindow()
+    {
+        // A multi-day shift that STARTED several days earlier must still be caught — the previous
+        // ±1-day candidate window would have missed it (the bug the date-interval query fixes).
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // Multi-day: today-3 08:00 → today 20:00 (explicit end date)
+        var multi = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", today.AddDays(-3), "08:00", today, "20:00", 50m);
+        var other = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", today.AddDays(-1), "21:00", "22:00", 50m);
+        db.WorkLogs.AddRange(multi, other);
+        db.Locations.Add(MakeLocation("loc-1"));
+        await db.SaveChangesAsync();
+
+        // Editing `other` to any time on today-1 still falls inside the multi-day span → overlap.
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            UpdateHandler(db).Handle(new UpdateWorkLogCommand(
+                other.Id, empId, true, "BARTENDER", "loc-1", today.AddDays(-1), "10:00", "12:00", null),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task End_Throws_WhenShiftHasBeenOpenMoreThan24Hours()
+    {
+        // A staff self clock-out can't faithfully record a >24h-old open shift — it must route to a
+        // manager instead of silently logging a short same-day shift.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var twoDaysAgo = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", twoDaysAgo, "10:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            EndHandler(db).Handle(new EndWorkLogCommand(log.Id, empId, "12:00"), CancellationToken.None));
     }
 
     [Fact]

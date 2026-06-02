@@ -48,6 +48,23 @@ public class AdminEndShiftCommandHandler(IAppDbContext db, ISender sender, INoti
         if (spanMins > 14 * 1440)
             throw new ArgumentException("That end date is more than 14 days after the shift started — please check it.");
 
+        // Closing to a multi-day span could now swallow a later completed shift for the same staff —
+        // reject if the resolved interval overlaps one (date-interval candidate query, minute-precise).
+        var newStart = ShiftHours.AbsMinutes(log.WorkDate, log.StartTime);
+        var newEnd   = ShiftHours.AbsMinutes(req.EndDate, req.EndTime);
+        var nearby = await db.WorkLogs
+            .Where(w => w.EmployeeId == log.EmployeeId && w.EndTime != null && w.Id != log.Id
+                     && w.EndDate >= log.WorkDate && w.WorkDate <= req.EndDate)
+            .Select(w => new { w.WorkDate, w.StartTime, w.EndDate, w.EndTime })
+            .ToListAsync(ct);
+        foreach (var s in nearby)
+        {
+            var sEndDate = s.EndDate ?? ShiftHours.DeriveEndDate(s.WorkDate, s.StartTime, s.EndTime!);
+            if (newStart < ShiftHours.AbsMinutes(sEndDate, s.EndTime!) &&
+                ShiftHours.AbsMinutes(s.WorkDate, s.StartTime) < newEnd)
+                throw new InvalidOperationException("This shift overlaps with another existing shift for this staff member.");
+        }
+
         var before = $"Date={log.WorkDate},Start={log.StartTime},End=(open)";
         log.End(req.EndDate, req.EndTime);
 

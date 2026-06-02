@@ -7,7 +7,7 @@ namespace HRNexus.Application.WorkLog.Commands;
 
 public record EndWorkLogCommand(Guid Id, Guid EmployeeId, string EndTime) : IRequest;
 
-public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub)
+public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub, IDateTimeProvider dateTime)
     : IRequestHandler<EndWorkLogCommand>
 {
     public async Task Handle(EndWorkLogCommand req, CancellationToken ct)
@@ -19,6 +19,13 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
             ?? throw new KeyNotFoundException("Work log not found.");
         if (log.EmployeeId != req.EmployeeId) throw new UnauthorizedAccessException("Not your shift.");
         if (log.EndTime != null) throw new InvalidOperationException("Shift already ended.");
+
+        // A self clock-out derives a same-day/overnight (≤24h) end. If the shift has actually been
+        // open longer than that, the staff plainly forgot — recording it as a short same-day shift
+        // would be wrong, so route them to a manager (who can close it with a real multi-day end).
+        var startLocal = log.WorkDate.ToDateTime(TimeOnly.Parse(log.StartTime));
+        if (dateTime.LocalNow - startLocal > TimeSpan.FromHours(24))
+            throw new InvalidOperationException("This shift has been open for more than 24 hours. Please ask a manager to close it.");
 
         // Validate end time produces a non-zero duration (guard against identical start/end)
         var hours = HRNexus.Application.Common.ShiftHours.CalcHours(log.StartTime, req.EndTime);

@@ -34,4 +34,9 @@ public static class ShiftHours
     /// </summary>
     public static DateOnly DeriveEndDate(DateOnly workDate, string startTime, string endTime) =>
         TimeOnly.Parse(endTime) <= TimeOnly.Parse(startTime) ? workDate.AddDays(1) : workDate;
+
+    /// <summary>Absolute minute offset of a date+time from a fixed epoch (DayNumber*1440 + HH*60 + mm).
+    /// Used to test whether two shift intervals overlap, multi-day aware.</summary>
+    public static long AbsMinutes(DateOnly date, string hhmm) =>
+        (long)date.DayNumber * 1440 + int.Parse(hhmm[..2]) * 60 + int.Parse(hhmm[3..]);
 }

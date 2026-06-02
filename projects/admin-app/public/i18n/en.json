@@ -160,7 +160,7 @@
     "currentlyOnShift":   "Currently On Shift",
     "closeShift":         "Close shift",
     "closeShiftTitle":    "Close shift",
-    "closeShiftDesc":     "Set the time {{name}} actually finished (clocked in at {{start}}). This closes the open shift and recalculates hours.",
+    "closeShiftDesc":     "Set the time {{name}} actually finished. This closes the open shift and recalculates hours.",
     "endDate":            "End date",
     "endTime":            "End time",
     "shiftClosedToast":   "Shift closed.",

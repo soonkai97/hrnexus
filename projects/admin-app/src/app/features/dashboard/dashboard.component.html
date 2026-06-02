@@ -147,7 +147,7 @@
             [header]="'dashboard.closeShiftTitle' | translate" [modal]="true"
             [style]="{'width':'min(420px, 94vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     @if (closeRow(); as r) {
-      <p class="modal-desc">{{ 'dashboard.closeShiftDesc' | translate:{ name: r.name, start: r.startTime } }}</p>
+      <p class="modal-desc">{{ 'dashboard.closeShiftDesc' | translate:{ name: r.name } }}</p>
       <div class="row g-2 mt-1">
         <div class="col-6 field">
           <label for="close-end-date"><span class="req">*</span> {{ 'dashboard.endDate' | translate }}</label>

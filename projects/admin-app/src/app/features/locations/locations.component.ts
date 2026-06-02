@@ -8,11 +8,12 @@ import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 import { Dialog } from 'primeng/dialog';
+import { PrimeTemplate } from 'primeng/api';   // provides the pTemplate="footer" directive
 
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Message, Dialog],
+  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Message, Dialog, PrimeTemplate],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })

@@ -65,7 +65,7 @@ public class LoginCommandHandler(
         employee.SetRefreshToken(refresh, now.AddDays(30));
         await db.SaveChangesAsync(ct);
 
-        return new LoginResult(access, refresh, 3600,
+        return new LoginResult(access, refresh, 1800,   // ~access-token lifetime (30 min); FE refreshes reactively on 401
             new UserDto(employee.Id, employee.StaffId, employee.FullName, employee.Email,
                 employee.Roles.ToList()));
     }

@@ -32,7 +32,7 @@ public class RefreshTokenCommandHandler(IAppDbContext db, ITokenService tokens)
             throw new UnauthorizedAccessException("Refresh token has already been used. Please sign in again.");
         }
 
-        return new LoginResult(access, newRefresh, 3600,
+        return new LoginResult(access, newRefresh, 1800,
             new UserDto(employee.Id, employee.StaffId, employee.FullName, employee.Email,
                 employee.Roles.ToList()));
     }

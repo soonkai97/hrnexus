@@ -136,7 +136,10 @@ public class Staff : IHasAudit, ISoftDelete
         LockoutEnd        = null;
     }
 
-    public void Deactivate() => IsActive = false;
+    // Deactivating also invalidates the session: clearing the refresh token means the user's
+    // short-lived access token can't be renewed, so access ends within the access-token window
+    // rather than lingering until the cookie's 30-day expiry.
+    public void Deactivate() { IsActive = false; ClearRefreshToken(); }
     public void Activate()   => IsActive = true;
 
     public void UpdateProfile(string? phoneNumber) => PhoneNumber = phoneNumber;

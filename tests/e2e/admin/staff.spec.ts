@@ -83,11 +83,12 @@ test.describe('Admin — staff list', () => {
     const uid = 'E2E' + Date.now().toString().slice(-7);
     // Inputs start readonly (anti-autofill) until interacted with — click before fill.
     const set = async (loc: typeof rows, val: string) => { await loc.click(); await loc.fill(val); };
-    // Row 1 — valid: Staff ID + first name + password + a role (inputs: id,first,last,email,password)
+    // Row 1 — valid: Staff ID + first name + password + a role (inputs per row: id, first, password)
     await set(rows.nth(0).locator('input').nth(0), uid);
     await set(rows.nth(0).locator('input').nth(1), 'E2E');
-    await set(rows.nth(0).locator('input').nth(4), 'Passw0rd!');
-    await rows.nth(0).locator('p-multiselect').click();
+    await set(rows.nth(0).locator('input').nth(2), 'Passw0rd!');
+    // Two multiselects per row now (roles, then locations) — roles is the first.
+    await rows.nth(0).locator('p-multiselect').first().click();
     await page.getByRole('option', { name: 'STAFF', exact: true }).click();
     await page.keyboard.press('Escape');
     // Row 2 — invalid: Staff ID but no first name

@@ -25,7 +25,7 @@ import {
 function makeLog(overrides: Partial<WorkLogDto> = {}): WorkLogDto {
   return {
     id: 'log-1', roleName: 'bartender', locationId: 'loc-1', locationName: 'Main Bar',
-    workDate: '2026-05-17', startTime: '18:00', endTime: '23:00',
+    workDate: '2026-05-17', startTime: '18:00', endDate: '2026-05-17', endTime: '23:00',
     hours: 5, cost: 75, isActive: false, isManualEntry: false, isEdited: false, notes: null,
     ...overrides,
   };

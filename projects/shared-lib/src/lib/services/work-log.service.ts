@@ -9,6 +9,7 @@ export interface WorkLogDto {
   locationName: string;
   workDate: string;      // yyyy-MM-dd
   startTime: string;     // HH:mm
+  endDate: string | null; // yyyy-MM-dd (null = active; may differ from workDate for overnight/multi-day)
   endTime: string | null;
   hours: number;
   cost: number;
@@ -23,6 +24,7 @@ export interface UpdateWorkLogRequest {
   locationId: string;
   workDate: string;    // yyyy-MM-dd
   startTime: string;   // HH:mm
+  endDate: string;     // yyyy-MM-dd
   endTime: string;     // HH:mm
   notes?: string | null;
 }

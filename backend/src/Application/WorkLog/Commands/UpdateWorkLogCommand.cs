@@ -15,9 +15,25 @@ public record UpdateWorkLogCommand(
     string   LocationId,
     DateOnly WorkDate,
     string   StartTime,
+    DateOnly EndDate,
     string   EndTime,
     string?  Notes
-) : IRequest;
+) : IRequest
+{
+    /// <summary>Back-compat constructor for callers without an explicit end date — infers it the
+    /// historical way (next day when end ≤ start). The HTTP endpoint always passes EndDate.</summary>
+    public UpdateWorkLogCommand(Guid id, Guid callerId, bool isPrivileged, string roleName, string locationId,
+        DateOnly workDate, string startTime, string endTime, string? notes)
+        : this(id, callerId, isPrivileged, roleName, locationId, workDate, startTime,
+            InferEndDate(workDate, startTime, endTime), endTime, notes) { }
+
+    // Tolerant of unparseable times — returns the work date so the handler's format check throws the
+    // proper ArgumentException rather than a FormatException at construction.
+    private static DateOnly InferEndDate(DateOnly workDate, string startTime, string endTime) =>
+        System.TimeOnly.TryParse(startTime, out var s) && System.TimeOnly.TryParse(endTime, out var e)
+            ? (e <= s ? workDate.AddDays(1) : workDate)
+            : workDate;
+}
 
 public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<UpdateWorkLogCommand>
 {
@@ -42,11 +58,13 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         if (!TimeOnly.TryParseExact(req.EndTime, "HH:mm", null, DateTimeStyles.None, out _))
             throw new ArgumentException("EndTime must be in HH:mm format.");
 
-        var hours = ShiftHours.CalcHours(req.StartTime, req.EndTime);
+        // Hours from the explicit start/end date+time — a multi-day span is allowed; only a
+        // non-positive span or an absurd one (likely a typo) is rejected.
+        var hours = ShiftHours.CalcHours(req.WorkDate, req.StartTime, req.EndDate, req.EndTime);
         if (hours <= 0)
-            throw new ArgumentException("End time must be different from start time.");
-        if (hours > 24)
-            throw new ArgumentException("A single shift cannot exceed 24 hours.");
+            throw new ArgumentException("The end date/time must be after the start.");
+        if (hours > 14 * 24)
+            throw new ArgumentException("That shift spans more than 14 days — please check the dates.");
 
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location '{req.LocationId}' not found.");
@@ -76,23 +94,26 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
                      && w.Id != req.Id
                      && w.WorkDate >= prevDate
                      && w.WorkDate <= req.WorkDate)
-            .Select(w => new { w.WorkDate, w.StartTime, w.EndTime })
+            .Select(w => new { w.WorkDate, w.StartTime, w.EndDate, w.EndTime })
             .ToListAsync(ct);
 
         var newStart = AbsStart(req.WorkDate, req.StartTime);
-        var newEnd   = AbsEnd(req.WorkDate, req.StartTime, req.EndTime);
+        var newEnd   = AbsEnd(req.EndDate, req.EndTime);
         foreach (var s in nearby)
         {
+            // Closed shifts carry an explicit EndDate (overnight = next day); fall back to deriving it
+            // for any legacy row not yet backfilled.
+            var sEndDate = s.EndDate ?? ShiftHours.DeriveEndDate(s.WorkDate, s.StartTime, s.EndTime!);
             var sStart = AbsStart(s.WorkDate, s.StartTime);
-            var sEnd   = AbsEnd(s.WorkDate, s.StartTime, s.EndTime!);
+            var sEnd   = AbsEnd(sEndDate, s.EndTime!);
             if (newStart < sEnd && sStart < newEnd)
                 throw new InvalidOperationException("This shift overlaps with another existing shift.");
         }
 
         // Capture before-state for audit trail
-        var before = $"Date={log.WorkDate},Start={log.StartTime},End={log.EndTime},Role={log.RoleName},Rate={log.HourlyRateSnapshot},Location={log.LocationName},Notes={log.Notes ?? ""}";
+        var before = $"Date={log.WorkDate},Start={log.StartTime},End={log.EndDate} {log.EndTime},Role={log.RoleName},Rate={log.HourlyRateSnapshot},Location={log.LocationName},Notes={log.Notes ?? ""}";
 
-        log.Update(req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, req.EndTime, req.Notes, newRateSnapshot);
+        log.Update(req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, req.EndDate, req.EndTime, req.Notes, newRateSnapshot);
 
         // Resolve who made the change (caller or manager)
         var actor = await db.Staff
@@ -100,7 +121,7 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             .Select(s => new { s.FullName })
             .FirstOrDefaultAsync(ct);
 
-        var after = $"Date={req.WorkDate},Start={req.StartTime},End={req.EndTime},Role={req.RoleName.ToUpperInvariant()},Rate={log.HourlyRateSnapshot},Location={location.Name},Notes={req.Notes ?? ""}";
+        var after = $"Date={req.WorkDate},Start={req.StartTime},End={req.EndDate} {req.EndTime},Role={req.RoleName.ToUpperInvariant()},Rate={log.HourlyRateSnapshot},Location={location.Name},Notes={req.Notes ?? ""}";
         db.AuditLogs.Add(AuditLog.Create(
             entityType:      "WorkLog",
             entityId:        log.Id.ToString(),
@@ -119,13 +140,8 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
     private static long AbsStart(DateOnly date, string time) =>
         (long)date.DayNumber * 1440 + ParseMins(time);
 
-    private static long AbsEnd(DateOnly date, string startTime, string endTime)
-    {
-        var s = ParseMins(startTime);
-        var e = ParseMins(endTime);
-        var dayBase = (long)date.DayNumber * 1440;
-        return e > s ? dayBase + e : dayBase + e + 1440;
-    }
+    private static long AbsEnd(DateOnly endDate, string endTime) =>
+        (long)endDate.DayNumber * 1440 + ParseMins(endTime);
 
     private static int ParseMins(string time) =>
         int.Parse(time[..2]) * 60 + int.Parse(time[3..]);

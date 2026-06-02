@@ -803,6 +803,17 @@ Seq uses ~150–300 MB RAM (fine on the 4 GB droplet). Seq stores logs + traces,
 **Shift logs** (`WorkLogService`, `/api/work-logs`, staff-app `log-shift`, admin Reports workforce
 tab) record attendance & compliance — who was physically present, clock-in/out times, shift duration.
 
+**Shift duration is date-aware (multi-day capable).** `WorkLog` stores `WorkDate` + `StartTime`
+(HH:mm) **and** a nullable `EndDate` + `EndTime` (null while active). Hours =
+`ShiftHours.CalcHours(WorkDate, StartTime, EndDate, EndTime)` — a true datetime span supporting
+overnight **and** multi-day shifts (migration `AddWorkLogEndDate` backfilled existing rows:
+`EndDate = WorkDate`, or `WorkDate+1` when `EndTime <= StartTime`). Flows that capture only an end time
+(staff clock-out, manual entry, the staff edit form) infer `EndDate` via `ShiftHours.DeriveEndDate`
+(overnight, ≤24h); the admin paths (dashboard **Close shift**, Reports **Edit shift**) take an explicit
+end date and allow >24h (capped at 14 days as a typo guard). Every hours-computing read — my-shifts,
+all-shifts, reports, payroll export — is date-aware; the dashboard "tonight" totals stay a same-night
+estimate. **The `AddWorkLogEndDate` migration must deploy in a maintenance window with a DB backup.**
+
 **All staff are commission-based** (not hourly), so the "Est. Labour Cost" column in the workforce
 report is a rough estimate only — not an authoritative payout figure.
 

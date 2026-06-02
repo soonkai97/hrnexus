@@ -534,6 +534,9 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("EndTime")
                         .HasMaxLength(5)
                         .HasColumnType("character varying(5)");

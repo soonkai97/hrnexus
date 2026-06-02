@@ -7,7 +7,7 @@ namespace HRNexus.Application.WorkLog.Queries;
 
 public record GetMyWorkLogsQuery(Guid EmployeeId, int Page = 1, int PageSize = 10) : IRequest<PagedResult<WorkLogDto>>;
 
-public record WorkLogDto(Guid Id, string RoleName, string LocationId, string LocationName, string WorkDate, string StartTime, string? EndTime, decimal Hours, decimal Cost, bool IsActive, bool IsManualEntry, bool IsEdited, string? Notes);
+public record WorkLogDto(Guid Id, string RoleName, string LocationId, string LocationName, string WorkDate, string StartTime, string? EndDate, string? EndTime, decimal Hours, decimal Cost, bool IsActive, bool IsManualEntry, bool IsEdited, string? Notes);
 
 public class GetMyWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetMyWorkLogsQuery, PagedResult<WorkLogDto>>
 {
@@ -29,16 +29,8 @@ public class GetMyWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetMy
 
     private static WorkLogDto ToDto(HRNexus.Domain.Entities.WorkLog w)
     {
-        var isActive = w.EndTime == null;
-        var hours    = isActive ? 0m : CalcHours(w.StartTime, w.EndTime!);
-        return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndTime, Math.Round(hours, 2), Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
-    }
-
-    private static decimal CalcHours(string start, string end)
-    {
-        var s = TimeSpan.Parse(start);
-        var e = TimeSpan.Parse(end);
-        var diff = e > s ? e - s : e + TimeSpan.FromHours(24) - s; // handle overnight
-        return (decimal)diff.TotalHours;
+        var isActive = w.EndTime == null || w.EndDate == null;
+        var hours    = isActive ? 0m : ShiftHours.CalcHours(w.WorkDate, w.StartTime, w.EndDate!.Value, w.EndTime!);
+        return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime, Math.Round(hours, 2), Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
     }
 }

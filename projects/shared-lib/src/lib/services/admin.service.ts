@@ -86,6 +86,7 @@ export interface ShiftDetailRow {
   locationName: string;
   workDate:     string;        // yyyy-MM-dd
   startTime:    string;        // HH:mm
+  endDate:      string | null; // yyyy-MM-dd (null = active; may differ from workDate for overnight/multi-day)
   endTime:      string | null; // HH:mm
   notes:        string | null;
   isEdited:     boolean;

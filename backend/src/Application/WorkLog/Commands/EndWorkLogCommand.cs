@@ -25,7 +25,10 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
         if (hours <= 0)
             throw new ArgumentException("End time must be different from the shift start time.");
 
-        log.End(req.EndTime);
+        // A staff clock-out is "now", so the end date is the same day or the next (overnight) — derive
+        // it the historical way; multi-day spans only ever come from an admin correction.
+        var endDate = HRNexus.Application.Common.ShiftHours.DeriveEndDate(log.WorkDate, log.StartTime, req.EndTime);
+        log.End(endDate, req.EndTime);
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException)
         {

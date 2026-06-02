@@ -335,6 +335,49 @@ describe('ReportsComponent', () => {
     });
   });
 
+  // ── isPresetActive() — highlight, with tie-breaking ───────────────────────────
+
+  describe('isPresetActive()', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('highlights the matching preset and none of the others', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 4, 17)); // 2026-05-17
+      component.setPreset('month');
+      expect(component.isPresetActive('month')).toBe(true);
+      expect(component.isPresetActive('week')).toBe(false);
+      expect(component.isPresetActive('today')).toBe(false);
+    });
+
+    it('derived highlight breaks ties by priority when no preset was clicked', () => {
+      // On 2026-06-02 (Tue), "week" (Mon 06-01 → today) and "month" (06-01 → today) are identical.
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 5, 2)); // 2026-06-02
+      component.dateFrom = '2026-06-01';
+      component.dateTo   = '2026-06-02';
+      // Both ranges match; with no click, priority (week before month) means only "week" highlights.
+      expect(component.isPresetActive('week')).toBe(true);
+      expect(component.isPresetActive('month')).toBe(false);
+    });
+
+    it('highlights the clicked preset (not a coinciding one) when ranges are identical', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 5, 2)); // 2026-06-02 — week and month ranges coincide
+      component.setPreset('month');
+      // The user clicked "This Month", so it stays highlighted even though "This Week" matches too.
+      expect(component.isPresetActive('month')).toBe(true);
+      expect(component.isPresetActive('week')).toBe(false);
+    });
+
+    it('highlights nothing for a custom range', () => {
+      component.dateFrom = '2026-03-07';
+      component.dateTo   = '2026-03-19';
+      for (const p of ['today', 'yesterday', 'week', 'month', 'last-month'] as const) {
+        expect(component.isPresetActive(p)).toBe(false);
+      }
+    });
+  });
+
   // ── maxLocationCost computed ──────────────────────────────────────────────────
 
   describe('maxLocationCost computed', () => {

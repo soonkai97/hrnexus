@@ -311,14 +311,37 @@ export class ReportsComponent implements OnInit {
     const r = this.presetRange(preset);
     this.dateFrom = r.from;
     this.dateTo   = r.to;
+    this.lastPreset.set(preset);
     this.runReport();
   }
 
-  /** Active when the current From/To exactly matches this preset — drives the highlight.
-   *  Auto-deselects when the user picks a custom range (no preset will match). */
+  /** The preset the user last clicked — preferred for the highlight so the clicked button lights up
+   *  even when its range coincides with another preset's. Null until a preset is clicked (or after a
+   *  manual range edit no longer matches it). */
+  private readonly lastPreset = signal<'today' | 'yesterday' | 'week' | 'month' | 'last-month' | null>(null);
+
+  /** Tie-break order for the derived (un-clicked) highlight — most specific first. Two presets can
+   *  resolve to the same range (e.g. on the 2nd of a month whose 1st was a Monday, "This Week" and
+   *  "This Month" both span the 1st→today); only the first match here highlights. */
+  private readonly presetPriority = ['today', 'yesterday', 'week', 'month', 'last-month'] as const;
+
+  /** The single active preset: the user's last click if its range still matches, otherwise the
+   *  highest-priority preset matching the current From/To, or null for a custom range. */
+  private activePreset(): 'today' | 'yesterday' | 'week' | 'month' | 'last-month' | null {
+    const matching = this.presetPriority.filter(p => {
+      const r = this.presetRange(p);
+      return this.dateFrom === r.from && this.dateTo === r.to;
+    });
+    if (matching.length === 0) return null;
+    const last = this.lastPreset();
+    if (last && matching.includes(last)) return last;
+    return matching[0] ?? null;
+  }
+
+  /** Active when this preset is the resolved active one — drives the highlight. Auto-deselects when
+   *  the user picks a custom range (no preset matches). */
   isPresetActive(preset: 'today' | 'yesterday' | 'week' | 'month' | 'last-month'): boolean {
-    const r = this.presetRange(preset);
-    return this.dateFrom === r.from && this.dateTo === r.to;
+    return this.activePreset() === preset;
   }
 
   // ── Workforce Report CSV export ─────────────────────────────────────────────

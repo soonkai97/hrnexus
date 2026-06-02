@@ -1,5 +1,14 @@
 @use 'styles/theme' as *;
 
+// "+N" superscript shown next to an end time when the shift ended on a later day (overnight/multi-day).
+.day-offset {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--p-orange-500, #f59e0b);
+  vertical-align: super;
+  margin-left: 1px;
+}
+
 
 // ── Greeting ────────────────────────────────────────────────────────────────
 .greeting {

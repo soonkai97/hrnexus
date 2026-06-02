@@ -547,6 +547,19 @@ describe('LogShiftComponent', () => {
     });
   });
 
+  describe('endDayOffset()', () => {
+    it('returns 0 when the end date matches the work date (same-day shift)', () => {
+      expect(component.endDayOffset(makeLog({ workDate: '2026-05-01', endDate: '2026-05-01' }))).toBe(0);
+    });
+    it('returns 0 when endDate is null (active shift)', () => {
+      expect(component.endDayOffset(makeLog({ workDate: '2026-05-01', endDate: null }))).toBe(0);
+    });
+    it('returns the day span for an overnight (1) and multi-day (>1) shift', () => {
+      expect(component.endDayOffset(makeLog({ workDate: '2026-05-01', endDate: '2026-05-02' }))).toBe(1);
+      expect(component.endDayOffset(makeLog({ workDate: '2026-05-01', endDate: '2026-05-04' }))).toBe(3);
+    });
+  });
+
   describe('cancelEdit()', () => {
     it('clears editingLogId so the edit form closes and Edit/Delete buttons reappear', () => {
       component.openEditLog(makeLog({ id: 'log-42', isActive: false }));

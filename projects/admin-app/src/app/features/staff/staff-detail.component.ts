@@ -57,6 +57,14 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   /** Resolve a location ID to its display name (for the read-only assigned-locations tags). */
   locationName(id: string): string { return this.availableLocations().find(l => l.id === id)?.name ?? id; }
 
+  /** Calendar days the shift ran past its work date (0 = same day) — drives the "+N" badge so an
+   *  overnight/multi-day shift's end time isn't misread as ending before it started. */
+  endDayOffset(wl: WorkLogDto): number {
+    if (!wl.endDate || wl.endDate === wl.workDate) return 0;
+    const ms = new Date(`${wl.endDate}T00:00:00`).getTime() - new Date(`${wl.workDate}T00:00:00`).getTime();
+    return Math.max(0, Math.round(ms / 86_400_000));
+  }
+
   workLogs        = signal<WorkLogDto[]>([]);
   workLogsLoading = signal(false);
   totalLogs       = signal(0);

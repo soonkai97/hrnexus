@@ -208,7 +208,7 @@
             </div>
             <div class="history-mid d-flex flex-wrap gap-3">
               <span><i class="pi pi-map-marker"></i> {{ wl.locationName }}</span>
-              <span><i class="pi pi-clock"></i> {{ wl.startTime | amPm }} – {{ wl.endTime | amPm }}@if (wl.endTime && wl.endTime < wl.startTime) {<span class="overnight-badge">+1</span>}</span>
+              <span><i class="pi pi-clock"></i> {{ wl.startTime | amPm }} – {{ wl.endTime | amPm }}@if (endDayOffset(wl); as off) {<span class="overnight-badge">+{{ off }}</span>}</span>
               <span class="h-hours"><i class="pi pi-stopwatch"></i> {{ wl.hours | number:'1.1-1' }}h</span>
               @if (wl.isManualEntry) { <p-tag [value]="'logShift.manual' | translate" severity="secondary" /> }
               @if (wl.isEdited) { <p-tag [value]="'logShift.edited' | translate" severity="warn" /> }

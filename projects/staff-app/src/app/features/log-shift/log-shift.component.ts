@@ -166,6 +166,14 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
+  /** How many calendar days after the work date the shift ended (0 = same day). Drives the "+N"
+   *  badge so an overnight/multi-day shift reads correctly instead of looking like end-before-start. */
+  endDayOffset(wl: WorkLogDto): number {
+    if (!wl.endDate || wl.endDate === wl.workDate) return 0;
+    const ms = new Date(`${wl.endDate}T00:00:00`).getTime() - new Date(`${wl.workDate}T00:00:00`).getTime();
+    return Math.max(0, Math.round(ms / 86_400_000));
+  }
+
   /** yyyy-MM-dd of the day after the given yyyy-MM-dd (used to infer an overnight end date). */
   private nextDay(dateStr: string): string {
     const d = new Date(`${dateStr}T00:00:00`);

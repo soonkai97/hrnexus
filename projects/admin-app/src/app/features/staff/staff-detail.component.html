@@ -205,7 +205,7 @@
                 <td>{{ wl.roleName }}</td>
                 <td>{{ wl.locationName }}</td>
                 <td>{{ wl.startTime | amPm }}</td>
-                <td>{{ wl.endTime | amPm }}</td>
+                <td>{{ wl.endTime | amPm }}@if (endDayOffset(wl); as off) { <span class="day-offset">+{{ off }}</span> }</td>
                 <td>{{ wl.hours | number:'1.1-1' }}h</td>
                 <td>
                   @if (wl.isActive) { <p-tag [value]="'common.active' | translate" severity="success" /> }

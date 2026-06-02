@@ -98,7 +98,7 @@
             <div class="recent-date">{{ s.workDate | date:'EEE, dd/MM' }}</div>
             <div class="recent-role">
               <span>{{ s.roleName | uppercase }}</span>
-              <span class="recent-time">{{ s.startTime | amPm }}@if (s.endTime) { – {{ s.endTime | amPm }}}</span>
+              <span class="recent-time">{{ s.startTime | amPm }}@if (s.endTime) { – {{ s.endTime | amPm }}@if (endDayOffset(s); as off) {<span class="day-offset">+{{ off }}</span>}}</span>
             </div>
             <div class="recent-loc"><i class="pi pi-map-marker"></i> {{ s.locationName }}</div>
             <div class="recent-hrs">{{ s.hours | number:'1.1-1' }}h</div>

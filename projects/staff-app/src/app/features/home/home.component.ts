@@ -41,6 +41,13 @@ export class HomeComponent implements OnInit {
     return 'home.goodEvening';
   });
 
+  /** Calendar days a shift ran past its work date (0 = same day) — drives the "+N" overnight/multi-day badge. */
+  endDayOffset(wl: WorkLogDto): number {
+    if (!wl.endDate || wl.endDate === wl.workDate) return 0;
+    const ms = new Date(`${wl.endDate}T00:00:00`).getTime() - new Date(`${wl.workDate}T00:00:00`).getTime();
+    return Math.max(0, Math.round(ms / 86_400_000));
+  }
+
   ngOnInit(): void {
     forkJoin({
       leave:       this.leaveSvc.getMyBalance().pipe(catchError(() => of(null))),

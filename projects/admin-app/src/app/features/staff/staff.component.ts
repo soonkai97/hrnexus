@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, LocationStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
-         passwordChecks, isStrongPassword, BulkStaffImportResult, BulkStaffImportRow } from 'shared-lib';
+         passwordChecks, isStrongPassword, BulkStaffImportResult, BulkStaffImportRow, UppercaseInputDirective } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -29,7 +29,7 @@ import { Checkbox } from 'primeng/checkbox';
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective,
+  imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective, UppercaseInputDirective,
     Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
     MultiSelect, Menu, Paginator, Skeleton, Checkbox],
   templateUrl: './staff.component.html',
@@ -440,9 +440,17 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   /** One editable row per staff to import. Only the required fields + optional work locations are
    *  shown (last name / email are optional and can be filled in later on the staff detail page).
    *  Roles and locations are multiselects; the admin sets the password. */
-  importRows: { staffId: string; firstName: string; password: string; roles: string[]; locations: string[] }[] = [];
+  importRows: { staffId: string; firstName: string; password: string; roles: string[]; locations: string[]; showPwd?: boolean }[] = [];
 
-  private blankImportRow() { return { staffId: '', firstName: '', password: '', roles: [] as string[], locations: [] as string[] }; }
+  private blankImportRow() { return { staffId: '', firstName: '', password: '', roles: [] as string[], locations: [] as string[], showPwd: false }; }
+
+  /** Inline validation for an import row's password: blank → no error (the row may be left empty);
+   *  non-blank but failing the policy → the same "weak password" message used by the single Add form. */
+  importPwdError(row: { password: string }): string {
+    const p = row.password?.trim() ?? '';
+    if (!p) return '';
+    return isStrongPassword(p) ? '' : this.translate.instant('staff.errPasswordWeak');
+  }
 
   openImport(): void {
     this.importResult.set(null);
@@ -457,7 +465,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   get importRowsToSubmit(): BulkStaffImportRow[] {
     return this.importRows
       .map(r => ({
-        staffId: r.staffId?.trim() ?? '', firstName: r.firstName?.trim() ?? '',
+        staffId: r.staffId?.trim().toUpperCase() ?? '', firstName: r.firstName?.trim() ?? '',
         lastName: null, email: null,
         password: r.password?.trim() || undefined,
         roles: r.roles ?? [], locations: r.locations ?? [],

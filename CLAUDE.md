@@ -36,6 +36,30 @@ npx ng serve staff-app    # → localhost:4201
 
 After every deploy, hard-refresh the browser (**Ctrl+Shift+R**) — nginx caches `index.html` without a content hash.
 
+### ⚠️ Access the two portals on DIFFERENT hostnames (auth-cookie isolation)
+
+Auth lives in a **host-only** cookie (`hrnexus_at`, `path=/`, **no `Domain`**). Cookies are
+**not** scoped by port — only by hostname. The admin and staff portals share a host (`localhost`
+locally, or one domain in prod), so logging into one portal **overwrites the other's auth
+cookie** (last login wins). The other portal then silently runs as the *wrong* user — e.g. the
+staff log-shift location dropdown shows "no locations assigned" because the request is actually
+authenticated as the admin. The on-screen name still looks right because that comes from
+`localStorage` (which *is* per-port), but API calls use the shared cookie.
+
+**Local — use distinct sub-hostnames** (`*.localhost` auto-resolves to 127.0.0.1 in
+Chrome/Edge/Firefox; no hosts-file edit needed):
+- Admin → `http://admin.localhost:8080`
+- Staff → `http://staff.localhost:8081`
+
+These are different hosts → independent cookie jars → no collision. Bare `localhost:8080`/`:8081`
+still work for single-portal use and the E2E suite (each test uses one portal), but do **not**
+open both bare-`localhost` portals in one browser — they will collide.
+
+**Production — give each portal its own subdomain** (`admin.<domain>` / `staff.<domain>`), each
+with its own nginx `server_name` block + TLS cert, instead of one host on two ports. Host-only
+cookies are per-exact-host, so separate subdomains can never collide. (The earlier
+same-host-two-ports prod layout — `:443` admin / `:8443` staff — had this collision.)
+
 **Production deploy (on the server):**
 ```bash
 ./deploy.sh        # rebuild + restart web only (most common)
@@ -595,6 +619,12 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 **Live URLs:**
 - Admin portal: `https://hrnexus.duckdns.org` (port 443)
 - Staff portal: `https://hrnexus.duckdns.org:8443`
+
+> ⚠️ This same-host/two-ports layout shares one auth-cookie jar → admin and staff logins collide
+> in the same browser (see **Access the two portals on DIFFERENT hostnames** above). On the next
+> deploy, serve each portal on its own **subdomain** (`admin.<domain>` / `staff.<domain>`) with a
+> matching `server_name` block + TLS cert so cookies can't collide. Until then, keep admin and
+> staff in separate browsers/profiles.
 - HTTP (80 / 8081) redirects to HTTPS automatically
 
 **Docker Compose setup:**

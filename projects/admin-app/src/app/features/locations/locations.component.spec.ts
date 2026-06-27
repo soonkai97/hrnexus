@@ -124,10 +124,9 @@ describe('LocationsComponent', () => {
       expect(component.showForm()).toBe(false);
     });
 
-    it('sets error signal and toast on create failure', () => {
+    it('shows error toast on create failure', () => {
       mockLocationStore.create.mockReturnValue(throwError(() => ({ error: { error: 'Name taken.' } })));
       component.save();
-      expect(component.error()).toBe('Name taken.');
       expect(mockToastSvc.error).toHaveBeenCalledWith('Name taken.');
     });
   });
@@ -187,10 +186,9 @@ describe('LocationsComponent', () => {
       expect(mockLocationStore.remove).not.toHaveBeenCalled();
     });
 
-    it('sets error and shows error toast on removal failure', () => {
+    it('shows error toast on removal failure', () => {
       mockLocationStore.remove.mockReturnValue(throwError(() => ({ error: { error: 'Location in use.' } })));
       component.remove('loc-1');
-      expect(component.error()).toBe('Location in use.');
       expect(mockToastSvc.error).toHaveBeenCalledWith('Location in use.');
     });
   });

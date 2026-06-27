@@ -7,10 +7,6 @@
     </div>
   </div>
 
-  @if (error()) {
-    <p-message severity="error" [text]="error()" />
-  }
-
   <!-- Add / edit dialog -->
   <p-dialog [visible]="showForm()" (visibleChange)="!$event && cancel()"
             [header]="editing() ? ('locations.editLocation' | translate) : ('locations.newLocation' | translate)"

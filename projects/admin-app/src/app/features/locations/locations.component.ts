@@ -6,14 +6,13 @@ import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { Message } from 'primeng/message';
 import { Dialog } from 'primeng/dialog';
 import { PrimeTemplate } from 'primeng/api';   // provides the pTemplate="footer" directive
 
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Message, Dialog, PrimeTemplate],
+  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Dialog, PrimeTemplate],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })
@@ -29,7 +28,6 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
   showForm   = signal(false);
   editing    = signal<Location | null>(null);
   saving     = signal(false);
-  error      = signal('');
   deletingId = signal<string | null>(null);
 
   form: UpsertLocationDto = { name: '' };
@@ -55,10 +53,9 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     const name = this.form.name.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
-    this.error.set('');
     const dto: UpsertLocationDto = { name };
     const done = () => { this.saving.set(false); this.showForm.set(false); this.editing.set(null); this.toast.success(this.translate.instant('locations.saved')); };
-    const fail = (e: unknown) => { const msg = apiErrorMessage(e) ?? this.translate.instant('locations.saveFailed'); this.error.set(msg); this.toast.error(msg); this.saving.set(false); };
+    const fail = (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('locations.saveFailed')); this.saving.set(false); };
     const editingId = this.editing()?.id;
     if (editingId) {
       this.store.update(editingId, dto).subscribe({ next: done, error: fail });
@@ -78,7 +75,7 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
       this.deletingId.set(id);
       this.store.remove(id).subscribe({
         next: () => { this.deletingId.set(null); this.toast.success(this.translate.instant('locations.deleted')); },
-        error: (e) => { this.deletingId.set(null); const msg = e?.error?.error ?? this.translate.instant('locations.deleteFailed'); this.error.set(msg); this.toast.error(msg); },
+        error: (e) => { this.deletingId.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('locations.deleteFailed')); },
       });
     });
   }
@@ -118,7 +115,7 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     if (!file) return;
     this.store.uploadImage(loc.id, file).subscribe({
       next: () => this.toast.success(this.translate.instant('locations.imageUploaded')),
-      error: (e) => { const msg = e?.error?.error ?? this.translate.instant('locations.uploadFailed'); this.error.set(msg); this.toast.error(msg); },
+      error: (e) => { this.toast.error(e?.error?.error ?? this.translate.instant('locations.uploadFailed')); },
     });
   }
 }

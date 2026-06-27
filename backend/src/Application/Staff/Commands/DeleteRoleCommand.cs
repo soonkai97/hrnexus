@@ -26,6 +26,13 @@ public class DeleteRoleCommandHandler(IAppDbContext db)
             throw new InvalidOperationException(
                 $"Cannot delete role '{normalizedName}' — it is still assigned to one or more staff. Reassign them first.");
 
+        // Block deletion while a shift is currently in progress under this role (mirrors the
+        // location guard). WorkLog.RoleName is stored uppercase, matching normalizedName.
+        var shiftInProgress = await db.WorkLogs.AnyAsync(w => w.RoleName == normalizedName && w.EndTime == null, ct);
+        if (shiftInProgress)
+            throw new InvalidOperationException(
+                $"Cannot delete role '{normalizedName}' — a shift is currently in progress under this role. End it first.");
+
         // Clean up the role's default-permission rows so they don't linger as orphans
         // (RolePermission keys on the role NAME, not an FK, so EF won't cascade them).
         var perms = await db.RolePermissions.Where(rp => rp.RoleName == normalizedName).ToListAsync(ct);

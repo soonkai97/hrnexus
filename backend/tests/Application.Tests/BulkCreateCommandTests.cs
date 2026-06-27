@@ -102,6 +102,28 @@ public class BulkCreateCommandTests
         Assert.Single(await db.Locations.ToListAsync());   // still there — not deleted
     }
 
+    [Fact]
+    public async Task DeleteLocation_ThrowsInvalidOperation_WhenStaffStillAssigned()
+    {
+        // A location with staff still assigned must not be deletable — they'd silently lose it from
+        // their log-shift options. The admin must unassign them first.
+        await using var db = CreateDb();
+        var loc = E.Location.Create("Main Bar");
+        db.Locations.Add(loc);
+        var staff = E.Staff.Create("S001", "Jane", "Doe", "jane@test.com", "hash", new List<string> { "BARTENDER" });
+        staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });   // assign the location
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            new DeleteLocationCommandHandler(db, new NullAudit())
+                .Handle(new DeleteLocationCommand(loc.Id), CancellationToken.None));
+
+        var stored = await db.Locations.FirstAsync(l => l.Id == loc.Id);
+        Assert.False(stored.IsDeleted);   // not deleted
+    }
+
     // ── Roles ──────────────────────────────────────────────────────────────────────
 
     [Fact]

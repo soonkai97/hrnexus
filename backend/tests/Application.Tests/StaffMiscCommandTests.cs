@@ -190,6 +190,25 @@ public class StaffMiscCommandTests
         Assert.True(await db.RolePermissions.AnyAsync(rp => rp.RoleName == "MANAGER"));   // untouched
     }
 
+    [Fact]
+    public async Task DeleteRole_ThrowsInvalidOperation_WhenShiftInProgressUnderRole()
+    {
+        // A role with a shift currently in progress under it must not be deletable (mirrors the
+        // location active-shift guard). No StaffRole row here, so the assignment guard passes first.
+        await using var db = CreateDb();
+        db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
+        db.WorkLogs.Add(E.WorkLog.StartLive(Guid.NewGuid(), "BARTENDER", "loc-1", "Main Bar",
+            new DateOnly(2026, 6, 1), "18:00", 50m));   // EndTime == null → active
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new DeleteRoleCommandHandler(db);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new DeleteRoleCommand("BARTENDER"), CancellationToken.None));
+
+        Assert.Equal(1, await db.Roles.CountAsync());   // still there — not deleted
+    }
+
     // ── UpdateProfileCommand ──────────────────────────────────────────────────
 
     [Fact]

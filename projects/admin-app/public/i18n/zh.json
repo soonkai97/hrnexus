@@ -56,6 +56,8 @@
     "view":              "查看",
     "totalGross":        "应发薪资总额",
     "exportCsv":         "导出 CSV",
+    "loadFailed":        "加载薪资失败。",
+    "exportFailed":      "导出薪资 CSV 失败。",
     "incompleteWarning": "本期间尚未结束——数据不完整。进行中的班次不计入薪资。",
     "colStaffId":        "员工编号",
     "colName":           "姓名",

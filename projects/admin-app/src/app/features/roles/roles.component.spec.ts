@@ -125,11 +125,11 @@ describe('RolesComponent', () => {
       expect(component.newRoleName).toBe('');
     });
 
-    it('sets error signal on API failure', () => {
+    it('shows error toast on API failure', () => {
       mockStaffStore.createRole.mockReturnValue(throwError(() => ({ error: { error: 'Role exists.' } })));
       component.newRoleName = 'bartender';
       component.addRole();
-      expect(component.error()).toBe('Role exists.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Role exists.');
     });
 
     it('clears saving flag on API failure', () => {
@@ -279,10 +279,10 @@ describe('RolesComponent', () => {
       expect(mockStaffStore.deleteRole).not.toHaveBeenCalled();
     });
 
-    it('sets error signal when deletion fails', () => {
+    it('shows error toast when deletion fails', () => {
       mockStaffStore.deleteRole.mockReturnValue(throwError(() => ({ error: { error: 'Role in use.' } })));
       component.deleteRole('bartender');
-      expect(component.error()).toBe('Role in use.');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Role in use.');
     });
   });
 

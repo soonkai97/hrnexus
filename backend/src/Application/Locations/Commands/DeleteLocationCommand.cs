@@ -23,6 +23,13 @@ public class DeleteLocationCommandHandler(IAppDbContext db, IAuditService audit)
             throw new InvalidOperationException(
                 "Cannot delete a location with a shift still in progress. End the open shift first.");
 
+        // Guard: block while staff are still assigned here — otherwise they'd silently lose it from
+        // their log-shift options. Make the admin unassign them first.
+        var assignedCount = await db.StaffLocations.CountAsync(sl => sl.LocationId == req.Id, ct);
+        if (assignedCount > 0)
+            throw new InvalidOperationException(
+                $"Cannot delete this location — {assignedCount} staff are still assigned to it. Unassign them first.");
+
         loc.Delete();
         // null performer → AuditService attributes the entry to the authenticated admin.
         await audit.LogAsync("Location", loc.Id, "Deleted", null, "Admin", loc.Name, ct);

@@ -1,8 +1,8 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
-import { AdminService, PayrollSummaryResponse } from 'shared-lib';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { AdminService, PayrollSummaryResponse, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Card } from 'primeng/card';
@@ -17,7 +17,9 @@ import { Message } from 'primeng/message';
   styleUrl: './payroll.component.scss',
 })
 export class PayrollComponent {
-  private readonly adminSvc = inject(AdminService);
+  private readonly adminSvc   = inject(AdminService);
+  private readonly toast      = inject(ToastService);
+  private readonly translate  = inject(TranslateService);
 
   year      = signal(new Date().getFullYear());
   month     = signal(new Date().getMonth() + 1);
@@ -45,7 +47,7 @@ export class PayrollComponent {
     this.loading.set(true);
     this.adminSvc.getPayrollSummary(this.year(), this.month()).subscribe({
       next: d => { this.data.set(d); this.loading.set(false); },
-      error: () => this.loading.set(false),
+      error: () => { this.toast.error(this.translate.instant('payroll.loadFailed')); this.loading.set(false); },
     });
   }
 
@@ -59,7 +61,7 @@ export class PayrollComponent {
         a.click(); URL.revokeObjectURL(url);
         this.exporting.set(false);
       },
-      error: () => this.exporting.set(false),
+      error: () => { this.toast.error(this.translate.instant('payroll.exportFailed')); this.exporting.set(false); },
     });
   }
 }

@@ -11,7 +11,6 @@ import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
-import { Message } from 'primeng/message';
 import { Dialog } from 'primeng/dialog';
 import { Checkbox } from 'primeng/checkbox';
 import { Menu } from 'primeng/menu';
@@ -21,7 +20,7 @@ import { MenuItem } from 'primeng/api';
   selector: 'app-roles',
   standalone: true,
   imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective,
-    Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Message, Dialog, Checkbox, Menu],
+    Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Dialog, Checkbox, Menu],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })
@@ -42,7 +41,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   newRoleName = '';
   newRoleRate = 0;
   saving      = signal(false);
-  error       = signal('');
   deletingRole = signal<string | null>(null);
 
   // Inline rate editing state
@@ -72,18 +70,16 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   openAdd(): void {
     this.newRoleName = '';
     this.newRoleRate = 0;
-    this.error.set('');
     this.touched.set(new Set());
     this.showForm.set(true);
   }
 
-  cancel(): void { this.showForm.set(false); this.error.set(''); this.touched.set(new Set()); }
+  cancel(): void { this.showForm.set(false); this.touched.set(new Set()); }
 
   addRole(): void {
     const name = this.newRoleName.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
-    this.error.set('');
     this.store.createRole(name, this.newRoleRate).subscribe({
       next: () => {
         this.newRoleName = '';
@@ -92,7 +88,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
         this.showForm.set(false);
         this.toast.success(this.translate.instant('roles.created'));
       },
-      error: (e) => { this.error.set(e?.error?.error ?? this.translate.instant('roles.createFailed')); this.saving.set(false); },
+      error: (e) => { this.toast.error(e?.error?.error ?? this.translate.instant('roles.createFailed')); this.saving.set(false); },
     });
   }
 
@@ -171,7 +167,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
       this.deletingRole.set(name);
       this.store.deleteRole(name).subscribe({
         next: () => { this.deletingRole.set(null); this.toast.success(this.translate.instant('roles.deleted')); },
-        error: (e) => { this.deletingRole.set(null); this.error.set(e?.error?.error ?? this.translate.instant('roles.deleteFailed')); },
+        error: (e) => { this.deletingRole.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('roles.deleteFailed')); },
       });
     });
   }

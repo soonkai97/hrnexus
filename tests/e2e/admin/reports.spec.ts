@@ -48,9 +48,9 @@ test.describe('Admin — Reports', () => {
     await expect(page.getByRole('tab', { name: /location/i }).first()).toBeVisible({ timeout: 5_000 });
   });
 
-  // The Est. Labour Cost figure is a rough estimate (staff are commission-based), so the card
-  // carries an info tooltip making that explicit. Guards the disclaimer against accidental removal.
-  test('Est. Labour Cost card shows the estimate disclaimer icon', async ({ page }) => {
+  // The Est. Labour Cost figure is the computed gross pay (hours × the role's rate), so the card
+  // carries an info tooltip explaining how it's derived. Guards that tooltip against accidental removal.
+  test('Est. Labour Cost card shows the info tooltip icon', async ({ page }) => {
     await page.waitForSelector('.filter-bar', { timeout: 8_000 });
     await page.getByRole('button', { name: /run.*report|generate/i }).click();
     await page.waitForSelector('.stat-card', { timeout: 15_000 });

@@ -89,13 +89,16 @@ npx ng serve staff-app        # → localhost:4201
 
 ## Pay model
 
-Staff are **commission-based** and **record their own actual earnings outside the system**. The app
-does not hold a per-staff earnings ledger.
+Staff are **paid hourly** — gross pay = logged shift hours × the role's hourly rate. The app computes
+this; **statutory deductions (EPF / SOCSO / tax) and final payslips are handled by the venue outside
+the system**. The app does not hold a per-staff earnings ledger.
 
-- **Shift logs** (`/log-shift` → workforce report) — attendance tracking. Records clock-in/out times.
+- **Shift logs** (`/log-shift` → workforce report) — attendance + pay basis. Records clock-in/out times.
   The "Est. Labour Cost" in Reports and the **Payroll** report (total shift hours × the role's hourly
-  rate, snapshotted on each log) are **estimates** for management, not the staff's actual payout.
-- All leave is **unpaid** for commission-based staff.
+  rate, snapshotted on each log) is the **computed gross pay** — excluding still-open shifts and before
+  deductions.
+- Leave is tracked for scheduling and balances; the pay figure counts **worked hours only** (it does
+  not add pay for leave days).
 
 Hourly rates are kept as **effective-dated history**, so a rate change never rewrites past pay estimates.
 

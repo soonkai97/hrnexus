@@ -849,11 +849,14 @@ end date and allow >24h (capped at 14 days as a typo guard). Every hours-computi
 all-shifts, reports, payroll export — is date-aware; the dashboard "tonight" totals stay a same-night
 estimate. **The `AddWorkLogEndDate` migration must deploy in a maintenance window with a DB backup.**
 
-**All staff are commission-based** (not hourly), so the "Est. Labour Cost" column in the workforce
-report is a rough estimate only — not an authoritative payout figure.
+**Staff are paid hourly** — gross pay = logged shift hours × the role's `HourlyRateSnapshot`. The
+"Est. Labour Cost" column in the workforce report **is** that computed gross figure (not commission,
+not a placeholder); it excludes still-open shifts and is **before statutory deductions (EPF / SOCSO /
+tax), which the venue calculates and pays outside the system**.
 
 > The former in-app **Staff Ledger** and **Staff Settings** features (per-staff earnings ledger,
-> work types, settlements) were **removed** — staff self-record their earnings outside the system.
+> work types, settlements) were **removed** — the venue handles final payslips and statutory
+> deductions (EPF / SOCSO / tax) outside the system.
 > The `StaffEntry`/`StaffExpense`/`StaffLoan`/`StaffWorkType`/`StaffSettlement`/… tables were dropped
 > (migration `DropStaffLedgerTables`). Don't reintroduce the `ledger.manage`/`config.manage` permissions.
 

@@ -5,12 +5,13 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { Menu } from 'primeng/menu';
 import { AuthService, ThemeToggleComponent, LangService, UppercaseInputDirective, apiErrorMessage } from 'shared-lib';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message, UppercaseInputDirective],
+  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message, Menu, UppercaseInputDirective],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })

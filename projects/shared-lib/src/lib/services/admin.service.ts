@@ -29,6 +29,7 @@ export interface RecentEventDto {
   locationName: string;
   timestamp:    string;
   eventType:    'shift-started' | 'shift-ended';
+  notes?:       string | null;
 }
 
 export interface DashboardResponse {

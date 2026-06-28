@@ -35,7 +35,8 @@ public record RecentEventDto(
     string   Role,
     string   LocationName,
     DateTime Timestamp,
-    string   EventType);
+    string   EventType,
+    string?  Notes);
 
 public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
     : IRequestHandler<GetDashboardQuery, DashboardResponse>
@@ -128,7 +129,8 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
                 w.RoleName,
                 w.LocationName,
                 LocalShiftToUtc(w.WorkDate, w.StartTime),
-                w.EndTime == null ? "shift-started" : "shift-ended"))
+                w.EndTime == null ? "shift-started" : "shift-ended",
+                w.Notes))
             .ToList();
 
         return new DashboardResponse(stats, onShift, recent);

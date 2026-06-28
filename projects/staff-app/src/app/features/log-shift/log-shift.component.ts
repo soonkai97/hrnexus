@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { WorkLogService, WorkLogDto, UpdateWorkLogRequest, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, todayLocalString, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
+import { WorkLogService, WorkLogDto, UpdateWorkLogRequest, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, todayLocalString, nowRoundedToHalfHour, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -90,7 +90,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     startTime:  nowHHmm(), // kept for API compat; template uses liveFormStartTime
     notes:      '',
   };
-  liveFormStartTime: Date | null = new Date(); // UI binding for live start time
+  liveFormStartTime: Date | null = nowRoundedToHalfHour(); // UI binding for live start time
 
   // End shift
   endTime = nowHHmm(); // kept for API compat; template uses endTimeDate
@@ -242,7 +242,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
         this.toast.success(this.translate.instant('logShift.toast.started'));
         this.loadActive();
         this.liveForm = { roleName: '', locationId: '', startTime: nowHHmm(), notes: '' };
-        this.liveFormStartTime = new Date();
+        this.liveFormStartTime = nowRoundedToHalfHour();
       },
       error: (e) => {
         this.formError.set(e?.error?.error ?? this.translate.instant('logShift.errStart'));
@@ -257,7 +257,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   // ── Live: end shift ──────────────────────────────────────────────────────────
 
   openEndShift(id: string): void {
-    this.endTimeDate = new Date();
+    this.endTimeDate = nowRoundedToHalfHour();
     this.endingId.set(id);
   }
 

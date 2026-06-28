@@ -15,6 +15,23 @@ export function todayLocalString(): string {
   return toLocalDateString(new Date());
 }
 
+/**
+ * Rounds a Date to the nearest 30-minute boundary (:00 or :30), keeping the same day.
+ * 15:53 → 16:00, 15:25 → 15:30, 15:14 → 15:00. Pairs with the 30-min time-picker stepper
+ * so "now" defaults land on clean half-hour values. Seconds/ms are zeroed.
+ */
+export function roundToNearestHalfHour(d: Date): Date {
+  const r = new Date(d);
+  const rounded = Math.round((r.getHours() * 60 + r.getMinutes()) / 30) * 30;
+  r.setHours(Math.floor(rounded / 60) % 24, rounded % 60, 0, 0);
+  return r;
+}
+
+/** Current time rounded to the nearest 30-minute boundary. */
+export function nowRoundedToHalfHour(): Date {
+  return roundToNearestHalfHour(new Date());
+}
+
 /** Full English month names (January … December), index-aligned with Date.getMonth(). */
 export const MONTH_NAMES: ReadonlyArray<string> = [
   'January', 'February', 'March',     'April',   'May',      'June',

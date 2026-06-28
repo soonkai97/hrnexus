@@ -5,7 +5,7 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, ToastService, apiErrorMessage } from 'shared-lib';
+import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, ToastService, apiErrorMessage, nowRoundedToHalfHour } from 'shared-lib';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
@@ -103,7 +103,7 @@ export class DashboardComponent implements OnInit {
     // Default the end date to the shift's clock-in date (the common case is a same-day forgotten
     // clock-out); the admin can move it to the next day for an overnight shift. Time defaults to now.
     this.closeEndDate = new Date(`${row.workDate}T00:00:00`);
-    this.closeEndTime = new Date();
+    this.closeEndTime = nowRoundedToHalfHour();
     this.closeSaving.set(false);
   }
 

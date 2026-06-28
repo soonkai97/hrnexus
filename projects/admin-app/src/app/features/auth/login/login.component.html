@@ -4,7 +4,8 @@
 
   <div class="login-controls">
     <nc-theme-toggle />
-    <p-button icon="pi pi-globe" styleClass="login-lang-btn" [label]="lang.current() === 'en' ? 'EN' : '中文'" [text]="true" severity="secondary" [attr.aria-label]="(lang.current() === 'en' ? 'shell.switchToZh' : 'shell.switchToEn') | translate" (onClick)="lang.toggle()" />
+    <p-button icon="pi pi-globe" styleClass="login-lang-btn" [label]="lang.label()" [text]="true" severity="secondary" [attr.aria-label]="'shell.switchLanguage' | translate" (onClick)="langMenu.toggle($event)" />
+    <p-menu #langMenu [model]="lang.menuItems()" [popup]="true" appendTo="body" />
   </div>
 
   <div class="login-card">

@@ -172,7 +172,7 @@
             <label for="leave-form-start-time"><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
             <p-datepicker inputId="leave-form-start-time" [(ngModel)]="startTimeDate"
               [timeOnly]="true"
-              [hourFormat]="'12'"
+              [hourFormat]="'12'" [stepMinute]="30"
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true"
               [showOnFocus]="false"
@@ -189,7 +189,7 @@
             <label for="leave-form-end-time"><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
             <p-datepicker inputId="leave-form-end-time" [(ngModel)]="endTimeDate"
               [timeOnly]="true"
-              [hourFormat]="'12'"
+              [hourFormat]="'12'" [stepMinute]="30"
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true"
               [showOnFocus]="false"
@@ -735,12 +735,12 @@
     <div class="row g-2">
       <div class="col-6 field">
         <label for="bl-start-time"><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
-        <p-datepicker inputId="bl-start-time" [(ngModel)]="bulkStartTime" [timeOnly]="true" [hourFormat]="'12'"
+        <p-datepicker inputId="bl-start-time" [(ngModel)]="bulkStartTime" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="30"
                       appendTo="body" styleClass="w-full" />
       </div>
       <div class="col-6 field">
         <label for="bl-end-time"><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
-        <p-datepicker inputId="bl-end-time" [(ngModel)]="bulkEndTime" [timeOnly]="true" [hourFormat]="'12'"
+        <p-datepicker inputId="bl-end-time" [(ngModel)]="bulkEndTime" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="30"
                       appendTo="body" styleClass="w-full" />
       </div>
     </div>

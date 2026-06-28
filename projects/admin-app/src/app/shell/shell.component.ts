@@ -133,7 +133,6 @@ export class ShellComponent implements AfterViewInit {
   private readonly navGroupOrder = [
     { key: 'operations', labelKey: 'nav.group.operations' },
     { key: 'finance',    labelKey: 'nav.group.finance'    },
-    { key: 'comms',      labelKey: 'nav.group.comms'      },
     { key: 'setup',      labelKey: 'nav.group.setup'      },
   ];
 

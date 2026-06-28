@@ -31,9 +31,3 @@ export function roundToNearestHalfHour(d: Date): Date {
 export function nowRoundedToHalfHour(): Date {
   return roundToNearestHalfHour(new Date());
 }
-
-/** Full English month names (January … December), index-aligned with Date.getMonth(). */
-export const MONTH_NAMES: ReadonlyArray<string> = [
-  'January', 'February', 'March',     'April',   'May',      'June',
-  'July',    'August',   'September', 'October', 'November', 'December',
-];

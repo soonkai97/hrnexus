@@ -211,7 +211,7 @@
     "bulkRolesToast":       "已为 {{n}} 名员工分配职位。",
     "bulkDeactivatedToast": "已停用 {{n}} 名员工。",
     "bulkFailed":           "批量操作失败。",
-    "import":               "导入",
+    "import":               "批量添加",
     "importDesc":           "为每名员工添加一行。员工ID、名、密码和至少一个职位为必填。",
     "importAddRow":         "添加一行",
     "importGridHint":       "员工将使用您在此设置的密码登录（至少 8 位，含一个大写字母和一个数字）。",

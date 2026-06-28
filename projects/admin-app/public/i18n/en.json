@@ -211,7 +211,7 @@
     "bulkRolesToast":       "Roles assigned to {{n}} staff.",
     "bulkDeactivatedToast": "{{n}} staff deactivated.",
     "bulkFailed":           "Bulk action failed.",
-    "import":               "Import",
+    "import":               "Bulk Add",
     "importDesc":           "Add a row for each staff member. Staff ID, first name, a password and at least one role are required.",
     "importAddRow":         "Add row",
     "importGridHint":       "Each staff signs in with the password you set here (min 8 characters, one uppercase letter, one number).",

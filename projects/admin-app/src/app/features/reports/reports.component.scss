@@ -75,6 +75,7 @@
 .td-name  { font-weight: 600; }
 .td-muted { color: $text-secondary; font-size: 0.825rem; }
 .td-pay   { font-weight: 700; color: $neon-green; }
+.td-notes { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mono     { font-family: 'Courier New', monospace; font-size: 0.8rem; }
 
 // ── Filter bar ────────────────────────────────────────────────────────────────

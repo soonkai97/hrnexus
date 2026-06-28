@@ -300,6 +300,7 @@
                 <th pSortableColumn="cost">{{ 'reports.cost' | translate }} <p-sortIcon field="cost" /></th>
                 <th>{{ 'reports.status' | translate }}</th>
                 <th>{{ 'reports.flag' | translate }}</th>
+                <th>{{ 'reports.shiftNotes' | translate }}</th>
                 <th></th>
               </tr>
             </ng-template>
@@ -322,6 +323,7 @@
                     <p-tag [value]="'reports.edited' | translate" severity="secondary" [pTooltip]="'reports.editedTooltip' | translate" />
                   }
                 </td>
+                <td class="td-muted td-notes" [pTooltip]="s.notes || ''" tooltipPosition="top">{{ s.notes || '—' }}</td>
                 <td>
                   <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small"
                     [pTooltip]="'common.edit' | translate"

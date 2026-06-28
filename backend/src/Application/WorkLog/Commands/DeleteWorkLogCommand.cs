@@ -6,7 +6,7 @@ using HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.WorkLog.Commands;
 
-public record DeleteWorkLogCommand(Guid Id, Guid EmployeeId) : IRequest;
+public record DeleteWorkLogCommand(Guid Id, Guid EmployeeId, bool IsPrivileged = false) : IRequest;
 
 public class DeleteWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<DeleteWorkLogCommand>
 {
@@ -14,7 +14,8 @@ public class DeleteWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Del
     {
         var log = await db.WorkLogs.FindAsync([req.Id], ct)
             ?? throw new KeyNotFoundException("Work log not found.");
-        if (log.EmployeeId != req.EmployeeId) throw new UnauthorizedAccessException("Not your shift.");
+        // Owner can delete their own; an admin/manager (privileged) can delete anyone's.
+        if (log.EmployeeId != req.EmployeeId && !req.IsPrivileged) throw new UnauthorizedAccessException("Not your shift.");
         if (log.EndTime == null) throw new InvalidOperationException("Cannot delete an active shift. End it first.");
 
         // Can't delete a shift that falls in a locked payroll period.

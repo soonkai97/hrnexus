@@ -104,7 +104,8 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     {
         try
         {
-            await mediator.Send(new DeleteWorkLogCommand(id, CallerId), ct);
+            var isPrivileged = User.IsInRole(AppConstants.Roles.AdminClaim) || User.IsInRole(AppConstants.Roles.ManagerClaim);
+            await mediator.Send(new DeleteWorkLogCommand(id, CallerId, isPrivileged), ct);
             return NoContent();
         }
         catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }

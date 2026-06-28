@@ -237,6 +237,22 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
+  deleteLog(wl: WorkLogDto): void {
+    this.confirmSvc.confirm({
+      message: this.translate.instant('staffDetail.deleteWorkLogConfirm'),
+      danger: true,
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.workLogSvc.delete(wl.id).subscribe({
+        next: () => {
+          this.toast.success(this.translate.instant('staffDetail.workLogDeleted'));
+          this.loadWorkLogs(this.currentPage());
+        },
+        error: (e: unknown) => this.toast.error(apiErrorMessage(e) ?? this.translate.instant('staffDetail.workLogDeleteFailed')),
+      });
+    });
+  }
+
   startEdit(): void {
     const s = this.staff()!;
     this.editForm = {

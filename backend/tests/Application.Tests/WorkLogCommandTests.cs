@@ -687,6 +687,23 @@ public class WorkLogCommandTests
         Assert.Equal(0, await db.WorkLogs.CountAsync());
     }
 
+    [Fact]
+    public async Task Delete_Succeeds_WhenPrivilegedCallerIsNotOwner()
+    {
+        // An admin/manager deletes another staff member's completed shift from the staff detail page.
+        await using var db = CreateDb();
+        var ownerId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var log = E.WorkLog.CreateManual(ownerId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        var handler = DeleteHandler(db);
+        await handler.Handle(new DeleteWorkLogCommand(log.Id, Guid.NewGuid(), IsPrivileged: true), CancellationToken.None);
+
+        Assert.Equal(0, await db.WorkLogs.CountAsync());
+    }
+
     // ── StartWorkLogCommand ───────────────────────────────────────────────────
 
     [Fact]

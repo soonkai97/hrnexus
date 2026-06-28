@@ -218,6 +218,8 @@
                   @if (!wl.isActive) {
                     <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small"
                       [pTooltip]="'common.edit' | translate" (onClick)="openEditLog(wl)" />
+                    <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
+                      [pTooltip]="'common.delete' | translate" (onClick)="deleteLog(wl)" />
                   }
                 </td>
               </tr>

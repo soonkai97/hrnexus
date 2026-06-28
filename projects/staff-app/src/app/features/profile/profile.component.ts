@@ -24,8 +24,9 @@ export class ProfileComponent implements OnInit {
   private readonly translate = inject(TranslateService);
 
   readonly langOptions = [
-    { label: 'English', value: 'en' },
-    { label: '中文',    value: 'zh' },
+    { label: 'English',     value: 'en' },
+    { label: '中文',        value: 'zh' },
+    { label: 'Tiếng Việt', value: 'vi' },
   ];
 
   user         = computed(() => this.auth.user());

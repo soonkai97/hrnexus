@@ -91,7 +91,7 @@
           <label for="ml-start-time"><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
           <p-datepicker inputId="ml-start-time" [(ngModel)]="form.startTime"
             [timeOnly]="true"
-            [hourFormat]="'12'"
+            [hourFormat]="'12'" [stepMinute]="30"
             [showIcon]="true" icon="pi pi-clock"
             [readonlyInput]="true"
             [showOnFocus]="false"
@@ -116,7 +116,7 @@
           <label for="ml-end-time"><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
           <p-datepicker inputId="ml-end-time" [(ngModel)]="form.endTime"
             [timeOnly]="true"
-            [hourFormat]="'12'"
+            [hourFormat]="'12'" [stepMinute]="30"
             [showIcon]="true" icon="pi pi-clock"
             [readonlyInput]="true"
             [showOnFocus]="false"

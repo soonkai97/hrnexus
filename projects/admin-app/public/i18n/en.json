@@ -45,7 +45,6 @@
     "group": {
       "operations": "Operations",
       "finance":    "Finance",
-      "comms":      "Communication",
       "setup":      "Setup"
     }
   },

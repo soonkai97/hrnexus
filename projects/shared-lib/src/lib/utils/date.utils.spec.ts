@@ -1,4 +1,4 @@
-import { toLocalDateString, todayLocalString, MONTH_NAMES, roundToNearestHalfHour } from './date.utils';
+import { toLocalDateString, todayLocalString, roundToNearestHalfHour } from './date.utils';
 
 describe('toLocalDateString', () => {
   it('formats year, month, and day using local wall-clock time', () => {
@@ -82,22 +82,5 @@ describe('roundToNearestHalfHour', () => {
     const d = new Date(2026, 0, 15, 15, 53, 30, 0);
     roundToNearestHalfHour(d);
     expect(d.getMinutes()).toBe(53);
-  });
-});
-
-describe('MONTH_NAMES', () => {
-  it('contains exactly 12 entries', () => {
-    expect(MONTH_NAMES).toHaveLength(12);
-  });
-
-  it('starts with January and ends with December', () => {
-    expect(MONTH_NAMES[0]).toBe('January');
-    expect(MONTH_NAMES[11]).toBe('December');
-  });
-
-  it('is zero-index-aligned with Date.getMonth()', () => {
-    // Components use MONTH_NAMES[new Date().getMonth()] to render the current month label
-    expect(MONTH_NAMES[new Date(2025, 3, 1).getMonth()]).toBe('April');  // April = index 3
-    expect(MONTH_NAMES[new Date(2025, 6, 1).getMonth()]).toBe('July');   // July  = index 6
   });
 });

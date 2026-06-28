@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject, DestroyRef } from '@angula
 import { Subject, EMPTY } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
@@ -11,7 +11,6 @@ import {
   toLocalDateString,
   WorkLogService, UpdateWorkLogRequest, LocationStore,
   TrimInputDirective, AmPmPipe,
-  PayrollLockService, ConfirmService, apiErrorMessage,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -30,7 +29,7 @@ import { InputText } from 'primeng/inputtext';
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, AmPmPipe,
+  imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, AmPmPipe,
     Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
     Tabs, TabList, Tab, MultiSelect, Select, Dialog, InputText],
   templateUrl: './reports.component.html',
@@ -44,49 +43,7 @@ export class ReportsComponent implements OnInit {
   private readonly workLogSvc         = inject(WorkLogService);
   private readonly locationStore      = inject(LocationStore);
   private readonly translate          = inject(TranslateService);
-  private readonly lockSvc            = inject(PayrollLockService);
-  private readonly confirmSvc         = inject(ConfirmService);
   private readonly destroyRef         = inject(DestroyRef);
-
-  // ── Payroll-period lock (quick-action keyed off the report's start month) ──────
-  readonly periodLocked = signal(false);
-  readonly lockBusy     = signal(false);
-
-  get lockYear():  number { return Number(this.dateFrom.slice(0, 4)); }
-  get lockMonth(): number { return Number(this.dateFrom.slice(5, 7)); }
-  lockPeriodLabel(): string { return `${this.dateFrom.slice(0, 4)}-${this.dateFrom.slice(5, 7)}`; }
-
-  /** Refreshes whether the report's start month is locked. Called after a report loads. */
-  refreshPeriodLock(): void {
-    const month = this.lockMonth;
-    this.lockSvc.list(this.lockYear).subscribe({
-      next: locks => this.periodLocked.set(locks.some(l => l.month === month)),
-      error: () => { /* lock state is advisory here; the page still works */ },
-    });
-  }
-
-  lockCurrentPeriod(): void {
-    if (this.lockBusy()) return;
-    this.lockBusy.set(true);
-    this.lockSvc.lock(this.lockYear, this.lockMonth).subscribe({
-      next: () => { this.periodLocked.set(true); this.lockBusy.set(false); this.toast.success(this.translate.instant('reports.periodLockedToast')); },
-      error: (e: unknown) => { this.lockBusy.set(false); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('reports.periodLockFailed')); },
-    });
-  }
-
-  reopenCurrentPeriod(): void {
-    this.confirmSvc.confirm({
-      message: this.translate.instant('reports.reopenConfirm', { period: this.lockPeriodLabel() }),
-      danger: true,
-    }).subscribe(ok => {
-      if (!ok) return;
-      this.lockBusy.set(true);
-      this.lockSvc.reopen(this.lockYear, this.lockMonth).subscribe({
-        next: () => { this.periodLocked.set(false); this.lockBusy.set(false); this.toast.success(this.translate.instant('reports.periodReopenedToast')); },
-        error: (e: unknown) => { this.lockBusy.set(false); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('reports.periodReopenFailed')); },
-      });
-    });
-  }
 
   // switchMap cancels any in-flight getReport request when a newer runReport() call arrives.
   private readonly _reportTrigger$ = new Subject<void>();
@@ -128,7 +85,6 @@ export class ReportsComponent implements OnInit {
     ).subscribe(data => {
       this.report.set(data);
       this.loading.set(false);
-      this.refreshPeriodLock();
     });
   }
 

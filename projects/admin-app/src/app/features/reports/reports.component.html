@@ -121,53 +121,6 @@
 
     @if (report(); as r) {
 
-      <!-- Payroll-period lock quick-action (keyed off the report's start month) -->
-      <div class="period-lock mt-3">
-        <i class="pi pi-calendar-clock"></i>
-        <span class="period-lock-label">{{ 'reports.periodLockLabel' | translate:{ period: lockPeriodLabel() } }}</span>
-        @if (periodLocked()) {
-          <p-tag [value]="'reports.periodLocked' | translate" severity="warn" icon="pi pi-lock" />
-          <p-button [label]="'reports.reopenPeriod' | translate" icon="pi pi-lock-open" [text]="true"
-                    size="small" severity="secondary" [loading]="lockBusy()" (onClick)="reopenCurrentPeriod()" />
-        } @else {
-          <p-button [label]="'reports.lockPeriod' | translate" icon="pi pi-lock" [text]="true"
-                    size="small" severity="secondary" [loading]="lockBusy()" (onClick)="lockCurrentPeriod()" />
-        }
-      </div>
-
-      <!-- Summary cards -->
-      <div class="row row-cols-2 row-cols-lg-4 g-3 mt-3 mb-4">
-        <div class="col">
-          <p-card styleClass="stat-card accent-purple h-100">
-            <span class="stat-label">{{ 'reports.totalShifts' | translate }}</span>
-            <span class="stat-value">{{ r.summary.totalShifts }}</span>
-            <span class="stat-sub">{{ 'reports.inSelectedPeriod' | translate }}</span>
-          </p-card>
-        </div>
-        <div class="col">
-          <p-card styleClass="stat-card accent-pink h-100">
-            <span class="stat-label">{{ 'reports.totalHours' | translate }}</span>
-            <span class="stat-value">{{ r.summary.totalHours }}h</span>
-            <span class="stat-sub">{{ 'reports.avgPerShift' | translate }} {{ r.summary.avgHoursPerShift }}h {{ 'reports.perShift' | translate }}</span>
-          </p-card>
-        </div>
-        <div class="col">
-          <p-card styleClass="stat-card accent-amber h-100">
-            <span class="stat-label">{{ 'reports.labourCost' | translate }}
-              <i class="pi pi-info-circle stat-info" [pTooltip]="'reports.labourCostHint' | translate" tooltipPosition="top"></i></span>
-            <span class="stat-value">RM {{ r.summary.totalCost | number:'1.2-2' }}</span>
-            <span class="stat-sub">{{ 'reports.grossPayTotal' | translate }}</span>
-          </p-card>
-        </div>
-        <div class="col">
-          <p-card styleClass="stat-card accent-green h-100">
-            <span class="stat-label">{{ 'reports.uniqueStaff' | translate }}</span>
-            <span class="stat-value">{{ r.summary.uniqueStaff }}</span>
-            <span class="stat-sub">{{ 'reports.across' | translate }} {{ r.summary.uniqueLocations }} {{ 'reports.locations' | translate }}</span>
-          </p-card>
-        </div>
-      </div>
-
       <!-- Result tabs — responsive: dropdown on mobile, p-tabs on desktop -->
       <div class="tab-row">
 

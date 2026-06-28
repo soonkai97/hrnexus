@@ -464,47 +464,6 @@ describe('ReportsComponent', () => {
     });
   });
 
-  // ── Payroll-period lock quick-action ─────────────────────────────────────────
-  describe('period lock', () => {
-    it('derives year/month and label from the report start date', () => {
-      component.dateFrom = '2026-05-01';
-      expect(component.lockYear).toBe(2026);
-      expect(component.lockMonth).toBe(5);
-      expect(component.lockPeriodLabel()).toBe('2026-05');
-    });
-
-    it('refreshPeriodLock marks the month locked when the service reports it', () => {
-      component.dateFrom = '2026-05-01';
-      mockLockSvc.list.mockReturnValue(of([{ year: 2026, month: 5, lockedAt: '', lockedBy: 'M', note: null }]));
-      component.refreshPeriodLock();
-      expect(mockLockSvc.list).toHaveBeenCalledWith(2026);
-      expect(component.periodLocked()).toBe(true);
-    });
-
-    it('lockCurrentPeriod locks via the service and flips the flag', () => {
-      component.dateFrom = '2026-06-01';
-      component.lockCurrentPeriod();
-      expect(mockLockSvc.lock).toHaveBeenCalledWith(2026, 6);
-      expect(component.periodLocked()).toBe(true);
-      expect(mockToastSvc.success).toHaveBeenCalled();
-    });
-
-    it('reopenCurrentPeriod reopens after confirmation', () => {
-      component.dateFrom = '2026-06-01';
-      component.periodLocked.set(true);
-      component.reopenCurrentPeriod();
-      expect(mockConfirmSvc.confirm).toHaveBeenCalled();
-      expect(mockLockSvc.reopen).toHaveBeenCalledWith(2026, 6);
-      expect(component.periodLocked()).toBe(false);
-    });
-
-    it('reopenCurrentPeriod does nothing when confirmation is dismissed', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(false));
-      component.reopenCurrentPeriod();
-      expect(mockLockSvc.reopen).not.toHaveBeenCalled();
-    });
-  });
-
   // ── Shift editing: managers + admins both allowed (same power) ───────────────
   describe('openEditShift()', () => {
     const row = (staffId: string) => ({ id: 'w1', staffId, role: 'bartender', locationId: 'L1',

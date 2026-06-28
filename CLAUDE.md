@@ -460,14 +460,15 @@ Rule: use `<p-skeleton>` for initial page loads (>150 ms). Use `[loading]="savin
 
 ## i18n
 
-**Language support:** English (`en`) and Chinese Simplified (`zh`).
+**Language support:** English (`en`), Chinese Simplified (`zh`), and Vietnamese (`vi`).
+The topbar globe button **cycles** en → zh → vi → en (`LangService.toggle()`); `SUPPORTED` in
+`lang.service.ts` and the `Supported` whitelist in `UpdateLanguageCommand` must stay in sync.
+Always add new keys to **all three** locale files per app.
 
 **File locations:**
 ```
-projects/admin-app/public/i18n/en.json
-projects/admin-app/public/i18n/zh.json
-projects/staff-app/public/i18n/en.json
-projects/staff-app/public/i18n/zh.json
+projects/admin-app/public/i18n/{en,zh,vi}.json
+projects/staff-app/public/i18n/{en,zh,vi}.json
 ```
 
 **Key structure (namespaced, flat values):**

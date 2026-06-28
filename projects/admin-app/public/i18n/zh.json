@@ -310,7 +310,7 @@
     "updateFailed":        "更新失败。"
   },
   "leave": {
-    "title":              "请假与缺勤",
+    "title":              "请假申请",
     "recordLeave":        "记录请假",
     "recordsTab":         "请假记录",
     "balancesTab":        "假期余额",
@@ -490,7 +490,7 @@
     "byRole":           "按职位",
     "byDate":           "按日期",
     "allShifts":        "所有班次",
-    "downloadCsv":      "下载CSV",
+    "downloadCsv":      "导出 CSV",
     "exporting":        "导出中…",
     "staffId":          "员工编号",
     "name":             "姓名",
@@ -640,7 +640,7 @@
     }
   },
   "roles": {
-    "title":            "员工职位",
+    "title":            "职位",
     "addNewRole":       "添加新职位",
     "bulkAdd":            "批量添加",
     "bulkAddDesc":        "为每个职位添加一行并填写时薪，已存在的将被跳过。",

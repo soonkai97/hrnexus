@@ -310,7 +310,7 @@
     "updateFailed":        "Update failed."
   },
   "leave": {
-    "title":              "Leave & Absence",
+    "title":              "Leave Requests",
     "recordLeave":        "Record Leave",
     "recordsTab":         "Records",
     "balancesTab":        "Balances",
@@ -490,7 +490,7 @@
     "byRole":           "By Role",
     "byDate":           "By Date",
     "allShifts":        "All Shifts",
-    "downloadCsv":      "Download CSV",
+    "downloadCsv":      "Export CSV",
     "exporting":        "Exporting…",
     "staffId":          "Staff ID",
     "name":             "Name",
@@ -640,7 +640,7 @@
     }
   },
   "roles": {
-    "title":            "Staff Roles",
+    "title":            "Roles",
     "addNewRole":       "Add New Role",
     "bulkAdd":            "Bulk Add",
     "bulkAddDesc":        "Add a row for each role with its hourly rate. Existing roles are skipped.",

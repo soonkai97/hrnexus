@@ -63,12 +63,12 @@
           <nc-theme-toggle />
           <p-button
             icon="pi pi-globe"
-            [label]="lang.current() === 'en' ? 'EN' : '中文'"
+            [label]="lang.current() === 'en' ? 'EN' : lang.current() === 'zh' ? '中文' : 'VI'"
             severity="secondary"
             [outlined]="true"
             size="small"
-            [pTooltip]="(lang.current() === 'en' ? 'shell.switchToZh' : 'shell.switchToEn') | translate"
-            [attr.aria-label]="(lang.current() === 'en' ? 'shell.switchToZh' : 'shell.switchToEn') | translate"
+            [pTooltip]="'shell.switchLanguage' | translate"
+            [attr.aria-label]="'shell.switchLanguage' | translate"
             (onClick)="lang.toggle()" />
           <button class="topbar-avatar" (click)="avatarMenu.toggle($event)" [attr.title]="user()!.fullName">
             {{ initials() }}

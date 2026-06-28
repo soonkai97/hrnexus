@@ -8,7 +8,7 @@ public record UpdateLanguageCommand(Guid EmployeeId, string Language) : IRequest
 
 public class UpdateLanguageCommandHandler(IAppDbContext db) : IRequestHandler<UpdateLanguageCommand>
 {
-    private static readonly HashSet<string> Supported = ["en", "zh"];
+    private static readonly HashSet<string> Supported = ["en", "zh", "vi"];
 
     public async Task Handle(UpdateLanguageCommand req, CancellationToken ct)
     {

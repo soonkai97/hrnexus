@@ -60,6 +60,7 @@
     "openNavMenu":      "打开导航菜单",
     "switchToZh":       "切换到中文",
     "switchToEn":       "切换到 English",
+    "switchLanguage":   "切换语言",
     "offline":          "您已离线 — 显示缓存数据",
     "pullToRefresh":    "下拉刷新",
     "releaseToRefresh": "释放以刷新"

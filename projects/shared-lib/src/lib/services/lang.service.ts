@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 
 const STORAGE_KEY = 'nc_lang';
-const SUPPORTED = ['en', 'zh'] as const;
+const SUPPORTED = ['en', 'zh', 'vi'] as const;
 type Lang = typeof SUPPORTED[number];
 
 @Injectable({ providedIn: 'root' })
@@ -19,8 +19,10 @@ export class LangService {
     this.translate.use(this.current());
   }
 
+  /** Advance to the next supported language, cycling en → zh → vi → en. */
   toggle(): void {
-    const next: Lang = this.current() === 'en' ? 'zh' : 'en';
+    const idx = SUPPORTED.indexOf(this.current());
+    const next = SUPPORTED[(idx + 1) % SUPPORTED.length]!;
     this.set(next);
   }
 

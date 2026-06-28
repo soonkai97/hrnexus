@@ -97,19 +97,21 @@ describe('LangService', () => {
     expect(service.current()).toBe('zh');
   });
 
-  it('toggle() switches zh → en on second call', () => {
+  it('toggle() switches zh → vi on second step of the cycle', () => {
     setup('zh');
     service.toggle();
     http.expectOne('/api/auth/language');
-    expect(service.current()).toBe('en');
+    expect(service.current()).toBe('vi');
   });
 
-  it('toggle() alternates cleanly across three calls', () => {
+  it('toggle() cycles en → zh → vi → en across three calls', () => {
     setup();
     service.toggle(); http.expectOne('/api/auth/language').flush({});
-    service.toggle(); http.expectOne('/api/auth/language').flush({});
-    service.toggle(); http.expectOne('/api/auth/language').flush({});
     expect(service.current()).toBe('zh');
+    service.toggle(); http.expectOne('/api/auth/language').flush({});
+    expect(service.current()).toBe('vi');
+    service.toggle(); http.expectOne('/api/auth/language').flush({});
+    expect(service.current()).toBe('en');
   });
 
   // ── syncFromApi() ──────────────────────────────────────────────────────────

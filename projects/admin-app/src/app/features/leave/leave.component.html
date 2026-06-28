@@ -700,36 +700,6 @@
       }
     </p-card>
 
-    <!-- Item 12: Sick-leave pattern warnings -->
-    <p-card styleClass="nc-card mt-3">
-      <div class="section-title d-flex align-items-center gap-2 flex-wrap">
-        <i class="pi pi-exclamation-triangle" style="color:#fbbf24"></i>
-        <span>{{ 'leave.patternWarning' | translate }}</span>
-      </div>
-      @if (patternLoading()) {
-        <div class="d-flex flex-column gap-2">
-          @for (i of [1,2]; track i) { <p-skeleton height="2.5rem" borderRadius="6px" /> }
-        </div>
-      } @else if (patternWarnings().length === 0) {
-        <p class="ls-empty">{{ 'leave.noPatternWarnings' | translate }}</p>
-      } @else {
-        <div class="pattern-warning-list">
-          @for (w of patternWarnings(); track w.employeeId) {
-            <div class="pattern-warning-row" tabindex="0" role="button" (click)="filterEmployeeId = w.employeeId; tab.set('records'); load()" (keydown.enter)="filterEmployeeId = w.employeeId; tab.set('records'); load()">
-              <div class="pw-info">
-                <span class="pw-name">{{ w.fullName }}</span>
-                <span class="pw-id">{{ w.staffId }}</span>
-              </div>
-              <div class="pw-stats">
-                <span class="pw-count">{{ w.sickLeaveCount }}×</span>
-                <span class="pw-hours">{{ w.sickLeaveHours }}h — {{ 'leave.patternWarningDesc' | translate }}</span>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </p-card>
-
   }
 </div>
 

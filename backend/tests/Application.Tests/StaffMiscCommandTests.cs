@@ -298,6 +298,22 @@ public class StaffMiscCommandTests
         Assert.Equal("zh", updated.PreferredLanguage);
     }
 
+    [Fact]
+    public async Task UpdateLanguage_Succeeds_WithVietnamese()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new UpdateLanguageCommandHandler(db);
+        await handler.Handle(new UpdateLanguageCommand(staff.Id, "vi"), CancellationToken.None);
+
+        var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
+        Assert.Equal("vi", updated.PreferredLanguage);
+    }
+
     // ── GetStaffByIdQuery ─────────────────────────────────────────────────────
 
     [Fact]

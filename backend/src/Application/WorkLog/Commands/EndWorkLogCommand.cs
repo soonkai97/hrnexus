@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.WorkLog.Queries;
 
@@ -34,7 +35,27 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
 
         // A staff clock-out is "now", so the end date is the same day or the next (overnight) — derive
         // it the historical way; multi-day spans only ever come from an admin correction.
-        var endDate = HRNexus.Application.Common.ShiftHours.DeriveEndDate(log.WorkDate, log.StartTime, req.EndTime);
+        var endDate = ShiftHours.DeriveEndDate(log.WorkDate, log.StartTime, req.EndTime);
+
+        // Reject if the resolved interval overlaps another completed shift for this staff member.
+        // Clock-in only guards the START instant, so a shift that starts at a free time but runs into
+        // a later completed shift must still be caught here (the staff can pick an earlier end time).
+        var newStartAbs = ShiftHours.AbsMinutes(log.WorkDate, log.StartTime);
+        var newEndAbs   = ShiftHours.AbsMinutes(endDate, req.EndTime);
+        var others = await db.WorkLogs
+            .Where(w => w.Id != log.Id && w.EmployeeId == log.EmployeeId && w.EndTime != null
+                     && w.EndDate >= log.WorkDate && w.WorkDate <= endDate)
+            .Select(w => new { w.WorkDate, w.StartTime, w.EndDate, w.EndTime })
+            .ToListAsync(ct);
+        foreach (var s in others)
+        {
+            var sEndDate = s.EndDate ?? ShiftHours.DeriveEndDate(s.WorkDate, s.StartTime, s.EndTime!);
+            var sStart = ShiftHours.AbsMinutes(s.WorkDate, s.StartTime);
+            var sEnd   = ShiftHours.AbsMinutes(sEndDate, s.EndTime!);
+            if (newStartAbs < sEnd && sStart < newEndAbs)
+                throw new InvalidOperationException("This shift overlaps with an existing shift.");
+        }
+
         log.End(endDate, req.EndTime);
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException)

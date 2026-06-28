@@ -936,4 +936,44 @@ public class WorkLogCommandTests
         var ended = await db.WorkLogs.FindAsync(log.Id);
         Assert.Equal("23:00", ended!.EndTime);
     }
+
+    [Fact]
+    public async Task Start_ThrowsInvalidOperation_WhenStartTimeOverlapsCompletedShift()
+    {
+        // The live start time is editable; clocking in at a time already covered by a completed
+        // shift must be rejected (mirrors the manual/edit overlap guards).
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        db.Locations.Add(MakeLocation("loc-1"));
+        db.Roles.Add(MakeRole("bartender", 50m));
+        db.Staff.Add(MakeStaffWithRole(empId));
+        var today = DateOnly.FromDateTime(DateTime.Now);  // StartWorkLog uses LocalNow for the work date
+        db.WorkLogs.Add(E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", today, "18:00", "23:00", 50m));
+        await db.SaveChangesAsync();
+
+        var handler = StartHandler(db);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new StartWorkLogCommand(empId, "bartender", "loc-1", "20:00", null),
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task End_ThrowsInvalidOperation_WhenClockOutOverlapsCompletedShift()
+    {
+        // A shift that starts at a free time but is clocked out into a later completed shift overlaps.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.Now);
+        db.WorkLogs.Add(E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "14:00", "18:00", 50m));
+        var active = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "10:00", 50m);
+        db.WorkLogs.Add(active);
+        await db.SaveChangesAsync();
+
+        var handler = EndHandler(db);
+
+        // Clocking out at 15:00 → 10:00–15:00 runs into the 14:00–18:00 shift.
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new EndWorkLogCommand(active.Id, empId, "15:00"), CancellationToken.None));
+    }
 }

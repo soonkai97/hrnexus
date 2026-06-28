@@ -23,10 +23,8 @@ public class AuthController(IMediator mediator) : ControllerBase
         {
             var result = await mediator.Send(cmd, ct);
             SetAuthCookies(result.AccessToken, result.RefreshToken);
-            // Web SPA: tokens live ONLY in httpOnly cookies (XSS can't read them). Native apps
-            // (Capacitor) can't use cross-origin cookies, so they opt in via the X-Client: native
-            // header and receive the tokens in the body to send as a Bearer header + refresh body.
-            return Ok(TokenPayload(result.User, result.ExpiresIn, result.AccessToken, result.RefreshToken));
+            // Tokens live ONLY in httpOnly cookies — never in the body (XSS can't read them).
+            return Ok(new { user = result.User, expiresIn = result.ExpiresIn });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -36,10 +34,9 @@ public class AuthController(IMediator mediator) : ControllerBase
 
     /// <summary>Rotates the session using the refresh token carried in the httpOnly cookie.</summary>
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshBody? body, CancellationToken ct)
+    public async Task<IActionResult> Refresh(CancellationToken ct)
     {
-        // Web sends the refresh token in its httpOnly cookie; native sends it in the request body.
-        var refreshToken = Request.Cookies[AppConstants.AuthCookies.RefreshToken] ?? body?.RefreshToken;
+        var refreshToken = Request.Cookies[AppConstants.AuthCookies.RefreshToken];
         if (string.IsNullOrEmpty(refreshToken))
             return Unauthorized(new { error = "No refresh token." });
 
@@ -47,7 +44,7 @@ public class AuthController(IMediator mediator) : ControllerBase
         {
             var result = await mediator.Send(new RefreshTokenCommand(refreshToken), ct);
             SetAuthCookies(result.AccessToken, result.RefreshToken);
-            return Ok(TokenPayload(result.User, result.ExpiresIn, result.AccessToken, result.RefreshToken));
+            return Ok(new { user = result.User, expiresIn = result.ExpiresIn });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -61,26 +58,14 @@ public class AuthController(IMediator mediator) : ControllerBase
     /// refresh token. Works even with an expired access token (no [Authorize]) — the refresh
     /// cookie identifies the session to revoke.</summary>
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] RefreshBody? body, CancellationToken ct)
+    public async Task<IActionResult> Logout(CancellationToken ct)
     {
-        // Web revokes via its refresh cookie; native passes the refresh token in the body.
-        var refreshToken = Request.Cookies[AppConstants.AuthCookies.RefreshToken] ?? body?.RefreshToken;
+        var refreshToken = Request.Cookies[AppConstants.AuthCookies.RefreshToken];
         if (!string.IsNullOrEmpty(refreshToken))
             await mediator.Send(new LogoutCommand(refreshToken), ct);
         ClearAuthCookies();
         return NoContent();
     }
-
-    /// <summary>True when the caller is a native (Capacitor) app, which opts in via this header to
-    /// receive tokens in the response body (it can't use cross-origin httpOnly cookies).</summary>
-    private bool IsNativeClient() =>
-        string.Equals(Request.Headers["X-Client"], "native", StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>Login/refresh response: always returns the user; adds the raw tokens for native clients.</summary>
-    private object TokenPayload(object user, int expiresIn, string accessToken, string refreshToken) =>
-        IsNativeClient()
-            ? new { user, expiresIn, accessToken, refreshToken }
-            : new { user, expiresIn };
 
     /// <summary>Effective permission keys for the signed-in user — drives FE guards/UI gating.</summary>
     [HttpGet("me/permissions")]
@@ -201,7 +186,6 @@ public class AuthController(IMediator mediator) : ControllerBase
     }
 }
 
-public record RefreshBody(string? RefreshToken);
 public record ChangePasswordBody(string CurrentPassword, string NewPassword);
 public record UpdateProfileBody(string? PhoneNumber);
 public record UpdateLanguageBody(string Language);

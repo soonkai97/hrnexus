@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.WorkLog.Queries;
 
@@ -21,6 +22,25 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         if (active) throw new InvalidOperationException("You already have an active shift. Please end it first.");
 
         var workDate = DateOnly.FromDateTime(dt.LocalNow);
+
+        // The live start time is editable, so guard against clocking in at a time already covered by
+        // a completed shift (otherwise a staff member could back-date into a worked period and create
+        // an overlap the manual-entry and admin-edit paths already forbid). Candidates are selected by
+        // date-interval overlap, then compared on absolute minutes.
+        var startAbs = ShiftHours.AbsMinutes(workDate, req.StartTime);
+        var doneAround = await db.WorkLogs
+            .Where(w => w.EmployeeId == req.EmployeeId && w.EndTime != null
+                     && w.EndDate >= workDate && w.WorkDate <= workDate)
+            .Select(w => new { w.WorkDate, w.StartTime, w.EndDate, w.EndTime })
+            .ToListAsync(ct);
+        foreach (var s in doneAround)
+        {
+            var sEndDate = s.EndDate ?? ShiftHours.DeriveEndDate(s.WorkDate, s.StartTime, s.EndTime!);
+            var sStart = ShiftHours.AbsMinutes(s.WorkDate, s.StartTime);
+            var sEnd   = ShiftHours.AbsMinutes(sEndDate, s.EndTime!);
+            if (startAbs >= sStart && startAbs < sEnd)
+                throw new InvalidOperationException("This start time overlaps a shift you already logged.");
+        }
 
         // Check for approved leave covering this date
         var workDateUtc = DateTime.SpecifyKind(workDate.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);

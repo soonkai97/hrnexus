@@ -123,6 +123,7 @@
             <th pSortableColumn="locationName">{{ 'dashboard.location' | translate }} <p-sortIcon field="locationName" /></th>
             <th pSortableColumn="timestamp">{{ 'dashboard.time' | translate }} <p-sortIcon field="timestamp" /></th>
             <th pSortableColumn="eventType">{{ 'dashboard.event' | translate }} <p-sortIcon field="eventType" /></th>
+            <th>{{ 'reports.shiftNotes' | translate }}</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-a>
@@ -135,10 +136,11 @@
               <p-tag [value]="(a.eventType === 'shift-started' ? 'dashboard.eventIn' : 'dashboard.eventOut') | translate"
                      [severity]="a.eventType === 'shift-started' ? 'success' : 'secondary'" />
             </td>
+            <td class="td-muted td-notes" [pTooltip]="a.notes || ''" tooltipPosition="top">{{ a.notes || '—' }}</td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="5" class="td-muted text-center p-5">{{ 'dashboard.noActivityToday' | translate }}</td></tr>
+          <tr><td colspan="6" class="td-muted text-center p-5">{{ 'dashboard.noActivityToday' | translate }}</td></tr>
         </ng-template>
       </p-table>
     </p-card>

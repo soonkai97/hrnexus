@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
+import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, nowRoundedToHalfHour, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -48,6 +48,8 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   }
   readonly todayLocal = toLocalDateString(new Date());
   readonly todayIso   = toLocalDateString(new Date());
+  /** Rounded "now" used as the time-picker default so the panel opens on a clean :00/:30. */
+  defaultTime = nowRoundedToHalfHour();
 
   /** Item 8: calendar day-of-week header keys */
   readonly calDayKeys = [

@@ -10,7 +10,7 @@ import {
   LeaveSummary, LeavePatternWarning,
   LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
   TrimInputDirective, CanComponentDeactivate,
-  apiErrorMessage,
+  apiErrorMessage, nowRoundedToHalfHour,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
@@ -314,6 +314,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     this.bulkStaffIds = []; this.bulkType = 'unpaid';
     this.bulkStart = null; this.bulkEnd = null; this.bulkStartTime = null; this.bulkEndTime = null;
     this.bulkNotes = ''; this.bulkResult.set(null);
+    this.defaultTime = nowRoundedToHalfHour();
     this.staffStore.loadStaff('', 1, 200);   // load a full page for the picker
     this.showBulkCreate.set(true);
   }
@@ -533,6 +534,8 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   /** Intermediary Date bindings for the time pickers — converted to string on save(). */
   startTimeDate: Date | null = null;
   endTimeDate:   Date | null = null;
+  /** Rounded "now" used as the time-picker default so the panel opens on a clean :00/:30. */
+  defaultTime = nowRoundedToHalfHour();
 
   private toTimeStr(d: Date): string {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
@@ -830,6 +833,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
       notes: null, status: 'approved' };
     this.startTimeDate = null;
     this.endTimeDate   = null;
+    this.defaultTime   = nowRoundedToHalfHour();
     this.formBalance.set(null);
     this.editing.set(null);
     this.formError.set('');

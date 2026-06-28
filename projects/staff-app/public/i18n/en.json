@@ -60,6 +60,7 @@
     "openNavMenu":      "Open navigation menu",
     "switchToZh":       "Switch to 中文",
     "switchToEn":       "Switch to English",
+    "switchLanguage":   "Change language",
     "offline":          "You're offline — showing cached data",
     "pullToRefresh":    "Pull to refresh",
     "releaseToRefresh": "Release to refresh"

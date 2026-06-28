@@ -295,6 +295,7 @@
     "locations":           "Locations",
     "selectLocations":     "Select location(s)…",
     "workLogHistory":      "Work Log History",
+    "editWorkLog":         "Edit Work Log",
     "noWorkLogs":          "No work logs yet.",
     "dateCol":             "Date",
     "roleCol":             "Role",

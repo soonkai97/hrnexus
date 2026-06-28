@@ -100,7 +100,7 @@ public class AdminQueryPushTests
         // Today in UTC date
         var today = DateOnly.FromDateTime(UtcRef);
         var log = E.WorkLog.StartLive(staff.Id, "BARTENDER", "loc1", "Main Hall",
-            today, "12:00", 20m);
+            today, "12:00", 20m, notes: "covering front desk");
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -114,6 +114,8 @@ public class AdminQueryPushTests
         Assert.Single(result.CurrentlyOnShift);
         Assert.Equal("S001", result.CurrentlyOnShift[0].StaffId);
         Assert.Equal("Main Hall", result.CurrentlyOnShift[0].LocationName);
+        // The shift note surfaces on the dashboard's on-shift list, not just in Reports.
+        Assert.Equal("covering front desk", result.CurrentlyOnShift[0].Notes);
     }
 
     [Fact]

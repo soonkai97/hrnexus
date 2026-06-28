@@ -20,6 +20,7 @@ export interface ActiveStaffDto {
   startTime:      string;   // HH:mm — the shift's clock-in time
   clockedInAt:    string;
   minutesOnShift: number;
+  notes?:         string | null;
 }
 
 export interface RecentEventDto {

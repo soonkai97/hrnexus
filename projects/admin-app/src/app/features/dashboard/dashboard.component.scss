@@ -10,6 +10,7 @@
 
 .td-name  { font-weight: 600; color: $text-primary; }
 .td-muted { color: $text-secondary; font-size: 0.825rem; }
+.td-notes { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mono     { font-family: 'Courier New', monospace; font-size: 0.8rem; }
 
 // ── Skeleton loading states ───────────────────────────────────────────────────

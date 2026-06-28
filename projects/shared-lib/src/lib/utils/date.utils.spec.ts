@@ -1,4 +1,4 @@
-import { toLocalDateString, todayLocalString, MONTH_NAMES } from './date.utils';
+import { toLocalDateString, todayLocalString, MONTH_NAMES, roundToNearestHalfHour } from './date.utils';
 
 describe('toLocalDateString', () => {
   it('formats year, month, and day using local wall-clock time', () => {
@@ -37,6 +37,51 @@ describe('todayLocalString', () => {
     const result  = todayLocalString();
     const after  = toLocalDateString(new Date());
     expect([before, after]).toContain(result);
+  });
+});
+
+describe('roundToNearestHalfHour', () => {
+  // Snaps "now" defaults to a clean :00/:30 so they pair with the 30-minute picker stepper.
+  const at = (h: number, m: number) => roundToNearestHalfHour(new Date(2026, 0, 15, h, m, 30, 500));
+
+  it('rounds 15:53 up to 16:00 (crosses the hour) — the reported expectation', () => {
+    const r = at(15, 53);
+    expect(r.getHours()).toBe(16);
+    expect(r.getMinutes()).toBe(0);
+  });
+
+  it('rounds 15:25 up to 15:30 (nearest boundary)', () => {
+    expect(at(15, 25).getMinutes()).toBe(30);
+  });
+
+  it('rounds 15:14 down to 15:00 (nearest boundary)', () => {
+    const r = at(15, 14);
+    expect(r.getHours()).toBe(15);
+    expect(r.getMinutes()).toBe(0);
+  });
+
+  it('rounds the 15-minute midpoint up to 15:30', () => {
+    expect(at(15, 15).getMinutes()).toBe(30);
+  });
+
+  it('leaves an exact boundary unchanged and zeroes seconds/ms', () => {
+    const r = at(9, 30);
+    expect(r.getHours()).toBe(9);
+    expect(r.getMinutes()).toBe(30);
+    expect(r.getSeconds()).toBe(0);
+    expect(r.getMilliseconds()).toBe(0);
+  });
+
+  it('wraps 23:53 to 00:00 rather than producing an invalid 24:00', () => {
+    const r = at(23, 53);
+    expect(r.getHours()).toBe(0);
+    expect(r.getMinutes()).toBe(0);
+  });
+
+  it('does not mutate the input date', () => {
+    const d = new Date(2026, 0, 15, 15, 53, 30, 0);
+    roundToNearestHalfHour(d);
+    expect(d.getMinutes()).toBe(53);
   });
 });
 

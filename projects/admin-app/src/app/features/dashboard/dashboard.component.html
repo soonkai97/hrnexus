@@ -87,6 +87,7 @@
               <th pSortableColumn="locationName">{{ 'dashboard.location' | translate }} <p-sortIcon field="locationName" /></th>
               <th pSortableColumn="clockedInAt">{{ 'dashboard.clockedIn' | translate }} <p-sortIcon field="clockedInAt" /></th>
               <th pSortableColumn="minutesOnShift">{{ 'dashboard.duration' | translate }} <p-sortIcon field="minutesOnShift" /></th>
+              <th>{{ 'reports.shiftNotes' | translate }}</th>
               <th class="th-action"></th>
             </tr>
           </ng-template>
@@ -98,6 +99,7 @@
               <td class="td-muted">{{ s.locationName }}</td>
               <td class="td-muted">{{ s.workDate }} · {{ s.clockedInAt | date:'h:mm a':'+0800' }}</td>
               <td class="td-muted">{{ formatMinutes(s.minutesOnShift) }}</td>
+              <td class="td-muted td-notes" [pTooltip]="s.notes || ''" tooltipPosition="top">{{ s.notes || '—' }}</td>
               <td class="td-action">
                 <p-button [label]="'dashboard.closeShift' | translate" icon="pi pi-sign-out"
                           size="small" [text]="true" severity="secondary"

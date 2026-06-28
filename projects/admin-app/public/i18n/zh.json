@@ -295,6 +295,7 @@
     "locations":           "地点",
     "selectLocations":     "选择地点…",
     "workLogHistory":      "工时记录",
+    "editWorkLog":         "编辑工时记录",
     "noWorkLogs":          "暂无工时记录。",
     "dateCol":             "日期",
     "roleCol":             "职位",

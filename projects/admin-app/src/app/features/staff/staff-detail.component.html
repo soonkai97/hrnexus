@@ -196,7 +196,9 @@
                 <th pSortableColumn="startTime">{{ 'staffDetail.startCol' | translate }} <p-sortIcon field="startTime" /></th>
                 <th pSortableColumn="endTime">{{ 'staffDetail.endCol' | translate }} <p-sortIcon field="endTime" /></th>
                 <th pSortableColumn="hours">{{ 'staffDetail.hoursCol' | translate }} <p-sortIcon field="hours" /></th>
+                <th>{{ 'reports.shiftNotes' | translate }}</th>
                 <th>{{ 'staffDetail.status' | translate }}</th>
+                <th></th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-wl>
@@ -207,9 +209,16 @@
                 <td>{{ wl.startTime | amPm }}</td>
                 <td>{{ wl.endTime | amPm }}@if (endDayOffset(wl); as off) { <span class="day-offset">+{{ off }}</span> }</td>
                 <td>{{ wl.hours | number:'1.1-1' }}h</td>
+                <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" [attr.title]="wl.notes || ''">{{ wl.notes || '—' }}</td>
                 <td>
                   @if (wl.isActive) { <p-tag [value]="'common.active' | translate" severity="success" /> }
                   @else             { <p-tag [value]="'staffDetail.done' | translate" severity="secondary" /> }
+                </td>
+                <td>
+                  @if (!wl.isActive) {
+                    <p-button icon="pi pi-pencil" [text]="true" severity="secondary" size="small"
+                      [pTooltip]="'common.edit' | translate" (onClick)="openEditLog(wl)" />
+                  }
                 </td>
               </tr>
             </ng-template>
@@ -222,6 +231,65 @@
         }
       }
     </p-card>
+
+    <!-- Edit work log -->
+    <p-dialog [visible]="editLogVisible()" (visibleChange)="!$event && cancelEditLog()"
+      [header]="'staffDetail.editWorkLog' | translate" [modal]="true" [draggable]="false"
+      [resizable]="false" [style]="{ width: '480px' }" appendTo="body">
+      @if (editingLog()) {
+        <div class="form-grid">
+          <div class="field">
+            <label for="sd-log-role"><span class="req">*</span> {{ 'dashboard.role' | translate }}</label>
+            <p-select inputId="sd-log-role" [options]="roleOptions()" [(ngModel)]="editLogForm.roleName"
+              optionLabel="label" optionValue="value" [placeholder]="'reports.selectRole' | translate"
+              [filter]="true" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="sd-log-location"><span class="req">*</span> {{ 'dashboard.location' | translate }}</label>
+            <p-select inputId="sd-log-location" [options]="locationOptions()" [(ngModel)]="editLogForm.locationId"
+              optionLabel="label" optionValue="value" [placeholder]="'reports.selectLocation' | translate"
+              [filter]="true" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="sd-log-date"><span class="req">*</span> {{ 'reports.shiftDate' | translate }}</label>
+            <p-datepicker inputId="sd-log-date" [(ngModel)]="editLogForm.workDate" dateFormat="yy-mm-dd"
+              dataType="string" [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+          </div>
+          <div class="row g-2">
+            <div class="col-6 field">
+              <label for="sd-log-start"><span class="req">*</span> {{ 'reports.shiftStartTime' | translate }}</label>
+              <p-datepicker inputId="sd-log-start" [(ngModel)]="editLogStartTimeDate" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="30"
+                [showIcon]="true" icon="pi pi-clock" [readonlyInput]="true" [showOnFocus]="false"
+                [placeholder]="'leave.selectTime' | translate" appendTo="body" styleClass="w-full" />
+            </div>
+            <div class="col-6 field">
+              <label for="sd-log-end"><span class="req">*</span> {{ 'reports.shiftEndTime' | translate }}</label>
+              <p-datepicker inputId="sd-log-end" [(ngModel)]="editLogEndTimeDate" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="30"
+                [showIcon]="true" icon="pi pi-clock" [readonlyInput]="true" [showOnFocus]="false"
+                [placeholder]="'leave.selectTime' | translate" appendTo="body" styleClass="w-full" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="sd-log-enddate"><span class="req">*</span> {{ 'reports.shiftEndDate' | translate }}
+              <span style="font-weight:400;font-size:.72rem;text-transform:none;color:var(--p-text-muted-color)">{{ 'reports.shiftEndDateHint' | translate }}</span></label>
+            <p-datepicker inputId="sd-log-enddate" [(ngModel)]="editLogEndDate" dateFormat="yy-mm-dd"
+              [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+          </div>
+          <div class="field">
+            <label for="sd-log-notes">{{ 'reports.shiftNotes' | translate }}</label>
+            <input pInputText id="sd-log-notes" type="text" [(ngModel)]="editLogForm.notes"
+              [placeholder]="'reports.shiftNotesPlaceholder' | translate" />
+          </div>
+        </div>
+        @if (editLogError()) {
+          <p-message severity="error" [text]="editLogError()" styleClass="w-full mt-2" />
+        }
+      }
+      <ng-template pTemplate="footer">
+        <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (onClick)="cancelEditLog()" />
+        <p-button [label]="'common.save' | translate" severity="primary" [loading]="editLogSaving()" (onClick)="saveEditLog()" />
+      </ng-template>
+    </p-dialog>
     }
 
     <!-- ── Permission overrides ──────────────────────────────────────── -->

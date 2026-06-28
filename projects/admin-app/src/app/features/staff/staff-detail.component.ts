@@ -5,7 +5,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, LocationStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, LocationStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, UpdateWorkLogRequest, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -14,6 +14,10 @@ import { Card } from 'primeng/card';
 import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
+import { Select } from 'primeng/select';
+import { Dialog } from 'primeng/dialog';
+import { Message } from 'primeng/message';
+import { TooltipModule } from 'primeng/tooltip';
 import { Paginator } from 'primeng/paginator';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
@@ -27,7 +31,7 @@ type DetailTab = 'profile' | 'worklogs' | 'permissions';
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, TrimInputDirective,
-    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Paginator, SelectButton, Tabs, TabList, Tab],
+    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Select, Dialog, Message, TooltipModule, Paginator, SelectButton, Tabs, TabList, Tab],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
@@ -71,6 +75,19 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   currentPage     = signal(1);
   readonly pageSize = 10;
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalLogs() / this.pageSize)));
+
+  // ── Work-log edit (admin can correct a shift directly from this page) ────────
+  readonly roleOptions     = computed(() => this.availableRoles().map(r => ({ label: r.name, value: r.name })));
+  readonly locationOptions = computed(() => this.availableLocations().map(l => ({ label: l.name, value: l.id })));
+
+  editLogVisible = signal(false);
+  editLogSaving  = signal(false);
+  editLogError   = signal('');
+  editingLog     = signal<WorkLogDto | null>(null);
+  editLogForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endDate: '', endTime: '', notes: '' };
+  editLogStartTimeDate: Date | null = null;
+  editLogEndDate:       Date | null = null;
+  editLogEndTimeDate:   Date | null = null;
 
   editForm: UpdateStaffRequest = {
     staffId: '', firstName: '', lastName: '', email: null, roles: [], locations: [],
@@ -151,6 +168,72 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
         this.workLogsLoading.set(false);
       },
       error: () => this.workLogsLoading.set(false),
+    });
+  }
+
+  private toLogTimeStr(d: Date): string {
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+  private toLogDateStr(d: Date): string {
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+  }
+  private parseLogTime(t: string): Date | null {
+    if (!t) return null;
+    const [h = NaN, m = NaN] = t.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    const d = new Date(); d.setHours(h, m, 0, 0); return d;
+  }
+
+  openEditLog(wl: WorkLogDto): void {
+    this.editLogForm = {
+      roleName: wl.roleName, locationId: wl.locationId, workDate: wl.workDate,
+      startTime: wl.startTime, endDate: wl.endDate ?? wl.workDate, endTime: wl.endTime ?? '',
+      notes: wl.notes ?? '',
+    };
+    this.editLogStartTimeDate = this.parseLogTime(wl.startTime);
+    this.editLogEndTimeDate   = this.parseLogTime(wl.endTime ?? '');
+    this.editLogEndDate       = new Date(`${wl.endDate ?? wl.workDate}T00:00:00`);
+    this.editLogError.set('');
+    this.editingLog.set(wl);
+    this.editLogVisible.set(true);
+  }
+
+  cancelEditLog(): void {
+    this.editLogVisible.set(false);
+    this.editingLog.set(null);
+    this.editLogStartTimeDate = null;
+    this.editLogEndDate       = null;
+    this.editLogEndTimeDate   = null;
+  }
+
+  saveEditLog(): void {
+    const wl = this.editingLog();
+    if (!wl) return;
+    if (!this.editLogForm.roleName || !this.editLogForm.locationId || !this.editLogForm.workDate
+        || !this.editLogStartTimeDate || !this.editLogEndDate || !this.editLogEndTimeDate) {
+      this.editLogError.set(this.translate.instant('reports.errRequiredFields')); return;
+    }
+    const startTime = this.toLogTimeStr(this.editLogStartTimeDate);
+    const endTime   = this.toLogTimeStr(this.editLogEndTimeDate);
+    const endDate   = this.toLogDateStr(this.editLogEndDate);
+    const durationMins = (new Date(`${endDate}T${endTime}:00`).getTime()
+                        - new Date(`${this.editLogForm.workDate}T${startTime}:00`).getTime()) / 60000;
+    if (durationMins <= 0)        { this.editLogError.set(this.translate.instant('reports.errSameTime')); return; }
+    if (durationMins > 14 * 1440) { this.editLogError.set(this.translate.instant('reports.errTooLong')); return; }
+
+    this.editLogSaving.set(true);
+    this.editLogError.set('');
+    this.workLogSvc.update(wl.id, { ...this.editLogForm, startTime, endDate, endTime, notes: this.editLogForm.notes || null }).subscribe({
+      next: () => {
+        this.editLogSaving.set(false);
+        this.cancelEditLog();
+        this.toast.success(this.translate.instant('reports.shiftUpdated'));
+        this.loadWorkLogs(this.currentPage());
+      },
+      error: (e: unknown) => {
+        this.editLogError.set(apiErrorMessage(e) ?? this.translate.instant('reports.shiftUpdateFailed'));
+        this.editLogSaving.set(false);
+      },
     });
   }
 

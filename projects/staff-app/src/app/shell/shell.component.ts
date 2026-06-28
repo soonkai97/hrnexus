@@ -219,6 +219,20 @@ export class ShellComponent implements AfterViewInit {
     ];
   });
 
+  /** Language dropdown — native labels, a check on the active one. */
+  readonly langMenuItems = computed<MenuItem[]>(() => {
+    const cur = this.lang.current();
+    return ([
+      { label: 'English',     value: 'en' },
+      { label: '中文',         value: 'zh' },
+      { label: 'Tiếng Việt', value: 'vi' },
+    ] as const).map(o => ({
+      label: o.label,
+      icon: cur === o.value ? 'pi pi-check' : 'pi pi-globe',
+      command: () => this.lang.set(o.value),
+    }));
+  });
+
   // Shown the instant Sign Out is tapped so the navigation/teardown gap doesn't
   // look like a frozen screen.
   signingOut = signal(false);

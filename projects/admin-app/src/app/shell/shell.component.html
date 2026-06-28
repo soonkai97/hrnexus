@@ -73,7 +73,8 @@
             size="small"
             [pTooltip]="'shell.switchLanguage' | translate"
             [attr.aria-label]="'shell.switchLanguage' | translate"
-            (onClick)="lang.toggle()" />
+            (onClick)="langMenu.toggle($event)" />
+          <p-menu #langMenu [model]="langMenuItems()" [popup]="true" appendTo="body" />
           <button class="topbar-avatar" (click)="avatarMenu.toggle($event)" [attr.title]="user()!.fullName">
             {{ initials() }}
           </button>

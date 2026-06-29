@@ -98,6 +98,8 @@
     "releaseToRefresh": "Thả ra để làm mới"
   },
   "common": {
+    "nameZhLabel": "Tên tiếng Trung",
+    "nameZhPlaceholder": "Tùy chọn — hiển thị cho người dùng tiếng Trung",
     "save":      "Lưu",
     "saving":    "Đang lưu…",
     "signingOut": "Đang đăng xuất…",

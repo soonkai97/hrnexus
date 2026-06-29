@@ -53,7 +53,7 @@
           </div>
           <div><label for="sd-view-roles" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.roles' | translate }}</label>
             <div class="d-flex flex-wrap gap-1">
-              @for (r of s.roles; track r) { <p-tag [value]="r" severity="info" styleClass="mr-1" /> }
+              @for (r of s.roles; track r) { <p-tag [value]="roleName(r)" severity="info" styleClass="mr-1" /> }
             </div>
           </div>
           <div><label for="sd-view-locations" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.locations' | translate }}</label>
@@ -125,9 +125,9 @@
               <p-multiselect
                 inputId="sd-roles"
                 [(ngModel)]="editForm.roles"
-                [options]="availableRoles()"
-                optionLabel="name"
-                optionValue="name"
+                [options]="roleOptions()"
+                optionLabel="label"
+                optionValue="value"
                 [placeholder]="'staffDetail.selectRoles' | translate"
                 [filter]="true"
                 display="chip"
@@ -140,9 +140,9 @@
             <p-multiselect
               inputId="sd-locations"
               [(ngModel)]="editForm.locations"
-              [options]="availableLocations()"
-              optionLabel="name"
-              optionValue="id"
+              [options]="locationOptions()"
+              optionLabel="label"
+              optionValue="value"
               [placeholder]="'staffDetail.selectLocations' | translate"
               [filter]="true"
               display="chip"

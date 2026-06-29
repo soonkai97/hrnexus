@@ -5,6 +5,8 @@ import { Location } from '../models/location.model';
 
 export interface UpsertLocationDto {
   name: string;
+  /** Optional Chinese name; shown instead of `name` when the UI language is Chinese. */
+  nameZh?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

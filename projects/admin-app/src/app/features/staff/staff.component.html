@@ -45,9 +45,9 @@
           <p-multiselect
             inputId="st-roles"
             [(ngModel)]="newStaff.roles"
-            [options]="availableRoles()"
-            optionLabel="name"
-            optionValue="name"
+            [options]="roleOptions()"
+            optionLabel="label"
+            optionValue="value"
             [placeholder]="'staff.selectRoles' | translate"
             [filter]="true"
             display="chip"
@@ -59,9 +59,9 @@
           <p-multiselect
             inputId="st-locations"
             [(ngModel)]="newStaff.locations"
-            [options]="availableLocations()"
-            optionLabel="name"
-            optionValue="id"
+            [options]="locationOptions()"
+            optionLabel="label"
+            optionValue="value"
             [placeholder]="'staff.selectLocations' | translate"
             [filter]="true"
             display="chip"
@@ -298,8 +298,8 @@
   <p class="modal-desc">{{ 'staff.bulkAssignLocationsDesc' | translate:{ n: selectedCount() } }}</p>
   <div class="field">
     <label for="bulk-locations">{{ 'staff.locations' | translate }}</label>
-    <p-multiselect inputId="bulk-locations" [(ngModel)]="bulkLocations" [options]="availableLocations()"
-                   optionLabel="name" optionValue="id" [filter]="true" display="chip"
+    <p-multiselect inputId="bulk-locations" [(ngModel)]="bulkLocations" [options]="locationOptions()"
+                   optionLabel="label" optionValue="value" [filter]="true" display="chip"
                    [placeholder]="'staff.selectLocations' | translate" appendTo="body" styleClass="w-full" />
   </div>
   <ng-template pTemplate="footer">
@@ -317,8 +317,8 @@
   <p class="modal-desc">{{ 'staff.bulkAssignRolesDesc' | translate:{ n: selectedCount() } }}</p>
   <div class="field">
     <label for="bulk-roles">{{ 'staff.roleCol' | translate }}</label>
-    <p-multiselect inputId="bulk-roles" [(ngModel)]="bulkRoles" [options]="availableRoles()"
-                   optionLabel="name" optionValue="name" [filter]="true" display="chip"
+    <p-multiselect inputId="bulk-roles" [(ngModel)]="bulkRoles" [options]="roleOptions()"
+                   optionLabel="label" optionValue="value" [filter]="true" display="chip"
                    [placeholder]="'staff.selectRoles' | translate" appendTo="body" styleClass="w-full" />
   </div>
   <ng-template pTemplate="footer">
@@ -358,10 +358,10 @@
               <i [class]="row.showPwd ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
             </span>
           </div>
-          <p-multiselect [(ngModel)]="row.roles" [options]="availableRoles()" optionLabel="name" optionValue="name"
+          <p-multiselect [(ngModel)]="row.roles" [options]="roleOptions()" optionLabel="label" optionValue="value"
                          [filter]="true" display="chip" [placeholder]="'staff.selectRoles' | translate"
                          appendTo="body" styleClass="w-full" />
-          <p-multiselect [(ngModel)]="row.locations" [options]="availableLocations()" optionLabel="name" optionValue="id"
+          <p-multiselect [(ngModel)]="row.locations" [options]="locationOptions()" optionLabel="label" optionValue="value"
                          [filter]="true" display="chip" [placeholder]="'staff.selectLocations' | translate"
                          appendTo="body" styleClass="w-full" />
           <p-button icon="pi pi-times" [text]="true" severity="danger" size="small" rounded

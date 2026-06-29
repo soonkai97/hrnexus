@@ -20,7 +20,7 @@ import { AuthService, LangService, SignalRService, NotificationService, AppUpdat
 
 describe('ShellComponent (staff-app)', () => {
   let mockAuth:            { user: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
-  let mockLang:            { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn> };
+  let mockLang:            { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn>; label: ReturnType<typeof vi.fn>; menuItems: ReturnType<typeof vi.fn> };
   let mockSignalR:         { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn>; notifications$: unknown };
   let mockNotifSvc:        { notifications: ReturnType<typeof vi.fn>; unreadCount: ReturnType<typeof vi.fn>; load: ReturnType<typeof vi.fn>; push: ReturnType<typeof vi.fn> };
   let mockAppUpdate:       { init: ReturnType<typeof vi.fn> };
@@ -32,7 +32,7 @@ describe('ShellComponent (staff-app)', () => {
 
   beforeEach(async () => {
     mockAuth            = { user: vi.fn().mockReturnValue(null), logout: vi.fn() };
-    mockLang            = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn() };
+    mockLang            = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn(), label: vi.fn().mockReturnValue('EN'), menuItems: vi.fn().mockReturnValue([]) };
     mockSignalR         = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
     mockNotifSvc        = { notifications: vi.fn().mockReturnValue([]), unreadCount: vi.fn().mockReturnValue(0), load: vi.fn().mockReturnValue(of(undefined)), push: vi.fn() };
     mockAppUpdate       = { init: vi.fn() };

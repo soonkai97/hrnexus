@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate,
-         PermissionAdminService, groupedPermissions } from 'shared-lib';
+         PermissionAdminService, groupedPermissions, LocalizedNamePipe } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -19,7 +19,7 @@ import { MenuItem } from 'primeng/api';
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective,
+  imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, LocalizedNamePipe,
     Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Dialog, Checkbox, Menu],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
@@ -37,16 +37,18 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   readonly roles   = this.store.roles;
   readonly loading = this.store.loading;
 
-  showForm    = signal(false);
-  newRoleName = '';
-  newRoleRate = 0;
-  saving      = signal(false);
-  deletingRole = signal<string | null>(null);
+  showForm      = signal(false);
+  newRoleName   = '';
+  newRoleNameZh = '';
+  newRoleRate   = 0;
+  saving        = signal(false);
+  deletingRole  = signal<string | null>(null);
 
   // Inline rate editing state
-  editingRateName  = signal<string | null>(null);
-  editingRateValue = signal(0);
-  savingRate       = signal(false);
+  editingRateName   = signal<string | null>(null);
+  editingRateValue  = signal(0);
+  editingRateNameZh = signal('');
+  savingRate        = signal(false);
 
   // Role-permissions editor state
   permRole        = signal<string | null>(null);   // role whose permissions dialog is open
@@ -69,6 +71,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   openAdd(): void {
     this.newRoleName = '';
+    this.newRoleNameZh = '';
     this.newRoleRate = 0;
     this.touched.set(new Set());
     this.showForm.set(true);
@@ -80,9 +83,10 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     const name = this.newRoleName.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
-    this.store.createRole(name, this.newRoleRate).subscribe({
+    this.store.createRole(name, this.newRoleRate, this.newRoleNameZh.trim() || null).subscribe({
       next: () => {
         this.newRoleName = '';
+        this.newRoleNameZh = '';
         this.newRoleRate = 0;
         this.saving.set(false);
         this.showForm.set(false);
@@ -127,9 +131,10 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  startEditRate(name: string, currentRate: number): void {
+  startEditRate(name: string, currentRate: number, nameZh: string | null = null): void {
     this.editingRateName.set(name);
     this.editingRateValue.set(currentRate);
+    this.editingRateNameZh.set(nameZh ?? '');
   }
 
   cancelEditRate(): void { this.editingRateName.set(null); }
@@ -138,7 +143,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     const name = this.editingRateName();
     if (!name || this.savingRate()) return;
     this.savingRate.set(true);
-    this.store.updateRoleRate(name, this.editingRateValue()).subscribe({
+    this.store.updateRoleRate(name, this.editingRateValue(), this.editingRateNameZh().trim() || null).subscribe({
       next: () => {
         this.savingRate.set(false);
         this.editingRateName.set(null);
@@ -175,10 +180,10 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   // ── Role permissions editor ────────────────────────────────────────────────
 
   /** Per-row actions via the ellipsis menu (Delete only for custom roles). */
-  openRoleMenu(role: { name: string; hourlyRate: number; isSystem: boolean }, event: Event): void {
+  openRoleMenu(role: { name: string; hourlyRate: number; isSystem: boolean; nameZh: string | null }, event: Event): void {
     const items: MenuItem[] = [
       { label: this.translate.instant('roles.editRate'), icon: 'pi pi-pencil',
-        command: () => this.startEditRate(role.name, role.hourlyRate) },
+        command: () => this.startEditRate(role.name, role.hourlyRate, role.nameZh) },
       { label: this.translate.instant('permissions.roleTitle'), icon: 'pi pi-shield',
         command: () => this.openPermissions(role.name) },
     ];

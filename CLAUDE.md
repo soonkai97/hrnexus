@@ -67,6 +67,10 @@ same-host-two-ports prod layout — `:443` admin / `:8443` staff — had this co
 ```
 `deploy.sh` automatically enables maintenance mode before building and removes it after containers are healthy (`--wait`).
 
+> **Full from-scratch provisioning** (new droplet → DuckDNS → Let's Encrypt → cron → Uptime Robot)
+> is documented step-by-step in [`docs/DEPLOY.md`](docs/DEPLOY.md). Use it when re-creating the
+> server; the routine `./deploy.sh` above is for day-to-day deploys onto an already-provisioned box.
+
 > **Rule 18**: After any coding session, always commit to GitHub AND rebuild Docker before closing.  
 > See **Rule 18 — Docker and GitHub must always reflect the latest code** in the Process rules section.
 

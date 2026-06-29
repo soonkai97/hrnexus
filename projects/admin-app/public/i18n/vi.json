@@ -100,6 +100,8 @@
   "common": {
     "nameZhLabel": "Tên tiếng Trung",
     "nameZhPlaceholder": "Tùy chọn — hiển thị cho người dùng tiếng Trung",
+    "nameViLabel": "Tên tiếng Việt",
+    "nameViPlaceholder": "Tùy chọn — hiển thị cho người dùng tiếng Việt",
     "save":      "Lưu",
     "saving":    "Đang lưu…",
     "signingOut": "Đang đăng xuất…",

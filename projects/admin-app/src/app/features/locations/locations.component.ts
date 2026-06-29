@@ -30,7 +30,7 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
   saving     = signal(false);
   deletingId = signal<string | null>(null);
 
-  form: UpsertLocationDto = { name: '', nameZh: '' };
+  form: UpsertLocationDto = { name: '', nameZh: '', nameVi: '' };
 
   readonly touched = signal<Set<string>>(new Set());
   markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
@@ -45,15 +45,15 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     return this.showForm() && !!this.form.name.trim();
   }
 
-  openAdd(): void    { this.form = { name: '', nameZh: '' }; this.editing.set(null); this.touched.set(new Set()); this.showForm.set(true); }
-  openEdit(loc: Location): void { this.form = { name: loc.name, nameZh: loc.nameZh ?? '' }; this.editing.set(loc); this.touched.set(new Set()); this.showForm.set(true); }
+  openAdd(): void    { this.form = { name: '', nameZh: '', nameVi: '' }; this.editing.set(null); this.touched.set(new Set()); this.showForm.set(true); }
+  openEdit(loc: Location): void { this.form = { name: loc.name, nameZh: loc.nameZh ?? '', nameVi: loc.nameVi ?? '' }; this.editing.set(loc); this.touched.set(new Set()); this.showForm.set(true); }
   cancel(): void     { this.showForm.set(false); this.editing.set(null); this.touched.set(new Set()); }
 
   save(): void {
     const name = this.form.name.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
-    const dto: UpsertLocationDto = { name, nameZh: this.form.nameZh?.trim() || null };
+    const dto: UpsertLocationDto = { name, nameZh: this.form.nameZh?.trim() || null, nameVi: this.form.nameVi?.trim() || null };
     const done = () => { this.saving.set(false); this.showForm.set(false); this.editing.set(null); this.toast.success(this.translate.instant('locations.saved')); };
     const fail = (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('locations.saveFailed')); this.saving.set(false); };
     const editingId = this.editing()?.id;

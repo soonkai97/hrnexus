@@ -100,6 +100,8 @@
   "common": {
     "nameZhLabel": "中文名称",
     "nameZhPlaceholder": "可选 — 向中文用户显示",
+    "nameViLabel": "越南语名称",
+    "nameViPlaceholder": "可选 — 向越南语用户显示",
     "save":      "保存",
     "saving":    "保存中…",
     "signingOut": "正在登出…",

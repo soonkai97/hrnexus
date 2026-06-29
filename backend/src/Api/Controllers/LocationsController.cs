@@ -20,7 +20,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files, IMediator
     {
         var list = await db.Locations
             .OrderBy(l => l.Name)
-            .Select(l => new LocationDto(l.Id, l.Name, l.NameZh, l.ImagePath))
+            .Select(l => new LocationDto(l.Id, l.Name, l.NameZh, l.NameVi, l.ImagePath))
             .ToListAsync(ct);
         return Ok(list);
     }
@@ -37,7 +37,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files, IMediator
         var list = await db.Locations
             .Where(l => assignedIds.Contains(l.Id))
             .OrderBy(l => l.Name)
-            .Select(l => new LocationDto(l.Id, l.Name, l.NameZh, l.ImagePath))
+            .Select(l => new LocationDto(l.Id, l.Name, l.NameZh, l.NameVi, l.ImagePath))
             .ToListAsync(ct);
         return Ok(list);
     }
@@ -50,7 +50,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files, IMediator
         if (string.IsNullOrEmpty(name)) return BadRequest(new { error = "Location name is required." });
         if (await db.Locations.AnyAsync(l => l.Name == name, ct))
             return Conflict(new { error = $"Location '{name}' already exists." });
-        var loc = Location.Create(name, body.NameZh);
+        var loc = Location.Create(name, body.NameZh, body.NameVi);
         db.Locations.Add(loc);
         await db.SaveChangesAsync(ct);
         return CreatedAtAction(nameof(List), new { }, new { loc.Id });
@@ -79,7 +79,7 @@ public class LocationsController(IAppDbContext db, IFileStorage files, IMediator
         if (string.IsNullOrEmpty(name)) return BadRequest(new { error = "Location name is required." });
         if (await db.Locations.AnyAsync(l => l.Name == name && l.Id != id, ct))
             return Conflict(new { error = $"Location '{name}' already exists." });
-        loc.Update(name, body.NameZh);
+        loc.Update(name, body.NameZh, body.NameVi);
         await db.SaveChangesAsync(ct);
         return NoContent();
     }
@@ -115,6 +115,6 @@ public class LocationsController(IAppDbContext db, IFileStorage files, IMediator
     }
 }
 
-public record LocationDto(string Id, string Name, string? NameZh, string? ImagePath);
-public record UpsertLocationBody(string Name, string? NameZh = null);
+public record LocationDto(string Id, string Name, string? NameZh, string? NameVi, string? ImagePath);
+public record UpsertLocationBody(string Name, string? NameZh = null, string? NameVi = null);
 public record BulkCreateLocationsBody(List<string> Names);

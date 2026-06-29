@@ -78,14 +78,14 @@ export class StaffStore {
     );
   }
 
-  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null) {
-    return this.svc.createRole(name, hourlyRate, nameZh).pipe(tap(() => this.loadRoles()));
+  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null, nameVi: string | null = null) {
+    return this.svc.createRole(name, hourlyRate, nameZh, nameVi).pipe(tap(() => this.loadRoles()));
   }
 
-  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null) {
-    return this.svc.updateRoleRate(name, hourlyRate, nameZh).pipe(
+  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null) {
+    return this.svc.updateRoleRate(name, hourlyRate, nameZh, nameVi).pipe(
       tap(() => this.#roles.update(list =>
-        list.map(r => r.name === name ? { ...r, hourlyRate, nameZh } : r)
+        list.map(r => r.name === name ? { ...r, hourlyRate, nameZh, nameVi } : r)
       ))
     );
   }

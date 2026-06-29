@@ -49,6 +49,10 @@
     }
   },
   "payroll": {
+    "earnedToday":       "Thu nhập hôm nay",
+    "earnedThisMonth":   "Thu nhập tháng này",
+    "asOf":              "tính đến",
+    "noEarningsYet":     "Chưa có ca làm hoàn tất nào trong tháng này.",
     "title":             "Bảng lương",
     "year":              "Năm",
     "month":             "Tháng",

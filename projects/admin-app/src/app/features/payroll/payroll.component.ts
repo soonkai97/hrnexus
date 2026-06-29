@@ -1,8 +1,8 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AdminService, PayrollSummaryResponse, ToastService } from 'shared-lib';
+import { AdminService, PayrollSummaryResponse, EarningsSnapshotResponse, ToastService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Card } from 'primeng/card';
@@ -16,7 +16,7 @@ import { Message } from 'primeng/message';
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })
-export class PayrollComponent {
+export class PayrollComponent implements OnInit {
   private readonly adminSvc   = inject(AdminService);
   private readonly toast      = inject(ToastService);
   private readonly translate  = inject(TranslateService);
@@ -26,6 +26,20 @@ export class PayrollComponent {
   loading   = signal(false);
   exporting = signal(false);
   data      = signal<PayrollSummaryResponse | null>(null);
+
+  // Live "earned today / this month" snapshot — loaded on entry, independent of the month picker.
+  snapshot        = signal<EarningsSnapshotResponse | null>(null);
+  snapshotLoading = signal(false);
+
+  ngOnInit(): void { this.loadSnapshot(); }
+
+  loadSnapshot(): void {
+    this.snapshotLoading.set(true);
+    this.adminSvc.getEarningsSnapshot().subscribe({
+      next: s => { this.snapshot.set(s); this.snapshotLoading.set(false); },
+      error: () => { this.snapshotLoading.set(false); },
+    });
+  }
 
   // Numeric, language-neutral month labels (01–12) — matches the Payroll Locks page.
   readonly monthOptions = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: String(i + 1).padStart(2, '0') }));

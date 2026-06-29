@@ -133,6 +133,21 @@ export interface PayrollSummaryResponse {
   totalGross: number;
 }
 
+export interface StaffEarningsRow {
+  staffId: string;
+  name: string;
+  earnedToday: number;
+  earnedThisMonth: number;
+}
+
+export interface EarningsSnapshotResponse {
+  date: string;    // today, yyyy-MM-dd
+  month: string;   // current month, yyyy-MM
+  totalToday: number;
+  totalThisMonth: number;
+  staff: StaffEarningsRow[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly http = inject(HttpClient);
@@ -163,5 +178,10 @@ export class AdminService {
   getPayrollSummary(year: number, month: number): Observable<PayrollSummaryResponse> {
     return this.http.get<PayrollSummaryResponse>('/api/admin/payroll/summary',
       { params: new HttpParams().set('year', year).set('month', month) });
+  }
+
+  /** Live per-staff "earned today" + "earned this month" totals (completed shifts). */
+  getEarningsSnapshot(): Observable<EarningsSnapshotResponse> {
+    return this.http.get<EarningsSnapshotResponse>('/api/admin/payroll/earnings-snapshot');
   }
 }

@@ -49,6 +49,10 @@
     }
   },
   "payroll": {
+    "earnedToday":       "Earned Today",
+    "earnedThisMonth":   "Earned This Month",
+    "asOf":              "as of",
+    "noEarningsYet":     "No completed shifts yet this month.",
     "title":             "Payroll",
     "year":              "Year",
     "month":             "Month",

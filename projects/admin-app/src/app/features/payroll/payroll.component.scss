@@ -1,5 +1,14 @@
 @use 'styles/theme' as *;
 
+// Live earnings snapshot (earned today / this month)
+.snapshot-card { padding: 1.25rem; margin-bottom: 1.25rem; }
+.snap-totals   { align-items: flex-end; margin-bottom: 1rem; }
+.snap-stat     { display: flex; flex-direction: column; gap: 0.2rem; }
+.snap-stat-label { font-size: 0.73rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+.snap-stat-value { font-size: 1.6rem; font-weight: 800; color: $neon-green; line-height: 1; }
+.snap-asof     { margin-left: auto; font-size: 0.75rem; color: $text-muted; }
+.snap-empty    { color: $text-muted; font-size: 0.85rem; margin: 0.25rem 0 0; }
+
 .filter-card  { padding: 1.25rem; margin-bottom: 1.25rem; }
 .field        { display: flex; flex-direction: column; gap: 0.25rem; }
 .field label  { font-size: 0.8rem; color: $text-muted; }

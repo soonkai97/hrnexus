@@ -124,7 +124,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     }
 }
 
-public record StartWorkLogRequest(string RoleName, string LocationId, string StartTime, string? Notes);
+public record StartWorkLogRequest(string RoleName, string LocationId, string StartTime, string? Notes, double? Latitude = null, double? Longitude = null);
 public record ManualWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
 public record UpdateWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, DateOnly EndDate, string EndTime, string? Notes);
 public record EndWorkLogRequest(string EndTime);

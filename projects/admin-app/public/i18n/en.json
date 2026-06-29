@@ -151,6 +151,7 @@
     "errInvalidCredentials": "Invalid Staff ID or password."
   },
   "dashboard": {
+    "openInMaps":         "Open clock-in location in Google Maps",
     "title":              "Dashboard",
     "live":               "Live",
     "connecting":         "Connecting…",

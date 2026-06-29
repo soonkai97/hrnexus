@@ -39,6 +39,9 @@ export interface StartWorkLogRequest {
   locationId: string;
   startTime: string;   // HH:mm
   notes?: string | null;
+  /** GPS captured from the device at clock-in (omitted if the staff denies permission). */
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface CreateManualWorkLogRequest {

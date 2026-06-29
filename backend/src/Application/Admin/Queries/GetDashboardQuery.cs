@@ -28,7 +28,9 @@ public record ActiveStaffDto(
     string   StartTime,
     DateTime ClockedInAt,
     int      MinutesOnShift,
-    string?  Notes);
+    string?  Notes,
+    double?  StartLatitude,
+    double?  StartLongitude);
 
 public record RecentEventDto(
     string   StaffName,
@@ -117,7 +119,9 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
                     w.StartTime,
                     clockedInUtc,
                     minutesOnShift,
-                    w.Notes);
+                    w.Notes,
+                    w.StartLatitude,
+                    w.StartLongitude);
             })
             .OrderBy(s => s.ClockedInAt)
             .ToList();

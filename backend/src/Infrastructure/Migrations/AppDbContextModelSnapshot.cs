@@ -595,6 +595,12 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<double?>("StartLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("StartLongitude")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("StartTime")
                         .IsRequired()
                         .HasMaxLength(5)

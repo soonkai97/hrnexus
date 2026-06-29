@@ -151,6 +151,7 @@
     "errInvalidCredentials": "Mã nhân viên hoặc mật khẩu không hợp lệ."
   },
   "dashboard": {
+    "openInMaps":         "Mở vị trí chấm công trong Google Maps",
     "title":              "Bảng điều khiển",
     "live":               "Trực tiếp",
     "connecting":         "Đang kết nối…",

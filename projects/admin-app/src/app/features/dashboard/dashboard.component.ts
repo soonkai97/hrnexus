@@ -91,6 +91,11 @@ export class DashboardComponent implements OnInit {
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
   }
 
+  /** Google Maps link for the GPS captured when the staff member clocked in. */
+  mapsUrl(s: ActiveStaffDto): string {
+    return `https://www.google.com/maps?q=${s.startLatitude},${s.startLongitude}`;
+  }
+
   // ── Close a forgotten clock-out ───────────────────────────────────────────────
   // An admin sets the real end time on an open shift (staff forgot to clock out).
   closeRow      = signal<ActiveStaffDto | null>(null);

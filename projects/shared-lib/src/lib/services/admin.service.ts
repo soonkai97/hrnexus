@@ -21,6 +21,9 @@ export interface ActiveStaffDto {
   clockedInAt:    string;
   minutesOnShift: number;
   notes?:         string | null;
+  /** GPS captured from the staff device at clock-in (null if denied/unavailable). */
+  startLatitude?:  number | null;
+  startLongitude?: number | null;
 }
 
 export interface RecentEventDto {

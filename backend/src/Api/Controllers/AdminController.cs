@@ -238,6 +238,12 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     // ── Payroll ───────────────────────────────────────────────────────────────
 
+    /// <summary>Live per-staff "earned today" + "earned this month" totals (completed shifts).</summary>
+    [HttpGet("payroll/earnings-snapshot")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollView)]
+    public async Task<IActionResult> EarningsSnapshot(CancellationToken ct) =>
+        Ok(await mediator.Send(new GetEarningsSnapshotQuery(), ct));
+
     [HttpGet("payroll/summary")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollView)]
     public async Task<IActionResult> PayrollSummary(

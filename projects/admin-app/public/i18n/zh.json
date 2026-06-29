@@ -49,6 +49,10 @@
     }
   },
   "payroll": {
+    "earnedToday":       "今日收入",
+    "earnedThisMonth":   "本月收入",
+    "asOf":              "截至",
+    "noEarningsYet":     "本月暂无已完成的班次。",
     "title":             "薪资报表",
     "year":              "年份",
     "month":             "月份",

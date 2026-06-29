@@ -24,17 +24,24 @@ const fakePayroll = {
   grandTotalHours: 80, grandTotalPay: 1200,
 };
 
+const fakeSnapshot = {
+  date: '2026-05-17', month: '2026-05', totalToday: 160, totalThisMonth: 980,
+  staff: [{ staffId: 'NC001', name: 'Jane Doe', earnedToday: 160, earnedThisMonth: 980 }],
+};
+
 describe('PayrollComponent', () => {
   let component: PayrollComponent;
   let mockAdminSvc: {
-    getPayrollSummary: ReturnType<typeof vi.fn>;
-    exportPayrollCsv:  ReturnType<typeof vi.fn>;
+    getPayrollSummary:   ReturnType<typeof vi.fn>;
+    exportPayrollCsv:    ReturnType<typeof vi.fn>;
+    getEarningsSnapshot: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
     mockAdminSvc = {
-      getPayrollSummary: vi.fn().mockReturnValue(of(fakePayroll)),
-      exportPayrollCsv:  vi.fn().mockReturnValue(of(new Blob(['csv'], { type: 'text/csv' }))),
+      getPayrollSummary:   vi.fn().mockReturnValue(of(fakePayroll)),
+      exportPayrollCsv:    vi.fn().mockReturnValue(of(new Blob(['csv'], { type: 'text/csv' }))),
+      getEarningsSnapshot: vi.fn().mockReturnValue(of(fakeSnapshot)),
     };
 
     await TestBed.configureTestingModule({
@@ -65,6 +72,24 @@ describe('PayrollComponent', () => {
 
   it('initialises month to the current month (1-indexed)', () => {
     expect(component.month()).toBe(new Date().getMonth() + 1);
+  });
+
+  // ── earnings snapshot ──────────────────────────────────────────────────────────
+
+  describe('loadSnapshot()', () => {
+    it('ngOnInit loads the live earned-today / this-month snapshot', () => {
+      component.ngOnInit();
+      expect(mockAdminSvc.getEarningsSnapshot).toHaveBeenCalled();
+      expect(component.snapshot()).toEqual(fakeSnapshot);
+      expect(component.snapshotLoading()).toBe(false);
+    });
+
+    it('clears the snapshot loading flag even when the API call fails', () => {
+      mockAdminSvc.getEarningsSnapshot.mockReturnValue(throwError(() => new Error('Network')));
+      component.loadSnapshot();
+      expect(component.snapshotLoading()).toBe(false);
+      expect(component.snapshot()).toBeNull();
+    });
   });
 
   // ── load() ───────────────────────────────────────────────────────────────────

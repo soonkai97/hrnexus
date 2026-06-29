@@ -3,6 +3,47 @@
     <h1 class="page-title">{{ 'payroll.title' | translate }}</h1>
   </div>
 
+  <!-- Live earnings snapshot: how much each staff member has earned so far today + this month -->
+  @if (snapshot(); as snap) {
+    <p-card styleClass="snapshot-card">
+      <div class="snap-totals d-flex gap-4 flex-wrap">
+        <div class="snap-stat">
+          <span class="snap-stat-label">{{ 'payroll.earnedToday' | translate }}</span>
+          <span class="snap-stat-value">RM {{ snap.totalToday | number:'1.2-2' }}</span>
+        </div>
+        <div class="snap-stat">
+          <span class="snap-stat-label">{{ 'payroll.earnedThisMonth' | translate }}</span>
+          <span class="snap-stat-value">RM {{ snap.totalThisMonth | number:'1.2-2' }}</span>
+        </div>
+        <div class="snap-asof">{{ 'payroll.asOf' | translate }} {{ snap.date }}</div>
+      </div>
+
+      @if (snap.staff.length) {
+        <p-table [value]="snap.staff" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px"
+          sortField="earnedToday" [sortOrder]="-1" styleClass="snap-table">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="staffId">{{ 'payroll.colStaffId' | translate }} <p-sortIcon field="staffId" /></th>
+              <th pSortableColumn="name">{{ 'payroll.colName' | translate }} <p-sortIcon field="name" /></th>
+              <th pSortableColumn="earnedToday">{{ 'payroll.earnedToday' | translate }} <p-sortIcon field="earnedToday" /></th>
+              <th pSortableColumn="earnedThisMonth">{{ 'payroll.earnedThisMonth' | translate }} <p-sortIcon field="earnedThisMonth" /></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td class="td-muted mono"><span class="p-column-title">{{ 'payroll.colStaffId' | translate }}</span>{{ row.staffId }}</td>
+              <td><span class="p-column-title">{{ 'payroll.colName' | translate }}</span>{{ row.name }}</td>
+              <td class="td-bold"><span class="p-column-title">{{ 'payroll.earnedToday' | translate }}</span>RM {{ row.earnedToday | number:'1.2-2' }}</td>
+              <td class="td-bold"><span class="p-column-title">{{ 'payroll.earnedThisMonth' | translate }}</span>RM {{ row.earnedThisMonth | number:'1.2-2' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <p class="snap-empty">{{ 'payroll.noEarningsYet' | translate }}</p>
+      }
+    </p-card>
+  }
+
   <p-card styleClass="filter-card">
     <div class="d-flex gap-3 align-items-end flex-wrap">
       <div class="field">

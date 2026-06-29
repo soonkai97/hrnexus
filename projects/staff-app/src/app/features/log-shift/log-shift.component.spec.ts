@@ -187,79 +187,108 @@ describe('LogShiftComponent', () => {
       expect(mockWorkLogSvc.start).not.toHaveBeenCalled();
     });
 
-    it('calls start() with correct payload when form is valid', () => {
+    it('calls start() with correct payload when form is valid', async () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       component.liveFormStartTime   = new Date(2026, 4, 17, 20, 0); // 20:00
       component.liveForm.notes      = 'Late shift';
       component.startShift();
+      await Promise.resolve(); // let the geolocation lookup (microtask) resolve before asserting
       expect(mockWorkLogSvc.start).toHaveBeenCalledWith({
         roleName:   'bartender',
         locationId: 'loc-1',
         startTime:  '20:00',
         notes:      'Late shift',
+        latitude:   null,    // jsdom has no geolocation → clock in without coords
+        longitude:  null,
       });
     });
 
-    it('converts empty notes to null before sending to the API', () => {
+    it('converts empty notes to null before sending to the API', async () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       component.liveForm.notes      = '';
       component.startShift();
+      await Promise.resolve();
       expect(mockWorkLogSvc.start).toHaveBeenCalledWith(
         expect.objectContaining({ notes: null }),
       );
     });
 
-    it('shows success toast after shift starts', () => {
+    it('shows success toast after shift starts', async () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       component.startShift();
+      await Promise.resolve();
       expect(mockToastSvc.success).toHaveBeenCalledWith('logShift.toast.started');
     });
 
-    it('reloads active shift after success so the clock-out panel appears', () => {
+    it('reloads active shift after success so the clock-out panel appears', async () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.getActive.mockClear();
       component.startShift();
+      await Promise.resolve();
       expect(mockWorkLogSvc.getActive).toHaveBeenCalled();
     });
 
-    it('resets liveForm after success', () => {
+    it('resets liveForm after success', async () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       component.liveForm.notes      = 'notes';
       component.startShift();
+      await Promise.resolve();
       expect(component.liveForm.roleName).toBe('');
       expect(component.liveForm.locationId).toBe('');
       expect(component.liveForm.notes).toBe('');
     });
 
-    it('sets formError from API response on failure', () => {
+    it('sets formError from API response on failure', async () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.start.mockReturnValue(
         throwError(() => ({ error: { error: 'You already have an active shift.' } })),
       );
       component.startShift();
+      await Promise.resolve();
       expect(component.formError()).toBe('You already have an active shift.');
     });
 
-    it('uses fallback error message when API provides none', () => {
+    it('uses fallback error message when API provides none', async () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.start.mockReturnValue(throwError(() => ({})));
       component.startShift();
+      await Promise.resolve();
       expect(component.formError()).toBe('logShift.errStart');
     });
 
-    it('clears submitting flag after error so the button is re-enabled', () => {
+    it('clears submitting flag after error so the button is re-enabled', async () => {
       component.liveForm.roleName   = 'bartender';
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.start.mockReturnValue(throwError(() => ({})));
       component.startShift();
+      await Promise.resolve();
       expect(component.submitting()).toBe(false);
+    });
+
+    it('includes the device GPS coordinates when geolocation is available', async () => {
+      // Proof-of-presence: admin sees where the staff member physically clocked in.
+      Object.defineProperty(navigator, 'geolocation', {
+        configurable: true,
+        value: {
+          getCurrentPosition: (success: PositionCallback) =>
+            success({ coords: { latitude: 1.23, longitude: 4.56 } } as unknown as GeolocationPosition),
+        },
+      });
+      component.liveForm.roleName   = 'bartender';
+      component.liveForm.locationId = 'loc-1';
+      component.startShift();
+      await Promise.resolve();
+      expect(mockWorkLogSvc.start).toHaveBeenCalledWith(
+        expect.objectContaining({ latitude: 1.23, longitude: 4.56 }),
+      );
+      delete (navigator as { geolocation?: unknown }).geolocation;
     });
   });
 

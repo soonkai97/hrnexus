@@ -237,26 +237,47 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     const startTime = this.liveFormStartTime ? this.toTimeStr(this.liveFormStartTime) : nowHHmm();
     this.submitting.set(true);
     this.formError.set('');
-    this.workLogSvc.start({
-      roleName:   this.liveForm.roleName,
-      locationId: this.liveForm.locationId,
-      startTime,
-      notes:      this.liveForm.notes || null,
-    }).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.toast.success(this.translate.instant('logShift.toast.started'));
-        this.loadActive();
-        this.liveForm = { roleName: '', locationId: '', startTime: nowHHmm(), notes: '' };
-        this.liveFormStartTime = nowRoundedToHalfHour();
-      },
-      error: (e) => {
-        this.formError.set(e?.error?.error ?? this.translate.instant('logShift.errStart'));
-        this.submitting.set(false);
-        // If the backend detected an active shift that we missed (e.g. loadActive()
-        // failed silently on page load), refresh now so the End Shift card appears.
-        this.loadActive();
-      },
+    // Capture the device's GPS first so admin can see where the shift was started.
+    // Best-effort: if the staff denies permission or it's unavailable, clock in without it.
+    this.getDeviceCoords().then(coords => {
+      this.workLogSvc.start({
+        roleName:   this.liveForm.roleName,
+        locationId: this.liveForm.locationId,
+        startTime,
+        notes:      this.liveForm.notes || null,
+        latitude:   coords?.lat ?? null,
+        longitude:  coords?.lng ?? null,
+      }).subscribe({
+        next: () => {
+          this.submitting.set(false);
+          this.toast.success(this.translate.instant('logShift.toast.started'));
+          this.loadActive();
+          this.liveForm = { roleName: '', locationId: '', startTime: nowHHmm(), notes: '' };
+          this.liveFormStartTime = nowRoundedToHalfHour();
+        },
+        error: (e) => {
+          this.formError.set(e?.error?.error ?? this.translate.instant('logShift.errStart'));
+          this.submitting.set(false);
+          // If the backend detected an active shift that we missed (e.g. loadActive()
+          // failed silently on page load), refresh now so the End Shift card appears.
+          this.loadActive();
+        },
+      });
+    });
+  }
+
+  /**
+   * Resolves the device's current GPS position, or null if geolocation is unsupported,
+   * denied, or times out. Never rejects — a missing location must not block clocking in.
+   */
+  private getDeviceCoords(): Promise<{ lat: number; lng: number } | null> {
+    return new Promise(resolve => {
+      if (!('geolocation' in navigator)) { resolve(null); return; }
+      navigator.geolocation.getCurrentPosition(
+        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        ()  => resolve(null),
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+      );
     });
   }
 

@@ -6,7 +6,7 @@ using HRNexus.Application.WorkLog.Queries;
 
 namespace HRNexus.Application.WorkLog.Commands;
 
-public record StartWorkLogCommand(Guid EmployeeId, string RoleName, string LocationId, string StartTime, string? Notes) : IRequest<Guid>;
+public record StartWorkLogCommand(Guid EmployeeId, string RoleName, string LocationId, string StartTime, string? Notes, double? Latitude = null, double? Longitude = null) : IRequest<Guid>;
 
 public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub, IDateTimeProvider dt)
     : IRequestHandler<StartWorkLogCommand, Guid>
@@ -70,7 +70,7 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         if (!locationAssigned)
             throw new InvalidOperationException("You are not assigned to this location.");
 
-        var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes);
+        var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes, req.Latitude, req.Longitude);
         db.WorkLogs.Add(log);
         try
         {

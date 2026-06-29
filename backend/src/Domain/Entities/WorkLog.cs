@@ -15,6 +15,10 @@ public class WorkLog : IHasAudit, ISoftDelete
     public string?   EndTime          { get; private set; }             // null = active live shift
     public bool      IsManualEntry    { get; private set; }
     public string?   Notes            { get; private set; }
+    // GPS captured from the staff member's device when they clocked in live (null if denied/unavailable
+    // or for manual/back-dated entries). Used to show where the staff member physically started the shift.
+    public double?   StartLatitude    { get; private set; }
+    public double?   StartLongitude   { get; private set; }
     public decimal   HourlyRateSnapshot { get; private set; }
     public bool      IsEdited         { get; private set; }
     public DateTime? EditedAt         { get; private set; }
@@ -30,7 +34,8 @@ public class WorkLog : IHasAudit, ISoftDelete
     private WorkLog() { }
 
     public static WorkLog StartLive(Guid employeeId, string roleName, string locationId, string locationName,
-        DateOnly workDate, string startTime, decimal rateSnapshot, string? notes = null) => new()
+        DateOnly workDate, string startTime, decimal rateSnapshot, string? notes = null,
+        double? latitude = null, double? longitude = null) => new()
     {
         Id                 = Guid.NewGuid(),
         EmployeeId         = employeeId,
@@ -42,6 +47,8 @@ public class WorkLog : IHasAudit, ISoftDelete
         EndTime            = null,
         IsManualEntry      = false,
         Notes              = notes,
+        StartLatitude      = latitude,
+        StartLongitude     = longitude,
         HourlyRateSnapshot = rateSnapshot,
         CreatedAt          = DateTime.UtcNow,
     };

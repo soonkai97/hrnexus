@@ -1,5 +1,16 @@
 @use 'styles/theme' as *;
 
+// Clickable clock-in location → opens the captured GPS in Google Maps.
+.map-link {
+  color: $neon-blue;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  &:hover { text-decoration: underline; }
+  i { font-size: 0.8rem; }
+}
+
 .section-label {
   font-size: 0.73rem; color: $text-muted;
   text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;

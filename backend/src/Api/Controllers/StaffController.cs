@@ -255,7 +255,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         try
         {
-            await mediator.Send(new CreateRoleCommand(body.Name, body.HourlyRate), ct);
+            await mediator.Send(new CreateRoleCommand(body.Name, body.HourlyRate, body.NameZh), ct);
             return NoContent();
         }
         catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
@@ -284,6 +284,7 @@ public class StaffController(IMediator mediator) : ControllerBase
             return BadRequest(new { error = "Hourly rate cannot be negative." });
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == name.ToUpperInvariant(), ct);
         if (role is null) return NotFound(new { error = "Role not found." });
+        role.SetNameZh(body.NameZh);
         if (role.HourlyRate != body.HourlyRate)
         {
             role.SetRate(body.HourlyRate);
@@ -310,8 +311,8 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 }
 
-public record CreateRoleBody(string Name, decimal HourlyRate = 0);
-public record UpdateRoleRateBody(decimal HourlyRate);
+public record CreateRoleBody(string Name, decimal HourlyRate = 0, string? NameZh = null);
+public record UpdateRoleRateBody(decimal HourlyRate, string? NameZh = null);
 public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<string> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth, List<string>? Locations = null);
 public record ResetPasswordBody(string NewPassword);
 public record BulkAssignLocationsBody(List<Guid> StaffIds, List<string> LocationIds);

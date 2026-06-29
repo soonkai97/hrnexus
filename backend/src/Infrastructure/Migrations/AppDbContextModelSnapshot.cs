@@ -179,6 +179,10 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("NameZh")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
@@ -314,6 +318,10 @@ namespace HRNexus.Infrastructure.Migrations
 
                     b.Property<bool>("IsSystem")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("NameZh")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Name");
 

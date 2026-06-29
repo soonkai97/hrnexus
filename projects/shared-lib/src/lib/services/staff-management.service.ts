@@ -49,12 +49,12 @@ export class StaffManagementService {
     return this.http.get<StaffRole[]>('/api/staff/roles');
   }
 
-  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null): Observable<void> {
-    return this.http.post<void>('/api/staff/roles', { name, hourlyRate, nameZh });
+  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null, nameVi: string | null = null): Observable<void> {
+    return this.http.post<void>('/api/staff/roles', { name, hourlyRate, nameZh, nameVi });
   }
 
-  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null): Observable<void> {
-    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(name)}/rate`, { hourlyRate, nameZh });
+  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null): Observable<void> {
+    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(name)}/rate`, { hourlyRate, nameZh, nameVi });
   }
 
   deleteRole(name: string): Observable<void> {

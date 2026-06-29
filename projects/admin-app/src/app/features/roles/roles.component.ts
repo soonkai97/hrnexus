@@ -40,6 +40,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   showForm      = signal(false);
   newRoleName   = '';
   newRoleNameZh = '';
+  newRoleNameVi = '';
   newRoleRate   = 0;
   saving        = signal(false);
   deletingRole  = signal<string | null>(null);
@@ -48,6 +49,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   editingRateName   = signal<string | null>(null);
   editingRateValue  = signal(0);
   editingRateNameZh = signal('');
+  editingRateNameVi = signal('');
   savingRate        = signal(false);
 
   // Role-permissions editor state
@@ -72,6 +74,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   openAdd(): void {
     this.newRoleName = '';
     this.newRoleNameZh = '';
+    this.newRoleNameVi = '';
     this.newRoleRate = 0;
     this.touched.set(new Set());
     this.showForm.set(true);
@@ -83,10 +86,11 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     const name = this.newRoleName.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
-    this.store.createRole(name, this.newRoleRate, this.newRoleNameZh.trim() || null).subscribe({
+    this.store.createRole(name, this.newRoleRate, this.newRoleNameZh.trim() || null, this.newRoleNameVi.trim() || null).subscribe({
       next: () => {
         this.newRoleName = '';
         this.newRoleNameZh = '';
+        this.newRoleNameVi = '';
         this.newRoleRate = 0;
         this.saving.set(false);
         this.showForm.set(false);
@@ -131,10 +135,11 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  startEditRate(name: string, currentRate: number, nameZh: string | null = null): void {
+  startEditRate(name: string, currentRate: number, nameZh: string | null = null, nameVi: string | null = null): void {
     this.editingRateName.set(name);
     this.editingRateValue.set(currentRate);
     this.editingRateNameZh.set(nameZh ?? '');
+    this.editingRateNameVi.set(nameVi ?? '');
   }
 
   cancelEditRate(): void { this.editingRateName.set(null); }
@@ -143,7 +148,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     const name = this.editingRateName();
     if (!name || this.savingRate()) return;
     this.savingRate.set(true);
-    this.store.updateRoleRate(name, this.editingRateValue(), this.editingRateNameZh().trim() || null).subscribe({
+    this.store.updateRoleRate(name, this.editingRateValue(), this.editingRateNameZh().trim() || null, this.editingRateNameVi().trim() || null).subscribe({
       next: () => {
         this.savingRate.set(false);
         this.editingRateName.set(null);
@@ -180,10 +185,10 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   // ── Role permissions editor ────────────────────────────────────────────────
 
   /** Per-row actions via the ellipsis menu (Delete only for custom roles). */
-  openRoleMenu(role: { name: string; hourlyRate: number; isSystem: boolean; nameZh: string | null }, event: Event): void {
+  openRoleMenu(role: { name: string; hourlyRate: number; isSystem: boolean; nameZh: string | null; nameVi: string | null }, event: Event): void {
     const items: MenuItem[] = [
       { label: this.translate.instant('roles.editRate'), icon: 'pi pi-pencil',
-        command: () => this.startEditRate(role.name, role.hourlyRate, role.nameZh) },
+        command: () => this.startEditRate(role.name, role.hourlyRate, role.nameZh, role.nameVi) },
       { label: this.translate.instant('permissions.roleTitle'), icon: 'pi pi-shield',
         command: () => this.openPermissions(role.name) },
     ];

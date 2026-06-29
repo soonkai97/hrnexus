@@ -55,13 +55,25 @@ describe('LocalizedNamePipe', () => {
     });
   });
 
-  describe('non-Chinese languages always show the primary name', () => {
-    it('should show the primary name in English even when a Chinese name exists', () => {
-      lang.set('en', false);
-      expect(pipe.transform('MAIN BAR', '主吧台')).toBe('MAIN BAR');
+  describe('Vietnamese language with a Vietnamese name set', () => {
+    beforeEach(() => lang.set('vi', false));
+
+    it('should show the Vietnamese name so vi users read the venue data in their language', () => {
+      expect(pipe.transform('MAIN BAR', '主吧台', 'Quầy Bar Chính')).toBe('Quầy Bar Chính');
     });
 
-    it('should show the primary name in Vietnamese even when a Chinese name exists', () => {
+    it('should fall back to the primary name when no Vietnamese name is set (even if a Chinese one is)', () => {
+      expect(pipe.transform('MAIN BAR', '主吧台', null)).toBe('MAIN BAR');
+    });
+  });
+
+  describe('non-matching languages always show the primary name', () => {
+    it('should show the primary name in English even when Chinese + Vietnamese names exist', () => {
+      lang.set('en', false);
+      expect(pipe.transform('MAIN BAR', '主吧台', 'Quầy Bar Chính')).toBe('MAIN BAR');
+    });
+
+    it('should not use the Chinese name when the language is Vietnamese', () => {
       lang.set('vi', false);
       expect(pipe.transform('MAIN BAR', '主吧台')).toBe('MAIN BAR');
     });

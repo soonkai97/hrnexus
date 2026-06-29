@@ -103,7 +103,7 @@ describe('RolesComponent', () => {
       component.newRoleName = '  bartender  ';
       component.newRoleRate = 15;
       component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, null);
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, null, null);
     });
 
     it('shows success toast after creating a role', () => {
@@ -218,7 +218,7 @@ describe('RolesComponent', () => {
 
     it('calls updateRoleRate with the role name and new rate', () => {
       component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('bartender', 15, null);
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('bartender', 15, null, null);
     });
 
     it('clears editingRateName after success — prevents accidental double-save', () => {

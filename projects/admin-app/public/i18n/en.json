@@ -100,6 +100,8 @@
   "common": {
     "nameZhLabel": "Chinese Name",
     "nameZhPlaceholder": "Optional — shown to Chinese users",
+    "nameViLabel": "Vietnamese Name",
+    "nameViPlaceholder": "Optional — shown to Vietnamese users",
     "save":      "Save",
     "saving":    "Saving…",
     "signingOut": "Signing out…",

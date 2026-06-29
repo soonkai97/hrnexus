@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, LocationStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
-         passwordChecks, isStrongPassword, BulkStaffImportResult, BulkStaffImportRow, UppercaseInputDirective, LangService } from 'shared-lib';
+         passwordChecks, isStrongPassword, BulkStaffImportResult, BulkStaffImportRow, UppercaseInputDirective, LangService, localizedNameFor } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -134,12 +134,12 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   // Picker options whose label follows the UI language (Chinese name when set + lang is zh).
   // Values stay the role name / location id so the bound models are unchanged.
   readonly roleOptions = computed(() => {
-    const zh = this.lang.current() === 'zh';
-    return this.availableRoles().map(r => ({ label: zh && r.nameZh?.trim() ? r.nameZh.trim() : r.name, value: r.name }));
+    const lang = this.lang.current();
+    return this.availableRoles().map(r => ({ label: localizedNameFor(lang, r.name, r.nameZh, r.nameVi), value: r.name }));
   });
   readonly locationOptions = computed(() => {
-    const zh = this.lang.current() === 'zh';
-    return this.availableLocations().map(l => ({ label: zh && l.nameZh?.trim() ? l.nameZh.trim() : l.name, value: l.id }));
+    const lang = this.lang.current();
+    return this.availableLocations().map(l => ({ label: localizedNameFor(lang, l.name, l.nameZh, l.nameVi), value: l.id }));
   });
 
   ngOnInit(): void {

@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
+import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, LocalizedNamePipe } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Card } from 'primeng/card';
@@ -12,7 +12,7 @@ import { PrimeTemplate } from 'primeng/api';   // provides the pTemplate="footer
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Dialog, PrimeTemplate],
+  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Dialog, PrimeTemplate, LocalizedNamePipe],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })
@@ -30,7 +30,7 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
   saving     = signal(false);
   deletingId = signal<string | null>(null);
 
-  form: UpsertLocationDto = { name: '' };
+  form: UpsertLocationDto = { name: '', nameZh: '' };
 
   readonly touched = signal<Set<string>>(new Set());
   markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
@@ -45,15 +45,15 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     return this.showForm() && !!this.form.name.trim();
   }
 
-  openAdd(): void    { this.form = { name: '' }; this.editing.set(null); this.touched.set(new Set()); this.showForm.set(true); }
-  openEdit(loc: Location): void { this.form = { name: loc.name }; this.editing.set(loc); this.touched.set(new Set()); this.showForm.set(true); }
+  openAdd(): void    { this.form = { name: '', nameZh: '' }; this.editing.set(null); this.touched.set(new Set()); this.showForm.set(true); }
+  openEdit(loc: Location): void { this.form = { name: loc.name, nameZh: loc.nameZh ?? '' }; this.editing.set(loc); this.touched.set(new Set()); this.showForm.set(true); }
   cancel(): void     { this.showForm.set(false); this.editing.set(null); this.touched.set(new Set()); }
 
   save(): void {
     const name = this.form.name.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
-    const dto: UpsertLocationDto = { name };
+    const dto: UpsertLocationDto = { name, nameZh: this.form.nameZh?.trim() || null };
     const done = () => { this.saving.set(false); this.showForm.set(false); this.editing.set(null); this.toast.success(this.translate.instant('locations.saved')); };
     const fail = (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('locations.saveFailed')); this.saving.set(false); };
     const editingId = this.editing()?.id;

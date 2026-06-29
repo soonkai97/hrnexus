@@ -5,7 +5,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, LocationStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, UpdateWorkLogRequest, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, LocationStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, UpdateWorkLogRequest, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions, LangService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -45,6 +45,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   private readonly workLogSvc  = inject(WorkLogService);
   private readonly permSvc     = inject(PermissionAdminService);
   private readonly translate   = inject(TranslateService);
+  private readonly lang        = inject(LangService);
 
   staff            = signal<StaffDetail | null>(null);
   loading          = signal(true);
@@ -58,8 +59,21 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
   availableRoles = computed(() => this.staffStore.roles());
   availableLocations = computed(() => this.locationStore.locations());
-  /** Resolve a location ID to its display name (for the read-only assigned-locations tags). */
-  locationName(id: string): string { return this.availableLocations().find(l => l.id === id)?.name ?? id; }
+
+  /** Pick a record's display name in the current UI language (Chinese name when set + lang is zh). */
+  private localized(name: string, nameZh: string | null | undefined): string {
+    return this.lang.current() === 'zh' && nameZh?.trim() ? nameZh.trim() : name;
+  }
+  /** Resolve a location ID to its (localized) display name — read-only assigned-location tags. */
+  locationName(id: string): string {
+    const loc = this.availableLocations().find(l => l.id === id);
+    return loc ? this.localized(loc.name, loc.nameZh) : id;
+  }
+  /** Resolve a role name to its (localized) display name — read-only assigned-role tags. */
+  roleName(name: string): string {
+    const role = this.availableRoles().find(r => r.name === name);
+    return role ? this.localized(role.name, role.nameZh) : name;
+  }
 
   /** Calendar days the shift ran past its work date (0 = same day) — drives the "+N" badge so an
    *  overnight/multi-day shift's end time isn't misread as ending before it started. */
@@ -77,8 +91,8 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalLogs() / this.pageSize)));
 
   // ── Work-log edit (admin can correct a shift directly from this page) ────────
-  readonly roleOptions     = computed(() => this.availableRoles().map(r => ({ label: r.name, value: r.name })));
-  readonly locationOptions = computed(() => this.availableLocations().map(l => ({ label: l.name, value: l.id })));
+  readonly roleOptions     = computed(() => this.availableRoles().map(r => ({ label: this.localized(r.name, r.nameZh), value: r.name })));
+  readonly locationOptions = computed(() => this.availableLocations().map(l => ({ label: this.localized(l.name, l.nameZh), value: l.id })));
 
   editLogVisible = signal(false);
   editLogSaving  = signal(false);

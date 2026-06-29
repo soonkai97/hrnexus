@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { WorkLogService, WorkLogDto, UpdateWorkLogRequest, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, todayLocalString, nowRoundedToHalfHour, TrimInputDirective, CanComponentDeactivate } from 'shared-lib';
+import { WorkLogService, WorkLogDto, UpdateWorkLogRequest, LocationStore, ToastService, ConfirmService, AuthService, AmPmPipe, todayLocalString, nowRoundedToHalfHour, TrimInputDirective, CanComponentDeactivate, LangService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -35,6 +35,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   private readonly confirmSvc    = inject(ConfirmService);
   readonly auth                  = inject(AuthService);
   private readonly translate     = inject(TranslateService);
+  private readonly lang          = inject(LangService);
 
   mode = signal<Mode>('live');
   view = signal<'log' | 'history'>('log');
@@ -73,9 +74,14 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   );
 
   // Staff may only log shifts at the locations they're assigned to.
-  readonly locationOptions = computed(() =>
-    this.locationStore.myLocations().map(l => ({ label: l.name, value: l.id }))
-  );
+  // Label follows the UI language: show the Chinese name when set and the language is zh.
+  readonly locationOptions = computed(() => {
+    const zh = this.lang.current() === 'zh';
+    return this.locationStore.myLocations().map(l => ({
+      label: zh && l.nameZh?.trim() ? l.nameZh.trim() : l.name,
+      value: l.id,
+    }));
+  });
 
   readonly locations = this.locationStore.myLocations;
   /** True once the assigned-locations fetch has returned and found none — blocks shift logging. */

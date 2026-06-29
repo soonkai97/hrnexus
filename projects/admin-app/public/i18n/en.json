@@ -98,6 +98,8 @@
     "releaseToRefresh": "Release to refresh"
   },
   "common": {
+    "nameZhLabel": "Chinese Name",
+    "nameZhPlaceholder": "Optional — shown to Chinese users",
     "save":      "Save",
     "saving":    "Saving…",
     "signingOut": "Signing out…",

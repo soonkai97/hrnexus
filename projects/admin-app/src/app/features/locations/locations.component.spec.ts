@@ -105,7 +105,7 @@ describe('LocationsComponent', () => {
 
     it('calls store.create when no location is being edited', () => {
       component.save();
-      expect(mockLocationStore.create).toHaveBeenCalledWith({ name: 'VIP LOUNGE' });
+      expect(mockLocationStore.create).toHaveBeenCalledWith({ name: 'VIP LOUNGE', nameZh: null });
     });
 
     it('does NOT call store.update on the create path', () => {
@@ -141,7 +141,7 @@ describe('LocationsComponent', () => {
 
     it('calls store.update with the editing location id and new form data', () => {
       component.save();
-      expect(mockLocationStore.update).toHaveBeenCalledWith('loc-1', { name: 'MAIN BAR RENAMED' });
+      expect(mockLocationStore.update).toHaveBeenCalledWith('loc-1', { name: 'MAIN BAR RENAMED', nameZh: null });
     });
 
     it('does NOT call store.create on the update path', () => {

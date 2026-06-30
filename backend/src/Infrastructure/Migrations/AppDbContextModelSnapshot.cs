@@ -66,6 +66,51 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("AuditLogs", (string)null);
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.CashAdvance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("AdvanceDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("SettledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("CashAdvances");
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.LeaveEntitlement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -637,6 +682,17 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasDatabaseName("IX_WorkLogs_EmployeeId_WorkDate");
 
                     b.ToTable("WorkLogs");
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.CashAdvance", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.Staff", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.LeaveEntitlement", b =>

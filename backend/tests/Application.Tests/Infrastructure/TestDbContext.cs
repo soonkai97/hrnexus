@@ -28,6 +28,7 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.AuditLog>         AuditLogs         => Set<E.AuditLog>();
     public DbSet<E.PushSubscription> PushSubscriptions => Set<E.PushSubscription>();
     public DbSet<E.PayrollLock>          PayrollLocks           => Set<E.PayrollLock>();
+    public DbSet<E.CashAdvance>          CashAdvances           => Set<E.CashAdvance>();
 
     // InMemory provider does not support transactions — return null so handlers skip tx logic.
     public Task<IDbContextTransaction?> BeginRepeatableReadAsync(CancellationToken ct = default)

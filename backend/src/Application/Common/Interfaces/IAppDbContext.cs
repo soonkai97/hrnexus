@@ -42,6 +42,7 @@ public interface IAppDbContext
     DbSet<AuditLog>           AuditLogs           { get; }
     DbSet<PushSubscription>   PushSubscriptions   { get; }
     DbSet<PayrollLock>           PayrollLocks            { get; }
+    DbSet<HRNexus.Domain.Entities.CashAdvance> CashAdvances { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 
     /// <summary>

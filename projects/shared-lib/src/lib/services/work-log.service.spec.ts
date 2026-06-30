@@ -34,6 +34,16 @@ describe('WorkLogService', () => {
 
   // ── getActive() ───────────────────────────────────────────────────────────────
 
+  describe('updateActiveLocation()', () => {
+    it('PATCHes /api/worklogs/active/location with the fresh coordinates', () => {
+      service.updateActiveLocation(3.1390, 101.6869).subscribe();
+      const req = http.expectOne('/api/worklogs/active/location');
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ latitude: 3.1390, longitude: 101.6869 });
+      req.flush(null);
+    });
+  });
+
   describe('getActive()', () => {
     it('calls GET /api/worklogs/active', () => {
       service.getActive().subscribe();

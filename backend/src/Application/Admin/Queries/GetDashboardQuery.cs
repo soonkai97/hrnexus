@@ -30,7 +30,10 @@ public record ActiveStaffDto(
     int      MinutesOnShift,
     string?  Notes,
     double?  StartLatitude,
-    double?  StartLongitude);
+    double?  StartLongitude,
+    double?  LastLatitude,
+    double?  LastLongitude,
+    DateTime? LastLocationAt);
 
 public record RecentEventDto(
     string   StaffName,
@@ -121,7 +124,10 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
                     minutesOnShift,
                     w.Notes,
                     w.StartLatitude,
-                    w.StartLongitude);
+                    w.StartLongitude,
+                    w.LastLatitude,
+                    w.LastLongitude,
+                    w.LastLocationAt);
             })
             .OrderBy(s => s.ClockedInAt)
             .ToList();

@@ -46,7 +46,11 @@
             </div>
           </div>
         } @else {
-          <p-button [label]="'logShift.endShift' | translate" severity="danger" (click)="openEndShift(a.id)" />
+          <div class="d-flex gap-2 flex-wrap">
+            <p-button [label]="'logShift.updateLocation' | translate" icon="pi pi-map-marker"
+                      severity="secondary" [outlined]="true" [loading]="updatingLocation()" (click)="updateLocation()" />
+            <p-button [label]="'logShift.endShift' | translate" severity="danger" (click)="openEndShift(a.id)" />
+          </div>
         }
       </p-card>
     }

@@ -62,6 +62,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   totalHistoryPages = computed(() => Math.max(1, Math.ceil(this.totalHistory() / this.historyPageSize)));
   loading    = signal(false);
   submitting = signal(false);
+  updatingLocation = signal(false);
 
   // Only show roles assigned to the current staff member
   readonly myRoles = computed(() => {
@@ -262,6 +263,24 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
           // failed silently on page load), refresh now so the End Shift card appears.
           this.loadActive();
         },
+      });
+    });
+  }
+
+  /** "Update location" — capture a fresh GPS fix and push it to the active shift. Best-effort:
+   *  if the staff denies permission or it's unavailable, tell them rather than failing silently. */
+  updateLocation(): void {
+    if (this.updatingLocation()) return;
+    this.updatingLocation.set(true);
+    this.getDeviceCoords().then(coords => {
+      if (!coords) {
+        this.updatingLocation.set(false);
+        this.toast.warning(this.translate.instant('logShift.locationUnavailable'));
+        return;
+      }
+      this.workLogSvc.updateActiveLocation(coords.lat, coords.lng).subscribe({
+        next:  () => { this.updatingLocation.set(false); this.toast.success(this.translate.instant('logShift.locationUpdated')); },
+        error: (e) => { this.updatingLocation.set(false); this.toast.error(e?.error?.error ?? this.translate.instant('logShift.locationUpdateFailed')); },
       });
     });
   }

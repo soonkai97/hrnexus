@@ -97,7 +97,7 @@
               <td class="td-name">{{ s.name }}</td>
               <td><p-tag [value]="s.role" severity="info" /></td>
               <td class="td-muted">
-                @if (s.startLatitude != null && s.startLongitude != null) {
+                @if (hasLocation(s)) {
                   <a [href]="mapsUrl(s)" target="_blank" rel="noopener" class="map-link"
                      [pTooltip]="'dashboard.openInMaps' | translate" tooltipPosition="top">
                     <i class="pi pi-map-marker"></i> {{ s.locationName }}

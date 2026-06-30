@@ -24,6 +24,10 @@ export interface ActiveStaffDto {
   /** GPS captured from the staff device at clock-in (null if denied/unavailable). */
   startLatitude?:  number | null;
   startLongitude?: number | null;
+  /** Latest GPS the staff pushed via "Update location" during the shift (null until they do). */
+  lastLatitude?:   number | null;
+  lastLongitude?:  number | null;
+  lastLocationAt?: string | null;
 }
 
 export interface RecentEventDto {

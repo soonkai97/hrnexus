@@ -77,6 +77,11 @@ export class WorkLogService {
     return this.http.put<void>(`/api/worklogs/${id}/end`, { endTime });
   }
 
+  /** Push a fresh GPS fix for the caller's current shift (staff "Update location" button). */
+  updateActiveLocation(latitude: number, longitude: number): Observable<void> {
+    return this.http.patch<void>('/api/worklogs/active/location', { latitude, longitude });
+  }
+
   /** Admin/manager closes an OPEN shift (staff forgot to clock out) at a chosen end date + time. */
   adminEndShift(id: string, endDate: string, endTime: string): Observable<void> {
     return this.http.put<void>(`/api/worklogs/${id}/admin-end`, { endDate, endTime });

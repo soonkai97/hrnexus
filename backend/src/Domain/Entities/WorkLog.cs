@@ -19,6 +19,11 @@ public class WorkLog : IHasAudit, ISoftDelete
     // or for manual/back-dated entries). Used to show where the staff member physically started the shift.
     public double?   StartLatitude    { get; private set; }
     public double?   StartLongitude   { get; private set; }
+    // Latest GPS the staff member pushed via "Update location" during the shift (null until they do).
+    // The dashboard shows this in preference to the clock-in position so admins see where they are now.
+    public double?   LastLatitude     { get; private set; }
+    public double?   LastLongitude    { get; private set; }
+    public DateTime? LastLocationAt   { get; private set; }
     public decimal   HourlyRateSnapshot { get; private set; }
     public bool      IsEdited         { get; private set; }
     public DateTime? EditedAt         { get; private set; }
@@ -80,6 +85,14 @@ public class WorkLog : IHasAudit, ISoftDelete
     /// <summary>The next day if the end time is at/before the start (overnight), else the same day.</summary>
     private static DateOnly InferEndDate(DateOnly workDate, string startTime, string endTime) =>
         TimeOnly.Parse(endTime) <= TimeOnly.Parse(startTime) ? workDate.AddDays(1) : workDate;
+
+    /// <summary>Records a fresh GPS fix the staff member pushed during the shift (on-demand "Update location").</summary>
+    public void UpdateLocation(double latitude, double longitude, DateTime at)
+    {
+        LastLatitude   = latitude;
+        LastLongitude  = longitude;
+        LastLocationAt = at;
+    }
 
     public void End(DateOnly endDate, string endTime) { EndDate = endDate; EndTime = endTime; }
 

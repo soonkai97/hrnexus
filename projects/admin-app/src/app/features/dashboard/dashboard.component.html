@@ -58,6 +58,23 @@
           <span class="stat-sub">{{ 'dashboard.thisShift' | translate }}</span>
         </p-card>
       </div>
+      <!-- Financial cards — month-to-date payroll + advances (only for callers who can see payroll). -->
+      @if (earnings(); as e) {
+        <div class="col">
+          <p-card styleClass="stat-card accent-green h-100">
+            <span class="stat-label">{{ 'dashboard.earnedThisMonth' | translate }}</span>
+            <span class="stat-value">RM {{ e.totalThisMonth | number:'1.2-2' }}</span>
+            <span class="stat-sub">{{ 'dashboard.monthToDate' | translate }}</span>
+          </p-card>
+        </div>
+        <div class="col">
+          <p-card styleClass="stat-card accent-amber h-100">
+            <span class="stat-label">{{ 'dashboard.outstandingAdvances' | translate }}</span>
+            <span class="stat-value">{{ e.totalOutstandingAdvance > 0 ? ('RM ' + (e.totalOutstandingAdvance | number:'1.2-2')) : '—' }}</span>
+            <span class="stat-sub">{{ 'dashboard.toDeductFromSalary' | translate }}</span>
+          </p-card>
+        </div>
+      }
       @if (s.openShiftsCount) {
         <div class="col">
           <p-card styleClass="stat-card warn-card h-100">

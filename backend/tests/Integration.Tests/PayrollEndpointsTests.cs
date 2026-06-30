@@ -103,6 +103,31 @@ public class PayrollEndpointsTests(PostgresFixture fx) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Payslip_DeductsOutstandingAdvance_ForNetPayable_AndGroupsJobs()
+    {
+        var staffId = await SeedStaffWithShiftsAsync();   // gross 660 (160 hourly + 500 fixed)
+
+        // Record an outstanding advance of 200 against the same staff member.
+        await using (var seed = fx.NewDb())
+        {
+            var emp = await seed.Staff.FirstAsync(s => s.StaffId == staffId);
+            seed.CashAdvances.Add(E.CashAdvance.Create(emp.Id, 200m, new DateOnly(2026, 4, 2), "advance", "admin"));
+            await seed.SaveChangesAsync();
+        }
+
+        var client = await AdminClientAsync("10.0.9.6");
+        var resp = await client.GetAsync($"/api/admin/payroll/payslip?staffId={staffId}&from=2026-04-01&to=2026-04-30");
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+
+        using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+        var root = doc.RootElement;
+        Assert.Equal(660m, root.GetProperty("totalPay").GetDecimal());
+        Assert.Equal(200m, root.GetProperty("outstandingAdvance").GetDecimal());
+        Assert.Equal(460m, root.GetProperty("netPayable").GetDecimal());        // 660 − 200
+        Assert.Equal(2,    root.GetProperty("jobBreakdown").GetArrayLength());    // BARTENDER + PACKAGE
+    }
+
+    [Fact]
     public async Task PayslipExport_ReturnsCsv_WithTotalRow()
     {
         var staffId = await SeedStaffWithShiftsAsync();
@@ -115,7 +140,8 @@ public class PayrollEndpointsTests(PostgresFixture fx) : IAsyncLifetime
         var csv = await resp.Content.ReadAsStringAsync();
         Assert.Contains("Work Date,Start,End Date", csv);   // header
         Assert.Contains("2026-04-05", csv);                  // the hourly shift
-        Assert.Contains("TOTAL", csv);                       // trailing totals row
+        Assert.Contains("GROSS TOTAL", csv);                 // trailing summary rows
+        Assert.Contains("NET PAYABLE", csv);
     }
 
     [Fact]

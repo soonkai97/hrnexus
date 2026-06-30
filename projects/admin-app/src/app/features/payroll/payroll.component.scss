@@ -44,37 +44,6 @@
 
 .td-actions   { text-align: right; white-space: nowrap; }
 
-// ── Payslip drill-down dialog ────────────────────────────────────────────────
-.payslip-range  { margin-bottom: 1.25rem; }
-.payslip-totals {
-  align-items: flex-end;
-  padding: 0.85rem 1rem;
-  background: rgba(37, 99, 235, 0.06);
-  border: 1px solid $border-glow;
-  border-radius: $radius-md;
-  margin-bottom: 1rem;
-}
-.payslip-export-wrap { margin-left: auto; }
-.snap-stat-value.advance { color: $neon-amber; }
-.snap-stat-value.net     { color: $neon-green; }
-
-.payslip-jobs       { margin-bottom: 1rem; }
-.payslip-jobs-title { display: block; font-size: 0.7rem; font-weight: 700; color: $text-muted; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
-.payslip-jobs-grid  { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.job-chip {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.4rem 0.7rem;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-pill;
-  background: $bg-surface;
-  font-size: 0.8rem;
-  .job-name   { font-weight: 700; color: $text-primary; }
-  .job-detail { color: $text-muted; }
-  .job-pay    { font-weight: 700; color: $neon-purple; }
-}
-.edited-flag    { color: $neon-amber; font-size: 0.72rem; margin-left: 0.35rem; }
-:host :deep(.paytype-tag) { margin-left: 0.4rem; font-size: 0.62rem; vertical-align: middle; }
-
 // ── Responsive table → card stack at 640px ───────────────────────────────────
 @media (max-width: 640px) {
   :host :deep(.p-datatable-table) { display: block; }

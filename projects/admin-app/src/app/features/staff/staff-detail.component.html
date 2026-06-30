@@ -7,10 +7,17 @@
       <h1 class="page-title">{{ staff()?.fullName ?? '…' }}</h1>
       <span class="page-sub">{{ staff()?.staffId }}</span>
     </div>
-    @if (activeTab() === 'profile' && !editMode()) {
-      <p-button icon="pi pi-pencil" [label]="'staffDetail.editBtn' | translate" severity="primary" (click)="startEdit()" />
-    }
+    <div class="d-flex gap-2">
+      @if (staff()) {
+        <p-button icon="pi pi-receipt" [label]="'payroll.viewPayslip' | translate" severity="secondary" [outlined]="true" (click)="openPayslip()" />
+      }
+      @if (activeTab() === 'profile' && !editMode()) {
+        <p-button icon="pi pi-pencil" [label]="'staffDetail.editBtn' | translate" severity="primary" (click)="startEdit()" />
+      }
+    </div>
   </div>
+
+  <app-payslip-dialog />
 
   @if (loading()) {
     <p-card styleClass="nc-card" class="mb-4">

@@ -1,5 +1,28 @@
 @use 'styles/theme' as *;
 
+// Labour-cost split by pay model (packages vs hourly)
+.paytype-split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  .split-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    background: $bg-surface;
+    min-width: 140px;
+    &.total { border-color: $border-glow; }
+  }
+  .split-label { font-size: 0.68rem; font-weight: 700; color: $text-muted; text-transform: uppercase; letter-spacing: 0.05em; }
+  .split-value { font-size: 1.3rem; font-weight: 800; color: $neon-purple; line-height: 1.1; }
+  .split-meta  { font-size: 0.72rem; color: $text-muted; }
+}
+:host :deep(.paytype-tag) { margin-left: 0.35rem; font-size: 0.6rem; vertical-align: middle; }
+
 // Info icon on the Est. Labour Cost stat card
 .stat-info {
   font-size: 0.7rem;

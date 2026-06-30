@@ -225,6 +225,40 @@ public class AdminQueryPushTests
     }
 
     [Fact]
+    public async Task GetReport_SplitsCostByPayType_AndExposesPayTypePerShift()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff("S001");
+        db.Staff.Add(staff);
+
+        var workDate = new DateOnly(2025, 6, 1);
+        // Hourly: 8h × 20 = 160
+        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main",
+            workDate, "09:00", "17:00", 20m));
+        // Fixed overnight package: 12h, flat 500 (cost must NOT be 12 × 500)
+        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "PACKAGE", "loc1", "Main",
+            workDate, "20:00", "08:00", 500m, notes: null, payType: HRNexus.Domain.Constants.AppConstants.PayType.Fixed));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new GetReportQueryHandler(db);
+        var result  = await handler.Handle(
+            new GetReportQuery(
+                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+                null, null, null),
+            CancellationToken.None);
+
+        Assert.Equal(1,    result.Summary.HourlyShifts);
+        Assert.Equal(160m, result.Summary.HourlyCost);
+        Assert.Equal(1,    result.Summary.FixedShifts);
+        Assert.Equal(500m, result.Summary.FixedCost);          // flat, not 12 × 500
+        Assert.Equal(660m, result.Summary.TotalCost);
+        Assert.Contains(result.Shifts, s => s.PayType == "fixed"  && s.Cost == 500m);
+        Assert.Contains(result.Shifts, s => s.PayType == "hourly" && s.Cost == 160m);
+    }
+
+    [Fact]
     public async Task GetReport_ExcludesOpenShifts()
     {
         await using var db = CreateDb();

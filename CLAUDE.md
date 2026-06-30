@@ -1026,7 +1026,7 @@ Default to surfacing uncertainty, not hiding it.
 After any session that modifies source files, spec files, config, or migrations:
 
 1. **All tests green first** — never ship broken code.
-2. **Commit everything to GitHub** — staged, committed, pushed to `origin/master`.
+2. **Land the work via a feature branch + PR** — one branch per feature, open a PR, then squash-merge into `master`. **Do NOT push to `master` directly** (Claude Code auto mode blocks it anyway — see below).
 3. **Docker rebuild and redeploy** — always `--no-cache` for any Angular/SCSS/TS change.
 
 ```powershell
@@ -1036,19 +1036,29 @@ npx ng test admin-app  --no-watch
 npx ng test staff-app  --no-watch
 Set-Location backend; dotnet test; Set-Location ..
 
-# Step 2 — commit and push
+# Step 2 — feature branch → commit → PR → squash-merge
+git switch -c feat/<name>
 git add -A
 git commit -m "your message here"
-git push origin master
+git push -u origin feat/<name>
+gh pr create --base master --title "..." --body-file <body.md>
+# after tests green + Docker rebuilt:
+gh pr merge <n> --squash --delete-branch
+git switch master; git pull origin master
 
 # Step 3 — rebuild and redeploy Docker
 docker compose build web --no-cache
 docker compose up -d web
 ```
 
+**Workflow:** feature branch → commit → PR → squash-merge into `master`. The app is live in
+production, so `master` only advances through merged PRs. Auto mode **blocks** `git push origin master`
+(bypasses PR review) but allows feature-branch push, `gh pr create`, and `gh pr merge` — so the PR flow
+is the path of least friction. (This supersedes the earlier "push to master" instruction.)
+
 **Never leave Docker stale.** A stale Docker image means the running app doesn't match the source. If unsure whether Docker is current, rebuild — `--no-cache` takes a few minutes and is always safe.
 
-**Never leave commits unpushed.** All work must be on `origin/master` so it isn't lost and so teammates/CI can see it.
+**Never leave work unmerged.** All work must reach `origin/master` (via a merged PR) so it isn't lost and so teammates/CI can see it.
 
 ---
 

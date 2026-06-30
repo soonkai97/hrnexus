@@ -102,4 +102,31 @@ describe('AdminService', () => {
       req.flush({ year: 2026, month: 5, staff: [], totalGross: 0 });
     });
   });
+
+  // ── getPayslip() ──────────────────────────────────────────────────────────
+
+  describe('getPayslip()', () => {
+    it('calls GET /api/admin/payroll/payslip with employeeId + from/to params', () => {
+      service.getPayslip('S001', '2026-05-01', '2026-05-31').subscribe();
+      const req = http.expectOne(r => r.url === '/api/admin/payroll/payslip');
+      expect(req.request.method).toBe('GET');
+      expect(req.request.urlWithParams).toContain('staffId=S001');
+      expect(req.request.urlWithParams).toContain('from=2026-05-01');
+      expect(req.request.urlWithParams).toContain('to=2026-05-31');
+      req.flush({ staffId: 'S1', staffName: 'A', from: '2026-05-01', to: '2026-05-31', totalHours: 0, totalPay: 0, shifts: [] });
+    });
+  });
+
+  // ── exportPayslipCsv() ────────────────────────────────────────────────────
+
+  describe('exportPayslipCsv()', () => {
+    it('requests a blob from the payslip export endpoint with the date range', () => {
+      service.exportPayslipCsv('S001', '2026-05-01', '2026-05-31').subscribe();
+      const req = http.expectOne(r => r.url === '/api/admin/payroll/payslip/export');
+      expect(req.request.method).toBe('GET');
+      expect(req.request.responseType).toBe('blob');
+      expect(req.request.urlWithParams).toContain('staffId=S001');
+      req.flush(new Blob());
+    });
+  });
 });

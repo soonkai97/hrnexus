@@ -154,6 +154,32 @@ export interface EarningsSnapshotResponse {
   staff: StaffEarningsRow[];
 }
 
+/** One completed shift on a staff member's detailed payslip. */
+export interface PayslipShiftRow {
+  workDate: string;             // yyyy-MM-dd
+  startTime: string;            // HH:mm
+  endDate: string | null;       // yyyy-MM-dd (may differ for overnight / multi-day)
+  endTime: string | null;       // HH:mm
+  hours: number;
+  role: string;                 // job name
+  locationName: string;
+  payType: 'hourly' | 'fixed';
+  rate: number;                 // per-hour, or flat-per-shift when fixed
+  pay: number;                  // computed pay for this shift
+  isEdited: boolean;
+  notes: string | null;
+}
+
+export interface PayslipResponse {
+  staffId: string;
+  staffName: string;
+  from: string;                 // yyyy-MM-dd
+  to: string;                   // yyyy-MM-dd
+  totalHours: number;
+  totalPay: number;
+  shifts: PayslipShiftRow[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly http = inject(HttpClient);
@@ -189,5 +215,17 @@ export class AdminService {
   /** Live per-staff "earned today" + "earned this month" totals (completed shifts). */
   getEarningsSnapshot(): Observable<EarningsSnapshotResponse> {
     return this.http.get<EarningsSnapshotResponse>('/api/admin/payroll/earnings-snapshot');
+  }
+
+  /** Detailed payslip for one staff member: every completed shift between `from`–`to` (yyyy-MM-dd). */
+  getPayslip(staffId: string, from: string, to: string): Observable<PayslipResponse> {
+    return this.http.get<PayslipResponse>('/api/admin/payroll/payslip',
+      { params: new HttpParams().set('staffId', staffId).set('from', from).set('to', to) });
+  }
+
+  /** Download the detailed payslip as CSV. Triggers a browser download. */
+  exportPayslipCsv(staffId: string, from: string, to: string): Observable<Blob> {
+    return this.http.get('/api/admin/payroll/payslip/export',
+      { params: new HttpParams().set('staffId', staffId).set('from', from).set('to', to), responseType: 'blob' });
   }
 }

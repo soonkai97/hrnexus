@@ -42,8 +42,10 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         var log = await db.WorkLogs.FindAsync([req.Id], ct)
             ?? throw new KeyNotFoundException("Work log not found.");
 
-        if (!req.IsPrivileged && log.EmployeeId != req.CallerId)
-            throw new UnauthorizedAccessException("Not your shift.");
+        // Staff cannot edit shift history — only an admin/manager can. Staff must ask an admin to make
+        // corrections (keeps the attendance record tamper-resistant).
+        if (!req.IsPrivileged)
+            throw new UnauthorizedAccessException("Only an admin can edit a shift. Please ask your manager to make the change.");
 
         if (log.EndTime == null)
             throw new InvalidOperationException("Cannot edit an active shift. End it first.");

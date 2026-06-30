@@ -18,6 +18,10 @@ export class AuthService {
   private _user = signal<AuthUser | null>(this.loadUser());
   readonly user = this._user.asReadonly();
   readonly isAuthenticated = computed(() => this._user() !== null);
+  /** True while an explicit sign-out is navigating away — lets guards (e.g. unsaved-changes)
+   *  skip their prompts so logout is never blocked or deadlocked behind a confirm dialog. */
+  private readonly _loggingOut = signal(false);
+  readonly loggingOut = this._loggingOut.asReadonly();
   /** Highest-privilege permission level derived from roles */
   readonly userRole = computed((): UserRole | null => {
     const roles = (this._user()?.roles ?? []).map(r => r.toUpperCase());
@@ -77,11 +81,14 @@ export class AuthService {
     // Best-effort server-side logout: expires the auth cookies and clears the DB refresh token.
     // We clear local state and navigate immediately regardless of the network result; the in-flight
     // request still completes and its Set-Cookie clears the cookies.
+    this._loggingOut.set(true);   // signal guards to allow the navigation without prompting
     this.http.post<void>('/api/auth/logout', {}).subscribe({ error: () => { /* ignore */ } });
     localStorage.removeItem(USER_KEY);
     this._user.set(null);
     this.permissions.clear();   // don't let the next user inherit cached permissions
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/auth/login'])
+      .catch(() => false)   // never let a navigation rejection leak; we still reset below
+      .finally(() => this._loggingOut.set(false));
   }
 
   hasRole(...checkRoles: UserRole[]): boolean {

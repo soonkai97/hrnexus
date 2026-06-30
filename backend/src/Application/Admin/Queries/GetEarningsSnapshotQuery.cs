@@ -17,13 +17,15 @@ public record StaffEarningsRow(
     string  StaffId,
     string  Name,
     decimal EarnedToday,
-    decimal EarnedThisMonth);
+    decimal EarnedThisMonth,
+    decimal OutstandingAdvance);   // unsettled cash advances owed, to deduct from salary
 
 public record EarningsSnapshotResult(
     string                  Date,            // today's local date, yyyy-MM-dd
     string                  Month,           // current month, yyyy-MM
     decimal                 TotalToday,
     decimal                 TotalThisMonth,
+    decimal                 TotalOutstandingAdvance,
     List<StaffEarningsRow>  Staff);
 
 public class GetEarningsSnapshotQueryHandler(IAppDbContext db, IDateTimeProvider dt)
@@ -39,6 +41,14 @@ public class GetEarningsSnapshotQueryHandler(IAppDbContext db, IDateTimeProvider
             .Where(w => w.WorkDate >= monthStart && w.WorkDate <= today && w.EndTime != null)
             .Include(w => w.Employee)
             .ToListAsync(ct);
+
+        // Unsettled cash advances owed per staff member (to deduct from salary).
+        var outstanding = await db.CashAdvances
+            .Where(c => c.Status == Domain.Entities.CashAdvance.Outstanding)
+            .GroupBy(c => c.EmployeeId)
+            .Select(g => new { EmployeeId = g.Key, Total = g.Sum(c => c.Amount) })
+            .ToListAsync(ct);
+        var outstandingByEmp = outstanding.ToDictionary(x => x.EmployeeId, x => x.Total);
 
         var rows = logs
             .Where(w => w.Employee != null)
@@ -57,7 +67,8 @@ public class GetEarningsSnapshotQueryHandler(IAppDbContext db, IDateTimeProvider
                 }
                 var emp = g.First().Employee!;
                 return new StaffEarningsRow(emp.StaffId, emp.FullName,
-                    Math.Round(earnedToday, 2), Math.Round(earnedMonth, 2));
+                    Math.Round(earnedToday, 2), Math.Round(earnedMonth, 2),
+                    outstandingByEmp.GetValueOrDefault(g.Key));
             })
             .Where(r => r.EarnedThisMonth > 0)
             .OrderByDescending(r => r.EarnedToday)
@@ -69,6 +80,7 @@ public class GetEarningsSnapshotQueryHandler(IAppDbContext db, IDateTimeProvider
             today.ToString("yyyy-MM"),
             Math.Round(rows.Sum(r => r.EarnedToday), 2),
             Math.Round(rows.Sum(r => r.EarnedThisMonth), 2),
+            outstandingByEmp.Values.Sum(),
             rows);
     }
 }

@@ -42,13 +42,14 @@ public static class AppConstants
         public const string PayrollLock        = "payroll.lock";        // lock/reopen payroll periods
         public const string RolesManage        = "roles.manage";        // roles + rates + permissions
         public const string LocationsManage    = "locations.manage";    // venue locations
+        public const string CashAdvanceManage  = "cashadvance.manage";  // record/settle staff cash advances
 
         /// <summary>Every catalog key — used for validation and seeding system roles.</summary>
         public static readonly IReadOnlyList<string> All = new[]
         {
             PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage, WorkLogManage,
             ReportsView, PayrollView, PayrollManage, PayrollLock,
-            RolesManage, LocationsManage,
+            RolesManage, LocationsManage, CashAdvanceManage,
         };
 
         /// <summary>Authorization policy-name prefix: [Authorize(Policy = "perm:staff.manage")].</summary>

@@ -27,6 +27,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<AuditLog>          AuditLogs          => Set<AuditLog>();
     public DbSet<PushSubscription>     PushSubscriptions   => Set<PushSubscription>();
     public DbSet<PayrollLock>          PayrollLocks           => Set<PayrollLock>();
+    public DbSet<CashAdvance>          CashAdvances           => Set<CashAdvance>();
 
     /// <summary>
     /// Begins a RepeatableRead transaction for leave-balance TOCTOU protection.
@@ -67,6 +68,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new AuditLogConfiguration());
         mb.ApplyConfiguration(new PushSubscriptionConfiguration());
         mb.ApplyConfiguration(new PayrollLockConfiguration());
+        mb.ApplyConfiguration(new CashAdvanceConfiguration());
         SeedData.Seed(mb);
     }
 

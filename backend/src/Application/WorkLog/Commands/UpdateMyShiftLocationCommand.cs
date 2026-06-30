@@ -17,7 +17,8 @@ public class UpdateMyShiftLocationCommandHandler(IAppDbContext db, IDateTimeProv
             w => w.EmployeeId == req.EmployeeId && w.EndTime == null, ct)
             ?? throw new InvalidOperationException("You don't have an active shift to update.");
 
-        log.UpdateLocation(req.Latitude, req.Longitude, dt.LocalNow);
+        // Must be UTC-kind — LastLocationAt is a timestamptz column and Npgsql rejects Local/Unspecified.
+        log.UpdateLocation(req.Latitude, req.Longitude, dt.UtcNow);
         await db.SaveChangesAsync(ct);
     }
 }

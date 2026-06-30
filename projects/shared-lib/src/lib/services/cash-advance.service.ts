@@ -35,10 +35,6 @@ export class CashAdvanceService {
     return this.http.get<CashAdvanceDto[]>(url);
   }
 
-  listMine(): Observable<CashAdvanceDto[]> {
-    return this.http.get<CashAdvanceDto[]>('/api/cash-advances/mine');
-  }
-
   create(req: CreateCashAdvanceRequest): Observable<{ id: string }> {
     return this.http.post<{ id: string }>('/api/cash-advances', req);
   }

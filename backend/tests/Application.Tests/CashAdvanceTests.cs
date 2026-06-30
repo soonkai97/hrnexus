@@ -122,20 +122,4 @@ public class CashAdvanceTests
         Assert.Equal(50m, outstanding[0].Amount);
     }
 
-    [Fact]
-    public async Task My_query_returns_only_the_callers_own_advances()
-    {
-        await using var db = CreateDb();
-        var alice = await SeedStaff(db, "S001", "Alice");
-        var bob   = await SeedStaff(db, "S002", "Bob");
-        var create = new CreateCashAdvanceCommandHandler(db);
-        await create.Handle(new CreateCashAdvanceCommand(alice.Id, 100m, Day, null, "Manager"), default);
-        await create.Handle(new CreateCashAdvanceCommand(bob.Id, 999m, Day, null, "Manager"), default);
-
-        var mine = await new GetMyCashAdvancesQueryHandler(db).Handle(new GetMyCashAdvancesQuery(alice.Id), default);
-
-        Assert.Single(mine);
-        Assert.Equal(alice.Id, mine[0].EmployeeId);
-        Assert.Equal(100m, mine[0].Amount);
-    }
 }

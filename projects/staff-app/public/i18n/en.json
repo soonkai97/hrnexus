@@ -37,16 +37,7 @@
     "home":            "Home",
     "logShift":        "Log Shift",
     "leave":           "Leave",
-    "profile":         "Profile",
-    "cashAdvances":    "Cash Advances"
-  },
-  "myCashAdvances": {
-    "title": "My Cash Advances",
-    "totalOutstanding": "Outstanding to deduct",
-    "outstanding": "Outstanding",
-    "settled": "Settled",
-    "empty": "No cash advances.",
-    "loadFailed": "Failed to load cash advances."
+    "profile":         "Profile"
   },
   "home": {
     "goodMorning":          "Good morning",

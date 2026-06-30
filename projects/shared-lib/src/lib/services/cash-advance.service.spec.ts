@@ -29,13 +29,6 @@ describe('CashAdvanceService', () => {
     http.expectOne('/api/cash-advances?status=outstanding').flush([]);
   });
 
-  it('listMine() GETs the caller-scoped endpoint', () => {
-    service.listMine().subscribe();
-    const req = http.expectOne('/api/cash-advances/mine');
-    expect(req.request.method).toBe('GET');
-    req.flush([]);
-  });
-
   it('create() POSTs the advance body', () => {
     service.create({ employeeId: 'e1', amount: 100, advanceDate: '2026-06-30', reason: null }).subscribe();
     const req = http.expectOne('/api/cash-advances');

@@ -103,7 +103,15 @@ describe('RolesComponent', () => {
       component.newRoleName = '  bartender  ';
       component.newRoleRate = 15;
       component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, null, null);
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, null, null, 'hourly');
+    });
+
+    it('passes the selected pay type (fixed) through to createRole', () => {
+      component.newRoleName = 'package';
+      component.newRoleRate = 500;
+      component.newRolePayType = 'fixed';
+      component.addRole();
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('PACKAGE', 500, null, null, 'fixed');
     });
 
     it('shows success toast after creating a role', () => {
@@ -206,6 +214,11 @@ describe('RolesComponent', () => {
       component.cancelEditRate();
       expect(component.editingRateName()).toBeNull();
     });
+
+    it('seeds editingRatePayType from the role so the toggle reflects the current pay model', () => {
+      component.startEditRate('package', 500, null, null, 'fixed');
+      expect(component.editingRatePayType()).toBe('fixed');
+    });
   });
 
   // ── saveRate() ────────────────────────────────────────────────────────────────
@@ -218,7 +231,7 @@ describe('RolesComponent', () => {
 
     it('calls updateRoleRate with the role name and new rate', () => {
       component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('bartender', 15, null, null);
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('bartender', 15, null, null, 'hourly');
     });
 
     it('clears editingRateName after success — prevents accidental double-save', () => {

@@ -31,6 +31,6 @@ public class GetMyWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetMy
     {
         var isActive = w.EndTime == null || w.EndDate == null;
         var hours    = isActive ? 0m : ShiftHours.CalcHours(w.WorkDate, w.StartTime, w.EndDate!.Value, w.EndTime!);
-        return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime, Math.Round(hours, 2), Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
+        return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime, Math.Round(hours, 2), Math.Round(ShiftPay.Calc(w.PayTypeSnapshot, hours, w.HourlyRateSnapshot), 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
     }
 }

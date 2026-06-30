@@ -70,7 +70,7 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         if (!locationAssigned)
             throw new InvalidOperationException("You are not assigned to this location.");
 
-        var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes, req.Latitude, req.Longitude);
+        var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes, req.Latitude, req.Longitude, role.PayType);
         db.WorkLogs.Add(log);
         try
         {

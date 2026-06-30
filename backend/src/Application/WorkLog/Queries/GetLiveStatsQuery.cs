@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.WorkLog.Queries;
@@ -37,7 +38,7 @@ public class GetLiveStatsQueryHandler(IAppDbContext db, IDateTimeProvider dt)
             var diff = s == e ? TimeSpan.Zero : (e > s ? e - s : e + TimeSpan.FromHours(24) - s);
             var h    = (decimal)diff.TotalHours;
             tonightHours += h;
-            tonightCost  += h * w.HourlyRateSnapshot;
+            tonightCost  += ShiftPay.Calc(w.PayTypeSnapshot, h, w.HourlyRateSnapshot);
         }
 
         return new LiveStatsDto(

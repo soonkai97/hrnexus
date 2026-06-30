@@ -76,6 +76,15 @@ public static class AppConstants
         public const int AnnualLeaveAdvanceDays = 3;
     }
 
+    // ── Pay types ────────────────────────────────────────────────────────────────
+    /// <summary>How a job is paid. "hourly" = hours × rate; "fixed" = a flat amount per shift
+    /// (e.g. an overnight package) regardless of hours logged.</summary>
+    public static class PayType
+    {
+        public const string Hourly = "hourly";
+        public const string Fixed  = "fixed";
+    }
+
     // ── Notification types ─────────────────────────────────────────────────────
     public static class NotificationType
     {

@@ -78,7 +78,7 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         // Price the shift at the rate in effect ON its work date, not the role's current rate —
         // so a back-dated entry made after a raise still uses the historical rate.
         var rateAsOf = await RoleRateLookup.RateAsOfAsync(db, req.RoleName, req.WorkDate, role.HourlyRate, ct);
-        var log = Domain.Entities.WorkLog.CreateManual(req.EmployeeId, req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, endDate, req.EndTime, rateAsOf, req.Notes);
+        var log = Domain.Entities.WorkLog.CreateManual(req.EmployeeId, req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, endDate, req.EndTime, rateAsOf, req.Notes, role.PayType);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync(ct);
         return log.Id;

@@ -46,10 +46,15 @@ export interface StaffDetail extends Staff {
   createdAt: string;
 }
 
+/** How a job is paid. 'hourly' = hours × rate; 'fixed' = a flat amount per shift. */
+export type PayType = 'hourly' | 'fixed';
+
 export interface StaffRole {
   name: string;
   isSystem: boolean;
   hourlyRate: number;
+  /** 'hourly' = the rate is per hour; 'fixed' = the rate is a flat fee for the whole shift. */
+  payType: PayType;
   /** Optional Chinese name; shown instead of `name` when the UI language is Chinese. */
   nameZh?: string | null;
   /** Optional Vietnamese name; shown instead of `name` when the UI language is Vietnamese. */

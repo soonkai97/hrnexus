@@ -24,6 +24,7 @@ export const routes: Routes = [
 
       { path: 'payroll',         canActivate: [permissionGuard('payroll.view', '/dashboard')], loadComponent: () => import('./features/payroll/payroll.component').then(m => m.PayrollComponent) },
       { path: 'payroll-locks',  canActivate: [permissionGuard('payroll.lock', '/dashboard')], loadComponent: () => import('./features/payroll-locks/payroll-locks.component').then(m => m.PayrollLocksComponent) },
+      { path: 'cash-advances',  canActivate: [permissionGuard('cashadvance.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/cash-advances/cash-advances.component').then(m => m.CashAdvancesComponent) },
       { path: 'account',       loadChildren:  () => import('./features/account/account.routes').then(m => m.ACCOUNT_ROUTES) },
     ],
   },

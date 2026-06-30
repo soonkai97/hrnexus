@@ -42,15 +42,48 @@
     "roles":         "Jobs",
     "payroll":       "Payroll",
     "payrollLocks":  "Payroll Locks",
+    "cashAdvances":  "Cash Advances",
     "group": {
       "operations": "Operations",
       "finance":    "Finance",
       "setup":      "Setup"
     }
   },
+  "cashAdvances": {
+    "title": "Cash Advances",
+    "record": "Record Advance",
+    "hint": "Record a salary advance given to a staff member. This only records it (to deduct from the next salary) — it does not move money.",
+    "staff": "Staff",
+    "selectStaff": "Select staff…",
+    "amount": "Amount",
+    "date": "Date",
+    "reason": "Reason",
+    "reasonPlaceholder": "Optional note…",
+    "status": "Status",
+    "outstanding": "Outstanding",
+    "settled": "Settled",
+    "markSettled": "Mark settled",
+    "reopen": "Reopen",
+    "filterAll": "All",
+    "filterOutstanding": "Outstanding",
+    "filterSettled": "Settled",
+    "totalOutstanding": "Total outstanding",
+    "recorded": "Cash advance recorded.",
+    "markedSettled": "Marked as settled.",
+    "markedOutstanding": "Reopened.",
+    "deleted": "Cash advance deleted.",
+    "loading": "Loading…",
+    "emptyState": "No cash advances recorded yet.",
+    "loadFailed": "Failed to load cash advances.",
+    "saveFailed": "Failed to save.",
+    "deleteFailed": "Failed to delete.",
+    "confirmDeleteTitle": "Delete Cash Advance",
+    "confirmDeleteMessage": "Remove this cash-advance record? This cannot be undone."
+  },
   "payroll": {
     "earnedToday":       "Earned Today",
     "earnedThisMonth":   "Earned This Month",
+    "outstandingAdvance": "Outstanding Advance",
     "asOf":              "as of",
     "noEarningsYet":     "No completed shifts yet this month.",
     "title":             "Payroll",
@@ -625,6 +658,7 @@
       "other":      "Other"
     },
     "keys": {
+      "cashadvance.manage":   "Manage cash advances",
       "portal.admin":         "Admin portal access",
       "staff.view":           "View staff",
       "staff.manage":         "Manage staff",
@@ -639,6 +673,7 @@
       "locations.manage":     "Manage locations"
     },
     "desc": {
+      "cashadvance.manage":   "Record and settle staff cash advances.",
       "portal.admin":         "Sign in to this management portal. Without it, the account can only use the staff app.",
       "staff.view":           "See the staff list and open staff profiles (read-only).",
       "staff.manage":         "Add, edit, deactivate staff and reset their passwords.",

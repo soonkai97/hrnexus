@@ -42,15 +42,48 @@
     "roles":         "Công việc",
     "payroll":       "Bảng lương",
     "payrollLocks":  "Khóa bảng lương",
+    "cashAdvances":  "Tạm ứng tiền mặt",
     "group": {
       "operations": "Vận hành",
       "finance":    "Tài chính",
       "setup":      "Thiết lập"
     }
   },
+  "cashAdvances": {
+    "title": "Tạm ứng tiền mặt",
+    "record": "Ghi nhận tạm ứng",
+    "hint": "Ghi nhận khoản tạm ứng lương cho nhân viên. Chỉ ghi nhận (để trừ vào lương kỳ tới) — không chuyển tiền.",
+    "staff": "Nhân viên",
+    "selectStaff": "Chọn nhân viên…",
+    "amount": "Số tiền",
+    "date": "Ngày",
+    "reason": "Lý do",
+    "reasonPlaceholder": "Ghi chú (tùy chọn)…",
+    "status": "Trạng thái",
+    "outstanding": "Chưa trừ",
+    "settled": "Đã trừ",
+    "markSettled": "Đánh dấu đã trừ",
+    "reopen": "Mở lại",
+    "filterAll": "Tất cả",
+    "filterOutstanding": "Chưa trừ",
+    "filterSettled": "Đã trừ",
+    "totalOutstanding": "Tổng chưa trừ",
+    "recorded": "Đã ghi nhận tạm ứng.",
+    "markedSettled": "Đã đánh dấu đã trừ.",
+    "markedOutstanding": "Đã mở lại.",
+    "deleted": "Đã xóa tạm ứng.",
+    "loading": "Đang tải…",
+    "emptyState": "Chưa có khoản tạm ứng nào.",
+    "loadFailed": "Không tải được danh sách tạm ứng.",
+    "saveFailed": "Lưu thất bại.",
+    "deleteFailed": "Xóa thất bại.",
+    "confirmDeleteTitle": "Xóa tạm ứng",
+    "confirmDeleteMessage": "Xóa bản ghi tạm ứng này? Không thể hoàn tác."
+  },
   "payroll": {
     "earnedToday":       "Thu nhập hôm nay",
     "earnedThisMonth":   "Thu nhập tháng này",
+    "outstandingAdvance": "Tạm ứng chưa trừ",
     "asOf":              "tính đến",
     "noEarningsYet":     "Chưa có ca làm hoàn tất nào trong tháng này.",
     "title":             "Bảng lương",
@@ -625,6 +658,7 @@
       "other":      "Khác"
     },
     "keys": {
+      "cashadvance.manage":   "Quản lý tạm ứng tiền mặt",
       "portal.admin":         "Truy cập cổng quản trị",
       "staff.view":           "Xem nhân viên",
       "staff.manage":         "Quản lý nhân viên",
@@ -639,6 +673,7 @@
       "locations.manage":     "Quản lý địa điểm"
     },
     "desc": {
+      "cashadvance.manage":   "Ghi nhận và trừ tạm ứng tiền mặt của nhân viên.",
       "portal.admin":         "Đăng nhập vào cổng quản lý này. Nếu không có quyền này, tài khoản chỉ có thể dùng ứng dụng nhân viên.",
       "staff.view":           "Xem danh sách nhân viên và mở hồ sơ nhân viên (chỉ đọc).",
       "staff.manage":         "Thêm, sửa, ngừng hoạt động nhân viên và đặt lại mật khẩu của họ.",

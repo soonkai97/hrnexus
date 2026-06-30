@@ -142,6 +142,7 @@ export interface StaffEarningsRow {
   name: string;
   earnedToday: number;
   earnedThisMonth: number;
+  outstandingAdvance: number;   // unsettled cash advances owed, to deduct from salary
 }
 
 export interface EarningsSnapshotResponse {
@@ -149,6 +150,7 @@ export interface EarningsSnapshotResponse {
   month: string;   // current month, yyyy-MM
   totalToday: number;
   totalThisMonth: number;
+  totalOutstandingAdvance: number;
   staff: StaffEarningsRow[];
 }
 

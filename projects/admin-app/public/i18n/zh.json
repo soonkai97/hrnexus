@@ -42,15 +42,48 @@
     "roles":         "职位",
     "payroll":       "薪资报表",
     "payrollLocks":  "薪资锁定",
+    "cashAdvances":  "现金预支",
     "group": {
       "operations": "运营",
       "finance":    "财务",
       "setup":      "设置"
     }
   },
+  "cashAdvances": {
+    "title": "现金预支",
+    "record": "登记预支",
+    "hint": "登记发放给员工的薪资预支。此功能仅作记录（以便从下月薪资中扣除）——不会转账。",
+    "staff": "员工",
+    "selectStaff": "选择员工…",
+    "amount": "金额",
+    "date": "日期",
+    "reason": "原因",
+    "reasonPlaceholder": "可选备注…",
+    "status": "状态",
+    "outstanding": "未结清",
+    "settled": "已结清",
+    "markSettled": "标记已结清",
+    "reopen": "重新开启",
+    "filterAll": "全部",
+    "filterOutstanding": "未结清",
+    "filterSettled": "已结清",
+    "totalOutstanding": "未结清总额",
+    "recorded": "已登记现金预支。",
+    "markedSettled": "已标记为结清。",
+    "markedOutstanding": "已重新开启。",
+    "deleted": "已删除现金预支。",
+    "loading": "加载中…",
+    "emptyState": "尚未登记任何现金预支。",
+    "loadFailed": "加载现金预支失败。",
+    "saveFailed": "保存失败。",
+    "deleteFailed": "删除失败。",
+    "confirmDeleteTitle": "删除现金预支",
+    "confirmDeleteMessage": "删除此现金预支记录？此操作无法撤销。"
+  },
   "payroll": {
     "earnedToday":       "今日收入",
     "earnedThisMonth":   "本月收入",
+    "outstandingAdvance": "未结清预支",
     "asOf":              "截至",
     "noEarningsYet":     "本月暂无已完成的班次。",
     "title":             "薪资报表",
@@ -625,6 +658,7 @@
       "other":      "其他"
     },
     "keys": {
+      "cashadvance.manage":   "管理现金预支",
       "portal.admin":         "管理后台访问",
       "staff.view":           "查看员工",
       "staff.manage":         "管理员工",
@@ -639,6 +673,7 @@
       "locations.manage":     "管理地点"
     },
     "desc": {
+      "cashadvance.manage":   "登记并结清员工现金预支。",
       "portal.admin":         "登录此管理门户。没有此权限的账号只能使用员工端应用。",
       "staff.view":           "查看员工列表并打开员工资料（只读）。",
       "staff.manage":         "添加、编辑、停用员工并重置其密码。",

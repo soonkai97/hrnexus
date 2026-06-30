@@ -124,6 +124,7 @@ export class ShellComponent implements AfterViewInit {
     { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar',  group: 'operations' },
     { path: '/reports',       labelKey: 'nav.reports',       icon: 'pi pi-chart-bar', group: 'operations' },
     { path: '/payroll',        labelKey: 'nav.payroll',        icon: 'pi pi-wallet',    group: 'finance' },
+    { path: '/cash-advances',  labelKey: 'nav.cashAdvances',   icon: 'pi pi-money-bill', group: 'finance' },
     { path: '/locations',      labelKey: 'nav.locations',      icon: 'pi pi-map-marker', group: 'setup'  },
     { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card',   group: 'setup'    },
     { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock',      group: 'setup' },

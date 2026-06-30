@@ -61,7 +61,7 @@ public class GetEarningsSnapshotQueryHandler(IAppDbContext db, IDateTimeProvider
                     var endDate = w.EndDate ?? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime!);
                     var h = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime!);
                     if (h <= 0) continue;   // guard against bad data
-                    var pay = h * w.HourlyRateSnapshot;
+                    var pay = ShiftPay.Calc(w.PayTypeSnapshot, h, w.HourlyRateSnapshot);
                     earnedMonth += pay;
                     if (w.WorkDate == today) earnedToday += pay;
                 }

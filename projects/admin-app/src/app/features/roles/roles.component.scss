@@ -96,6 +96,13 @@
   width: 130px;
 }
 
+.field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: $text-muted;
+}
+
 .error-msg {
   color: $danger;
   margin-top: 0.5rem;

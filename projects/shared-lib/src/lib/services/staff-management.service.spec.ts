@@ -138,14 +138,21 @@ describe('StaffManagementService', () => {
       service.createRole('BARTENDER', 25).subscribe();
       const req = http.expectOne('/api/staff/roles');
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ name: 'BARTENDER', hourlyRate: 25, nameZh: null, nameVi: null });
+      expect(req.request.body).toEqual({ name: 'BARTENDER', hourlyRate: 25, nameZh: null, nameVi: null, payType: 'hourly' });
       req.flush(null);
     });
 
     it('defaults hourlyRate to 0 when not provided', () => {
       service.createRole('DOORMAN').subscribe();
       const req = http.expectOne('/api/staff/roles');
-      expect(req.request.body).toEqual({ name: 'DOORMAN', hourlyRate: 0, nameZh: null, nameVi: null });
+      expect(req.request.body).toEqual({ name: 'DOORMAN', hourlyRate: 0, nameZh: null, nameVi: null, payType: 'hourly' });
+      req.flush(null);
+    });
+
+    it('sends payType "fixed" for a flat-per-shift job', () => {
+      service.createRole('PACKAGE', 500, null, null, 'fixed').subscribe();
+      const req = http.expectOne('/api/staff/roles');
+      expect(req.request.body).toEqual({ name: 'PACKAGE', hourlyRate: 500, nameZh: null, nameVi: null, payType: 'fixed' });
       req.flush(null);
     });
   });
@@ -157,7 +164,7 @@ describe('StaffManagementService', () => {
       service.updateRoleRate('BARTENDER', 30).subscribe();
       const req = http.expectOne('/api/staff/roles/BARTENDER/rate');
       expect(req.request.method).toBe('PATCH');
-      expect(req.request.body).toEqual({ hourlyRate: 30, nameZh: null, nameVi: null });
+      expect(req.request.body).toEqual({ hourlyRate: 30, nameZh: null, nameVi: null, payType: 'hourly' });
       req.flush(null);
     });
   });

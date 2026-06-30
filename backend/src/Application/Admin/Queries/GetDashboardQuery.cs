@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.Admin.Queries;
@@ -90,7 +91,7 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
             var diff = e > s ? e - s : e + TimeSpan.FromHours(24) - s;  // handle overnight
             var h    = (decimal)diff.TotalHours;
             tonightHours += h;
-            tonightCost  += h * w.HourlyRateSnapshot;
+            tonightCost  += ShiftPay.Calc(w.PayTypeSnapshot, h, w.HourlyRateSnapshot);
         }
 
         var totalStaff = await db.Staff.CountAsync(e => e.IsActive, ct);

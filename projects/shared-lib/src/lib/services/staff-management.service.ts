@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Staff, RegisterStaffRequest, StaffDetail, UpdateStaffRequest, StaffRole } from '../models';
+import { Staff, RegisterStaffRequest, StaffDetail, UpdateStaffRequest, StaffRole, PayType } from '../models';
 import { PagedResult } from './work-log.service';
 
 export interface VenueLocation { id: string; name: string; }
@@ -49,12 +49,12 @@ export class StaffManagementService {
     return this.http.get<StaffRole[]>('/api/staff/roles');
   }
 
-  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null, nameVi: string | null = null): Observable<void> {
-    return this.http.post<void>('/api/staff/roles', { name, hourlyRate, nameZh, nameVi });
+  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): Observable<void> {
+    return this.http.post<void>('/api/staff/roles', { name, hourlyRate, nameZh, nameVi, payType });
   }
 
-  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null): Observable<void> {
-    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(name)}/rate`, { hourlyRate, nameZh, nameVi });
+  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): Observable<void> {
+    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(name)}/rate`, { hourlyRate, nameZh, nameVi, payType });
   }
 
   deleteRole(name: string): Observable<void> {

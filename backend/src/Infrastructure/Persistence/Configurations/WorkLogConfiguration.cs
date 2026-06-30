@@ -18,6 +18,7 @@ public class WorkLogConfiguration : IEntityTypeConfiguration<WorkLog>
         // for overnight (WorkDate+1) or, after an admin multi-day correction, several days later.
         b.Property(w => w.EndDate);
         b.Property(w => w.HourlyRateSnapshot).HasColumnType("decimal(10,2)");
+        b.Property(w => w.PayTypeSnapshot).HasMaxLength(10).IsRequired();
         b.Property(w => w.Notes).HasMaxLength(500);
         b.Property(w => w.CreatedAt).HasColumnType("timestamp with time zone");
         b.Property(w => w.CreatedBy).HasMaxLength(100);

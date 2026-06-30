@@ -37,7 +37,7 @@ function makeStaff(overrides: Partial<Staff> = {}): Staff {
 }
 
 function makeRole(name: string, isSystem = false): StaffRole {
-  return { name, isSystem, hourlyRate: 10 };
+  return { name, isSystem, hourlyRate: 10, payType: 'hourly' };
 }
 
 // ── Suite ─────────────────────────────────────────────────────────────────────

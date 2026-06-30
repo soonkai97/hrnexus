@@ -47,7 +47,7 @@ public class GetAllWorkLogsQueryHandler(IAppDbContext db, IDateTimeProvider dt) 
             var hours   = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, endTime);
             return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"),
                 w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime, Math.Round(hours, 2),
-                Math.Round(hours * w.HourlyRateSnapshot, 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
+                Math.Round(ShiftPay.Calc(w.PayTypeSnapshot, hours, w.HourlyRateSnapshot), 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes);
         }).ToList();
 
         return new PagedResult<WorkLogDto>(items, total);

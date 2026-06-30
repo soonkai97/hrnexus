@@ -118,7 +118,7 @@ public class GetReportQueryHandler(IAppDbContext db)
             // recorded end DATE (multi-day aware); legacy rows without one fall back to derive.
             var endDate = w.EndDate ?? (w.EndTime != null ? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime) : w.WorkDate);
             var raw   = w.EndTime != null ? ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime) : 0m;
-            var cost  = Math.Round(raw * w.HourlyRateSnapshot, 2);
+            var cost  = Math.Round(ShiftPay.Calc(w.PayTypeSnapshot, raw, w.HourlyRateSnapshot), 2);
             var hours = Math.Round(raw, 2);
             var startDt = w.WorkDate.ToDateTime(TimeOnly.Parse(w.StartTime));
             var endDt   = w.EndTime != null ? endDate.ToDateTime(TimeOnly.Parse(w.EndTime)) : (DateTime?)null;

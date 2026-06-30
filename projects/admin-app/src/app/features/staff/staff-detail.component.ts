@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { merge } from 'rxjs';
 import { DatePipe, DecimalPipe } from '@angular/common';
@@ -21,6 +21,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Paginator } from 'primeng/paginator';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
+import { PayslipDialogComponent } from '../../shared/payslip-dialog/payslip-dialog.component';
 
 /** Tri-state choice for a per-user permission override. */
 type OverrideChoice = 'inherit' | 'grant' | 'revoke';
@@ -31,7 +32,7 @@ type DetailTab = 'profile' | 'worklogs' | 'permissions';
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, TrimInputDirective,
-    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Select, Dialog, Message, TooltipModule, Paginator, SelectButton, Tabs, TabList, Tab],
+    Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Select, Dialog, Message, TooltipModule, Paginator, SelectButton, Tabs, TabList, Tab, PayslipDialogComponent],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
@@ -46,6 +47,14 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   private readonly permSvc     = inject(PermissionAdminService);
   private readonly translate   = inject(TranslateService);
   private readonly lang        = inject(LangService);
+
+  private readonly payslipDialog = viewChild.required(PayslipDialogComponent);
+
+  /** Open the detailed payslip for this staff member (defaults to the current month). */
+  openPayslip(): void {
+    const s = this.staff();
+    if (s) this.payslipDialog().open(s.staffId, s.fullName);
+  }
 
   staff            = signal<StaffDetail | null>(null);
   loading          = signal(true);

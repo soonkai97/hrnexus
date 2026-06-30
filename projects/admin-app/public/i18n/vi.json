@@ -570,6 +570,9 @@
     "grossPay":         "Chi phí ước tính",
     "staffCount":       "Số lượng nhân viên",
     "labourCostCol":    "Chi phí nhân công ước tính",
+    "fixedLabour":      "Cố định (Gói)",
+    "hourlyLabour":     "Theo giờ",
+    "fixed":            "Cố định",
     "clockedIn":        "Chấm công vào",
     "clockedOut":       "Chấm công ra",
     "cost":             "Chi phí",
@@ -625,6 +628,7 @@
     "csvClockedIn":          "Chấm công vào",
     "csvClockedOut":         "Chấm công ra",
     "csvCost":               "Chi phí",
+    "csvPayType":            "Hình thức trả lương",
     "csvStatus":             "Trạng thái"
   },
   "locations": {

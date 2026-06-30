@@ -570,6 +570,9 @@
     "grossPay":         "Est. Cost",
     "staffCount":       "Staff Count",
     "labourCostCol":    "Est. Labour Cost",
+    "fixedLabour":      "Fixed (Packages)",
+    "hourlyLabour":     "Hourly",
+    "fixed":            "Fixed",
     "clockedIn":        "Clocked In",
     "clockedOut":       "Clocked Out",
     "cost":             "Cost",
@@ -625,6 +628,7 @@
     "csvClockedIn":          "Clocked In",
     "csvClockedOut":         "Clocked Out",
     "csvCost":               "Cost",
+    "csvPayType":            "Pay Type",
     "csvStatus":             "Status"
   },
   "locations": {

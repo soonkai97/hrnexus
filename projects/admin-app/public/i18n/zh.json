@@ -570,6 +570,9 @@
     "grossPay":         "预估成本",
     "staffCount":       "员工数",
     "labourCostCol":    "预估劳工成本",
+    "fixedLabour":      "固定（套餐）",
+    "hourlyLabour":     "按小时",
+    "fixed":            "固定",
     "clockedIn":        "打卡上班",
     "clockedOut":       "打卡下班",
     "cost":             "费用",
@@ -625,6 +628,7 @@
     "csvClockedIn":          "打卡上班",
     "csvClockedOut":         "打卡下班",
     "csvCost":               "费用",
+    "csvPayType":            "计薪方式",
     "csvStatus":             "状态"
   },
   "locations": {

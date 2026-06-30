@@ -121,6 +121,27 @@
 
     @if (report(); as r) {
 
+      <!-- Labour-cost split by pay model (packages vs hourly) -->
+      @if (r.summary.totalShifts > 0 && (r.summary.fixedShifts > 0 || r.summary.hourlyShifts > 0)) {
+        <div class="paytype-split">
+          <div class="split-item">
+            <span class="split-label">{{ 'reports.fixedLabour' | translate }}</span>
+            <span class="split-value">RM {{ r.summary.fixedCost | number:'1.2-2' }}</span>
+            <span class="split-meta">{{ r.summary.fixedShifts }} {{ 'reports.shifts' | translate }}</span>
+          </div>
+          <div class="split-item">
+            <span class="split-label">{{ 'reports.hourlyLabour' | translate }}</span>
+            <span class="split-value">RM {{ r.summary.hourlyCost | number:'1.2-2' }}</span>
+            <span class="split-meta">{{ r.summary.hourlyShifts }} {{ 'reports.shifts' | translate }}</span>
+          </div>
+          <div class="split-item total">
+            <span class="split-label">{{ 'reports.labourCostCol' | translate }}</span>
+            <span class="split-value">RM {{ r.summary.totalCost | number:'1.2-2' }}</span>
+            <span class="split-meta">{{ r.summary.totalShifts }} {{ 'reports.shifts' | translate }}</span>
+          </div>
+        </div>
+      }
+
       <!-- Result tabs — responsive: dropdown on mobile, p-tabs on desktop -->
       <div class="tab-row">
 
@@ -308,7 +329,10 @@
               <tr>
                 <td class="td-muted mono">{{ s.staffId }}</td>
                 <td class="td-name">{{ s.staffName }}</td>
-                <td><p-tag [value]="s.role" severity="info" /></td>
+                <td>
+                  <p-tag [value]="s.role" severity="info" />
+                  @if (s.payType === 'fixed') { <p-tag [value]="'reports.fixed' | translate" severity="warn" styleClass="paytype-tag" /> }
+                </td>
                 <td class="td-muted">{{ s.locationName }}</td>
                 <td class="td-muted">{{ s.workDate }} · {{ s.startTime | amPm }}</td>
                 <td class="td-muted">{{ s.endTime ? ((s.endDate ?? s.workDate) + ' · ') : '' }}{{ s.endTime | amPm }}</td>

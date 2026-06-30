@@ -24,13 +24,13 @@ import {
 
 // Minimal ReportResponse shape — real API may have more fields
 const fakeReport = {
-  summary:    { totalShifts: 10, totalHours: 80, totalCost: 1200 },
+  summary:    { totalShifts: 10, totalHours: 80, totalCost: 1200, uniqueStaff: 1, uniqueLocations: 1, avgHoursPerShift: 8, fixedShifts: 2, fixedCost: 1000, hourlyShifts: 8, hourlyCost: 200 },
   byStaff:    [{ staffId: 'NC001', name: 'Jane Doe', role: 'bartender', shifts: 5, hours: 40, avgHoursPerShift: 8, cost: 600 }],
   byLocation: [{ locationName: 'Main Bar', shifts: 8, hours: 64, cost: 960 }],
   byRole:     [{ role: 'bartender', staffCount: 1, shifts: 5, hours: 40, cost: 600 }],
   byDate:     [{ date: '2026-05-10', shifts: 2, hours: 16, cost: 240 }],
   shifts:     [{
-    staffId: 'NC001', staffName: 'Jane Doe', role: 'bartender',
+    staffId: 'NC001', staffName: 'Jane Doe', role: 'bartender', payType: 'hourly',
     locationName: 'Main Bar',
     workDate: '2026-05-10', startTime: '18:00', endDate: '2026-05-10', endTime: '23:00',
     clockedIn: '2026-05-10T18:00:00', clockedOut: '2026-05-10T23:00:00',

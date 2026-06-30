@@ -24,11 +24,6 @@ public class CashAdvancesController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> List([FromQuery] string? status, CancellationToken ct)
         => Ok(await mediator.Send(new GetCashAdvancesQuery(status), ct));
 
-    /// <summary>Staff: the caller's own cash-advance history (read-only).</summary>
-    [HttpGet("mine")]
-    public async Task<IActionResult> Mine(CancellationToken ct)
-        => Ok(await mediator.Send(new GetMyCashAdvancesQuery(CallerId), ct));
-
     [HttpPost]
     [Authorize(Policy = ManagePolicy)]
     public async Task<IActionResult> Create([FromBody] CreateCashAdvanceBody body, CancellationToken ct)

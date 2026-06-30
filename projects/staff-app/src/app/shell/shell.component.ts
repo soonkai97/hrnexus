@@ -203,7 +203,6 @@ export class ShellComponent implements AfterViewInit {
     { path: '/home',          labelKey: 'nav.home',          icon: 'pi pi-home'                                      },
     { path: '/log-shift',     labelKey: 'nav.logShift',      icon: 'pi pi-clock'                                     },
     { path: '/my-leave',      labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                  },
-    { path: '/my-cash-advances', labelKey: 'nav.cashAdvances', icon: 'pi pi-money-bill'                             },
   ];
 
   navItems = computed(() => this.allNavItems);

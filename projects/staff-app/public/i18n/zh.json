@@ -37,16 +37,7 @@
     "home":          "主页",
     "logShift":      "记录班次",
     "leave":         "请假",
-    "profile":       "个人",
-    "cashAdvances":    "现金预支"
-  },
-  "myCashAdvances": {
-    "title": "我的现金预支",
-    "totalOutstanding": "待扣除",
-    "outstanding": "未结清",
-    "settled": "已结清",
-    "empty": "暂无现金预支。",
-    "loadFailed": "加载现金预支失败。"
+    "profile":       "个人"
   },
   "home": {
     "goodMorning":         "早上好",

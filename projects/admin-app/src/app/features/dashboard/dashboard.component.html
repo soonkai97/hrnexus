@@ -85,6 +85,7 @@
               <th pSortableColumn="name">{{ 'dashboard.staffName' | translate }} <p-sortIcon field="name" /></th>
               <th pSortableColumn="role">{{ 'dashboard.role' | translate }} <p-sortIcon field="role" /></th>
               <th pSortableColumn="locationName">{{ 'dashboard.location' | translate }} <p-sortIcon field="locationName" /></th>
+              <th>{{ 'dashboard.gpsCol' | translate }}</th>
               <th pSortableColumn="clockedInAt">{{ 'dashboard.clockedIn' | translate }} <p-sortIcon field="clockedInAt" /></th>
               <th pSortableColumn="minutesOnShift">{{ 'dashboard.duration' | translate }} <p-sortIcon field="minutesOnShift" /></th>
               <th>{{ 'reports.shiftNotes' | translate }}</th>
@@ -96,14 +97,15 @@
               <td class="td-muted mono">{{ s.staffId }}</td>
               <td class="td-name">{{ s.name }}</td>
               <td><p-tag [value]="s.role" severity="info" /></td>
+              <td class="td-muted">{{ s.locationName }}</td>
               <td class="td-muted">
                 @if (hasLocation(s)) {
                   <a [href]="mapsUrl(s)" target="_blank" rel="noopener" class="map-link"
                      [pTooltip]="'dashboard.openInMaps' | translate" tooltipPosition="top">
-                    <i class="pi pi-map-marker"></i> {{ s.locationName }}
+                    <i class="pi pi-map-marker"></i> {{ 'dashboard.viewMap' | translate }}
                   </a>
                 } @else {
-                  {{ s.locationName }}
+                  —
                 }
               </td>
               <td class="td-muted">{{ s.workDate }} · {{ s.clockedInAt | date:'h:mm a':'+0800' }}</td>

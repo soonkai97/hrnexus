@@ -155,7 +155,9 @@
     "errInvalidCredentials": "员工编号或密码错误。"
   },
   "dashboard": {
-    "openInMaps":         "在谷歌地图中打开打卡位置",
+    "openInMaps":         "在谷歌地图中打开员工的 GPS 位置",
+    "gpsCol":             "GPS",
+    "viewMap":            "查看地图",
     "title":              "仪表盘",
     "live":               "实时",
     "connecting":         "连接中…",

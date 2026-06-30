@@ -492,90 +492,6 @@ describe('LogShiftComponent', () => {
     });
   });
 
-  // ── deleteLog() ──────────────────────────────────────────────────────────────
-
-  describe('deleteLog()', () => {
-    it('shows a confirm dialog before deleting — shift records affect payroll', () => {
-      component.deleteLog('log-99');
-      expect(mockConfirmSvc.confirm).toHaveBeenCalled();
-    });
-
-    it('marks the confirm dialog as dangerous so the delete button is red', () => {
-      component.deleteLog('log-99');
-      expect(mockConfirmSvc.confirm.mock.calls[0][0].danger).toBe(true);
-    });
-
-    it('calls delete() with the log id when the user confirms', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(true));
-      component.deleteLog('log-99');
-      expect(mockWorkLogSvc.delete).toHaveBeenCalledWith('log-99');
-    });
-
-    it('reloads history after deletion so the removed entry disappears', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(true));
-      mockWorkLogSvc.getMy.mockClear();
-      component.deleteLog('log-99');
-      expect(mockWorkLogSvc.getMy).toHaveBeenCalled();
-    });
-
-    it('shows success toast after deletion', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(true));
-      component.deleteLog('log-99');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('logShift.toast.removed');
-    });
-
-    it('does NOT call delete() when the user cancels the confirm dialog', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(false));
-      component.deleteLog('log-99');
-      expect(mockWorkLogSvc.delete).not.toHaveBeenCalled();
-    });
-
-    it('shows error toast when the delete API call fails', () => {
-      mockConfirmSvc.confirm.mockReturnValue(of(true));
-      mockWorkLogSvc.delete.mockReturnValue(throwError(() => new Error('Server error')));
-      component.deleteLog('log-99');
-      expect(mockToastSvc.error).toHaveBeenCalledWith('logShift.errDelete');
-    });
-
-    it('shows "Edited" badge indicator — isEdited flag propagates from API to dto', () => {
-      // Just verify makeLog with isEdited:true compiles correctly — the badge itself is template-only
-      const edited = makeLog({ isEdited: true });
-      expect(edited.isEdited).toBe(true);
-    });
-  });
-
-  // ── openEditLog() / cancelEdit() ─────────────────────────────────────────────
-
-  describe('openEditLog()', () => {
-    it('sets editingLogId so the edit form appears for this card and hides Edit/Delete buttons', () => {
-      const wl = makeLog({ id: 'log-42', isActive: false });
-      component.openEditLog(wl);
-      expect(component.editingLogId()).toBe('log-42');
-    });
-
-    it('uppercases roleName so the p-select option matches — roles are stored in uppercase', () => {
-      const wl = makeLog({ roleName: 'BARTENDER', isActive: false });
-      component.openEditLog(wl);
-      expect(component.editForm.roleName).toBe('BARTENDER');
-    });
-
-    it('populates all other editForm fields verbatim from the log', () => {
-      const wl = makeLog({ id: 'log-1', roleName: 'BARTENDER', locationId: 'loc-2', workDate: '2026-05-01', startTime: '20:00', endTime: '23:00', notes: 'busy night', isActive: false });
-      component.openEditLog(wl);
-      expect(component.editForm.locationId).toBe('loc-2');
-      expect(component.editForm.workDate).toBe('2026-05-01');
-      expect(component.editForm.startTime).toBe('20:00');
-      expect(component.editForm.endTime).toBe('23:00');
-      expect(component.editForm.notes).toBe('busy night');
-    });
-
-    it('clears editError so stale errors from a previous edit attempt are not shown', () => {
-      component.editError.set('previous error');
-      component.openEditLog(makeLog({ isActive: false }));
-      expect(component.editError()).toBe('');
-    });
-  });
-
   describe('endDayOffset()', () => {
     it('returns 0 when the end date matches the work date (same-day shift)', () => {
       expect(component.endDayOffset(makeLog({ workDate: '2026-05-01', endDate: '2026-05-01' }))).toBe(0);
@@ -586,14 +502,6 @@ describe('LogShiftComponent', () => {
     it('returns the day span for an overnight (1) and multi-day (>1) shift', () => {
       expect(component.endDayOffset(makeLog({ workDate: '2026-05-01', endDate: '2026-05-02' }))).toBe(1);
       expect(component.endDayOffset(makeLog({ workDate: '2026-05-01', endDate: '2026-05-04' }))).toBe(3);
-    });
-  });
-
-  describe('cancelEdit()', () => {
-    it('clears editingLogId so the edit form closes and Edit/Delete buttons reappear', () => {
-      component.openEditLog(makeLog({ id: 'log-42', isActive: false }));
-      component.cancelEdit();
-      expect(component.editingLogId()).toBeNull();
     });
   });
 
@@ -652,55 +560,6 @@ describe('LogShiftComponent', () => {
       component.manualFormStartTime = new Date(2026, 4, 31, 23, 0);
       component.manualFormEndTime   = new Date(2026, 4, 31, 1, 0);
       expect(component.manualEndDate).toBe('2026-06-01');
-    });
-  });
-
-  describe('isOvernightEdit', () => {
-    it('returns false when editFormStartTime is null', () => {
-      component.editFormStartTime = null;
-      component.editFormEndTime   = new Date(2026, 4, 17, 6, 0);
-      expect(component.isOvernightEdit).toBe(false);
-    });
-
-    it('returns false when editFormEndTime is null', () => {
-      component.editFormStartTime = new Date(2026, 4, 17, 22, 0);
-      component.editFormEndTime   = null;
-      expect(component.isOvernightEdit).toBe(false);
-    });
-
-    it('returns false for a same-day shift', () => {
-      component.editFormStartTime = new Date(2026, 4, 17, 18, 0);
-      component.editFormEndTime   = new Date(2026, 4, 17, 23, 0);
-      expect(component.isOvernightEdit).toBe(false);
-    });
-
-    it('returns true when end time is earlier than start (overnight edit)', () => {
-      component.editFormStartTime = new Date(2026, 4, 17, 22, 0);
-      component.editFormEndTime   = new Date(2026, 4, 17, 4, 0);
-      expect(component.isOvernightEdit).toBe(true);
-    });
-  });
-
-  describe('editEndDate', () => {
-    it('returns null when the edited shift is not overnight', () => {
-      component.editForm.workDate = '2026-05-17';
-      component.editFormStartTime = new Date(2026, 4, 17, 18, 0);
-      component.editFormEndTime   = new Date(2026, 4, 17, 23, 0);
-      expect(component.editEndDate).toBeNull();
-    });
-
-    it('returns null when editForm.workDate is empty', () => {
-      component.editForm.workDate = '';
-      component.editFormStartTime = new Date(2026, 4, 17, 22, 0);
-      component.editFormEndTime   = new Date(2026, 4, 17, 4, 0);
-      expect(component.editEndDate).toBeNull();
-    });
-
-    it('returns the next calendar date for an overnight edit — staff can confirm when the shift ends', () => {
-      component.editForm.workDate = '2026-05-17';
-      component.editFormStartTime = new Date(2026, 4, 17, 22, 0);
-      component.editFormEndTime   = new Date(2026, 4, 17, 4, 0);
-      expect(component.editEndDate).toBe('2026-05-18');
     });
   });
 

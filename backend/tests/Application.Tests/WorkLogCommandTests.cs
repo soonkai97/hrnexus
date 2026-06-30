@@ -121,6 +121,27 @@ public class WorkLogCommandTests
     }
 
     [Fact]
+    public async Task Update_ThrowsUnauthorized_WhenOwnerIsNotPrivileged()
+    {
+        // Staff can no longer edit their OWN shift history — only an admin/manager can. They must
+        // ask an admin to make corrections.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        var handler = UpdateHandler(db);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            handler.Handle(new UpdateWorkLogCommand(
+                log.Id, empId, false,
+                "BARTENDER", "loc-1", workDate, "18:00", "22:00", null),
+                CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Update_AllowsEdit_WhenCallerIsNotOwner_AndIsPrivileged()
     {
         await using var db = CreateDb();
@@ -637,6 +658,24 @@ public class WorkLogCommandTests
     }
 
     [Fact]
+    public async Task Delete_ThrowsUnauthorized_WhenOwnerIsNotPrivileged()
+    {
+        // Staff can no longer delete their OWN shift history — only an admin/manager can.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        var handler = DeleteHandler(db);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            handler.Handle(new DeleteWorkLogCommand(log.Id, empId, IsPrivileged: false),
+                CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Delete_ThrowsInvalidOperation_WhenShiftIsActive()
     {
         // Active shifts cannot be deleted — the employee must clock out first.
@@ -650,7 +689,7 @@ public class WorkLogCommandTests
         var handler = DeleteHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new DeleteWorkLogCommand(log.Id, empId),
+            handler.Handle(new DeleteWorkLogCommand(log.Id, empId, IsPrivileged: true),
                 CancellationToken.None));
     }
 
@@ -666,7 +705,7 @@ public class WorkLogCommandTests
         await db.SaveChangesAsync();
 
         var handler = DeleteHandler(db);
-        await handler.Handle(new DeleteWorkLogCommand(log.Id, empId), CancellationToken.None);
+        await handler.Handle(new DeleteWorkLogCommand(log.Id, empId, IsPrivileged: true), CancellationToken.None);
 
         Assert.Equal(1, await db.AuditLogs.CountAsync());
     }
@@ -682,7 +721,7 @@ public class WorkLogCommandTests
         await db.SaveChangesAsync();
 
         var handler = DeleteHandler(db);
-        await handler.Handle(new DeleteWorkLogCommand(log.Id, empId), CancellationToken.None);
+        await handler.Handle(new DeleteWorkLogCommand(log.Id, empId, IsPrivileged: true), CancellationToken.None);
 
         Assert.Equal(0, await db.WorkLogs.CountAsync());
     }

@@ -14,8 +14,9 @@ public class DeleteWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Del
     {
         var log = await db.WorkLogs.FindAsync([req.Id], ct)
             ?? throw new KeyNotFoundException("Work log not found.");
-        // Owner can delete their own; an admin/manager (privileged) can delete anyone's.
-        if (log.EmployeeId != req.EmployeeId && !req.IsPrivileged) throw new UnauthorizedAccessException("Not your shift.");
+        // Staff cannot delete shift history — only an admin/manager can. Staff must ask an admin.
+        if (!req.IsPrivileged)
+            throw new UnauthorizedAccessException("Only an admin can delete a shift. Please ask your manager.");
         if (log.EndTime == null) throw new InvalidOperationException("Cannot delete an active shift. End it first.");
 
         // Can't delete a shift that falls in a locked payroll period.

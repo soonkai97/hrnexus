@@ -569,6 +569,15 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<bool>("IsManualEntry")
                         .HasColumnType("boolean");
 
+                    b.Property<double?>("LastLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("LastLocationAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("LastLongitude")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("LocationId")
                         .IsRequired()
                         .HasMaxLength(100)

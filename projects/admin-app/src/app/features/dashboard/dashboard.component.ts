@@ -91,9 +91,21 @@ export class DashboardComponent implements OnInit {
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
   }
 
-  /** Google Maps link for the GPS captured when the staff member clocked in. */
+  /** Effective pin for a shift — the latest "Update location" fix if the staff pushed one,
+   *  otherwise the position captured at clock-in. Null when no GPS was ever captured. */
+  private coords(s: ActiveStaffDto): { lat: number; lng: number } | null {
+    const lat = s.lastLatitude ?? s.startLatitude;
+    const lng = s.lastLongitude ?? s.startLongitude;
+    return lat != null && lng != null ? { lat, lng } : null;
+  }
+
+  /** Whether this shift has any GPS to link to. */
+  hasLocation(s: ActiveStaffDto): boolean { return this.coords(s) != null; }
+
+  /** Google Maps link for the shift's current (or clock-in) position. */
   mapsUrl(s: ActiveStaffDto): string {
-    return `https://www.google.com/maps?q=${s.startLatitude},${s.startLongitude}`;
+    const c = this.coords(s);
+    return c ? `https://www.google.com/maps?q=${c.lat},${c.lng}` : '';
   }
 
   // ── Close a forgotten clock-out ───────────────────────────────────────────────

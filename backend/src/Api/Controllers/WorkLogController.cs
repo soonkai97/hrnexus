@@ -34,12 +34,24 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     {
         try
         {
-            var id = await mediator.Send(new StartWorkLogCommand(CallerId, req.RoleName, req.LocationId, req.StartTime, req.Notes), ct);
+            var id = await mediator.Send(new StartWorkLogCommand(CallerId, req.RoleName, req.LocationId, req.StartTime, req.Notes, req.Latitude, req.Longitude), ct);
             return Ok(new { id });
         }
         catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
         catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
         catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }
+    }
+
+    /// <summary>Staff pushes a fresh GPS fix for their current shift ("Update location" button).</summary>
+    [HttpPatch("active/location")]
+    public async Task<IActionResult> UpdateActiveLocation([FromBody] UpdateLocationRequest req, CancellationToken ct)
+    {
+        try
+        {
+            await mediator.Send(new UpdateMyShiftLocationCommand(CallerId, req.Latitude, req.Longitude), ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
     [HttpPost("entry")]
@@ -128,5 +140,6 @@ public record StartWorkLogRequest(string RoleName, string LocationId, string Sta
 public record ManualWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
 public record UpdateWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, DateOnly EndDate, string EndTime, string? Notes);
 public record EndWorkLogRequest(string EndTime);
+public record UpdateLocationRequest(double Latitude, double Longitude);
 public record AdminEndShiftRequest(DateOnly EndDate, string EndTime);
 public record GetAllWorkLogsParams(DateTime? From, DateTime? To, Guid? EmployeeId, int Page = 1, int PageSize = 10);

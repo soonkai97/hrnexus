@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Subject, EMPTY } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 import { StaffManagementService } from '../services/staff-management.service';
-import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole } from '../models';
+import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole, PayType } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class StaffStore {
@@ -78,14 +78,14 @@ export class StaffStore {
     );
   }
 
-  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null, nameVi: string | null = null) {
-    return this.svc.createRole(name, hourlyRate, nameZh, nameVi).pipe(tap(() => this.loadRoles()));
+  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly') {
+    return this.svc.createRole(name, hourlyRate, nameZh, nameVi, payType).pipe(tap(() => this.loadRoles()));
   }
 
-  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null) {
-    return this.svc.updateRoleRate(name, hourlyRate, nameZh, nameVi).pipe(
+  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly') {
+    return this.svc.updateRoleRate(name, hourlyRate, nameZh, nameVi, payType).pipe(
       tap(() => this.#roles.update(list =>
-        list.map(r => r.name === name ? { ...r, hourlyRate, nameZh, nameVi } : r)
+        list.map(r => r.name === name ? { ...r, hourlyRate, nameZh, nameVi, payType } : r)
       ))
     );
   }

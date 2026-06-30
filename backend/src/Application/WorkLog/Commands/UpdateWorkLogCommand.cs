@@ -78,12 +78,15 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         // effective-dated rate history — out of scope here.)
         var roleChanged = log.RoleName != req.RoleName.Trim().ToUpperInvariant();
         decimal? newRateSnapshot = null;
+        string? newPayType = null;
         if (roleChanged)
         {
             var role = await db.Roles.FindAsync([req.RoleName.ToUpperInvariant()], ct)
                 ?? throw new KeyNotFoundException($"Role '{req.RoleName}' not found.");
             // Price at the new role's rate as-of the shift's work date, not its current rate.
             newRateSnapshot = await RoleRateLookup.RateAsOfAsync(db, req.RoleName, req.WorkDate, role.HourlyRate, ct);
+            // Re-snapshot the pay model to the new role's (hourly ↔ fixed may differ).
+            newPayType = role.PayType;
         }
 
         // Prevent time overlap with another completed shift for the same employee (excluding this
@@ -114,6 +117,7 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         var before = $"Date={log.WorkDate},Start={log.StartTime},End={log.EndDate} {log.EndTime},Role={log.RoleName},Rate={log.HourlyRateSnapshot},Location={log.LocationName},Notes={log.Notes ?? ""}";
 
         log.Update(req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, req.EndDate, req.EndTime, req.Notes, newRateSnapshot);
+        if (newPayType != null) log.SetPayTypeSnapshot(newPayType);
 
         // Resolve who made the change (caller or manager)
         var actor = await db.Staff

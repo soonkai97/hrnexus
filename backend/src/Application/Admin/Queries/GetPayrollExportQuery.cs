@@ -74,7 +74,7 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
                 var h = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime);
                 if (h <= 0) continue;   // guard against bad data
                 totalHours += h;
-                grossWork  += h * w.HourlyRateSnapshot;
+                grossWork  += ShiftPay.Calc(w.PayTypeSnapshot, h, w.HourlyRateSnapshot);
             }
 
             // Hourly rate: prefer current-period snapshot, fall back to latest historical

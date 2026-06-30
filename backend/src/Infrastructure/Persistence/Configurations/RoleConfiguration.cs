@@ -13,5 +13,6 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         b.Property(r => r.NameZh).HasMaxLength(100);
         b.Property(r => r.NameVi).HasMaxLength(100);
         b.Property(r => r.HourlyRate).HasColumnType("decimal(10,2)");
+        b.Property(r => r.PayType).HasMaxLength(10).IsRequired();
     }
 }

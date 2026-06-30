@@ -1,4 +1,5 @@
 ﻿using HRNexus.Domain.Common;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Domain.Entities;
 
@@ -25,6 +26,9 @@ public class WorkLog : IHasAudit, ISoftDelete
     public double?   LastLongitude    { get; private set; }
     public DateTime? LastLocationAt   { get; private set; }
     public decimal   HourlyRateSnapshot { get; private set; }
+    /// <summary>The role's pay type captured at clock-in ("hourly" | "fixed"), so the pay model used
+    /// for this shift is fixed in history even if the job's pay type changes later.</summary>
+    public string    PayTypeSnapshot  { get; private set; } = AppConstants.PayType.Hourly;
     public bool      IsEdited         { get; private set; }
     public DateTime? EditedAt         { get; private set; }
     public DateTime  CreatedAt        { get; private set; }
@@ -40,7 +44,7 @@ public class WorkLog : IHasAudit, ISoftDelete
 
     public static WorkLog StartLive(Guid employeeId, string roleName, string locationId, string locationName,
         DateOnly workDate, string startTime, decimal rateSnapshot, string? notes = null,
-        double? latitude = null, double? longitude = null) => new()
+        double? latitude = null, double? longitude = null, string payType = AppConstants.PayType.Hourly) => new()
     {
         Id                 = Guid.NewGuid(),
         EmployeeId         = employeeId,
@@ -55,10 +59,11 @@ public class WorkLog : IHasAudit, ISoftDelete
         StartLatitude      = latitude,
         StartLongitude     = longitude,
         HourlyRateSnapshot = rateSnapshot,
+        PayTypeSnapshot    = payType,
         CreatedAt          = DateTime.UtcNow,
     };
 
-    public static WorkLog CreateManual(Guid employeeId, string roleName, string locationId, string locationName, DateOnly workDate, string startTime, DateOnly endDate, string endTime, decimal rateSnapshot, string? notes = null) => new()
+    public static WorkLog CreateManual(Guid employeeId, string roleName, string locationId, string locationName, DateOnly workDate, string startTime, DateOnly endDate, string endTime, decimal rateSnapshot, string? notes = null, string payType = AppConstants.PayType.Hourly) => new()
     {
         Id                 = Guid.NewGuid(),
         EmployeeId         = employeeId,
@@ -72,15 +77,17 @@ public class WorkLog : IHasAudit, ISoftDelete
         IsManualEntry      = true,
         Notes              = notes,
         HourlyRateSnapshot = rateSnapshot,
+        PayTypeSnapshot    = payType,
         CreatedAt          = DateTime.UtcNow,
     };
 
     /// <summary>Overload for callers that don't track an explicit end date — the end date is inferred
     /// as the next day when the end time is at/before the start (single overnight, ≤24h).</summary>
     public static WorkLog CreateManual(Guid employeeId, string roleName, string locationId, string locationName,
-        DateOnly workDate, string startTime, string endTime, decimal rateSnapshot, string? notes = null) =>
+        DateOnly workDate, string startTime, string endTime, decimal rateSnapshot, string? notes = null,
+        string payType = AppConstants.PayType.Hourly) =>
         CreateManual(employeeId, roleName, locationId, locationName, workDate, startTime,
-            InferEndDate(workDate, startTime, endTime), endTime, rateSnapshot, notes);
+            InferEndDate(workDate, startTime, endTime), endTime, rateSnapshot, notes, payType);
 
     /// <summary>The next day if the end time is at/before the start (overnight), else the same day.</summary>
     private static DateOnly InferEndDate(DateOnly workDate, string startTime, string endTime) =>
@@ -93,6 +100,10 @@ public class WorkLog : IHasAudit, ISoftDelete
         LastLongitude  = longitude;
         LastLocationAt = at;
     }
+
+    /// <summary>Re-snapshot the pay type — used when an admin changes a shift's role to one with a
+    /// different pay model.</summary>
+    public void SetPayTypeSnapshot(string payType) => PayTypeSnapshot = payType;
 
     public void End(DateOnly endDate, string endTime) { EndDate = endDate; EndTime = endTime; }
 

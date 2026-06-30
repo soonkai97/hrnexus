@@ -27,14 +27,26 @@ public record PayslipShiftRow(
     bool    IsEdited,
     string? Notes);
 
+/// <summary>Per-job subtotal — groups a staff member's shifts by job + pay model, so the payslip
+/// reads the way a package-based venue prices labour (e.g. "包夜 12h × 4 = 2000", "跑台 30h = 750").</summary>
+public record PayslipJobSummary(
+    string  Role,
+    string  PayType,        // "hourly" | "fixed"
+    int     ShiftCount,
+    decimal Hours,
+    decimal Pay);
+
 public record PayslipResult(
-    string                StaffId,
-    string                StaffName,
-    string                From,     // "yyyy-MM-dd"
-    string                To,       // "yyyy-MM-dd"
-    decimal               TotalHours,
-    decimal               TotalPay,
-    List<PayslipShiftRow> Shifts);
+    string                  StaffId,
+    string                  StaffName,
+    string                  From,     // "yyyy-MM-dd"
+    string                  To,       // "yyyy-MM-dd"
+    decimal                 TotalHours,
+    decimal                 TotalPay,
+    decimal                 OutstandingAdvance,  // all unsettled cash advances (running balance)
+    decimal                 NetPayable,          // max(0, TotalPay − OutstandingAdvance) — what to actually pay out
+    List<PayslipJobSummary> JobBreakdown,        // per-job subtotals (descending by pay)
+    List<PayslipShiftRow>   Shifts);
 
 public class GetStaffPayslipQueryHandler(IAppDbContext db)
     : IRequestHandler<GetStaffPayslipQuery, PayslipResult>
@@ -86,13 +98,37 @@ public class GetStaffPayslipQueryHandler(IAppDbContext db)
                 Notes:        w.Notes));
         }
 
+        // Per-job subtotals (group by job + pay model), heaviest-earning job first.
+        var jobBreakdown = shifts
+            .GroupBy(s => new { s.Role, s.PayType })
+            .Select(g => new PayslipJobSummary(
+                Role:       g.Key.Role,
+                PayType:    g.Key.PayType,
+                ShiftCount: g.Count(),
+                Hours:      Math.Round(g.Sum(s => s.Hours), 2),
+                Pay:        Math.Round(g.Sum(s => s.Pay), 2)))
+            .OrderByDescending(j => j.Pay)
+            .ToList();
+
+        // Net payable = gross − ALL still-unsettled advances (running balance, regardless of when
+        // taken), floored at 0 so the remainder simply carries as still-outstanding. This is a
+        // display figure only — it does NOT settle any advance (that stays a manual admin action).
+        var outstanding = await db.CashAdvances
+            .Where(c => c.EmployeeId == staff.Id && c.Status == Domain.Entities.CashAdvance.Outstanding)
+            .SumAsync(c => (decimal?)c.Amount, ct) ?? 0m;
+        var roundedTotalPay = Math.Round(totalPay, 2);
+        var netPayable      = Math.Max(0m, roundedTotalPay - outstanding);
+
         return new PayslipResult(
-            StaffId:    staff.StaffId,
-            StaffName:  staff.FullName,
-            From:       req.From.ToString("yyyy-MM-dd"),
-            To:         req.To.ToString("yyyy-MM-dd"),
-            TotalHours: Math.Round(totalHours, 2),
-            TotalPay:   Math.Round(totalPay, 2),
-            Shifts:     shifts);
+            StaffId:            staff.StaffId,
+            StaffName:          staff.FullName,
+            From:               req.From.ToString("yyyy-MM-dd"),
+            To:                 req.To.ToString("yyyy-MM-dd"),
+            TotalHours:         Math.Round(totalHours, 2),
+            TotalPay:           roundedTotalPay,
+            OutstandingAdvance: Math.Round(outstanding, 2),
+            NetPayable:         Math.Round(netPayable, 2),
+            JobBreakdown:       jobBreakdown,
+            Shifts:             shifts);
     }
 }

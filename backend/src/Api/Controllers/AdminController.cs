@@ -350,12 +350,18 @@ public class AdminController(IMediator mediator) : ControllerBase
                 s.IsEdited ? "yes" : "no",
                 $"\"{Csv(s.Notes)}\""));
         }
-        // Trailing totals row (hours + pay) so the file is self-contained.
+        // Trailing summary rows (gross, advance deduction, net) so the file is self-contained.
+        string SummaryRow(string label, decimal amount) => string.Join(",",
+            $"\"{label}\"", "\"\"", "\"\"", "\"\"",
+            "\"\"", "\"\"", "\"\"", "\"\"", "\"\"",
+            amount.ToString("F2"), "\"\"", "\"\"");
         sb.AppendLine(string.Join(",",
-            "\"TOTAL\"", "\"\"", "\"\"", "\"\"",
+            "\"GROSS TOTAL\"", "\"\"", "\"\"", "\"\"",
             result.TotalHours.ToString("F2"),
             "\"\"", "\"\"", "\"\"", "\"\"",
             result.TotalPay.ToString("F2"), "\"\"", "\"\""));
+        sb.AppendLine(SummaryRow("LESS OUTSTANDING ADVANCE", result.OutstandingAdvance));
+        sb.AppendLine(SummaryRow("NET PAYABLE", result.NetPayable));
 
         var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
         return File(bytes, "text/csv", $"payslip-{result.StaffId}-{result.From}-to-{result.To}.csv");

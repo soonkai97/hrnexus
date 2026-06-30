@@ -37,6 +37,7 @@ export * from './lib/guards/unsaved-changes.guard';
 export * from './lib/provide-no-autofill';
 export * from './lib/services/push.service';
 export * from './lib/services/payroll-lock.service';
+export * from './lib/services/cash-advance.service';
 export * from './lib/pipes/am-pm.pipe';
 export * from './lib/pipes/localized-name.pipe';
 export * from './lib/utils/date.utils';

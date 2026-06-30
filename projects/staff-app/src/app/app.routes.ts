@@ -17,6 +17,7 @@ export const routes: Routes = [
       { path: 'log-shift',     canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/log-shift/log-shift.component').then(m => m.LogShiftComponent) },
       { path: 'profile',       loadChildren:  () => import('./features/profile/profile.routes').then(m => m.PROFILE_ROUTES) },
       { path: 'my-leave',      canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/my-leave/my-leave.component').then(m => m.MyLeaveComponent) },
+      { path: 'my-cash-advances', loadComponent: () => import('./features/my-cash-advances/my-cash-advances.component').then(m => m.MyCashAdvancesComponent) },
     ],
   },
   { path: '**', redirectTo: 'home' },

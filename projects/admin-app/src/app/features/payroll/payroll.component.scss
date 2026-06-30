@@ -42,6 +42,22 @@
   border-top: 1px solid $border-subtle;
 }
 
+.td-actions   { text-align: right; white-space: nowrap; }
+
+// ── Payslip drill-down dialog ────────────────────────────────────────────────
+.payslip-range  { margin-bottom: 1.25rem; }
+.payslip-totals {
+  align-items: flex-end;
+  padding: 0.85rem 1rem;
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid $border-glow;
+  border-radius: $radius-md;
+  margin-bottom: 1rem;
+}
+.payslip-export-wrap { margin-left: auto; }
+.edited-flag    { color: $neon-amber; font-size: 0.72rem; margin-left: 0.35rem; }
+:host :deep(.paytype-tag) { margin-left: 0.4rem; font-size: 0.62rem; vertical-align: middle; }
+
 // ── Responsive table → card stack at 640px ───────────────────────────────────
 @media (max-width: 640px) {
   :host :deep(.p-datatable-table) { display: block; }

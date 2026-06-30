@@ -299,6 +299,70 @@ public class AdminController(IMediator mediator) : ControllerBase
         var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
         return File(bytes, "text/csv", $"payroll-{result.Month}.csv");
     }
+
+    /// <summary>Detailed payslip for one staff member: every completed shift in the date range with
+    /// its hours, job, pay model, rate and pay, plus period totals (drill-down from the summary).</summary>
+    [HttpGet("payroll/payslip")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollView)]
+    public async Task<IActionResult> Payslip(
+        [FromQuery] string staffId,
+        [FromQuery] DateOnly from,
+        [FromQuery] DateOnly to,
+        CancellationToken ct)
+    {
+        if (to < from) return BadRequest(new { error = "The end date must be on or after the start date." });
+        try
+        {
+            var result = await mediator.Send(new GetStaffPayslipQuery(staffId, from, to), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
+    }
+
+    [HttpGet("payroll/payslip/export")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.PayrollView)]
+    public async Task<IActionResult> ExportPayslip(
+        [FromQuery] string staffId,
+        [FromQuery] DateOnly from,
+        [FromQuery] DateOnly to,
+        CancellationToken ct)
+    {
+        if (to < from) return BadRequest(new { error = "The end date must be on or after the start date." });
+        PayslipResult result;
+        try { result = await mediator.Send(new GetStaffPayslipQuery(staffId, from, to), ct); }
+        catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Work Date,Start,End Date,End,Hours,Job,Location,Pay Type,Rate (RM),Pay (RM),Edited,Notes");
+        foreach (var s in result.Shifts)
+        {
+            sb.AppendLine(string.Join(",",
+                $"\"{s.WorkDate}\"",
+                $"\"{s.StartTime}\"",
+                $"\"{s.EndDate}\"",
+                $"\"{s.EndTime}\"",
+                s.Hours.ToString("F2"),
+                $"\"{Csv(s.Role)}\"",
+                $"\"{Csv(s.LocationName)}\"",
+                $"\"{s.PayType}\"",
+                s.Rate.ToString("F2"),
+                s.Pay.ToString("F2"),
+                s.IsEdited ? "yes" : "no",
+                $"\"{Csv(s.Notes)}\""));
+        }
+        // Trailing totals row (hours + pay) so the file is self-contained.
+        sb.AppendLine(string.Join(",",
+            "\"TOTAL\"", "\"\"", "\"\"", "\"\"",
+            result.TotalHours.ToString("F2"),
+            "\"\"", "\"\"", "\"\"", "\"\"",
+            result.TotalPay.ToString("F2"), "\"\"", "\"\""));
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+        return File(bytes, "text/csv", $"payslip-{result.StaffId}-{result.From}-to-{result.To}.csv");
+    }
+
+    /// <summary>Escapes a CSV field value that is wrapped in double quotes (doubles embedded quotes).</summary>
+    private static string Csv(string? value) => (value ?? "").Replace("\"", "\"\"");
 }
 
 public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status, string? RejectionReason = null);

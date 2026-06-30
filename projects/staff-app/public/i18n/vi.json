@@ -37,7 +37,16 @@
     "home":            "Trang chủ",
     "logShift":        "Ghi ca",
     "leave":           "Nghỉ phép",
-    "profile":         "Hồ sơ"
+    "profile":         "Hồ sơ",
+    "cashAdvances":    "Tạm ứng tiền mặt"
+  },
+  "myCashAdvances": {
+    "title": "Tạm ứng của tôi",
+    "totalOutstanding": "Còn phải trừ",
+    "outstanding": "Chưa trừ",
+    "settled": "Đã trừ",
+    "empty": "Chưa có khoản tạm ứng nào.",
+    "loadFailed": "Không tải được danh sách tạm ứng."
   },
   "home": {
     "goodMorning":          "Chào buổi sáng",

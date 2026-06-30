@@ -1,0 +1,33 @@
+<div class="page">
+  <h1 class="page-title">{{ 'myCashAdvances.title' | translate }}</h1>
+
+  @if (totalOutstanding() > 0) {
+    <div class="outstanding-banner">
+      <span class="ob-label">{{ 'myCashAdvances.totalOutstanding' | translate }}</span>
+      <span class="ob-value">RM {{ totalOutstanding() | number:'1.2-2' }}</span>
+    </div>
+  }
+
+  @if (loading()) {
+    @for (i of [1,2,3]; track i) {
+      <div class="adv-card skeleton"><p-skeleton width="60%" height="0.9rem" /><p-skeleton width="40%" height="0.7rem" /></div>
+    }
+  } @else if (advances().length === 0) {
+    <div class="empty-state">{{ 'myCashAdvances.empty' | translate }}</div>
+  } @else {
+    @for (a of advances(); track a.id) {
+      <div class="adv-card">
+        <div class="adv-top">
+          <span class="adv-amount">RM {{ a.amount | number:'1.2-2' }}</span>
+          @if (a.status === 'settled') {
+            <p-tag [value]="'myCashAdvances.settled' | translate" severity="success" />
+          } @else {
+            <p-tag [value]="'myCashAdvances.outstanding' | translate" severity="warn" />
+          }
+        </div>
+        <div class="adv-meta">{{ a.advanceDate }}</div>
+        @if (a.reason) { <div class="adv-reason">{{ a.reason }}</div> }
+      </div>
+    }
+  }
+</div>

@@ -93,6 +93,7 @@
             <th pSortableColumn="name">{{ 'payroll.colName' | translate }} <p-sortIcon field="name" /></th>
             <th pSortableColumn="totalHours">{{ 'payroll.colTotalHrs' | translate }} <p-sortIcon field="totalHours" /></th>
             <th pSortableColumn="totalPay">{{ 'payroll.colWorkPay' | translate }} <p-sortIcon field="totalPay" /></th>
+            <th class="td-actions"></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
@@ -101,6 +102,10 @@
             <td><span class="p-column-title">{{ 'payroll.colName' | translate }}</span>{{ row.name }}</td>
             <td><span class="p-column-title">{{ 'payroll.colTotalHrs' | translate }}</span>{{ row.totalHours | number:'1.1-1' }}</td>
             <td class="td-bold"><span class="p-column-title">{{ 'payroll.colWorkPay' | translate }}</span>{{ row.totalPay | number:'1.2-2' }}</td>
+            <td class="td-actions">
+              <p-button icon="pi pi-receipt" [label]="'payroll.viewPayslip' | translate" [text]="true" severity="secondary" size="small"
+                        [attr.aria-label]="('payroll.viewPayslip' | translate) + ' — ' + row.name" (click)="openPayslip(row)" />
+            </td>
           </tr>
         </ng-template>
       </p-table>
@@ -112,3 +117,81 @@
     <div class="empty-state"><div class="empty-icon"><i class="pi pi-wallet"></i></div><p>{{ 'payroll.emptyState' | translate }}</p></div>
   }
 </div>
+
+<!-- ── Detailed payslip drill-down ─────────────────────────────────────────── -->
+<p-dialog [visible]="payslipOpen()" (visibleChange)="!$event && payslipOpen.set(false)"
+          [header]="('payroll.payslipTitle' | translate) + (payslipName() ? ' — ' + payslipName() : '')"
+          [modal]="true" [style]="{'width':'min(840px, 96vw)'}" [draggable]="false" [closable]="true" appendTo="body">
+
+  <!-- Date-range picker (defaults to the selected month; editable for a custom range) -->
+  <div class="payslip-range d-flex gap-3 align-items-end flex-wrap">
+    <div class="field">
+      <label for="ps-from">{{ 'payroll.from' | translate }}</label>
+      <p-datepicker inputId="ps-from" [ngModel]="payslipFrom()" (ngModelChange)="payslipFrom.set($event)"
+                    dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" styleClass="w-full" />
+    </div>
+    <div class="field">
+      <label for="ps-to">{{ 'payroll.to' | translate }}</label>
+      <p-datepicker inputId="ps-to" [ngModel]="payslipTo()" (ngModelChange)="payslipTo.set($event)"
+                    dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" styleClass="w-full" />
+    </div>
+    <div class="field">
+      <label>&nbsp;</label>
+      <p-button [label]="'payroll.view' | translate" severity="primary" (click)="loadPayslip()"
+                [disabled]="payslipLoading()" [loading]="payslipLoading()" />
+    </div>
+  </div>
+
+  @if (payslip(); as ps) {
+    <div class="payslip-totals d-flex gap-4 flex-wrap">
+      <div class="snap-stat">
+        <span class="snap-stat-label">{{ 'payroll.payslipTotalHours' | translate }}</span>
+        <span class="snap-stat-value">{{ ps.totalHours | number:'1.1-1' }}</span>
+      </div>
+      <div class="snap-stat">
+        <span class="snap-stat-label">{{ 'payroll.payslipTotalPay' | translate }}</span>
+        <span class="snap-stat-value">RM {{ ps.totalPay | number:'1.2-2' }}</span>
+      </div>
+      <div class="payslip-export-wrap">
+        <p-button icon="pi pi-download" [label]="'payroll.exportCsv' | translate" [text]="true" severity="secondary"
+                  (click)="exportPayslipCsv()" [disabled]="payslipExporting() || !ps.shifts.length" [loading]="payslipExporting()" />
+      </div>
+    </div>
+
+    @if (ps.shifts.length) {
+      <p-table [value]="ps.shifts" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px" styleClass="payslip-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>{{ 'payroll.psDate' | translate }}</th>
+            <th>{{ 'payroll.psShift' | translate }}</th>
+            <th>{{ 'payroll.psHours' | translate }}</th>
+            <th>{{ 'payroll.psJob' | translate }}</th>
+            <th>{{ 'payroll.psRate' | translate }}</th>
+            <th>{{ 'payroll.psPay' | translate }}</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-s>
+          <tr>
+            <td><span class="p-column-title">{{ 'payroll.psDate' | translate }}</span>
+              <span class="mono">{{ s.workDate }}</span>
+              @if (s.endDate && s.endDate !== s.workDate) { <span class="td-muted">→ {{ s.endDate }}</span> }
+              @if (s.isEdited) { <i class="pi pi-pencil edited-flag" [title]="'payroll.psEdited' | translate"></i> }
+            </td>
+            <td><span class="p-column-title">{{ 'payroll.psShift' | translate }}</span>
+              <span class="mono">{{ s.startTime }}–{{ s.endTime }}</span></td>
+            <td><span class="p-column-title">{{ 'payroll.psHours' | translate }}</span>{{ s.hours | number:'1.1-1' }}</td>
+            <td><span class="p-column-title">{{ 'payroll.psJob' | translate }}</span>
+              {{ s.role }}
+              @if (s.payType === 'fixed') { <p-tag [value]="'payroll.psFixed' | translate" severity="warn" styleClass="paytype-tag" /> }
+            </td>
+            <td><span class="p-column-title">{{ 'payroll.psRate' | translate }}</span>
+              RM {{ s.rate | number:'1.2-2' }}{{ (s.payType === 'fixed' ? 'payroll.psPerShift' : 'payroll.psPerHour') | translate }}</td>
+            <td class="td-bold"><span class="p-column-title">{{ 'payroll.psPay' | translate }}</span>RM {{ s.pay | number:'1.2-2' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else {
+      <p class="snap-empty">{{ 'payroll.payslipEmpty' | translate }}</p>
+    }
+  }
+</p-dialog>

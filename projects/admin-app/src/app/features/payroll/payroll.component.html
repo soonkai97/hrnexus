@@ -152,11 +152,37 @@
         <span class="snap-stat-label">{{ 'payroll.payslipTotalPay' | translate }}</span>
         <span class="snap-stat-value">RM {{ ps.totalPay | number:'1.2-2' }}</span>
       </div>
+      @if (ps.outstandingAdvance > 0) {
+        <div class="snap-stat">
+          <span class="snap-stat-label">{{ 'payroll.payslipLessAdvance' | translate }}</span>
+          <span class="snap-stat-value advance">− RM {{ ps.outstandingAdvance | number:'1.2-2' }}</span>
+        </div>
+        <div class="snap-stat">
+          <span class="snap-stat-label">{{ 'payroll.payslipNetPayable' | translate }}</span>
+          <span class="snap-stat-value net">RM {{ ps.netPayable | number:'1.2-2' }}</span>
+        </div>
+      }
       <div class="payslip-export-wrap">
         <p-button icon="pi pi-download" [label]="'payroll.exportCsv' | translate" [text]="true" severity="secondary"
                   (click)="exportPayslipCsv()" [disabled]="payslipExporting() || !ps.shifts.length" [loading]="payslipExporting()" />
       </div>
     </div>
+
+    @if (ps.jobBreakdown.length > 1) {
+      <div class="payslip-jobs">
+        <span class="payslip-jobs-title">{{ 'payroll.payslipByJob' | translate }}</span>
+        <div class="payslip-jobs-grid">
+          @for (j of ps.jobBreakdown; track j.role + j.payType) {
+            <div class="job-chip">
+              <span class="job-name">{{ j.role }}</span>
+              @if (j.payType === 'fixed') { <p-tag [value]="'payroll.psFixed' | translate" severity="warn" styleClass="paytype-tag" /> }
+              <span class="job-detail">{{ j.shiftCount }}× · {{ j.hours | number:'1.1-1' }}h</span>
+              <span class="job-pay">RM {{ j.pay | number:'1.2-2' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
 
     @if (ps.shifts.length) {
       <p-table [value]="ps.shifts" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px" styleClass="payslip-table">

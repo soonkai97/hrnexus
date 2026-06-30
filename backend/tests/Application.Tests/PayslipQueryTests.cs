@@ -135,6 +135,83 @@ public class PayslipQueryTests
     }
 
     [Fact]
+    public async Task NetPayable_DeductsAllUnsettledAdvances_ExcludesSettled()
+    {
+        await using var db = CreateDb();
+        var alice = MakeStaff();
+        db.Staff.Add(alice);
+        db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 5),  "09:00", "17:00", 20m)); // 160
+        db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 10), "09:00", "13:00", 20m)); // 80 → gross 240
+        db.CashAdvances.Add(E.CashAdvance.Create(alice.Id, 100m, new DateOnly(2025, 6, 1), "advance", "admin"));
+        var settled = E.CashAdvance.Create(alice.Id, 50m, new DateOnly(2025, 5, 1), "old", "admin");
+        settled.MarkSettled();   // already deducted → must NOT reduce net
+        db.CashAdvances.Add(settled);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new GetStaffPayslipQueryHandler(db);
+        var result  = await handler.Handle(
+            new GetStaffPayslipQuery(alice.StaffId, new DateOnly(2025, 6, 1), new DateOnly(2025, 6, 30)),
+            CancellationToken.None);
+
+        Assert.Equal(240m, result.TotalPay);
+        Assert.Equal(100m, result.OutstandingAdvance);   // settled 50 excluded
+        Assert.Equal(140m, result.NetPayable);           // 240 − 100
+    }
+
+    [Fact]
+    public async Task NetPayable_FlooredAtZero_WhenAdvanceExceedsGross()
+    {
+        await using var db = CreateDb();
+        var alice = MakeStaff();
+        db.Staff.Add(alice);
+        db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 5), "09:00", "17:00", 20m)); // 160 gross
+        db.CashAdvances.Add(E.CashAdvance.Create(alice.Id, 500m, new DateOnly(2025, 6, 1), "big advance", "admin"));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new GetStaffPayslipQueryHandler(db);
+        var result  = await handler.Handle(
+            new GetStaffPayslipQuery(alice.StaffId, new DateOnly(2025, 6, 1), new DateOnly(2025, 6, 30)),
+            CancellationToken.None);
+
+        Assert.Equal(160m, result.TotalPay);
+        Assert.Equal(500m, result.OutstandingAdvance);
+        Assert.Equal(0m,   result.NetPayable);   // never negative; remainder carries as still-outstanding
+    }
+
+    [Fact]
+    public async Task JobBreakdown_GroupsByJobAndPayType_OrderedByPayDesc()
+    {
+        await using var db = CreateDb();
+        var alice = MakeStaff();
+        db.Staff.Add(alice);
+        // Two hourly BARTENDER shifts (160 + 80 = 240) and one fixed PACKAGE shift (flat 500).
+        db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 5),  "09:00", "17:00", 20m));
+        db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 6),  "09:00", "13:00", 20m));
+        db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 7),  "20:00", "08:00", 500m,
+            payType: AppConstants.PayType.Fixed, role: "PACKAGE"));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new GetStaffPayslipQueryHandler(db);
+        var result  = await handler.Handle(
+            new GetStaffPayslipQuery(alice.StaffId, new DateOnly(2025, 6, 1), new DateOnly(2025, 6, 30)),
+            CancellationToken.None);
+
+        Assert.Equal(2, result.JobBreakdown.Count);
+        // PACKAGE (500) sorts above BARTENDER (240).
+        Assert.Equal("PACKAGE", result.JobBreakdown[0].Role);
+        Assert.Equal("fixed",   result.JobBreakdown[0].PayType);
+        Assert.Equal(1,    result.JobBreakdown[0].ShiftCount);
+        Assert.Equal(500m, result.JobBreakdown[0].Pay);
+        Assert.Equal("BARTENDER", result.JobBreakdown[1].Role);
+        Assert.Equal(2,    result.JobBreakdown[1].ShiftCount);
+        Assert.Equal(12m,  result.JobBreakdown[1].Hours);
+        Assert.Equal(240m, result.JobBreakdown[1].Pay);
+    }
+
+    [Fact]
     public async Task Throws_WhenStaffNotFound()
     {
         await using var db = CreateDb();

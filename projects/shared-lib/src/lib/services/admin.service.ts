@@ -170,6 +170,15 @@ export interface PayslipShiftRow {
   notes: string | null;
 }
 
+/** Per-job subtotal on a payslip (shifts grouped by job + pay model). */
+export interface PayslipJobSummary {
+  role: string;
+  payType: 'hourly' | 'fixed';
+  shiftCount: number;
+  hours: number;
+  pay: number;
+}
+
 export interface PayslipResponse {
   staffId: string;
   staffName: string;
@@ -177,6 +186,9 @@ export interface PayslipResponse {
   to: string;                   // yyyy-MM-dd
   totalHours: number;
   totalPay: number;
+  outstandingAdvance: number;   // all unsettled cash advances (running balance)
+  netPayable: number;           // max(0, totalPay − outstandingAdvance) — what to actually pay out
+  jobBreakdown: PayslipJobSummary[];
   shifts: PayslipShiftRow[];
 }
 

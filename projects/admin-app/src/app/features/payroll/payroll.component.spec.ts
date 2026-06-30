@@ -31,7 +31,11 @@ const fakeSnapshot = {
 
 const fakePayslip = {
   staffId: 'NC001', staffName: 'Jane Doe', from: '2026-05-01', to: '2026-05-31',
-  totalHours: 12, totalPay: 740,
+  totalHours: 12, totalPay: 740, outstandingAdvance: 200, netPayable: 540,
+  jobBreakdown: [
+    { role: 'PACKAGE', payType: 'fixed', shiftCount: 1, hours: 12, pay: 500 },
+    { role: 'BARTENDER', payType: 'hourly', shiftCount: 1, hours: 8, pay: 240 },
+  ],
   shifts: [
     { workDate: '2026-05-05', startTime: '09:00', endDate: '2026-05-05', endTime: '17:00',
       hours: 8, role: 'BARTENDER', locationName: 'Main', payType: 'hourly', rate: 30, pay: 240, isEdited: false, notes: null },

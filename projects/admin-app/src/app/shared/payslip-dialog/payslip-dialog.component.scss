@@ -1,0 +1,57 @@
+@use 'styles/theme' as *;
+
+.field        { display: flex; flex-direction: column; gap: 0.25rem; }
+.field label  { font-size: 0.8rem; color: $text-muted; }
+.mono         { font-family: ui-monospace, 'SFMono-Regular', 'Consolas', monospace; }
+.td-muted     { color: $text-muted; }
+.td-bold      { font-weight: 700; color: $text-primary; }
+.snap-empty   { color: $text-muted; font-size: 0.85rem; margin: 0.5rem 0 0; }
+
+.snap-stat       { display: flex; flex-direction: column; gap: 0.2rem; }
+.snap-stat-label { font-size: 0.73rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+.snap-stat-value { font-size: 1.6rem; font-weight: 800; color: $neon-green; line-height: 1; }
+.snap-stat-value.advance { color: $neon-amber; }
+.snap-stat-value.net     { color: $neon-green; }
+
+.payslip-range  { margin-bottom: 1.25rem; }
+.payslip-totals {
+  align-items: flex-end;
+  padding: 0.85rem 1rem;
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid $border-glow;
+  border-radius: $radius-md;
+  margin-bottom: 1rem;
+}
+.payslip-export-wrap { margin-left: auto; }
+.edited-flag    { color: $neon-amber; font-size: 0.72rem; margin-left: 0.35rem; }
+:host :deep(.paytype-tag) { margin-left: 0.4rem; font-size: 0.62rem; vertical-align: middle; }
+
+.payslip-jobs       { margin-bottom: 1rem; }
+.payslip-jobs-title { display: block; font-size: 0.7rem; font-weight: 700; color: $text-muted; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+.payslip-jobs-grid  { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.job-chip {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  background: $bg-surface;
+  font-size: 0.8rem;
+  .job-name   { font-weight: 700; color: $text-primary; }
+  .job-detail { color: $text-muted; }
+  .job-pay    { font-weight: 700; color: $neon-purple; }
+}
+
+// Responsive payslip table → card stack at ≤640 px
+@media (max-width: 640px) {
+  :host :deep(.payslip-table .p-datatable-table)  { display: block; }
+  :host :deep(.payslip-table .p-datatable-thead)  { display: none; }
+  :host :deep(.payslip-table .p-datatable-tbody > tr) {
+    display: block; border: 1px solid $border-subtle; border-radius: $radius-md;
+    margin: 0.5rem 0; padding: 0.25rem 0; background: $bg-surface;
+  }
+  :host :deep(.payslip-table .p-datatable-tbody > tr > td) {
+    display: flex; align-items: center; gap: 0.65rem; padding: 0.4rem 0.85rem; border: none;
+    .p-column-title { display: block; font-size: 0.68rem; font-weight: 700; color: $text-muted;
+      text-transform: uppercase; letter-spacing: 0.05em; min-width: 70px; flex-shrink: 0; }
+  }
+}

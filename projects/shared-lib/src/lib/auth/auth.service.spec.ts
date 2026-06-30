@@ -90,4 +90,21 @@ describe('AuthService — userRole and hasRole', () => {
     (service as any)._user.set(fakeUser(['BARTENDER']));
     expect(service.isAuthenticated()).toBe(true);
   });
+
+  // ── logout / loggingOut ─────────────────────────────────────────────────────
+
+  it('clears the user and flags loggingOut so guards skip the unsaved-changes prompt', async () => {
+    (service as any)._user.set(fakeUser(['BARTENDER']));
+
+    service.logout();
+
+    // Set synchronously, before the route guard runs — otherwise the unsaved-changes
+    // dialog would deadlock behind the "Signing out…" overlay.
+    expect(service.loggingOut()).toBe(true);
+    expect(service.user()).toBeNull();
+
+    // Resets once the navigation settles so a later session's guard works normally again.
+    await new Promise(r => setTimeout(r));
+    expect(service.loggingOut()).toBe(false);
+  });
 });

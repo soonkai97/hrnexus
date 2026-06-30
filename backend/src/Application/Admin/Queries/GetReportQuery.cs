@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.Admin.Queries;
 
@@ -28,7 +29,12 @@ public record ReportSummary(
     decimal TotalCost,
     int     UniqueStaff,
     int     UniqueLocations,
-    decimal AvgHoursPerShift
+    decimal AvgHoursPerShift,
+    // Labour-cost split by pay model — how much came from fixed-per-shift packages vs hourly work.
+    int     FixedShifts,
+    decimal FixedCost,
+    int     HourlyShifts,
+    decimal HourlyCost
 );
 
 public record StaffReportRow(
@@ -68,6 +74,7 @@ public record ShiftDetailRow(
     string    StaffId,
     string    StaffName,
     string    Role,
+    string    PayType,     // "hourly" | "fixed"
     string    LocationId,
     string    LocationName,
     string    WorkDate,    // yyyy-MM-dd
@@ -126,6 +133,7 @@ public class GetReportQueryHandler(IAppDbContext db)
                 w.Id,
                 w.Employee?.StaffId ?? "", w.Employee?.FullName ?? "Unknown",
                 w.RoleName,
+                w.PayTypeSnapshot,
                 w.LocationId, w.LocationName,
                 w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime,
                 w.Notes,
@@ -133,7 +141,17 @@ public class GetReportQueryHandler(IAppDbContext db)
                 startDt, endDt, hours, cost, "Complete");
         }).ToList();
 
-        var summary = new ReportSummary(shifts.Count, Math.Round(shifts.Sum(s => s.Hours), 1), Math.Round(shifts.Sum(s => s.Cost), 2), shifts.Select(s => s.StaffId).Distinct().Count(), shifts.Select(s => s.LocationName).Distinct().Count(), shifts.Count > 0 ? Math.Round(shifts.Average(s => s.Hours), 2) : 0m);
+        var fixedRows  = shifts.Where(s => s.PayType == AppConstants.PayType.Fixed).ToList();
+        var hourlyRows = shifts.Where(s => s.PayType != AppConstants.PayType.Fixed).ToList();
+        var summary = new ReportSummary(
+            shifts.Count,
+            Math.Round(shifts.Sum(s => s.Hours), 1),
+            Math.Round(shifts.Sum(s => s.Cost), 2),
+            shifts.Select(s => s.StaffId).Distinct().Count(),
+            shifts.Select(s => s.LocationName).Distinct().Count(),
+            shifts.Count > 0 ? Math.Round(shifts.Average(s => s.Hours), 2) : 0m,
+            fixedRows.Count,  Math.Round(fixedRows.Sum(s => s.Cost), 2),
+            hourlyRows.Count, Math.Round(hourlyRows.Sum(s => s.Cost), 2));
 
         var byStaff    = shifts.GroupBy(s => new { s.StaffId, s.StaffName, s.Role }).Select(g => new StaffReportRow(g.Key.StaffId, g.Key.StaffName, g.Key.Role, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), g.Any() ? Math.Round(g.Average(s => s.Hours), 2) : 0m)).OrderByDescending(r => r.Cost).ToList();
         var byLocation = shifts.GroupBy(s => s.LocationName).Select(g => new LocationReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2))).OrderByDescending(r => r.Cost).ToList();

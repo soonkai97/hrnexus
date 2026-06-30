@@ -341,9 +341,9 @@ export class ReportsComponent implements OnInit {
         `${d.date},${d.shifts},${d.hours},${d.cost.toFixed(2)}`
       ).join('\n');
     } else {
-      csv  = [t('reports.csvStaffId'), t('reports.csvName'), t('reports.csvRole'), t('reports.csvLocation'), t('reports.csvClockedIn'), t('reports.csvClockedOut'), t('reports.csvHours'), t('reports.csvCost'), t('reports.csvStatus'), t('reports.shiftNotes')].join(',') + '\n';
+      csv  = [t('reports.csvStaffId'), t('reports.csvName'), t('reports.csvRole'), t('reports.csvPayType'), t('reports.csvLocation'), t('reports.csvClockedIn'), t('reports.csvClockedOut'), t('reports.csvHours'), t('reports.csvCost'), t('reports.csvStatus'), t('reports.shiftNotes')].join(',') + '\n';
       csv += r.shifts.map(s =>
-        `${s.staffId},"${s.staffName}",${s.role},"${s.locationName}","${s.workDate} ${s.startTime}","${s.endTime ? ((s.endDate ?? s.workDate) + ' ' + s.endTime) : ''}",${s.hours},${s.cost.toFixed(2)},${s.status},"${(s.notes ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`
+        `${s.staffId},"${s.staffName}",${s.role},${s.payType},"${s.locationName}","${s.workDate} ${s.startTime}","${s.endTime ? ((s.endDate ?? s.workDate) + ' ' + s.endTime) : ''}",${s.hours},${s.cost.toFixed(2)},${s.status},"${(s.notes ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`
       ).join('\n');
     }
 

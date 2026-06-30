@@ -52,6 +52,11 @@ export interface ReportSummary {
   uniqueStaff:      number;
   uniqueLocations:  number;
   avgHoursPerShift: number;
+  // Labour-cost split by pay model (fixed-per-shift packages vs hourly work)
+  fixedShifts:      number;
+  fixedCost:        number;
+  hourlyShifts:     number;
+  hourlyCost:       number;
 }
 
 export interface StaffReportRow {
@@ -91,6 +96,7 @@ export interface ShiftDetailRow {
   staffId:      string;
   staffName:    string;
   role:         string;
+  payType:      'hourly' | 'fixed';
   locationId:   string;
   locationName: string;
   workDate:     string;        // yyyy-MM-dd

@@ -73,20 +73,6 @@ public class AuthController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> GetMyPermissions(CancellationToken ct)
         => Ok(await mediator.Send(new HRNexus.Application.Permissions.Queries.GetMyPermissionsQuery(), ct));
 
-    [HttpPost("change-password")]
-    [Authorize]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordBody body, CancellationToken ct)
-    {
-        var employeeId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        try
-        {
-            await mediator.Send(new ChangePasswordCommand(employeeId, body.CurrentPassword, body.NewPassword), ct);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex) { return Unauthorized(new { error = ex.Message }); }
-        catch (KeyNotFoundException ex)        { return NotFound(new { error = ex.Message }); }
-        catch (ArgumentException ex)           { return BadRequest(new { error = ex.Message }); }
-    }
 
     [HttpGet("me")]
     [Authorize]
@@ -186,7 +172,6 @@ public class AuthController(IMediator mediator) : ControllerBase
     }
 }
 
-public record ChangePasswordBody(string CurrentPassword, string NewPassword);
 public record UpdateProfileBody(string? PhoneNumber);
 public record UpdateLanguageBody(string Language);
 public record ForgotPasswordBody(string StaffId);

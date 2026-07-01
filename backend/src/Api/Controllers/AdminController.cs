@@ -205,21 +205,6 @@ public class AdminController(IMediator mediator) : ControllerBase
         catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
     }
 
-    /// <summary>Record the same leave (e.g. a public holiday) for many staff at once (partial success).</summary>
-    [HttpPost("leave/bulk-create")]
-    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
-    public async Task<IActionResult> BulkCreateLeave([FromBody] BulkCreateLeaveBody body, CancellationToken ct)
-    {
-        try
-        {
-            var result = await mediator.Send(new BulkCreateLeaveCommand(
-                body.EmployeeIds, body.LeaveType, body.StartDate, body.EndDate,
-                body.StartTime, body.EndTime, body.Hours, body.Notes, body.Status ?? "approved"), ct);
-            return Ok(result);
-        }
-        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
-    }
-
     /// <summary>Aggregated leave usage summary for all active staff for a given year.</summary>
     [HttpGet("leave/summary")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LeaveApprove)]
@@ -374,7 +359,6 @@ public class AdminController(IMediator mediator) : ControllerBase
 public record UpsertLeaveBody(Guid EmployeeId, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status, string? RejectionReason = null);
 public record BulkUpdateLeaveStatusBody(List<Guid> Ids, string Status, string? RejectionReason = null);
 public record BulkMarkLeaveNoShowBody(List<Guid> Ids);
-public record BulkCreateLeaveBody(List<Guid> EmployeeIds, string LeaveType, DateTime StartDate, DateTime EndDate, string? StartTime, string? EndTime, decimal? Hours, string? Notes, string? Status);
 public record LeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record BulkLeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record CarryOverBody(int FromYear, int ToYear, decimal? MaxCarryOver);

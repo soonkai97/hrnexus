@@ -52,13 +52,6 @@ export class LocationStore {
     );
   }
 
-  /** Create many locations at once from a list of names (duplicates skipped server-side). */
-  bulkCreate(names: string[]) {
-    return this.http.post<{ created: number; skipped: number }>('/api/locations/bulk', { names }).pipe(
-      tap(() => this.load())
-    );
-  }
-
   update(id: string, dto: UpsertLocationDto) {
     return this.http.put<void>(`/api/locations/${id}`, dto).pipe(
       tap(() => this.#locations.update(list =>

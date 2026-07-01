@@ -189,21 +189,6 @@ describe('LocationStore', () => {
     });
   });
 
-  // ── bulkCreate() ────────────────────────────────────────────────────────────
-
-  describe('bulkCreate()', () => {
-    it('POSTs /api/locations/bulk with the names and reloads', async () => {
-      const promise = firstValueFrom(store.bulkCreate(['Main Bar', 'Rooftop']));
-      const postReq = http.expectOne('/api/locations/bulk');
-      expect(postReq.request.method).toBe('POST');
-      expect(postReq.request.body).toEqual({ names: ['Main Bar', 'Rooftop'] });
-      postReq.flush({ created: 2, skipped: 0 });
-      // bulkCreate taps load() — flush the reload GET too
-      http.expectOne('/api/locations').flush([]);
-      await promise;
-    });
-  });
-
   // ── remove() ──────────────────────────────────────────────────────────────
 
   describe('remove()', () => {

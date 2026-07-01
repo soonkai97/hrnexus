@@ -2,7 +2,6 @@
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">{{ 'locations.title' | translate }}</h1>
     <div class="d-flex gap-2">
-      <p-button icon="pi pi-upload" [label]="'locations.bulkAdd' | translate" severity="secondary" [outlined]="true" (click)="openBulk()" />
       <p-button icon="pi pi-plus" [label]="'locations.addLocation' | translate" severity="primary" (click)="openAdd()" />
     </div>
   </div>
@@ -86,28 +85,3 @@
     }
   </div>
 </div>
-
-<!-- ── Bulk add Locations ──────────────────────────────────────────────────── -->
-<p-dialog [visible]="showBulk()" (visibleChange)="!$event && showBulk.set(false)"
-          [header]="'locations.bulkAdd' | translate" [modal]="true"
-          [style]="{'width':'min(480px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
-  <p class="modal-desc">{{ 'locations.bulkAddDesc' | translate }}</p>
-  <div class="bulk-grid">
-    @for (row of bulkRows; track $index) {
-      <div class="bulk-grid-row">
-        <input pInputText [(ngModel)]="row.name" [placeholder]="'locations.namePlaceholder' | translate"
-               [attr.aria-label]="'locations.nameLabel' | translate" />
-        <p-button icon="pi pi-times" [text]="true" severity="danger" size="small" rounded
-                  [attr.aria-label]="'common.delete' | translate"
-                  [disabled]="bulkRows.length <= 1" (onClick)="removeBulkRow($index)" />
-      </div>
-    }
-    <p-button icon="pi pi-plus" [label]="'common.addRow' | translate" [text]="true" severity="secondary"
-              size="small" (onClick)="addBulkRow()" />
-  </div>
-  <ng-template pTemplate="footer">
-    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulk.set(false)" />
-    <p-button [label]="bulkSaving() ? ('common.saving' | translate) : ('common.create' | translate)"
-              severity="primary" (click)="saveBulk()" [disabled]="bulkSaving() || !bulkNames.length" [loading]="bulkSaving()" />
-  </ng-template>
-</p-dialog>

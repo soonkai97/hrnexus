@@ -56,19 +56,6 @@ public class LocationsController(IAppDbContext db, IFileStorage files, IMediator
         return CreatedAtAction(nameof(List), new { }, new { loc.Id });
     }
 
-    /// <summary>Create many locations at once from a list of names (duplicates skipped).</summary>
-    [HttpPost("bulk")]
-    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LocationsManage)]
-    public async Task<IActionResult> BulkCreate([FromBody] BulkCreateLocationsBody body, CancellationToken ct)
-    {
-        try
-        {
-            var result = await mediator.Send(new BulkCreateLocationsCommand(body.Names), ct);
-            return Ok(result);
-        }
-        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
-    }
-
     [HttpPut("{id}")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.LocationsManage)]
     public async Task<IActionResult> Update(string id, [FromBody] UpsertLocationBody body, CancellationToken ct)
@@ -117,4 +104,3 @@ public class LocationsController(IAppDbContext db, IFileStorage files, IMediator
 
 public record LocationDto(string Id, string Name, string? NameZh, string? NameVi, string? ImagePath);
 public record UpsertLocationBody(string Name, string? NameZh = null, string? NameVi = null);
-public record BulkCreateLocationsBody(List<string> Names);

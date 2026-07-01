@@ -113,41 +113,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  // ── Bulk add (editable row grid — Name + Rate per row) ──────────────────────
-  showBulk   = signal(false);
-  bulkRows: { name: string; rate: number | null }[] = [];
-  bulkSaving = signal(false);
-
-  openBulk(): void {
-    this.bulkRows = [{ name: '', rate: 0 }];
-    this.showBulk.set(true);
-  }
-  addBulkRow(): void { this.bulkRows = [...this.bulkRows, { name: '', rate: 0 }]; }
-  removeBulkRow(i: number): void { this.bulkRows = this.bulkRows.filter((_, idx) => idx !== i); }
-
-  get bulkRoles(): { name: string; hourlyRate: number }[] {
-    return this.bulkRows
-      .map(r => ({ name: r.name.trim(), hourlyRate: r.rate != null && r.rate >= 0 ? r.rate : 0 }))
-      .filter(r => r.name.length > 0);
-  }
-
-  saveBulk(): void {
-    const roles = this.bulkRoles;
-    if (!roles.length) return;
-    this.bulkSaving.set(true);
-    this.store.bulkCreateRoles(roles).subscribe({
-      next: (res) => {
-        this.bulkSaving.set(false);
-        this.showBulk.set(false);
-        this.toast.success(this.translate.instant('roles.bulkAddedToast', { created: res.created, skipped: res.skipped }));
-      },
-      error: (e) => {
-        this.bulkSaving.set(false);
-        this.toast.error(e?.error?.error ?? this.translate.instant('roles.createFailed'));
-      },
-    });
-  }
-
   startEditRate(name: string, currentRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): void {
     this.editingRateName.set(name);
     this.editingRateValue.set(currentRate);

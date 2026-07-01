@@ -28,12 +28,16 @@ const fakeDashboard = {
   currentlyOnShift: [{ workLogId: 'wl-1', staffId: 'NC001', name: 'Jane', role: 'bartender', locationName: 'Main Bar', workDate: '2026-06-01', startTime: '18:00', clockedInAt: '18:00', minutesOnShift: 90 }],
   recentActivity:   [{ staffName: 'Jane', role: 'bartender', locationName: 'Main Bar', timestamp: '18:00', eventType: 'shift-started' as const }],
 };
+const fakeEarnings = {
+  date: '2026-06-15', month: '2026-06', totalToday: 200, totalThisMonth: 4800,
+  totalOutstandingAdvance: 350, staff: [],
+};
 
 describe('DashboardComponent', () => {
   let liveStats$: Subject<any>;
 
   let mockSignalR: { isConnected: ReturnType<typeof vi.fn>; liveStats$: ReturnType<typeof vi.fn> };
-  let mockAdminSvc: { getDashboard: ReturnType<typeof vi.fn> };
+  let mockAdminSvc: { getDashboard: ReturnType<typeof vi.fn>; getEarningsSnapshot: ReturnType<typeof vi.fn> };
   let mockToastSvc: { error: ReturnType<typeof vi.fn>; success: ReturnType<typeof vi.fn> };
   let mockWorkLogSvc: { adminEndShift: ReturnType<typeof vi.fn> };
 
@@ -46,7 +50,10 @@ describe('DashboardComponent', () => {
     liveStats$ = new Subject<any>();
 
     mockSignalR  = { isConnected: vi.fn().mockReturnValue(false), liveStats$: liveStats$ as any };
-    mockAdminSvc = { getDashboard: vi.fn().mockReturnValue(of(fakeDashboard)) };
+    mockAdminSvc = {
+      getDashboard:        vi.fn().mockReturnValue(of(fakeDashboard)),
+      getEarningsSnapshot: vi.fn().mockReturnValue(of(fakeEarnings)),
+    };
     mockToastSvc = { error: vi.fn(), success: vi.fn() };
     mockWorkLogSvc = { adminEndShift: vi.fn().mockReturnValue(of(void 0)) };
 
@@ -118,6 +125,20 @@ describe('DashboardComponent', () => {
     it('populates onShift signal with API response', () => {
       component.ngOnInit();
       expect(component.onShift()).toEqual(fakeDashboard.currentlyOnShift);
+    });
+
+    it('loads the month-to-date earnings snapshot for the financial cards', () => {
+      component.ngOnInit();
+      expect(mockAdminSvc.getEarningsSnapshot).toHaveBeenCalled();
+      expect(component.earnings()).toEqual(fakeEarnings);
+    });
+
+    it('still renders the dashboard when the earnings snapshot fails (e.g. no payroll.view)', () => {
+      mockAdminSvc.getEarningsSnapshot.mockReturnValue(throwError(() => ({ status: 403 })));
+      component.ngOnInit();
+      expect(component.stats()).toEqual(fakeStats);   // dashboard still loaded
+      expect(component.earnings()).toBeNull();          // financial cards just stay hidden
+      expect(component.loading()).toBe(false);
     });
 
     it('clears loading flag after successful load', () => {

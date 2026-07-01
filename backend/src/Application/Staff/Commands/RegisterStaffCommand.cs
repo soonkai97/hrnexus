@@ -39,14 +39,6 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
         if (idTaken)
             throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
 
-        if (!string.IsNullOrWhiteSpace(req.Email))
-        {
-            var normalizedEmail = req.Email.Trim().ToLowerInvariant();
-            var emailTaken = await db.Staff.AnyAsync(e => e.Email == normalizedEmail, ct);
-            if (emailTaken)
-                throw new InvalidOperationException($"Email '{req.Email}' is already registered.");
-        }
-
         var employee = HRNexus.Domain.Entities.Staff.Create(normalizedId, req.FirstName, req.LastName, req.Email,
             hasher.Hash(req.Password), req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),
@@ -59,13 +51,10 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
         }
         catch (DbUpdateException)
         {
-            // Unique index on StaffId or Email fired: a concurrent request registered
-            // the same StaffId or Email between our AnyAsync check and our save.
-            // Check which one to surface the right message.
-            var idStillTaken = await db.Staff.AnyAsync(e => e.StaffId == normalizedId, ct);
-            if (idStillTaken)
-                throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
-            throw new InvalidOperationException($"Email '{req.Email}' is already registered.");
+            // The only unique constraint on insert is the (partial) StaffId index — a concurrent
+            // request registered the same Staff ID between our check and our save. (Email has no
+            // unique constraint.)
+            throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
         }
         await audit.LogAsync("Staff", employee.Id.ToString(), "Created",
             null, "Admin", $"StaffId={normalizedId}", ct);

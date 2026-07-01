@@ -37,14 +37,6 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
         if (idTaken)
             throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
 
-        if (!string.IsNullOrWhiteSpace(req.Email))
-        {
-            var emailTaken = await db.Staff.AnyAsync(
-                e => e.Email == req.Email.ToLowerInvariant() && e.Id != req.Id, ct);
-            if (emailTaken)
-                throw new InvalidOperationException($"Email '{req.Email}' is already in use.");
-        }
-
         // Resolve email: keep existing if not supplied
         var resolvedEmail = string.IsNullOrWhiteSpace(req.Email) ? emp.Email : req.Email;
 

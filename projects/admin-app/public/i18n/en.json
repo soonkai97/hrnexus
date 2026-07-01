@@ -727,7 +727,7 @@
     "perShiftSuffix":   " /shift",
     "editRate":         "Edit",
     "editRoleTitle":    "Edit Job",
-    "systemNameLocked": "System roles keep their name — it's used for access control.",
+    "systemNameLocked": "System jobs keep their name — it's used for access control.",
     "hourlyRateCol":    "Hourly Rate (RM)",
     "nameRequired":     "Job name is required.",
     "created":          "Job created.",

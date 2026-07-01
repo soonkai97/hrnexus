@@ -727,7 +727,7 @@
     "perShiftSuffix":   " /ca",
     "editRate":         "Sửa",
     "editRoleTitle":    "Sửa công việc",
-    "systemNameLocked": "Vai trò hệ thống giữ nguyên tên — tên được dùng để kiểm soát truy cập.",
+    "systemNameLocked": "Công việc hệ thống giữ nguyên tên — tên được dùng để kiểm soát truy cập.",
     "hourlyRateCol":    "Mức lương theo giờ (RM)",
     "nameRequired":     "Tên công việc là bắt buộc.",
     "created":          "Đã tạo công việc.",

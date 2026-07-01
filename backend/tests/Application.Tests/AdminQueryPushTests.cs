@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Push;
@@ -41,10 +41,13 @@ public class AdminQueryPushTests
         return new TestDbContext(opts);
     }
 
-    private static E.Staff MakeStaff(string staffId = "S001", bool active = true)
+    // Seeds the BARTENDER role (idempotent) and creates a staff assigned to it. Role names are not
+    // read back in these tests, but seeding keeps the Role nav resolvable if any query needs it.
+    private static async Task<E.Staff> MakeStaffAsync(TestDbContext db, string staffId = "S001", bool active = true)
     {
+        var bartender = await RoleSeed.EnsureRoleAsync(db, "BARTENDER");
         var s = E.Staff.Create(staffId, "Alice", "Wong", $"{staffId}@test.com", "hash",
-            new List<string> { "BARTENDER" });
+            new List<Guid> { bartender });
         if (!active) s.Deactivate();
         return s;
     }
@@ -75,10 +78,10 @@ public class AdminQueryPushTests
     public async Task GetDashboard_CountsActiveStaff_WhenStaffExists()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001"));
-        db.Staff.Add(MakeStaff("S002"));
+        db.Staff.Add(await MakeStaffAsync(db, "S001"));
+        db.Staff.Add(await MakeStaffAsync(db, "S002"));
         // Inactive staff should NOT be counted in TotalStaff
-        db.Staff.Add(MakeStaff("S003", active: false));
+        db.Staff.Add(await MakeStaffAsync(db, "S003", active: false));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -94,7 +97,7 @@ public class AdminQueryPushTests
     public async Task GetDashboard_ReportsOnShiftStaff_WhenOpenShiftExists()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         // Today in UTC date
@@ -122,7 +125,7 @@ public class AdminQueryPushTests
     public async Task GetDashboard_OpenShiftsCount_OnlyCountsStaleShifts()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var today     = DateOnly.FromDateTime(UtcRef);
@@ -152,7 +155,7 @@ public class AdminQueryPushTests
     public async Task GetDashboard_RecentActivity_OnlyContainsTodaysLogs()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var today     = DateOnly.FromDateTime(UtcRef);
@@ -201,7 +204,7 @@ public class AdminQueryPushTests
     public async Task GetReport_ReturnsSummary_WhenCompletedShiftsExist()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var workDate = new DateOnly(2025, 6, 1);
@@ -228,7 +231,7 @@ public class AdminQueryPushTests
     public async Task GetReport_SplitsCostByPayType_AndExposesPayTypePerShift()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var workDate = new DateOnly(2025, 6, 1);
@@ -262,7 +265,7 @@ public class AdminQueryPushTests
     public async Task GetReport_ExcludesOpenShifts()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var workDate = new DateOnly(2025, 6, 1);
@@ -288,8 +291,8 @@ public class AdminQueryPushTests
     public async Task GetReport_FiltersBy_StaffId()
     {
         await using var db = CreateDb();
-        var staff1 = MakeStaff("S001");
-        var staff2 = MakeStaff("S002");
+        var staff1 = await MakeStaffAsync(db, "S001");
+        var staff2 = await MakeStaffAsync(db, "S002");
         db.Staff.AddRange(staff1, staff2);
 
         var workDate = new DateOnly(2025, 6, 1);
@@ -316,7 +319,7 @@ public class AdminQueryPushTests
     public async Task GetReport_FiltersBy_LocationName()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var workDate = new DateOnly(2025, 6, 1);
@@ -343,7 +346,7 @@ public class AdminQueryPushTests
     public async Task GetReport_FiltersBy_DateRange()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main",
@@ -389,7 +392,7 @@ public class AdminQueryPushTests
     public async Task GetLeave_ReturnsAllRequests_WhenNoFilters()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -411,8 +414,8 @@ public class AdminQueryPushTests
     public async Task GetLeave_FiltersBy_EmployeeId()
     {
         await using var db = CreateDb();
-        var staff1 = MakeStaff("S001");
-        var staff2 = MakeStaff("S002");
+        var staff1 = await MakeStaffAsync(db, "S001");
+        var staff2 = await MakeStaffAsync(db, "S002");
         db.Staff.AddRange(staff1, staff2);
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -434,7 +437,7 @@ public class AdminQueryPushTests
     public async Task GetLeave_FiltersBy_Status()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var start   = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -459,7 +462,7 @@ public class AdminQueryPushTests
     public async Task GetLeave_PendingAppearFirst_InResults()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var start    = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -485,7 +488,7 @@ public class AdminQueryPushTests
     public async Task GetLeave_ReturnsCorrectDto_Fields()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -514,7 +517,7 @@ public class AdminQueryPushTests
     public async Task GetLeave_FiltersBy_LeaveType_ReturnsOnlySick()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -539,7 +542,7 @@ public class AdminQueryPushTests
         // Oldest application (earliest CreatedAt) must appear first so managers
         // review leave in the order it was submitted — fairness requirement.
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         var start = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -689,9 +692,9 @@ public class AdminQueryPushTests
     public async Task GetAllLeaveBalances_ReturnsOneRowPerActiveStaff()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001"));
-        db.Staff.Add(MakeStaff("S002"));
-        db.Staff.Add(MakeStaff("S003", active: false)); // inactive — should not appear
+        db.Staff.Add(await MakeStaffAsync(db, "S001"));
+        db.Staff.Add(await MakeStaffAsync(db, "S002"));
+        db.Staff.Add(await MakeStaffAsync(db, "S003", active: false)); // inactive — should not appear
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -709,9 +712,10 @@ public class AdminQueryPushTests
     {
         // Superadmins are treated as normal staff — they appear in the leave overview like anyone else.
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001"));   // BARTENDER
+        db.Staff.Add(await MakeStaffAsync(db, "S001"));   // BARTENDER
+        var superadmin = await RoleSeed.EnsureRoleAsync(db, "SUPERADMIN");
         db.Staff.Add(E.Staff.Create("ADMIN1", "Super", "Admin", "admin1@test.com", "hash",
-            new List<string> { "SUPERADMIN" }));
+            new List<Guid> { superadmin }));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -728,7 +732,7 @@ public class AdminQueryPushTests
     public async Task GetAllLeaveBalances_ShowsUsedLeave_ForEachEmployee()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
         // 24 hours annual leave approved

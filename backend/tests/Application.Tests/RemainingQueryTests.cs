@@ -38,9 +38,13 @@ public class RemainingQueryTests
         return new TestDbContext(opts);
     }
 
-    private static E.Staff MakeStaff(string staffId = "S001", List<string>? roles = null) =>
-        E.Staff.Create(staffId, "Alice", "Wong", $"{staffId}@test.com", "hash",
-            roles ?? ["BARTENDER"]);
+    private static async Task<E.Staff> MakeStaffAsync(TestDbContext db, string staffId = "S001", params string[] roleNames)
+    {
+        var names = roleNames.Length > 0 ? roleNames : ["BARTENDER"];
+        var ids = new List<Guid>();
+        foreach (var name in names) ids.Add(await RoleSeed.EnsureRoleAsync(db, name));
+        return E.Staff.Create(staffId, "Alice", "Wong", $"{staffId}@test.com", "hash", ids);
+    }
 
     private static E.WorkLog MakeCompletedLog(
         Guid empId, DateOnly date, string start, string end, decimal rate = 20m) =>
@@ -68,7 +72,7 @@ public class RemainingQueryTests
     public async Task GetPayrollExport_ExcludesInactiveEmployees()
     {
         await using var db = CreateDb();
-        var emp = MakeStaff();
+        var emp = await MakeStaffAsync(db);
         emp.Deactivate();
         db.Staff.Add(emp);
         await db.SaveChangesAsync();
@@ -84,7 +88,7 @@ public class RemainingQueryTests
     public async Task GetPayrollExport_CalculatesRegularPayRow_ForActiveEmployee()
     {
         await using var db = CreateDb();
-        var emp = MakeStaff("E001");
+        var emp = await MakeStaffAsync(db, "E001");
         db.Staff.Add(emp);
         // 5h shift @ 20/h = 100 regular pay, no OT
         db.WorkLogs.Add(MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 10), "18:00", "23:00", 20m));
@@ -105,7 +109,7 @@ public class RemainingQueryTests
     public async Task GetPayrollExport_ExcludesOpenShifts_FromPay()
     {
         await using var db = CreateDb();
-        var emp = MakeStaff();
+        var emp = await MakeStaffAsync(db);
         db.Staff.Add(emp);
         db.WorkLogs.Add(E.WorkLog.StartLive(emp.Id, "BARTENDER", "loc-1", "Main Bar",
             new DateOnly(2026, 5, 10), "18:00", 20m));
@@ -124,7 +128,7 @@ public class RemainingQueryTests
     public async Task GetPayrollExport_LeaveIsUnpaid_AddsNoPay_OnlyCountsDays()
     {
         await using var db = CreateDb();
-        var emp = MakeStaff();
+        var emp = await MakeStaffAsync(db);
         db.Staff.Add(emp);
         // 5h shift @ 20/h = 100 work pay — the only pay this employee should receive.
         db.WorkLogs.Add(MakeCompletedLog(emp.Id, new DateOnly(2026, 5, 5), "18:00", "23:00", 20m));
@@ -192,8 +196,8 @@ public class RemainingQueryTests
         var fixedNow = new DateTime(2026, 5, 10, 21, 0, 0, DateTimeKind.Local);
         var today    = DateOnly.FromDateTime(fixedNow);
 
-        var active   = MakeStaff("S001");
-        var inactive = MakeStaff("S002");
+        var active   = await MakeStaffAsync(db, "S001");
+        var inactive = await MakeStaffAsync(db, "S002");
         inactive.Deactivate();
         db.Staff.AddRange(active, inactive);
         await db.SaveChangesAsync();
@@ -213,7 +217,7 @@ public class RemainingQueryTests
         var fixedNow = new DateTime(2026, 5, 10, 22, 0, 0, DateTimeKind.Local);
         var today    = DateOnly.FromDateTime(fixedNow);
 
-        var emp = MakeStaff();
+        var emp = await MakeStaffAsync(db);
         db.Staff.Add(emp);
         db.WorkLogs.Add(E.WorkLog.StartLive(emp.Id, "BARTENDER", "loc-1", "Main Bar",
             today, "20:00", 20m));
@@ -235,7 +239,7 @@ public class RemainingQueryTests
         var fixedNow = new DateTime(2026, 5, 10, 23, 0, 0, DateTimeKind.Local);
         var today    = DateOnly.FromDateTime(fixedNow);
 
-        var emp = MakeStaff();
+        var emp = await MakeStaffAsync(db);
         db.Staff.Add(emp);
         // Completed 5h shift 18:00–23:00 @ 20/h = 100
         db.WorkLogs.Add(MakeCompletedLog(emp.Id, today, "18:00", "23:00", 20m));
@@ -257,7 +261,7 @@ public class RemainingQueryTests
         var fixedNow = new DateTime(2026, 5, 10, 22, 0, 0, DateTimeKind.Local);
         var yesterday = DateOnly.FromDateTime(fixedNow).AddDays(-1);
 
-        var emp = MakeStaff();
+        var emp = await MakeStaffAsync(db);
         db.Staff.Add(emp);
         db.WorkLogs.Add(MakeCompletedLog(emp.Id, yesterday, "18:00", "23:00", 20m));
         await db.SaveChangesAsync();

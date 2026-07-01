@@ -21,7 +21,8 @@ public class CashAdvanceTests
 
     private static async Task<E.Staff> SeedStaff(TestDbContext db, string staffId = "S001", string first = "Alice")
     {
-        var s = E.Staff.Create(staffId, first, "Wong", $"{staffId}@test.com", "hash", new List<string> { "BARTENDER" });
+        var bartender = await RoleSeed.EnsureRoleAsync(db, "BARTENDER");
+        var s = E.Staff.Create(staffId, first, "Wong", $"{staffId}@test.com", "hash", new List<Guid> { bartender });
         db.Staff.Add(s);
         await db.SaveChangesAsync();
         return s;

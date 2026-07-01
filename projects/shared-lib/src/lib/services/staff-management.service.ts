@@ -42,12 +42,12 @@ export class StaffManagementService {
     return this.http.post<void>('/api/staff/roles', { name, hourlyRate, nameZh, nameVi, payType });
   }
 
-  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): Observable<void> {
-    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(name)}/rate`, { hourlyRate, nameZh, nameVi, payType });
+  updateRoleRate(id: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): Observable<void> {
+    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(id)}/rate`, { hourlyRate, nameZh, nameVi, payType });
   }
 
-  deleteRole(name: string): Observable<void> {
-    return this.http.delete<void>(`/api/staff/roles/${encodeURIComponent(name)}`);
+  deleteRole(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/staff/roles/${encodeURIComponent(id)}`);
   }
 
   resetPassword(id: string, newPassword: string): Observable<void> {
@@ -64,7 +64,7 @@ export class StaffManagementService {
     return this.http.post<{ count: number }>('/api/staff/bulk/locations', { staffIds, locationIds });
   }
 
-  /** Additively assign one or more roles to all selected staff. */
+  /** Additively assign one or more roles (by GUID id) to all selected staff. */
   bulkAssignRoles(staffIds: string[], roles: string[]): Observable<{ count: number }> {
     return this.http.post<{ count: number }>('/api/staff/bulk/roles', { staffIds, roles });
   }

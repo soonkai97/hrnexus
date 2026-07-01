@@ -4,6 +4,7 @@ namespace HRNexus.Domain.Entities;
 
 public class Role
 {
+    public Guid     Id         { get; private set; }
     public string   Name       { get; private set; } = default!;
     /// <summary>Optional Chinese name, shown when the UI language is Chinese (falls back to Name).</summary>
     public string?  NameZh     { get; private set; }
@@ -20,6 +21,7 @@ public class Role
     public static Role Create(string name, bool isSystem = false, decimal hourlyRate = 0,
         string? nameZh = null, string? nameVi = null, string payType = AppConstants.PayType.Hourly) => new()
     {
+        Id         = Guid.NewGuid(),
         Name       = name.Trim().ToUpperInvariant(),
         NameZh     = Clean(nameZh),
         NameVi     = Clean(nameVi),

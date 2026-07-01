@@ -67,7 +67,8 @@ public class ShiftPayTests
     {
         await using var db = CreateDb();
         var utcRef = new DateTime(2025, 6, 15, 14, 0, 0, DateTimeKind.Utc);
-        var staff  = E.Staff.Create("S001", "Alice", "Wong", "a@test.com", "hash", new List<string> { "PACKAGE" });
+        var packageRole = await RoleSeed.EnsureRoleAsync(db, "PACKAGE");
+        var staff  = E.Staff.Create("S001", "Alice", "Wong", "a@test.com", "hash", new List<Guid> { packageRole });
         db.Staff.Add(staff);
 
         var today = DateOnly.FromDateTime(utcRef);

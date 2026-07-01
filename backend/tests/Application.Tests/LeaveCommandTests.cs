@@ -68,9 +68,12 @@ public class LeaveCommandTests
         return new TestDbContext(opts);
     }
 
-    private static E.Staff MakeStaff(string id = "S001")
-        => E.Staff.Create(id, "Alice", "Wong", "alice@test.com", "hash",
-            new List<string> { "BARTENDER" });
+    private static async Task<E.Staff> MakeStaff(TestDbContext db, string id = "S001")
+    {
+        var bartender = await RoleSeed.EnsureRoleAsync(db, "BARTENDER");
+        return E.Staff.Create(id, "Alice", "Wong", "alice@test.com", "hash",
+            new List<Guid> { bartender });
+    }
 
     private static E.LeaveRequest MakeLeave(Guid empId, string status = "pending",
         DateTime? start = null, DateTime? end = null)
@@ -101,7 +104,7 @@ public class LeaveCommandTests
     public async Task CancelLeave_ThrowsInvalidOperation_WhenLeaveRejected()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var leave = MakeLeave(staff.Id, status: "rejected");
         db.Staff.Add(staff);
         db.LeaveRequests.Add(leave);
@@ -119,7 +122,7 @@ public class LeaveCommandTests
     public async Task CancelLeave_ThrowsInvalidOperation_WhenLeaveAlreadyEnded()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var yesterday = DateTime.UtcNow.Date.AddDays(-2);
         var leave = E.LeaveRequest.Create(staff.Id, "annual", yesterday, yesterday, null, null, null, null);
         db.Staff.Add(staff);
@@ -139,7 +142,7 @@ public class LeaveCommandTests
     public async Task CancelLeave_Succeeds_SetsCancelledStatus_ForPendingLeave()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var tomorrow = DateTime.UtcNow.Date.AddDays(1);
         var leave = E.LeaveRequest.Create(staff.Id, "annual", tomorrow, tomorrow.AddDays(2), null, null, null, null);
         db.Staff.Add(staff);
@@ -162,7 +165,7 @@ public class LeaveCommandTests
     public async Task CancelLeave_Succeeds_ForApprovedLeave_CreatesAuditLog()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var tomorrow = DateTime.UtcNow.Date.AddDays(1);
         var leave = MakeLeave(staff.Id, status: "approved", start: tomorrow, end: tomorrow.AddDays(2));
         db.Staff.Add(staff);
@@ -186,7 +189,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_ThrowsArgument_WhenInvalidLeaveType()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -206,7 +209,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_ThrowsArgument_WhenStartAfterEnd()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -228,7 +231,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_ThrowsArgument_WhenHoursExceed720()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -250,7 +253,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_ThrowsArgument_WhenMoreThan1YearInAdvance()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -273,7 +276,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_ThrowsInvalidOperation_WhenInsufficientAnnualBalance()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         // Set entitlement to 2 hours only
         var ent = E.LeaveEntitlement.Create(staff.Id, DateTime.UtcNow.Year, annualHours: 2m, sickHours: 14m);
         db.Staff.Add(staff);
@@ -298,7 +301,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_ThrowsInvalidOperation_WhenOverlapExists()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var existingLeave = E.LeaveRequest.Create(staff.Id, "annual",
             DateTime.UtcNow.AddDays(5), DateTime.UtcNow.AddDays(10), null, null, null, null);
         db.Staff.Add(staff);
@@ -323,7 +326,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_Create_Succeeds_ForUnpaidLeave()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -349,7 +352,7 @@ public class LeaveCommandTests
         // The create path must NOT credit the leave's subject employee as the performer — it passes
         // null so AuditService attributes the entry to the authenticated caller (admin or self).
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -372,7 +375,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_Update_Succeeds_ChangesStatus()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var start = DateTime.UtcNow.AddDays(5);
         var leave = E.LeaveRequest.Create(staff.Id, "annual", start, start.AddDays(1), null, null, 8m, null);
         // Entitlement required — handler checks balance before the FindAsync lookup
@@ -400,7 +403,7 @@ public class LeaveCommandTests
     public async Task UpsertLeave_Update_ThrowsKeyNotFound_WhenLeaveNotFound()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -425,7 +428,7 @@ public class LeaveCommandTests
     {
         // Annual leave starting tomorrow (< 3 days) must be rejected
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -449,7 +452,7 @@ public class LeaveCommandTests
     {
         // Annual leave starting in 4 days should pass the advance-notice rule
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var start = DateTime.UtcNow.AddDays(4);
         var ent = E.LeaveEntitlement.Create(staff.Id, start.Year, annualHours: 40m, sickHours: 40m);
         db.Staff.Add(staff);
@@ -473,7 +476,7 @@ public class LeaveCommandTests
     {
         // Updating an existing annual leave record (Id.HasValue) skips the advance-notice check
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         // Leave starting tomorrow — would fail if it were a new request
         var start = DateTime.UtcNow.AddDays(1);
         var leave = E.LeaveRequest.Create(staff.Id, "annual", start, start.AddDays(1), null, null, 8m, null);
@@ -505,7 +508,7 @@ public class LeaveCommandTests
     {
         // Emergency leave submitted with "pending" must be stored as "approved"
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var today = DateTime.UtcNow;
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 14m);
         db.Staff.Add(staff);
@@ -532,7 +535,7 @@ public class LeaveCommandTests
     {
         // Emergency leave uses the annual entitlement pool — both types count together
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var today = DateTime.UtcNow;
         // Entitlement: 10h annual. Existing annual leave: 6h. Emergency request: 4h → exact fit.
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 10m, sickHours: 14m);
@@ -560,7 +563,7 @@ public class LeaveCommandTests
     {
         // Emergency leave is blocked when the annual entitlement pool is exhausted
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var today = DateTime.UtcNow;
         // Only 2h annual remaining; requesting 8h emergency → blocked
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 2m, sickHours: 14m);
@@ -585,7 +588,7 @@ public class LeaveCommandTests
     {
         // Emergency leave is blocked when no annual entitlement has been configured
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         // No entitlement seeded at all
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
@@ -608,7 +611,7 @@ public class LeaveCommandTests
     {
         // Emergency leave is not subject to the annual 3-day advance rule
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var now = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
         var ent = E.LeaveEntitlement.Create(staff.Id, now.Year, annualHours: 40m, sickHours: 14m);
         db.Staff.Add(staff);
@@ -644,7 +647,7 @@ public class LeaveCommandTests
     public async Task DeleteLeave_Succeeds_RemovesLeave()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var leave = MakeLeave(staff.Id);
         db.Staff.Add(staff);
         db.LeaveRequests.Add(leave);
@@ -733,7 +736,7 @@ public class LeaveCommandTests
     {
         // Staff self-reports sick leave → it must be auto-approved, not left pending
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var today = DateTime.UtcNow;
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 40m);
         db.Staff.Add(staff);
@@ -759,13 +762,13 @@ public class LeaveCommandTests
     {
         // When sick leave is auto-approved, managers should receive a notification
         await using var db = CreateDb();
-        var staff   = MakeStaff("S001");
-        var manager = E.Staff.Create("M001", "Bob", "Manager", "bob@test.com", "hash",
-            new List<string> { "MANAGER" });
+        var staff   = await MakeStaff(db, "S001");
+        // Seed the MANAGER role row so NotifyManagersAsync (which filters on Role.Name == MANAGER via
+        // the AutoInclude nav) can find this manager under the InMemory provider.
+        var manager = await RoleSeed.AddStaffWithRolesAsync(db, "M001", "Bob", "Manager", "bob@test.com", "hash", "MANAGER");
         var today = DateTime.UtcNow;
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 40m);
         db.Staff.Add(staff);
-        db.Staff.Add(manager);
         db.LeaveEntitlements.Add(ent);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -791,7 +794,7 @@ public class LeaveCommandTests
     {
         // Admin setting sick status to 'approved' directly — should not double-notify employee
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var today = DateTime.UtcNow;
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 40m);
         db.Staff.Add(staff);
@@ -822,13 +825,13 @@ public class LeaveCommandTests
     {
         // Emergency leave submitted as pending → auto-approve AND notify managers
         await using var db = CreateDb();
-        var staff   = MakeStaff("S001");
-        var manager = E.Staff.Create("M001", "Carol", "Manager", "carol@test.com", "hash",
-            new List<string> { "MANAGER" });
+        var staff   = await MakeStaff(db, "S001");
+        // Seed the MANAGER role row so NotifyManagersAsync (which filters on Role.Name == MANAGER via
+        // the AutoInclude nav) can find this manager under the InMemory provider.
+        var manager = await RoleSeed.AddStaffWithRolesAsync(db, "M001", "Carol", "Manager", "carol@test.com", "hash", "MANAGER");
         var today = DateTime.UtcNow;
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 14m);
         db.Staff.Add(staff);
-        db.Staff.Add(manager);
         db.LeaveEntitlements.Add(ent);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -856,7 +859,7 @@ public class LeaveCommandTests
     {
         // Emergency hours must be counted against the annual pool in the balance query
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var year  = 2026;
         var jan1  = new DateTime(year, 1, 15, 0, 0, 0, DateTimeKind.Utc);
         var ent   = E.LeaveEntitlement.Create(staff.Id, year, annualHours: 40m, sickHours: 14m);
@@ -887,7 +890,7 @@ public class LeaveCommandTests
     public async Task GetLeaveBalance_EmergencyUsed_IsZero_WhenNoEmergencyLeave()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var year  = 2026;
         var jan1  = new DateTime(year, 1, 15, 0, 0, 0, DateTimeKind.Utc);
         var ent   = E.LeaveEntitlement.Create(staff.Id, year, annualHours: 40m, sickHours: 14m);
@@ -938,8 +941,9 @@ public class LeaveCommandTests
     public async Task BulkUpsertLeaveEntitlement_CreatesEntitlements_ForAllActiveStaff()
     {
         await using var db = CreateDb();
-        var s1 = MakeStaff("S001");
-        var s2 = E.Staff.Create("S002", "Bob", "Lee", "bob@test.com", "hash", new List<string> { "BARTENDER" });
+        var s1 = await MakeStaff(db, "S001");
+        var bartender = await RoleSeed.RoleIdAsync(db, "BARTENDER");
+        var s2 = E.Staff.Create("S002", "Bob", "Lee", "bob@test.com", "hash", new List<Guid> { bartender });
         db.Staff.Add(s1);
         db.Staff.Add(s2);
         await db.SaveChangesAsync();
@@ -963,7 +967,7 @@ public class LeaveCommandTests
     public async Task BulkUpsertLeaveEntitlement_UpdatesExistingEntitlements()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var existing = E.LeaveEntitlement.Create(staff.Id, 2026, 40m, 20m);
         db.Staff.Add(staff);
         db.LeaveEntitlements.Add(existing);
@@ -983,8 +987,9 @@ public class LeaveCommandTests
     public async Task BulkUpsertLeaveEntitlement_IgnoresInactiveStaff()
     {
         await using var db = CreateDb();
-        var active   = MakeStaff("S001");
-        var inactive = E.Staff.Create("S002", "Jane", "Doe", "jane@test.com", "hash", new List<string> { "BARTENDER" });
+        var active   = await MakeStaff(db, "S001");
+        var bartender = await RoleSeed.RoleIdAsync(db, "BARTENDER");
+        var inactive = E.Staff.Create("S002", "Jane", "Doe", "jane@test.com", "hash", new List<Guid> { bartender });
         inactive.Deactivate();
         db.Staff.Add(active);
         db.Staff.Add(inactive);
@@ -1028,7 +1033,7 @@ public class LeaveCommandTests
     {
         // Staff has 40h annual for 2025, used 30h → 10h remaining → carry-over up to 14h = 10h
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
         var ent2026 = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m);
         var usedLeave = E.LeaveRequest.Create(staff.Id, "annual",
@@ -1061,7 +1066,7 @@ public class LeaveCommandTests
     {
         // Re-running carry-over for the same year pair must NOT double-apply (AddCarryOver is +=).
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m));
         db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m));
         var used = E.LeaveRequest.Create(staff.Id, "annual",
@@ -1091,7 +1096,7 @@ public class LeaveCommandTests
     {
         // Staff has 40h for 2025, used 0h → 40h remaining → capped at 14h
         await using var db = CreateDb();
-        var staff   = MakeStaff();
+        var staff   = await MakeStaff(db);
         var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
         var ent2026 = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m);
         db.Staff.Add(staff);
@@ -1112,7 +1117,7 @@ public class LeaveCommandTests
     {
         // Staff has entitlement for 2025 but none for 2026 → creates new with carry-over only
         await using var db = CreateDb();
-        var staff   = MakeStaff();
+        var staff   = await MakeStaff(db);
         var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
         db.Staff.Add(staff);
         db.LeaveEntitlements.Add(ent2025);
@@ -1134,7 +1139,7 @@ public class LeaveCommandTests
     {
         // Staff used all their leave → nothing to carry over → returns 0
         await using var db = CreateDb();
-        var staff   = MakeStaff();
+        var staff   = await MakeStaff(db);
         var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
         var usedLeave = E.LeaveRequest.Create(staff.Id, "annual",
             new DateTime(2025, 1, 10, 0, 0, 0, DateTimeKind.Utc),
@@ -1166,7 +1171,7 @@ public class LeaveCommandTests
         // Manager rejects a pending request and provides a reason.
         // The reason must be persisted so staff can see why it was denied.
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var today = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
         var ent   = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 40m, sickHours: 14m);
         var leave = E.LeaveRequest.Create(staff.Id, "annual", today, today, null, null, 8m, null);
@@ -1197,7 +1202,7 @@ public class LeaveCommandTests
         // Manager re-approves a previously rejected leave.
         // The rejection reason must be cleared so it is no longer shown to staff.
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var today = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
         var ent   = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 40m, sickHours: 14m);
         var leave = E.LeaveRequest.Create(staff.Id, "annual", today, today, null, null, 8m, null);
@@ -1231,7 +1236,7 @@ public class LeaveCommandTests
         // CarryOverHours on the target-year entitlement must reflect exactly
         // how much was carried over, so the balance screen can display it.
         await using var db = CreateDb();
-        var staff   = MakeStaff();
+        var staff   = await MakeStaff(db);
         var ent2025 = E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 40m, sickHours: 14m);
         var ent2026 = E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m);
         // Used 30h → 10h remaining → carry-over = 10h (under the 14h cap)
@@ -1308,7 +1313,7 @@ public class LeaveCommandTests
     {
         // Already-approved/rejected records must not be double-processed.
         await using var db = CreateDb();
-        var staff   = MakeStaff();
+        var staff   = await MakeStaff(db);
         var pending  = MakeLeave(staff.Id, "pending");
         var approved = MakeLeave(staff.Id, "approved");
         db.Staff.Add(staff);
@@ -1334,7 +1339,7 @@ public class LeaveCommandTests
     public async Task BulkUpdateLeaveStatus_ApprovesPendingRecords_AndReturnsCount()
     {
         await using var db = CreateDb();
-        var staff  = MakeStaff();
+        var staff  = await MakeStaff(db);
         var leave1 = MakeLeave(staff.Id, "pending");
         var leave2 = MakeLeave(staff.Id, "pending");
         db.Staff.Add(staff);
@@ -1370,7 +1375,7 @@ public class LeaveCommandTests
         // A flaky SignalR/push send must not abort the approval batch: the status changes and
         // the in-app Notification rows are persisted first, and live delivery is best-effort.
         await using var db = CreateDb();
-        var staff  = MakeStaff();
+        var staff  = await MakeStaff(db);
         var leave1 = MakeLeave(staff.Id, "pending");
         var leave2 = MakeLeave(staff.Id, "pending");
         db.Staff.Add(staff);
@@ -1399,7 +1404,7 @@ public class LeaveCommandTests
     public async Task BulkUpdateLeaveStatus_StoresRejectionReason_WhenRejectingWithReason()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         var leave = MakeLeave(staff.Id, "pending");
         db.Staff.Add(staff);
         db.LeaveRequests.Add(leave);
@@ -1436,7 +1441,7 @@ public class LeaveCommandTests
     public async Task GetLeaveSummary_GroupsByEmployee_SumsHoursByLeaveType()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaff(db, "S001");
         var yr    = 2026;
         var jan   = new DateTime(yr, 1, 15, 0, 0, 0, DateTimeKind.Utc);
 
@@ -1467,7 +1472,7 @@ public class LeaveCommandTests
     {
         // Only approved/pending leave counts toward consumed leave hours in the summary.
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaff(db, "S001");
         var yr    = 2026;
         var jan   = new DateTime(yr, 1, 15, 0, 0, 0, DateTimeKind.Utc);
 
@@ -1502,7 +1507,7 @@ public class LeaveCommandTests
     {
         // Staff with fewer than 3 sick leaves in 90 days must not be flagged.
         await using var db = CreateDb();
-        var staff  = MakeStaff("S001");
+        var staff  = await MakeStaff(db, "S001");
         var today  = new DateTime(2026, 5, 23, 0, 0, 0, DateTimeKind.Utc);
         var recent = today.AddDays(-10);
 
@@ -1530,7 +1535,7 @@ public class LeaveCommandTests
     public async Task GetLeavePatternWarnings_FlagsEmployees_With3OrMoreSickLeavesInWindow()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaff(db, "S001");
         var today = new DateTime(2026, 5, 23, 0, 0, 0, DateTimeKind.Utc);
 
         // 3 sick leaves all within the 90-day window
@@ -1562,7 +1567,7 @@ public class LeaveCommandTests
     {
         // A sick-leave history older than 90 days must not trigger a warning today.
         await using var db = CreateDb();
-        var staff = MakeStaff("S001");
+        var staff = await MakeStaff(db, "S001");
         var today = new DateTime(2026, 5, 23, 0, 0, 0, DateTimeKind.Utc);
 
         // 3 sick leaves but all older than 90 days

@@ -107,14 +107,14 @@ describe('WorkLogService', () => {
 
   describe('start()', () => {
     it('calls POST /api/worklogs/start', () => {
-      service.start({ roleName: 'BARTENDER', locationId: 'loc-1', startTime: '18:00' }).subscribe();
+      service.start({ roleId: 'role-bar', locationId: 'loc-1', startTime: '18:00' }).subscribe();
       const req = http.expectOne('/api/worklogs/start');
       expect(req.request.method).toBe('POST');
       req.flush({ id: 'log-new' });
     });
 
-    it('sends the full request body: roleName, locationId, startTime, notes', () => {
-      const payload = { roleName: 'BARTENDER', locationId: 'loc-1', startTime: '18:00', notes: 'Late shift' };
+    it('sends the full request body: roleId, locationId, startTime, notes', () => {
+      const payload = { roleId: 'role-bar', locationId: 'loc-1', startTime: '18:00', notes: 'Late shift' };
       service.start(payload).subscribe();
       const req = http.expectOne('/api/worklogs/start');
       expect(req.request.body).toEqual(payload);
@@ -123,7 +123,7 @@ describe('WorkLogService', () => {
 
     it('returns {id: string} from the API response', () => {
       let result: { id: string } | undefined;
-      service.start({ roleName: 'BARTENDER', locationId: 'loc-1', startTime: '18:00' }).subscribe(v => (result = v));
+      service.start({ roleId: 'role-bar', locationId: 'loc-1', startTime: '18:00' }).subscribe(v => (result = v));
       http.expectOne('/api/worklogs/start').flush({ id: 'log-abc' });
       expect(result).toEqual({ id: 'log-abc' });
     });
@@ -133,7 +133,7 @@ describe('WorkLogService', () => {
 
   describe('createManual()', () => {
     const manualPayload = {
-      roleName: 'BARTENDER', locationId: 'loc-1',
+      roleId: 'role-bar', locationId: 'loc-1',
       workDate: '2026-05-17', startTime: '18:00', endTime: '23:00', notes: null,
     };
 
@@ -188,7 +188,7 @@ describe('WorkLogService', () => {
 
   describe('update()', () => {
     const updatePayload = {
-      roleName: 'BARTENDER', locationId: 'loc-1',
+      roleId: 'role-bar', locationId: 'loc-1',
       workDate: '2026-05-17', startTime: '18:00', endDate: '2026-05-17', endTime: '23:00', notes: 'Edited',
     };
 

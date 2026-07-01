@@ -20,7 +20,8 @@ export interface WorkLogDto {
 }
 
 export interface UpdateWorkLogRequest {
-  roleName: string;
+  /** Role GUID id — the backend resolves it and re-snapshots the role name into the log. */
+  roleId: string;
   locationId: string;
   workDate: string;    // yyyy-MM-dd
   startTime: string;   // HH:mm
@@ -35,7 +36,8 @@ export interface PagedResult<T> {
 }
 
 export interface StartWorkLogRequest {
-  roleName: string;
+  /** Role GUID id — clock-in resolves the role by id and snapshots its name into the log. */
+  roleId: string;
   locationId: string;
   startTime: string;   // HH:mm
   notes?: string | null;
@@ -45,7 +47,8 @@ export interface StartWorkLogRequest {
 }
 
 export interface CreateManualWorkLogRequest {
-  roleName: string;
+  /** Role GUID id — the backend resolves the role and snapshots its name into the log. */
+  roleId: string;
   locationId: string;
   workDate: string;    // yyyy-MM-dd
   startTime: string;  // HH:mm

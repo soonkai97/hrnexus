@@ -25,10 +25,10 @@ public class BulkCommandTests
         new(new DbContextOptionsBuilder<TestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
-    private static E.Staff MakeStaff(string staffId, IEnumerable<string>? roles = null,
+    private static E.Staff MakeStaff(string staffId, IEnumerable<Guid>? roles = null,
         IEnumerable<string>? locations = null) =>
         E.Staff.Create(staffId, "Test", "User", $"{staffId}@t.com", "hash",
-            (roles ?? new[] { "BARTENDER" }).ToList(),
+            (roles ?? Enumerable.Empty<Guid>()).ToList(),
             locations: locations?.ToList());
 
     // ── BulkAssignLocations ──────────────────────────────────────────────────────
@@ -102,16 +102,17 @@ public class BulkCommandTests
     public async Task BulkAssignRoles_AddsRoleAdditively_WithoutDroppingExisting()
     {
         await using var db = CreateDb();
-        db.Roles.AddRange(E.Role.Create("bartender"), E.Role.Create("waitress"));
-        var a = MakeStaff("A", roles: new[] { "BARTENDER" });
+        var roleIds = await RoleSeed.EnsureRolesAsync(db, "BARTENDER", "WAITRESS");
+        var a = MakeStaff("A", roles: new[] { roleIds["BARTENDER"] });
         db.Staff.Add(a);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
         await new BulkAssignRolesCommandHandler(db, new NullAudit()).Handle(
-            new BulkAssignRolesCommand([a.Id], ["WAITRESS"]), CancellationToken.None);
+            new BulkAssignRolesCommand([a.Id], [roleIds["WAITRESS"]]), CancellationToken.None);
 
-        var roles = await db.StaffRoles.Where(r => r.EmployeeId == a.Id).Select(r => r.Role).ToListAsync();
+        // r.Role is the Role navigation; its Name is the uppercase-normalised role name.
+        var roles = await db.StaffRoles.Where(r => r.EmployeeId == a.Id).Select(r => r.Role.Name).ToListAsync();
         Assert.Equal(2, roles.Count);
         Assert.Contains("BARTENDER", roles);
         Assert.Contains("WAITRESS", roles);
@@ -129,7 +130,7 @@ public class BulkCommandTests
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             new BulkAssignRolesCommandHandler(db, new NullAudit()).Handle(
-                new BulkAssignRolesCommand([a.Id], ["GHOST"]), CancellationToken.None));
+                new BulkAssignRolesCommand([a.Id], [Guid.NewGuid()]), CancellationToken.None));
     }
 
     // ── BulkDeactivate ───────────────────────────────────────────────────────────
@@ -137,11 +138,12 @@ public class BulkCommandTests
     /// <summary>Seeds a role that grants admin-portal access and N staff holding it.</summary>
     private static async Task<List<E.Staff>> SeedAdminsAsync(TestDbContext db, int count)
     {
-        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
+        var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
+        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.PortalAdmin));
         var admins = new List<E.Staff>();
         for (var i = 0; i < count; i++)
         {
-            var s = MakeStaff($"ADM{i}", roles: new[] { "MANAGER" });
+            var s = MakeStaff($"ADM{i}", roles: new[] { managerId });
             db.Staff.Add(s);
             admins.Add(s);
         }
@@ -154,8 +156,8 @@ public class BulkCommandTests
     public async Task BulkDeactivate_DeactivatesNonAdminStaff()
     {
         await using var db = CreateDb();
-        var a = MakeStaff("A", roles: new[] { "EMPLOYEE" });
-        var b = MakeStaff("B", roles: new[] { "EMPLOYEE" });
+        var a = MakeStaff("A");
+        var b = MakeStaff("B");
         db.Staff.AddRange(a, b);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();

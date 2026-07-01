@@ -55,8 +55,8 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     ];
   }
 
-  // Inline rate editing state
-  editingRateName    = signal<string | null>(null);
+  // Inline rate editing state — keyed by the role's GUID id (roles are id-identified since the GUID-PK migration)
+  editingRateId      = signal<string | null>(null);
   editingRateValue   = signal(0);
   editingRateNameZh  = signal('');
   editingRateNameVi  = signal('');
@@ -113,24 +113,24 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  startEditRate(name: string, currentRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): void {
-    this.editingRateName.set(name);
+  startEditRate(id: string, currentRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): void {
+    this.editingRateId.set(id);
     this.editingRateValue.set(currentRate);
     this.editingRateNameZh.set(nameZh ?? '');
     this.editingRateNameVi.set(nameVi ?? '');
     this.editingRatePayType.set(payType);
   }
 
-  cancelEditRate(): void { this.editingRateName.set(null); }
+  cancelEditRate(): void { this.editingRateId.set(null); }
 
   saveRate(): void {
-    const name = this.editingRateName();
-    if (!name || this.savingRate()) return;
+    const id = this.editingRateId();
+    if (!id || this.savingRate()) return;
     this.savingRate.set(true);
-    this.store.updateRoleRate(name, this.editingRateValue(), this.editingRateNameZh().trim() || null, this.editingRateNameVi().trim() || null, this.editingRatePayType()).subscribe({
+    this.store.updateRoleRate(id, this.editingRateValue(), this.editingRateNameZh().trim() || null, this.editingRateNameVi().trim() || null, this.editingRatePayType()).subscribe({
       next: () => {
         this.savingRate.set(false);
-        this.editingRateName.set(null);
+        this.editingRateId.set(null);
         this.toast.success(this.translate.instant('roles.rateUpdated'));
       },
       error: (e) => {
@@ -142,10 +142,10 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   hasUnsavedChanges(): boolean {
     return (this.showForm() && (!!this.newRoleName.trim() || this.newRoleRate > 0)) ||
-           this.editingRateName() !== null;
+           this.editingRateId() !== null;
   }
 
-  deleteRole(name: string): void {
+  deleteRole(id: string): void {
     this.confirmSvc.confirm({
       title: this.translate.instant('roles.confirmDeleteTitle'),
       message: this.translate.instant('roles.confirmDeleteMessage'),
@@ -153,8 +153,8 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
       danger: true,
     }).subscribe(confirmed => {
       if (!confirmed) return;
-      this.deletingRole.set(name);
-      this.store.deleteRole(name).subscribe({
+      this.deletingRole.set(id);
+      this.store.deleteRole(id).subscribe({
         next: () => { this.deletingRole.set(null); this.toast.success(this.translate.instant('roles.deleted')); },
         error: (e) => { this.deletingRole.set(null); this.toast.error(e?.error?.error ?? this.translate.instant('roles.deleteFailed')); },
       });
@@ -164,17 +164,18 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   // ── Role permissions editor ────────────────────────────────────────────────
 
   /** Per-row actions via the ellipsis menu (Delete only for custom roles). */
-  openRoleMenu(role: { name: string; hourlyRate: number; isSystem: boolean; nameZh: string | null; nameVi: string | null; payType: PayType }, event: Event): void {
+  openRoleMenu(role: { id: string; name: string; hourlyRate: number; isSystem: boolean; nameZh: string | null; nameVi: string | null; payType: PayType }, event: Event): void {
     const items: MenuItem[] = [
       { label: this.translate.instant('roles.editRate'), icon: 'pi pi-pencil',
-        command: () => this.startEditRate(role.name, role.hourlyRate, role.nameZh, role.nameVi, role.payType) },
+        command: () => this.startEditRate(role.id, role.hourlyRate, role.nameZh, role.nameVi, role.payType) },
       { label: this.translate.instant('permissions.roleTitle'), icon: 'pi pi-shield',
+        // Permissions API is keyed by role NAME on the backend — pass the name here, not the id.
         command: () => this.openPermissions(role.name) },
     ];
     if (!role.isSystem) {
       items.push({ separator: true });
       items.push({ label: this.translate.instant('roles.deleteRole'), icon: 'pi pi-trash',
-        styleClass: 'nc-danger-item', command: () => this.deleteRole(role.name) });
+        styleClass: 'nc-danger-item', command: () => this.deleteRole(role.id) });
     }
     this.roleMenuItems.set(items);
     this.roleMenu.toggle(event);

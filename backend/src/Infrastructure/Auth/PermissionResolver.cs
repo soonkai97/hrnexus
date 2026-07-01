@@ -44,17 +44,17 @@ public sealed class PermissionResolver(IAppDbContext db, IMemoryCache cache, Per
             .FirstOrDefaultAsync(ct);
         if (!isActive) return new HashSet<string>();
 
-        var roleNames = await db.StaffRoles
+        var roleIds = await db.StaffRoles
             .Where(r => r.EmployeeId == userId)
-            .Select(r => r.Role)
+            .Select(r => r.RoleId)
             .ToListAsync(ct);
 
         var effective = new HashSet<string>(StringComparer.Ordinal);
 
-        if (roleNames.Count > 0)
+        if (roleIds.Count > 0)
         {
             var rolePerms = await db.RolePermissions
-                .Where(rp => roleNames.Contains(rp.RoleName))
+                .Where(rp => roleIds.Contains(rp.RoleId))
                 .Select(rp => rp.PermissionKey)
                 .ToListAsync(ct);
             foreach (var key in rolePerms) effective.Add(key);

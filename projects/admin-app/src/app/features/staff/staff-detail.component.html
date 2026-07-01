@@ -249,7 +249,7 @@
         <div class="form-grid">
           <div class="field">
             <label for="sd-log-role"><span class="req">*</span> {{ 'dashboard.role' | translate }}</label>
-            <p-select inputId="sd-log-role" [options]="roleOptions()" [(ngModel)]="editLogForm.roleName"
+            <p-select inputId="sd-log-role" [options]="roleOptions()" [(ngModel)]="editLogForm.roleId"
               optionLabel="label" optionValue="value" [placeholder]="'reports.selectRole' | translate"
               [filter]="true" appendTo="body" styleClass="w-full" />
           </div>

@@ -6,7 +6,7 @@ using HRNexus.Application.WorkLog.Queries;
 
 namespace HRNexus.Application.WorkLog.Commands;
 
-public record StartWorkLogCommand(Guid EmployeeId, string RoleName, string LocationId, string StartTime, string? Notes, double? Latitude = null, double? Longitude = null) : IRequest<Guid>;
+public record StartWorkLogCommand(Guid EmployeeId, Guid RoleId, string LocationId, string StartTime, string? Notes, double? Latitude = null, double? Longitude = null) : IRequest<Guid>;
 
 public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub, IDateTimeProvider dt)
     : IRequestHandler<StartWorkLogCommand, Guid>
@@ -55,14 +55,14 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location {req.LocationId} not found.");
 
-        var role = await db.Roles.FindAsync([req.RoleName.ToUpperInvariant()], ct)
-            ?? throw new KeyNotFoundException($"Role {req.RoleName} not found.");
+        var role = await db.Roles.FindAsync([req.RoleId], ct)
+            ?? throw new KeyNotFoundException($"Role {req.RoleId} not found.");
 
         // Verify the employee is actually assigned this role (prevents rate fraud)
         var isAssigned = await db.Staff
-            .AnyAsync(s => s.Id == req.EmployeeId && s.RoleEntries.Any(r => r.Role == req.RoleName.ToUpperInvariant()), ct);
+            .AnyAsync(s => s.Id == req.EmployeeId && s.RoleEntries.Any(r => r.RoleId == req.RoleId), ct);
         if (!isAssigned)
-            throw new InvalidOperationException($"You are not assigned the role '{req.RoleName}'.");
+            throw new InvalidOperationException($"You are not assigned the role '{role.Name}'.");
 
         // Verify the employee is assigned to this location (no assignment ⇒ cannot log a shift here).
         var locationAssigned = await db.Staff
@@ -70,7 +70,7 @@ public class StartWorkLogCommandHandler(IAppDbContext db, ISender sender, INotif
         if (!locationAssigned)
             throw new InvalidOperationException("You are not assigned to this location.");
 
-        var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, req.RoleName, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes, req.Latitude, req.Longitude, role.PayType);
+        var log = Domain.Entities.WorkLog.StartLive(req.EmployeeId, role.Name, req.LocationId, location.Name, workDate, req.StartTime, role.HourlyRate, req.Notes, req.Latitude, req.Longitude, role.PayType);
         db.WorkLogs.Add(log);
         try
         {

@@ -42,9 +42,10 @@ public class StaffCommandTests
         string staffId   = "S001",
         string firstName = "Alice",
         string lastName  = "Wong",
-        string email     = "alice@test.com")
+        string email     = "alice@test.com",
+        List<Guid>? roles = null)
         => E.Staff.Create(staffId, firstName, lastName, email, "hash",
-            new List<string> { "BARTENDER" },
+            roles ?? new List<Guid>(),
             icNo: "990101-01-1234",
             dateOfBirth: new DateTime(1990, 1, 1));
 
@@ -74,7 +75,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new RegisterStaffCommand(
                 "", "Alice", "Wong", "alice@test.com", "Passw0rd1",
-                new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
 
@@ -88,7 +89,7 @@ public class StaffCommandTests
             handler.Handle(new RegisterStaffCommand(
                 "ABCDEFGHIJKLMNOPQRSTU", // 21 chars
                 "Alice", "Wong", "alice@test.com", "Passw0rd1",
-                new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
 
@@ -101,7 +102,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new RegisterStaffCommand(
                 "S001", "", "Wong", "alice@test.com", "Passw0rd1",
-                new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
 
@@ -116,7 +117,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(new RegisterStaffCommand(
                 "S001", "Alice", "Wong", "alice@test.com", "alllowercase",
-                new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
 
@@ -129,7 +130,7 @@ public class StaffCommandTests
 
         var id = await handler.Handle(new RegisterStaffCommand(
             "S001", "Alice", "", "alice@test.com", "Passw0rd1",
-            new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, id);
@@ -147,7 +148,7 @@ public class StaffCommandTests
 
         var id = await handler.Handle(new RegisterStaffCommand(
             "S001", "Alice", "Wong", null, "Passw0rd1",
-            new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         var staff = await db.Staff.FindAsync(id);
@@ -164,7 +165,7 @@ public class StaffCommandTests
 
         var id = await handler.Handle(new RegisterStaffCommand(
             "S001", "Alice", "Wong", "alice@test.com", "Passw0rd1",
-            new List<string>(), IcNo: null, PassportNo: null),
+            new List<Guid>(), IcNo: null, PassportNo: null),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, id);
@@ -179,7 +180,7 @@ public class StaffCommandTests
 
         var id = await handler.Handle(new RegisterStaffCommand(
             "S001", "Alice", "Wong", "alice@test.com", "Passw0rd1",
-            new List<string>(), DateOfBirth: null),
+            new List<Guid>(), DateOfBirth: null),
             CancellationToken.None);
 
         var staff = await db.Staff.FindAsync(id);
@@ -200,7 +201,7 @@ public class StaffCommandTests
             handler.Handle(new RegisterStaffCommand(
                 "s001", // lowercase — handler normalises to S001 before checking
                 "Bob", "Tan", "bob@test.com", "Passw0rd1",
-                new List<string>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
+                new List<Guid>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
                 CancellationToken.None));
     }
 
@@ -217,7 +218,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new RegisterStaffCommand(
                 "S002", "Bob", "Tan", "Alice@Test.Com", // mixed case — normalised to lowercase
-                "Passw0rd1", new List<string>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
+                "Passw0rd1", new List<Guid>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
                 CancellationToken.None));
     }
 
@@ -229,7 +230,7 @@ public class StaffCommandTests
 
         var id = await handler.Handle(new RegisterStaffCommand(
             "S001", "Alice", "Wong", "alice@test.com", "Passw0rd1",
-            new List<string> { "BARTENDER" }, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, id);
@@ -244,7 +245,7 @@ public class StaffCommandTests
 
         var id = await handler.Handle(new RegisterStaffCommand(
             "s001", "Alice", "Wong", "alice@test.com", "Passw0rd1",
-            new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         var staff = await db.Staff.FindAsync(id);
@@ -260,7 +261,7 @@ public class StaffCommandTests
 
         var id = await handler.Handle(new RegisterStaffCommand(
             "S001", "Alice", "Wong", "Alice@Test.COM", "Passw0rd1",
-            new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         var staff = await db.Staff.FindAsync(id);
@@ -276,7 +277,7 @@ public class StaffCommandTests
 
         var id = await handler.Handle(new RegisterStaffCommand(
             "S001", "Alice", "Wong", "alice@test.com", "MySecret1",
-            new List<string>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         var staff = await db.Staff.FindAsync(id);
@@ -299,7 +300,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(new UpdateStaffCommand(
                 existing.Id, "S001", "", "Wong", "alice@test.com",
-                new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
 
@@ -316,7 +317,7 @@ public class StaffCommandTests
 
         await handler.Handle(new UpdateStaffCommand(
             existing.Id, "S001", "Alice", "", "alice@test.com",
-            new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         await db.Entry(existing).ReloadAsync();
@@ -332,7 +333,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             handler.Handle(new UpdateStaffCommand(
                 Guid.NewGuid(), "S001", "Alice", "Wong", "alice@test.com",
-                new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
 
@@ -353,7 +354,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new UpdateStaffCommand(
                 alice.Id, "S002", "Alice", "Wong", "alice@test.com",
-                new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
 
@@ -374,7 +375,7 @@ public class StaffCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new UpdateStaffCommand(
                 alice.Id, "S001", "Alice", "Wong", "bob@test.com",
-                new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }
 
@@ -391,7 +392,7 @@ public class StaffCommandTests
 
         await handler.Handle(new UpdateStaffCommand(
             existing.Id, "S001", "Alice", "Wong", "alice@test.com",
-            new List<string>(), null, IcNo: null, PassportNo: null, DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), null, IcNo: null, PassportNo: null, DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         await db.Entry(existing).ReloadAsync();
@@ -412,7 +413,7 @@ public class StaffCommandTests
 
         await handler.Handle(new UpdateStaffCommand(
             existing.Id, "S001", "Alice", "Wong", "alice@test.com",
-            new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: null),
+            new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: null),
             CancellationToken.None);
 
         await db.Entry(existing).ReloadAsync();
@@ -437,7 +438,7 @@ public class StaffCommandTests
         // Same StaffId and email — self-collision must be excluded
         await handler.Handle(new UpdateStaffCommand(
             existing.Id, "S001", "Alice", "Wong", "alice@test.com",
-            new List<string> { "BARTENDER" }, null,
+            new List<Guid>(), null,
             IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
     }
@@ -453,7 +454,7 @@ public class StaffCommandTests
         var handler = UpdateHandler(db);
         await handler.Handle(new UpdateStaffCommand(
             existing.Id, "S001", "Betty", "Lim", "alice@test.com",
-            new List<string>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         var updated = await db.Staff.FirstOrDefaultAsync(s => s.Id == existing.Id);
@@ -578,17 +579,18 @@ public class StaffCommandTests
 
     // ── Last-admin lockout guard (deactivate + role removal) ──────────────────
 
-    private static E.Staff MakeAdmin(string staffId, string email) =>
+    private static E.Staff MakeAdmin(string staffId, string email, Guid managerRoleId) =>
         E.Staff.Create(staffId, "Meg", "Boss", email, "hash",
-            new List<string> { "MANAGER" }, icNo: staffId, dateOfBirth: new DateTime(1990, 1, 1));
+            new List<Guid> { managerRoleId }, icNo: staffId, dateOfBirth: new DateTime(1990, 1, 1));
 
     [Fact]
     public async Task Deactivate_Throws_WhenLastActiveAdmin()
     {
         // Deactivating the only user who can reach the admin portal would lock everyone out.
         await using var db = CreateDb();
-        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
-        var admin = MakeAdmin("MGR1", "meg@test.com");
+        var managerRoleId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
+        db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.PortalAdmin));
+        var admin = MakeAdmin("MGR1", "meg@test.com", managerRoleId);
         db.Staff.Add(admin);
         await db.SaveChangesAsync();
 
@@ -604,9 +606,10 @@ public class StaffCommandTests
     public async Task Deactivate_Allows_WhenAnotherActiveAdminRemains()
     {
         await using var db = CreateDb();
-        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
-        var a = MakeAdmin("MGR1", "meg@test.com");
-        var b = MakeAdmin("MGR2", "moe@test.com");
+        var managerRoleId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
+        db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.PortalAdmin));
+        var a = MakeAdmin("MGR1", "meg@test.com", managerRoleId);
+        var b = MakeAdmin("MGR2", "moe@test.com", managerRoleId);
         db.Staff.AddRange(a, b);
         await db.SaveChangesAsync();
 
@@ -621,8 +624,9 @@ public class StaffCommandTests
     {
         // Re-roling the only admin to a non-admin role would lock everyone out.
         await using var db = CreateDb();
-        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
-        var admin = MakeAdmin("MGR1", "meg@test.com");
+        var roles = await RoleSeed.EnsureRolesAsync(db, "MANAGER", "BARTENDER");
+        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.PortalAdmin));
+        var admin = MakeAdmin("MGR1", "meg@test.com", roles["MANAGER"]);
         db.Staff.Add(admin);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -630,7 +634,7 @@ public class StaffCommandTests
         var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
             UpdateHandler(db).Handle(new UpdateStaffCommand(
                 admin.Id, "MGR1", "Meg", "Boss", "meg@test.com",
-                new List<string> { "BARTENDER" }, null, IcNo: "MGR1", DateOfBirth: new DateTime(1990, 1, 1)),
+                new List<Guid> { roles["BARTENDER"] }, null, IcNo: "MGR1", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
         Assert.Contains("last administrator", ex.Message);
     }
@@ -639,16 +643,17 @@ public class StaffCommandTests
     public async Task Update_Allows_RemovingAdminRole_WhenAnotherAdminRemains()
     {
         await using var db = CreateDb();
-        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
-        var a = MakeAdmin("MGR1", "meg@test.com");
-        var b = MakeAdmin("MGR2", "moe@test.com");
+        var roles = await RoleSeed.EnsureRolesAsync(db, "MANAGER", "BARTENDER");
+        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.PortalAdmin));
+        var a = MakeAdmin("MGR1", "meg@test.com", roles["MANAGER"]);
+        var b = MakeAdmin("MGR2", "moe@test.com", roles["MANAGER"]);
         db.Staff.AddRange(a, b);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
         await UpdateHandler(db).Handle(new UpdateStaffCommand(
             a.Id, "MGR1", "Meg", "Boss", "meg@test.com",
-            new List<string> { "BARTENDER" }, null, IcNo: "MGR1", DateOfBirth: new DateTime(1990, 1, 1)),
+            new List<Guid> { roles["BARTENDER"] }, null, IcNo: "MGR1", DateOfBirth: new DateTime(1990, 1, 1)),
             CancellationToken.None);
 
         // Reaching here without an ArgumentException is the assertion: the guard ALLOWED the role

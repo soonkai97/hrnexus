@@ -5,6 +5,7 @@ export interface Staff {
   lastName: string;
   fullName: string;
   email: string | null;
+  /** Assigned role NAMES (display) — the staff-detail response returns names for the roles chips. */
   roles: string[];
   locationIds: string[];
   isActive: boolean;
@@ -21,6 +22,7 @@ export interface RegisterStaffRequest {
   lastName: string;
   email: string | null;
   password: string;
+  /** Assigned role IDS (GUIDs) — roles are identified by id since the GUID-PK migration. */
   roles: string[];
   locations: string[];
   phoneNumber: string;
@@ -34,6 +36,7 @@ export interface UpdateStaffRequest {
   firstName: string;
   lastName: string;
   email: string | null;
+  /** Assigned role IDS (GUIDs) — roles are identified by id since the GUID-PK migration. */
   roles: string[];
   locations: string[];
   phoneNumber: string | null;
@@ -50,6 +53,8 @@ export interface StaffDetail extends Staff {
 export type PayType = 'hourly' | 'fixed';
 
 export interface StaffRole {
+  /** GUID primary key — used as the value for role pickers and for clock-in / rate / delete calls. */
+  id: string;
   name: string;
   isSystem: boolean;
   hourlyRate: number;

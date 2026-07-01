@@ -34,7 +34,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     {
         try
         {
-            var id = await mediator.Send(new StartWorkLogCommand(CallerId, req.RoleName, req.LocationId, req.StartTime, req.Notes, req.Latitude, req.Longitude), ct);
+            var id = await mediator.Send(new StartWorkLogCommand(CallerId, req.RoleId, req.LocationId, req.StartTime, req.Notes, req.Latitude, req.Longitude), ct);
             return Ok(new { id });
         }
         catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
@@ -59,7 +59,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     {
         try
         {
-            var id = await mediator.Send(new CreateManualWorkLogCommand(CallerId, req.RoleName, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes), ct);
+            var id = await mediator.Send(new CreateManualWorkLogCommand(CallerId, req.RoleId, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes), ct);
             return Ok(new { id });
         }
         catch (ArgumentException ex)      { return BadRequest(new { error = ex.Message }); }
@@ -73,7 +73,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
         var isPrivileged = User.IsInRole(AppConstants.Roles.AdminClaim) || User.IsInRole(AppConstants.Roles.ManagerClaim);
         try
         {
-            await mediator.Send(new UpdateWorkLogCommand(id, CallerId, isPrivileged, req.RoleName, req.LocationId, req.WorkDate, req.StartTime, req.EndDate, req.EndTime, req.Notes), ct);
+            await mediator.Send(new UpdateWorkLogCommand(id, CallerId, isPrivileged, req.RoleId, req.LocationId, req.WorkDate, req.StartTime, req.EndDate, req.EndTime, req.Notes), ct);
             return NoContent();
         }
         catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
@@ -136,9 +136,9 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     }
 }
 
-public record StartWorkLogRequest(string RoleName, string LocationId, string StartTime, string? Notes, double? Latitude = null, double? Longitude = null);
-public record ManualWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
-public record UpdateWorkLogRequest(string RoleName, string LocationId, DateOnly WorkDate, string StartTime, DateOnly EndDate, string EndTime, string? Notes);
+public record StartWorkLogRequest(Guid RoleId, string LocationId, string StartTime, string? Notes, double? Latitude = null, double? Longitude = null);
+public record ManualWorkLogRequest(Guid RoleId, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
+public record UpdateWorkLogRequest(Guid RoleId, string LocationId, DateOnly WorkDate, string StartTime, DateOnly EndDate, string EndTime, string? Notes);
 public record EndWorkLogRequest(string EndTime);
 public record UpdateLocationRequest(double Latitude, double Longitude);
 public record AdminEndShiftRequest(DateOnly EndDate, string EndTime);

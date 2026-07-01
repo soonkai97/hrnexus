@@ -16,11 +16,10 @@ public static class RoleRateLookup
     /// applies — e.g. a date earlier than any recorded rate, or a role with no history yet.
     /// </summary>
     public static async Task<decimal> RateAsOfAsync(
-        IAppDbContext db, string roleName, DateOnly workDate, decimal currentRate, CancellationToken ct)
+        IAppDbContext db, Guid roleId, DateOnly workDate, decimal currentRate, CancellationToken ct)
     {
-        var name = roleName.Trim().ToUpperInvariant();
         var rate = await db.RoleRates
-            .Where(r => r.RoleName == name && r.EffectiveOn <= workDate)
+            .Where(r => r.RoleId == roleId && r.EffectiveOn <= workDate)
             .OrderByDescending(r => r.EffectiveOn)
             .Select(r => (decimal?)r.Rate)
             .FirstOrDefaultAsync(ct);

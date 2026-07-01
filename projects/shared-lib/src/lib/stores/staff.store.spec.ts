@@ -224,14 +224,15 @@ describe('StaffStore', () => {
   it('updateRoleRate() PATCH the role rate and updates the signal in-place', async () => {
     store.loadRoles();
     http.expectOne('/api/staff/roles').flush([
-      { name: 'bartender', isSystem: false, hourlyRate: 15 },
+      { id: 'id-bar', name: 'bartender', isSystem: false, hourlyRate: 15 },
     ]);
 
-    const promise = firstValueFrom(store.updateRoleRate('bartender', 18));
-    http.expectOne(r => r.url.includes('/api/staff/roles/bartender/rate')).flush(null);
+    // Roles are keyed by GUID id now — the PATCH URL and in-place update both use the id.
+    const promise = firstValueFrom(store.updateRoleRate('id-bar', 18));
+    http.expectOne(r => r.url.includes('/api/staff/roles/id-bar/rate')).flush(null);
     await promise;
 
-    expect(store.roles().find(r => r.name === 'bartender')?.hourlyRate).toBe(18);
+    expect(store.roles().find(r => r.id === 'id-bar')?.hourlyRate).toBe(18);
   });
 
   // ── deleteRole() ──────────────────────────────────────────────────────────
@@ -239,16 +240,16 @@ describe('StaffStore', () => {
   it('deleteRole() DELETE the role and removes it from the signal', async () => {
     store.loadRoles();
     http.expectOne('/api/staff/roles').flush([
-      { name: 'temp', isSystem: false, hourlyRate: 10 },
-      { name: 'bartender', isSystem: false, hourlyRate: 15 },
+      { id: 'id-temp', name: 'temp', isSystem: false, hourlyRate: 10 },
+      { id: 'id-bar', name: 'bartender', isSystem: false, hourlyRate: 15 },
     ]);
 
-    const promise = firstValueFrom(store.deleteRole('temp'));
-    http.expectOne(r => r.url.includes('/api/staff/roles/temp')).flush(null);
+    const promise = firstValueFrom(store.deleteRole('id-temp'));
+    http.expectOne(r => r.url.includes('/api/staff/roles/id-temp')).flush(null);
     await promise;
 
-    expect(store.roles().find(r => r.name === 'temp')).toBeUndefined();
-    expect(store.roles().find(r => r.name === 'bartender')).toBeDefined();
+    expect(store.roles().find(r => r.id === 'id-temp')).toBeUndefined();
+    expect(store.roles().find(r => r.id === 'id-bar')).toBeDefined();
   });
 
   // ── resetPassword() ───────────────────────────────────────────────────────

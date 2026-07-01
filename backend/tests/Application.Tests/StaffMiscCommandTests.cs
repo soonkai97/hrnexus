@@ -35,7 +35,7 @@ public class StaffMiscCommandTests
 
     private static E.Staff MakeStaff(string staffId = "S001")
         => E.Staff.Create(staffId, "Alice", "Wong", "alice@test.com",
-            "hashed-pass", new List<string> { "BARTENDER" });
+            "hashed-pass", new List<Guid>());
 
     // ── AdminResetPasswordCommand ─────────────────────────────────────────────
 
@@ -104,7 +104,7 @@ public class StaffMiscCommandTests
         await handler.Handle(new CreateRoleCommand("waitress", HourlyRate: 15.5m),
             CancellationToken.None);
 
-        var role = await db.Roles.FindAsync(new object[] { "WAITRESS" });
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "WAITRESS");
         Assert.NotNull(role);
         Assert.Equal(15.5m, role.HourlyRate);
     }
@@ -118,33 +118,35 @@ public class StaffMiscCommandTests
         var handler = new DeleteRoleCommandHandler(db);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new DeleteRoleCommand("GHOST"), CancellationToken.None));
+            handler.Handle(new DeleteRoleCommand(Guid.NewGuid()), CancellationToken.None));
     }
 
     [Fact]
     public async Task DeleteRole_ThrowsInvalidOperation_WhenSystemRole()
     {
         await using var db = CreateDb();
-        db.Roles.Add(E.Role.Create("SUPERADMIN", isSystem: true));
+        var role = E.Role.Create("SUPERADMIN", isSystem: true);
+        db.Roles.Add(role);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
         var handler = new DeleteRoleCommandHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new DeleteRoleCommand("SUPERADMIN"), CancellationToken.None));
+            handler.Handle(new DeleteRoleCommand(role.Id), CancellationToken.None));
     }
 
     [Fact]
     public async Task DeleteRole_Succeeds_RemovesRole()
     {
         await using var db = CreateDb();
-        db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
+        var role = E.Role.Create("BARTENDER", isSystem: false);
+        db.Roles.Add(role);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
         var handler = new DeleteRoleCommandHandler(db);
-        await handler.Handle(new DeleteRoleCommand("BARTENDER"), CancellationToken.None);
+        await handler.Handle(new DeleteRoleCommand(role.Id), CancellationToken.None);
 
         var count = await db.Roles.CountAsync();
         Assert.Equal(0, count);
@@ -153,19 +155,18 @@ public class StaffMiscCommandTests
     [Fact]
     public async Task DeleteRole_ThrowsInvalidOperation_WhenRoleIsAssignedToStaff()
     {
-        // A role still assigned to staff must not be deletable — StaffRole stores the role as a
-        // plain string (no FK), so deleting it would leave dangling role references.
+        // A role still assigned to staff must not be deletable — the StaffRole FK is Restrict,
+        // so deleting an in-use role would leave dangling role references.
         await using var db = CreateDb();
-        db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
-        db.Staff.Add(E.Staff.Create("S001", "Jane", "Doe", "jane@test.com", "hash",
-            new List<string> { "BARTENDER" }));
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER");
+        await RoleSeed.AddStaffWithRolesAsync(db, "S001", "Jane", "Doe", "jane@test.com", "hash", "BARTENDER");
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
         var handler = new DeleteRoleCommandHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new DeleteRoleCommand("BARTENDER"), CancellationToken.None));
+            handler.Handle(new DeleteRoleCommand(bartenderId), CancellationToken.None));
 
         Assert.Equal(1, await db.Roles.CountAsync());   // still there — not deleted
     }
@@ -173,21 +174,24 @@ public class StaffMiscCommandTests
     [Fact]
     public async Task DeleteRole_AlsoRemovesItsRolePermissionRows()
     {
-        // RolePermission keys on the role NAME (no FK), so deleting a role must clean up its
-        // default-permission rows or they'd linger as orphans and resurface if the name is reused.
+        // Deleting a role removes the role row AND its own default-permission rows, while never touching
+        // OTHER roles' rows. DeleteRoleCommand cleans up the deleted role's RolePermission/RoleRate rows
+        // EXPLICITLY (by RoleId) — belt-and-suspenders over the Postgres cascade FK — so this holds on the
+        // EF InMemory provider too (which does not reproduce DB-level FK cascades).
         await using var db = CreateDb();
-        db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
-        db.RolePermissions.Add(E.RolePermission.Create("BARTENDER", "staff.view"));
-        db.RolePermissions.Add(E.RolePermission.Create("BARTENDER", "reports.view"));
-        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", "staff.manage"));   // other role — must survive
+        var roles = await RoleSeed.EnsureRolesAsync(db, "BARTENDER", "MANAGER");
+        db.RolePermissions.Add(E.RolePermission.Create(roles["BARTENDER"], "staff.view"));
+        db.RolePermissions.Add(E.RolePermission.Create(roles["BARTENDER"], "reports.view"));
+        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], "staff.manage"));   // other role — must survive
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
         var handler = new DeleteRoleCommandHandler(db);
-        await handler.Handle(new DeleteRoleCommand("BARTENDER"), CancellationToken.None);
+        await handler.Handle(new DeleteRoleCommand(roles["BARTENDER"]), CancellationToken.None);
 
-        Assert.False(await db.RolePermissions.AnyAsync(rp => rp.RoleName == "BARTENDER"));
-        Assert.True(await db.RolePermissions.AnyAsync(rp => rp.RoleName == "MANAGER"));   // untouched
+        Assert.False(await db.Roles.AnyAsync(r => r.Id == roles["BARTENDER"]));                 // role itself removed
+        Assert.False(await db.RolePermissions.AnyAsync(rp => rp.RoleId == roles["BARTENDER"])); // its perms cleaned up
+        Assert.True(await db.RolePermissions.AnyAsync(rp => rp.RoleId == roles["MANAGER"]));    // other role untouched
     }
 
     [Fact]
@@ -196,7 +200,8 @@ public class StaffMiscCommandTests
         // A role with a shift currently in progress under it must not be deletable (mirrors the
         // location active-shift guard). No StaffRole row here, so the assignment guard passes first.
         await using var db = CreateDb();
-        db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
+        var role = E.Role.Create("BARTENDER", isSystem: false);
+        db.Roles.Add(role);
         db.WorkLogs.Add(E.WorkLog.StartLive(Guid.NewGuid(), "BARTENDER", "loc-1", "Main Bar",
             new DateOnly(2026, 6, 1), "18:00", 50m));   // EndTime == null → active
         await db.SaveChangesAsync();
@@ -204,7 +209,7 @@ public class StaffMiscCommandTests
 
         var handler = new DeleteRoleCommandHandler(db);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new DeleteRoleCommand("BARTENDER"), CancellationToken.None));
+            handler.Handle(new DeleteRoleCommand(role.Id), CancellationToken.None));
 
         Assert.Equal(1, await db.Roles.CountAsync());   // still there — not deleted
     }
@@ -330,8 +335,9 @@ public class StaffMiscCommandTests
     public async Task GetStaffById_ReturnsMappedDto()
     {
         await using var db = CreateDb();
+        var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
         var staff = E.Staff.Create("S002", "Bob", "Lee", "bob@test.com", "hash",
-            new List<string> { "MANAGER" },
+            new List<Guid> { managerId },
             phoneNumber: "+601",
             icNo: "900101-01-1234",
             dateOfBirth: new DateTime(1990, 1, 1));

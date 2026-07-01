@@ -265,8 +265,8 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     {
         var managers = await db.Staff
             .Where(e => e.IsActive &&
-                (e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager) ||
-                 e.RoleEntries.Any(r => r.Role == AppConstants.Roles.Admin)))
+                (e.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager) ||
+                 e.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin)))
             .ToListAsync(ct);
 
         foreach (var mgr in managers)

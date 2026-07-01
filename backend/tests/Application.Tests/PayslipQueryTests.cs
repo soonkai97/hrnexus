@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Application.Tests.Infrastructure;
 using HRNexus.Domain.Constants;
@@ -25,8 +25,11 @@ public class PayslipQueryTests
         return new TestDbContext(opts);
     }
 
-    private static E.Staff MakeStaff(string staffId = "S001", string first = "Alice") =>
-        E.Staff.Create(staffId, first, "Wong", $"{staffId}@test.com", "hash", new List<string> { "BARTENDER" });
+    private static async Task<E.Staff> MakeStaffAsync(TestDbContext db, string staffId = "S001", string first = "Alice")
+    {
+        var bartender = await RoleSeed.EnsureRoleAsync(db, "BARTENDER");
+        return E.Staff.Create(staffId, first, "Wong", $"{staffId}@test.com", "hash", new List<Guid> { bartender });
+    }
 
     private static E.WorkLog CompletedShift(Guid empId, DateOnly date, string start, string end, decimal rate,
         string payType = AppConstants.PayType.Hourly, string role = "BARTENDER")
@@ -40,7 +43,7 @@ public class PayslipQueryTests
     public async Task ReturnsStaffIdentity_AndEmptyShifts_WhenNoCompletedShiftsInRange()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff();
+        var alice = await MakeStaffAsync(db);
         db.Staff.Add(alice);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -61,7 +64,7 @@ public class PayslipQueryTests
     public async Task ListsEachShift_DayOrdered_WithHoursPay_AndTotalsThatReconcile()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff();
+        var alice = await MakeStaffAsync(db);
         db.Staff.Add(alice);
 
         // Added out of order; expect output ordered by date then start time.
@@ -90,7 +93,7 @@ public class PayslipQueryTests
     public async Task FixedShift_PricesFlat_NotHoursTimesRate()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff();
+        var alice = await MakeStaffAsync(db);
         db.Staff.Add(alice);
         // 12-hour overnight package at RM500 flat (hours-based would be 6000).
         db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 7), "20:00", "08:00", 500m,
@@ -114,7 +117,7 @@ public class PayslipQueryTests
     public async Task ExcludesOpenShifts_AndShiftsOutsideTheRange()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff();
+        var alice = await MakeStaffAsync(db);
         db.Staff.Add(alice);
 
         db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 15), "09:00", "17:00", 20m)); // in range
@@ -138,7 +141,7 @@ public class PayslipQueryTests
     public async Task NetPayable_DeductsAllUnsettledAdvances_ExcludesSettled()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff();
+        var alice = await MakeStaffAsync(db);
         db.Staff.Add(alice);
         db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 5),  "09:00", "17:00", 20m)); // 160
         db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 10), "09:00", "13:00", 20m)); // 80 → gross 240
@@ -163,7 +166,7 @@ public class PayslipQueryTests
     public async Task NetPayable_FlooredAtZero_WhenAdvanceExceedsGross()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff();
+        var alice = await MakeStaffAsync(db);
         db.Staff.Add(alice);
         db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 5), "09:00", "17:00", 20m)); // 160 gross
         db.CashAdvances.Add(E.CashAdvance.Create(alice.Id, 500m, new DateOnly(2025, 6, 1), "big advance", "admin"));
@@ -184,7 +187,7 @@ public class PayslipQueryTests
     public async Task JobBreakdown_GroupsByJobAndPayType_OrderedByPayDesc()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff();
+        var alice = await MakeStaffAsync(db);
         db.Staff.Add(alice);
         // Two hourly BARTENDER shifts (160 + 80 = 240) and one fixed PACKAGE shift (flat 500).
         db.WorkLogs.Add(CompletedShift(alice.Id, new DateOnly(2025, 6, 5),  "09:00", "17:00", 20m));
@@ -226,7 +229,7 @@ public class PayslipQueryTests
     public async Task Throws_WhenEndDateBeforeStartDate()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff();
+        var alice = await MakeStaffAsync(db);
         db.Staff.Add(alice);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();

@@ -12,7 +12,7 @@ namespace HRNexus.Application.Staff.Commands;
 // adds venues/roles on top of each staff member's existing ones rather than replacing them.
 
 public record BulkAssignLocationsCommand(List<Guid> StaffIds, List<string> LocationIds) : IRequest<int>;
-public record BulkAssignRolesCommand(List<Guid> StaffIds, List<string> Roles) : IRequest<int>;
+public record BulkAssignRolesCommand(List<Guid> StaffIds, List<Guid> Roles) : IRequest<int>;
 public record BulkDeactivateStaffCommand(List<Guid> StaffIds) : IRequest<int>;
 
 public class BulkAssignLocationsCommandHandler(IAppDbContext db, IAuditService audit)
@@ -50,8 +50,8 @@ public class BulkAssignRolesCommandHandler(IAppDbContext db, IAuditService audit
         if (req.StaffIds.Count > 100)
             throw new ArgumentException("Cannot bulk-update more than 100 staff at once.");
 
-        var roles = req.Roles.Select(r => r.Trim().ToUpperInvariant()).Where(r => r.Length > 0).Distinct().ToList();
-        var validCount = await db.Roles.CountAsync(r => roles.Contains(r.Name), ct);
+        var roles = req.Roles.Where(r => r != Guid.Empty).Distinct().ToList();
+        var validCount = await db.Roles.CountAsync(r => roles.Contains(r.Id), ct);
         if (validCount != roles.Count)
             throw new ArgumentException("One or more selected roles no longer exist.");
 
@@ -60,7 +60,7 @@ public class BulkAssignRolesCommandHandler(IAppDbContext db, IAuditService audit
         {
             emp.AddRoles(roles);
             await audit.LogAsync("Staff", emp.Id.ToString(), "BulkAssignRoles",
-                null, "Admin", $"+{string.Join(", ", roles)}", ct);
+                null, "Admin", $"+{roles.Count} role(s)", ct);
         }
         await db.SaveChangesAsync(ct);
         return staff.Count;
@@ -85,7 +85,7 @@ public class BulkDeactivateStaffCommandHandler(IAppDbContext db, IAuditService a
         // pass each one because the others are still committed-active until the single SaveChanges.
         var adminRoles = await db.RolePermissions
             .Where(rp => rp.PermissionKey == AppConstants.Permissions.PortalAdmin)
-            .Select(rp => rp.RoleName).Distinct().ToListAsync(ct);
+            .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
         var totalActiveAdmins = await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: null, ct);
         var selectedAdmins = 0;
         foreach (var emp in staff)

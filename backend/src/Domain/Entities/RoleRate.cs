@@ -9,7 +9,7 @@ namespace HRNexus.Domain.Entities;
 public class RoleRate
 {
     public Guid     Id          { get; private set; }
-    public string   RoleName    { get; private set; } = default!;
+    public Guid     RoleId      { get; private set; }
     public decimal  Rate        { get; private set; }
     public DateOnly EffectiveOn { get; private set; }
     public DateTime CreatedAt   { get; private set; }
@@ -17,10 +17,10 @@ public class RoleRate
 
     private RoleRate() { }
 
-    public static RoleRate Create(string roleName, decimal rate, DateOnly effectiveOn, string? createdBy = null) => new()
+    public static RoleRate Create(Guid roleId, decimal rate, DateOnly effectiveOn, string? createdBy = null) => new()
     {
         Id          = Guid.NewGuid(),
-        RoleName    = roleName.Trim().ToUpperInvariant(),
+        RoleId      = roleId,
         Rate        = rate,
         EffectiveOn = effectiveOn,
         CreatedAt   = DateTime.UtcNow,

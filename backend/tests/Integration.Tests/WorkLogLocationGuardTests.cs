@@ -20,11 +20,16 @@ namespace HRNexus.Integration.Tests;
 public class WorkLogLocationGuardTests(PostgresFixture fx)
 {
     /// <summary>Seeds a role, a location, and a staff member — optionally assigned to that location.</summary>
-    private async Task<(Guid empId, string locId)> SeedAsync(bool assignLocation)
+    private async Task<(Guid empId, Guid roleId, string locId)> SeedAsync(bool assignLocation)
     {
         await using var db = fx.NewDb();
-        if (!await db.Roles.AnyAsync(r => r.Name == "BARTENDER"))
-            db.Roles.Add(E.Role.Create("bartender", hourlyRate: 20m));
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "BARTENDER");
+        if (role is null)
+        {
+            role = E.Role.Create("bartender", hourlyRate: 20m);
+            db.Roles.Add(role);
+            await db.SaveChangesAsync();
+        }
 
         var loc = E.Location.Create($"Venue-{Guid.NewGuid():N}");
         db.Locations.Add(loc);
@@ -33,23 +38,23 @@ public class WorkLogLocationGuardTests(PostgresFixture fx)
         var staff = E.Staff.Create(
             staffId: $"LOC{suffix}"[..12], firstName: "Loc", lastName: "Guard",
             email: $"{suffix}@t.com", passwordHash: "hash",
-            roles: new List<string> { "BARTENDER" },
+            roles: new List<Guid> { role.Id },
             locations: assignLocation ? new List<string> { loc.Id } : null);
         db.Staff.Add(staff);
 
         await db.SaveChangesAsync();
-        return (staff.Id, loc.Id);
+        return (staff.Id, role.Id, loc.Id);
     }
 
     [Fact]
     public async Task ManualWorkLog_Rejected_WhenStaffNotAssignedToLocation()
     {
-        var (empId, locId) = await SeedAsync(assignLocation: false);
+        var (empId, roleId, locId) = await SeedAsync(assignLocation: false);
 
         await using var db = fx.NewDb();
         var handler = new CreateManualWorkLogCommandHandler(db);
         var cmd = new CreateManualWorkLogCommand(
-            empId, "BARTENDER", locId, new DateOnly(2026, 3, 1), "09:00", "17:00", null);
+            empId, roleId, locId, new DateOnly(2026, 3, 1), "09:00", "17:00", null);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => handler.Handle(cmd, CancellationToken.None));
@@ -63,12 +68,12 @@ public class WorkLogLocationGuardTests(PostgresFixture fx)
     [Fact]
     public async Task ManualWorkLog_Succeeds_WhenStaffAssignedToLocation()
     {
-        var (empId, locId) = await SeedAsync(assignLocation: true);
+        var (empId, roleId, locId) = await SeedAsync(assignLocation: true);
 
         await using var db = fx.NewDb();
         var handler = new CreateManualWorkLogCommandHandler(db);
         var cmd = new CreateManualWorkLogCommand(
-            empId, "BARTENDER", locId, new DateOnly(2026, 3, 1), "09:00", "17:00", null);
+            empId, roleId, locId, new DateOnly(2026, 3, 1), "09:00", "17:00", null);
 
         var id = await handler.Handle(cmd, CancellationToken.None);
 

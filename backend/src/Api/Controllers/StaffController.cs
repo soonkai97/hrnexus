@@ -28,7 +28,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     private static async Task<bool> IsAdminAsync(Guid id, IAppDbContext db, CancellationToken ct)
     {
         return await db.StaffRoles
-            .AnyAsync(r => r.EmployeeId == id && r.Role == AppConstants.Roles.Admin, ct);
+            .AnyAsync(r => r.EmployeeId == id && r.Role.Name == AppConstants.Roles.Admin, ct);
     }
 
     [HttpGet]
@@ -85,18 +85,18 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         if (IsManagerCaller)
         {
-            // Load the current roles once — used for both the admin check and role preservation
+            // Load the current role ids once — used for both the admin check and role preservation
             var currentRoles = await db.StaffRoles
                 .Where(r => r.EmployeeId == id)
-                .Select(r => r.Role)
+                .Select(r => new { r.RoleId, RoleName = r.Role.Name })
                 .ToListAsync(ct);
 
             // Managers can't edit admin staff profiles
-            if (currentRoles.Contains(AppConstants.Roles.Admin))
+            if (currentRoles.Any(r => r.RoleName == AppConstants.Roles.Admin))
                 return Forbid();
 
-            // Managers can't change role assignments — preserve current roles silently
-            body = body with { Roles = currentRoles };
+            // Managers can't change role assignments — preserve current role ids silently
+            body = body with { Roles = currentRoles.Select(r => r.RoleId).ToList() };
         }
 
         try
@@ -249,14 +249,14 @@ public class StaffController(IMediator mediator) : ControllerBase
         catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
     }
 
-    [HttpPatch("roles/{name}/rate")]
+    [HttpPatch("roles/{id:guid}/rate")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.RolesManage)]
-    public async Task<IActionResult> UpdateRoleRate(string name, [FromBody] UpdateRoleRateBody body,
+    public async Task<IActionResult> UpdateRoleRate(Guid id, [FromBody] UpdateRoleRateBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
         if (body.HourlyRate < 0)
             return BadRequest(new { error = "Hourly rate cannot be negative." });
-        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == name.ToUpperInvariant(), ct);
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Id == id, ct);
         if (role is null) return NotFound(new { error = "Role not found." });
         role.SetNameZh(body.NameZh);
         role.SetNameVi(body.NameVi);
@@ -267,19 +267,19 @@ public class StaffController(IMediator mediator) : ControllerBase
             // Append a rate-history row effective today. Existing rows are never mutated, so shifts
             // worked before this change keep being priced at the prior rate (as-of their work date).
             db.RoleRates.Add(HRNexus.Domain.Entities.RoleRate.Create(
-                role.Name, body.HourlyRate, DateOnly.FromDateTime(DateTime.UtcNow)));
+                role.Id, body.HourlyRate, DateOnly.FromDateTime(DateTime.UtcNow)));
         }
         await db.SaveChangesAsync(ct);
         return NoContent();
     }
 
-    [HttpDelete("roles/{name}")]
+    [HttpDelete("roles/{id:guid}")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.RolesManage)]
-    public async Task<IActionResult> DeleteRole(string name, CancellationToken ct)
+    public async Task<IActionResult> DeleteRole(Guid id, CancellationToken ct)
     {
         try
         {
-            await mediator.Send(new DeleteRoleCommand(name), ct);
+            await mediator.Send(new DeleteRoleCommand(id), ct);
             return NoContent();
         }
         catch (KeyNotFoundException ex)        { return NotFound(new { error = ex.Message }); }
@@ -289,8 +289,8 @@ public class StaffController(IMediator mediator) : ControllerBase
 
 public record CreateRoleBody(string Name, decimal HourlyRate = 0, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly);
 public record UpdateRoleRateBody(decimal HourlyRate, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly);
-public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<string> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth, List<string>? Locations = null);
+public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<Guid> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth, List<string>? Locations = null);
 public record ResetPasswordBody(string NewPassword);
 public record BulkAssignLocationsBody(List<Guid> StaffIds, List<string> LocationIds);
-public record BulkAssignRolesBody(List<Guid> StaffIds, List<string> Roles);
+public record BulkAssignRolesBody(List<Guid> StaffIds, List<Guid> Roles);
 public record BulkDeactivateBody(List<Guid> StaffIds);

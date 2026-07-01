@@ -89,9 +89,6 @@
           <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
             <li [class.met]="pwdChecks.minLength"><i [class]="pwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>
           </ul>
-          <p-button [label]="'staff.generate' | translate" [text]="true" severity="secondary" size="small"
-                    styleClass="gen-btn mt-1" (click)="generateNewStaffPassword()" />
-          <small style="color:var(--p-text-muted-color)">{{ 'staff.changeOnFirstLogin' | translate }}</small>
         </div>
         <div class="col-12 col-md-6 field">
           <label for="st-ic-no">{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>

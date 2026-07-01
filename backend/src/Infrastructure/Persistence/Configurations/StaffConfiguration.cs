@@ -21,8 +21,9 @@ public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfigur
         b.HasIndex(e => e.StaffId).IsUnique().HasFilter("\"IsDeleted\" = false");
         b.Property(e => e.FirstName).HasMaxLength(50).IsRequired();
         b.Property(e => e.LastName).HasMaxLength(50).IsRequired();
-        b.Property(e => e.Email).HasMaxLength(200);  // nullable — email is optional at registration
-        b.HasIndex(e => e.Email).IsUnique().HasFilter("\"IsDeleted\" = false");  // plaintext; excludes soft-deleted
+        // Email is optional contact info only — it is NOT used to log in or recover a password (Staff ID
+        // is), so it carries no unique constraint: staff may share one address or have none.
+        b.Property(e => e.Email).HasMaxLength(200);
         b.Property(e => e.PasswordHash).IsRequired();
 
         // ── PII encrypted at rest (AES-GCM via value converters) ─────────────────

@@ -20,13 +20,19 @@ public class DeleteStaffCommandHandler(IAppDbContext db)
             throw new InvalidOperationException(
                 "This staff member has shift history. Deactivate them instead to preserve payroll records.");
 
-        // Explicitly remove all related records (no cascade configured for these tables)
-        db.LeaveRequests    .RemoveRange(db.LeaveRequests    .Where(l => l.EmployeeId == req.Id));
-        db.LeaveEntitlements.RemoveRange(db.LeaveEntitlements.Where(l => l.EmployeeId == req.Id));
-        db.Notifications    .RemoveRange(db.Notifications    .Where(n => n.EmployeeId == req.Id));
-        db.PushSubscriptions.RemoveRange(db.PushSubscriptions.Where(p => p.EmployeeId == req.Id));
+        // Delete is a soft-delete of the Staff row (Remove → IsDeleted=true), so DB cascade does NOT
+        // fire — every related record must be removed explicitly, or the person's jobs/locations/leave
+        // would be orphaned behind them. WorkLogs are never present here (the guard above blocks
+        // deleting anyone with shift history — deactivate instead to keep payroll records).
+        db.StaffRoles              .RemoveRange(db.StaffRoles              .Where(r => r.EmployeeId == req.Id));  // assigned jobs
+        db.StaffLocations          .RemoveRange(db.StaffLocations          .Where(l => l.EmployeeId == req.Id));  // assigned locations
+        db.LeaveRequests           .RemoveRange(db.LeaveRequests           .Where(l => l.EmployeeId == req.Id));
+        db.LeaveEntitlements       .RemoveRange(db.LeaveEntitlements       .Where(l => l.EmployeeId == req.Id));
+        db.CashAdvances            .RemoveRange(db.CashAdvances            .Where(c => c.EmployeeId == req.Id));
+        db.StaffPermissionOverrides.RemoveRange(db.StaffPermissionOverrides.Where(o => o.EmployeeId == req.Id));
+        db.Notifications           .RemoveRange(db.Notifications           .Where(n => n.EmployeeId == req.Id));
+        db.PushSubscriptions       .RemoveRange(db.PushSubscriptions       .Where(p => p.EmployeeId == req.Id));
 
-        // StaffRoles are cascade-deleted automatically via EF config
         db.Staff.Remove(staff);
         await db.SaveChangesAsync(ct);
     }

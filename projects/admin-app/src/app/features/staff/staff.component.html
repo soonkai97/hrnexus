@@ -270,8 +270,6 @@
       <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
         <li [class.met]="resetPwdChecks.minLength"><i [class]="resetPwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>
       </ul>
-      <p-button [label]="'staff.generatePassword' | translate" [text]="true" severity="secondary"
-                styleClass="gen-btn" (click)="generatePassword()" />
     </div>
   }
 

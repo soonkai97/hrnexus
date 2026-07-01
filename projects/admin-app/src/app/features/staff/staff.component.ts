@@ -291,20 +291,6 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   get resetPwdChecks() { return passwordChecks(this.newPassword); }
   get isResetPwdValid(): boolean { return isStrongPassword(this.newPassword); }
 
-  generatePassword(): void {
-    const upper  = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    const lower  = 'abcdefghjkmnpqrstuvwxyz';
-    const digits = '23456789';
-    const all    = upper + lower + digits + '!@#$';
-    const pick   = (set: string) => set[Math.floor(Math.random() * set.length)];
-    const chars = [pick(upper), pick(digits), ...Array.from({ length: 8 }, () => pick(all))];
-    for (let i = chars.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [chars[i], chars[j]] = [chars[j], chars[i]];
-    }
-    this.newPassword = chars.join('');
-  }
-
   saveResetPassword(): void {
     const target = this.resetPassTarget();
     if (!target || !isStrongPassword(this.newPassword)) return;

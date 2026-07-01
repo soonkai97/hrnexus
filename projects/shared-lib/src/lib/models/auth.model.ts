@@ -6,11 +6,6 @@ export interface LoginRequest {
   portal?: 'staff' | 'admin';
 }
 
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-}
-
 /**
  * Login/refresh response. Tokens are NOT in the body — they're set by the server as httpOnly
  * cookies (XSS can't read them). The body carries only the non-sensitive user info the UI needs.

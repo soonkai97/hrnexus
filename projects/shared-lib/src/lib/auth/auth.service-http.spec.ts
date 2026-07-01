@@ -186,15 +186,6 @@ describe('AuthService — password flows', () => {
 
   afterEach(() => { http.verify(); localStorage.clear(); });
 
-  it('changePassword() POST /api/auth/change-password with old and new passwords', async () => {
-    const req$ = service.changePassword({ currentPassword: 'old', newPassword: 'new' });
-    const promise = firstValueFrom(req$);
-    const req = http.expectOne('/api/auth/change-password');
-    expect(req.request.method).toBe('POST');
-    req.flush(null);
-    await promise;
-  });
-
   it('forgotPassword() POST /api/auth/forgot-password and returns result', async () => {
     const promise = firstValueFrom(service.forgotPassword('NC001'));
     const req = http.expectOne('/api/auth/forgot-password');

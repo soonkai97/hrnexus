@@ -12,8 +12,7 @@ using Xunit;
 namespace HRNexus.Application.Tests;
 
 /// <summary>
-/// Handler-level tests for Auth commands — Login, ChangePassword, ForgotPassword,
-/// ForceChangePassword, RefreshToken.
+/// Handler-level tests for Auth commands — Login, ForgotPassword, RefreshToken.
 /// Guards authentication flow, portal access-control, and password policies.
 /// </summary>
 public class AuthCommandTests
@@ -251,108 +250,6 @@ public class AuthCommandTests
         // One more wrong attempt should be a plain 401, not a lockout.
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
-    }
-
-    // ── ChangePasswordCommand ─────────────────────────────────────────────────
-
-    [Fact]
-    public async Task ChangePassword_ThrowsKeyNotFound_WhenEmployeeDoesNotExist()
-    {
-        await using var db = CreateDb();
-        var handler = new ChangePasswordCommandHandler(db, new StubHasher());
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new ChangePasswordCommand(Guid.NewGuid(), "pass", "newpass1"),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task ChangePassword_ThrowsUnauthorized_WhenCurrentPasswordWrong()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaff(db, password: "correct");
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new ChangePasswordCommandHandler(db, new StubHasher());
-
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            handler.Handle(new ChangePasswordCommand(staff.Id, "wrong", "newpass1"),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task ChangePassword_ThrowsArgument_WhenNewPasswordTooShort()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaff(db, password: "pass");
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new ChangePasswordCommandHandler(db, new StubHasher());
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "short"),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task ChangePassword_Succeeds_WhenNewPasswordMeetsLengthOnly_NoComplexityRequired()
-    {
-        // The policy is a length floor only (no uppercase/number rule) — an all-lowercase
-        // password of >= 6 chars is accepted.
-        await using var db = CreateDb();
-        var staff = await MakeStaff(db, password: "pass");
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new ChangePasswordCommandHandler(db, new StubHasher());
-
-        await handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "lowercaseonly"),
-            CancellationToken.None);
-
-        var updated = await db.Staff.FirstAsync(s => s.Id == staff.Id);
-        Assert.Contains("lowercaseonly", updated.PasswordHash);   // stub hasher echoes the raw password
-    }
-
-    [Fact]
-    public async Task ChangePassword_ThrowsArgument_WhenNewPasswordIsWhitespaceOnly()
-    {
-        // Eight spaces pass the length check but must be rejected — a whitespace-only
-        // password would be unusable in practice and should never be stored.
-        await using var db = CreateDb();
-        var staff = await MakeStaff(db, password: "pass");
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new ChangePasswordCommandHandler(db, new StubHasher());
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "        "),
-                CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task ChangePassword_Succeeds_ClearsRefreshToken()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaff(db, password: "pass");
-        staff.SetRefreshToken("old-token", DateTime.UtcNow.AddDays(1));
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new ChangePasswordCommandHandler(db, new StubHasher());
-        await handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "Newpass12"),
-            CancellationToken.None);
-
-        var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
-        Assert.Null(updated.RefreshToken);
-        Assert.Equal("hashed-Newpass12", updated.PasswordHash);
     }
 
     // ── ForgotPasswordCommand ─────────────────────────────────────────────────

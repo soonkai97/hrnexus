@@ -206,20 +206,22 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Register_ThrowsInvalidOperation_WhenEmailAlreadyRegistered()
+    public async Task Register_Succeeds_WhenEmailDuplicatesAnotherStaff()
     {
-        // Duplicate emails break password-reset flows and unique identification.
+        // Email is optional contact info with NO unique constraint — it's never used to log in or
+        // recover a password (Staff ID is), so two staff may share one address.
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", email: "alice@test.com"));
+        db.Staff.Add(MakeStaff("S001", email: "shared@test.com"));
         await db.SaveChangesAsync();
 
         var handler = RegisterHandler(db);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new RegisterStaffCommand(
-                "S002", "Bob", "Tan", "Alice@Test.Com", // mixed case — normalised to lowercase
-                "Passw0rd1", new List<Guid>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
-                CancellationToken.None));
+        var id = await handler.Handle(new RegisterStaffCommand(
+            "S002", "Bob", "Tan", "Shared@Test.Com", // same email, mixed case
+            "Passw0rd1", new List<Guid>(), IcNo: "990202-02-2345", DateOfBirth: new DateTime(1992, 2, 2)),
+            CancellationToken.None);
+
+        Assert.NotEqual(Guid.Empty, id);
     }
 
     [Fact]
@@ -359,9 +361,9 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Update_ThrowsInvalidOperation_WhenEmailTakenByOtherStaff()
+    public async Task Update_Succeeds_WhenEmailDuplicatesAnotherStaff()
     {
-        // Changing to another staff member's email must be blocked.
+        // Email has no unique constraint — updating one staff to share another's email is allowed.
         await using var db = CreateDb();
         var alice = MakeStaff("S001", email: "alice@test.com");
         var bob   = MakeStaff("S002", email: "bob@test.com");
@@ -371,12 +373,13 @@ public class StaffCommandTests
 
         var handler = UpdateHandler(db);
 
-        // Try to give Alice the same email as Bob
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new UpdateStaffCommand(
-                alice.Id, "S001", "Alice", "Wong", "bob@test.com",
-                new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
-                CancellationToken.None));
+        await handler.Handle(new UpdateStaffCommand(
+            alice.Id, "S001", "Alice", "Wong", "bob@test.com",
+            new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            CancellationToken.None);
+
+        var updated = await db.Staff.FirstAsync(s => s.Id == alice.Id);
+        Assert.Equal("bob@test.com", updated.Email);
     }
 
     [Fact]
@@ -522,6 +525,24 @@ public class StaffCommandTests
         await handler.Handle(new DeleteStaffCommand(staff.Id), CancellationToken.None);
 
         Assert.Equal(0, await db.LeaveRequests.CountAsync());
+    }
+
+    [Fact]
+    public async Task Delete_RemovesRelatedNotifications()
+    {
+        // Notifications must be cleaned up alongside the deleted staff (they're independent rows the
+        // soft-delete would otherwise orphan). Assigned jobs/locations removal is proven over real
+        // Postgres in Integration.Tests (the join tables don't model reliably on EF InMemory).
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        db.Notifications.Add(E.Notification.Create(staff.Id, "T", "m", "type"));
+        await db.SaveChangesAsync();
+
+        var handler = DeleteHandler(db);
+        await handler.Handle(new DeleteStaffCommand(staff.Id), CancellationToken.None);
+
+        Assert.Equal(0, await db.Notifications.CountAsync());
     }
 
     // ── ActivateStaffCommand + DeactivateStaffCommand ─────────────────────────

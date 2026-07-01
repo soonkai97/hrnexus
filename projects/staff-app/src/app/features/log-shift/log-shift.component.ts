@@ -161,6 +161,12 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     return localizedNameFor(this.lang.current(), wl.roleName, wl.roleNameZh ?? null, wl.roleNameVi ?? null);
   }
 
+  /** The location name shown in the viewer's language (Chinese/Vietnamese when set, else the primary/
+   *  English snapshot). A deleted location has no localized names → falls back to the frozen locationName. */
+  locationLabel(wl: WorkLogDto): string {
+    return localizedNameFor(this.lang.current(), wl.locationName, wl.locationNameZh ?? null, wl.locationNameVi ?? null);
+  }
+
   endDayOffset(wl: WorkLogDto): number {
     if (!wl.endDate || wl.endDate === wl.workDate) return 0;
     const ms = new Date(`${wl.endDate}T00:00:00`).getTime() - new Date(`${wl.workDate}T00:00:00`).getTime();

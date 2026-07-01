@@ -44,14 +44,18 @@ public record StaffReportRow(
     int     Shifts,
     decimal Hours,
     decimal Cost,
-    decimal AvgHoursPerShift
+    decimal AvgHoursPerShift,
+    string? RoleZh = null,
+    string? RoleVi = null
 );
 
 public record LocationReportRow(
     string  LocationName,
     int     Shifts,
     decimal Hours,
-    decimal Cost
+    decimal Cost,
+    string? LocationNameZh = null,
+    string? LocationNameVi = null
 );
 
 public record RoleReportRow(
@@ -59,7 +63,9 @@ public record RoleReportRow(
     int     Shifts,
     decimal Hours,
     decimal Cost,
-    int     StaffCount
+    int     StaffCount,
+    string? RoleZh = null,
+    string? RoleVi = null
 );
 
 public record DateReportRow(
@@ -87,7 +93,11 @@ public record ShiftDetailRow(
     DateTime? ClockedOut,
     decimal   Hours,
     decimal   Cost,
-    string    Status
+    string    Status,
+    string?   RoleZh = null,
+    string?   RoleVi = null,
+    string?   LocationNameZh = null,
+    string?   LocationNameVi = null
 );
 
 public class GetReportQueryHandler(IAppDbContext db)
@@ -119,6 +129,13 @@ public class GetReportQueryHandler(IAppDbContext db)
 
         var logs = await query.ToListAsync(ct);
 
+        // Localized job + location names for the viewer's language, resolved once from the loaded rows:
+        // role by frozen name, per-shift location by exact id, and the by-location grouping (which keys
+        // on the frozen LocationName) by name.
+        var roleLoc  = await RoleLocalization.BuildAsync(db, logs.Select(w => w.RoleName), ct);
+        var locById  = await LocationLocalization.BuildByIdsAsync(db, logs.Select(w => w.LocationId), ct);
+        var locByName = await LocationLocalization.BuildByNamesAsync(db, logs.Select(w => w.LocationName), ct);
+
         var shifts = logs.Select(w =>
         {
             // Cost estimate = total shift hours × the role's snapshotted hourly rate. Uses the shift's
@@ -129,6 +146,8 @@ public class GetReportQueryHandler(IAppDbContext db)
             var hours = Math.Round(raw, 2);
             var startDt = w.WorkDate.ToDateTime(TimeOnly.Parse(w.StartTime));
             var endDt   = w.EndTime != null ? endDate.ToDateTime(TimeOnly.Parse(w.EndTime)) : (DateTime?)null;
+            var (roleZh, roleVi) = roleLoc.For(w.RoleName);
+            var (locZh, locVi)   = locById.For(w.LocationId);
             return new ShiftDetailRow(
                 w.Id,
                 w.Employee?.StaffId ?? "", w.Employee?.FullName ?? "Unknown",
@@ -138,7 +157,8 @@ public class GetReportQueryHandler(IAppDbContext db)
                 w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime,
                 w.Notes,
                 w.IsEdited,
-                startDt, endDt, hours, cost, "Complete");
+                startDt, endDt, hours, cost, "Complete",
+                roleZh, roleVi, locZh, locVi);
         }).ToList();
 
         var fixedRows  = shifts.Where(s => s.PayType == AppConstants.PayType.Fixed).ToList();
@@ -153,9 +173,9 @@ public class GetReportQueryHandler(IAppDbContext db)
             fixedRows.Count,  Math.Round(fixedRows.Sum(s => s.Cost), 2),
             hourlyRows.Count, Math.Round(hourlyRows.Sum(s => s.Cost), 2));
 
-        var byStaff    = shifts.GroupBy(s => new { s.StaffId, s.StaffName, s.Role }).Select(g => new StaffReportRow(g.Key.StaffId, g.Key.StaffName, g.Key.Role, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), g.Any() ? Math.Round(g.Average(s => s.Hours), 2) : 0m)).OrderByDescending(r => r.Cost).ToList();
-        var byLocation = shifts.GroupBy(s => s.LocationName).Select(g => new LocationReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2))).OrderByDescending(r => r.Cost).ToList();
-        var byRole     = shifts.GroupBy(s => s.Role).Select(g => new RoleReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), g.Select(s => s.StaffId).Distinct().Count())).OrderByDescending(r => r.Cost).ToList();
+        var byStaff    = shifts.GroupBy(s => new { s.StaffId, s.StaffName, s.Role }).Select(g => { var (rZh, rVi) = roleLoc.For(g.Key.Role); return new StaffReportRow(g.Key.StaffId, g.Key.StaffName, g.Key.Role, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), g.Any() ? Math.Round(g.Average(s => s.Hours), 2) : 0m, rZh, rVi); }).OrderByDescending(r => r.Cost).ToList();
+        var byLocation = shifts.GroupBy(s => s.LocationName).Select(g => { var (lZh, lVi) = locByName.For(g.Key); return new LocationReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), lZh, lVi); }).OrderByDescending(r => r.Cost).ToList();
+        var byRole     = shifts.GroupBy(s => s.Role).Select(g => { var (rZh, rVi) = roleLoc.For(g.Key); return new RoleReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2), g.Select(s => s.StaffId).Distinct().Count(), rZh, rVi); }).OrderByDescending(r => r.Cost).ToList();
         var byDate     = shifts.GroupBy(s => DateOnly.FromDateTime(s.ClockedIn)).Select(g => new DateReportRow(g.Key, g.Count(), Math.Round(g.Sum(s => s.Hours), 2), Math.Round(g.Sum(s => s.Cost), 2))).OrderBy(r => r.Date).ToList();
 
         return new ReportResponse(summary, byStaff, byLocation, byRole, byDate, shifts);

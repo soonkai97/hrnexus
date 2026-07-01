@@ -212,7 +212,7 @@
               <tr>
                 <td>{{ wl.workDate }}@if (endDayOffset(wl)) { <span class="day-offset">→ {{ wl.endDate }}</span> }</td>
                 <td>{{ shiftRole(wl) }}</td>
-                <td>{{ wl.locationName }}</td>
+                <td>{{ shiftLocation(wl) }}</td>
                 <td>{{ wl.startTime | amPm }}</td>
                 <td>{{ wl.endTime | amPm }}@if (endDayOffset(wl); as off) { <span class="day-offset">+{{ off }}</span> }</td>
                 <td>{{ wl.hours | number:'1.1-1' }}h</td>

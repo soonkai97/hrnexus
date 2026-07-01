@@ -21,6 +21,10 @@ export interface WorkLogDto {
    *  Null when the job was since deleted or renamed → fall back to roleName. */
   roleNameZh?: string | null;
   roleNameVi?: string | null;
+  /** The location's CURRENT Chinese/Vietnamese display names, resolved from the frozen locationId.
+   *  Null when the location was since deleted → fall back to locationName. */
+  locationNameZh?: string | null;
+  locationNameVi?: string | null;
 }
 
 export interface UpdateWorkLogRequest {

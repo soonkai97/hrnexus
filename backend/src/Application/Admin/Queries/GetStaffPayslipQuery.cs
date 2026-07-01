@@ -25,7 +25,11 @@ public record PayslipShiftRow(
     decimal Rate,           // the rate snapshotted on the shift (per-hour, or flat-per-shift if fixed)
     decimal Pay,            // ShiftPay.Calc(payType, hours, rate), rounded to 2dp
     bool    IsEdited,
-    string? Notes);
+    string? Notes,
+    string? RoleZh = null,
+    string? RoleVi = null,
+    string? LocationNameZh = null,
+    string? LocationNameVi = null);
 
 /// <summary>Per-job subtotal — groups a staff member's shifts by job + pay model, so the payslip
 /// reads the way a package-based venue prices labour (e.g. "包夜 12h × 4 = 2000", "跑台 30h = 750").</summary>
@@ -34,7 +38,9 @@ public record PayslipJobSummary(
     string  PayType,        // "hourly" | "fixed"
     int     ShiftCount,
     decimal Hours,
-    decimal Pay);
+    decimal Pay,
+    string? RoleZh = null,
+    string? RoleVi = null);
 
 public record PayslipResult(
     string                  StaffId,
@@ -70,6 +76,11 @@ public class GetStaffPayslipQueryHandler(IAppDbContext db)
             .OrderBy(w => w.WorkDate).ThenBy(w => w.StartTime)
             .ToListAsync(ct);
 
+        // Localized job + location names for the viewer's language, resolved once from the loaded
+        // shifts: role by frozen name, location by exact id.
+        var roleLoc = await RoleLocalization.BuildAsync(db, logs.Select(w => w.RoleName), ct);
+        var locLoc  = await LocationLocalization.BuildByIdsAsync(db, logs.Select(w => w.LocationId), ct);
+
         var shifts = new List<PayslipShiftRow>();
         decimal totalHours = 0m, totalPay = 0m;
 
@@ -83,6 +94,9 @@ public class GetStaffPayslipQueryHandler(IAppDbContext db)
             totalHours += hours;
             totalPay   += pay;
 
+            var (roleZh, roleVi) = roleLoc.For(w.RoleName);
+            var (locZh, locVi)   = locLoc.For(w.LocationId);
+
             shifts.Add(new PayslipShiftRow(
                 WorkDate:     w.WorkDate.ToString("yyyy-MM-dd"),
                 StartTime:    w.StartTime,
@@ -95,18 +109,24 @@ public class GetStaffPayslipQueryHandler(IAppDbContext db)
                 Rate:         w.HourlyRateSnapshot,
                 Pay:          Math.Round(pay, 2),
                 IsEdited:     w.IsEdited,
-                Notes:        w.Notes));
+                Notes:        w.Notes,
+                RoleZh:       roleZh,
+                RoleVi:       roleVi,
+                LocationNameZh: locZh,
+                LocationNameVi: locVi));
         }
 
         // Per-job subtotals (group by job + pay model), heaviest-earning job first.
         var jobBreakdown = shifts
             .GroupBy(s => new { s.Role, s.PayType })
-            .Select(g => new PayslipJobSummary(
+            .Select(g => { var (rZh, rVi) = roleLoc.For(g.Key.Role); return new PayslipJobSummary(
                 Role:       g.Key.Role,
                 PayType:    g.Key.PayType,
                 ShiftCount: g.Count(),
                 Hours:      Math.Round(g.Sum(s => s.Hours), 2),
-                Pay:        Math.Round(g.Sum(s => s.Pay), 2)))
+                Pay:        Math.Round(g.Sum(s => s.Pay), 2),
+                RoleZh:     rZh,
+                RoleVi:     rVi); })
             .OrderByDescending(j => j.Pay)
             .ToList();
 

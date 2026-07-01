@@ -198,7 +198,7 @@
               <tr>
                 <td class="td-muted mono">{{ e.staffId }}</td>
                 <td class="td-name">{{ e.name }}</td>
-                <td><p-tag [value]="e.role" severity="info" /></td>
+                <td><p-tag [value]="e.role | localizedName: e.roleZh : e.roleVi" severity="info" /></td>
                 <td class="td-muted">{{ e.shifts }}</td>
                 <td class="td-muted">{{ e.hours }}h</td>
                 <td class="td-muted">{{ e.avgHoursPerShift }}h</td>
@@ -228,7 +228,7 @@
             </ng-template>
             <ng-template pTemplate="body" let-loc>
               <tr>
-                <td class="td-name">{{ loc.locationName }}</td>
+                <td class="td-name">{{ loc.locationName | localizedName: loc.locationNameZh : loc.locationNameVi }}</td>
                 <td class="td-muted">{{ loc.shifts }}</td>
                 <td class="td-muted">{{ loc.hours }}h</td>
                 <td class="td-bar">
@@ -262,7 +262,7 @@
             </ng-template>
             <ng-template pTemplate="body" let-ro>
               <tr>
-                <td><p-tag [value]="ro.role" severity="info" /></td>
+                <td><p-tag [value]="ro.role | localizedName: ro.roleZh : ro.roleVi" severity="info" /></td>
                 <td class="td-muted">{{ ro.staffCount }}</td>
                 <td class="td-muted">{{ ro.shifts }}</td>
                 <td class="td-muted">{{ ro.hours }}h</td>
@@ -330,10 +330,10 @@
                 <td class="td-muted mono">{{ s.staffId }}</td>
                 <td class="td-name">{{ s.staffName }}</td>
                 <td>
-                  <p-tag [value]="s.role" severity="info" />
+                  <p-tag [value]="s.role | localizedName: s.roleZh : s.roleVi" severity="info" />
                   @if (s.payType === 'fixed') { <p-tag [value]="'reports.fixed' | translate" severity="warn" styleClass="paytype-tag" /> }
                 </td>
-                <td class="td-muted">{{ s.locationName }}</td>
+                <td class="td-muted">{{ s.locationName | localizedName: s.locationNameZh : s.locationNameVi }}</td>
                 <td class="td-muted">{{ s.workDate }} · {{ s.startTime | amPm }}</td>
                 <td class="td-muted">{{ s.endTime ? ((s.endDate ?? s.workDate) + ' · ') : '' }}{{ s.endTime | amPm }}</td>
                 <td>{{ s.hours }}h</td>

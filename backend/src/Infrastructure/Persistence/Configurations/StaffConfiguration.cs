@@ -14,11 +14,15 @@ public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfigur
         b.ToTable("Staff");
         b.HasKey(e => e.Id);
         b.Property(e => e.StaffId).HasMaxLength(20).IsRequired();
-        b.HasIndex(e => e.StaffId).IsUnique();
+        // Partial unique index (excludes soft-deleted rows) so a Staff ID can be reused after the
+        // previous holder is deleted — uniqueness applies only among ACTIVE staff, matching the
+        // global !IsDeleted query filter. A non-partial index would leave a deleted row occupying
+        // the ID and reject the re-add (surfacing as a misleading "email already registered").
+        b.HasIndex(e => e.StaffId).IsUnique().HasFilter("\"IsDeleted\" = false");
         b.Property(e => e.FirstName).HasMaxLength(50).IsRequired();
         b.Property(e => e.LastName).HasMaxLength(50).IsRequired();
         b.Property(e => e.Email).HasMaxLength(200);  // nullable — email is optional at registration
-        b.HasIndex(e => e.Email).IsUnique();          // stays plaintext so this unique index works
+        b.HasIndex(e => e.Email).IsUnique().HasFilter("\"IsDeleted\" = false");  // plaintext; excludes soft-deleted
         b.Property(e => e.PasswordHash).IsRequired();
 
         // ── PII encrypted at rest (AES-GCM via value converters) ─────────────────

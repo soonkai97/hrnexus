@@ -525,10 +525,12 @@ namespace HRNexus.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.HasIndex("StaffId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("Staff", (string)null);
                 });

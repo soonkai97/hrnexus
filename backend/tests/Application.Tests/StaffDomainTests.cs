@@ -52,6 +52,40 @@ public class StaffDomainTests
     }
 
     [Fact]
+    public void Create_BlankEmail_NormalisesToNull()
+    {
+        // Email is optional. A blank email must store null (NOT "") — otherwise two staff with no
+        // email collide on the unique email index (many NULLs allowed, only one ""). Regression for
+        // "Email '' is already registered." when adding a second staff member without an email.
+        var s1 = RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "", "hash", "BARTENDER");
+        var s2 = RoleSeed.MakeStaffWithRoles("NC002", "Bob", "Lee", "   ", "hash", "BARTENDER");
+
+        Assert.Null(s1.Email);
+        Assert.Null(s2.Email);
+    }
+
+    [Fact]
+    public void UpdateDetails_BlankEmail_ClearsToNull()
+    {
+        var staff = RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "a@b.com", "hash", "BARTENDER");
+
+        staff.UpdateDetails("NC001", "Alice", "Tan", "", new List<Guid>(), null);
+
+        Assert.Null(staff.Email);
+    }
+
+    [Fact]
+    public void UpdateDetails_NullEmail_KeepsExisting()
+    {
+        // null = "field not supplied" → keep the current email; only "" clears it.
+        var staff = RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "a@b.com", "hash", "BARTENDER");
+
+        staff.UpdateDetails("NC001", "Alice", "Tan", null, new List<Guid>(), null);
+
+        Assert.Equal("a@b.com", staff.Email);
+    }
+
+    [Fact]
     public void Create_IsActive_ByDefault()
     {
         // Newly created staff should be active so they can log in immediately.

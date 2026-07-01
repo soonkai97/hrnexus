@@ -25,7 +25,7 @@
           <p-tag [value]="'logShift.live' | translate" severity="success" styleClass="live-tag" />
           <div class="active-details d-flex flex-wrap gap-2 flex-grow-1">
             <span class="active-role">{{ shift.roleName | localizedName: shift.roleNameZh : shift.roleNameVi }}</span>
-            <span class="active-loc"><i class="pi pi-map-marker"></i> {{ shift.locationName }}</span>
+            <span class="active-loc"><i class="pi pi-map-marker"></i> {{ shift.locationName | localizedName: shift.locationNameZh : shift.locationNameVi }}</span>
             <span class="active-time"><i class="pi pi-clock"></i> {{ shift.workDate }} {{ shift.startTime | amPm }}</span>
           </div>
           <a routerLink="/log-shift" class="btn-end-link">{{ 'home.manageShift' | translate }} <i class="pi pi-arrow-right"></i></a>
@@ -100,7 +100,7 @@
               <span>{{ s.roleName | localizedName: s.roleNameZh : s.roleNameVi }}</span>
               <span class="recent-time">{{ s.startTime | amPm }}@if (s.endTime) { – {{ s.endTime | amPm }}@if (endDayOffset(s); as off) {<span class="day-offset">+{{ off }}</span>}}</span>
             </div>
-            <div class="recent-loc"><i class="pi pi-map-marker"></i> {{ s.locationName }}</div>
+            <div class="recent-loc"><i class="pi pi-map-marker"></i> {{ s.locationName | localizedName: s.locationNameZh : s.locationNameVi }}</div>
             <div class="recent-hrs">{{ s.hours | number:'1.1-1' }}h</div>
           </div>
         }

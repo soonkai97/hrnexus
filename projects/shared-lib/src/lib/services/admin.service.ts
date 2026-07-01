@@ -28,6 +28,11 @@ export interface ActiveStaffDto {
   lastLatitude?:   number | null;
   lastLongitude?:  number | null;
   lastLocationAt?: string | null;
+  /** CURRENT localized job/location display names (null → fall back to role/locationName). */
+  roleZh?:         string | null;
+  roleVi?:         string | null;
+  locationNameZh?: string | null;
+  locationNameVi?: string | null;
 }
 
 export interface RecentEventDto {
@@ -37,6 +42,11 @@ export interface RecentEventDto {
   timestamp:    string;
   eventType:    'shift-started' | 'shift-ended';
   notes?:       string | null;
+  /** CURRENT localized job/location display names (null → fall back to role/locationName). */
+  roleZh?:         string | null;
+  roleVi?:         string | null;
+  locationNameZh?: string | null;
+  locationNameVi?: string | null;
 }
 
 export interface DashboardResponse {
@@ -67,6 +77,8 @@ export interface StaffReportRow {
   hours:           number;
   cost:            number;
   avgHoursPerShift: number;
+  roleZh?:         string | null;
+  roleVi?:         string | null;
 }
 
 export interface LocationReportRow {
@@ -74,6 +86,8 @@ export interface LocationReportRow {
   shifts:       number;
   hours:        number;
   cost:         number;
+  locationNameZh?: string | null;
+  locationNameVi?: string | null;
 }
 
 export interface RoleReportRow {
@@ -82,6 +96,8 @@ export interface RoleReportRow {
   hours:      number;
   cost:       number;
   staffCount: number;
+  roleZh?:    string | null;
+  roleVi?:    string | null;
 }
 
 export interface DateReportRow {
@@ -110,6 +126,10 @@ export interface ShiftDetailRow {
   hours:        number;
   cost:         number;
   status:       string;
+  roleZh?:         string | null;
+  roleVi?:         string | null;
+  locationNameZh?: string | null;
+  locationNameVi?: string | null;
 }
 
 export interface ReportResponse {
@@ -174,6 +194,10 @@ export interface PayslipShiftRow {
   pay: number;                  // computed pay for this shift
   isEdited: boolean;
   notes: string | null;
+  roleZh?:         string | null;
+  roleVi?:         string | null;
+  locationNameZh?: string | null;
+  locationNameVi?: string | null;
 }
 
 /** Per-job subtotal on a payslip (shifts grouped by job + pay model). */
@@ -183,6 +207,8 @@ export interface PayslipJobSummary {
   shiftCount: number;
   hours: number;
   pay: number;
+  roleZh?: string | null;
+  roleVi?: string | null;
 }
 
 export interface PayslipResponse {

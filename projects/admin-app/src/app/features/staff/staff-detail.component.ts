@@ -89,6 +89,12 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     return this.localized(wl.roleName, wl.roleNameZh, wl.roleNameVi);
   }
 
+  /** Localized location name for a shift row — mirrors shiftRole (falls back to the snapshot when the
+   *  location was since deleted). */
+  shiftLocation(wl: WorkLogDto): string {
+    return this.localized(wl.locationName, wl.locationNameZh, wl.locationNameVi);
+  }
+
   /** Calendar days the shift ran past its work date (0 = same day) — drives the "+N" badge so an
    *  overnight/multi-day shift's end time isn't misread as ending before it started. */
   endDayOffset(wl: WorkLogDto): number {

@@ -5,7 +5,7 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, EarningsSnapshotResponse, ToastService, apiErrorMessage, nowRoundedToHalfHour } from 'shared-lib';
+import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, EarningsSnapshotResponse, ToastService, apiErrorMessage, nowRoundedToHalfHour, LocalizedNamePipe } from 'shared-lib';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
@@ -19,7 +19,7 @@ import { PrimeTemplate } from 'primeng/api';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TableModule, Tag, Card, Skeleton, Button, Dialog, DatePicker, TooltipModule, PrimeTemplate],
+  imports: [DatePipe, DecimalPipe, FormsModule, TranslatePipe, TableModule, Tag, Card, Skeleton, Button, Dialog, DatePicker, TooltipModule, PrimeTemplate, LocalizedNamePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })

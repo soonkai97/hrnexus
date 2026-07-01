@@ -10,7 +10,7 @@ import {
   StaffStore, StaffManagementService, ToastService, Staff,
   toLocalDateString,
   WorkLogService, UpdateWorkLogRequest, LocationStore,
-  TrimInputDirective, AmPmPipe,
+  TrimInputDirective, AmPmPipe, LocalizedNamePipe,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -29,7 +29,7 @@ import { InputText } from 'primeng/inputtext';
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, AmPmPipe,
+  imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, AmPmPipe, LocalizedNamePipe,
     Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
     Tabs, TabList, Tab, MultiSelect, Select, Dialog, InputText],
   templateUrl: './reports.component.html',

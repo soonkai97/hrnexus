@@ -2,7 +2,7 @@ import { Component, signal, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AdminService, PayslipResponse, ToastService } from 'shared-lib';
+import { AdminService, PayslipResponse, ToastService, LocalizedNamePipe } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Dialog } from 'primeng/dialog';
@@ -18,7 +18,7 @@ import { Tag } from 'primeng/tag';
 @Component({
   selector: 'app-payslip-dialog',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, TableModule, Dialog, DatePicker, Tag],
+  imports: [DecimalPipe, FormsModule, TranslatePipe, Button, TableModule, Dialog, DatePicker, Tag, LocalizedNamePipe],
   templateUrl: './payslip-dialog.component.html',
   styleUrl: './payslip-dialog.component.scss',
 })

@@ -216,17 +216,4 @@ describe('LeaveService', () => {
     });
   });
 
-  describe('bulkCreateLeave()', () => {
-    it('POSTs /api/admin/leave/bulk-create with the request', () => {
-      const body = {
-        employeeIds: ['a', 'b'], leaveType: 'unpaid', startDate: '2026-12-25', endDate: '2026-12-25',
-        startTime: null, endTime: null, hours: 8, notes: 'Holiday', status: 'approved',
-      };
-      service.bulkCreateLeave(body).subscribe();
-      const req = http.expectOne('/api/admin/leave/bulk-create');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(body);
-      req.flush({ created: 2, failed: 0, errors: [] });
-    });
-  });
 });

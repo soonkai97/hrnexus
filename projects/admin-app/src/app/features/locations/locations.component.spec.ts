@@ -32,7 +32,6 @@ describe('LocationsComponent', () => {
     update:      ReturnType<typeof vi.fn>;
     remove:      ReturnType<typeof vi.fn>;
     uploadImage: ReturnType<typeof vi.fn>;
-    bulkCreate:  ReturnType<typeof vi.fn>;
   };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
@@ -46,7 +45,6 @@ describe('LocationsComponent', () => {
       update:      vi.fn().mockReturnValue(of(undefined)),
       remove:      vi.fn().mockReturnValue(of(undefined)),
       uploadImage: vi.fn().mockReturnValue(of(undefined)),
-      bulkCreate:  vi.fn().mockReturnValue(of({ created: 2, skipped: 0 })),
     };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
@@ -190,45 +188,6 @@ describe('LocationsComponent', () => {
       mockLocationStore.remove.mockReturnValue(throwError(() => ({ error: { error: 'Location in use.' } })));
       component.remove('loc-1');
       expect(mockToastSvc.error).toHaveBeenCalledWith('Location in use.');
-    });
-  });
-
-  // ── saveBulk() — bulk add ──────────────────────────────────────────────────────
-
-  describe('saveBulk()', () => {
-    it('collects non-blank row names (trimmed) and calls store.bulkCreate', () => {
-      component.bulkRows = [{ name: '  Main Bar ' }, { name: '' }, { name: 'Rooftop' }];
-      component.saveBulk();
-      expect(mockLocationStore.bulkCreate).toHaveBeenCalledWith(['Main Bar', 'Rooftop']);
-    });
-
-    it('does nothing when no row has a usable name', () => {
-      component.bulkRows = [{ name: '  ' }, { name: '' }];
-      component.saveBulk();
-      expect(mockLocationStore.bulkCreate).not.toHaveBeenCalled();
-    });
-
-    it('shows a created/skipped toast and closes the dialog on success', () => {
-      component.bulkRows = [{ name: 'Main Bar' }, { name: 'Rooftop' }];
-      component.showBulk.set(true);
-      component.saveBulk();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('locations.bulkAddedToast');
-      expect(component.showBulk()).toBe(false);
-    });
-
-    it('shows an error toast on failure', () => {
-      mockLocationStore.bulkCreate.mockReturnValue(throwError(() => ({ error: { error: 'Bad.' } })));
-      component.bulkRows = [{ name: 'Main Bar' }];
-      component.saveBulk();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Bad.');
-    });
-
-    it('addBulkRow / removeBulkRow manage the row list', () => {
-      component.bulkRows = [{ name: 'A' }];
-      component.addBulkRow();
-      expect(component.bulkRows.length).toBe(2);
-      component.removeBulkRow(0);
-      expect(component.bulkRows).toEqual([{ name: '' }]);
     });
   });
 

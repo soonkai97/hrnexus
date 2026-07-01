@@ -226,19 +226,6 @@ public class StaffController(IMediator mediator) : ControllerBase
         catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
-    /// <summary>Import many staff at once (partial success — bad rows are reported and skipped).</summary>
-    [HttpPost("bulk-import")]
-    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
-    public async Task<IActionResult> BulkImport([FromBody] BulkRegisterStaffCommand cmd, CancellationToken ct)
-    {
-        try
-        {
-            var result = await mediator.Send(cmd, ct);
-            return Ok(result);
-        }
-        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
-    }
-
     // --- Role management ---
 
     [HttpGet("roles")]
@@ -260,19 +247,6 @@ public class StaffController(IMediator mediator) : ControllerBase
         }
         catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
         catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
-    }
-
-    /// <summary>Create many custom roles at once (duplicates skipped).</summary>
-    [HttpPost("roles/bulk")]
-    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.RolesManage)]
-    public async Task<IActionResult> BulkCreateRoles([FromBody] BulkCreateRolesCommand cmd, CancellationToken ct)
-    {
-        try
-        {
-            var result = await mediator.Send(cmd, ct);
-            return Ok(result);
-        }
-        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
     [HttpPatch("roles/{name}/rate")]

@@ -27,7 +27,6 @@ import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 import { Checkbox } from 'primeng/checkbox';
 import { Dialog } from 'primeng/dialog';
-import { MultiSelect } from 'primeng/multiselect';
 import { PrimeTemplate } from 'primeng/api';   // provides the pTemplate="footer" directive for the dialogs
 
 const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show', 'emergency'] as const;
@@ -38,7 +37,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe, TrimInputDirective,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
-    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, Dialog, MultiSelect, PrimeTemplate],
+    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, Dialog, PrimeTemplate],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
@@ -277,83 +276,6 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         },
         error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkRejectFailed')); this.bulkStatusSaving.set(false); },
       });
-    });
-  }
-
-  // ── Bulk record (venue-wide: same leave for many staff) ─────────────────────
-  showBulkCreate = signal(false);
-  bulkCreating   = signal(false);
-  bulkStaffIds: string[] = [];
-  bulkType   = 'unpaid';
-  bulkStart: Date | null = null;
-  bulkEnd:   Date | null = null;
-  bulkStartTime: Date | null = null;
-  bulkEndTime:   Date | null = null;
-  bulkNotes  = '';
-
-  /** Hours derived from the bulk start/end date+time — mirrors the single form's calcHours, so the
-   *  bulk dialog has no manual hours field. */
-  get bulkCalcHours(): number {
-    const { bulkStart, bulkEnd, bulkStartTime, bulkEndTime } = this;
-    if (!bulkStart || !bulkEnd || !bulkStartTime || !bulkEndTime) return 0;
-    const start = new Date(bulkStart);
-    start.setHours(bulkStartTime.getHours(), bulkStartTime.getMinutes(), 0, 0);
-    const end = new Date(bulkEnd);
-    end.setHours(bulkEndTime.getHours(), bulkEndTime.getMinutes(), 0, 0);
-    const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    return Math.round(h * 10) / 10;
-  }
-  /** Result after submit: when any employee fails (e.g. not enough entitlement) the dialog stays
-   * open to show exactly who was skipped and why. Null until the first submit. */
-  bulkResult = signal<{ created: number; failed: number; rows: { name: string; reason: string }[] } | null>(null);
-
-  bulkStaffOptions = computed(() =>
-    this.staffStore.staff().map(s => ({ label: s.fullName, value: s.id })));
-
-  openBulkCreate(): void {
-    this.bulkStaffIds = []; this.bulkType = 'unpaid';
-    this.bulkStart = null; this.bulkEnd = null; this.bulkStartTime = null; this.bulkEndTime = null;
-    this.bulkNotes = ''; this.bulkResult.set(null);
-    this.defaultTime = nowRoundedToHalfHour();
-    this.staffStore.loadStaff('', 1, 200);   // load a full page for the picker
-    this.showBulkCreate.set(true);
-  }
-
-  saveBulkCreate(): void {
-    if (!this.bulkStaffIds.length || !this.bulkStart || !this.bulkEnd || !this.bulkStartTime || !this.bulkEndTime) return;
-    this.bulkCreating.set(true);
-    this.leaveSvc.bulkCreateLeave({
-      employeeIds: this.bulkStaffIds, leaveType: this.bulkType,
-      startDate: toLocalDateString(this.bulkStart), endDate: toLocalDateString(this.bulkEnd),
-      startTime: this.toTimeStr(this.bulkStartTime),
-      endTime:   this.toTimeStr(this.bulkEndTime),
-      hours: this.bulkCalcHours, notes: this.bulkNotes || null,
-      status: 'approved',
-    }).subscribe({
-      next: r => {
-        this.bulkCreating.set(false);
-        this.load(); this.loadBalances();
-        // Map "{employeeId}: {message}" → friendly {name, reason} (e.g. not enough entitlement).
-        const names = new Map(this.bulkStaffOptions().map(o => [o.value, o.label]));
-        const rows = r.errors.map(e => {
-          const idx = e.indexOf(': ');
-          const id  = idx >= 0 ? e.slice(0, idx) : '';
-          const reason = idx >= 0 ? e.slice(idx + 2) : e;
-          return { name: names.get(id) ?? id, reason };
-        });
-        if (r.failed > 0) {
-          // Keep the dialog open so the admin can see which staff were skipped and why.
-          this.bulkResult.set({ created: r.created, failed: r.failed, rows });
-          this.toast.warning(this.translate.instant('leave.bulkCreatedToast', { created: r.created, failed: r.failed }));
-        } else {
-          this.showBulkCreate.set(false);
-          this.toast.success(this.translate.instant('leave.bulkCreatedToast', { created: r.created, failed: r.failed }));
-        }
-      },
-      error: (e: unknown) => {
-        this.bulkCreating.set(false);
-        this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkCreateFailed'));
-      },
     });
   }
 

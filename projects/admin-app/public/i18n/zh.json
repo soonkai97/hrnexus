@@ -727,7 +727,7 @@
     "perShiftSuffix":   " /班",
     "editRate":         "编辑",
     "editRoleTitle":    "编辑职位",
-    "systemNameLocked": "系统角色名称不可更改——它用于权限控制。",
+    "systemNameLocked": "系统职位名称不可更改——它用于权限控制。",
     "hourlyRateCol":    "时薪（马币）",
     "nameRequired":     "职位名称为必填项。",
     "created":          "职位已创建。",

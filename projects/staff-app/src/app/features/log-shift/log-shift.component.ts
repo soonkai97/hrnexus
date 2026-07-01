@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { DecimalPipe, UpperCasePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { WorkLogService, WorkLogDto, LocationStore, ToastService, AuthService, AmPmPipe, todayLocalString, nowRoundedToHalfHour, TrimInputDirective, CanComponentDeactivate, LangService, localizedNameFor } from 'shared-lib';
@@ -24,7 +24,7 @@ function nowHHmm(): string {
 @Component({
   selector: 'app-log-shift',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe, FormsModule, TranslatePipe, AmPmPipe, TrimInputDirective, Button, Card, Tag, InputText, Select, Message, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator],
+  imports: [DecimalPipe, FormsModule, TranslatePipe, AmPmPipe, TrimInputDirective, Button, Card, Tag, InputText, Select, Message, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator],
   templateUrl: './log-shift.component.html',
   styleUrl: './log-shift.component.scss',
 })
@@ -155,6 +155,12 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
 
   /** How many calendar days after the work date the shift ended (0 = same day). Drives the "+N"
    *  badge so an overnight/multi-day shift reads correctly instead of looking like end-before-start. */
+  /** The job name shown in the viewer's language (Chinese/Vietnamese when set, else the primary/English
+   *  snapshot). A renamed/deleted job has no localized names → falls back to the frozen roleName. */
+  roleLabel(wl: WorkLogDto): string {
+    return localizedNameFor(this.lang.current(), wl.roleName, wl.roleNameZh ?? null, wl.roleNameVi ?? null);
+  }
+
   endDayOffset(wl: WorkLogDto): number {
     if (!wl.endDate || wl.endDate === wl.workDate) return 0;
     const ms = new Date(`${wl.endDate}T00:00:00`).getTime() - new Date(`${wl.workDate}T00:00:00`).getTime();

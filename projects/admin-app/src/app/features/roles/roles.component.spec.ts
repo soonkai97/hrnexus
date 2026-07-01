@@ -148,26 +148,39 @@ describe('RolesComponent', () => {
 
   // ── startEditRate() / cancelEditRate() ────────────────────────────────────────
 
+  const bartender = { id: 'role-bartender-id', name: 'BARTENDER', hourlyRate: 12, nameZh: null, nameVi: null, payType: 'hourly' as const, isSystem: false };
+
   describe('startEditRate() / cancelEditRate()', () => {
     it('sets editingRateId to the role id', () => {
-      component.startEditRate('role-bartender-id', 12);
+      component.startEditRate(bartender);
       expect(component.editingRateId()).toBe('role-bartender-id');
     });
 
+    it('seeds the English name so the modal is editable for custom jobs', () => {
+      component.startEditRate({ ...bartender, name: 'MIXOLOGIST' });
+      expect(component.editingRateName()).toBe('MIXOLOGIST');
+      expect(component.editingRateIsSystem()).toBe(false);
+    });
+
     it('sets editingRateValue to the current rate', () => {
-      component.startEditRate('role-bartender-id', 12.50);
+      component.startEditRate({ ...bartender, hourlyRate: 12.50 });
       expect(component.editingRateValue()).toBe(12.50);
     });
 
     it('cancelEditRate clears editingRateId', () => {
-      component.startEditRate('role-bartender-id', 12);
+      component.startEditRate(bartender);
       component.cancelEditRate();
       expect(component.editingRateId()).toBeNull();
     });
 
     it('seeds editingRatePayType from the role so the toggle reflects the current pay model', () => {
-      component.startEditRate('role-package-id', 500, null, null, 'fixed');
+      component.startEditRate({ id: 'role-package-id', name: 'PACKAGE', hourlyRate: 500, nameZh: null, nameVi: null, payType: 'fixed', isSystem: false });
       expect(component.editingRatePayType()).toBe('fixed');
+    });
+
+    it('marks system roles so the English-name field is locked', () => {
+      component.startEditRate({ id: 'role-admin-id', name: 'SUPERADMIN', hourlyRate: 0, nameZh: null, nameVi: null, payType: 'hourly', isSystem: true });
+      expect(component.editingRateIsSystem()).toBe(true);
     });
   });
 
@@ -176,12 +189,26 @@ describe('RolesComponent', () => {
   describe('saveRate()', () => {
     beforeEach(() => {
       component.editingRateId.set('role-bartender-id');
+      component.editingRateName.set('BARTENDER');
       component.editingRateValue.set(15);
     });
 
-    it('calls updateRoleRate with the role id and new rate', () => {
+    it('calls updateRoleRate with the role id, new rate, and English name (custom job)', () => {
       component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly');
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', 'BARTENDER');
+    });
+
+    it('sends a null name for system roles so their auth key is never renamed', () => {
+      component.editingRateIsSystem.set(true);
+      component.editingRateName.set('SUPERADMIN');
+      component.saveRate();
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', null);
+    });
+
+    it('does nothing when a custom job has a blank English name', () => {
+      component.editingRateName.set('   ');
+      component.saveRate();
+      expect(mockStaffStore.updateRoleRate).not.toHaveBeenCalled();
     });
 
     it('clears editingRateId after success — prevents accidental double-save', () => {

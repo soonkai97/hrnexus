@@ -211,7 +211,7 @@
             <ng-template pTemplate="body" let-wl>
               <tr>
                 <td>{{ wl.workDate }}@if (endDayOffset(wl)) { <span class="day-offset">→ {{ wl.endDate }}</span> }</td>
-                <td>{{ wl.roleName }}</td>
+                <td>{{ shiftRole(wl) }}</td>
                 <td>{{ wl.locationName }}</td>
                 <td>{{ wl.startTime | amPm }}</td>
                 <td>{{ wl.endTime | amPm }}@if (endDayOffset(wl); as off) { <span class="day-offset">+{{ off }}</span> }</td>

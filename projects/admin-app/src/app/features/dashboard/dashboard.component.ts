@@ -1,11 +1,11 @@
 import { Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Subject, EMPTY } from 'rxjs';
+import { Subject, EMPTY, forkJoin, of } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, ToastService, apiErrorMessage, nowRoundedToHalfHour } from 'shared-lib';
+import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, EarningsSnapshotResponse, ToastService, apiErrorMessage, nowRoundedToHalfHour } from 'shared-lib';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
@@ -34,6 +34,10 @@ export class DashboardComponent implements OnInit {
   stats    = signal<DashboardStats | null>(null);
   onShift  = signal<ActiveStaffDto[]>([]);
   activity = signal<(RecentEventDto & { isNew?: boolean })[]>([]);
+  // Month-to-date payroll figures (earned this month + outstanding advances) for the financial
+  // cards. Null when not yet loaded OR the caller lacks payroll.view (the snapshot endpoint 403s,
+  // which we swallow) — the cards just don't render in that case.
+  earnings = signal<EarningsSnapshotResponse | null>(null);
   loading  = signal(true);
 
   // Reads the SignalR connection signal directly — no extra signal + effect needed.
@@ -47,7 +51,13 @@ export class DashboardComponent implements OnInit {
     this._loadTrigger$.pipe(
       switchMap(showLoader => {
         if (showLoader) this.loading.set(true);
-        return this.admin.getDashboard().pipe(
+        // Load the dashboard + the month-to-date earnings snapshot together. The earnings call is
+        // made resilient (caller may lack payroll.view) so a 403/error there never breaks the
+        // dashboard — it just leaves the financial cards hidden.
+        return forkJoin({
+          dash: this.admin.getDashboard(),
+          earn: this.admin.getEarningsSnapshot().pipe(catchError(() => of(null))),
+        }).pipe(
           catchError(() => {
             this.toast.error(this.translate.instant('dashboard.loadFailed'));
             this.loading.set(false);
@@ -56,10 +66,11 @@ export class DashboardComponent implements OnInit {
         );
       }),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(data => {
-      this.stats.set(data.stats);
-      this.onShift.set(data.currentlyOnShift);
-      this.activity.set(data.recentActivity);
+    ).subscribe(({ dash, earn }) => {
+      this.stats.set(dash.stats);
+      this.onShift.set(dash.currentlyOnShift);
+      this.activity.set(dash.recentActivity);
+      this.earnings.set(earn);
       this.loading.set(false);
     });
 

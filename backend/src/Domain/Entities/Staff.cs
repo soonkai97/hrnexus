@@ -57,6 +57,12 @@ public class Staff : IHasAudit, ISoftDelete
 
     private Staff() { }
 
+    /// <summary>Email is optional. Blank/whitespace normalises to null (not "") so multiple staff can
+    /// have no email — the unique email index permits many NULLs but only one empty string. A real
+    /// value is trimmed + lowercased so lookups are case-insensitive and stable.</summary>
+    private static string? NormalizeEmail(string? email) =>
+        string.IsNullOrWhiteSpace(email) ? null : email.Trim().ToLowerInvariant();
+
     public static Staff Create(string staffId, string firstName, string? lastName, string? email, string passwordHash,
         List<Guid> roles, string? phoneNumber = null,
         string? icNo = null, string? passportNo = null, DateTime? dateOfBirth = null,
@@ -68,7 +74,7 @@ public class Staff : IHasAudit, ISoftDelete
             StaffId      = staffId.Trim().ToUpperInvariant(),
             FirstName    = firstName.Trim(),
             LastName     = lastName?.Trim() ?? "",
-            Email        = email?.ToLowerInvariant(),
+            Email        = NormalizeEmail(email),
             PasswordHash = passwordHash,
             PhoneNumber  = phoneNumber,
             IcNo         = icNo,
@@ -156,7 +162,9 @@ public class Staff : IHasAudit, ISoftDelete
         StaffId     = staffId.Trim().ToUpperInvariant();
         FirstName   = firstName.Trim();
         LastName    = lastName?.Trim() ?? LastName;   // keep existing if null
-        Email       = email?.ToLowerInvariant() ?? Email;  // keep existing if null
+        // null = field not supplied → keep existing; "" / whitespace = clear to null (email is
+        // optional, and a stored "" would collide on the unique email index — many NULLs are allowed).
+        Email       = email is null ? Email : NormalizeEmail(email);
         PhoneNumber = phoneNumber;
         IcNo        = icNo;
         PassportNo  = passportNo;

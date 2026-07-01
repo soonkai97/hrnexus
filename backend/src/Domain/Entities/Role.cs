@@ -31,6 +31,9 @@ public class Role
         CreatedAt  = DateTime.UtcNow,
     };
 
+    /// <summary>Renames the job's primary (English) display name. Stored UPPERCASE to match the
+    /// snapshot/auth-matching convention. Never call this for a system role — its Name is the auth key.</summary>
+    public void SetName(string name) => Name = name.Trim().ToUpperInvariant();
     public void SetRate(decimal rate) => HourlyRate = rate;
     public void SetPayType(string payType) => PayType = NormalizePayType(payType);
     public void SetNameZh(string? nameZh) => NameZh = Clean(nameZh);

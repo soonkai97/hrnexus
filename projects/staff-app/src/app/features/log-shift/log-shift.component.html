@@ -28,7 +28,7 @@
       <p-card styleClass="active-card">
         <p-tag [value]="'logShift.live' | translate" severity="success" styleClass="live-tag" />
         <div class="active-info">
-          <div class="active-role">{{ a.roleName | uppercase }}</div>
+          <div class="active-role">{{ roleLabel(a) }}</div>
           <div class="active-location"><i class="pi pi-map-marker"></i> {{ a.locationName }}</div>
           <div class="active-time">{{ 'logShift.startedAt' | translate }} {{ a.workDate }} {{ a.startTime | amPm }}</div>
         </div>
@@ -209,7 +209,7 @@
         @for (wl of history(); track wl.id) {
           <p-card styleClass="history-card">
             <div class="history-top">
-              <span class="h-role">{{ wl.roleName | uppercase }}</span>
+              <span class="h-role">{{ roleLabel(wl) }}</span>
               <span class="h-date">{{ wl.workDate }}@if (endDayOffset(wl)) { → {{ wl.endDate }}}</span>
             </div>
             <div class="history-mid d-flex flex-wrap gap-3">

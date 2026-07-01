@@ -164,7 +164,7 @@ describe('StaffManagementService', () => {
       service.updateRoleRate('role-guid-1', 30).subscribe();
       const req = http.expectOne('/api/staff/roles/role-guid-1/rate');
       expect(req.request.method).toBe('PATCH');
-      expect(req.request.body).toEqual({ hourlyRate: 30, nameZh: null, nameVi: null, payType: 'hourly' });
+      expect(req.request.body).toEqual({ hourlyRate: 30, nameZh: null, nameVi: null, payType: 'hourly', name: null });
       req.flush(null);
     });
   });

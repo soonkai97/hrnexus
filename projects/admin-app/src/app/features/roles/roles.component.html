@@ -44,6 +44,49 @@
     </ng-template>
   </p-dialog>
 
+  <!-- Edit role dialog — all three display names + pay type + rate. English name is locked for
+       system roles (it's the authorization key). -->
+  <p-dialog [visible]="editingRateId() !== null" (visibleChange)="!$event && cancelEditRate()"
+            [header]="'roles.editRoleTitle' | translate" [modal]="true"
+            [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
+    <div class="field">
+      <label for="rl-edit-name"><span class="req">*</span> {{ 'roles.roleNameCol' | translate }}</label>
+      <input id="rl-edit-name" pInputText type="text" [ngModel]="editingRateName()"
+             (ngModelChange)="editingRateName.set($event.toUpperCase())"
+             [disabled]="editingRateIsSystem()" maxlength="50" styleClass="w-full"
+             (keydown.enter)="saveRate()" />
+      @if (editingRateIsSystem()) { <small class="field-hint">{{ 'roles.systemNameLocked' | translate }}</small> }
+    </div>
+    <div class="field">
+      <label for="rl-edit-name-zh">{{ 'common.nameZhLabel' | translate }}</label>
+      <input id="rl-edit-name-zh" pInputText type="text" [ngModel]="editingRateNameZh()" (ngModelChange)="editingRateNameZh.set($event)"
+             [placeholder]="'common.nameZhPlaceholder' | translate" maxlength="100" styleClass="w-full" />
+    </div>
+    <div class="field">
+      <label for="rl-edit-name-vi">{{ 'common.nameViLabel' | translate }}</label>
+      <input id="rl-edit-name-vi" pInputText type="text" [ngModel]="editingRateNameVi()" (ngModelChange)="editingRateNameVi.set($event)"
+             [placeholder]="'common.nameViPlaceholder' | translate" maxlength="100" styleClass="w-full" />
+    </div>
+    <div class="field">
+      <label>{{ 'roles.payTypeLabel' | translate }}</label>
+      <p-selectbutton [options]="payTypeOptions" [ngModel]="editingRatePayType()"
+                      (ngModelChange)="editingRatePayType.set($event)"
+                      optionLabel="label" optionValue="value" [allowEmpty]="false" />
+      <small class="field-hint">{{ (editingRatePayType() === 'fixed' ? 'roles.payFixedHint' : 'roles.payHourlyHint') | translate }}</small>
+    </div>
+    <div class="field">
+      <label for="rl-edit-rate">{{ (editingRatePayType() === 'fixed' ? 'roles.rateFixedLabel' : 'roles.rateLabel') | translate }}</label>
+      <p-inputnumber inputId="rl-edit-rate" [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
+                     [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2"
+                     [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEditRate()" />
+      <p-button [label]="savingRate() ? ('common.saving' | translate) : ('common.save' | translate)" severity="primary"
+                (click)="saveRate()" [disabled]="savingRate() || (!editingRateIsSystem() && !editingRateName().trim())" [loading]="savingRate()" />
+    </ng-template>
+  </p-dialog>
+
   <!-- Roles list -->
   @if (roles().length === 0 && !loading()) {
     <p-card styleClass="empty-state">
@@ -72,28 +115,7 @@
           </td>
           <td>
             <span class="p-column-title">{{ 'roles.hourlyRateCol' | translate }}</span>
-            @if (editingRateId() === role.id) {
-              <!-- Inline rate editor -->
-              <div class="d-flex gap-1 align-items-center flex-wrap">
-                <input pInputText type="text" [ngModel]="editingRateNameZh()" (ngModelChange)="editingRateNameZh.set($event)"
-                       [placeholder]="'common.nameZhLabel' | translate" [attr.aria-label]="'common.nameZhLabel' | translate"
-                       maxlength="100" class="rate-name-zh" (keydown.enter)="saveRate()" (keydown.escape)="cancelEditRate()" />
-                <input pInputText type="text" [ngModel]="editingRateNameVi()" (ngModelChange)="editingRateNameVi.set($event)"
-                       [placeholder]="'common.nameViLabel' | translate" [attr.aria-label]="'common.nameViLabel' | translate"
-                       maxlength="100" class="rate-name-zh" (keydown.enter)="saveRate()" (keydown.escape)="cancelEditRate()" />
-                <p-selectbutton [options]="payTypeOptions" [ngModel]="editingRatePayType()"
-                                (ngModelChange)="editingRatePayType.set($event)"
-                                optionLabel="label" optionValue="value" [allowEmpty]="false" />
-                <p-inputnumber [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
-                               [min]="0" [step]="0.50" styleClass="rate-input"
-                               (keydown.enter)="saveRate()" (keydown.escape)="cancelEditRate()"
-                               [pt]="$any({ input: { inputmode: 'decimal' } })" />
-                <p-button [label]="'common.save' | translate" severity="primary" styleClass="btn-sm" (click)="saveRate()" [disabled]="savingRate()" [loading]="savingRate()" />
-                <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" styleClass="btn-sm" (click)="cancelEditRate()" />
-              </div>
-            } @else {
-              <span>RM {{ role.hourlyRate | number:'1.2-2' }}{{ (role.payType === 'fixed' ? 'roles.perShiftSuffix' : 'roles.perHourSuffix') | translate }}</span>
-            }
+            <span>RM {{ role.hourlyRate | number:'1.2-2' }}{{ (role.payType === 'fixed' ? 'roles.perShiftSuffix' : 'roles.perHourSuffix') | translate }}</span>
           </td>
           <td>
             <span class="p-column-title">{{ 'roles.typeCol' | translate }}</span>

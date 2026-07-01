@@ -17,6 +17,10 @@ export interface WorkLogDto {
   isManualEntry: boolean;
   isEdited: boolean;
   notes: string | null;
+  /** The job's CURRENT Chinese/Vietnamese display names, resolved from the frozen roleName snapshot.
+   *  Null when the job was since deleted or renamed → fall back to roleName. */
+  roleNameZh?: string | null;
+  roleNameVi?: string | null;
 }
 
 export interface UpdateWorkLogRequest {

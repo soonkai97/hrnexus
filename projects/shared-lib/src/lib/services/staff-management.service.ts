@@ -42,8 +42,8 @@ export class StaffManagementService {
     return this.http.post<void>('/api/staff/roles', { name, hourlyRate, nameZh, nameVi, payType });
   }
 
-  updateRoleRate(id: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): Observable<void> {
-    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(id)}/rate`, { hourlyRate, nameZh, nameVi, payType });
+  updateRoleRate(id: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly', name: string | null = null): Observable<void> {
+    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(id)}/rate`, { hourlyRate, nameZh, nameVi, payType, name });
   }
 
   deleteRole(id: string): Observable<void> {

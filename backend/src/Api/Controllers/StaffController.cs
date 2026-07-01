@@ -258,6 +258,18 @@ public class StaffController(IMediator mediator) : ControllerBase
             return BadRequest(new { error = "Hourly rate cannot be negative." });
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Id == id, ct);
         if (role is null) return NotFound(new { error = "Role not found." });
+        // The English Name is editable ONLY for custom jobs. System roles (SUPERADMIN/MANAGER/EMPLOYEE)
+        // keep their Name locked — it's the key that authorization matches on, so renaming would break
+        // access control. A rename is rejected if it would collide with another job's name.
+        if (body.Name is not null && !role.IsSystem)
+        {
+            var newName = body.Name.Trim().ToUpperInvariant();
+            if (newName.Length == 0)
+                return BadRequest(new { error = "Role name cannot be empty." });
+            if (newName != role.Name && await db.Roles.AnyAsync(r => r.Id != id && r.Name == newName, ct))
+                return Conflict(new { error = $"A job named '{newName}' already exists." });
+            role.SetName(newName);
+        }
         role.SetNameZh(body.NameZh);
         role.SetNameVi(body.NameVi);
         role.SetPayType(body.PayType);
@@ -288,7 +300,7 @@ public class StaffController(IMediator mediator) : ControllerBase
 }
 
 public record CreateRoleBody(string Name, decimal HourlyRate = 0, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly);
-public record UpdateRoleRateBody(decimal HourlyRate, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly);
+public record UpdateRoleRateBody(decimal HourlyRate, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly, string? Name = null);
 public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<Guid> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth, List<string>? Locations = null);
 public record ResetPasswordBody(string NewPassword);
 public record BulkAssignLocationsBody(List<Guid> StaffIds, List<string> LocationIds);

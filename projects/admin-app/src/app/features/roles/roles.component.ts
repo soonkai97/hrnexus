@@ -55,13 +55,17 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     ];
   }
 
-  // Inline rate editing state — keyed by the role's GUID id (roles are id-identified since the GUID-PK migration)
-  editingRateId      = signal<string | null>(null);
-  editingRateValue   = signal(0);
-  editingRateNameZh  = signal('');
-  editingRateNameVi  = signal('');
-  editingRatePayType = signal<PayType>('hourly');
-  savingRate         = signal(false);
+  // Edit-role modal state — keyed by the role's GUID id (roles are id-identified since the GUID-PK
+  // migration, so the English name is now editable display data — except for system roles, whose name
+  // is the authorization key and stays locked).
+  editingRateId       = signal<string | null>(null);
+  editingRateName     = signal('');
+  editingRateNameZh   = signal('');
+  editingRateNameVi   = signal('');
+  editingRateValue    = signal(0);
+  editingRatePayType  = signal<PayType>('hourly');
+  editingRateIsSystem = signal(false);
+  savingRate          = signal(false);
 
   // Role-permissions editor state
   permRole        = signal<string | null>(null);   // role whose permissions dialog is open
@@ -113,12 +117,15 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  startEditRate(id: string, currentRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): void {
-    this.editingRateId.set(id);
-    this.editingRateValue.set(currentRate);
-    this.editingRateNameZh.set(nameZh ?? '');
-    this.editingRateNameVi.set(nameVi ?? '');
-    this.editingRatePayType.set(payType);
+  /** Open the edit-role modal, prefilled from the row. `isSystem` locks the English-name field. */
+  startEditRate(role: { id: string; name: string; hourlyRate: number; nameZh: string | null; nameVi: string | null; payType: PayType; isSystem: boolean }): void {
+    this.editingRateId.set(role.id);
+    this.editingRateName.set(role.name);
+    this.editingRateNameZh.set(role.nameZh ?? '');
+    this.editingRateNameVi.set(role.nameVi ?? '');
+    this.editingRateValue.set(role.hourlyRate);
+    this.editingRatePayType.set(role.payType);
+    this.editingRateIsSystem.set(role.isSystem);
   }
 
   cancelEditRate(): void { this.editingRateId.set(null); }
@@ -126,8 +133,11 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   saveRate(): void {
     const id = this.editingRateId();
     if (!id || this.savingRate()) return;
+    // System roles keep their English name (the auth key) — only send a name change for custom jobs.
+    const name = this.editingRateIsSystem() ? null : (this.editingRateName().trim().toUpperCase() || null);
+    if (!this.editingRateIsSystem() && !name) return; // English name is required for custom jobs
     this.savingRate.set(true);
-    this.store.updateRoleRate(id, this.editingRateValue(), this.editingRateNameZh().trim() || null, this.editingRateNameVi().trim() || null, this.editingRatePayType()).subscribe({
+    this.store.updateRoleRate(id, this.editingRateValue(), this.editingRateNameZh().trim() || null, this.editingRateNameVi().trim() || null, this.editingRatePayType(), name).subscribe({
       next: () => {
         this.savingRate.set(false);
         this.editingRateId.set(null);
@@ -167,7 +177,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   openRoleMenu(role: { id: string; name: string; hourlyRate: number; isSystem: boolean; nameZh: string | null; nameVi: string | null; payType: PayType }, event: Event): void {
     const items: MenuItem[] = [
       { label: this.translate.instant('roles.editRate'), icon: 'pi pi-pencil',
-        command: () => this.startEditRate(role.id, role.hourlyRate, role.nameZh, role.nameVi, role.payType) },
+        command: () => this.startEditRate(role) },
       { label: this.translate.instant('permissions.roleTitle'), icon: 'pi pi-shield',
         // Permissions API is keyed by role NAME on the backend — pass the name here, not the id.
         command: () => this.openPermissions(role.name) },

@@ -83,6 +83,11 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     const role = this.availableRoles().find(r => r.name === name);
     return role ? this.localized(role.name, role.nameZh, role.nameVi) : name;
   }
+  /** Localized job name for a shift row — uses the names the backend resolved from the frozen snapshot
+   *  (falls back to the snapshot when the job was since renamed/deleted). */
+  shiftRole(wl: WorkLogDto): string {
+    return this.localized(wl.roleName, wl.roleNameZh, wl.roleNameVi);
+  }
 
   /** Calendar days the shift ran past its work date (0 = same day) — drives the "+N" badge so an
    *  overnight/multi-day shift's end time isn't misread as ending before it started. */

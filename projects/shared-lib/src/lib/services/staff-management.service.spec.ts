@@ -257,24 +257,4 @@ describe('StaffManagementService', () => {
     });
   });
 
-  describe('bulkCreateRoles()', () => {
-    it('POSTs /api/staff/roles/bulk with the role list', () => {
-      service.bulkCreateRoles([{ name: 'HOST', hourlyRate: 18 }]).subscribe();
-      const req = http.expectOne('/api/staff/roles/bulk');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ roles: [{ name: 'HOST', hourlyRate: 18 }] });
-      req.flush({ created: 1, skipped: 0 });
-    });
-  });
-
-  describe('bulkImportStaff()', () => {
-    it('POSTs /api/staff/bulk-import with the rows', () => {
-      const rows = [{ staffId: 'NC1', firstName: 'A', roles: ['STAFF'] }];
-      service.bulkImportStaff(rows).subscribe();
-      const req = http.expectOne('/api/staff/bulk-import');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ rows });
-      req.flush({ created: 1, failed: 0, rows: [] });
-    });
-  });
 });

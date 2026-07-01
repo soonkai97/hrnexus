@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, LocationStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
-         passwordChecks, isStrongPassword, BulkStaffImportResult, BulkStaffImportRow, UppercaseInputDirective, LangService, localizedNameFor } from 'shared-lib';
+         passwordChecks, isStrongPassword, LangService, localizedNameFor } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -29,7 +29,7 @@ import { Checkbox } from 'primeng/checkbox';
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective, UppercaseInputDirective,
+  imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective,
     Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
     MultiSelect, Menu, Paginator, Skeleton, Checkbox],
   templateUrl: './staff.component.html',
@@ -442,72 +442,6 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
           this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
         },
       });
-    });
-  }
-
-  // ── Bulk import (editable row grid) ─────────────────────────────────────────
-  showImport   = signal(false);
-  importing    = signal(false);
-  importResult = signal<BulkStaffImportResult | null>(null);
-  /** One editable row per staff to import. Only the required fields + optional work locations are
-   *  shown (last name / email are optional and can be filled in later on the staff detail page).
-   *  Roles and locations are multiselects; the admin sets the password. */
-  importRows: { staffId: string; firstName: string; password: string; roles: string[]; locations: string[]; showPwd?: boolean }[] = [];
-
-  private blankImportRow() { return { staffId: '', firstName: '', password: '', roles: [] as string[], locations: [] as string[], showPwd: false }; }
-
-  /** True when a row's password is non-blank but fails the policy — drives the red border. */
-  importPwdInvalid(row: { password: string }): boolean {
-    const p = row.password?.trim() ?? '';
-    return p.length > 0 && !isStrongPassword(p);
-  }
-
-  /** How many rows that would be submitted still lack a valid password — blocks Import and drives the
-   *  summary line, so the requirement is clear without relying on hover or focus (mobile-friendly). */
-  get importInvalidPwdCount(): number {
-    return this.importRowsToSubmit.filter(r => !r.password || !isStrongPassword(r.password)).length;
-  }
-
-  openImport(): void {
-    this.importResult.set(null);
-    this.importRows = [this.blankImportRow()];   // start with one row; the admin adds more as needed
-    this.showImport.set(true);
-  }
-
-  addImportRow(): void { this.importRows = [...this.importRows, this.blankImportRow()]; }
-  removeImportRow(i: number): void { this.importRows = this.importRows.filter((_, idx) => idx !== i); }
-
-  /** Rows with at least a Staff ID or first name — fully-blank rows are ignored. */
-  get importRowsToSubmit(): BulkStaffImportRow[] {
-    return this.importRows
-      .map(r => ({
-        staffId: r.staffId?.trim().toUpperCase() ?? '', firstName: r.firstName?.trim() ?? '',
-        lastName: null, email: null,
-        password: r.password?.trim() || undefined,
-        roles: r.roles ?? [], locations: r.locations ?? [],
-      }) as BulkStaffImportRow)
-      .filter(r => r.staffId.length > 0 || r.firstName.length > 0 || r.roles.length > 0);
-  }
-
-  runImport(): void {
-    const rows = this.importRowsToSubmit;
-    if (!rows.length) return;
-    this.importing.set(true);
-    this.staffStore.bulkImportStaff(rows).subscribe({
-      next: (res) => {
-        this.importing.set(false);
-        this.importResult.set(res);
-        if (res.created > 0) {
-          this.toast.success(this.translate.instant('staff.importedToast', { created: res.created, failed: res.failed }));
-          this.loadPage(1);
-        } else {
-          this.toast.warning(this.translate.instant('staff.importedToast', { created: res.created, failed: res.failed }));
-        }
-      },
-      error: (e) => {
-        this.importing.set(false);
-        this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
-      },
     });
   }
 

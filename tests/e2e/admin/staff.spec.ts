@@ -63,46 +63,4 @@ test.describe('Admin — staff list', () => {
     await expect(page.locator('label[for="bulk-locations"]')).toBeVisible({ timeout: 5_000 });
   });
 
-  // ── Bulk import (editable row grid) ──────────────────────────────────────────
-  test('Import dialog opens with an editable row grid', async ({ page }) => {
-    const importBtn = page.getByRole('button', { name: 'Bulk Add' }).first();
-    await expect(importBtn).toBeVisible({ timeout: 10_000 });
-    await importBtn.click();
-    await expect(page.locator('.p-dialog .import-grid-row input').first()).toBeVisible({ timeout: 5_000 });
-  });
-
-  // End-to-end: fill one valid row (Staff ID + name + role) and one invalid row (no name) →
-  // partial success. Uses a unique Staff ID so repeated runs don't collide.
-  test('importing rows shows a per-row results table (partial success)', async ({ page }) => {
-    const importBtn = page.getByRole('button', { name: 'Bulk Add' }).first();
-    await expect(importBtn).toBeVisible({ timeout: 10_000 });
-    await importBtn.click();
-    const rows = page.locator('.p-dialog .import-grid-row');
-    await rows.first().waitFor({ timeout: 5_000 });
-
-    const uid = 'E2E' + Date.now().toString().slice(-7);
-    // Inputs start readonly (anti-autofill) until interacted with — click before fill.
-    const set = async (loc: typeof rows, val: string) => { await loc.click(); await loc.fill(val); };
-    // Row 1 — valid: Staff ID + first name + password + a role (inputs per row: id, first, password)
-    await set(rows.nth(0).locator('input').nth(0), uid);
-    await set(rows.nth(0).locator('input').nth(1), 'E2E');
-    await set(rows.nth(0).locator('input').nth(2), 'Passw0rd!');
-    // Two multiselects per row now (roles, then locations) — roles is the first.
-    // Pick whatever the first available role is (don't hard-code a name — the role
-    // catalog varies by environment), just enough to make the row valid.
-    await rows.nth(0).locator('p-multiselect').first().click();
-    await page.getByRole('option').first().click();
-    await page.keyboard.press('Escape');
-    // Row 2 — invalid: add a second row with a VALID password (so the submit isn't gated by
-    // the password check) but NO first name → the server rejects it → partial success.
-    await page.getByRole('button', { name: /add row/i }).click();
-    await set(rows.nth(1).locator('input').nth(0), 'BAD' + uid);
-    await set(rows.nth(1).locator('input').nth(2), 'Passw0rd!');
-
-    await page.locator('.p-dialog').getByRole('button', { name: 'Bulk Add' }).click();
-    // Results table renders with both an Active (success) and a Failed tag (partial success).
-    await expect(page.locator('.p-dialog').getByText(uid).first()).toBeVisible({ timeout: 8_000 });
-    await expect(page.locator('.p-dialog').getByText(/failed/i).first()).toBeVisible({ timeout: 5_000 });
-  });
-
 });

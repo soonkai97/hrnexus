@@ -116,12 +116,4 @@ export class StaffStore {
   bulkDeactivate(staffIds: string[]) {
     return this.svc.bulkDeactivate(staffIds);
   }
-
-  bulkCreateRoles(roles: { name: string; hourlyRate: number }[]) {
-    return this.svc.bulkCreateRoles(roles).pipe(tap(() => this.loadRoles()));
-  }
-
-  bulkImportStaff(rows: Parameters<StaffManagementService['bulkImportStaff']>[0]) {
-    return this.svc.bulkImportStaff(rows);
-  }
 }

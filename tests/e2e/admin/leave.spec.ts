@@ -49,12 +49,6 @@ test.describe('Admin — Leave Management', () => {
     await expect(page.locator('.p-dialog label[for="leave-form-staff"]')).toBeVisible({ timeout: 5_000 });
   });
 
-  // Bulk import: the "Bulk Record" dialog records the same leave for many staff at once.
-  test('Bulk Record dialog opens with a staff selector', async ({ page }) => {
-    await page.getByRole('button', { name: /bulk record/i }).click();
-    await expect(page.locator('label[for="bl-staff"]')).toBeVisible({ timeout: 5_000 });
-  });
-
   test('leave summary pills appear after data loads', async ({ page }) => {
     // Click the Balances tab to load the balance overview
     await page.getByRole('tab', { name: /balance/i }).click();

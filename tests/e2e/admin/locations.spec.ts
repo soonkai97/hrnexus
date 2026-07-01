@@ -21,12 +21,4 @@ test.describe('Admin — locations', () => {
     ).toBeVisible({ timeout: 8_000 });
   });
 
-  // Bulk import: the "Bulk Add" dialog is an editable row grid of location names.
-  test('Bulk Add dialog opens with an editable name-row grid', async ({ page }) => {
-    const bulkBtn = page.getByRole('button', { name: /bulk add/i });
-    await expect(bulkBtn).toBeVisible({ timeout: 8_000 });
-    await bulkBtn.click();
-    await expect(page.locator('.p-dialog .bulk-grid-row input').first()).toBeVisible({ timeout: 5_000 });
-  });
-
 });

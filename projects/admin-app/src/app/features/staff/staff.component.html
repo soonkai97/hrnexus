@@ -3,7 +3,6 @@
     <h1 class="page-title">{{ 'staff.title' | translate }}</h1>
     @if (!showForm()) {
       <div class="d-flex gap-2">
-        <p-button icon="pi pi-upload" [label]="'staff.import' | translate" severity="secondary" [outlined]="true" (click)="openImport()" />
         <p-button icon="pi pi-plus" [label]="'staff.addStaff' | translate" severity="primary" (click)="openAdd()" />
       </div>
     }
@@ -326,90 +325,5 @@
     <p-button [label]="bulkSaving() ? ('common.saving' | translate) : ('common.apply' | translate)"
               severity="primary" (click)="saveBulkRoles()"
               [disabled]="bulkSaving() || !bulkRoles.length" [loading]="bulkSaving()" />
-  </ng-template>
-</p-dialog>
-
-<!-- ── Bulk import Staff (editable row grid) ───────────────────────────────── -->
-<p-dialog [visible]="showImport()" (visibleChange)="!$event && showImport.set(false)"
-          [header]="'staff.import' | translate" [modal]="true"
-          [style]="{'width':'min(980px, 96vw)'}" [draggable]="false" [closable]="true" appendTo="body">
-  @if (!importResult()) {
-    <p class="modal-desc">{{ 'staff.importDesc' | translate }}</p>
-    <div class="import-grid">
-      <div class="import-grid-head">
-        <span><span class="req">*</span> {{ 'staff.staffId' | translate }}</span>
-        <span><span class="req">*</span> {{ 'staff.firstName' | translate }}</span>
-        <span><span class="req">*</span> {{ 'staff.initialPassword' | translate }}</span>
-        <span><span class="req">*</span> {{ 'staff.roleCol' | translate }}</span>
-        <span>{{ 'staff.locations' | translate }}</span>
-        <span></span>
-      </div>
-      @for (row of importRows; track $index) {
-        <div class="import-grid-row">
-          <input pInputText [(ngModel)]="row.staffId" ncUppercase [attr.aria-label]="'staff.staffId' | translate" />
-          <input pInputText [(ngModel)]="row.firstName" [attr.aria-label]="'staff.firstName' | translate" />
-          <div class="pwd-wrap">
-            <input pInputText [type]="row.showPwd ? 'text' : 'password'" [(ngModel)]="row.password"
-                   autocomplete="new-password" [attr.aria-label]="'staff.initialPassword' | translate"
-                   [class.input-invalid]="importPwdInvalid(row)" />
-            <span class="eye-btn" role="button" tabindex="0"
-                  [attr.aria-label]="(row.showPwd ? 'auth.hidePassword' : 'auth.showPassword') | translate"
-                  (click)="row.showPwd = !row.showPwd" (keydown.enter)="row.showPwd = !row.showPwd">
-              <i [class]="row.showPwd ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
-            </span>
-          </div>
-          <p-multiselect [(ngModel)]="row.roles" [options]="roleOptions()" optionLabel="label" optionValue="value"
-                         [filter]="true" display="chip" [placeholder]="'staff.selectRoles' | translate"
-                         appendTo="body" styleClass="w-full" />
-          <p-multiselect [(ngModel)]="row.locations" [options]="locationOptions()" optionLabel="label" optionValue="value"
-                         [filter]="true" display="chip" [placeholder]="'staff.selectLocations' | translate"
-                         appendTo="body" styleClass="w-full" />
-          <p-button icon="pi pi-times" [text]="true" severity="danger" size="small" rounded
-                    [attr.aria-label]="'common.delete' | translate"
-                    [disabled]="importRows.length <= 1" (onClick)="removeImportRow($index)" />
-        </div>
-      }
-      <p-button icon="pi pi-plus" [label]="'staff.importAddRow' | translate" [text]="true" severity="secondary"
-                size="small" (onClick)="addImportRow()" />
-    </div>
-    <p class="modal-desc" style="font-size:.78rem;margin-top:.5rem">
-      <i class="pi pi-info-circle" style="margin-right:.35rem"></i>{{ 'staff.importGridHint' | translate }}
-    </p>
-    @if (importInvalidPwdCount > 0) {
-      <p class="import-invalid-note">
-        <i class="pi pi-exclamation-circle" style="margin-right:.35rem"></i>{{ 'staff.importInvalidPwd' | translate:{ count: importInvalidPwdCount } }}
-      </p>
-    }
-  } @else {
-    <!-- Results -->
-    <p class="modal-desc">{{ 'staff.importedToast' | translate:{ created: importResult()!.created, failed: importResult()!.failed } }}</p>
-    <p-table [value]="importResult()!.rows" styleClass="p-datatable-sm" [scrollable]="true" scrollHeight="320px">
-      <ng-template pTemplate="header">
-        <tr>
-          <th scope="col">{{ 'staff.staffId' | translate }}</th>
-          <th scope="col">{{ 'staff.statusCol' | translate }}</th>
-          <th scope="col">{{ 'staff.importResultDetail' | translate }}</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-r>
-        <tr>
-          <td class="mono">{{ r.staffId }}</td>
-          <td>
-            <p-tag [value]="r.success ? ('common.active' | translate) : ('common.failed' | translate)"
-                   [severity]="r.success ? 'success' : 'danger'" />
-          </td>
-          <td>{{ r.success ? '—' : r.error }}</td>
-        </tr>
-      </ng-template>
-    </p-table>
-  }
-  <ng-template pTemplate="footer">
-    @if (!importResult()) {
-      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showImport.set(false)" />
-      <p-button [label]="importing() ? ('common.saving' | translate) : ('staff.import' | translate)"
-                severity="primary" (click)="runImport()" [disabled]="importing() || !importRowsToSubmit.length || importInvalidPwdCount > 0" [loading]="importing()" />
-    } @else {
-      <p-button [label]="'common.close' | translate" severity="primary" (click)="showImport.set(false)" />
-    }
   </ng-template>
 </p-dialog>

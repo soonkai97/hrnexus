@@ -80,36 +80,6 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  // ── Bulk add (editable row grid — one location name per row) ────────────────
-  showBulk   = signal(false);
-  bulkRows: { name: string }[] = [];
-  bulkSaving = signal(false);
-
-  openBulk(): void { this.bulkRows = [{ name: '' }]; this.showBulk.set(true); }
-  addBulkRow(): void { this.bulkRows = [...this.bulkRows, { name: '' }]; }
-  removeBulkRow(i: number): void { this.bulkRows = this.bulkRows.filter((_, idx) => idx !== i); }
-
-  get bulkNames(): string[] {
-    return this.bulkRows.map(r => r.name.trim()).filter(n => n.length > 0);
-  }
-
-  saveBulk(): void {
-    const names = this.bulkNames;
-    if (!names.length) return;
-    this.bulkSaving.set(true);
-    this.store.bulkCreate(names).subscribe({
-      next: (r) => {
-        this.bulkSaving.set(false);
-        this.showBulk.set(false);
-        this.toast.success(this.translate.instant('locations.bulkAddedToast', { created: r.created, skipped: r.skipped }));
-      },
-      error: (e) => {
-        this.bulkSaving.set(false);
-        this.toast.error(apiErrorMessage(e) ?? this.translate.instant('locations.saveFailed'));
-      },
-    });
-  }
-
   uploadImage(loc: Location, event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;

@@ -34,7 +34,11 @@ public record ActiveStaffDto(
     double?  StartLongitude,
     double?  LastLatitude,
     double?  LastLongitude,
-    DateTime? LastLocationAt);
+    DateTime? LastLocationAt,
+    string?  RoleZh = null,
+    string?  RoleVi = null,
+    string?  LocationNameZh = null,
+    string?  LocationNameVi = null);
 
 public record RecentEventDto(
     string   StaffName,
@@ -42,7 +46,11 @@ public record RecentEventDto(
     string   LocationName,
     DateTime Timestamp,
     string   EventType,
-    string?  Notes);
+    string?  Notes,
+    string?  RoleZh = null,
+    string?  RoleVi = null,
+    string?  LocationNameZh = null,
+    string?  LocationNameVi = null);
 
 public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
     : IRequestHandler<GetDashboardQuery, DashboardResponse>
@@ -70,6 +78,12 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
             .Where(w => w.WorkDate == today)
             .OrderByDescending(w => w.StartTime)
             .ToListAsync(ct);
+
+        // Localized job + location names for the viewer's language, resolved once from the union of
+        // the live-on-shift list and today's activity feed (role by frozen name, location by exact id).
+        var allShifts  = activeShifts.Concat(todayLogs);
+        var roleLoc    = await RoleLocalization.BuildAsync(db, allShifts.Select(w => w.RoleName), ct);
+        var locLoc     = await LocationLocalization.BuildByIdsAsync(db, allShifts.Select(w => w.LocationId), ct);
 
         // Helper: convert WorkDate + HH:mm local string → UTC DateTime
         DateTime LocalShiftToUtc(DateOnly workDate, string hhMm)
@@ -113,6 +127,8 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
             {
                 var clockedInUtc  = LocalShiftToUtc(w.WorkDate, w.StartTime);
                 var minutesOnShift = Math.Max(0, (int)(utcNow - clockedInUtc).TotalMinutes);
+                var (roleZh, roleVi) = roleLoc.For(w.RoleName);
+                var (locZh, locVi)   = locLoc.For(w.LocationId);
                 return new ActiveStaffDto(
                     w.Id,
                     w.Employee!.StaffId,
@@ -128,20 +144,33 @@ public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
                     w.StartLongitude,
                     w.LastLatitude,
                     w.LastLongitude,
-                    w.LastLocationAt);
+                    w.LastLocationAt,
+                    roleZh,
+                    roleVi,
+                    locZh,
+                    locVi);
             })
             .OrderBy(s => s.ClockedInAt)
             .ToList();
 
         var recent = todayLogs
             .Take(30)
-            .Select(w => new RecentEventDto(
-                w.Employee?.FullName ?? "Unknown",
-                w.RoleName,
-                w.LocationName,
-                LocalShiftToUtc(w.WorkDate, w.StartTime),
-                w.EndTime == null ? "shift-started" : "shift-ended",
-                w.Notes))
+            .Select(w =>
+            {
+                var (roleZh, roleVi) = roleLoc.For(w.RoleName);
+                var (locZh, locVi)   = locLoc.For(w.LocationId);
+                return new RecentEventDto(
+                    w.Employee?.FullName ?? "Unknown",
+                    w.RoleName,
+                    w.LocationName,
+                    LocalShiftToUtc(w.WorkDate, w.StartTime),
+                    w.EndTime == null ? "shift-started" : "shift-ended",
+                    w.Notes,
+                    roleZh,
+                    roleVi,
+                    locZh,
+                    locVi);
+            })
             .ToList();
 
         return new DashboardResponse(stats, onShift, recent);

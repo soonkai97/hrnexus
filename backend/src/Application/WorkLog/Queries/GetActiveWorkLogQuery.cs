@@ -14,6 +14,7 @@ public class GetActiveWorkLogQueryHandler(IAppDbContext db) : IRequestHandler<Ge
         var w = await db.WorkLogs.FirstOrDefaultAsync(w => w.EmployeeId == req.EmployeeId && w.EndTime == null, ct);
         if (w == null) return null;
         var (zh, vi) = (await RoleLocalization.BuildAsync(db, [w.RoleName], ct)).For(w.RoleName);
-        return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime, 0, 0, true, w.IsManualEntry, w.IsEdited, w.Notes, zh, vi);
+        var (locZh, locVi) = (await LocationLocalization.BuildByIdsAsync(db, [w.LocationId], ct)).For(w.LocationId);
+        return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime, 0, 0, true, w.IsManualEntry, w.IsEdited, w.Notes, zh, vi, locZh, locVi);
     }
 }

@@ -54,7 +54,7 @@
         <div class="payslip-jobs-grid">
           @for (j of ps.jobBreakdown; track j.role + j.payType) {
             <div class="job-chip">
-              <span class="job-name">{{ j.role }}</span>
+              <span class="job-name">{{ j.role | localizedName: j.roleZh : j.roleVi }}</span>
               @if (j.payType === 'fixed') { <p-tag [value]="'payroll.psFixed' | translate" severity="warn" styleClass="paytype-tag" /> }
               <span class="job-detail">{{ j.shiftCount }}× · {{ j.hours | number:'1.1-1' }}h</span>
               <span class="job-pay">RM {{ j.pay | number:'1.2-2' }}</span>
@@ -87,7 +87,7 @@
               <span class="mono">{{ s.startTime }}–{{ s.endTime }}</span></td>
             <td><span class="p-column-title">{{ 'payroll.psHours' | translate }}</span>{{ s.hours | number:'1.1-1' }}</td>
             <td><span class="p-column-title">{{ 'payroll.psJob' | translate }}</span>
-              {{ s.role }}
+              {{ s.role | localizedName: s.roleZh : s.roleVi }}
               @if (s.payType === 'fixed') { <p-tag [value]="'payroll.psFixed' | translate" severity="warn" styleClass="paytype-tag" /> }
             </td>
             <td><span class="p-column-title">{{ 'payroll.psRate' | translate }}</span>

@@ -82,4 +82,46 @@ public class WorkLogLocalizationTests
         Assert.Equal("跑台Saigon1小时", dto!.RoleNameZh);
         Assert.Equal("Chạy bàn Saigon 1 giờ", dto.RoleNameVi);
     }
+
+    [Fact]
+    public async Task GetMyWorkLogs_ResolvesLocalizedLocationNames_FromLocationId()
+    {
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        // A location with Chinese + Vietnamese display names; the WorkLog is keyed by its real id.
+        var loc = E.Location.Create("Main Floor", nameZh: "主楼层", nameVi: "Tầng chính");
+        db.Locations.Add(loc);
+        db.WorkLogs.Add(E.WorkLog.CreateManual(empId, "Runner", loc.Id, loc.Name,
+            DateOnly.FromDateTime(DateTime.UtcNow.Date), "22:00", "06:00", 50m));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new GetMyWorkLogsQueryHandler(db);
+        var result = await handler.Handle(new GetMyWorkLogsQuery(empId), CancellationToken.None);
+
+        var dto = Assert.Single(result.Items);
+        Assert.Equal("主楼层", dto.LocationNameZh);
+        Assert.Equal("Tầng chính", dto.LocationNameVi);
+    }
+
+    [Fact]
+    public async Task GetMyWorkLogs_LeavesLocalizedLocationNamesNull_WhenLocationIdDoesNotMatch()
+    {
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        // A location exists, but the WorkLog is keyed by an unrelated id (deleted/renamed location).
+        db.Locations.Add(E.Location.Create("Main Floor", nameZh: "主楼层", nameVi: "Tầng chính"));
+        db.WorkLogs.Add(E.WorkLog.CreateManual(empId, "Runner", "ghost-location-id", "MAIN FLOOR",
+            DateOnly.FromDateTime(DateTime.UtcNow.Date), "22:00", "06:00", 50m));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new GetMyWorkLogsQueryHandler(db);
+        var result = await handler.Handle(new GetMyWorkLogsQuery(empId), CancellationToken.None);
+
+        var dto = Assert.Single(result.Items);
+        Assert.Equal("MAIN FLOOR", dto.LocationName);   // client falls back to the frozen snapshot
+        Assert.Null(dto.LocationNameZh);
+        Assert.Null(dto.LocationNameVi);
+    }
 }

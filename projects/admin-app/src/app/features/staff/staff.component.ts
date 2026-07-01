@@ -110,23 +110,6 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
   }
 
-  generateNewStaffPassword(): void {
-    const upper  = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    const lower  = 'abcdefghjkmnpqrstuvwxyz';
-    const digits = '23456789';
-    const all    = upper + lower + digits + '!@#$';
-    const pick   = (set: string) => set[Math.floor(Math.random() * set.length)];
-    // Guarantee at least one uppercase and one digit (policy), fill the rest, then shuffle
-    // so the guaranteed characters aren't always in a fixed position.
-    const chars = [pick(upper), pick(digits), ...Array.from({ length: 8 }, () => pick(all))];
-    for (let i = chars.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [chars[i], chars[j]] = [chars[j], chars[i]];
-    }
-    this.newStaff.password = chars.join('');
-    this.showNewStaffPwd.set(true);
-  }
-
   // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
   availableRoles = computed(() => this.roles());
   availableLocations = computed(() => this.locationStore.locations());

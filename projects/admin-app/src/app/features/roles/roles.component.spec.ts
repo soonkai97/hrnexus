@@ -149,24 +149,24 @@ describe('RolesComponent', () => {
   // ── startEditRate() / cancelEditRate() ────────────────────────────────────────
 
   describe('startEditRate() / cancelEditRate()', () => {
-    it('sets editingRateName to the role name', () => {
-      component.startEditRate('bartender', 12);
-      expect(component.editingRateName()).toBe('bartender');
+    it('sets editingRateId to the role id', () => {
+      component.startEditRate('role-bartender-id', 12);
+      expect(component.editingRateId()).toBe('role-bartender-id');
     });
 
     it('sets editingRateValue to the current rate', () => {
-      component.startEditRate('bartender', 12.50);
+      component.startEditRate('role-bartender-id', 12.50);
       expect(component.editingRateValue()).toBe(12.50);
     });
 
-    it('cancelEditRate clears editingRateName', () => {
-      component.startEditRate('bartender', 12);
+    it('cancelEditRate clears editingRateId', () => {
+      component.startEditRate('role-bartender-id', 12);
       component.cancelEditRate();
-      expect(component.editingRateName()).toBeNull();
+      expect(component.editingRateId()).toBeNull();
     });
 
     it('seeds editingRatePayType from the role so the toggle reflects the current pay model', () => {
-      component.startEditRate('package', 500, null, null, 'fixed');
+      component.startEditRate('role-package-id', 500, null, null, 'fixed');
       expect(component.editingRatePayType()).toBe('fixed');
     });
   });
@@ -175,18 +175,18 @@ describe('RolesComponent', () => {
 
   describe('saveRate()', () => {
     beforeEach(() => {
-      component.editingRateName.set('bartender');
+      component.editingRateId.set('role-bartender-id');
       component.editingRateValue.set(15);
     });
 
-    it('calls updateRoleRate with the role name and new rate', () => {
+    it('calls updateRoleRate with the role id and new rate', () => {
       component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('bartender', 15, null, null, 'hourly');
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly');
     });
 
-    it('clears editingRateName after success — prevents accidental double-save', () => {
+    it('clears editingRateId after success — prevents accidental double-save', () => {
       component.saveRate();
-      expect(component.editingRateName()).toBeNull();
+      expect(component.editingRateId()).toBeNull();
     });
 
     it('shows success toast after updating the rate', () => {
@@ -211,8 +211,8 @@ describe('RolesComponent', () => {
       expect(component.savingRate()).toBe(false);
     });
 
-    it('does nothing when editingRateName is null', () => {
-      component.editingRateName.set(null);
+    it('does nothing when editingRateId is null', () => {
+      component.editingRateId.set(null);
       component.saveRate();
       expect(mockStaffStore.updateRoleRate).not.toHaveBeenCalled();
     });
@@ -222,29 +222,29 @@ describe('RolesComponent', () => {
 
   describe('deleteRole()', () => {
     it('shows confirmation dialog before deleting', () => {
-      component.deleteRole('bartender');
+      component.deleteRole('role-bartender-id');
       expect(mockConfirmSvc.confirm).toHaveBeenCalled();
     });
 
-    it('calls store.deleteRole when confirmed', () => {
-      component.deleteRole('bartender');
-      expect(mockStaffStore.deleteRole).toHaveBeenCalledWith('bartender');
+    it('calls store.deleteRole with the role id when confirmed', () => {
+      component.deleteRole('role-bartender-id');
+      expect(mockStaffStore.deleteRole).toHaveBeenCalledWith('role-bartender-id');
     });
 
     it('shows success toast after deletion', () => {
-      component.deleteRole('bartender');
+      component.deleteRole('role-bartender-id');
       expect(mockToastSvc.success).toHaveBeenCalledWith('roles.deleted');
     });
 
     it('does NOT delete when confirmation is cancelled', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(false));
-      component.deleteRole('bartender');
+      component.deleteRole('role-bartender-id');
       expect(mockStaffStore.deleteRole).not.toHaveBeenCalled();
     });
 
     it('shows error toast when deletion fails', () => {
       mockStaffStore.deleteRole.mockReturnValue(throwError(() => ({ error: { error: 'Role in use.' } })));
-      component.deleteRole('bartender');
+      component.deleteRole('role-bartender-id');
       expect(mockToastSvc.error).toHaveBeenCalledWith('Role in use.');
     });
   });

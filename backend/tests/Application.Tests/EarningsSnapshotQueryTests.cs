@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Tests.Infrastructure;
@@ -35,8 +35,11 @@ public class EarningsSnapshotQueryTests
         return new TestDbContext(opts);
     }
 
-    private static E.Staff MakeStaff(string staffId, string first) =>
-        E.Staff.Create(staffId, first, "Wong", $"{staffId}@test.com", "hash", new List<string> { "BARTENDER" });
+    private static async Task<E.Staff> MakeStaffAsync(TestDbContext db, string staffId, string first)
+    {
+        var bartender = await RoleSeed.EnsureRoleAsync(db, "BARTENDER");
+        return E.Staff.Create(staffId, first, "Wong", $"{staffId}@test.com", "hash", new List<Guid> { bartender });
+    }
 
     // Mid-month reference so "today - 3 days" stays inside the same month.
     private static readonly DateTime UtcRef = new(2025, 6, 15, 14, 0, 0, DateTimeKind.Utc);
@@ -67,7 +70,7 @@ public class EarningsSnapshotQueryTests
     public async Task SplitsTodayVsMonth_AndExcludesOpenAndPriorMonthShifts()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff("S001", "Alice");
+        var alice = await MakeStaffAsync(db, "S001", "Alice");
         db.Staff.Add(alice);
 
         var today      = DateOnly.FromDateTime(UtcRef);          // 2025-06-15
@@ -102,8 +105,8 @@ public class EarningsSnapshotQueryTests
     public async Task AggregatesAcrossStaff_AndOrdersByTodayEarningsDesc()
     {
         await using var db = CreateDb();
-        var alice = MakeStaff("S001", "Alice");
-        var bob   = MakeStaff("S002", "Bob");
+        var alice = await MakeStaffAsync(db, "S001", "Alice");
+        var bob   = await MakeStaffAsync(db, "S002", "Bob");
         db.Staff.Add(alice);
         db.Staff.Add(bob);
 

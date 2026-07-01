@@ -1,4 +1,5 @@
-﻿using E = HRNexus.Domain.Entities;
+﻿using HRNexus.Application.Tests.Infrastructure;
+using E = HRNexus.Domain.Entities;
 using Xunit;
 
 namespace HRNexus.Application.Tests;
@@ -11,17 +12,18 @@ public class StaffDomainTests
 {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static E.Staff MakeStaff(List<string>? roles = null) =>
-        E.Staff.Create("NC001", "Alice", "Tan", "alice@test.com", "hash",
-            roles ?? new List<string> { "BARTENDER" });
+    // Builds a Staff with its Role navigation populated (no DbContext) so PermissionLevel/Roles resolve.
+    private static E.Staff MakeStaff(params string[] roles) =>
+        RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "alice@test.com", "hash",
+            roles.Length > 0 ? roles : new[] { "BARTENDER" });
 
     // ── Create ────────────────────────────────────────────────────────────────
 
     [Fact]
     public void Create_SetsAllFields()
     {
-        var staff = E.Staff.Create("NC001", "Alice", "Tan", "alice@test.com", "hash",
-            new List<string> { "BARTENDER" });
+        var staff = RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "alice@test.com", "hash",
+            "BARTENDER");
 
         Assert.Equal("NC001",         staff.StaffId);
         Assert.Equal("Alice",         staff.FirstName);
@@ -33,8 +35,8 @@ public class StaffDomainTests
     public void Create_StaffId_IsUppercased()
     {
         // Staff IDs are normalised to uppercase so lookups are case-insensitive at rest.
-        var staff = E.Staff.Create("nc001", "Alice", "Tan", "alice@test.com", "hash",
-            new List<string> { "BARTENDER" });
+        var staff = RoleSeed.MakeStaffWithRoles("nc001", "Alice", "Tan", "alice@test.com", "hash",
+            "BARTENDER");
 
         Assert.Equal("NC001", staff.StaffId);
     }
@@ -43,8 +45,8 @@ public class StaffDomainTests
     public void Create_Email_IsLowercased()
     {
         // Emails are stored in lowercase to avoid duplicate-account issues from mixed-case input.
-        var staff = E.Staff.Create("NC001", "Alice", "Tan", "USER@TEST.COM", "hash",
-            new List<string> { "BARTENDER" });
+        var staff = RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "USER@TEST.COM", "hash",
+            "BARTENDER");
 
         Assert.Equal("user@test.com", staff.Email);
     }
@@ -82,10 +84,11 @@ public class StaffDomainTests
     public void Create_Roles_StoredUppercase()
     {
         // Roles are uppercase-normalised so permission checks are always case-insensitive.
-        var staff = E.Staff.Create("NC001", "Alice", "Tan", "alice@test.com", "hash",
-            new List<string> { "superadmin", "bartender" });
+        var staff = RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "alice@test.com", "hash",
+            "superadmin", "bartender");
 
-        Assert.All(staff.RoleEntries, re => Assert.Equal(re.Role, re.Role.ToUpperInvariant()));
+        // re.Role is now the Role navigation; its Name is already uppercase-normalised by Role.Create.
+        Assert.All(staff.RoleEntries, re => Assert.Equal(re.Role.Name, re.Role.Name.ToUpperInvariant()));
     }
 
     // ── PermissionLevel ───────────────────────────────────────────────────────
@@ -94,7 +97,7 @@ public class StaffDomainTests
     public void PermissionLevel_AdminRole_IsNotEmployee()
     {
         // Admin staff must receive elevated access — never the plain "Employee" tier.
-        var staff = MakeStaff(new List<string> { "superadmin" });
+        var staff = MakeStaff("superadmin");
 
         Assert.NotEqual("Employee", staff.PermissionLevel);
     }
@@ -103,7 +106,7 @@ public class StaffDomainTests
     public void PermissionLevel_ManagerRole_IsNotEmployee()
     {
         // Manager staff must receive elevated access — never the plain "Employee" tier.
-        var staff = MakeStaff(new List<string> { "manager" });
+        var staff = MakeStaff("manager");
 
         Assert.NotEqual("Employee", staff.PermissionLevel);
     }
@@ -112,7 +115,7 @@ public class StaffDomainTests
     public void PermissionLevel_NoAdminOrManager_IsEmployee()
     {
         // Staff with no privileged roles must land on the default "Employee" tier.
-        var staff = MakeStaff(new List<string> { "bartender" });
+        var staff = MakeStaff("bartender");
 
         Assert.Equal("Employee", staff.PermissionLevel);
     }
@@ -122,9 +125,9 @@ public class StaffDomainTests
     {
         // When a staff member holds both roles, admin-level access must win.
         // The admin claim and manager claim are different strings — they must not be equal.
-        var admin   = MakeStaff(new List<string> { "superadmin" });
-        var manager = MakeStaff(new List<string> { "manager" });
-        var both    = MakeStaff(new List<string> { "superadmin", "manager" });
+        var admin   = MakeStaff("superadmin");
+        var manager = MakeStaff("manager");
+        var both    = MakeStaff("superadmin", "manager");
 
         Assert.Equal(admin.PermissionLevel, both.PermissionLevel);
         Assert.NotEqual(manager.PermissionLevel, both.PermissionLevel);
@@ -175,7 +178,7 @@ public class StaffDomainTests
         // UpdateDetails must apply the same uppercase normalisation as Create.
         var staff = MakeStaff();
         staff.UpdateDetails("nc999", "Alice", "Tan", "alice@test.com",
-            new List<string> { "BARTENDER" }, null);
+            staff.RoleIds, null);
 
         Assert.Equal("NC999", staff.StaffId);
     }
@@ -186,7 +189,7 @@ public class StaffDomainTests
         // UpdateDetails must also lowercase the email to keep the uniqueness invariant.
         var staff = MakeStaff();
         staff.UpdateDetails("NC001", "Alice", "Tan", "NEWEMAIL@TEST.COM",
-            new List<string> { "BARTENDER" }, null);
+            staff.RoleIds, null);
 
         Assert.Equal("newemail@test.com", staff.Email);
     }

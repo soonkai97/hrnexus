@@ -355,9 +355,9 @@ namespace HRNexus.Infrastructure.Migrations
 
             modelBuilder.Entity("HRNexus.Domain.Entities.Role", b =>
                 {
-                    b.Property<string>("Name")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -367,6 +367,11 @@ namespace HRNexus.Infrastructure.Migrations
 
                     b.Property<bool>("IsSystem")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("NameVi")
                         .HasMaxLength(100)
@@ -381,22 +386,24 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
-                    b.HasKey("Name");
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.RolePermission", b =>
                 {
-                    b.Property<string>("RoleName")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("PermissionKey")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("RoleName", "PermissionKey");
+                    b.HasKey("RoleId", "PermissionKey");
 
                     b.ToTable("RolePermissions", (string)null);
                 });
@@ -419,14 +426,12 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoleName", "EffectiveOn");
+                    b.HasIndex("RoleId", "EffectiveOn");
 
                     b.ToTable("RoleRates");
                 });
@@ -564,11 +569,12 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Role")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
-                    b.HasKey("EmployeeId", "Role");
+                    b.HasKey("EmployeeId", "RoleId");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("StaffRoles", (string)null);
                 });
@@ -738,6 +744,24 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.RolePermission", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.Role", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.RoleRate", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.Role", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.StaffLocation", b =>
                 {
                     b.HasOne("HRNexus.Domain.Entities.Staff", null)
@@ -754,6 +778,14 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("HRNexus.Domain.Entities.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.WorkLog", b =>

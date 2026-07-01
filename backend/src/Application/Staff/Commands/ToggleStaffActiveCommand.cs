@@ -33,7 +33,7 @@ public class DeactivateStaffCommandHandler(IAppDbContext db) : IRequestHandler<D
         {
             var adminRoles = await db.RolePermissions
                 .Where(rp => rp.PermissionKey == AppConstants.Permissions.PortalAdmin)
-                .Select(rp => rp.RoleName).Distinct().ToListAsync(ct);
+                .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
             if (await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.Id, ct) == 0)
                 throw new ArgumentException(
                     "This is the last active user with admin-portal access — deactivating them would " +

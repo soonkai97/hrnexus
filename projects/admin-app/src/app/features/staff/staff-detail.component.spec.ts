@@ -230,12 +230,27 @@ describe('StaffDetailComponent', () => {
       expect(component.editForm.email).toBe('jane@test.com');
     });
 
+    it('maps the staff role NAMES to role IDS for the edit form (update DTO expects ids)', () => {
+      mockStaffStore.roles.mockReturnValue([
+        { id: 'role-employee-id', name: 'employee', isSystem: false, hourlyRate: 10, payType: 'hourly' },
+      ]);
+      const c2 = TestBed.createComponent(StaffDetailComponent).componentInstance;
+      c2.staff.set(makeStaffDetail({ roles: ['employee'] }));
+      c2.startEdit();
+      expect(c2.editForm.roles).toEqual(['role-employee-id']);
+    });
+
     it('clones the roles array so edits do not mutate the staff signal', () => {
+      mockStaffStore.roles.mockReturnValue([
+        { id: 'role-employee-id', name: 'employee', isSystem: false, hourlyRate: 10, payType: 'hourly' },
+      ]);
+      const c2 = TestBed.createComponent(StaffDetailComponent).componentInstance;
       const s = makeStaffDetail({ roles: ['employee'] });
-      component.staff.set(s);
-      component.startEdit();
-      component.editForm.roles.push('manager');
-      expect(component.staff()?.roles).not.toContain('manager');
+      c2.staff.set(s);
+      c2.startEdit();
+      c2.editForm.roles.push('role-manager-id');
+      expect(c2.staff()?.roles).not.toContain('role-manager-id');
+      expect(c2.staff()?.roles).toEqual(['employee']);   // original NAMES untouched
     });
   });
 

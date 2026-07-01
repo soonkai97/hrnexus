@@ -46,13 +46,18 @@ public class LoadConcurrencyTests(PostgresFixture fx, ITestOutputHelper output)
     private async Task<List<Guid>> SeedStaffAsync(int count, string prefix)
     {
         await using var db = fx.NewDb();
-        if (!await db.Roles.AnyAsync(r => r.Name == "BARTENDER"))
-            db.Roles.Add(E.Role.Create("bartender", hourlyRate: 20m));
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "BARTENDER");
+        if (role is null)
+        {
+            role = E.Role.Create("bartender", hourlyRate: 20m);
+            db.Roles.Add(role);
+            await db.SaveChangesAsync();
+        }
         var ids = new List<Guid>();
         for (var i = 0; i < count; i++)
         {
             var s = E.Staff.Create($"{prefix}{i:D3}", "Load", $"User{i}", $"{prefix}{i}@t.com", "hash",
-                new List<string> { "BARTENDER" });
+                new List<Guid> { role.Id });
             db.Staff.Add(s);
             ids.Add(s.Id);
         }

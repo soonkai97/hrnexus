@@ -29,13 +29,20 @@ public class PermissionResolverTests
         (string key, bool granted)[]? overrides = null,
         bool active = true)
     {
-        var staff = E.Staff.Create("S001", "Al", "Wong", "al@test.com", "hash", roles);
+        // Ensure a Role row exists for every named role (staff roles + any role-permission keys) and
+        // resolve name→id, since staff assignments and role-permissions now key on the role's Guid.
+        var roleNames = roles.Concat((rolePerms ?? new()).Keys)
+            .Select(n => n.Trim().ToUpperInvariant()).Distinct().ToArray();
+        var roleIds = await RoleSeed.EnsureRolesAsync(db, roleNames);
+
+        var staff = E.Staff.Create("S001", "Al", "Wong", "al@test.com", "hash",
+            roles.Select(r => roleIds[r.Trim().ToUpperInvariant()]).ToList());
         if (!active) staff.Deactivate();
         db.Staff.Add(staff);
 
         foreach (var (role, keys) in rolePerms ?? new())
             foreach (var key in keys)
-                db.RolePermissions.Add(E.RolePermission.Create(role, key));
+                db.RolePermissions.Add(E.RolePermission.Create(roleIds[role.Trim().ToUpperInvariant()], key));
 
         foreach (var (key, granted) in overrides ?? Array.Empty<(string, bool)>())
             db.StaffPermissionOverrides.Add(E.StaffPermissionOverride.Create(staff.Id, key, granted));

@@ -5,7 +5,7 @@ using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.WorkLog.Commands;
 
-public record CreateManualWorkLogCommand(Guid EmployeeId, string RoleName, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes) : IRequest<Guid>;
+public record CreateManualWorkLogCommand(Guid EmployeeId, Guid RoleId, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes) : IRequest<Guid>;
 
 public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<CreateManualWorkLogCommand, Guid>
 {
@@ -30,8 +30,8 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location {req.LocationId} not found.");
 
-        var role = await db.Roles.FindAsync([req.RoleName.ToUpperInvariant()], ct)
-            ?? throw new KeyNotFoundException($"Role {req.RoleName} not found.");
+        var role = await db.Roles.FindAsync([req.RoleId], ct)
+            ?? throw new KeyNotFoundException($"Role {req.RoleId} not found.");
 
         // Verify the employee is assigned to this location (no assignment ⇒ cannot log a shift here).
         var locationAssigned = await db.Staff
@@ -77,8 +77,8 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
 
         // Price the shift at the rate in effect ON its work date, not the role's current rate —
         // so a back-dated entry made after a raise still uses the historical rate.
-        var rateAsOf = await RoleRateLookup.RateAsOfAsync(db, req.RoleName, req.WorkDate, role.HourlyRate, ct);
-        var log = Domain.Entities.WorkLog.CreateManual(req.EmployeeId, req.RoleName, req.LocationId, location.Name, req.WorkDate, req.StartTime, endDate, req.EndTime, rateAsOf, req.Notes, role.PayType);
+        var rateAsOf = await RoleRateLookup.RateAsOfAsync(db, req.RoleId, req.WorkDate, role.HourlyRate, ct);
+        var log = Domain.Entities.WorkLog.CreateManual(req.EmployeeId, role.Name, req.LocationId, location.Name, req.WorkDate, req.StartTime, endDate, req.EndTime, rateAsOf, req.Notes, role.PayType);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync(ct);
         return log.Id;

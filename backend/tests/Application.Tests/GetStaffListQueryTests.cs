@@ -25,8 +25,11 @@ public class GetStaffListQueryTests
 
     private static GetStaffListQueryHandler CreateHandler(TestDbContext db) => new(db);
 
-    private static E.Staff MakeStaff(string staffId, string firstName, string lastName, params string[] roles)
-        => E.Staff.Create(staffId, firstName, lastName, $"{staffId.ToLower()}@test.com", "hash", roles.ToList());
+    // Seeds the named role rows (so the Role navigation resolves under the InMemory provider — the
+    // handler filters and projects on r.Role.Name) and adds the staff assigned to them. The staff is
+    // added to the context but NOT saved; the caller saves.
+    private static Task<E.Staff> AddStaffAsync(TestDbContext db, string staffId, string firstName, string lastName, params string[] roles)
+        => RoleSeed.AddStaffWithRolesAsync(db, staffId, firstName, lastName, $"{staffId.ToLower()}@test.com", "hash", roles);
 
     // ── Pagination ────────────────────────────────────────────────────────────
 
@@ -35,7 +38,7 @@ public class GetStaffListQueryTests
     {
         await using var db = CreateDb();
         for (var i = 1; i <= 12; i++)
-            db.Staff.Add(MakeStaff($"S{i:D3}", "First", $"Last{i:D2}", "bartender"));
+            await AddStaffAsync(db, $"S{i:D3}", "First", $"Last{i:D2}", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -50,7 +53,7 @@ public class GetStaffListQueryTests
     {
         await using var db = CreateDb();
         for (var i = 1; i <= 12; i++)
-            db.Staff.Add(MakeStaff($"S{i:D3}", "First", $"Last{i:D2}", "bartender"));
+            await AddStaffAsync(db, $"S{i:D3}", "First", $"Last{i:D2}", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -64,7 +67,7 @@ public class GetStaffListQueryTests
     public async Task Handle_PageBeyondData_ReturnsEmptyItems()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Alice", "Wong", "bartender"));
+        await AddStaffAsync(db, "S001", "Alice", "Wong", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -93,8 +96,8 @@ public class GetStaffListQueryTests
     public async Task Handle_SearchByName_CaseInsensitive()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Alice", "Wong", "bartender"));
-        db.Staff.Add(MakeStaff("S002", "Bob", "Tan", "bartender"));
+        await AddStaffAsync(db, "S001", "Alice", "Wong", "bartender");
+        await AddStaffAsync(db, "S002", "Bob", "Tan", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -108,8 +111,8 @@ public class GetStaffListQueryTests
     public async Task Handle_SearchByStaffId_ReturnsMatch()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Alice", "Wong", "bartender"));
-        db.Staff.Add(MakeStaff("S002", "Bob", "Tan", "bartender"));
+        await AddStaffAsync(db, "S001", "Alice", "Wong", "bartender");
+        await AddStaffAsync(db, "S002", "Bob", "Tan", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -123,7 +126,7 @@ public class GetStaffListQueryTests
     public async Task Handle_SearchNoMatch_ReturnsEmpty()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Alice", "Wong", "bartender"));
+        await AddStaffAsync(db, "S001", "Alice", "Wong", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -137,8 +140,8 @@ public class GetStaffListQueryTests
     public async Task Handle_SearchByRole_ReturnsMatchingStaff()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Alice", "Wong", "bartender"));
-        db.Staff.Add(MakeStaff("S002", "Bob", "Tan", "manager"));
+        await AddStaffAsync(db, "S001", "Alice", "Wong", "bartender");
+        await AddStaffAsync(db, "S002", "Bob", "Tan", "manager");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -154,8 +157,8 @@ public class GetStaffListQueryTests
     public async Task Handle_ExcludeAdmins_OmitsAdminRole()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Admin", "User", "superadmin"));
-        db.Staff.Add(MakeStaff("S002", "Regular", "Staff", "bartender"));
+        await AddStaffAsync(db, "S001", "Admin", "User", "superadmin");
+        await AddStaffAsync(db, "S002", "Regular", "Staff", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -169,8 +172,8 @@ public class GetStaffListQueryTests
     public async Task Handle_ExcludeAdminsFalse_IncludesAll()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Admin", "User", "superadmin"));
-        db.Staff.Add(MakeStaff("S002", "Regular", "Staff", "bartender"));
+        await AddStaffAsync(db, "S001", "Admin", "User", "superadmin");
+        await AddStaffAsync(db, "S002", "Regular", "Staff", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -185,7 +188,7 @@ public class GetStaffListQueryTests
     public async Task Handle_RolesInDto_AreLowercase()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S001", "Alice", "Wong", "Bartender", "Manager"));
+        await AddStaffAsync(db, "S001", "Alice", "Wong", "Bartender", "Manager");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -201,9 +204,9 @@ public class GetStaffListQueryTests
     public async Task Handle_OrderedByStaffId()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff("S003", "Charlie", "Lee", "bartender"));
-        db.Staff.Add(MakeStaff("S001", "Alice", "Wong", "bartender"));
-        db.Staff.Add(MakeStaff("S002", "Bob", "Tan", "bartender"));
+        await AddStaffAsync(db, "S003", "Charlie", "Lee", "bartender");
+        await AddStaffAsync(db, "S001", "Alice", "Wong", "bartender");
+        await AddStaffAsync(db, "S002", "Bob", "Tan", "bartender");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(

@@ -160,9 +160,9 @@ describe('StaffManagementService', () => {
   // ── updateRoleRate() ──────────────────────────────────────────────────────
 
   describe('updateRoleRate()', () => {
-    it('calls PATCH /api/staff/roles/{name}/rate with hourlyRate body', () => {
-      service.updateRoleRate('BARTENDER', 30).subscribe();
-      const req = http.expectOne('/api/staff/roles/BARTENDER/rate');
+    it('calls PATCH /api/staff/roles/{id}/rate with hourlyRate body', () => {
+      service.updateRoleRate('role-guid-1', 30).subscribe();
+      const req = http.expectOne('/api/staff/roles/role-guid-1/rate');
       expect(req.request.method).toBe('PATCH');
       expect(req.request.body).toEqual({ hourlyRate: 30, nameZh: null, nameVi: null, payType: 'hourly' });
       req.flush(null);
@@ -172,9 +172,9 @@ describe('StaffManagementService', () => {
   // ── deleteRole() ──────────────────────────────────────────────────────────
 
   describe('deleteRole()', () => {
-    it('calls DELETE /api/staff/roles/{name}', () => {
-      service.deleteRole('BARTENDER').subscribe();
-      const req = http.expectOne('/api/staff/roles/BARTENDER');
+    it('calls DELETE /api/staff/roles/{id}', () => {
+      service.deleteRole('role-guid-1').subscribe();
+      const req = http.expectOne('/api/staff/roles/role-guid-1');
       expect(req.request.method).toBe('DELETE');
       req.flush(null);
     });

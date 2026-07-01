@@ -37,7 +37,7 @@ function makeStaff(overrides: Partial<Staff> = {}): Staff {
 }
 
 function makeRole(name: string, isSystem = false): StaffRole {
-  return { name, isSystem, hourlyRate: 10, payType: 'hourly' };
+  return { id: `role-${name}-id`, name, isSystem, hourlyRate: 10, payType: 'hourly' };
 }
 
 // ── Suite ─────────────────────────────────────────────────────────────────────
@@ -305,7 +305,7 @@ describe('StaffComponent', () => {
       expect(mockStaffStore.register).toHaveBeenCalled();
     });
 
-    it('auto-assigns the first available role when roles array is empty', () => {
+    it('auto-assigns the first available role (by id) when roles array is empty', () => {
       mockStaffStore.roles.mockReturnValue([makeRole('employee')]);
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
@@ -314,7 +314,7 @@ describe('StaffComponent', () => {
       };
       component.saveStaff();
       const req = mockStaffStore.register.mock.calls[0]?.[0];
-      expect(req?.roles).toEqual(['employee']);
+      expect(req?.roles).toEqual(['role-employee-id']);
     });
 
     it('sets error when roles is empty and no available roles exist', () => {
@@ -605,10 +605,10 @@ describe('StaffComponent', () => {
       expect(component.selectedCount()).toBe(0);   // cleared after success
     });
 
-    it('saveBulkRoles() calls the store with selected ids + chosen roles', () => {
-      component.bulkRoles = ['BARTENDER'];
+    it('saveBulkRoles() calls the store with selected ids + chosen role ids', () => {
+      component.bulkRoles = ['role-bartender-id'];
       component.saveBulkRoles();
-      expect(mockStaffStore.bulkAssignRoles).toHaveBeenCalledWith(['a', 'b'], ['BARTENDER']);
+      expect(mockStaffStore.bulkAssignRoles).toHaveBeenCalledWith(['a', 'b'], ['role-bartender-id']);
     });
 
     it('saveBulkLocations() does nothing when no locations are chosen', () => {

@@ -27,7 +27,7 @@ public class NotificationWorkLogQueryTests
 
     private static E.Staff MakeStaff(string staffId = "S001")
         => E.Staff.Create(staffId, "Alice", "Wong", "alice@test.com", "hash",
-            new List<string> { "BARTENDER" });
+            new List<Guid> { Guid.NewGuid() });
 
     private static E.Role MakeRole(string name = "bartender", decimal rate = 20m) =>
         E.Role.Create(name, hourlyRate: rate);
@@ -174,7 +174,7 @@ public class NotificationWorkLogQueryTests
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(new CreateManualWorkLogCommand(
-                Guid.NewGuid(), "BARTENDER", "loc1",
+                Guid.NewGuid(), Guid.NewGuid(), "loc1",
                 DateOnly.FromDateTime(DateTime.UtcNow), "9:00", "17:00", null),
                 CancellationToken.None));
     }
@@ -187,7 +187,7 @@ public class NotificationWorkLogQueryTests
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(new CreateManualWorkLogCommand(
-                Guid.NewGuid(), "BARTENDER", "loc1",
+                Guid.NewGuid(), Guid.NewGuid(), "loc1",
                 DateOnly.FromDateTime(DateTime.UtcNow), "09:00", "5pm", null),
                 CancellationToken.None));
     }
@@ -210,7 +210,7 @@ public class NotificationWorkLogQueryTests
         // Use bad format instead to trigger the format check
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(new CreateManualWorkLogCommand(
-                Guid.NewGuid(), "BARTENDER", "loc1",
+                Guid.NewGuid(), Guid.NewGuid(), "loc1",
                 DateOnly.FromDateTime(DateTime.UtcNow), "99:00", "17:00", null),
                 CancellationToken.None));
     }
@@ -223,7 +223,7 @@ public class NotificationWorkLogQueryTests
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             handler.Handle(new CreateManualWorkLogCommand(
-                Guid.NewGuid(), "BARTENDER", "nonexistent-loc",
+                Guid.NewGuid(), Guid.NewGuid(), "nonexistent-loc",
                 DateOnly.FromDateTime(DateTime.UtcNow), "09:00", "17:00", null),
                 CancellationToken.None));
     }
@@ -241,7 +241,7 @@ public class NotificationWorkLogQueryTests
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             handler.Handle(new CreateManualWorkLogCommand(
-                Guid.NewGuid(), "GHOST_ROLE", loc.Id,
+                Guid.NewGuid(), Guid.NewGuid(), loc.Id,
                 DateOnly.FromDateTime(DateTime.UtcNow), "09:00", "17:00", null),
                 CancellationToken.None));
     }
@@ -266,13 +266,14 @@ public class NotificationWorkLogQueryTests
         db.Roles.Add(role);
         staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });
         await db.SaveChangesAsync();
+        var bartenderId = await RoleSeed.RoleIdAsync(db, "BARTENDER");
         db.ChangeTracker.Clear();
 
         var handler = new CreateManualWorkLogCommandHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new CreateManualWorkLogCommand(
-                staff.Id, "BARTENDER", loc.Id, workDate, "09:00", "17:00", null),
+                staff.Id, bartenderId, loc.Id, workDate, "09:00", "17:00", null),
                 CancellationToken.None));
     }
 
@@ -295,13 +296,14 @@ public class NotificationWorkLogQueryTests
         staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });
         db.WorkLogs.Add(existingLog);
         await db.SaveChangesAsync();
+        var bartenderId = await RoleSeed.RoleIdAsync(db, "BARTENDER");
         db.ChangeTracker.Clear();
 
         var handler = new CreateManualWorkLogCommandHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new CreateManualWorkLogCommand(
-                staff.Id, "BARTENDER", loc.Id, workDate, "10:00", "18:00", null),
+                staff.Id, bartenderId, loc.Id, workDate, "10:00", "18:00", null),
                 CancellationToken.None));
     }
 
@@ -324,12 +326,13 @@ public class NotificationWorkLogQueryTests
         staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });
         db.WorkLogs.Add(existingLog);
         await db.SaveChangesAsync();
+        var bartenderId = await RoleSeed.RoleIdAsync(db, "BARTENDER");
         db.ChangeTracker.Clear();
 
         var handler = new CreateManualWorkLogCommandHandler(db);
 
         var logId = await handler.Handle(new CreateManualWorkLogCommand(
-            staff.Id, "BARTENDER", loc.Id, workDate, "15:00", "22:00", null),
+            staff.Id, bartenderId, loc.Id, workDate, "15:00", "22:00", null),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, logId);
@@ -347,12 +350,13 @@ public class NotificationWorkLogQueryTests
         db.Roles.Add(role);
         staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id });
         await db.SaveChangesAsync();
+        var bartenderId = await RoleSeed.RoleIdAsync(db, "BARTENDER");
         db.ChangeTracker.Clear();
 
         var workDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1).Date);
         var handler = new CreateManualWorkLogCommandHandler(db);
         var logId = await handler.Handle(new CreateManualWorkLogCommand(
-            staff.Id, "BARTENDER", loc.Id, workDate, "09:00", "17:00", "notes"),
+            staff.Id, bartenderId, loc.Id, workDate, "09:00", "17:00", "notes"),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, logId);

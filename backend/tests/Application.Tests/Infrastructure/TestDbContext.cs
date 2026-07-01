@@ -45,10 +45,21 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        // StaffRole: composite PK + auto-include so Staff.RoleEntries is always loaded,
-        // matching AppDbContext behaviour (SetRoles relies on the collection being populated).
+        // Role: GUID PK on "Id" (Name is now a normal unique display column).
+        mb.Entity<E.Role>()
+            .HasKey(r => r.Id);
+
+        // StaffRole: composite PK (EmployeeId, RoleId). The Role navigation is AutoInclude()d so
+        // name-based auth (staffRole.Role.Name) keeps working, matching AppDbContext. The Staff→
+        // StaffRole relationship is keyed on EmployeeId (a second FK on the same entity).
         mb.Entity<E.StaffRole>()
-            .HasKey(r => new { r.EmployeeId, r.Role });
+            .HasKey(r => new { r.EmployeeId, r.RoleId });
+        mb.Entity<E.StaffRole>()
+            .HasOne(r => r.Role).WithMany().HasForeignKey(r => r.RoleId);
+        mb.Entity<E.StaffRole>()
+            .Navigation(r => r.Role).AutoInclude();
+        mb.Entity<E.Staff>()
+            .HasMany(s => s.RoleEntries).WithOne().HasForeignKey(r => r.EmployeeId);
         mb.Entity<E.Staff>()
             .Navigation(s => s.RoleEntries)
             .AutoInclude();
@@ -58,13 +69,9 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
             .Navigation(s => s.LocationEntries)
             .AutoInclude();
 
-        // Role: string PK on "Name" property (not "Id")
-        mb.Entity<E.Role>()
-            .HasKey(r => r.Name);
-
         // Permission tables: composite PKs (no auto-discovered Id)
         mb.Entity<E.RolePermission>()
-            .HasKey(r => new { r.RoleName, r.PermissionKey });
+            .HasKey(r => new { r.RoleId, r.PermissionKey });
         mb.Entity<E.StaffPermissionOverride>()
             .HasKey(o => new { o.EmployeeId, o.PermissionKey });
     }

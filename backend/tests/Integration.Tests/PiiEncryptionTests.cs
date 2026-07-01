@@ -20,8 +20,9 @@ public class PiiEncryptionTests(PostgresFixture fx)
 
         await using (var db = fx.NewDb())
         {
+            // Roles aren't relevant to PII encryption — seed none (avoids an FK to a non-existent role).
             var staff = E.Staff.Create("PIITEST1", "Pii", "Tester", "piitest1@t.com",
-                "hash", new List<string> { "BARTENDER" },
+                "hash", new List<Guid>(),
                 phoneNumber: "0123456789", icNo: "900615-10-5523", passportNo: "A12345678", dateOfBirth: dob);
             db.Staff.Add(staff);
             await db.SaveChangesAsync();

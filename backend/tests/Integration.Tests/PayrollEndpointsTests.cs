@@ -41,15 +41,16 @@ public class PayrollEndpointsTests(PostgresFixture fx) : IAsyncLifetime
     private async Task<string> SeedStaffWithShiftsAsync()
     {
         await using var db = fx.NewDb();
-        if (!await db.Roles.AnyAsync(r => r.Name == "BARTENDER"))
-            db.Roles.Add(E.Role.Create("bartender", hourlyRate: 20m));
-        if (!await db.Roles.AnyAsync(r => r.Name == "PACKAGE"))
-            db.Roles.Add(E.Role.Create("package", hourlyRate: 500m, payType: AppConstants.PayType.Fixed));
+        var bartender = await db.Roles.FirstOrDefaultAsync(r => r.Name == "BARTENDER");
+        if (bartender is null) { bartender = E.Role.Create("bartender", hourlyRate: 20m); db.Roles.Add(bartender); }
+        var package = await db.Roles.FirstOrDefaultAsync(r => r.Name == "PACKAGE");
+        if (package is null) { package = E.Role.Create("package", hourlyRate: 500m, payType: AppConstants.PayType.Fixed); db.Roles.Add(package); }
+        await db.SaveChangesAsync();
 
         var suffix = Guid.NewGuid().ToString("N");
         var staffId = $"PS{suffix}"[..10];
         var staff = E.Staff.Create(staffId, "Pay", "Slip", $"{suffix}@t.com", "hash",
-            new List<string> { "BARTENDER", "PACKAGE" });
+            new List<Guid> { bartender.Id, package.Id });
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
 

@@ -123,7 +123,7 @@ public class ShiftJobs(
         // Create supervisor notifications
         var supervisorIds = await db.Staff
             .Where(s => s.IsActive &&
-                        s.RoleEntries.Any(r => r.Role == AppConstants.Roles.Manager || r.Role == AppConstants.Roles.Admin))
+                        s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager || r.Role.Name == AppConstants.Roles.Admin))
             .Select(s => s.Id)
             .ToListAsync(ct);
 

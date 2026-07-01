@@ -54,9 +54,9 @@ public class WorkLogCommandTests
         return new TestDbContext(opts);
     }
 
-    private static E.Staff MakeStaff(string staffId = "S001", params string[] roles)
+    private static E.Staff MakeStaff(string staffId = "S001", params Guid[] roles)
         => E.Staff.Create(staffId, "Alice", "Wong", $"{staffId.ToLower()}@test.com", "hash",
-            roles.Length > 0 ? roles.ToList() : new List<string> { "BARTENDER" },
+            roles.Length > 0 ? roles.ToList() : new List<Guid> { Guid.NewGuid() },
             dateOfBirth: new DateTime(1990, 1, 1));
 
     /// <summary>
@@ -95,7 +95,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 Guid.NewGuid(), Guid.NewGuid(), true,
-                "BARTENDER", "loc-1", DateOnly.FromDateTime(DateTime.UtcNow),
+                Guid.NewGuid(), "loc-1", DateOnly.FromDateTime(DateTime.UtcNow),
                 "18:00", "23:00", null),
                 CancellationToken.None));
     }
@@ -116,7 +116,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 log.Id, differentCaller, false,
-                "BARTENDER", "loc-1", workDate, "18:00", "23:00", null),
+                Guid.NewGuid(), "loc-1", workDate, "18:00", "23:00", null),
                 CancellationToken.None));
     }
 
@@ -137,7 +137,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 log.Id, empId, false,
-                "BARTENDER", "loc-1", workDate, "18:00", "22:00", null),
+                Guid.NewGuid(), "loc-1", workDate, "18:00", "22:00", null),
                 CancellationToken.None));
     }
 
@@ -151,6 +151,7 @@ public class WorkLogCommandTests
         db.WorkLogs.Add(log);
         var loc = MakeLocation("loc-1", "Main Bar");
         db.Locations.Add(loc);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         var handler = UpdateHandler(db);
@@ -159,7 +160,7 @@ public class WorkLogCommandTests
         // Should not throw — privileged callers bypass ownership check
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, managerId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "23:00", null),
+            bartenderId, "loc-1", workDate, "18:00", "23:00", null),
             CancellationToken.None);
     }
 
@@ -174,6 +175,7 @@ public class WorkLogCommandTests
         var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
         db.WorkLogs.Add(log);
         db.Locations.Add(MakeLocation("loc-1", "Main Bar"));
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         var handler = UpdateHandler(db);
@@ -181,7 +183,7 @@ public class WorkLogCommandTests
         // Privileged caller == owner → succeeds (no self-edit block).
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "22:00", null),
+            bartenderId, "loc-1", workDate, "18:00", "22:00", null),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FirstAsync(w => w.Id == log.Id);
@@ -204,7 +206,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 log.Id, empId, true,
-                "BARTENDER", "loc-1", workDate, "18:00", "23:00", null),
+                Guid.NewGuid(), "loc-1", workDate, "18:00", "23:00", null),
                 CancellationToken.None));
     }
 
@@ -223,7 +225,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 log.Id, empId, true,
-                "BARTENDER", "loc-1", workDate, "25:00", "23:00", null),
+                Guid.NewGuid(), "loc-1", workDate, "25:00", "23:00", null),
                 CancellationToken.None));
     }
 
@@ -242,7 +244,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 log.Id, empId, true,
-                "BARTENDER", "loc-1", workDate, "18:00", "99:99", null),
+                Guid.NewGuid(), "loc-1", workDate, "18:00", "99:99", null),
                 CancellationToken.None));
     }
 
@@ -268,12 +270,13 @@ public class WorkLogCommandTests
         // Instead verify that identical times do NOT throw (they produce 24h per the formula).
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         // Identical start=end → CalcHours returns 24, which is valid — should not throw ArgumentException
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "18:00", null),
+            bartenderId, "loc-1", workDate, "18:00", "18:00", null),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
@@ -295,7 +298,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 log.Id, empId, true,
-                "BARTENDER", "nonexistent-loc", workDate, "18:00", "23:00", null),
+                Guid.NewGuid(), "nonexistent-loc", workDate, "18:00", "23:00", null),
                 CancellationToken.None));
     }
 
@@ -315,6 +318,7 @@ public class WorkLogCommandTests
         db.WorkLogs.Add(log2);
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         var handler = UpdateHandler(db);
@@ -323,7 +327,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 log2.Id, empId, true,
-                "BARTENDER", "loc-1", workDate, "10:00", "18:00", null),
+                bartenderId, "loc-1", workDate, "10:00", "18:00", null),
                 CancellationToken.None));
     }
 
@@ -340,12 +344,13 @@ public class WorkLogCommandTests
         var other = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", today.AddDays(-1), "21:00", "22:00", 50m);
         db.WorkLogs.AddRange(multi, other);
         db.Locations.Add(MakeLocation("loc-1"));
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         // Editing `other` to any time on today-1 still falls inside the multi-day span → overlap.
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             UpdateHandler(db).Handle(new UpdateWorkLogCommand(
-                other.Id, empId, true, "BARTENDER", "loc-1", today.AddDays(-1), "10:00", "12:00", null),
+                other.Id, empId, true, bartenderId, "loc-1", today.AddDays(-1), "10:00", "12:00", null),
                 CancellationToken.None));
     }
 
@@ -380,6 +385,7 @@ public class WorkLogCommandTests
         db.WorkLogs.Add(log2);
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         var handler = UpdateHandler(db);
@@ -387,7 +393,7 @@ public class WorkLogCommandTests
         // Editing log2 to 15:00–22:00 still doesn't overlap with log1 (09:00–14:00)
         await handler.Handle(new UpdateWorkLogCommand(
             log2.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "15:00", "22:00", null),
+            bartenderId, "loc-1", workDate, "15:00", "22:00", null),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log2.Id);
@@ -413,6 +419,7 @@ public class WorkLogCommandTests
         db.WorkLogs.Add(dayShift);
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         var handler = UpdateHandler(db);
@@ -421,7 +428,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new UpdateWorkLogCommand(
                 dayShift.Id, empId, true,
-                "BARTENDER", "loc-1", dayD, "01:00", "09:00", null),
+                bartenderId, "loc-1", dayD, "01:00", "09:00", null),
                 CancellationToken.None));
     }
 
@@ -436,12 +443,13 @@ public class WorkLogCommandTests
         db.WorkLogs.Add(log);
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         var handler = UpdateHandler(db);
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "22:00", "Updated notes"),
+            bartenderId, "loc-1", workDate, "18:00", "22:00", "Updated notes"),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
@@ -459,12 +467,13 @@ public class WorkLogCommandTests
         db.WorkLogs.Add(log);
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         var handler = UpdateHandler(db);
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "22:00", null),
+            bartenderId, "loc-1", workDate, "18:00", "22:00", null),
             CancellationToken.None);
 
         Assert.Equal(1, await db.AuditLogs.CountAsync());
@@ -480,12 +489,13 @@ public class WorkLogCommandTests
         db.WorkLogs.Add(log);
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         await db.SaveChangesAsync();
 
         var handler = UpdateHandler(db);
         await handler.Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "19:00", "22:00", "test note"),
+            bartenderId, "loc-1", workDate, "19:00", "22:00", "test note"),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
@@ -507,10 +517,11 @@ public class WorkLogCommandTests
         db.Locations.Add(MakeLocation("loc-1"));
         db.Roles.Add(MakeRole("supervisor", 80m));   // stored as "SUPERVISOR"
         await db.SaveChangesAsync();
+        var supervisorId = await RoleSeed.RoleIdAsync(db, "SUPERVISOR");
 
         await UpdateHandler(db).Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "SUPERVISOR", "loc-1", workDate, "18:00", "23:00", null),
+            supervisorId, "loc-1", workDate, "18:00", "23:00", null),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
@@ -531,10 +542,11 @@ public class WorkLogCommandTests
         db.Locations.Add(MakeLocation("loc-1"));
         db.Roles.Add(MakeRole("bartender", 99m));   // role's rate has since been raised to 99
         await db.SaveChangesAsync();
+        var bartenderId = await RoleSeed.RoleIdAsync(db, "BARTENDER");
 
         await UpdateHandler(db).Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "BARTENDER", "loc-1", workDate, "18:00", "22:00", "fixed end time"),
+            bartenderId, "loc-1", workDate, "18:00", "22:00", "fixed end time"),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
@@ -556,7 +568,7 @@ public class WorkLogCommandTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             UpdateHandler(db).Handle(new UpdateWorkLogCommand(
                 log.Id, empId, true,
-                "GHOSTROLE", "loc-1", workDate, "18:00", "23:00", null),
+                Guid.NewGuid(), "loc-1", workDate, "18:00", "23:00", null),
                 CancellationToken.None));
     }
 
@@ -569,14 +581,14 @@ public class WorkLogCommandTests
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
         db.Locations.Add(MakeLocation("loc-1"));
-        db.Roles.Add(MakeRole("bartender", 99m));                                  // current rate 99
-        db.RoleRates.Add(E.RoleRate.Create("bartender", 50m, new DateOnly(2000, 1, 1)));
-        db.RoleRates.Add(E.RoleRate.Create("bartender", 99m, new DateOnly(2026, 5, 1)));
-        db.Staff.Add(MakeStaffWithRole(empId));
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 99m);   // current rate 99
+        db.RoleRates.Add(E.RoleRate.Create(bartenderId, 50m, new DateOnly(2000, 1, 1)));
+        db.RoleRates.Add(E.RoleRate.Create(bartenderId, 99m, new DateOnly(2026, 5, 1)));
+        db.Staff.Add(MakeStaffWithRole(empId, bartenderId));
         await db.SaveChangesAsync();
 
         var id = await new CreateManualWorkLogCommandHandler(db).Handle(new CreateManualWorkLogCommand(
-            empId, "BARTENDER", "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
+            empId, bartenderId, "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
             CancellationToken.None);
 
         var log = await db.WorkLogs.FindAsync(id);
@@ -590,12 +602,12 @@ public class WorkLogCommandTests
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
         db.Locations.Add(MakeLocation("loc-1"));
-        db.Roles.Add(MakeRole("bartender", 77m));
-        db.Staff.Add(MakeStaffWithRole(empId));
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 77m);
+        db.Staff.Add(MakeStaffWithRole(empId, bartenderId));
         await db.SaveChangesAsync();
 
         var id = await new CreateManualWorkLogCommandHandler(db).Handle(new CreateManualWorkLogCommand(
-            empId, "BARTENDER", "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
+            empId, bartenderId, "loc-1", new DateOnly(2026, 4, 15), "18:00", "23:00", null),
             CancellationToken.None);
 
         var log = await db.WorkLogs.FindAsync(id);
@@ -613,14 +625,14 @@ public class WorkLogCommandTests
         var log = E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
         db.WorkLogs.Add(log);
         db.Locations.Add(MakeLocation("loc-1"));
-        db.Roles.Add(MakeRole("supervisor", 80m));                                 // current rate 80
-        db.RoleRates.Add(E.RoleRate.Create("supervisor", 60m, new DateOnly(2000, 1, 1)));
-        db.RoleRates.Add(E.RoleRate.Create("supervisor", 80m, new DateOnly(2026, 6, 1)));
+        var supervisorId = await RoleSeed.EnsureRoleAsync(db, "SUPERVISOR", hourlyRate: 80m);   // current rate 80
+        db.RoleRates.Add(E.RoleRate.Create(supervisorId, 60m, new DateOnly(2000, 1, 1)));
+        db.RoleRates.Add(E.RoleRate.Create(supervisorId, 80m, new DateOnly(2026, 6, 1)));
         await db.SaveChangesAsync();
 
         await UpdateHandler(db).Handle(new UpdateWorkLogCommand(
             log.Id, empId, true,
-            "SUPERVISOR", "loc-1", workDate, "18:00", "23:00", null),
+            supervisorId, "loc-1", workDate, "18:00", "23:00", null),
             CancellationToken.None);
 
         var updated = await db.WorkLogs.FindAsync(log.Id);
@@ -752,7 +764,7 @@ public class WorkLogCommandTests
         var handler = StartHandler(db);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new StartWorkLogCommand(Guid.NewGuid(), "bartender", "loc-1", "25:00", null),
+            handler.Handle(new StartWorkLogCommand(Guid.NewGuid(), Guid.NewGuid(), "loc-1", "25:00", null),
                 CancellationToken.None));
     }
 
@@ -770,7 +782,7 @@ public class WorkLogCommandTests
         var handler = StartHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new StartWorkLogCommand(empId, "bartender", "loc-1", "20:00", null),
+            handler.Handle(new StartWorkLogCommand(empId, Guid.NewGuid(), "loc-1", "20:00", null),
                 CancellationToken.None));
     }
 
@@ -789,7 +801,7 @@ public class WorkLogCommandTests
         var handler = StartHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new StartWorkLogCommand(empId, "bartender", "loc-1", "20:00", null),
+            handler.Handle(new StartWorkLogCommand(empId, Guid.NewGuid(), "loc-1", "20:00", null),
                 CancellationToken.None));
     }
 
@@ -802,7 +814,7 @@ public class WorkLogCommandTests
 
         // No location seeded, so FindAsync will return null
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new StartWorkLogCommand(empId, "bartender", "nonexistent-loc", "20:00", null),
+            handler.Handle(new StartWorkLogCommand(empId, Guid.NewGuid(), "nonexistent-loc", "20:00", null),
                 CancellationToken.None));
     }
 
@@ -817,9 +829,9 @@ public class WorkLogCommandTests
 
         var handler = StartHandler(db);
 
-        // Role "bartender" not seeded
+        // Role not seeded — a fresh (non-existent) role id makes the handler's role lookup fail
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new StartWorkLogCommand(empId, "bartender", "loc-1", "20:00", null),
+            handler.Handle(new StartWorkLogCommand(empId, Guid.NewGuid(), "loc-1", "20:00", null),
                 CancellationToken.None));
     }
 
@@ -832,10 +844,9 @@ public class WorkLogCommandTests
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
         // Role exists but staff has no role assignments
-        var role = MakeRole("bartender", 50m);
-        db.Roles.Add(role);
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
         var staff = E.Staff.Create("S001", "Alice", "Wong", "s001@test.com", "hash",
-            new List<string>(), dateOfBirth: new DateTime(1990, 1, 1));
+            new List<Guid>(), dateOfBirth: new DateTime(1990, 1, 1));
         typeof(E.Staff).GetProperty(nameof(E.Staff.Id))!.SetValue(staff, empId);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
@@ -843,14 +854,14 @@ public class WorkLogCommandTests
         var handler = StartHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new StartWorkLogCommand(empId, "bartender", "loc-1", "20:00", null),
+            handler.Handle(new StartWorkLogCommand(empId, bartenderId, "loc-1", "20:00", null),
                 CancellationToken.None));
     }
 
-    private static E.Staff MakeStaffWithRole(Guid empId, string role = "bartender")
+    private static E.Staff MakeStaffWithRole(Guid empId, Guid roleId)
     {
         var staff = E.Staff.Create("S001", "Alice", "Wong", "s001@test.com", "hash",
-            new List<string> { role }, dateOfBirth: new DateTime(1990, 1, 1),
+            new List<Guid> { roleId }, dateOfBirth: new DateTime(1990, 1, 1),
             locations: new List<string> { "loc-1" });
         typeof(E.Staff).GetProperty(nameof(E.Staff.Id))!.SetValue(staff, empId);
         return staff;
@@ -863,13 +874,12 @@ public class WorkLogCommandTests
         var empId = Guid.NewGuid();
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
-        var role = MakeRole("bartender", 50m);
-        db.Roles.Add(role);
-        db.Staff.Add(MakeStaffWithRole(empId));
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
+        db.Staff.Add(MakeStaffWithRole(empId, bartenderId));
         await db.SaveChangesAsync();
 
         var handler = StartHandler(db);
-        await handler.Handle(new StartWorkLogCommand(empId, "bartender", "loc-1", "20:00", null),
+        await handler.Handle(new StartWorkLogCommand(empId, bartenderId, "loc-1", "20:00", null),
             CancellationToken.None);
 
         Assert.Equal(1, await db.WorkLogs.CountAsync());
@@ -882,13 +892,12 @@ public class WorkLogCommandTests
         var empId = Guid.NewGuid();
         var loc = MakeLocation("loc-1");
         db.Locations.Add(loc);
-        var role = MakeRole("bartender", 50m);
-        db.Roles.Add(role);
-        db.Staff.Add(MakeStaffWithRole(empId));
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
+        db.Staff.Add(MakeStaffWithRole(empId, bartenderId));
         await db.SaveChangesAsync();
 
         var handler = StartHandler(db);
-        var newId = await handler.Handle(new StartWorkLogCommand(empId, "bartender", "loc-1", "20:00", null),
+        var newId = await handler.Handle(new StartWorkLogCommand(empId, bartenderId, "loc-1", "20:00", null),
             CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, newId);
@@ -1001,8 +1010,8 @@ public class WorkLogCommandTests
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
         db.Locations.Add(MakeLocation("loc-1"));
-        db.Roles.Add(MakeRole("bartender", 50m));
-        db.Staff.Add(MakeStaffWithRole(empId));
+        var bartenderId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m);
+        db.Staff.Add(MakeStaffWithRole(empId, bartenderId));
         var today = DateOnly.FromDateTime(DateTime.Now);  // StartWorkLog uses LocalNow for the work date
         db.WorkLogs.Add(E.WorkLog.CreateManual(empId, "BARTENDER", "loc-1", "Main Bar", today, "18:00", "23:00", 50m));
         await db.SaveChangesAsync();
@@ -1010,7 +1019,7 @@ public class WorkLogCommandTests
         var handler = StartHandler(db);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new StartWorkLogCommand(empId, "bartender", "loc-1", "20:00", null),
+            handler.Handle(new StartWorkLogCommand(empId, bartenderId, "loc-1", "20:00", null),
                 CancellationToken.None));
     }
 

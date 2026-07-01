@@ -79,7 +79,9 @@ describe('LogShiftComponent', () => {
     };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
-    mockAuth       = { user: () => ({ id: 'u1', staffId: 'NC001', fullName: 'Test User', email: 't@test.com', roles: ['employee', 'bartender'] }) };
+    mockAuth       = { user: () => ({ id: 'u1', staffId: 'NC001', fullName: 'Test User', email: 't@test.com',
+      roles: ['EMPLOYEE', 'BARTENDER'],
+      jobs: [{ id: 'job-emp', name: 'EMPLOYEE' }, { id: 'job-bar', name: 'BARTENDER' }] }) };
 
     await TestBed.configureTestingModule({
       imports: [LogShiftComponent],
@@ -152,19 +154,32 @@ describe('LogShiftComponent', () => {
     });
   });
 
-  // ── myRoles computed ─────────────────────────────────────────────────────────
+  // ── myJobs / myRoleOptions computed ──────────────────────────────────────────
 
-  describe('myRoles computed', () => {
-    it('filters out SUPERADMIN only — managers should be able to select the MANAGER role when logging a shift', () => {
-      mockAuth.user = () => ({ roles: ['EMPLOYEE', 'MANAGER', 'SUPERADMIN', 'BARTENDER'] } as any);
+  describe('myJobs / myRoleOptions computed', () => {
+    it('filters out SUPERADMIN only — managers should be able to select the MANAGER job when logging a shift', () => {
+      mockAuth.user = () => ({ jobs: [
+        { id: 'j-emp', name: 'EMPLOYEE' },
+        { id: 'j-mgr', name: 'MANAGER' },
+        { id: 'j-admin', name: 'SUPERADMIN' },
+        { id: 'j-bar', name: 'BARTENDER' },
+      ] } as any);
       const fresh = TestBed.createComponent(LogShiftComponent).componentInstance;
-      expect(fresh.myRoles()).toEqual(['EMPLOYEE', 'MANAGER', 'BARTENDER']);
+      expect(fresh.myJobs().map(j => j.name)).toEqual(['EMPLOYEE', 'MANAGER', 'BARTENDER']);
     });
 
-    it('returns empty array when user has no roles', () => {
-      mockAuth.user = () => ({ roles: [] } as any);
+    it('maps each job to an option with the role id as the value (so non-ASCII names are picked by id)', () => {
+      mockAuth.user = () => ({ jobs: [
+        { id: 'j-cn', name: '写钟（在外）', nameZh: '写钟（在外）' },
+      ] } as any);
       const fresh = TestBed.createComponent(LogShiftComponent).componentInstance;
-      expect(fresh.myRoles()).toEqual([]);
+      expect(fresh.myRoleOptions()).toEqual([{ label: '写钟（在外）', value: 'j-cn' }]);
+    });
+
+    it('returns empty array when user has no jobs', () => {
+      mockAuth.user = () => ({ jobs: [] } as any);
+      const fresh = TestBed.createComponent(LogShiftComponent).componentInstance;
+      expect(fresh.myJobs()).toEqual([]);
     });
   });
 
@@ -172,7 +187,7 @@ describe('LogShiftComponent', () => {
 
   describe('startShift()', () => {
     it('sets formError and does not call API when roleName is missing', () => {
-      component.liveForm.roleName   = '';
+      component.liveForm.roleId     ='';
       component.liveForm.locationId = 'loc-1';
       component.startShift();
       expect(component.formError()).toBe('logShift.errSelectRoleLocation');
@@ -180,7 +195,7 @@ describe('LogShiftComponent', () => {
     });
 
     it('sets formError and does not call API when locationId is missing', () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = '';
       component.startShift();
       expect(component.formError()).toBe('logShift.errSelectRoleLocation');
@@ -188,14 +203,14 @@ describe('LogShiftComponent', () => {
     });
 
     it('calls start() with correct payload when form is valid', async () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       component.liveFormStartTime   = new Date(2026, 4, 17, 20, 0); // 20:00
       component.liveForm.notes      = 'Late shift';
       component.startShift();
       await Promise.resolve(); // let the geolocation lookup (microtask) resolve before asserting
       expect(mockWorkLogSvc.start).toHaveBeenCalledWith({
-        roleName:   'bartender',
+        roleId:     'bartender',
         locationId: 'loc-1',
         startTime:  '20:00',
         notes:      'Late shift',
@@ -205,7 +220,7 @@ describe('LogShiftComponent', () => {
     });
 
     it('converts empty notes to null before sending to the API', async () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       component.liveForm.notes      = '';
       component.startShift();
@@ -216,7 +231,7 @@ describe('LogShiftComponent', () => {
     });
 
     it('shows success toast after shift starts', async () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       component.startShift();
       await Promise.resolve();
@@ -224,7 +239,7 @@ describe('LogShiftComponent', () => {
     });
 
     it('reloads active shift after success so the clock-out panel appears', async () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.getActive.mockClear();
       component.startShift();
@@ -233,18 +248,18 @@ describe('LogShiftComponent', () => {
     });
 
     it('resets liveForm after success', async () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       component.liveForm.notes      = 'notes';
       component.startShift();
       await Promise.resolve();
-      expect(component.liveForm.roleName).toBe('');
+      expect(component.liveForm.roleId).toBe('');
       expect(component.liveForm.locationId).toBe('');
       expect(component.liveForm.notes).toBe('');
     });
 
     it('sets formError from API response on failure', async () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.start.mockReturnValue(
         throwError(() => ({ error: { error: 'You already have an active shift.' } })),
@@ -255,7 +270,7 @@ describe('LogShiftComponent', () => {
     });
 
     it('uses fallback error message when API provides none', async () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.start.mockReturnValue(throwError(() => ({})));
       component.startShift();
@@ -264,7 +279,7 @@ describe('LogShiftComponent', () => {
     });
 
     it('clears submitting flag after error so the button is re-enabled', async () => {
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       mockWorkLogSvc.start.mockReturnValue(throwError(() => ({})));
       component.startShift();
@@ -281,7 +296,7 @@ describe('LogShiftComponent', () => {
             success({ coords: { latitude: 1.23, longitude: 4.56 } } as unknown as GeolocationPosition),
         },
       });
-      component.liveForm.roleName   = 'bartender';
+      component.liveForm.roleId     ='bartender';
       component.liveForm.locationId = 'loc-1';
       component.startShift();
       await Promise.resolve();
@@ -370,7 +385,7 @@ describe('LogShiftComponent', () => {
   describe('submitManual()', () => {
     /** Fill all required fields with valid data. */
     function fillManualForm(): void {
-      component.manualForm.roleName   = 'bartender';
+      component.manualForm.roleId     ='bartender';
       component.manualForm.locationId = 'loc-1';
       component.manualForm.workDate   = '2026-05-17';
       component.manualFormStartTime   = new Date(2026, 4, 17, 18, 0); // 18:00
@@ -379,7 +394,7 @@ describe('LogShiftComponent', () => {
 
     it('sets formError when roleName is missing', () => {
       fillManualForm();
-      component.manualForm.roleName = '';
+      component.manualForm.roleId = '';
       component.submitManual();
       expect(component.formError()).toBe('logShift.errFillAll');
       expect(mockWorkLogSvc.createManual).not.toHaveBeenCalled();
@@ -418,7 +433,7 @@ describe('LogShiftComponent', () => {
       component.manualForm.notes = 'Covered for sick colleague';
       component.submitManual();
       expect(mockWorkLogSvc.createManual).toHaveBeenCalledWith({
-        roleName:   'bartender',
+        roleId:     'bartender',
         locationId: 'loc-1',
         workDate:   '2026-05-17',
         startTime:  '18:00',
@@ -462,7 +477,7 @@ describe('LogShiftComponent', () => {
     it('resets manualForm after success', () => {
       fillManualForm();
       component.submitManual();
-      expect(component.manualForm.roleName).toBe('');
+      expect(component.manualForm.roleId).toBe('');
       expect(component.manualForm.locationId).toBe('');
       expect(component.manualFormStartTime).toBeNull();
       expect(component.manualFormEndTime).toBeNull();

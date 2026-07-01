@@ -100,14 +100,20 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalLogs() / this.pageSize)));
 
   // ── Work-log edit (admin can correct a shift directly from this page) ────────
-  readonly roleOptions     = computed(() => this.availableRoles().map(r => ({ label: this.localized(r.name, r.nameZh, r.nameVi), value: r.name })));
+  // Role picker value is the GUID id (edit-staff submits role IDS; work-log update submits roleId).
+  readonly roleOptions     = computed(() => this.availableRoles().map(r => ({ label: this.localized(r.name, r.nameZh, r.nameVi), value: r.id })));
   readonly locationOptions = computed(() => this.availableLocations().map(l => ({ label: this.localized(l.name, l.nameZh, l.nameVi), value: l.id })));
+
+  /** Map a role NAME (as stored on the staff record / a work-log snapshot) to its GUID id via the loaded roles. */
+  private roleIdForName(name: string): string {
+    return this.availableRoles().find(r => r.name === name)?.id ?? '';
+  }
 
   editLogVisible = signal(false);
   editLogSaving  = signal(false);
   editLogError   = signal('');
   editingLog     = signal<WorkLogDto | null>(null);
-  editLogForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endDate: '', endTime: '', notes: '' };
+  editLogForm: UpdateWorkLogRequest = { roleId: '', locationId: '', workDate: '', startTime: '', endDate: '', endTime: '', notes: '' };
   editLogStartTimeDate: Date | null = null;
   editLogEndDate:       Date | null = null;
   editLogEndTimeDate:   Date | null = null;
@@ -209,7 +215,8 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
 
   openEditLog(wl: WorkLogDto): void {
     this.editLogForm = {
-      roleName: wl.roleName, locationId: wl.locationId, workDate: wl.workDate,
+      // WorkLogDto carries only the role NAME snapshot — resolve it to the role id the write DTO needs.
+      roleId: this.roleIdForName(wl.roleName), locationId: wl.locationId, workDate: wl.workDate,
       startTime: wl.startTime, endDate: wl.endDate ?? wl.workDate, endTime: wl.endTime ?? '',
       notes: wl.notes ?? '',
     };
@@ -232,7 +239,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   saveEditLog(): void {
     const wl = this.editingLog();
     if (!wl) return;
-    if (!this.editLogForm.roleName || !this.editLogForm.locationId || !this.editLogForm.workDate
+    if (!this.editLogForm.roleId || !this.editLogForm.locationId || !this.editLogForm.workDate
         || !this.editLogStartTimeDate || !this.editLogEndDate || !this.editLogEndTimeDate) {
       this.editLogError.set(this.translate.instant('reports.errRequiredFields')); return;
     }
@@ -281,7 +288,9 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     this.editForm = {
       staffId: s.staffId, firstName: s.firstName, lastName: s.lastName,
       email: s.email || null,
-      roles: [...s.roles], locations: [...(s.locationIds ?? [])], phoneNumber: s.phoneNumber,
+      // s.roles are NAMES (display) but the update DTO + role picker use IDS — map name → id.
+      roles: s.roles.map(name => this.roleIdForName(name)).filter(id => id),
+      locations: [...(s.locationIds ?? [])], phoneNumber: s.phoneNumber,
       icNo: s.icNo ?? null, passportNo: s.passportNo ?? null,
       dateOfBirth: s.dateOfBirth ?? null,
     };

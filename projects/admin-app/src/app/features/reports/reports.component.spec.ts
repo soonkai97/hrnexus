@@ -476,5 +476,14 @@ describe('ReportsComponent', () => {
       component.openEditShift(row('MGR001'));
       expect(component.editShiftVisible()).toBe(true);
     });
+
+    it('maps the shift role NAME snapshot to the role id for the edit form (update DTO expects roleId)', () => {
+      mockStaffStore.roles.mockReturnValue([
+        { id: 'role-bartender-id', name: 'bartender', isSystem: false, hourlyRate: 20, payType: 'hourly' },
+      ]);
+      const c2 = TestBed.createComponent(ReportsComponent).componentInstance;
+      c2.openEditShift(row('NC001'));
+      expect(c2.editShiftForm.roleId).toBe('role-bartender-id');
+    });
   });
 });

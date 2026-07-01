@@ -16,8 +16,11 @@ public class Staff : IHasAudit, ISoftDelete
     /// <summary>Normalized role rows — loaded automatically via AutoInclude.</summary>
     public List<StaffRole> RoleEntries { get; private set; } = new();
 
-    /// <summary>Computed role names derived from RoleEntries. Not stored directly.</summary>
-    public List<string> Roles => RoleEntries.Select(r => r.Role).ToList();
+    /// <summary>Computed role names derived from RoleEntries via the Role navigation (AutoInclude).
+    /// Not stored directly. Rows whose Role nav isn't loaded are skipped defensively.</summary>
+    public List<string> Roles => RoleEntries.Where(r => r.Role != null).Select(r => r.Role.Name).ToList();
+    /// <summary>Computed assigned role IDs derived from RoleEntries. Not stored directly.</summary>
+    public List<Guid> RoleIds => RoleEntries.Select(r => r.RoleId).ToList();
     /// <summary>Normalized location-assignment rows — loaded automatically via AutoInclude.</summary>
     public List<StaffLocation> LocationEntries { get; private set; } = new();
     /// <summary>Computed assigned location IDs derived from LocationEntries. Not stored directly.</summary>
@@ -55,7 +58,7 @@ public class Staff : IHasAudit, ISoftDelete
     private Staff() { }
 
     public static Staff Create(string staffId, string firstName, string? lastName, string? email, string passwordHash,
-        List<string> roles, string? phoneNumber = null,
+        List<Guid> roles, string? phoneNumber = null,
         string? icNo = null, string? passportNo = null, DateTime? dateOfBirth = null,
         List<string>? locations = null)
     {
@@ -146,7 +149,7 @@ public class Staff : IHasAudit, ISoftDelete
     public void SetLanguage(string lang) => PreferredLanguage = lang;
     public void SetPasswordHash(string hash) => PasswordHash = hash;
 
-    public void UpdateDetails(string staffId, string firstName, string? lastName, string? email, List<string> roles,
+    public void UpdateDetails(string staffId, string firstName, string? lastName, string? email, List<Guid> roles,
         string? phoneNumber, string? icNo = null, string? passportNo = null,
         DateTime? dateOfBirth = null, List<string>? locations = null)
     {
@@ -179,15 +182,15 @@ public class Staff : IHasAudit, ISoftDelete
                 LocationEntries.Add(new StaffLocation { EmployeeId = Id, LocationId = id });
     }
 
-    /// <summary>Additively assigns the supplied roles ON TOP of the existing ones (union, uppercase-
-    /// normalised) — used by bulk-assign. Duplicates are ignored so the change tracker never holds
+    /// <summary>Additively assigns the supplied role IDs ON TOP of the existing ones (union) —
+    /// used by bulk-assign. Duplicates are ignored so the change tracker never holds
     /// two rows with the same composite key.</summary>
-    public void AddRoles(IEnumerable<string> roles)
+    public void AddRoles(IEnumerable<Guid> roleIds)
     {
-        var existing = RoleEntries.Select(re => re.Role).ToHashSet();
-        foreach (var role in roles.Select(r => r.Trim().ToUpperInvariant()).Where(r => r.Length > 0).Distinct())
-            if (existing.Add(role))
-                RoleEntries.Add(new StaffRole { EmployeeId = Id, Role = role });
+        var existing = RoleEntries.Select(re => re.RoleId).ToHashSet();
+        foreach (var id in roleIds.Where(r => r != Guid.Empty).Distinct())
+            if (existing.Add(id))
+                RoleEntries.Add(new StaffRole { EmployeeId = Id, RoleId = id });
     }
 
     /// <summary>Replaces all location assignments with the supplied IDs. Mutates the collection in place
@@ -201,17 +204,17 @@ public class Staff : IHasAudit, ISoftDelete
             LocationEntries.Add(new StaffLocation { EmployeeId = Id, LocationId = id });
     }
 
-    /// <summary>Replaces all role assignments with the supplied list (uppercase-normalised).
+    /// <summary>Replaces all role assignments with the supplied role IDs.
     /// Mutates the collection in place — removes only roles being dropped and adds only new roles —
     /// so the EF Core change tracker never holds two instances with the same composite key.
     /// </summary>
-    private void SetRoles(IEnumerable<string> roles)
+    private void SetRoles(IEnumerable<Guid> roleIds)
     {
-        var incoming = roles.Select(r => r.Trim().ToUpperInvariant()).ToHashSet();
-        RoleEntries.RemoveAll(re => !incoming.Contains(re.Role));
-        var existing = RoleEntries.Select(re => re.Role).ToHashSet();
-        foreach (var role in incoming.Where(r => !existing.Contains(r)))
-            RoleEntries.Add(new StaffRole { EmployeeId = Id, Role = role });
+        var incoming = roleIds.Where(r => r != Guid.Empty).ToHashSet();
+        RoleEntries.RemoveAll(re => !incoming.Contains(re.RoleId));
+        var existing = RoleEntries.Select(re => re.RoleId).ToHashSet();
+        foreach (var id in incoming.Where(r => !existing.Contains(r)))
+            RoleEntries.Add(new StaffRole { EmployeeId = Id, RoleId = id });
     }
 
 }

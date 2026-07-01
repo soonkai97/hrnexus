@@ -1,13 +1,14 @@
 import { Component, signal, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { passwordChecks, isStrongPassword, PasswordChecks } from '../../utils/password.utils';
 
-/** Password policy (kept in sync with the backend ChangePasswordCommand): 8+ chars, 1 uppercase, 1 number. */
+/** Password policy (single source of truth in password.utils, mirrored on the backend
+ *  PasswordPolicy): a minimum length only — no character-class rules. */
 export function strongPasswordValidator(ctrl: AbstractControl): ValidationErrors | null {
   const v: string = ctrl.value ?? '';
   if (!v) return null;               // 'required' handles the empty case
-  const ok = v.length >= 8 && /[A-Z]/.test(v) && /[0-9]/.test(v);
-  return ok ? null : { weakPassword: true };
+  return isStrongPassword(v) ? null : { weakPassword: true };
 }
 import { Button } from 'primeng/button';
 import { Password } from 'primeng/password';
@@ -41,13 +42,8 @@ export class ChangePasswordComponent {
   }
 
   /** Live requirement state for the checklist UI — re-evaluated as the user types. */
-  get pwdChecks(): { minLength: boolean; hasUpper: boolean; hasNumber: boolean } {
-    const v: string = this.form?.get('newPassword')?.value ?? '';
-    return {
-      minLength: v.length >= 8,
-      hasUpper:  /[A-Z]/.test(v),
-      hasNumber: /[0-9]/.test(v),
-    };
+  get pwdChecks(): PasswordChecks {
+    return passwordChecks(this.form?.get('newPassword')?.value ?? '');
   }
 
   submit(): void {

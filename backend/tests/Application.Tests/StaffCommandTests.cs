@@ -107,16 +107,16 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Register_ThrowsArgument_WhenPasswordTooWeak()
+    public async Task Register_ThrowsArgument_WhenPasswordTooShort()
     {
-        // Initial password must meet the same policy as a self-service change:
-        // 8+ chars, one uppercase, one number. "alllowercase" lacks upper + digit.
+        // Initial password must meet the same policy as a self-service change: a length
+        // floor only (>= 6 chars). "abc" is below it and must be rejected.
         await using var db = CreateDb();
         var handler = RegisterHandler(db);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             handler.Handle(new RegisterStaffCommand(
-                "S001", "Alice", "Wong", "alice@test.com", "alllowercase",
+                "S001", "Alice", "Wong", "alice@test.com", "abc",
                 new List<Guid>(), IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
                 CancellationToken.None));
     }

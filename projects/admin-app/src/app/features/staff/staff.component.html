@@ -88,8 +88,6 @@
           </div>
           <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
             <li [class.met]="pwdChecks.minLength"><i [class]="pwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>
-            <li [class.met]="pwdChecks.hasUpper"><i [class]="pwdChecks.hasUpper ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqUppercase' | translate }}</li>
-            <li [class.met]="pwdChecks.hasNumber"><i [class]="pwdChecks.hasNumber ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqNumber' | translate }}</li>
           </ul>
           <p-button [label]="'staff.generate' | translate" [text]="true" severity="secondary" size="small"
                     styleClass="gen-btn mt-1" (click)="generateNewStaffPassword()" />
@@ -274,8 +272,6 @@
                   [placeholder]="'staff.minChars' | translate" autocomplete="new-password" />
       <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
         <li [class.met]="resetPwdChecks.minLength"><i [class]="resetPwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>
-        <li [class.met]="resetPwdChecks.hasUpper"><i [class]="resetPwdChecks.hasUpper ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqUppercase' | translate }}</li>
-        <li [class.met]="resetPwdChecks.hasNumber"><i [class]="resetPwdChecks.hasNumber ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqNumber' | translate }}</li>
       </ul>
       <p-button [label]="'staff.generatePassword' | translate" [text]="true" severity="secondary"
                 styleClass="gen-btn" (click)="generatePassword()" />

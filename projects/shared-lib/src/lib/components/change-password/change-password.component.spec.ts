@@ -14,7 +14,7 @@ import { AuthService } from '../../auth/auth.service';
  * WHY these tests matter:
  *  - Whitespace-only passwords must be rejected before hitting the API — a user who
  *    accidentally types only spaces would set an unusable password that bypasses the
- *    minLength(8) validator (eight spaces pass the length check).
+ *    minLength(6) validator (six-plus spaces pass the length check).
  *  - Mismatched passwords must be caught client-side to avoid a confusing server error.
  *  - success=true shows the "Password changed" confirmation; if not set, the user
  *    doesn't know the action succeeded.
@@ -65,24 +65,24 @@ describe('ChangePasswordComponent', () => {
     });
   });
 
-  // ── password strength policy (8+ chars, uppercase, number) ──────────────────────
+  // ── password policy (length floor only — no character-class rules) ──────────────
 
   describe('password requirements', () => {
-    it('marks newPassword invalid when it lacks an uppercase letter or number', () => {
-      component.form.get('newPassword')!.setValue('lowercaseonly');
+    it('marks newPassword invalid when shorter than the minimum length', () => {
+      component.form.get('newPassword')!.setValue('short');   // 5 chars < 6
       expect(component.form.get('newPassword')!.hasError('weakPassword')).toBe(true);
     });
 
-    it('accepts a password with 8+ chars, an uppercase letter and a number', () => {
-      component.form.get('newPassword')!.setValue('NewPass12');
+    it('accepts an all-lowercase password once it meets the minimum length (no upper/number required)', () => {
+      component.form.get('newPassword')!.setValue('lowercaseonly');
       expect(component.form.get('newPassword')!.errors).toBeNull();
     });
 
-    it('pwdChecks reflects which requirements are met as the user types', () => {
-      component.form.get('newPassword')!.setValue('abc');           // too short, no upper, no num
-      expect(component.pwdChecks).toEqual({ minLength: false, hasUpper: false, hasNumber: false });
-      component.form.get('newPassword')!.setValue('Abcdefg9');      // all met
-      expect(component.pwdChecks).toEqual({ minLength: true, hasUpper: true, hasNumber: true });
+    it('pwdChecks reflects whether the minimum length is met as the user types', () => {
+      component.form.get('newPassword')!.setValue('abc');       // too short
+      expect(component.pwdChecks).toEqual({ minLength: false });
+      component.form.get('newPassword')!.setValue('abcdef');    // 6 chars → met
+      expect(component.pwdChecks).toEqual({ minLength: true });
     });
   });
 

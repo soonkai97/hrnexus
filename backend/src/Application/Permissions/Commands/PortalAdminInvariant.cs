@@ -16,19 +16,19 @@ internal static class PortalAdminInvariant
     private const string Key = AppConstants.Permissions.PortalAdmin;
 
     /// <summary>
-    /// Counts ACTIVE staff who would still hold effective <c>portal.admin</c> given the set of role names
+    /// Counts ACTIVE staff who would still hold effective <c>portal.admin</c> given the set of role ids
     /// that grant it (caller passes the POST-change set) plus the current per-user grant/revoke overrides
     /// (revoke wins). Optionally excludes one user whose own change is evaluated separately.
     /// </summary>
     public static async Task<int> CountActiveAdminsAsync(
-        IAppDbContext db, List<string> adminRoleNames, Guid? exclude, CancellationToken ct)
+        IAppDbContext db, List<Guid> adminRoleIds, Guid? exclude, CancellationToken ct)
     {
         var candidates = new HashSet<Guid>();
 
-        if (adminRoleNames.Count > 0)
+        if (adminRoleIds.Count > 0)
         {
             var viaRole = await db.StaffRoles
-                .Where(sr => adminRoleNames.Contains(sr.Role))
+                .Where(sr => adminRoleIds.Contains(sr.RoleId))
                 .Select(sr => sr.EmployeeId)
                 .ToListAsync(ct);
             candidates.UnionWith(viaRole);
@@ -61,8 +61,8 @@ internal static class PortalAdminInvariant
             .Select(o => o.Granted).ToListAsync(ct);
         if (ownOverride.Count > 0) return ownOverride[0];   // a grant/revoke override wins over the role default
 
-        var roles = await db.StaffRoles.Where(sr => sr.EmployeeId == userId).Select(sr => sr.Role).ToListAsync(ct);
-        return roles.Count > 0
-            && await db.RolePermissions.AnyAsync(rp => roles.Contains(rp.RoleName) && rp.PermissionKey == Key, ct);
+        var roleIds = await db.StaffRoles.Where(sr => sr.EmployeeId == userId).Select(sr => sr.RoleId).ToListAsync(ct);
+        return roleIds.Count > 0
+            && await db.RolePermissions.AnyAsync(rp => roleIds.Contains(rp.RoleId) && rp.PermissionKey == Key, ct);
     }
 }

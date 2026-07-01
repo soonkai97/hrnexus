@@ -391,7 +391,7 @@
       <div class="form-grid">
         <div class="field">
           <label for="rep-edit-role"><span class="req">*</span> {{ 'dashboard.role' | translate }}</label>
-          <p-select inputId="rep-edit-role" [options]="roleOptions()" [(ngModel)]="editShiftForm.roleName"
+          <p-select inputId="rep-edit-role" [options]="roleOptions()" [(ngModel)]="editShiftForm.roleId"
             optionLabel="label" optionValue="value"
             [placeholder]="'reports.selectRole' | translate"
             [filter]="true" appendTo="body" styleClass="w-full" />

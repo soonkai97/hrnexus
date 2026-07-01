@@ -40,15 +40,18 @@ public class ConcurrencyTests(PostgresFixture fx)
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────────
-    private static E.Staff MakeStaff(string staffId) =>
-        E.Staff.Create(staffId, "Race", "Tester", $"{staffId}@t.com", "hash", new List<string> { "BARTENDER" });
-
     private async Task<Guid> SeedStaffWithRoleAsync(string staffId)
     {
         await using var db = fx.NewDb();
-        if (!await db.Roles.AnyAsync(r => r.Name == "BARTENDER"))
-            db.Roles.Add(E.Role.Create("bartender", hourlyRate: 20m));
-        var staff = MakeStaff(staffId);
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "BARTENDER");
+        if (role is null)
+        {
+            role = E.Role.Create("bartender", hourlyRate: 20m);
+            db.Roles.Add(role);
+            await db.SaveChangesAsync();
+        }
+        var staff = E.Staff.Create(staffId, "Race", "Tester", $"{staffId}@t.com", "hash",
+            new List<Guid> { role.Id });
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         return staff.Id;

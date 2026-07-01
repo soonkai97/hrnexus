@@ -72,7 +72,7 @@
           </td>
           <td>
             <span class="p-column-title">{{ 'roles.hourlyRateCol' | translate }}</span>
-            @if (editingRateName() === role.name) {
+            @if (editingRateId() === role.id) {
               <!-- Inline rate editor -->
               <div class="d-flex gap-1 align-items-center flex-wrap">
                 <input pInputText type="text" [ngModel]="editingRateNameZh()" (ngModelChange)="editingRateNameZh.set($event)"

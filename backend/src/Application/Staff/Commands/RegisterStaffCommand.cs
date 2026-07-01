@@ -11,7 +11,7 @@ public record RegisterStaffCommand(
     string?       LastName,
     string?       Email,
     string        Password,
-    List<string>  Roles,
+    List<Guid>    Roles,
     string?       PhoneNumber   = null,
     string?       IcNo          = null,
     string?       PassportNo    = null,

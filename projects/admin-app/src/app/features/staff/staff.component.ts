@@ -132,10 +132,10 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   availableLocations = computed(() => this.locationStore.locations());
 
   // Picker options whose label follows the UI language (Chinese name when set + lang is zh).
-  // Values stay the role name / location id so the bound models are unchanged.
+  // Role value is the GUID id (register/update expect role IDS); location value stays the location id.
   readonly roleOptions = computed(() => {
     const lang = this.lang.current();
-    return this.availableRoles().map(r => ({ label: localizedNameFor(lang, r.name, r.nameZh, r.nameVi), value: r.name }));
+    return this.availableRoles().map(r => ({ label: localizedNameFor(lang, r.name, r.nameZh, r.nameVi), value: r.id }));
   });
   readonly locationOptions = computed(() => {
     const lang = this.lang.current();
@@ -227,7 +227,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
 
     if (!this.newStaff.roles.length) {
-      const defaultRole = this.availableRoles()[0]?.name;
+      const defaultRole = this.availableRoles()[0]?.id;
       if (!defaultRole) { this.error.set(this.translate.instant('staff.errSelectRole')); return; }
       this.newStaff.roles = [defaultRole];
     }

@@ -13,7 +13,7 @@ public record UpdateStaffCommand(
     string        FirstName,
     string?       LastName,
     string?       Email,
-    List<string>  Roles,
+    List<Guid>    Roles,
     string?       PhoneNumber,
     string?       IcNo          = null,
     string?       PassportNo    = null,
@@ -53,20 +53,20 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
         // the user wins over role defaults (so changing roles can't remove access a grant pins on, and
         // can't restore access a revoke pins off).
         var key       = AppConstants.Permissions.PortalAdmin;
-        var newRoles  = req.Roles.Select(r => r.Trim().ToUpperInvariant()).ToList();
+        var newRoles  = req.Roles.Where(r => r != Guid.Empty).ToList();
         var ownOverride = await db.StaffPermissionOverrides
             .Where(o => o.EmployeeId == req.Id && o.PermissionKey == key)
             .Select(o => o.Granted).ToListAsync(ct);
         var willHaveAdmin = ownOverride.Count > 0
             ? ownOverride[0]
             : newRoles.Count > 0 && await db.RolePermissions.AnyAsync(
-                  rp => newRoles.Contains(rp.RoleName) && rp.PermissionKey == key, ct);
+                  rp => newRoles.Contains(rp.RoleId) && rp.PermissionKey == key, ct);
 
         if (!willHaveAdmin && await PortalAdminInvariant.UserHasAdminAsync(db, req.Id, ct))
         {
             var adminRoles = await db.RolePermissions
                 .Where(rp => rp.PermissionKey == key)
-                .Select(rp => rp.RoleName).Distinct().ToListAsync(ct);
+                .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
             if (await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.Id, ct) == 0)
                 throw new ArgumentException(
                     "This change would remove admin-portal access from the last administrator. " +

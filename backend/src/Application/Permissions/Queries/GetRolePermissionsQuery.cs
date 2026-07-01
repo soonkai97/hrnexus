@@ -13,11 +13,12 @@ public class GetRolePermissionsHandler(IAppDbContext db)
     public async Task<List<string>> Handle(GetRolePermissionsQuery req, CancellationToken ct)
     {
         var name = req.RoleName.Trim().ToUpperInvariant();
-        if (!await db.Roles.AnyAsync(r => r.Name == name, ct))
+        var roleId = await db.Roles.Where(r => r.Name == name).Select(r => r.Id).FirstOrDefaultAsync(ct);
+        if (roleId == Guid.Empty)
             throw new KeyNotFoundException($"Role '{req.RoleName}' not found.");
 
         return await db.RolePermissions
-            .Where(rp => rp.RoleName == name)
+            .Where(rp => rp.RoleId == roleId)
             .Select(rp => rp.PermissionKey)
             .ToListAsync(ct);
     }

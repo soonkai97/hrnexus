@@ -63,15 +63,21 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   submitting = signal(false);
   updatingLocation = signal(false);
 
-  // Only show roles assigned to the current staff member
-  readonly myRoles = computed(() => {
-    const assigned = this.auth.user()?.roles ?? [];
-    return assigned.filter(r => r !== 'SUPERADMIN');
-  });
-
-  readonly myRoleOptions = computed(() =>
-    this.myRoles().map(r => ({ label: r, value: r }))
+  // Only show jobs assigned to the current staff member (from the login/refresh `jobs` payload).
+  // The SUPERADMIN tier isn't a real clock-in job, so it's filtered out by name. Options carry the
+  // job's GUID id as the value (submitted on clock-in) and a language-aware display label — so a
+  // job with a non-ASCII name (e.g. 写钟（在外）) is picked by id and never string-matched.
+  readonly myJobs = computed(() =>
+    (this.auth.user()?.jobs ?? []).filter(j => j.name !== 'SUPERADMIN')
   );
+
+  readonly myRoleOptions = computed(() => {
+    const lang = this.lang.current();
+    return this.myJobs().map(j => ({
+      label: localizedNameFor(lang, j.name, j.nameZh, j.nameVi),
+      value: j.id,
+    }));
+  });
 
   // Staff may only log shifts at the locations they're assigned to.
   // Label follows the UI language (Chinese/Vietnamese name when set, else the primary name).
@@ -91,7 +97,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
 
   // Live form
   liveForm = {
-    roleName:   '',
+    roleId:     '',
     locationId: '',
     startTime:  nowHHmm(), // kept for API compat; template uses liveFormStartTime
     notes:      '',
@@ -105,7 +111,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
 
   // Manual form
   manualForm = {
-    roleName:   '',
+    roleId:     '',
     locationId: '',
     workDate:   todayLocalString(),
     startTime:  '', // kept for API compat; template uses manualFormStartTime
@@ -118,10 +124,10 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   hasUnsavedChanges(): boolean {
     if (this.view() !== 'log' || !!this.activeLog()) return false;
     if (this.mode() === 'live') {
-      return !!(this.liveForm.roleName || this.liveForm.locationId || this.liveForm.notes);
+      return !!(this.liveForm.roleId || this.liveForm.locationId || this.liveForm.notes);
     }
     // manual mode
-    return !!(this.manualForm.roleName || this.manualForm.locationId ||
+    return !!(this.manualForm.roleId || this.manualForm.locationId ||
               this.manualFormStartTime || this.manualFormEndTime || this.manualForm.notes);
   }
 
@@ -190,7 +196,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   // ── Live: start shift ────────────────────────────────────────────────────────
 
   startShift(): void {
-    if (!this.liveForm.roleName || !this.liveForm.locationId) {
+    if (!this.liveForm.roleId || !this.liveForm.locationId) {
       this.formError.set(this.translate.instant('logShift.errSelectRoleLocation')); return;
     }
     const startTime = this.liveFormStartTime ? this.toTimeStr(this.liveFormStartTime) : nowHHmm();
@@ -200,7 +206,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     // Best-effort: if the staff denies permission or it's unavailable, clock in without it.
     this.getDeviceCoords().then(coords => {
       this.workLogSvc.start({
-        roleName:   this.liveForm.roleName,
+        roleId:     this.liveForm.roleId,
         locationId: this.liveForm.locationId,
         startTime,
         notes:      this.liveForm.notes || null,
@@ -211,7 +217,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
           this.submitting.set(false);
           this.toast.success(this.translate.instant('logShift.toast.started'));
           this.loadActive();
-          this.liveForm = { roleName: '', locationId: '', startTime: nowHHmm(), notes: '' };
+          this.liveForm = { roleId: '', locationId: '', startTime: nowHHmm(), notes: '' };
           this.liveFormStartTime = nowRoundedToHalfHour();
         },
         error: (e) => {
@@ -294,7 +300,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   // ── Manual entry ─────────────────────────────────────────────────────────────
 
   submitManual(): void {
-    if (!this.manualForm.roleName || !this.manualForm.locationId || !this.manualForm.workDate || !this.manualFormStartTime || !this.manualFormEndTime) {
+    if (!this.manualForm.roleId || !this.manualForm.locationId || !this.manualForm.workDate || !this.manualFormStartTime || !this.manualFormEndTime) {
       this.formError.set(this.translate.instant('logShift.errFillAll')); return;
     }
     // Convert Date → HH:mm for validation and API
@@ -315,7 +321,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     this.submitting.set(true);
     this.formError.set('');
     this.workLogSvc.createManual({
-      roleName:   this.manualForm.roleName,
+      roleId:     this.manualForm.roleId,
       locationId: this.manualForm.locationId,
       workDate:   this.manualForm.workDate,
       startTime,
@@ -325,7 +331,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
       next: () => {
         this.submitting.set(false);
         this.toast.success(this.translate.instant('logShift.toast.logged'));
-        this.manualForm = { roleName: '', locationId: '', workDate: todayLocalString(), startTime: '', endTime: '', notes: '' };
+        this.manualForm = { roleId: '', locationId: '', workDate: todayLocalString(), startTime: '', endTime: '', notes: '' };
         this.manualFormStartTime = null;
         this.manualFormEndTime   = null;
         this.loadHistory();

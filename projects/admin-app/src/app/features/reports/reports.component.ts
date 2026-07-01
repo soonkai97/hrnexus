@@ -131,15 +131,22 @@ export class ReportsComponent implements OnInit {
   readonly locationOptions = computed(() =>
     this.locationStore.locations().map(l => ({ label: l.name, value: l.id }))
   );
+  // Edit-shift role dropdown — value is the GUID id (work-log update submits roleId). This is a
+  // DIFFERENT dropdown from the report role FILTER, which stays name-based (backend filters by RoleName snapshot).
   readonly roleOptions = computed(() =>
-    this.staffStore.roles().map(r => ({ label: r.name.toUpperCase(), value: r.name }))
+    this.staffStore.roles().map(r => ({ label: r.name.toUpperCase(), value: r.id }))
   );
+
+  /** Map a role NAME (a ShiftDetailRow.role snapshot) to its GUID id via the loaded roles. */
+  private roleIdForName(name: string): string {
+    return this.staffStore.roles().find(r => r.name === name)?.id ?? '';
+  }
 
   editShiftVisible = signal(false);
   editShiftSaving  = signal(false);
   editShiftError   = signal('');
   editingShift     = signal<ShiftDetailRow | null>(null);
-  editShiftForm: UpdateWorkLogRequest = { roleName: '', locationId: '', workDate: '', startTime: '', endDate: '', endTime: '', notes: '' };
+  editShiftForm: UpdateWorkLogRequest = { roleId: '', locationId: '', workDate: '', startTime: '', endDate: '', endTime: '', notes: '' };
   editShiftStartTimeDate: Date | null = null; // UI binding
   editShiftEndDate:       Date | null = null; // UI binding (end date)
   editShiftEndTimeDate:   Date | null = null; // UI binding
@@ -163,7 +170,8 @@ export class ReportsComponent implements OnInit {
 
   openEditShift(s: ShiftDetailRow): void {
     this.editShiftForm = {
-      roleName:   s.role,
+      // s.role is a NAME snapshot — resolve to the role id the write DTO needs.
+      roleId:     this.roleIdForName(s.role),
       locationId: s.locationId,
       workDate:   s.workDate,
       startTime:  s.startTime,
@@ -190,7 +198,7 @@ export class ReportsComponent implements OnInit {
   saveEditShift(): void {
     const s = this.editingShift();
     if (!s) return;
-    if (!this.editShiftForm.roleName || !this.editShiftForm.locationId ||
+    if (!this.editShiftForm.roleId || !this.editShiftForm.locationId ||
         !this.editShiftForm.workDate || !this.editShiftStartTimeDate || !this.editShiftEndDate || !this.editShiftEndTimeDate) {
       this.editShiftError.set(this.translate.instant('reports.errRequiredFields')); return;
     }

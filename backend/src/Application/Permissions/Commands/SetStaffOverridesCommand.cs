@@ -40,10 +40,10 @@ public class SetStaffOverridesHandler(IAppDbContext db, IPermissionResolver reso
         {
             // No explicit override after this change → falls back to the user's role defaults.
             var userRoles = await db.StaffRoles.Where(sr => sr.EmployeeId == req.EmployeeId)
-                .Select(sr => sr.Role).ToListAsync(ct);
+                .Select(sr => sr.RoleId).ToListAsync(ct);
             userKeepsAdmin = userRoles.Count > 0
                 && await db.RolePermissions.AnyAsync(
-                    rp => userRoles.Contains(rp.RoleName)
+                    rp => userRoles.Contains(rp.RoleId)
                        && rp.PermissionKey == AppConstants.Permissions.PortalAdmin, ct);
         }
 
@@ -51,7 +51,7 @@ public class SetStaffOverridesHandler(IAppDbContext db, IPermissionResolver reso
         {
             var adminRoles = await db.RolePermissions
                 .Where(rp => rp.PermissionKey == AppConstants.Permissions.PortalAdmin)
-                .Select(rp => rp.RoleName).Distinct().ToListAsync(ct);
+                .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
             if (await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.EmployeeId, ct) == 0)
                 throw new ArgumentException(
                     "This change would remove admin-portal access from the last administrator. " +

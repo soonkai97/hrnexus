@@ -82,17 +82,17 @@ export class StaffStore {
     return this.svc.createRole(name, hourlyRate, nameZh, nameVi, payType).pipe(tap(() => this.loadRoles()));
   }
 
-  updateRoleRate(name: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly') {
-    return this.svc.updateRoleRate(name, hourlyRate, nameZh, nameVi, payType).pipe(
+  updateRoleRate(id: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly') {
+    return this.svc.updateRoleRate(id, hourlyRate, nameZh, nameVi, payType).pipe(
       tap(() => this.#roles.update(list =>
-        list.map(r => r.name === name ? { ...r, hourlyRate, nameZh, nameVi, payType } : r)
+        list.map(r => r.id === id ? { ...r, hourlyRate, nameZh, nameVi, payType } : r)
       ))
     );
   }
 
-  deleteRole(name: string) {
-    return this.svc.deleteRole(name).pipe(
-      tap(() => this.#roles.update(list => list.filter(r => r.name !== name)))
+  deleteRole(id: string) {
+    return this.svc.deleteRole(id).pipe(
+      tap(() => this.#roles.update(list => list.filter(r => r.id !== id)))
     );
   }
 

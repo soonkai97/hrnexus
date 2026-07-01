@@ -21,13 +21,24 @@ export interface AuthResponse {
   user?: AuthUser;
 }
 
+/** An assigned job/role, carrying its GUID id + localizable display names so the staff-app
+ * log-shift dropdown can render a language-aware label and submit the role's id on clock-in. */
+export interface AuthJob {
+  id: string;
+  name: string;
+  nameZh?: string | null;
+  nameVi?: string | null;
+}
+
 export interface AuthUser {
   id: string;
   staffId: string;
   fullName: string;
   email: string;
-  /** All job roles assigned to this employee (e.g. ["bartender", "manager"]) */
+  /** Assigned role NAMES (e.g. ["SUPERADMIN", "MANAGER"]) — drives the FE auth-tier logic. */
   roles: string[];
+  /** Assigned jobs (id + localizable names) — source for the staff-app log-shift role dropdown. */
+  jobs: AuthJob[];
 }
 
 export interface ForgotPasswordRequest  { staffId: string; }

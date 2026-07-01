@@ -70,6 +70,7 @@ public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfigur
 
         // Computed properties — not mapped to columns.
         b.Ignore(e => e.Roles);
+        b.Ignore(e => e.RoleIds);
         b.Ignore(e => e.LocationIds);
         b.Ignore(e => e.FullName);
         b.Ignore(e => e.Age);

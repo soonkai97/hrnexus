@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Auth.Commands;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
@@ -58,14 +58,20 @@ public class AuthCommandTests
         return new TestDbContext(opts);
     }
 
-    private static E.Staff MakeStaff(
+    // Seeds the named role rows (defaulting to BARTENDER) so the Role navigation resolves under the
+    // InMemory provider — the login handler reads role NAMES back through Staff.Roles for the User DTO.
+    private static async Task<E.Staff> MakeStaff(
+        TestDbContext db,
         string staffId = "S001",
         string password = "pass",
-        List<string>? roles = null)
+        params string[] roleNames)
     {
         var hasher = new StubHasher();
+        var names = roleNames.Length > 0 ? roleNames : ["BARTENDER"];
+        var ids = new List<Guid>();
+        foreach (var name in names) ids.Add(await RoleSeed.EnsureRoleAsync(db, name));
         return E.Staff.Create(staffId, "Alice", "Wong", "alice@test.com",
-            hasher.Hash(password), roles ?? new List<string> { "BARTENDER" });
+            hasher.Hash(password), ids);
     }
 
     private static PermissionResolver MakeResolver(TestDbContext db) =>
@@ -92,7 +98,7 @@ public class AuthCommandTests
     public async Task Login_ThrowsUnauthorized_WhenWrongPassword()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(password: "correct"));
+        db.Staff.Add(await MakeStaff(db, password: "correct"));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -108,7 +114,7 @@ public class AuthCommandTests
         // Superadmins are treated as normal users in the staff portal — they can log in there
         // (e.g. to record their own shifts/leave). Only the admin portal is role-gated.
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(roles: new List<string> { "SUPERADMIN" }));
+        db.Staff.Add(await MakeStaff(db, roleNames: "SUPERADMIN"));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -124,7 +130,7 @@ public class AuthCommandTests
     public async Task Login_ThrowsUnauthorized_WhenEmployeeAccessesAdminPortal()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(roles: new List<string> { "BARTENDER" }));
+        db.Staff.Add(await MakeStaff(db, roleNames: "BARTENDER"));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -138,9 +144,11 @@ public class AuthCommandTests
     public async Task Login_Succeeds_WhenManagerAccessesAdminPortal()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(roles: new List<string> { "MANAGER" }));
-        // MANAGER role grants admin-portal access (matches the seeded backfill).
-        db.RolePermissions.Add(E.RolePermission.Create("MANAGER", AppConstants.Permissions.PortalAdmin));
+        db.Staff.Add(await MakeStaff(db, roleNames: "MANAGER"));
+        // MANAGER role grants admin-portal access (matches the seeded backfill). The permission row
+        // must key on the SAME role id the resolver joins by, so resolve the seeded MANAGER role's id.
+        var managerRoleId = await RoleSeed.RoleIdAsync(db, "MANAGER");
+        db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.PortalAdmin));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -155,7 +163,7 @@ public class AuthCommandTests
     public async Task Login_Succeeds_EmployeeOnStaffPortal_ReturnsLowercaseRoles()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(roles: new List<string> { "BARTENDER" }));
+        db.Staff.Add(await MakeStaff(db, roleNames: "BARTENDER"));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -175,7 +183,7 @@ public class AuthCommandTests
     public async Task Login_LocksAccount_AfterMaxFailedAttempts_ThenRefusesEvenCorrectPassword()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(password: "correct"));
+        db.Staff.Add(await MakeStaff(db, password: "correct"));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -200,7 +208,7 @@ public class AuthCommandTests
     public async Task Login_Recovers_AfterLockoutWindowExpires()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(password: "correct"));
+        db.Staff.Add(await MakeStaff(db, password: "correct"));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -221,7 +229,7 @@ public class AuthCommandTests
     public async Task Login_ResetsFailedCount_OnSuccessfulLogin()
     {
         await using var db = CreateDb();
-        db.Staff.Add(MakeStaff(password: "correct"));
+        db.Staff.Add(await MakeStaff(db, password: "correct"));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -262,7 +270,7 @@ public class AuthCommandTests
     public async Task ChangePassword_ThrowsUnauthorized_WhenCurrentPasswordWrong()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff(password: "correct");
+        var staff = await MakeStaff(db, password: "correct");
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -278,7 +286,7 @@ public class AuthCommandTests
     public async Task ChangePassword_ThrowsArgument_WhenNewPasswordTooShort()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff(password: "pass");
+        var staff = await MakeStaff(db, password: "pass");
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -296,7 +304,7 @@ public class AuthCommandTests
         // 8+ chars but all lowercase letters — must be rejected for missing an
         // uppercase letter and a number (policy mirrored on the frontend checklist).
         await using var db = CreateDb();
-        var staff = MakeStaff(password: "pass");
+        var staff = await MakeStaff(db, password: "pass");
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -314,7 +322,7 @@ public class AuthCommandTests
         // Eight spaces pass the length check but must be rejected — a whitespace-only
         // password would be unusable in practice and should never be stored.
         await using var db = CreateDb();
-        var staff = MakeStaff(password: "pass");
+        var staff = await MakeStaff(db, password: "pass");
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -330,7 +338,7 @@ public class AuthCommandTests
     public async Task ChangePassword_Succeeds_ClearsRefreshToken()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff(password: "pass");
+        var staff = await MakeStaff(db, password: "pass");
         staff.SetRefreshToken("old-token", DateTime.UtcNow.AddDays(1));
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
@@ -362,7 +370,7 @@ public class AuthCommandTests
     public async Task ForgotPassword_ThrowsInvalidOperation_WhenRateLimitHit()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         // Add a recent password_reset notification (simulating a request made < 5 min ago)
         var notif = E.Notification.Create(staff.Id, "Reset", "msg", "password_reset", staff.Id.ToString());
@@ -380,7 +388,7 @@ public class AuthCommandTests
     public async Task ForgotPassword_ReturnsTrue_WhenStaffFound()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -431,7 +439,7 @@ public class AuthCommandTests
     public async Task RefreshToken_ThrowsUnauthorized_WhenTokenExpired()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         staff.SetRefreshToken("expired-token", DateTime.UtcNow.AddDays(-1));
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
@@ -447,7 +455,7 @@ public class AuthCommandTests
     public async Task RefreshToken_Succeeds_RotatesRefreshToken()
     {
         await using var db = CreateDb();
-        var staff = MakeStaff();
+        var staff = await MakeStaff(db);
         staff.SetRefreshToken("valid-token", DateTime.UtcNow.AddDays(30));
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
@@ -476,7 +484,11 @@ public class AuthCommandTests
             .Options;
         await using var db = new ConcurrentRotationDb(opts);
 
-        var staff = MakeStaff();
+        // Build the staff directly (NOT via MakeStaff, which seeds a role with its own SaveChanges and
+        // would consume the ConcurrentRotationDb's one-time first-save slot). The refresh handler never
+        // reads role names, so an unresolved role id is fine here.
+        var staff = E.Staff.Create("S001", "Alice", "Wong", "alice@test.com",
+            new StubHasher().Hash("pass"), new List<Guid>());
         staff.SetRefreshToken("valid-token", DateTime.UtcNow.AddDays(30));
         db.Staff.Add(staff);
         // First SaveChangesAsync — seeds the data via ConcurrentRotationDb's seeding path

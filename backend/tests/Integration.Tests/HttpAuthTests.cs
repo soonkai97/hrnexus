@@ -33,11 +33,16 @@ public class HttpAuthTests(PostgresFixture fx) : IAsyncLifetime
     {
         await using var db = fx.NewDb();
         if (await db.Staff.AnyAsync(s => s.StaffId == staffId)) return;
-        if (!await db.Roles.AnyAsync(r => r.Name == "BARTENDER"))
-            db.Roles.Add(E.Role.Create("bartender", hourlyRate: 20m));
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "BARTENDER");
+        if (role is null)
+        {
+            role = E.Role.Create("bartender", hourlyRate: 20m);
+            db.Roles.Add(role);
+            await db.SaveChangesAsync();
+        }
         var hasher = new PasswordHasher();   // BCrypt — must match the API's real hasher
         db.Staff.Add(E.Staff.Create(staffId, "Http", "Test", $"{staffId}@t.com",
-            hasher.Hash(password), new List<string> { "BARTENDER" }));
+            hasher.Hash(password), new List<Guid> { role.Id }));
         await db.SaveChangesAsync();
     }
 

@@ -41,7 +41,8 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
 
         if (!string.IsNullOrWhiteSpace(req.Email))
         {
-            var emailTaken = await db.Staff.AnyAsync(e => e.Email == req.Email.ToLowerInvariant(), ct);
+            var normalizedEmail = req.Email.Trim().ToLowerInvariant();
+            var emailTaken = await db.Staff.AnyAsync(e => e.Email == normalizedEmail, ct);
             if (emailTaken)
                 throw new InvalidOperationException($"Email '{req.Email}' is already registered.");
         }

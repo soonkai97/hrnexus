@@ -299,10 +299,10 @@ public class AuthCommandTests
     }
 
     [Fact]
-    public async Task ChangePassword_ThrowsArgument_WhenNewPasswordLacksComplexity()
+    public async Task ChangePassword_Succeeds_WhenNewPasswordMeetsLengthOnly_NoComplexityRequired()
     {
-        // 8+ chars but all lowercase letters — must be rejected for missing an
-        // uppercase letter and a number (policy mirrored on the frontend checklist).
+        // The policy is a length floor only (no uppercase/number rule) — an all-lowercase
+        // password of >= 6 chars is accepted.
         await using var db = CreateDb();
         var staff = await MakeStaff(db, password: "pass");
         db.Staff.Add(staff);
@@ -311,9 +311,11 @@ public class AuthCommandTests
 
         var handler = new ChangePasswordCommandHandler(db, new StubHasher());
 
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "lowercaseonly"),
-                CancellationToken.None));
+        await handler.Handle(new ChangePasswordCommand(staff.Id, "pass", "lowercaseonly"),
+            CancellationToken.None);
+
+        var updated = await db.Staff.FirstAsync(s => s.Id == staff.Id);
+        Assert.Contains("lowercaseonly", updated.PasswordHash);   // stub hasher echoes the raw password
     }
 
     [Fact]

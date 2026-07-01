@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
-import { AuthResponse, AuthUser, ChangePasswordRequest, ForgotPasswordResponse, LoginRequest, UserRole } from '../models';
+import { AuthResponse, AuthUser, ForgotPasswordResponse, LoginRequest, UserRole } from '../models';
 import { PermissionService } from '../services/permission.service';
 
 // Tokens now live in httpOnly cookies set by the server (the browser sends them automatically with
@@ -51,10 +51,6 @@ export class AuthService {
     return this.http.post<AuthResponse>('/api/auth/login', request).pipe(
       tap(res => { if (res.user) this.storeSession(res); })
     );
-  }
-
-  changePassword(request: ChangePasswordRequest): Observable<void> {
-    return this.http.post<void>('/api/auth/change-password', request);
   }
 
   updateProfile(phoneNumber: string | null): Observable<void> {

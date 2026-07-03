@@ -49,7 +49,10 @@
           @if (loc.imagePath) {
             <img [src]="'/' + loc.imagePath" [alt]="loc.name" />
           } @else {
-            <span class="loc-placeholder"><i class="pi pi-map-marker"></i></span>
+            <span class="loc-placeholder">
+              <i class="pi pi-image"></i>
+              <span class="loc-placeholder-text">{{ 'locations.noImage' | translate }}</span>
+            </span>
           }
           <!-- Upload overlay -->
           <label class="loc-upload-label">

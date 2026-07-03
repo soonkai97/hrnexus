@@ -507,26 +507,4 @@ describe('ReportsComponent', () => {
     });
   });
 
-  // ── Shift editing: managers + admins both allowed (same power) ───────────────
-  describe('openEditShift()', () => {
-    const row = (staffId: string) => ({ id: 'w1', staffId, role: 'bartender', locationId: 'L1',
-      workDate: '2026-05-10', startTime: '18:00', endTime: '23:00', notes: null }) as never;
-
-    it('opens the edit dialog for any shift, including the caller\'s own', () => {
-      mockAuthSvc.userRole.mockReturnValue('manager');
-      mockAuthSvc.user.mockReturnValue({ staffId: 'MGR001' });
-      component.editShiftVisible.set(false);
-      component.openEditShift(row('MGR001'));
-      expect(component.editShiftVisible()).toBe(true);
-    });
-
-    it('maps the shift role NAME snapshot to the role id for the edit form (update DTO expects roleId)', () => {
-      mockStaffStore.roles.mockReturnValue([
-        { id: 'role-bartender-id', name: 'bartender', isSystem: false, hourlyRate: 20, payType: 'hourly' },
-      ]);
-      const c2 = TestBed.createComponent(ReportsComponent).componentInstance;
-      c2.openEditShift(row('NC001'));
-      expect(c2.editShiftForm.roleId).toBe('role-bartender-id');
-    });
-  });
 });

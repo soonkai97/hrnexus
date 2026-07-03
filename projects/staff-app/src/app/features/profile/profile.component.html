@@ -7,9 +7,6 @@
         <div class="avatar">{{ initials() }}</div>
       </div>
       <h2 class="user-name">{{ user()!.fullName }}</h2>
-      @for (r of user()!.roles; track r) {
-        <p-tag [value]="r" severity="secondary" styleClass="mr-1" />
-      }
     </div>
 
     <!-- Info card -->
@@ -25,16 +22,6 @@
           <span class="info-value">{{ user()!.email }}</span>
         </div>
       }
-      <div class="divider"></div>
-      <div class="info-row">
-        <span class="info-label">{{ 'profile.role' | translate }}</span>
-        <span class="info-value">
-          @for (r of user()!.roles; track r) {
-            <p-tag [value]="r" severity="secondary" styleClass="mr-1" />
-          }
-        </span>
-      </div>
-
       @if (profile(); as p) {
         @if (p.phoneNumber) {
           <div class="divider"></div>

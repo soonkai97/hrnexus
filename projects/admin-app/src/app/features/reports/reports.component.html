@@ -191,7 +191,8 @@
 
         <p-card styleClass="table-card report-table-card p-0">
           <p-table [value]="groupedRows()" [tableStyle]="{'min-width':'100%'}"
-            sortField="hours" [sortOrder]="-1">
+            sortField="hours" [sortOrder]="-1"
+            [paginator]="groupedRows().length > 20" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]">
             <ng-template pTemplate="header">
               <tr>
                 @for (dim of groupBy(); track dim) {
@@ -231,7 +232,8 @@
       @if (activeTab() === 'customer') {
         <p-card styleClass="table-card report-table-card p-0">
           <p-table [value]="r.shifts" [tableStyle]="{'min-width':'100%'}"
-            sortField="staffName" [sortOrder]="1">
+            sortField="staffName" [sortOrder]="1"
+            [paginator]="r.shifts.length > 20" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]">
             <ng-template pTemplate="header">
               <tr>
                 <th pSortableColumn="staffName">{{ 'reports.name' | translate }} <p-sortIcon field="staffName" /></th>

@@ -604,7 +604,7 @@
         <p class="text-center py-3">{{ 'leave.noActiveStaff' | translate }}</p>
       } @else {
         <div class="staff-balance-list">
-          @for (b of allBalances(); track b.employeeId) {
+          @for (b of pagedAllBalances(); track b.employeeId) {
             <div class="staff-bal-row" tabindex="0" role="button" (click)="filterEmployeeId = b.employeeId; load()" (keydown.enter)="filterEmployeeId = b.employeeId; load()">
               <div class="staff-bal-name">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -644,6 +644,10 @@
             </div>
           }
         </div>
+        @if (allBalances().length > balancePageRows) {
+          <p-paginator [first]="balanceFirst()" [rows]="balancePageRows" [totalRecords]="allBalances().length"
+                       (onPageChange)="balanceFirst.set($event.first ?? 0)" />
+        }
       }
     </p-card>
 
@@ -681,7 +685,7 @@
             <span class="ls-data-col">{{ 'leave.summaryNoShow' | translate }}</span>
             <span class="ls-data-col ls-total-col">{{ 'leave.summaryTotal' | translate }}</span>
           </div>
-          @for (s of leaveSummary(); track s.employeeId) {
+          @for (s of pagedLeaveSummary(); track s.employeeId) {
             <div class="ls-row" tabindex="0" role="button" (click)="filterEmployeeId = s.employeeId; tab.set('records'); load()" (keydown.enter)="filterEmployeeId = s.employeeId; tab.set('records'); load()">
               <div class="ls-name-col">
                 <span class="ls-fullname">{{ s.fullName }}</span>
@@ -696,6 +700,10 @@
             </div>
           }
         </div>
+        @if (leaveSummary().length > balancePageRows) {
+          <p-paginator [first]="summaryFirst()" [rows]="balancePageRows" [totalRecords]="leaveSummary().length"
+                       (onPageChange)="summaryFirst.set($event.first ?? 0)" />
+        }
       }
     </p-card>
 

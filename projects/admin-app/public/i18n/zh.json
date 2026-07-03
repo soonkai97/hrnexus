@@ -638,6 +638,7 @@
     "loading":      "加载中…",
     "changePhoto":  "更换",
     "addPhoto":     "添加照片",
+    "noImage":      "暂无图片",
     "editBtn":      "编辑",
     "deleteBtn":    "删除",
     "close":        "关闭",

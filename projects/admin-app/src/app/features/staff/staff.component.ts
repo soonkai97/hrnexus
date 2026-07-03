@@ -17,7 +17,6 @@ import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
-import { TooltipModule } from 'primeng/tooltip';
 import { Message } from 'primeng/message';
 import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
@@ -30,7 +29,7 @@ import { Checkbox } from 'primeng/checkbox';
   selector: 'app-staff',
   standalone: true,
   imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective,
-    Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, TooltipModule, Message, DatePicker,
+    Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, Message, DatePicker,
     MultiSelect, Menu, Paginator, Skeleton, Checkbox],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',

@@ -638,6 +638,7 @@
     "loading":      "Loading…",
     "changePhoto":  "Change",
     "addPhoto":     "Add Photo",
+    "noImage":      "No image",
     "editBtn":      "Edit",
     "deleteBtn":    "Delete",
     "close":        "Close",

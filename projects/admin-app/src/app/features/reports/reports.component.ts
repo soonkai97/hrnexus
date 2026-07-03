@@ -8,9 +8,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   AdminService, ReportResponse, ShiftDetailRow,
   StaffStore, StaffManagementService, ToastService, Staff,
-  toLocalDateString,
-  WorkLogService, UpdateWorkLogRequest, LocationStore,
-  TrimInputDirective, AmPmPipe, LocalizedNamePipe,
+  toLocalDateString, LocalizedNamePipe,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -22,8 +20,6 @@ import { Message } from 'primeng/message';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
-import { Dialog } from 'primeng/dialog';
-import { InputText } from 'primeng/inputtext';
 
 /** A dimension the grouped pivot can group shift rows by. */
 export type GroupDim = 'staff' | 'location' | 'job' | 'date';
@@ -45,9 +41,9 @@ export interface GroupedRow {
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, AmPmPipe, LocalizedNamePipe,
+  imports: [DecimalPipe, FormsModule, TranslatePipe, LocalizedNamePipe,
     Button, TableModule, Tag, Card, TooltipModule, DatePicker, Message,
-    Tabs, TabList, Tab, MultiSelect, Select, Dialog, InputText],
+    Tabs, TabList, Tab, MultiSelect, Select],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -56,8 +52,6 @@ export class ReportsComponent implements OnInit {
   private readonly staffStore         = inject(StaffStore);
   private readonly staffSvc           = inject(StaffManagementService);
   private readonly toast              = inject(ToastService);
-  private readonly workLogSvc         = inject(WorkLogService);
-  private readonly locationStore      = inject(LocationStore);
   private readonly translate          = inject(TranslateService);
   private readonly destroyRef         = inject(DestroyRef);
 
@@ -218,118 +212,12 @@ export class ReportsComponent implements OnInit {
     ];
   }
 
-  // ── Edit shift (manager can edit any staff's shift) ───────────────────────────
-  readonly locationOptions = computed(() =>
-    this.locationStore.locations().map(l => ({ label: l.name, value: l.id }))
-  );
-  // Edit-shift role dropdown — value is the GUID id (work-log update submits roleId). This is a
-  // DIFFERENT dropdown from the report role FILTER, which stays name-based (backend filters by RoleName snapshot).
-  readonly roleOptions = computed(() =>
-    this.staffStore.roles().map(r => ({ label: r.name.toUpperCase(), value: r.id }))
-  );
-
-  /** Map a role NAME (a ShiftDetailRow.role snapshot) to its GUID id via the loaded roles. */
-  private roleIdForName(name: string): string {
-    return this.staffStore.roles().find(r => r.name === name)?.id ?? '';
-  }
-
-  editShiftVisible = signal(false);
-  editShiftSaving  = signal(false);
-  editShiftError   = signal('');
-  editingShift     = signal<ShiftDetailRow | null>(null);
-  editShiftForm: UpdateWorkLogRequest = { roleId: '', locationId: '', workDate: '', startTime: '', endDate: '', endTime: '', notes: '' };
-  editShiftStartTimeDate: Date | null = null; // UI binding
-  editShiftEndDate:       Date | null = null; // UI binding (end date)
-  editShiftEndTimeDate:   Date | null = null; // UI binding
-
-  private toTimeStr(d: Date): string {
-    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-  }
-
-  private toDateStr(d: Date): string {
-    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-  }
-
-  private parseTime(t: string): Date | null {
-    if (!t) return null;
-    const [h = NaN, m = NaN] = t.split(':').map(Number);
-    if (isNaN(h) || isNaN(m)) return null;
-    const d = new Date();
-    d.setHours(h, m, 0, 0);
-    return d;
-  }
-
-  openEditShift(s: ShiftDetailRow): void {
-    this.editShiftForm = {
-      // s.role is a NAME snapshot — resolve to the role id the write DTO needs.
-      roleId:     this.roleIdForName(s.role),
-      locationId: s.locationId,
-      workDate:   s.workDate,
-      startTime:  s.startTime,
-      endDate:    s.endDate ?? s.workDate,
-      endTime:    s.endTime ?? '',
-      notes:      s.notes ?? '',
-    };
-    this.editShiftStartTimeDate = this.parseTime(s.startTime);
-    this.editShiftEndTimeDate   = this.parseTime(s.endTime ?? '');
-    this.editShiftEndDate       = new Date(`${s.endDate ?? s.workDate}T00:00:00`);
-    this.editShiftError.set('');
-    this.editingShift.set(s);
-    this.editShiftVisible.set(true);
-  }
-
-  cancelEditShift(): void {
-    this.editShiftVisible.set(false);
-    this.editingShift.set(null);
-    this.editShiftStartTimeDate = null;
-    this.editShiftEndDate       = null;
-    this.editShiftEndTimeDate   = null;
-  }
-
-  saveEditShift(): void {
-    const s = this.editingShift();
-    if (!s) return;
-    if (!this.editShiftForm.roleId || !this.editShiftForm.locationId ||
-        !this.editShiftForm.workDate || !this.editShiftStartTimeDate || !this.editShiftEndDate || !this.editShiftEndTimeDate) {
-      this.editShiftError.set(this.translate.instant('reports.errRequiredFields')); return;
-    }
-    const startTime = this.toTimeStr(this.editShiftStartTimeDate);
-    const endTime   = this.toTimeStr(this.editShiftEndTimeDate);
-    const endDate   = this.toDateStr(this.editShiftEndDate);
-    // Duration across explicit start/end dates — a multi-day span is allowed; reject only a
-    // non-positive span or an absurd one (likely a date typo).
-    const durationMins = (new Date(`${endDate}T${endTime}:00`).getTime()
-                        - new Date(`${this.editShiftForm.workDate}T${startTime}:00`).getTime()) / 60000;
-    if (durationMins <= 0) { this.editShiftError.set(this.translate.instant('reports.errSameTime')); return; }
-    if (durationMins > 14 * 1440) { this.editShiftError.set(this.translate.instant('reports.errTooLong')); return; }
-
-    this.editShiftSaving.set(true);
-    this.editShiftError.set('');
-    this.workLogSvc.update(s.id, { ...this.editShiftForm, startTime, endDate, endTime, notes: this.editShiftForm.notes || null }).subscribe({
-      next: () => {
-        this.editShiftSaving.set(false);
-        this.editShiftVisible.set(false);
-        this.editingShift.set(null);
-        this.editShiftStartTimeDate = null;
-        this.editShiftEndDate       = null;
-        this.editShiftEndTimeDate   = null;
-        this.toast.success(this.translate.instant('reports.shiftUpdated'));
-        this.runReport();
-      },
-      error: (e) => {
-        this.editShiftError.set(e?.error?.error ?? this.translate.instant('reports.shiftUpdateFailed'));
-        this.editShiftSaving.set(false);
-      },
-    });
-  }
-
   ngOnInit(): void {
     this.staffSvc.getAll('', 1, 999).subscribe({
       next: r => this.allStaff.set(r.items),
       error: () => {},
     });
     this.staffStore.loadRoles();
-    this.locationStore.load();
     this.staffSvc.getLocations().subscribe({
       next: locs => this.locations.set(locs.map(l => l.name)),
     });
@@ -425,11 +313,11 @@ export class ReportsComponent implements OnInit {
       ).join('\n');
     } else {
       // Customer log (the per-shift tab): staff name, working date, customer (the shift's notes
-      // field), location, job, clock in/out, total hours, total rate, status. English snapshot
-      // names in the CSV (canonical).
-      csv  = [t('reports.name'), t('reports.workingDate'), t('reports.customer'), t('reports.csvLocation'), t('reports.csvRole'), t('reports.csvClockedIn'), t('reports.csvClockedOut'), t('reports.totalHour'), t('reports.totalRate'), t('reports.csvStatus')].join(',') + '\n';
+      // field), location, job, total hours, total rate. Matches the on-screen columns; English
+      // snapshot names in the CSV (canonical).
+      csv  = [t('reports.name'), t('reports.workingDate'), t('reports.customer'), t('reports.csvLocation'), t('reports.csvRole'), t('reports.totalHour'), t('reports.totalRate')].join(',') + '\n';
       csv += r.shifts.map(s =>
-        `"${s.staffName}",${s.workDate},"${(s.notes ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}","${s.locationName}",${s.role},"${s.workDate} ${s.startTime}","${s.endTime ? ((s.endDate ?? s.workDate) + ' ' + s.endTime) : ''}",${s.hours},${s.cost.toFixed(2)},${s.status}`
+        `${q(s.staffName)},${s.workDate},${q(s.notes ?? '')},${q(s.locationName)},${s.role},${s.hours},${s.cost.toFixed(2)}`
       ).join('\n');
     }
 

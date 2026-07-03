@@ -178,7 +178,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+
+  // Let the tablist take its natural width instead of being squeezed by the flex row —
+  // a squeezed tablist made PrimeNG show scroll chevrons and clip the second tab label.
+  p-tabs { flex: 0 0 auto; }
 }
+
+// Belt-and-braces: never show the tablist scroll chevrons on the reports tabs (only 2 short tabs).
+:host :deep(.tab-nav-tabs .p-tablist-nav-button) { display: none; }
+:host :deep(.tab-nav-tabs .p-tablist),
+:host :deep(.tab-nav-tabs .p-tablist-content) { overflow: visible; }
 
 @media (max-width: 640px) {
   .tab-select-wrap { display: flex; }

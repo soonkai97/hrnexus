@@ -15,7 +15,6 @@ import {
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
-import { ProgressBar } from 'primeng/progressbar';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { DatePicker } from 'primeng/datepicker';
@@ -26,11 +25,28 @@ import { Select } from 'primeng/select';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 
+/** A dimension the grouped pivot can group shift rows by. */
+export type GroupDim = 'staff' | 'location' | 'job' | 'date';
+
+/** One displayed grouping cell (carries localized variants so the label can be translated). */
+interface GroupCell { dim: GroupDim; text: string; zh: string | null; vi: string | null; }
+
+/** One aggregated pivot row: the grouping cells plus the rolled-up measures. */
+export interface GroupedRow {
+  cells:    GroupCell[];
+  /** dim → cell text, used as the p-table sort field path (`sortKeys.staff`, …). */
+  sortKeys: Record<string, string>;
+  shifts:   number;
+  hours:    number;
+  avg:      number;
+  cost:     number;
+}
+
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, AmPmPipe, LocalizedNamePipe,
-    Button, TableModule, Tag, ProgressBar, Card, TooltipModule, DatePicker, Message,
+    Button, TableModule, Tag, Card, TooltipModule, DatePicker, Message,
     Tabs, TabList, Tab, MultiSelect, Select, Dialog, InputText],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
@@ -107,15 +123,90 @@ export class ReportsComponent implements OnInit {
   locationNames: string[] = [];
   roles:         string[] = [];
 
-  activeTab = signal<'employee' | 'location' | 'role' | 'date' | 'customer'>('employee');
+  activeTab = signal<'grouped' | 'customer'>('grouped');
 
   readonly tabOptions = [
-    { label: 'reports.byEmployee', value: 'employee' },
-    { label: 'reports.byLocation', value: 'location' },
-    { label: 'reports.byRole',     value: 'role'     },
-    { label: 'reports.byDate',     value: 'date'     },
+    { label: 'reports.grouped',     value: 'grouped'  },
     { label: 'reports.customerLog', value: 'customer' },
   ];
+
+  // ── Grouped pivot ─────────────────────────────────────────────────────────────
+  // The old By-Staff / By-Location / By-Job / By-Date tabs were four frozen views of the
+  // same per-shift data. They are now one dynamic pivot: pick any dimension(s) to group by
+  // and the aggregation is computed client-side from report().shifts — no backend call.
+  readonly groupDimOptions: { label: string; value: GroupDim }[] = [
+    { label: 'reports.groupStaff',    value: 'staff'    },
+    { label: 'reports.groupLocation', value: 'location' },
+    { label: 'reports.groupJob',      value: 'job'      },
+    { label: 'reports.groupDate',     value: 'date'     },
+  ];
+
+  private readonly dimLabels: Record<GroupDim, string> = {
+    staff: 'reports.groupStaff', location: 'reports.groupLocation', job: 'reports.groupJob', date: 'reports.groupDate',
+  };
+  dimLabelKey(dim: GroupDim): string { return this.dimLabels[dim]; }
+
+  groupBy = signal<GroupDim[]>(['staff']);
+
+  /** Never allow an empty grouping — fall back to Staff so the pivot always has ≥1 dimension. */
+  onGroupByChange(dims: GroupDim[]): void {
+    this.groupBy.set(dims && dims.length ? dims : ['staff']);
+  }
+
+  /** Translated "Staff + Job" style label for the multiselect's collapsed display. */
+  groupByLabel(): string {
+    return this.groupBy().map(d => this.translate.instant(this.dimLabelKey(d))).join(' + ');
+  }
+
+  /** The pivot rows — recomputed whenever the report or the chosen dimensions change. */
+  readonly groupedRows = computed<GroupedRow[]>(() =>
+    this.buildGroups(this.report()?.shifts ?? [], this.groupBy()),
+  );
+
+  private dimKey(dim: GroupDim, s: ShiftDetailRow): string {
+    switch (dim) {
+      case 'staff':    return s.staffId;
+      case 'location': return s.locationId;
+      case 'job':      return s.role;
+      case 'date':     return s.workDate;
+    }
+  }
+
+  private dimCell(dim: GroupDim, s: ShiftDetailRow): GroupCell {
+    switch (dim) {
+      case 'staff':    return { dim, text: s.staffName,    zh: null,                   vi: null };
+      case 'location': return { dim, text: s.locationName, zh: s.locationNameZh ?? null, vi: s.locationNameVi ?? null };
+      case 'job':      return { dim, text: s.role,         zh: s.roleZh ?? null,         vi: s.roleVi ?? null };
+      case 'date':     return { dim, text: s.workDate,     zh: null,                   vi: null };
+    }
+  }
+
+  /** Group the raw shift rows by the chosen dimension(s) and roll up shifts/hours/cost/avg. */
+  private buildGroups(shifts: ShiftDetailRow[], dims: GroupDim[]): GroupedRow[] {
+    const ds = dims.length ? dims : (['staff'] as GroupDim[]);
+    const map = new Map<string, GroupedRow>();
+    for (const s of shifts) {
+      const key = ds.map(d => this.dimKey(d, s)).join('␟');
+      let row = map.get(key);
+      if (!row) {
+        const cells = ds.map(d => this.dimCell(d, s));
+        const sortKeys: Record<string, string> = {};
+        for (const c of cells) sortKeys[c.dim] = c.text ?? '';
+        row = { cells, sortKeys, shifts: 0, hours: 0, avg: 0, cost: 0 };
+        map.set(key, row);
+      }
+      row.shifts += 1;
+      row.hours  += s.hours;
+      row.cost   += s.cost;
+    }
+    const rows = [...map.values()];
+    for (const r of rows) {
+      r.avg   = r.shifts ? r.hours / r.shifts : 0;
+      r.hours = Math.round(r.hours * 100) / 100;
+      r.cost  = Math.round(r.cost  * 100) / 100;
+    }
+    return rows;
+  }
 
   get datePresets() {
     return [
@@ -232,11 +323,6 @@ export class ReportsComponent implements OnInit {
     });
   }
 
-  maxLocationCost = computed(() => {
-    const rows = this.report()?.byLocation ?? [];
-    return rows.length ? Math.max(...rows.map(r => r.cost)) : 1;
-  });
-
   ngOnInit(): void {
     this.staffSvc.getAll('', 1, 999).subscribe({
       next: r => this.allStaff.set(r.items),
@@ -327,26 +413,15 @@ export class ReportsComponent implements OnInit {
     const tab = this.activeTab();
 
     const t = (k: string) => this.translate.instant(k);
+    const q = (v: string) => `"${(v ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
     let csv = '';
-    if (tab === 'employee') {
-      csv  = [t('reports.csvStaffId'), t('reports.csvName'), t('reports.csvRole'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvAvgHShift'), t('reports.csvGrossPay')].join(',') + '\n';
-      csv += r.byStaff.map(e =>
-        `${e.staffId},"${e.name}",${e.role},${e.shifts},${e.hours},${e.avgHoursPerShift},${e.cost.toFixed(2)}`
-      ).join('\n');
-    } else if (tab === 'location') {
-      csv  = [t('reports.csvLocation'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvLabourCost')].join(',') + '\n';
-      csv += r.byLocation.map(l =>
-        `"${l.locationName}",${l.shifts},${l.hours},${l.cost.toFixed(2)}`
-      ).join('\n');
-    } else if (tab === 'role') {
-      csv  = [t('reports.csvRole'), t('reports.csvStaffCount'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvLabourCost')].join(',') + '\n';
-      csv += r.byRole.map(ro =>
-        `${ro.role},${ro.staffCount},${ro.shifts},${ro.hours},${ro.cost.toFixed(2)}`
-      ).join('\n');
-    } else if (tab === 'date') {
-      csv  = [t('reports.csvDate'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvLabourCost')].join(',') + '\n';
-      csv += r.byDate.map(d =>
-        `${d.date},${d.shifts},${d.hours},${d.cost.toFixed(2)}`
+    if (tab === 'grouped') {
+      // Dynamic layout: one column per chosen dimension, then the rolled-up measures.
+      // Dimension cells use the canonical English snapshot text (not the localized label).
+      const dims = this.groupBy();
+      csv  = [...dims.map(d => t(this.dimLabelKey(d))), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvAvgHShift'), t('reports.csvGrossPay')].join(',') + '\n';
+      csv += this.groupedRows().map(row =>
+        [...row.cells.map(c => q(c.text)), row.shifts, row.hours, row.avg.toFixed(1), row.cost.toFixed(2)].join(',')
       ).join('\n');
     } else {
       // Customer log (the per-shift tab): staff name, working date, customer (the shift's notes

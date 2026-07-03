@@ -380,29 +380,71 @@ describe('ReportsComponent', () => {
     });
   });
 
-  // ── maxLocationCost computed ──────────────────────────────────────────────────
+  // ── Grouped pivot (groupedRows) ───────────────────────────────────────────────
+  // WHY: the four old aggregate tabs are now one client-side pivot over report().shifts.
+  // If grouping keys or roll-ups are wrong, every aggregate view (and its CSV) is wrong.
 
-  describe('maxLocationCost computed', () => {
-    it('returns the highest cost across all location rows', () => {
-      component.report.set({
-        ...fakeReport,
-        byLocation: [
-          { locationName: 'A', shifts: 1, hours: 8, cost: 100 },
-          { locationName: 'B', shifts: 1, hours: 8, cost: 400 },
-          { locationName: 'C', shifts: 1, hours: 8, cost: 250 },
-        ],
-      } as any);
-      expect(component.maxLocationCost()).toBe(400);
+  const shift = (over: Record<string, unknown>) => ({
+    id: 'w', staffId: 'S1', staffName: 'Alpha', role: 'bartender', payType: 'hourly',
+    locationId: 'L1', locationName: 'Main Bar', workDate: '2026-05-10',
+    startTime: '18:00', endDate: '2026-05-10', endTime: '23:00',
+    clockedIn: 'x', clockedOut: 'y', hours: 5, cost: 100, status: 'completed', ...over,
+  });
+
+  describe('groupedRows (pivot)', () => {
+    it('defaults to grouping by staff — one row per staffId', () => {
+      component.report.set({ ...fakeReport, shifts: [
+        shift({ staffId: 'S1', staffName: 'Alpha' }),
+        shift({ staffId: 'S1', staffName: 'Alpha' }),
+        shift({ staffId: 'S2', staffName: 'Beta' }),
+      ] } as any);
+      const rows = component.groupedRows();
+      expect(rows.length).toBe(2);
     });
 
-    it('returns 1 when there are no location rows — prevents division by zero in progress bars', () => {
-      component.report.set({ ...fakeReport, byLocation: [] } as any);
-      expect(component.maxLocationCost()).toBe(1);
+    it('rolls up shifts, hours and cost per group', () => {
+      component.report.set({ ...fakeReport, shifts: [
+        shift({ staffId: 'S1', hours: 5, cost: 100 }),
+        shift({ staffId: 'S1', hours: 3, cost: 60 }),
+      ] } as any);
+      const [row] = component.groupedRows();
+      expect(row!.shifts).toBe(2);
+      expect(row!.hours).toBe(8);
+      expect(row!.cost).toBe(160);
+      expect(row!.avg).toBe(4);
     });
 
-    it('returns 1 when report is null', () => {
-      component.report.set(null);
-      expect(component.maxLocationCost()).toBe(1);
+    it('groups by a composite key when two dimensions are chosen (staff + job)', () => {
+      component.groupBy.set(['staff', 'job']);
+      component.report.set({ ...fakeReport, shifts: [
+        shift({ staffId: 'S1', role: 'bartender' }),
+        shift({ staffId: 'S1', role: 'dj' }),        // same staff, different job → distinct group
+        shift({ staffId: 'S1', role: 'bartender' }), // merges with the first
+      ] } as any);
+      const rows = component.groupedRows();
+      expect(rows.length).toBe(2);
+      expect(rows.every(r => r.cells.length === 2)).toBe(true);
+    });
+
+    it('carries a sortKey per dimension so the table can sort by the group column', () => {
+      component.groupBy.set(['location']);
+      component.report.set({ ...fakeReport, shifts: [
+        shift({ locationId: 'L1', locationName: 'Main Bar' }),
+      ] } as any);
+      const [row] = component.groupedRows();
+      expect(row!.sortKeys['location']).toBe('Main Bar');
+    });
+  });
+
+  describe('onGroupByChange()', () => {
+    it('never allows an empty grouping — falls back to staff', () => {
+      component.onGroupByChange([]);
+      expect(component.groupBy()).toEqual(['staff']);
+    });
+
+    it('applies the chosen dimensions when non-empty', () => {
+      component.onGroupByChange(['location', 'date']);
+      expect(component.groupBy()).toEqual(['location', 'date']);
     });
   });
 
@@ -437,7 +479,7 @@ describe('ReportsComponent', () => {
       expect(component.reportExporting()).toBe(false);
     });
 
-    it('uses employee tab column headers when activeTab is "employee"', () => {
+    it('exports the grouped pivot (one column per dimension) when activeTab is "grouped"', () => {
       let capturedBlob: Blob | null = null;
       vi.spyOn(URL, 'createObjectURL').mockImplementation((b) => { capturedBlob = b as Blob; return 'blob:fake'; });
       vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
@@ -445,12 +487,13 @@ describe('ReportsComponent', () => {
         Object.assign(document.createElement('a'), { click: vi.fn() }),
       );
       component.report.set(fakeReport as any);
-      component.activeTab.set('employee');
+      component.groupBy.set(['staff']);
+      component.activeTab.set('grouped');
       component.downloadReportCsv();
       expect(capturedBlob).not.toBeNull();
     });
 
-    it('uses location tab column headers when activeTab is "location"', () => {
+    it('exports the per-shift customer log when activeTab is "customer"', () => {
       let capturedBlob: Blob | null = null;
       vi.spyOn(URL, 'createObjectURL').mockImplementation((b) => { capturedBlob = b as Blob; return 'blob:fake'; });
       vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
@@ -458,7 +501,7 @@ describe('ReportsComponent', () => {
         Object.assign(document.createElement('a'), { click: vi.fn() }),
       );
       component.report.set(fakeReport as any);
-      component.activeTab.set('location');
+      component.activeTab.set('customer');
       component.downloadReportCsv();
       expect(capturedBlob).not.toBeNull();
     });

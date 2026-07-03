@@ -12,6 +12,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 import { SelectButton } from 'primeng/selectbutton';
+import { Paginator } from 'primeng/paginator';
 
 const LEAVE_TYPES = ['annual', 'sick', 'unpaid', 'emergency'] as const;
 type StaffLeaveType = typeof LEAVE_TYPES[number];
@@ -20,7 +21,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
   selector: 'app-my-leave',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe, AmPmPipe, TrimInputDirective,
-    Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton],
+    Button, Card, Tag, Select, InputText, Message, Skeleton, DatePicker, SelectButton, Paginator],
   templateUrl: './my-leave.component.html',
   styleUrl: './my-leave.component.scss',
 })
@@ -108,6 +109,21 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     const type = this.filterLeaveType();
     return type ? this.records().filter(r => r.leaveType === type) : this.records();
   });
+
+  // Client-side pagination of the history LIST view (the calendar view uses the full set).
+  readonly leavePageRows = 10;
+  readonly leaveFirst    = signal(0);
+  readonly pagedRecords  = computed(() => {
+    const all = this.filteredRecords();
+    const start = this.leaveFirst() >= all.length ? 0 : this.leaveFirst();
+    return all.slice(start, start + this.leavePageRows);
+  });
+
+  /** Change the type filter and jump back to the first page. */
+  setLeaveFilter(value: string): void {
+    this.filterLeaveType.set(value);
+    this.leaveFirst.set(0);
+  }
 
   get presetTypes() {
     return [

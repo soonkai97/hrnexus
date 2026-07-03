@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, LocalizedNamePipe } from 'shared-lib';
@@ -7,12 +7,13 @@ import { InputText } from 'primeng/inputtext';
 import { Card } from 'primeng/card';
 import { TooltipModule } from 'primeng/tooltip';
 import { Dialog } from 'primeng/dialog';
+import { Paginator } from 'primeng/paginator';
 import { PrimeTemplate } from 'primeng/api';   // provides the pTemplate="footer" directive
 
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Dialog, PrimeTemplate, LocalizedNamePipe],
+  imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Dialog, Paginator, PrimeTemplate, LocalizedNamePipe],
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss',
 })
@@ -24,6 +25,16 @@ export class LocationsComponent implements OnInit, CanComponentDeactivate {
 
   readonly locations = this.store.locations;
   readonly loading   = this.store.loading;
+
+  // Client-side pagination of the location cards.
+  readonly pageRows = 12;
+  readonly first    = signal(0);
+  readonly pagedLocations = computed(() => {
+    const all = this.locations();
+    // Clamp when the list shrinks (e.g. after a delete) so we never land on an empty page.
+    const start = this.first() >= all.length ? 0 : this.first();
+    return all.slice(start, start + this.pageRows);
+  });
 
   showForm   = signal(false);
   editing    = signal<Location | null>(null);

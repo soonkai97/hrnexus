@@ -192,6 +192,21 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   leaveSummary         = signal<LeaveSummary[]>([]);
   leaveSummaryLoading  = signal(false);
   patternWarnings      = signal<LeavePatternWarning[]>([]);
+
+  // Client-side pagination for the two Balances-tab lists (balance overview + summary table).
+  readonly balancePageRows   = 15;
+  readonly balanceFirst      = signal(0);
+  readonly summaryFirst      = signal(0);
+  readonly pagedAllBalances  = computed(() => {
+    const all = this.allBalances();
+    const start = this.balanceFirst() >= all.length ? 0 : this.balanceFirst();
+    return all.slice(start, start + this.balancePageRows);
+  });
+  readonly pagedLeaveSummary = computed(() => {
+    const all = this.leaveSummary();
+    const start = this.summaryFirst() >= all.length ? 0 : this.summaryFirst();
+    return all.slice(start, start + this.balancePageRows);
+  });
   patternLoading       = signal(false);
 
   /** Item 3: bulk selection */
@@ -580,8 +595,8 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  prevBalanceYear(): void { this.balanceYear.update(y => y - 1); this.loadBalances(); this.loadLeaveSummary(); }
-  nextBalanceYear(): void { this.balanceYear.update(y => y + 1); this.loadBalances(); this.loadLeaveSummary(); }
+  prevBalanceYear(): void { this.balanceYear.update(y => y - 1); this.balanceFirst.set(0); this.summaryFirst.set(0); this.loadBalances(); this.loadLeaveSummary(); }
+  nextBalanceYear(): void { this.balanceYear.update(y => y + 1); this.balanceFirst.set(0); this.summaryFirst.set(0); this.loadBalances(); this.loadLeaveSummary(); }
 
   toggleEntitlementEdit(): void { this.editingEntitlement.update(v => !v); }
 

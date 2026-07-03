@@ -95,7 +95,8 @@
       <div class="section-label mt-4">{{ 'dashboard.currentlyOnShift' | translate }}</div>
       <p-card styleClass="table-card p-0">
         <p-table [value]="onShift()" [tableStyle]="{'min-width':'100%'}"
-          sortField="clockedInAt" [sortOrder]="1">
+          sortField="clockedInAt" [sortOrder]="1"
+          [paginator]="onShift().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
           <ng-template pTemplate="header">
             <tr>
               <th pSortableColumn="staffId">{{ 'dashboard.staffId' | translate }} <p-sortIcon field="staffId" /></th>

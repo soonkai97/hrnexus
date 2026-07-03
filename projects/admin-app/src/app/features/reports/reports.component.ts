@@ -107,7 +107,7 @@ export class ReportsComponent implements OnInit {
   locationNames: string[] = [];
   roles:         string[] = [];
 
-  activeTab = signal<'employee' | 'location' | 'role' | 'date' | 'shifts'>('employee');
+  activeTab = signal<'employee' | 'location' | 'role' | 'date' | 'shifts' | 'customer'>('employee');
 
   readonly tabOptions = [
     { label: 'reports.byEmployee', value: 'employee' },
@@ -115,6 +115,7 @@ export class ReportsComponent implements OnInit {
     { label: 'reports.byRole',     value: 'role'     },
     { label: 'reports.byDate',     value: 'date'     },
     { label: 'reports.allShifts',  value: 'shifts'   },
+    { label: 'reports.customerLog', value: 'customer' },
   ];
 
   get datePresets() {
@@ -347,6 +348,13 @@ export class ReportsComponent implements OnInit {
       csv  = [t('reports.csvDate'), t('reports.csvShifts'), t('reports.csvHours'), t('reports.csvLabourCost')].join(',') + '\n';
       csv += r.byDate.map(d =>
         `${d.date},${d.shifts},${d.hours},${d.cost.toFixed(2)}`
+      ).join('\n');
+    } else if (tab === 'customer') {
+      // Customer log: staff name, working date, customer (the shift's notes field), location, job,
+      // clock in/out, total hours, total rate. English snapshot names in the CSV (canonical).
+      csv  = [t('reports.name'), t('reports.workingDate'), t('reports.customer'), t('reports.csvLocation'), t('reports.csvRole'), t('reports.csvClockedIn'), t('reports.csvClockedOut'), t('reports.totalHour'), t('reports.totalRate')].join(',') + '\n';
+      csv += r.shifts.map(s =>
+        `"${s.staffName}",${s.workDate},"${(s.notes ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}","${s.locationName}",${s.role},"${s.workDate} ${s.startTime}","${s.endTime ? ((s.endDate ?? s.workDate) + ' ' + s.endTime) : ''}",${s.hours},${s.cost.toFixed(2)}`
       ).join('\n');
     } else {
       csv  = [t('reports.csvStaffId'), t('reports.csvName'), t('reports.csvRole'), t('reports.csvPayType'), t('reports.csvLocation'), t('reports.csvClockedIn'), t('reports.csvClockedOut'), t('reports.csvHours'), t('reports.csvCost'), t('reports.csvStatus'), t('reports.shiftNotes')].join(',') + '\n';

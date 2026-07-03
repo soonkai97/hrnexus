@@ -163,10 +163,7 @@
         <div class="tab-bar-wrap">
           <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))" styleClass="tab-nav-tabs">
             <p-tablist>
-              <p-tab value="employee">{{ 'reports.byEmployee' | translate }}</p-tab>
-              <p-tab value="location">{{ 'reports.byLocation' | translate }}</p-tab>
-              <p-tab value="role">{{ 'reports.byRole' | translate }}</p-tab>
-              <p-tab value="date">{{ 'reports.byDate' | translate }}</p-tab>
+              <p-tab value="grouped">{{ 'reports.grouped' | translate }}</p-tab>
               <p-tab value="customer">{{ 'reports.customerLog' | translate }}</p-tab>
             </p-tablist>
           </p-tabs>
@@ -178,127 +175,53 @@
 
       </div>
 
-      <!-- By Employee -->
-      @if (activeTab() === 'employee') {
+      <!-- Grouped pivot — pick any dimension(s) to group the shifts by -->
+      @if (activeTab() === 'grouped') {
+        <div class="group-by-bar d-flex align-items-center gap-2 flex-wrap">
+          <label class="group-by-label" for="rep-group-by">{{ 'reports.groupBy' | translate }}</label>
+          <p-multiselect inputId="rep-group-by"
+            [ngModel]="groupBy()" (ngModelChange)="onGroupByChange($any($event))"
+            [options]="groupDimOptions" optionValue="value" optionLabel="label"
+            [showToggleAll]="false" [showClear]="false"
+            appendTo="body" styleClass="group-by-select">
+            <ng-template pTemplate="selectedItems">{{ groupByLabel() }}</ng-template>
+            <ng-template pTemplate="item" let-opt>{{ opt.label | translate }}</ng-template>
+          </p-multiselect>
+        </div>
+
         <p-card styleClass="table-card report-table-card p-0">
-          <p-table [value]="r.byStaff" [tableStyle]="{'min-width':'100%'}"
+          <p-table [value]="groupedRows()" [tableStyle]="{'min-width':'100%'}"
             sortField="hours" [sortOrder]="-1">
             <ng-template pTemplate="header">
               <tr>
-                <th pSortableColumn="staffId">{{ 'reports.staffId' | translate }} <p-sortIcon field="staffId" /></th>
-                <th pSortableColumn="name">{{ 'reports.name' | translate }} <p-sortIcon field="name" /></th>
-                <th pSortableColumn="role">{{ 'dashboard.role' | translate }} <p-sortIcon field="role" /></th>
+                @for (dim of groupBy(); track dim) {
+                  <th [pSortableColumn]="'sortKeys.' + dim">{{ dimLabelKey(dim) | translate }} <p-sortIcon [field]="'sortKeys.' + dim" /></th>
+                }
                 <th pSortableColumn="shifts">{{ 'reports.shifts' | translate }} <p-sortIcon field="shifts" /></th>
                 <th pSortableColumn="hours">{{ 'reports.hours' | translate }} <p-sortIcon field="hours" /></th>
-                <th pSortableColumn="avgHoursPerShift">{{ 'reports.avgHShift' | translate }} <p-sortIcon field="avgHoursPerShift" /></th>
-                <th pSortableColumn="cost">{{ 'reports.grossPay' | translate }} <p-sortIcon field="cost" /></th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-e>
-              <tr>
-                <td class="td-muted mono">{{ e.staffId }}</td>
-                <td class="td-name">{{ e.name }}</td>
-                <td><p-tag [value]="e.role | localizedName: e.roleZh : e.roleVi" severity="info" /></td>
-                <td class="td-muted">{{ e.shifts }}</td>
-                <td class="td-muted">{{ e.hours }}h</td>
-                <td class="td-muted">{{ e.avgHoursPerShift }}h</td>
-                <td class="td-pay">RM {{ e.cost | number:'1.2-2' }}</td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr><td colspan="7" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
-            </ng-template>
-          </p-table>
-        </p-card>
-      }
-
-      <!-- By Location -->
-      @if (activeTab() === 'location') {
-        <p-card styleClass="table-card report-table-card p-0">
-          <p-table [value]="r.byLocation" [tableStyle]="{'min-width':'100%'}"
-            sortField="cost" [sortOrder]="-1">
-            <ng-template pTemplate="header">
-              <tr>
-                <th pSortableColumn="locationName">{{ 'reports.location' | translate }} <p-sortIcon field="locationName" /></th>
-                <th pSortableColumn="shifts">{{ 'reports.shifts' | translate }} <p-sortIcon field="shifts" /></th>
-                <th pSortableColumn="hours">{{ 'reports.hours' | translate }} <p-sortIcon field="hours" /></th>
-                <th class="th-bar">{{ 'reports.costShare' | translate }}</th>
+                <th pSortableColumn="avg">{{ 'reports.avgHShift' | translate }} <p-sortIcon field="avg" /></th>
                 <th pSortableColumn="cost">{{ 'reports.labourCostCol' | translate }} <p-sortIcon field="cost" /></th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-loc>
+            <ng-template pTemplate="body" let-row>
               <tr>
-                <td class="td-name">{{ loc.locationName | localizedName: loc.locationNameZh : loc.locationNameVi }}</td>
-                <td class="td-muted">{{ loc.shifts }}</td>
-                <td class="td-muted">{{ loc.hours }}h</td>
-                <td class="td-bar">
-                  <p-progressbar class="loc-bar"
-                    [value]="maxLocationCost() > 0 ? (loc.cost / maxLocationCost()) * 100 : 0"
-                    [showValue]="false" />
-                </td>
-                <td class="td-pay">RM {{ loc.cost | number:'1.2-2' }}</td>
+                @for (c of row.cells; track c.dim) {
+                  <td>
+                    @if (c.dim === 'job') {
+                      <p-tag [value]="c.text | localizedName: c.zh : c.vi" severity="info" />
+                    } @else {
+                      <span class="td-name">{{ c.text | localizedName: c.zh : c.vi }}</span>
+                    }
+                  </td>
+                }
+                <td class="td-muted">{{ row.shifts }}</td>
+                <td class="td-muted">{{ row.hours }}h</td>
+                <td class="td-muted">{{ row.avg | number:'1.0-1' }}h</td>
+                <td class="td-pay">RM {{ row.cost | number:'1.2-2' }}</td>
               </tr>
             </ng-template>
             <ng-template pTemplate="emptymessage">
-              <tr><td colspan="5" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
-            </ng-template>
-          </p-table>
-        </p-card>
-      }
-
-      <!-- By Role -->
-      @if (activeTab() === 'role') {
-        <p-card styleClass="table-card report-table-card p-0">
-          <p-table [value]="r.byRole" [tableStyle]="{'min-width':'100%'}"
-            sortField="shifts" [sortOrder]="-1">
-            <ng-template pTemplate="header">
-              <tr>
-                <th pSortableColumn="role">{{ 'dashboard.role' | translate }} <p-sortIcon field="role" /></th>
-                <th pSortableColumn="staffCount">{{ 'reports.staffCount' | translate }} <p-sortIcon field="staffCount" /></th>
-                <th pSortableColumn="shifts">{{ 'reports.shifts' | translate }} <p-sortIcon field="shifts" /></th>
-                <th pSortableColumn="hours">{{ 'reports.hours' | translate }} <p-sortIcon field="hours" /></th>
-                <th pSortableColumn="cost">{{ 'reports.labourCostCol' | translate }} <p-sortIcon field="cost" /></th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-ro>
-              <tr>
-                <td><p-tag [value]="ro.role | localizedName: ro.roleZh : ro.roleVi" severity="info" /></td>
-                <td class="td-muted">{{ ro.staffCount }}</td>
-                <td class="td-muted">{{ ro.shifts }}</td>
-                <td class="td-muted">{{ ro.hours }}h</td>
-                <td class="td-pay">RM {{ ro.cost | number:'1.2-2' }}</td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr><td colspan="5" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
-            </ng-template>
-          </p-table>
-        </p-card>
-      }
-
-      <!-- By Date -->
-      @if (activeTab() === 'date') {
-        <p-card styleClass="table-card report-table-card p-0">
-          <p-table [value]="r.byDate" [tableStyle]="{'min-width':'100%'}"
-            sortField="date" [sortOrder]="1">
-            <ng-template pTemplate="header">
-              <tr>
-                <th pSortableColumn="date">{{ 'common.date' | translate }} <p-sortIcon field="date" /></th>
-                <th pSortableColumn="shifts">{{ 'reports.shifts' | translate }} <p-sortIcon field="shifts" /></th>
-                <th pSortableColumn="hours">{{ 'reports.hours' | translate }} <p-sortIcon field="hours" /></th>
-                <th pSortableColumn="cost">{{ 'reports.labourCostCol' | translate }} <p-sortIcon field="cost" /></th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-d>
-              <tr>
-                <td class="td-name">{{ d.date }}</td>
-                <td class="td-muted">{{ d.shifts }}</td>
-                <td class="td-muted">{{ d.hours }}h</td>
-                <td class="td-pay">RM {{ d.cost | number:'1.2-2' }}</td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr><td colspan="4" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
+              <tr><td [attr.colspan]="groupBy().length + 4" class="td-empty">{{ 'common.noData' | translate }}</td></tr>
             </ng-template>
           </p-table>
         </p-card>

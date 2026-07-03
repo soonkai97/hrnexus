@@ -185,20 +185,21 @@
   .tab-bar-wrap    { display: none; }
 }
 
-// ── Location breakdown (table) ────────────────────────────────────────────────
+// ── Grouped pivot — group-by picker ───────────────────────────────────────────
 
-.th-bar  { width: 35%; min-width: 120px; }
-.td-bar  { width: 35%; min-width: 120px; padding-right: 1.25rem; }
+.group-by-bar {
+  margin: 0.75rem 0 0.4rem;
 
-:host :deep(.loc-bar .p-progressbar) {
-  height: 6px;
-  background: $bg-raised;
-  border-radius: 3px;
-}
-:host :deep(.loc-bar .p-progressbar-value) {
-  background: $neon-purple;
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
-  transition: width 0.6s ease;
+  .group-by-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+  }
+
+  .group-by-select { min-width: 220px; }
 }
 
 // ── Mobile ────────────────────────────────────────────────────────────────────

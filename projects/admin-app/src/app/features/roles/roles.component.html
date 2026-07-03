@@ -98,7 +98,8 @@
   } @else {
   <p-card styleClass="table-card p-0">
     <p-table [value]="roles()" [tableStyle]="{'min-width':'100%'}"
-      sortField="name" [sortOrder]="1">
+      sortField="name" [sortOrder]="1"
+      [paginator]="roles().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
       <ng-template pTemplate="header">
         <tr>
           <th scope="col" pSortableColumn="name">{{ 'roles.roleNameCol' | translate }} <p-sortIcon field="name" /></th>

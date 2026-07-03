@@ -99,6 +99,7 @@
     "colName":           "Tên",
     "colTotalHrs":       "Tổng giờ",
     "colWorkPay":        "Lương làm việc (RM)",
+    "searchPlaceholder": "Tìm theo tên hoặc mã nhân viên…",
     "note":              "Lương làm việc = tổng số giờ ca × mức lương theo giờ. Mọi ngày nghỉ đều không lương.",
     "emptyState":        "Chọn năm và tháng, sau đó nhấn Xem để tải dữ liệu bảng lương.",
     "viewPayslip":       "Phiếu lương",

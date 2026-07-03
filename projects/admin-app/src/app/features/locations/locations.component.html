@@ -41,7 +41,7 @@
 
   <!-- Grid -->
   <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
-    @for (loc of locations(); track loc.id) {
+    @for (loc of pagedLocations(); track loc.id) {
       <div class="col">
       <p-card styleClass="loc-card h-100">
         <!-- Image area -->
@@ -87,4 +87,9 @@
       }
     }
   </div>
+
+  @if (locations().length > pageRows) {
+    <p-paginator [first]="first()" [rows]="pageRows" [totalRecords]="locations().length"
+                 (onPageChange)="first.set($event.first ?? 0)" />
+  }
 </div>

@@ -168,6 +168,7 @@
               <p-tab value="role">{{ 'reports.byRole' | translate }}</p-tab>
               <p-tab value="date">{{ 'reports.byDate' | translate }}</p-tab>
               <p-tab value="shifts">{{ 'reports.allShifts' | translate }}</p-tab>
+              <p-tab value="customer">{{ 'reports.customerLog' | translate }}</p-tab>
             </p-tablist>
           </p-tabs>
           <p-button icon="pi pi-download"
@@ -357,6 +358,44 @@
             </ng-template>
             <ng-template pTemplate="emptymessage">
               <tr><td colspan="11" class="td-empty">{{ 'reports.noShiftsInPeriod' | translate }}</td></tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      }
+
+      <!-- Customer log — per-shift, with the notes field surfaced as the served "Customer" -->
+      @if (activeTab() === 'customer') {
+        <p-card styleClass="table-card report-table-card p-0">
+          <p-table [value]="r.shifts" [tableStyle]="{'min-width':'100%'}"
+            sortField="staffName" [sortOrder]="1">
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="staffName">{{ 'reports.name' | translate }} <p-sortIcon field="staffName" /></th>
+                <th pSortableColumn="workDate">{{ 'reports.workingDate' | translate }} <p-sortIcon field="workDate" /></th>
+                <th>{{ 'reports.customer' | translate }}</th>
+                <th pSortableColumn="locationName">{{ 'dashboard.location' | translate }} <p-sortIcon field="locationName" /></th>
+                <th pSortableColumn="role">{{ 'dashboard.role' | translate }} <p-sortIcon field="role" /></th>
+                <th pSortableColumn="clockedIn">{{ 'reports.clockedIn' | translate }} <p-sortIcon field="clockedIn" /></th>
+                <th pSortableColumn="clockedOut">{{ 'reports.clockedOut' | translate }} <p-sortIcon field="clockedOut" /></th>
+                <th pSortableColumn="hours">{{ 'reports.totalHour' | translate }} <p-sortIcon field="hours" /></th>
+                <th pSortableColumn="cost">{{ 'reports.totalRate' | translate }} <p-sortIcon field="cost" /></th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-s>
+              <tr>
+                <td class="td-name">{{ s.staffName }}</td>
+                <td class="td-muted">{{ s.workDate }}</td>
+                <td class="td-muted td-notes" [pTooltip]="s.notes || ''" tooltipPosition="top">{{ s.notes || '—' }}</td>
+                <td class="td-muted">{{ s.locationName | localizedName: s.locationNameZh : s.locationNameVi }}</td>
+                <td><p-tag [value]="s.role | localizedName: s.roleZh : s.roleVi" severity="info" /></td>
+                <td class="td-muted">{{ s.workDate }} · {{ s.startTime | amPm }}</td>
+                <td class="td-muted">{{ s.endTime ? ((s.endDate ?? s.workDate) + ' · ') : '' }}{{ s.endTime | amPm }}</td>
+                <td>{{ s.hours }}h</td>
+                <td class="td-pay">RM {{ s.cost | number:'1.2-2' }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="9" class="td-empty">{{ 'reports.noShiftsInPeriod' | translate }}</td></tr>
             </ng-template>
           </p-table>
         </p-card>

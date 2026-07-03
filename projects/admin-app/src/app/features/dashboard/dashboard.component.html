@@ -143,7 +143,8 @@
     <div class="section-label mt-4">{{ 'dashboard.recentClockActivity' | translate }}</div>
     <p-card styleClass="table-card p-0">
       <p-table [value]="activity()" [tableStyle]="{'min-width':'100%'}"
-        sortField="timestamp" [sortOrder]="-1">
+        sortField="timestamp" [sortOrder]="-1"
+        [paginator]="activity().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
         <ng-template pTemplate="header">
           <tr>
             <th pSortableColumn="staffName">{{ 'dashboard.staff' | translate }} <p-sortIcon field="staffName" /></th>

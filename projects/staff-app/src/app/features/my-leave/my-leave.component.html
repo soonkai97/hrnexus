@@ -168,7 +168,7 @@
             size="small"
             [outlined]="filterLeaveType() !== p.value"
             [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'secondary' : 'primary'"
-            (click)="filterLeaveType.set(p.value)" />
+            (click)="setLeaveFilter(p.value)" />
         }
       </div>
       <!-- Item 8: view toggle -->
@@ -306,7 +306,7 @@
         </p-card>
       } @else {
         <div class="leave-list">
-          @for (r of filteredRecords(); track r.id) {
+          @for (r of pagedRecords(); track r.id) {
             <p-card styleClass="leave-card">
               <div class="leave-top">
                 <p-tag [value]="('leave.type.' + r.leaveType) | translate" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'emergency' ? 'warn' : 'secondary'" />
@@ -336,6 +336,11 @@
             </p-card>
           }
         </div>
+
+        @if (filteredRecords().length > leavePageRows) {
+          <p-paginator [first]="leaveFirst()" [rows]="leavePageRows" [totalRecords]="filteredRecords().length"
+                       (onPageChange)="leaveFirst.set($event.first ?? 0)" />
+        }
       }
     }
 

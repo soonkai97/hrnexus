@@ -99,6 +99,7 @@
     "colName":           "姓名",
     "colTotalHrs":       "总时数",
     "colWorkPay":        "工作薪资 (RM)",
+    "searchPlaceholder": "按姓名或员工编号搜索…",
     "note":              "工作薪资 = 总班次时数 × 时薪。所有假期均为无薪。",
     "emptyState":        "选择年份和月份，然后点击「查看」加载薪资数据。",
     "viewPayslip":       "工资单",

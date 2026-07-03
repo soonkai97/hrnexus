@@ -7,7 +7,10 @@
 .snap-stat-label { font-size: 0.73rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
 .snap-stat-value { font-size: 1.6rem; font-weight: 800; color: $neon-green; line-height: 1; }
 .snap-asof     { margin-left: auto; font-size: 0.75rem; color: $text-muted; }
-.snap-empty    { color: $text-muted; font-size: 0.85rem; margin: 0.25rem 0 0; }
+
+.payroll-search { max-width: 360px; margin-bottom: 0.75rem; }
+.payroll-search :deep(.p-iconfield),
+.payroll-search :deep(input) { width: 100%; }
 
 .filter-card  { padding: 1.25rem; margin-bottom: 1.25rem; }
 .field        { display: flex; flex-direction: column; gap: 0.25rem; }

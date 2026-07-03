@@ -99,6 +99,7 @@
     "colName":           "Name",
     "colTotalHrs":       "Total Hrs",
     "colWorkPay":        "Work Pay (RM)",
+    "searchPlaceholder": "Search by name or staff ID…",
     "note":              "Work Pay = total shift hours × hourly rate. All leave is unpaid.",
     "emptyState":        "Select a year and month, then click View to load payroll data.",
     "viewPayslip":       "Payslip",

@@ -9,13 +9,16 @@ import { TableModule } from 'primeng/table';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { Message } from 'primeng/message';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
+import { InputText } from 'primeng/inputtext';
 import { PayslipDialogComponent } from '../../shared/payslip-dialog/payslip-dialog.component';
 
 @Component({
   selector: 'app-payroll',
   standalone: true,
   imports: [DecimalPipe, FormsModule, TranslatePipe, Button, TableModule, Card, Select, Message,
-    PayslipDialogComponent],
+    IconField, InputIcon, InputText, PayslipDialogComponent],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.scss',
 })
@@ -33,6 +36,15 @@ export class PayrollComponent implements OnInit {
   // Live "earned today / this month" snapshot — loaded on entry, independent of the month picker.
   snapshot        = signal<EarningsSnapshotResponse | null>(null);
   snapshotLoading = signal(false);
+
+  // Client-side search over the monthly payroll table (by name or staff ID).
+  search = signal('');
+  readonly filteredStaff = computed(() => {
+    const rows = this.data()?.staff ?? [];
+    const q = this.search().trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(r => r.name.toLowerCase().includes(q) || r.staffId.toLowerCase().includes(q));
+  });
 
   ngOnInit(): void { this.loadSnapshot(); }
 

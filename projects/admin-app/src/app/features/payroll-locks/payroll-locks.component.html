@@ -37,7 +37,8 @@
     } @else if (locks().length === 0) {
       <div class="empty-state">{{ 'payrollLocks.noLocks' | translate }}</div>
     } @else {
-      <p-table [value]="locks()" [tableStyle]="{ 'min-width': '100%' }">
+      <p-table [value]="locks()" [tableStyle]="{ 'min-width': '100%' }"
+        [paginator]="locks().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
         <ng-template pTemplate="header">
           <tr>
             <th>{{ 'payrollLocks.period' | translate }}</th>

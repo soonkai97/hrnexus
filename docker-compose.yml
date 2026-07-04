@@ -74,9 +74,7 @@ services:
       context: .
       dockerfile: nginx/Dockerfile
       args:
-        BUILD_VERSION: ${BUILD_VERSION:-dev}
-        BUILD_SHA:     ${BUILD_SHA:-local}
-        BUILT_AT:      ${BUILT_AT:-}
+        BUILD_VERSION: ${BUILD_VERSION:-dev}   # stamped into index.html (meta build-version)
     restart: unless-stopped
     ports:
       - "8080:80"    # admin app  → http://localhost:8080

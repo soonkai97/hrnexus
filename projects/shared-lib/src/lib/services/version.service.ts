@@ -1,40 +1,35 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, signal } from '@angular/core';
 
-/** Build metadata baked into the deployed app (public/version.json). */
+/** Build metadata baked into the deployed app. */
 export interface BuildInfo {
-  /** Human-facing build number, e.g. "20260704.01" (date + Nth build that day). */
+  /** Human-facing build number, e.g. "20260704.05" (date + Nth build that day), or "dev" locally. */
   version: string;
-  /** Short git commit SHA of the build — traceability only, not shown prominently. */
-  commit?: string;
-  /** ISO timestamp the artifact was built. */
-  builtAt?: string;
 }
 
 /**
- * Exposes the current front-end build version, read once from the static
- * /version.json that the Docker build stamps into each app. Fetched at runtime
- * (never bundled) so it matches the venue's "config lives at the edge" pattern
- * and always reflects the artifact nginx is actually serving.
+ * Exposes the current front-end build version.
+ *
+ * The version is baked into index.html at Docker-build time as
+ * `<meta name="build-version" content="YYYYMMDD.NN">` and read here SYNCHRONOUSLY —
+ * no runtime fetch. This matters because:
+ *   - there's no network call to fail (a fetch that errored during a deploy swap
+ *     used to latch the "dev" fallback for the whole session), and
+ *   - it reflects the version of the app ACTUALLY RUNNING (the cached bundle the
+ *     service worker served), not whatever the server happens to hold right now —
+ *     which is exactly what "which build am I looking at?" should answer.
  */
 @Injectable({ providedIn: 'root' })
 export class VersionService {
-  private readonly http = inject(HttpClient);
+  readonly info = signal<BuildInfo>({ version: this.readVersion() });
 
-  /** Empty until load() resolves; 'dev' locally where no build stamp exists. */
-  readonly info = signal<BuildInfo>({ version: 'dev' });
-
-  private loaded = false;
-
-  /** Idempotent — safe to call from every page that shows the version. */
-  load(): void {
-    if (this.loaded) return;
-    this.loaded = true;
-    // Cache-bust so a redeploy is reflected even if the service worker cached the old file.
-    this.http.get<BuildInfo>('/version.json', { params: { t: `${Date.now()}` } })
-      .subscribe({
-        next: info => { if (info?.version) this.info.set(info); },
-        error: () => { /* offline / dev — keep the 'dev' fallback */ },
-      });
+  private readVersion(): string {
+    if (typeof document === 'undefined') return 'dev';
+    const v = document.querySelector('meta[name="build-version"]')?.getAttribute('content')?.trim() ?? '';
+    // Unreplaced placeholder (local `ng serve`, where the Docker sed never runs) → "dev".
+    return v && !v.startsWith('__') ? v : 'dev';
   }
+
+  /** No-op — the version is read at construction from the index.html meta. Kept so existing
+   *  callers (account/profile pages call it in ngOnInit) don't need to change. */
+  load(): void { /* intentionally empty */ }
 }

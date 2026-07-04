@@ -8,17 +8,17 @@ RUN npm ci
 COPY angular.json tsconfig.json tsconfig.app.json* ./
 COPY projects/ ./projects/
 
-# Stamp the build version into each app's public/ (served at /version.json) BEFORE
-# ng build so Angular copies it into dist. Falls back to "dev" for un-versioned builds.
-ARG BUILD_VERSION=dev
-ARG BUILD_SHA=local
-ARG BUILT_AT=
-RUN printf '{ "version": "%s", "commit": "%s", "builtAt": "%s" }\n' "$BUILD_VERSION" "$BUILD_SHA" "$BUILT_AT" > projects/admin-app/public/version.json \
- && printf '{ "version": "%s", "commit": "%s", "builtAt": "%s" }\n' "$BUILD_VERSION" "$BUILD_SHA" "$BUILT_AT" > projects/staff-app/public/version.json
-
 RUN npx ng build shared-lib
 RUN npx ng build admin-app  --configuration production
 RUN npx ng build staff-app  --configuration production
+
+# Stamp the build version into each app's index.html (replaces the __BUILD_VERSION__ placeholder
+# baked into src/index.html). Read synchronously by VersionService — no runtime fetch. Falls back
+# to "dev" for un-versioned builds (the placeholder is left in place → VersionService treats it as dev).
+ARG BUILD_VERSION=dev
+RUN sed -i "s/__BUILD_VERSION__/${BUILD_VERSION}/g" \
+      dist/admin-app/browser/index.html \
+      dist/staff-app/browser/index.html
 
 # Stage 2 — serve with nginx
 FROM nginx:alpine

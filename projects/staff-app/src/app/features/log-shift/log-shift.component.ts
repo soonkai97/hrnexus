@@ -123,10 +123,52 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     return this.stepFor(job?.payType);
   }
 
-  /** Step for the MANUAL-entry check-out picker — from the job currently selected in the form. */
-  get manualEndStep(): number {
+  /** Step for the LIVE start picker — from the job selected in the live form. */
+  get liveStartStep(): number {
+    const job = this.myJobs().find(j => j.id === this.liveForm.roleId);
+    return this.stepFor(job?.payType);
+  }
+
+  /** Step for BOTH manual-entry pickers (start + end) — from the job selected in the form.
+   *  Start and end share one step so a manual shift's times snap to the same billing block. */
+  get manualStep(): number {
     const job = this.myJobs().find(j => j.id === this.manualForm.roleId);
     return this.stepFor(job?.payType);
+  }
+
+  /** Snap a time to the nearest multiple of `step` minutes (seconds zeroed). 60 rolls to the next
+   *  hour, so e.g. 11:55 @30 → 12:00. Keeps manual times on clean billing blocks. */
+  private roundToStep(d: Date, step: number): Date {
+    const r = new Date(d);
+    r.setSeconds(0, 0);
+    r.setMinutes(Math.round(r.getMinutes() / step) * step);
+    return r;
+  }
+
+  /** When the manual job changes, seed empty pickers to block-aligned times (start = now snapped,
+   *  end = start + one block) and re-snap any already-picked times to the new job's block. */
+  onManualJobChange(): void {
+    const step = this.manualStep;
+    const base = this.roundToStep(new Date(), step);
+    this.manualFormStartTime = this.manualFormStartTime
+      ? this.roundToStep(this.manualFormStartTime, step)
+      : base;
+    if (this.manualFormEndTime) {
+      this.manualFormEndTime = this.roundToStep(this.manualFormEndTime, step);
+    } else {
+      const end = new Date(base);
+      end.setMinutes(end.getMinutes() + step);
+      this.manualFormEndTime = end;
+    }
+  }
+
+  /** Snap the picked manual start/end time to the job's block so the value never lands on a stray
+   *  minute (e.g. 11:07). PrimeNG's stepMinute only sizes the arrows — it doesn't snap the value. */
+  onManualStartChange(d: Date | null): void {
+    this.manualFormStartTime = d ? this.roundToStep(d, this.manualStep) : null;
+  }
+  onManualEndChange(d: Date | null): void {
+    this.manualFormEndTime = d ? this.roundToStep(d, this.manualStep) : null;
   }
 
   // Manual form

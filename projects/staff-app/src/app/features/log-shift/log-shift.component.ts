@@ -109,6 +109,26 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   endingId = signal<string | null>(null);
   endTimeDate: Date | null = null; // UI binding for end time
 
+  /** Minute step for a check-out picker, chosen by the job's billing granularity: FIXED packages
+   *  allow fine 10-min adjustments (the exact minutes don't change their flat pay), while HOURLY jobs
+   *  snap to the 30-min billing block so a checkout lands on a clean half-hour. Unknown/legacy → 30. */
+  private stepFor(payType: string | null | undefined): number {
+    return payType === 'fixed' ? 10 : 30;
+  }
+
+  /** Step for the LIVE check-out picker — from the active shift's job (matched by its frozen name). */
+  get endStep(): number {
+    const active = this.activeLog();
+    const job = active ? this.myJobs().find(j => j.name === active.roleName) : undefined;
+    return this.stepFor(job?.payType);
+  }
+
+  /** Step for the MANUAL-entry check-out picker — from the job currently selected in the form. */
+  get manualEndStep(): number {
+    const job = this.myJobs().find(j => j.id === this.manualForm.roleId);
+    return this.stepFor(job?.payType);
+  }
+
   // Manual form
   manualForm = {
     roleId:     '',

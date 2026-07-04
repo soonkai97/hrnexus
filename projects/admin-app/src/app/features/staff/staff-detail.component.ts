@@ -5,7 +5,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, LocationStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, UpdateWorkLogRequest, AmPmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions, LangService, localizedNameFor } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, LocationStore, StaffManagementService, ToastService, ConfirmService, WorkLogService, WorkLogDto, UpdateWorkLogRequest, HmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions, LangService, localizedNameFor } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -31,7 +31,7 @@ type DetailTab = 'profile' | 'worklogs' | 'permissions';
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, AmPmPipe, TrimInputDirective,
+  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TranslatePipe, HmPipe, TrimInputDirective,
     Button, InputText, TableModule, Tag, Card, Skeleton, DatePicker, MultiSelect, Select, Dialog, Message, TooltipModule, Paginator, SelectButton, Tabs, TabList, Tab, PayslipDialogComponent],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',

@@ -109,7 +109,7 @@ projects/
     ├── stores/                   # signal-based state (StaffStore, LocationStore, …)
     ├── guards/                   # authGuard, permissionGuard
     ├── auth/                     # AuthService + jwtInterceptor
-    ├── pipes/                    # AmPmPipe
+    ├── pipes/                    # HmPipe (24-hour time)
     ├── directives/               # PickerOnlyDirective
     └── components/               # ToastComponent, ConfirmDialogComponent, NotificationBellComponent,
                                   # ThemeToggleComponent, ChangePasswordComponent
@@ -264,7 +264,7 @@ getAccessToken(): string | null
 - `SetPasswordBase` — logic for forced-password-change pages (both apps extend this)
 - `ForgotPasswordBase` — logic for forgot-password pages
 
-**Pipes:** `AmPmPipe` — `"20:30"` → `"8:30 PM"`, `null` → `"—"`
+**Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time)
 
 **Directives:** `PickerOnlyDirective` — disables keyboard on date inputs on mobile
 

@@ -351,11 +351,15 @@ public class AuthCommandTests
     }
 
     [Fact]
-    public async Task RefreshToken_Succeeds_RotatesRefreshToken()
+    public async Task RefreshToken_Succeeds_KeepsSameTokenAndSlidesExpiry()
     {
+        // The refresh token is deliberately NOT rotated: a lost rotation response used to strand the
+        // client with a token the server had already replaced, forcing a spurious re-login. The token
+        // stays the same and its 30-day expiry slides forward on each use.
         await using var db = CreateDb();
         var staff = await MakeStaff(db);
-        staff.SetRefreshToken("valid-token", DateTime.UtcNow.AddDays(30));
+        var partialExpiry = DateTime.UtcNow.AddDays(5);   // a partly-used 30-day window
+        staff.SetRefreshToken("valid-token", partialExpiry);
         db.Staff.Add(staff);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -364,20 +368,20 @@ public class AuthCommandTests
         var result = await handler.Handle(new RefreshTokenCommand("valid-token"), CancellationToken.None);
 
         Assert.Equal("stub-access", result.AccessToken);
-        Assert.Equal("stub-refresh", result.RefreshToken);
+        Assert.Equal("valid-token", result.RefreshToken);   // same token, not rotated
 
-        // Old token should be replaced
         var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
-        Assert.Equal("stub-refresh", updated.RefreshToken);
+        Assert.Equal("valid-token", updated.RefreshToken);
+        Assert.True(updated.RefreshTokenExpiry > partialExpiry.AddDays(20));   // expiry slid ~30 days out
     }
 
     [Fact]
-    public async Task RefreshToken_ThrowsUnauthorized_WhenConcurrentRotationDetected()
+    public async Task RefreshToken_ConcurrentRefresh_IsBenign_KeepsSessionAlive()
     {
-        // Two concurrent 401 responses both present the same (valid, unexpired) token.
-        // The first refresh wins; the second finds 0 rows updated (EF concurrency token mismatch)
-        // and gets DbUpdateConcurrencyException. The handler re-throws as UnauthorizedAccessException
-        // so the client is told to sign in again rather than receiving an opaque 500.
+        // Two concurrent refreshes both present the same (valid, unexpired) token. One save wins; the
+        // other gets DbUpdateConcurrencyException. Now that the token is NOT rotated (only its expiry
+        // slides), the conflict is harmless — the token is unchanged and still valid — so the handler
+        // swallows it and returns a fresh access token instead of forcing the user to sign in again.
         var opts = new DbContextOptionsBuilder<TestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
@@ -396,9 +400,11 @@ public class AuthCommandTests
 
         var handler = new RefreshTokenCommandHandler(db, new StubTokenService());
 
-        // Handler's SaveChangesAsync (the second call) throws DbUpdateConcurrencyException
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            handler.Handle(new RefreshTokenCommand("valid-token"), CancellationToken.None));
+        // Handler's SaveChangesAsync (the second call) throws DbUpdateConcurrencyException, which the
+        // handler now swallows → the refresh still succeeds and the session stays alive.
+        var result = await handler.Handle(new RefreshTokenCommand("valid-token"), CancellationToken.None);
+        Assert.Equal("stub-access", result.AccessToken);
+        Assert.Equal("valid-token", result.RefreshToken);
     }
 
 }

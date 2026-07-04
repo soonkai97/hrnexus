@@ -18,20 +18,14 @@
     <div [formGroup]="form">
       <div class="field">
         <label for="login-staff-id"><span class="req">*</span> {{ 'auth.staffId' | translate }}</label>
-        <input id="login-staff-id" pInputText type="text" formControlName="staffId" ncUppercase [placeholder]="'auth.staffIdPlaceholder' | translate"
-               class="w-full" readonly autocomplete="off"
-               (mousedown)="removeReadonly($event)"
-               (touchstart)="removeReadonly($event)"
-               (keydown)="removeReadonly($event)" />
+        <input id="login-staff-id" pInputText type="text" formControlName="staffId" [placeholder]="'auth.staffIdPlaceholder' | translate"
+               class="w-full" autocomplete="off" />
       </div>
       <div class="field">
         <label for="login-password"><span class="req">*</span> {{ 'auth.password' | translate }}</label>
         <div class="pwd-wrap">
           <input id="login-password" pInputText [type]="showPwd() ? 'text' : 'password'" formControlName="password"
-                 class="w-full" [placeholder]="'auth.passwordPlaceholder' | translate" readonly autocomplete="new-password"
-                 (mousedown)="removeReadonly($event)"
-                 (touchstart)="removeReadonly($event)"
-                 (keydown)="removeReadonly($event)"
+                 class="w-full" [placeholder]="'auth.passwordPlaceholder' | translate" autocomplete="current-password"
                  (keydown.enter)="submit()" />
           <span class="eye-btn" role="button" tabindex="0"
                 [attr.aria-label]="(showPwd() ? 'auth.hidePassword' : 'auth.showPassword') | translate"

@@ -2,6 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- Build stamp — the Docker build replaces __BUILD_VERSION__ with YYYYMMDD.NN.
+         Read synchronously by VersionService (no fetch), so it always reflects the running app. -->
+    <meta name="build-version" content="__BUILD_VERSION__" />
     <title>HRNexus · Manager</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

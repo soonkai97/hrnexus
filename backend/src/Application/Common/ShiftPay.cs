@@ -14,5 +14,7 @@ public static class ShiftPay
     public static decimal Calc(string payType, decimal hours, decimal rate) =>
         string.Equals(payType, AppConstants.PayType.Fixed, StringComparison.OrdinalIgnoreCase)
             ? rate
-            : hours * rate;
+            // Hourly work is billed in completed 30-min blocks — floor the hours to 0.5 first so a
+            // partial block isn't paid (1h45m → 1.5 × rate). Fixed packages pay flat (above).
+            : ShiftHours.FloorToHalf(hours) * rate;
 }

@@ -1,7 +1,26 @@
+using HRNexus.Domain.Constants;
+
 namespace HRNexus.Application.Common;
 
 public static class ShiftHours
 {
+    /// <summary>
+    /// Floors an hours value DOWN to the nearest half-hour (0.5) block. Hourly jobs are billed in
+    /// completed 30-minute blocks, so a partial block earns nothing: 1h29m → 1.0, 1h30m → 1.5,
+    /// 1h45m → 1.5, sub-30-min → 0.
+    /// </summary>
+    public static decimal FloorToHalf(decimal hours) => Math.Floor(hours * 2m) / 2m;
+
+    /// <summary>
+    /// The hours a shift is billed and shown for. Hourly work counts only completed 30-min blocks
+    /// (floored to 0.5); fixed packages (e.g. 包夜) keep their exact clock hours since their pay is a
+    /// flat rate regardless of the exact minutes worked.
+    /// </summary>
+    public static decimal BillableHours(string payType, decimal exactHours) =>
+        string.Equals(payType, AppConstants.PayType.Fixed, StringComparison.OrdinalIgnoreCase)
+            ? exactHours
+            : FloorToHalf(exactHours);
+
     /// <summary>
     /// Parses a StartTime/EndTime pair ("HH:mm") and returns shift duration in hours,
     /// handling midnight crossover (e.g. 22:00 → 02:00).

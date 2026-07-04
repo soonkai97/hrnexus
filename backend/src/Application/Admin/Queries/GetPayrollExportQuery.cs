@@ -73,7 +73,8 @@ public class GetPayrollExportQueryHandler(IAppDbContext db)
                 var endDate = w.EndDate ?? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime);
                 var h = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime);
                 if (h <= 0) continue;   // guard against bad data
-                totalHours += h;
+                // Billed hours (hourly floors to 0.5 blocks) so the export's Total Hours matches the pay.
+                totalHours += ShiftHours.BillableHours(w.PayTypeSnapshot, h);
                 grossWork  += ShiftPay.Calc(w.PayTypeSnapshot, h, w.HourlyRateSnapshot);
             }
 

@@ -87,8 +87,11 @@ public class GetStaffPayslipQueryHandler(IAppDbContext db)
         foreach (var w in logs)
         {
             var endDate = w.EndDate ?? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime!);
-            var hours   = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime!);
-            if (hours <= 0) continue;   // guard against bad data
+            var exact   = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime!);
+            if (exact <= 0) continue;   // guard against bad data
+            // Billed hours: hourly shifts count completed 30-min blocks only (floor to 0.5), fixed keep
+            // exact. Totals + subtotals derive from this, so the payslip's hours match its pay.
+            var hours   = ShiftHours.BillableHours(w.PayTypeSnapshot, exact);
             var pay     = ShiftPay.Calc(w.PayTypeSnapshot, hours, w.HourlyRateSnapshot);
 
             totalHours += hours;

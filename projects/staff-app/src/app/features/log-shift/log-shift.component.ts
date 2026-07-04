@@ -142,19 +142,17 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     return r;
   }
 
-  /** When the manual job changes, seed empty pickers to grid-aligned times (start on the 30-min grid,
-   *  end = start + one end-block) and re-snap any already-picked times — start to 30, end to the job's block. */
+  /** Neutral spinner anchor for the manual time pickers — a fixed 12:00, NOT the current time, so an
+   *  empty picker never opens on "now" (a manual entry is a past shift, not now). The field keeps its
+   *  "Select time" placeholder until the staff actually picks a value. */
+  readonly manualPickerDefault = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); return d; })();
+
+  /** On job change, re-snap an ALREADY-picked end time to the new job's block (pay type may have
+   *  changed). Does NOT seed empty pickers — manual times stay blank until entered and never default
+   *  to the current time. */
   onManualJobChange(): void {
-    const base = this.roundToStep(new Date(), this.startStep);
-    this.manualFormStartTime = this.manualFormStartTime
-      ? this.roundToStep(this.manualFormStartTime, this.startStep)
-      : base;
     if (this.manualFormEndTime) {
       this.manualFormEndTime = this.roundToStep(this.manualFormEndTime, this.manualStep);
-    } else {
-      const end = new Date(base);
-      end.setMinutes(end.getMinutes() + this.manualStep);
-      this.manualFormEndTime = this.roundToStep(end, this.manualStep);
     }
   }
 

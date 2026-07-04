@@ -611,24 +611,34 @@ describe('LogShiftComponent', () => {
       c = TestBed.createComponent(LogShiftComponent).componentInstance;
     });
 
-    it('manual check-out steps 10 min for a FIXED job', () => {
+    it('manual pickers step 10 min for a FIXED job', () => {
       c.manualForm.roleId = 'j-fixed';
-      expect(c.manualEndStep).toBe(10);
+      expect(c.manualStep).toBe(10);
     });
 
-    it('manual check-out steps 30 min for an HOURLY job', () => {
+    it('manual pickers step 30 min for an HOURLY job', () => {
       c.manualForm.roleId = 'j-hourly';
-      expect(c.manualEndStep).toBe(30);
+      expect(c.manualStep).toBe(30);
     });
 
-    it('manual check-out defaults to 30 min with no job selected', () => {
+    it('manual pickers default to 30 min with no job selected', () => {
       c.manualForm.roleId = '';
-      expect(c.manualEndStep).toBe(30);
+      expect(c.manualStep).toBe(30);
     });
 
-    it('manual check-out defaults to 30 min for a legacy job without payType', () => {
+    it('manual pickers default to 30 min for a legacy job without payType', () => {
       c.manualForm.roleId = 'j-legacy';
-      expect(c.manualEndStep).toBe(30);
+      expect(c.manualStep).toBe(30);
+    });
+
+    it('live start steps 10 min for a FIXED job (not hardcoded 30)', () => {
+      c.liveForm.roleId = 'j-fixed';
+      expect(c.liveStartStep).toBe(10);
+    });
+
+    it('live start steps 30 min for an HOURLY job', () => {
+      c.liveForm.roleId = 'j-hourly';
+      expect(c.liveStartStep).toBe(30);
     });
 
     it('live check-out steps 10 min when the active shift is a FIXED job', () => {
@@ -644,6 +654,71 @@ describe('LogShiftComponent', () => {
     it('live check-out defaults to 30 min when there is no active shift', () => {
       c.activeLog.set(null);
       expect(c.endStep).toBe(30);
+    });
+  });
+
+  // ── Manual time snapping / seeding (fixes stray :07 minutes) ────────────────────
+  describe('manual time snap + seed', () => {
+    const jobs = [
+      { id: 'j-fixed',  name: 'OVERNIGHT 8H', payType: 'fixed'  },
+      { id: 'j-hourly', name: 'TABLE ROUNDS', payType: 'hourly' },
+    ];
+    let c: LogShiftComponent;
+
+    beforeEach(() => {
+      mockAuth.user = () => ({ id: 'u1', staffId: 'NC001', fullName: 'T', email: 't@test.com',
+        roles: ['EMPLOYEE'], jobs });
+      c = TestBed.createComponent(LogShiftComponent).componentInstance;
+    });
+
+    function hhmm(d: Date | null): string {
+      return d ? `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}` : '';
+    }
+
+    it('snaps a picked start time to the nearest 30-min block for an HOURLY job', () => {
+      c.manualForm.roleId = 'j-hourly';
+      c.onManualStartChange(new Date(2026, 6, 4, 11, 7)); // 11:07 → 11:00
+      expect(hhmm(c.manualFormStartTime)).toBe('11:00');
+    });
+
+    it('snaps a picked end time to the nearest 10-min block for a FIXED job', () => {
+      c.manualForm.roleId = 'j-fixed';
+      c.onManualEndChange(new Date(2026, 6, 4, 11, 7)); // 11:07 → 11:10
+      expect(hhmm(c.manualFormEndTime)).toBe('11:10');
+    });
+
+    it('rolls 11:55 @30 up to 12:00 when snapping', () => {
+      c.manualForm.roleId = 'j-hourly';
+      c.onManualStartChange(new Date(2026, 6, 4, 11, 55));
+      expect(hhmm(c.manualFormStartTime)).toBe('12:00');
+    });
+
+    it('clears the time when the picker is cleared to null', () => {
+      c.manualForm.roleId = 'j-hourly';
+      c.onManualStartChange(null);
+      expect(c.manualFormStartTime).toBeNull();
+    });
+
+    it('seeds both pickers to block-aligned times when a job is chosen (start != end)', () => {
+      c.manualForm.roleId = 'j-hourly';
+      c.onManualJobChange();
+      const s = c.manualFormStartTime!;
+      const e = c.manualFormEndTime!;
+      expect(s.getMinutes() % 30).toBe(0);
+      expect(e.getMinutes() % 30).toBe(0);
+      // end = start + one 30-min block → never a zero-duration seed
+      expect(e.getTime()).toBeGreaterThan(s.getTime());
+    });
+
+    it('re-snaps already-picked times to the new block when the job changes (hourly → fixed)', () => {
+      c.manualForm.roleId = 'j-hourly';
+      c.manualFormStartTime = new Date(2026, 6, 4, 11, 30);
+      c.manualFormEndTime   = new Date(2026, 6, 4, 12, 30);
+      c.manualForm.roleId = 'j-fixed';
+      c.onManualJobChange();
+      // already on clean values → stay put, just re-aligned to the 10-min grid
+      expect(hhmm(c.manualFormStartTime)).toBe('11:30');
+      expect(hhmm(c.manualFormEndTime)).toBe('12:30');
     });
   });
 });

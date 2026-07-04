@@ -327,6 +327,48 @@ public class StaffCommandTests
     }
 
     [Fact]
+    public async Task Update_ClearsEmail_WhenBlankGiven()
+    {
+        // Email is optional — clearing it (blank) on a staff who HAD one must persist as null,
+        // consistent with the other optional fields. Regression: the command used to keep the
+        // existing email whenever the incoming value was blank, so it could never be cleared.
+        await using var db = CreateDb();
+        var existing = MakeStaff("S001", email: "alice@test.com");
+        db.Staff.Add(existing);
+        await db.SaveChangesAsync();
+
+        var handler = UpdateHandler(db);
+
+        await handler.Handle(new UpdateStaffCommand(
+            existing.Id, "S001", "Alice", "Wong", "",   // email cleared to blank
+            new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            CancellationToken.None);
+
+        await db.Entry(existing).ReloadAsync();
+        Assert.Null(existing.Email);
+    }
+
+    [Fact]
+    public async Task Update_KeepsExistingEmail_WhenNullGiven()
+    {
+        // Distinct from clearing: a null email means "field not supplied" → keep the current value.
+        await using var db = CreateDb();
+        var existing = MakeStaff("S001", email: "alice@test.com");
+        db.Staff.Add(existing);
+        await db.SaveChangesAsync();
+
+        var handler = UpdateHandler(db);
+
+        await handler.Handle(new UpdateStaffCommand(
+            existing.Id, "S001", "Alice", "Wong", null,   // email not supplied
+            new List<Guid>(), null, IcNo: "990101-01-1234", DateOfBirth: new DateTime(1990, 1, 1)),
+            CancellationToken.None);
+
+        await db.Entry(existing).ReloadAsync();
+        Assert.Equal("alice@test.com", existing.Email);
+    }
+
+    [Fact]
     public async Task Update_ThrowsKeyNotFound_WhenStaffDoesNotExist()
     {
         await using var db = CreateDb();

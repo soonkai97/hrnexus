@@ -315,7 +315,7 @@
                   [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : r.status === 'cancelled' ? 'secondary' : 'danger'" />
               </div>
               <div class="leave-dates">
-                {{ r.startDate }}@if (r.startTime) { {{ r.startTime | amPm }}} – {{ r.endDate }}@if (r.endTime) { {{ r.endTime | amPm }}}
+                {{ r.startDate }}@if (r.startTime) { {{ r.startTime | hm }}} – {{ r.endDate }}@if (r.endTime) { {{ r.endTime | hm }}}
                 <span class="leave-days">{{ r.hours }}{{ 'leave.hrs' | translate }}</span>
               </div>
               @if (r.notes) {

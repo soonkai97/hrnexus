@@ -126,7 +126,7 @@
                   —
                 }
               </td>
-              <td class="td-muted">{{ s.workDate }} · {{ s.clockedInAt | date:'h:mm a':'+0800' }}</td>
+              <td class="td-muted">{{ s.workDate }} · {{ s.clockedInAt | date:'HH:mm':'+0800' }}</td>
               <td class="td-muted">{{ formatMinutes(s.minutesOnShift) }}</td>
               <td class="td-muted td-notes" [pTooltip]="s.notes || ''" tooltipPosition="top">{{ s.notes || '—' }}</td>
               <td class="td-action">
@@ -161,7 +161,7 @@
             <td class="td-name">{{ a.staffName }}</td>
             <td><p-tag [value]="a.role | localizedName: a.roleZh : a.roleVi" severity="info" /></td>
             <td class="td-muted">{{ a.locationName | localizedName: a.locationNameZh : a.locationNameVi }}</td>
-            <td class="td-muted">{{ a.timestamp | date:'MMM d, h:mm a':'+0800' }}</td>
+            <td class="td-muted">{{ a.timestamp | date:'MMM d, HH:mm':'+0800' }}</td>
             <td>
               <p-tag [value]="(a.eventType === 'shift-started' ? 'dashboard.eventIn' : 'dashboard.eventOut') | translate"
                      [severity]="a.eventType === 'shift-started' ? 'success' : 'secondary'" />

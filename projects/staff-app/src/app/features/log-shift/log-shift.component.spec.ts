@@ -611,34 +611,24 @@ describe('LogShiftComponent', () => {
       c = TestBed.createComponent(LogShiftComponent).componentInstance;
     });
 
-    it('manual pickers step 10 min for a FIXED job', () => {
+    it('manual END picker steps 10 min for a FIXED job', () => {
       c.manualForm.roleId = 'j-fixed';
       expect(c.manualStep).toBe(10);
     });
 
-    it('manual pickers step 30 min for an HOURLY job', () => {
+    it('manual END picker steps 30 min for an HOURLY job', () => {
       c.manualForm.roleId = 'j-hourly';
       expect(c.manualStep).toBe(30);
     });
 
-    it('manual pickers default to 30 min with no job selected', () => {
+    it('manual END picker defaults to 30 min with no job selected', () => {
       c.manualForm.roleId = '';
       expect(c.manualStep).toBe(30);
     });
 
-    it('manual pickers default to 30 min for a legacy job without payType', () => {
+    it('manual END picker defaults to 30 min for a legacy job without payType', () => {
       c.manualForm.roleId = 'j-legacy';
       expect(c.manualStep).toBe(30);
-    });
-
-    it('live start steps 10 min for a FIXED job (not hardcoded 30)', () => {
-      c.liveForm.roleId = 'j-fixed';
-      expect(c.liveStartStep).toBe(10);
-    });
-
-    it('live start steps 30 min for an HOURLY job', () => {
-      c.liveForm.roleId = 'j-hourly';
-      expect(c.liveStartStep).toBe(30);
     });
 
     it('live check-out steps 10 min when the active shift is a FIXED job', () => {
@@ -675,19 +665,25 @@ describe('LogShiftComponent', () => {
       return d ? `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}` : '';
     }
 
-    it('snaps a picked start time to the nearest 30-min block for an HOURLY job', () => {
-      c.manualForm.roleId = 'j-hourly';
-      c.onManualStartChange(new Date(2026, 6, 4, 11, 7)); // 11:07 → 11:00
+    it('start snaps to the fixed 30-min grid, IGNORING pay type (fixed job → 11:00, not 11:10)', () => {
+      c.manualForm.roleId = 'j-fixed';                    // fixed job → end would step 10
+      c.onManualStartChange(new Date(2026, 6, 4, 11, 7)); // but START always snaps to 30 → 11:00
       expect(hhmm(c.manualFormStartTime)).toBe('11:00');
     });
 
-    it('snaps a picked end time to the nearest 10-min block for a FIXED job', () => {
+    it('end snaps to the nearest 10-min block for a FIXED job (pay-type aware)', () => {
       c.manualForm.roleId = 'j-fixed';
       c.onManualEndChange(new Date(2026, 6, 4, 11, 7)); // 11:07 → 11:10
       expect(hhmm(c.manualFormEndTime)).toBe('11:10');
     });
 
-    it('rolls 11:55 @30 up to 12:00 when snapping', () => {
+    it('end snaps to the nearest 30-min block for an HOURLY job', () => {
+      c.manualForm.roleId = 'j-hourly';
+      c.onManualEndChange(new Date(2026, 6, 4, 11, 7)); // 11:07 → 11:00
+      expect(hhmm(c.manualFormEndTime)).toBe('11:00');
+    });
+
+    it('rolls 11:55 up to 12:00 when snapping the start to the 30-min grid', () => {
       c.manualForm.roleId = 'j-hourly';
       c.onManualStartChange(new Date(2026, 6, 4, 11, 55));
       expect(hhmm(c.manualFormStartTime)).toBe('12:00');

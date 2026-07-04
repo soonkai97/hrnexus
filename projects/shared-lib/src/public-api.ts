@@ -31,7 +31,6 @@ export * from './lib/services/notification.service';
 export * from './lib/components/notification-bell/notification-bell.component';
 export * from './lib/directives/picker-only.directive';
 export * from './lib/directives/trim-input.directive';
-export * from './lib/directives/uppercase-input.directive';
 export * from './lib/guards/unsaved-changes.guard';
 export * from './lib/provide-no-autofill';
 export * from './lib/services/push.service';

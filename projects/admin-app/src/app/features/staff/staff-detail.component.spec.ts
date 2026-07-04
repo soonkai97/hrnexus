@@ -465,4 +465,33 @@ describe('StaffDetailComponent', () => {
       expect(names).toContain('EMPLOYEE');
     });
   });
+
+  // ── editLogEndStep (edit-log END picker follows the SELECTED job's pay type) ─────
+  describe('editLogEndStep', () => {
+    function withRoles() {
+      mockStaffStore.roles.mockReturnValue([
+        { id: 'j-fixed',  name: 'OVERNIGHT 8H', isSystem: false, hourlyRate: 500, payType: 'fixed'  },
+        { id: 'j-hourly', name: 'TABLE ROUNDS', isSystem: false, hourlyRate: 20,  payType: 'hourly' },
+      ]);
+      return TestBed.createComponent(StaffDetailComponent).componentInstance;
+    }
+
+    it('steps 10 min when the selected job is FIXED', () => {
+      const c2 = withRoles();
+      c2.editLogForm.roleId = 'j-fixed';
+      expect(c2.editLogEndStep).toBe(10);
+    });
+
+    it('steps 30 min when the selected job is HOURLY', () => {
+      const c2 = withRoles();
+      c2.editLogForm.roleId = 'j-hourly';
+      expect(c2.editLogEndStep).toBe(30);
+    });
+
+    it('defaults to 30 min when no job is selected', () => {
+      const c2 = withRoles();
+      c2.editLogForm.roleId = '';
+      expect(c2.editLogEndStep).toBe(30);
+    });
+  });
 });

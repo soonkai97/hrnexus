@@ -191,7 +191,7 @@
         </div>
         <div class="col-6 field">
           <label for="close-end-time"><span class="req">*</span> {{ 'dashboard.endTime' | translate }}</label>
-          <p-datepicker inputId="close-end-time" [(ngModel)]="closeEndTime" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="30"
+          <p-datepicker inputId="close-end-time" [(ngModel)]="closeEndTime" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="closeEndStep"
                         appendTo="body" styleClass="w-full" />
         </div>
       </div>

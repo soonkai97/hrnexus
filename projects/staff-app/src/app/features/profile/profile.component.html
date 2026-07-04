@@ -89,6 +89,9 @@
         severity="danger"
         (click)="logout()" />
     </div>
+
+    <!-- Build version -->
+    <p class="build-version">{{ 'profile.buildVersion' | translate }} {{ build().version }}</p>
   }
 
 </div>

@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AuthService, StaffManagementService, StaffDetail, LangService, ToastService, PushService } from 'shared-lib';
+import { AuthService, StaffManagementService, StaffDetail, LangService, ToastService, PushService, VersionService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { SelectButton } from 'primeng/selectbutton';
@@ -20,7 +20,11 @@ export class AccountComponent implements OnInit {
   private readonly toast    = inject(ToastService);
   private readonly pushSvc  = inject(PushService);
   private readonly translate = inject(TranslateService);
+  private readonly versionSvc = inject(VersionService);
   readonly lang             = inject(LangService);
+
+  /** Build stamp shown at the bottom of the page (e.g. "20260704.01"). */
+  readonly build = this.versionSvc.info;
 
   readonly langOptions = [
     { label: 'English',     value: 'en' },
@@ -39,6 +43,7 @@ export class AccountComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.versionSvc.load();
     this.staffSvc.getMyProfile().subscribe({ next: p => this.profile.set(p) });
 
     if ('serviceWorker' in navigator && 'PushManager' in window) {

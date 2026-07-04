@@ -31,7 +31,7 @@ public class LoginCommandHandler(
         var now = clock.UtcNow;
 
         var employee = await db.Staff
-            .FirstOrDefaultAsync(e => e.StaffId == req.StaffId.ToUpperInvariant() && e.IsActive, ct)
+            .FirstOrDefaultAsync(e => e.StaffId == req.StaffId.Trim().ToUpperInvariant() && e.IsActive, ct)
             ?? throw new UnauthorizedAccessException("Invalid credentials.");
 
         // Brute-force lockout: a locked account is refused outright, before any password check,

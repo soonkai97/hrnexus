@@ -78,7 +78,11 @@
     "saveFailed": "保存失败。",
     "deleteFailed": "删除失败。",
     "confirmDeleteTitle": "删除现金预支",
-    "confirmDeleteMessage": "删除此现金预支记录？此操作无法撤销。"
+    "confirmDeleteMessage": "删除此现金预支记录？此操作无法撤销。",
+    "confirmSettleTitle": "标记为已结清",
+    "confirmSettleMessage": "将此现金预支标记为已结清？",
+    "confirmReopenTitle": "重新开启预支",
+    "confirmReopenMessage": "重新开启此已结清的现金预支（再次标记为未结清）？"
   },
   "payroll": {
     "earnedToday":       "今日收入",

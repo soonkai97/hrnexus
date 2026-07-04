@@ -78,7 +78,11 @@
     "saveFailed": "Lưu thất bại.",
     "deleteFailed": "Xóa thất bại.",
     "confirmDeleteTitle": "Xóa tạm ứng",
-    "confirmDeleteMessage": "Xóa bản ghi tạm ứng này? Không thể hoàn tác."
+    "confirmDeleteMessage": "Xóa bản ghi tạm ứng này? Không thể hoàn tác.",
+    "confirmSettleTitle": "Đánh dấu đã tất toán",
+    "confirmSettleMessage": "Đánh dấu khoản tạm ứng này là đã tất toán?",
+    "confirmReopenTitle": "Mở lại tạm ứng",
+    "confirmReopenMessage": "Mở lại khoản tạm ứng đã tất toán này (đánh dấu chưa tất toán lại)?"
   },
   "payroll": {
     "earnedToday":       "Thu nhập hôm nay",

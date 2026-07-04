@@ -110,10 +110,19 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
   toggleSettled(a: CashAdvanceDto): void {
     if (this.busyId()) return;
     const settled = a.status !== 'settled';
-    this.busyId.set(a.id);
-    this.svc.setSettled(a.id, settled).subscribe({
-      next:  () => { this.busyId.set(null); this.toast.success(this.translate.instant(settled ? 'cashAdvances.markedSettled' : 'cashAdvances.markedOutstanding')); this.load(); },
-      error: (e) => { this.busyId.set(null); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('cashAdvances.saveFailed')); },
+    // Confirm first — this flips a financial record's status, so guard against a mis-tap
+    // (consistent with the other cash-advance action). Not a "danger" red button — it's reversible.
+    this.confirmSvc.confirm({
+      title:        this.translate.instant(settled ? 'cashAdvances.confirmSettleTitle'   : 'cashAdvances.confirmReopenTitle'),
+      message:      this.translate.instant(settled ? 'cashAdvances.confirmSettleMessage' : 'cashAdvances.confirmReopenMessage'),
+      confirmLabel: this.translate.instant(settled ? 'cashAdvances.markSettled'          : 'cashAdvances.reopen'),
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.busyId.set(a.id);
+      this.svc.setSettled(a.id, settled).subscribe({
+        next:  () => { this.busyId.set(null); this.toast.success(this.translate.instant(settled ? 'cashAdvances.markedSettled' : 'cashAdvances.markedOutstanding')); this.load(); },
+        error: (e) => { this.busyId.set(null); this.toast.error(apiErrorMessage(e) ?? this.translate.instant('cashAdvances.saveFailed')); },
+      });
     });
   }
 

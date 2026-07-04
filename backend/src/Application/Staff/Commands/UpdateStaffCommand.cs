@@ -37,9 +37,6 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
         if (idTaken)
             throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
 
-        // Resolve email: keep existing if not supplied
-        var resolvedEmail = string.IsNullOrWhiteSpace(req.Email) ? emp.Email : req.Email;
-
         // Lockout guard: if this role change strips the user's admin-portal access and they're the last
         // active admin, reject — otherwise nobody could sign in to undo it. A grant/revoke override on
         // the user wins over role defaults (so changing roles can't remove access a grant pins on, and
@@ -65,7 +62,10 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
                     "Grant admin-portal access to another user or role first.");
         }
 
-        emp.UpdateDetails(normalizedId, req.FirstName, req.LastName, resolvedEmail, req.Roles,
+        // Email is a full-update field: pass it straight to the entity, which distinguishes null
+        // ("field not supplied → keep existing") from "" / whitespace ("cleared → set to null").
+        // This lets the admin edit form clear an email, consistent with the other optional fields.
+        emp.UpdateDetails(normalizedId, req.FirstName, req.LastName, req.Email, req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),
             req.IcNo, req.PassportNo, req.DateOfBirth, req.Locations);
         try { await db.SaveChangesAsync(ct); }

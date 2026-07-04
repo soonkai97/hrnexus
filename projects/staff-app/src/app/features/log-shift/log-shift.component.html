@@ -36,7 +36,7 @@
           <div class="end-panel">
             <div class="field">
               <label for="ls-end-time">{{ 'logShift.endTime' | translate }}</label>
-              <p-datepicker inputId="ls-end-time" [(ngModel)]="endTimeDate" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="30"
+              <p-datepicker inputId="ls-end-time" [(ngModel)]="endTimeDate" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="endStep"
                 [showIcon]="true" icon="pi pi-clock"
                 [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="time-picker" />
             </div>
@@ -155,7 +155,7 @@
             </div>
             <div class="col-6 field">
               <label for="ls-manual-end-time"><span class="req">*</span> {{ 'logShift.endTime' | translate }}</label>
-              <p-datepicker inputId="ls-manual-end-time" [(ngModel)]="manualFormEndTime" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="30"
+              <p-datepicker inputId="ls-manual-end-time" [(ngModel)]="manualFormEndTime" [timeOnly]="true" [hourFormat]="'12'" [stepMinute]="manualEndStep"
                 [showIcon]="true" icon="pi pi-clock"
                 [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="w-full" />
             </div>

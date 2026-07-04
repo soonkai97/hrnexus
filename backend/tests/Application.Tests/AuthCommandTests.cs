@@ -173,6 +173,23 @@ public class AuthCommandTests
         Assert.Contains("BARTENDER", result.User.Roles);
     }
 
+    [Fact]
+    public async Task Login_UserJobs_CarryPayType()
+    {
+        // The staff-app log-shift check-out picker sizes its minute step from each job's pay type
+        // (fixed = 10-min, hourly = 30-min), so the login payload must expose it per job.
+        await using var db = CreateDb();
+        db.Staff.Add(await MakeStaff(db, roleNames: "BARTENDER"));
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = MakeLoginHandler(db);
+        var result  = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
+
+        var job = Assert.Single(result.User.Jobs);
+        Assert.False(string.IsNullOrWhiteSpace(job.PayType));   // e.g. "hourly"
+    }
+
     // ── LoginCommand: brute-force lockout ─────────────────────────────────────
     // WHY: without a lockout an attacker can try unlimited passwords against one account.
     // After N consecutive failures the account must refuse logins (even with the CORRECT

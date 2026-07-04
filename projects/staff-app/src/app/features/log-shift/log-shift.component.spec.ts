@@ -592,4 +592,58 @@ describe('LogShiftComponent', () => {
       expect(component.formError()).toBe('');
     });
   });
+
+  // ── check-out picker minute-step by job pay type ─────────────────────────────
+  // WHY: fixed packages allow fine 10-min adjustments (minutes don't change their flat pay); hourly
+  // jobs snap to the 30-min billing block so a checkout lands on a clean half-hour (it'd be floored
+  // anyway). A fresh component per test because myJobs() is a computed over the mocked user.
+  describe('check-out step by pay type', () => {
+    const jobs = [
+      { id: 'j-fixed',  name: 'OVERNIGHT 8H', payType: 'fixed'  },
+      { id: 'j-hourly', name: 'TABLE ROUNDS', payType: 'hourly' },
+      { id: 'j-legacy', name: 'LEGACY',       payType: null     },
+    ];
+    let c: LogShiftComponent;
+
+    beforeEach(() => {
+      mockAuth.user = () => ({ id: 'u1', staffId: 'NC001', fullName: 'T', email: 't@test.com',
+        roles: ['EMPLOYEE'], jobs });
+      c = TestBed.createComponent(LogShiftComponent).componentInstance;
+    });
+
+    it('manual check-out steps 10 min for a FIXED job', () => {
+      c.manualForm.roleId = 'j-fixed';
+      expect(c.manualEndStep).toBe(10);
+    });
+
+    it('manual check-out steps 30 min for an HOURLY job', () => {
+      c.manualForm.roleId = 'j-hourly';
+      expect(c.manualEndStep).toBe(30);
+    });
+
+    it('manual check-out defaults to 30 min with no job selected', () => {
+      c.manualForm.roleId = '';
+      expect(c.manualEndStep).toBe(30);
+    });
+
+    it('manual check-out defaults to 30 min for a legacy job without payType', () => {
+      c.manualForm.roleId = 'j-legacy';
+      expect(c.manualEndStep).toBe(30);
+    });
+
+    it('live check-out steps 10 min when the active shift is a FIXED job', () => {
+      c.activeLog.set({ roleName: 'OVERNIGHT 8H' } as never);
+      expect(c.endStep).toBe(10);
+    });
+
+    it('live check-out steps 30 min when the active shift is an HOURLY job', () => {
+      c.activeLog.set({ roleName: 'TABLE ROUNDS' } as never);
+      expect(c.endStep).toBe(30);
+    });
+
+    it('live check-out defaults to 30 min when there is no active shift', () => {
+      c.activeLog.set(null);
+      expect(c.endStep).toBe(30);
+    });
+  });
 });

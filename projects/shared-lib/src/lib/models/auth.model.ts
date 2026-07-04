@@ -23,6 +23,9 @@ export interface AuthJob {
   name: string;
   nameZh?: string | null;
   nameVi?: string | null;
+  /** 'hourly' | 'fixed' — drives the log-shift check-out picker's minute step. Optional so a
+   *  pre-upgrade cached session (no payType) still works (falls back to the hourly default). */
+  payType?: string | null;
 }
 
 export interface AuthUser {

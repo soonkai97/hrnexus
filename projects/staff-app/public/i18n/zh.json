@@ -174,6 +174,7 @@
     "disableNotif":    "关闭通知",
     "language":        "语言",
     "signOut":         "退出登录",
+    "buildVersion":    "版本",
     "toast": {
       "iosHomeScreen":    "要在 iPhone 上启用通知，请先将此应用添加到主屏幕。",
       "pushUnsupported":  "此浏览器不支持推送通知。",

@@ -758,6 +758,7 @@
     "changePasswordTitle": "修改密码",
     "language":         "语言",
     "signOut":          "退出登录",
+    "buildVersion":     "版本",
     "back":             "返回",
     "pushTitle":        "推送通知",
     "pushDesc":         "即使此标签页在后台，也可接收员工未打卡或新请假申请的提醒。",

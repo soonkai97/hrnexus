@@ -1,5 +1,13 @@
 @use 'styles/theme' as *;
 
+.build-version {
+  text-align: center;
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: $text-muted;
+}
+
 // Cap the settings column to a comfortable reading width and centre it, so the
 // label-left / value-right rows don't fling label and value to opposite edges
 // of a full-width page on desktop.

@@ -758,6 +758,7 @@
     "changePasswordTitle": "Change Password",
     "language":         "Language",
     "signOut":          "Sign Out",
+    "buildVersion":     "Build",
     "back":             "Back",
     "pushTitle":        "Push Notifications",
     "pushDesc":         "Receive alerts when staff have open shifts or new leave requests, even when this tab is in the background.",

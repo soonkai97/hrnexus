@@ -35,6 +35,15 @@ fi
 echo "▶  Pulling latest code from origin…"
 git pull
 
+# ── Compute build version (YYYYMMDD.NN) ───────────────────────────────────────
+# Stamped into the images as build args → shown on the Account/Profile page and
+# GET /api/health, so you can confirm at a glance that a deploy actually took.
+BUILD_VERSION="$(bash scripts/gen-build-version.sh)"
+BUILD_SHA="$(git rev-parse --short HEAD)"
+BUILT_AT="$(date -u +%Y-%m-%dT%H:%MZ)"
+export BUILD_VERSION BUILD_SHA BUILT_AT
+echo "▶  Build version: $BUILD_VERSION ($BUILD_SHA)"
+
 # ── Maintenance mode ON ───────────────────────────────────────────────────────
 # Only flip to maintenance for deployments that rebuild the web container.
 # The flag lives in ./maintenance/on — mounted into the nginx container.

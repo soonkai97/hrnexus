@@ -174,6 +174,7 @@
     "disableNotif":    "Disable Notifications",
     "language":        "Language",
     "signOut":         "Sign Out",
+    "buildVersion":    "Build",
     "toast": {
       "iosHomeScreen":    "To enable notifications on iPhone, add this app to your Home Screen first.",
       "pushUnsupported":  "Push notifications are not supported in this browser.",

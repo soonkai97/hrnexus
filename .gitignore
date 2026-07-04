@@ -6,6 +6,9 @@
 /out-tsc
 /bazel-out
 
+# Per-host build-number counter (see scripts/gen-build-version.*)
+/scripts/.build-seq
+
 # Node
 /node_modules
 npm-debug.log

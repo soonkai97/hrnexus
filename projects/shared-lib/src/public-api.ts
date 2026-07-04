@@ -42,3 +42,4 @@ export * from './lib/pipes/localized-name.pipe';
 export * from './lib/utils/date.utils';
 export * from './lib/utils/password.utils';
 export * from './lib/services/app-update.service';
+export * from './lib/services/version.service';

@@ -17,7 +17,7 @@ public record LoginResult(string AccessToken, string RefreshToken, int ExpiresIn
 
 /// <summary>An assigned job/role, carrying the localizable display names so the staff-app
 /// log-shift dropdown can render a language-aware label and submit the role's GUID id.</summary>
-public record JobDto(Guid Id, string Name, string? NameZh, string? NameVi);
+public record JobDto(Guid Id, string Name, string? NameZh, string? NameVi, string PayType);
 
 public record UserDto(Guid Id, string StaffId, string FullName, string? Email, List<string> Roles, List<JobDto> Jobs);
 
@@ -84,6 +84,6 @@ public static class UserDtoFactory
             employee.Roles.ToList(),
             employee.RoleEntries
                 .Where(re => re.Role != null)
-                .Select(re => new JobDto(re.RoleId, re.Role.Name, re.Role.NameZh, re.Role.NameVi))
+                .Select(re => new JobDto(re.RoleId, re.Role.Name, re.Role.NameZh, re.Role.NameVi, re.Role.PayType))
                 .ToList());
 }

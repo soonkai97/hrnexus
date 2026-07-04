@@ -78,7 +78,11 @@
     "saveFailed": "Failed to save.",
     "deleteFailed": "Failed to delete.",
     "confirmDeleteTitle": "Delete Cash Advance",
-    "confirmDeleteMessage": "Remove this cash-advance record? This cannot be undone."
+    "confirmDeleteMessage": "Remove this cash-advance record? This cannot be undone.",
+    "confirmSettleTitle": "Mark as Settled",
+    "confirmSettleMessage": "Mark this cash advance as settled?",
+    "confirmReopenTitle": "Reopen Advance",
+    "confirmReopenMessage": "Reopen this settled cash advance (mark it outstanding again)?"
   },
   "payroll": {
     "earnedToday":       "Earned Today",

@@ -96,6 +96,13 @@ describe('CashAdvancesComponent', () => {
     expect(mockSvc.setSettled).toHaveBeenCalledWith('a1', false);
   });
 
+  it('toggleSettled() does NOT change status when the confirm is rejected', () => {
+    mockConfirm.confirm.mockReturnValue(of(false));
+    const c = make();
+    c.toggleSettled({ id: 'a1', status: 'outstanding' } as any);
+    expect(mockSvc.setSettled).not.toHaveBeenCalled();
+  });
+
   it('remove() deletes only after the confirm is accepted', () => {
     const c = make();
     c.remove({ id: 'a1' } as any);

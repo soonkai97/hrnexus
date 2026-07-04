@@ -171,7 +171,7 @@
             <label for="leave-form-start-time"><span class="req">*</span> {{ 'leave.startTime' | translate }}</label>
             <p-datepicker inputId="leave-form-start-time" [(ngModel)]="startTimeDate"
               [timeOnly]="true"
-              [hourFormat]="'12'" [stepMinute]="30" [defaultDate]="defaultTime"
+              [hourFormat]="'24'" [stepMinute]="30" [defaultDate]="defaultTime"
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true"
               [showOnFocus]="false"
@@ -188,7 +188,7 @@
             <label for="leave-form-end-time"><span class="req">*</span> {{ 'leave.endTime' | translate }}</label>
             <p-datepicker inputId="leave-form-end-time" [(ngModel)]="endTimeDate"
               [timeOnly]="true"
-              [hourFormat]="'12'" [stepMinute]="30" [defaultDate]="defaultTime"
+              [hourFormat]="'24'" [stepMinute]="30" [defaultDate]="defaultTime"
               [showIcon]="true" icon="pi pi-clock"
               [readonlyInput]="true"
               [showOnFocus]="false"

@@ -5,7 +5,7 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, EarningsSnapshotResponse, ToastService, apiErrorMessage, nowRoundedToHalfHour, LocalizedNamePipe } from 'shared-lib';
+import { SignalRService, AdminService, WorkLogService, ActiveStaffDto, RecentEventDto, DashboardStats, EarningsSnapshotResponse, ToastService, apiErrorMessage, nowRoundedToHalfHour, LocalizedNamePipe, StaffStore } from 'shared-lib';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
@@ -30,6 +30,7 @@ export class DashboardComponent implements OnInit {
   private readonly toast      = inject(ToastService);
   private readonly translate  = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly staffStore = inject(StaffStore);
 
   stats    = signal<DashboardStats | null>(null);
   onShift  = signal<ActiveStaffDto[]>([]);
@@ -93,6 +94,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this._loadTrigger$.next(true); // initial load with spinner
+    this.staffStore.loadRoles();   // roles carry payType → drives the close-shift end-time step
   }
 
   formatMinutes(min: number): string {
@@ -125,6 +127,14 @@ export class DashboardComponent implements OnInit {
   closeEndDate: Date | null = null;
   closeEndTime: Date | null = null;
   closeSaving   = signal(false);
+
+  /** Minute step for the close-shift END picker — from the shift's job pay type (FIXED = 10-min,
+   *  HOURLY = 30-min block), matched by the frozen role name against the loaded roles. Unknown → 30. */
+  get closeEndStep(): number {
+    const row = this.closeRow();
+    const role = row ? this.staffStore.roles().find(r => r.name === row.role) : undefined;
+    return role?.payType === 'fixed' ? 10 : 30;
+  }
 
   openCloseShift(row: ActiveStaffDto): void {
     this.closeRow.set(row);

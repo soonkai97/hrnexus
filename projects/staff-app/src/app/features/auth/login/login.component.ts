@@ -6,12 +6,12 @@ import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Menu } from 'primeng/menu';
-import { AuthService, ThemeToggleComponent, LangService, UppercaseInputDirective, apiErrorMessage } from 'shared-lib';
+import { AuthService, ThemeToggleComponent, LangService, apiErrorMessage } from 'shared-lib';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message, Menu, UppercaseInputDirective],
+  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message, Menu],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -32,10 +32,6 @@ export class LoginComponent {
       staffId:  ['', Validators.required],
       password: ['', Validators.required],
     });
-  }
-
-  removeReadonly(e: Event): void {
-    (e.target as HTMLInputElement).removeAttribute('readonly');
   }
 
   submit(): void {

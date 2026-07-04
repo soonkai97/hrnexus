@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { AuthResponse, AuthUser, ForgotPasswordResponse, LoginRequest, UserRole } from '../models';
@@ -66,8 +66,12 @@ export class AuthService {
     // and re-sets both cookies on the response.
     return this.http.post<AuthResponse>('/api/auth/refresh', {}).pipe(
       tap(res => this.storeSession(res)),
-      catchError(err => {
-        this.logout();
+      catchError((err: HttpErrorResponse) => {
+        // Only a genuine 401 (the server rejected the refresh token) means the session is really
+        // dead — log out then. A transient failure (dropped mobile request, 5xx, or a 503 during a
+        // deploy) must NOT log the user out: the refresh token is still valid, so we keep the
+        // session, let this one request fail, and it'll succeed on the next retry.
+        if (err.status === 401) this.logout();
         return throwError(() => err);
       })
     );

@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
+import { vi } from 'vitest';
 import { AuthService } from './auth.service';
 import { AuthUser } from '../models';
 
@@ -110,5 +112,46 @@ describe('AuthService — userRole and hasRole', () => {
     // Resets once the navigation settles so a later session's guard works normally again.
     await new Promise(r => setTimeout(r));
     expect(service.loggingOut()).toBe(false);
+  });
+});
+
+// ── refreshToken() — only a real 401 kills the session ─────────────────────────
+// WHY: a transient refresh failure (dropped mobile request, 5xx, or a 503 during a deploy) must NOT
+// log the user out — the refresh token is still valid. Only a genuine 401 (server rejected the
+// token) means the session is dead. This is the fix for staff getting logged out on flaky wifi.
+describe('AuthService — refreshToken() logout policy', () => {
+  let service: AuthService;
+  let http: HttpTestingController;
+
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    service = TestBed.inject(AuthService);
+    http    = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => { http.verify(); localStorage.clear(); });
+
+  it('logs out on a genuine 401 (refresh token rejected)', () => {
+    const logoutSpy = vi.spyOn(service, 'logout').mockImplementation(() => {});
+    service.refreshToken().subscribe({ error: () => {} });
+    http.expectOne('/api/auth/refresh').flush({ error: 'invalid' }, { status: 401, statusText: 'Unauthorized' });
+    expect(logoutSpy).toHaveBeenCalled();
+  });
+
+  it('does NOT log out on a 5xx (transient server error / deploy)', () => {
+    const logoutSpy = vi.spyOn(service, 'logout').mockImplementation(() => {});
+    service.refreshToken().subscribe({ error: () => {} });
+    http.expectOne('/api/auth/refresh').flush({ error: 'boom' }, { status: 500, statusText: 'Server Error' });
+    expect(logoutSpy).not.toHaveBeenCalled();
+  });
+
+  it('does NOT log out on a network error (status 0)', () => {
+    const logoutSpy = vi.spyOn(service, 'logout').mockImplementation(() => {});
+    service.refreshToken().subscribe({ error: () => {} });
+    http.expectOne('/api/auth/refresh').error(new ProgressEvent('error'));
+    expect(logoutSpy).not.toHaveBeenCalled();
   });
 });

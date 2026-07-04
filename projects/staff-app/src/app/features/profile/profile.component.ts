@@ -2,7 +2,7 @@ import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AuthService, StaffManagementService, StaffDetail, ToastService, PushService, LangService } from 'shared-lib';
+import { AuthService, StaffManagementService, StaffDetail, ToastService, PushService, LangService, VersionService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { SelectButton } from 'primeng/selectbutton';
@@ -21,6 +21,10 @@ export class ProfileComponent implements OnInit {
   private readonly pushSvc  = inject(PushService);
   readonly lang             = inject(LangService);
   private readonly translate = inject(TranslateService);
+  private readonly versionSvc = inject(VersionService);
+
+  /** Build stamp shown at the bottom of the page (e.g. "20260704.01"). */
+  readonly build = this.versionSvc.info;
 
   readonly langOptions = [
     { label: 'English',     value: 'en' },
@@ -42,6 +46,7 @@ export class ProfileComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.versionSvc.load();
     this.staffSvc.getMyProfile().subscribe({
       next:  p => this.profile.set(p),
       error: () => {},

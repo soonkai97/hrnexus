@@ -758,6 +758,7 @@
     "changePasswordTitle": "Đổi mật khẩu",
     "language":         "Ngôn ngữ",
     "signOut":          "Đăng xuất",
+    "buildVersion":     "Bản dựng",
     "back":             "Quay lại",
     "pushTitle":        "Thông báo đẩy",
     "pushDesc":         "Nhận cảnh báo khi nhân viên có ca đang mở hoặc có đơn nghỉ phép mới, ngay cả khi thẻ này đang chạy nền.",

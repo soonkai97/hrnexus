@@ -1,5 +1,13 @@
 @use 'styles/theme' as *;
 
+.build-version {
+  text-align: center;
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: $text-muted;
+}
+
 // Cap the settings column and centre it so label/value rows aren't flung to
 // opposite edges on wide/desktop screens (no effect below 560px).
 :host { display: block; }

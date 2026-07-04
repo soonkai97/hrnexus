@@ -55,6 +55,9 @@
     <div class="sign-out-wrap">
       <p-button [label]="'account.signOut' | translate" severity="danger" (click)="logout()" />
     </div>
+
+    <!-- Build version -->
+    <p class="build-version">{{ 'account.buildVersion' | translate }} {{ build().version }}</p>
   }
 
 </div>

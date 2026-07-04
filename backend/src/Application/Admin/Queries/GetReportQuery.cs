@@ -143,7 +143,8 @@ public class GetReportQueryHandler(IAppDbContext db)
             var endDate = w.EndDate ?? (w.EndTime != null ? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime) : w.WorkDate);
             var raw   = w.EndTime != null ? ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, w.EndTime) : 0m;
             var cost  = Math.Round(ShiftPay.Calc(w.PayTypeSnapshot, raw, w.HourlyRateSnapshot), 2);
-            var hours = Math.Round(raw, 2);
+            // Shown hours mirror what's billed: hourly shifts floor to 0.5 blocks, fixed keep exact.
+            var hours = Math.Round(ShiftHours.BillableHours(w.PayTypeSnapshot, raw), 2);
             var startDt = w.WorkDate.ToDateTime(TimeOnly.Parse(w.StartTime));
             var endDt   = w.EndTime != null ? endDate.ToDateTime(TimeOnly.Parse(w.EndTime)) : (DateTime?)null;
             var (roleZh, roleVi) = roleLoc.For(w.RoleName);

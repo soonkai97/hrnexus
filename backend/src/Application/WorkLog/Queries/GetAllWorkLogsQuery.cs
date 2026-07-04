@@ -46,7 +46,7 @@ public class GetAllWorkLogsQueryHandler(IAppDbContext db, IDateTimeProvider dt) 
                 ? DateOnly.FromDateTime(dt.LocalNow)
                 : (w.EndDate ?? ShiftHours.DeriveEndDate(w.WorkDate, w.StartTime, w.EndTime!));
             var endTime = isActive ? $"{dt.LocalNow.Hour:D2}:{dt.LocalNow.Minute:D2}" : w.EndTime!;
-            var hours   = ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, endTime);
+            var hours   = ShiftHours.BillableHours(w.PayTypeSnapshot, ShiftHours.CalcHours(w.WorkDate, w.StartTime, endDate, endTime));
             var (zh, vi) = loc.For(w.RoleName);
             var (locZh, locVi) = locLoc.For(w.LocationId);
             return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"),

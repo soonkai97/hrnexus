@@ -36,7 +36,7 @@ public class GetMyWorkLogsQueryHandler(IAppDbContext db) : IRequestHandler<GetMy
     private static WorkLogDto ToDto(HRNexus.Domain.Entities.WorkLog w, RoleLocalization loc, LocationLocalization locLoc)
     {
         var isActive = w.EndTime == null || w.EndDate == null;
-        var hours    = isActive ? 0m : ShiftHours.CalcHours(w.WorkDate, w.StartTime, w.EndDate!.Value, w.EndTime!);
+        var hours    = isActive ? 0m : ShiftHours.BillableHours(w.PayTypeSnapshot, ShiftHours.CalcHours(w.WorkDate, w.StartTime, w.EndDate!.Value, w.EndTime!));
         var (zh, vi)       = loc.For(w.RoleName);
         var (locZh, locVi) = locLoc.For(w.LocationId);
         return new WorkLogDto(w.Id, w.RoleName, w.LocationId, w.LocationName, w.WorkDate.ToString("yyyy-MM-dd"), w.StartTime, w.EndDate?.ToString("yyyy-MM-dd"), w.EndTime, Math.Round(hours, 2), Math.Round(ShiftPay.Calc(w.PayTypeSnapshot, hours, w.HourlyRateSnapshot), 2), isActive, w.IsManualEntry, w.IsEdited, w.Notes, zh, vi, locZh, locVi);

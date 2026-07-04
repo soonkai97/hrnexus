@@ -60,6 +60,29 @@ public class ShiftPayTests
         Assert.Equal(160m, ShiftPay.Calc("", 8m, 20m));
     }
 
+    // ── Hourly billing rounds DOWN to completed 30-min blocks ─────────────────
+    // WHY: the venue bills hourly jobs in half-hour blocks and drops any partial block, so a girl who
+    // works 1h45m on a RM60/hr job is paid for 1.5h (RM90), not 1.75h (RM105).
+
+    [Theory]
+    [InlineData(1.75, 90)]   // 1h45m → 1.5 blocks × 60
+    [InlineData(1.5,  90)]   // exactly 1h30m → 1.5
+    [InlineData(1.49, 60)]   // 1h29.4m → floors to 1.0
+    [InlineData(1.0,  60)]   // exactly 1h → 1.0
+    [InlineData(0.4,  0)]    // under 30 min → 0 completed blocks → RM0
+    public void Calc_Hourly_FloorsHoursToHalfBlocks(decimal hours, decimal expectedPay)
+    {
+        Assert.Equal(expectedPay, ShiftPay.Calc(AppConstants.PayType.Hourly, hours, 60m));
+    }
+
+    [Fact]
+    public void Calc_Fixed_NeverFloored_FlatRateRegardlessOfMinutes()
+    {
+        // A fixed package pays the same whether the shift ran 11h50m or 12h05m — no block rounding.
+        Assert.Equal(500m, ShiftPay.Calc(AppConstants.PayType.Fixed, 11.83m, 500m));
+        Assert.Equal(500m, ShiftPay.Calc(AppConstants.PayType.Fixed, 12.08m, 500m));
+    }
+
     // ── Snapshot at clock-in flows through to earnings ────────────────────────
 
     [Fact]

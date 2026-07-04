@@ -695,26 +695,30 @@ describe('LogShiftComponent', () => {
       expect(c.manualFormStartTime).toBeNull();
     });
 
-    it('seeds both pickers to block-aligned times when a job is chosen (start != end)', () => {
+    it('does NOT seed/populate empty pickers when a job is chosen (never binds to current time)', () => {
       c.manualForm.roleId = 'j-hourly';
       c.onManualJobChange();
-      const s = c.manualFormStartTime!;
-      const e = c.manualFormEndTime!;
-      expect(s.getMinutes() % 30).toBe(0);
-      expect(e.getMinutes() % 30).toBe(0);
-      // end = start + one 30-min block → never a zero-duration seed
-      expect(e.getTime()).toBeGreaterThan(s.getTime());
+      expect(c.manualFormStartTime).toBeNull();
+      expect(c.manualFormEndTime).toBeNull();
     });
 
-    it('re-snaps already-picked times to the new block when the job changes (hourly → fixed)', () => {
+    it('opens on a fixed 12:00 anchor, not the current time', () => {
+      expect(c.manualPickerDefault.getHours()).toBe(12);
+      expect(c.manualPickerDefault.getMinutes()).toBe(0);
+    });
+
+    it('re-snaps an already-picked END time to the new job block when pay type changes (hourly → fixed)', () => {
       c.manualForm.roleId = 'j-hourly';
-      c.manualFormStartTime = new Date(2026, 6, 4, 11, 30);
-      c.manualFormEndTime   = new Date(2026, 6, 4, 12, 30);
+      c.manualFormEndTime = new Date(2026, 6, 4, 12, 25); // on no clean grid
+      c.manualForm.roleId = 'j-fixed';                    // fixed → 10-min block
+      c.onManualJobChange();
+      expect(hhmm(c.manualFormEndTime)).toBe('12:30');    // 12:25 → nearest 10 = 12:30
+    });
+
+    it('leaves a null END untouched on job change (nothing to re-snap)', () => {
       c.manualForm.roleId = 'j-fixed';
       c.onManualJobChange();
-      // already on clean values → stay put, just re-aligned to the 10-min grid
-      expect(hhmm(c.manualFormStartTime)).toBe('11:30');
-      expect(hhmm(c.manualFormEndTime)).toBe('12:30');
+      expect(c.manualFormEndTime).toBeNull();
     });
   });
 });

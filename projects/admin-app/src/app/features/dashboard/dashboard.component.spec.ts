@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DashboardComponent } from './dashboard.component';
-import { SignalRService, AdminService, ToastService, WorkLogService } from 'shared-lib';
+import { SignalRService, AdminService, ToastService, WorkLogService, StaffStore } from 'shared-lib';
 
 /**
  * DashboardComponent — live KPI panel with SignalR stat patches.
@@ -40,6 +40,7 @@ describe('DashboardComponent', () => {
   let mockAdminSvc: { getDashboard: ReturnType<typeof vi.fn>; getEarningsSnapshot: ReturnType<typeof vi.fn> };
   let mockToastSvc: { error: ReturnType<typeof vi.fn>; success: ReturnType<typeof vi.fn> };
   let mockWorkLogSvc: { adminEndShift: ReturnType<typeof vi.fn> };
+  let mockStaffStore: { roles: ReturnType<typeof vi.fn>; loadRoles: ReturnType<typeof vi.fn> };
 
   function createComponent(connected = false) {
     mockSignalR.isConnected.mockReturnValue(connected);
@@ -56,6 +57,7 @@ describe('DashboardComponent', () => {
     };
     mockToastSvc = { error: vi.fn(), success: vi.fn() };
     mockWorkLogSvc = { adminEndShift: vi.fn().mockReturnValue(of(void 0)) };
+    mockStaffStore = { roles: vi.fn().mockReturnValue([]), loadRoles: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -67,6 +69,7 @@ describe('DashboardComponent', () => {
         { provide: AdminService,  useValue: mockAdminSvc },
         { provide: ToastService,  useValue: mockToastSvc },
         { provide: WorkLogService, useValue: mockWorkLogSvc },
+        { provide: StaffStore, useValue: mockStaffStore },
         MessageService,
         ConfirmationService,
       ],
@@ -228,6 +231,34 @@ describe('DashboardComponent', () => {
       component.confirmCloseShift();
       expect(mockToastSvc.error).toHaveBeenCalledWith('A shift cannot exceed 24 hours.');
       expect(component.closeRow()).toEqual(row);
+    });
+  });
+
+  // ── closeEndStep (end picker follows the shift's job pay type) ──────────────────
+  describe('closeEndStep', () => {
+    const fixedRow  = { workLogId: 'w', staffId: 'S', name: 'A', role: 'OVERNIGHT 8H', locationName: 'L', workDate: '2026-06-01', startTime: '18:00', clockedInAt: '18:00', minutesOnShift: 10 };
+    const hourlyRow = { ...fixedRow, role: 'TABLE ROUNDS' };
+
+    it('steps 10 min when the shift being closed is a FIXED job', () => {
+      const c = createComponent();
+      mockStaffStore.roles.mockReturnValue([{ id: 'j1', name: 'OVERNIGHT 8H', payType: 'fixed' }]);
+      c.openCloseShift(fixedRow);
+      expect(c.closeEndStep).toBe(10);
+    });
+
+    it('steps 30 min when the shift being closed is an HOURLY job', () => {
+      const c = createComponent();
+      mockStaffStore.roles.mockReturnValue([{ id: 'j2', name: 'TABLE ROUNDS', payType: 'hourly' }]);
+      c.openCloseShift(hourlyRow);
+      expect(c.closeEndStep).toBe(30);
+    });
+
+    it('defaults to 30 min when no row is being closed or the role is unknown', () => {
+      const c = createComponent();
+      expect(c.closeEndStep).toBe(30);              // no closeRow
+      mockStaffStore.roles.mockReturnValue([]);
+      c.openCloseShift(fixedRow);
+      expect(c.closeEndStep).toBe(30);              // role not found in loaded roles
     });
   });
 });

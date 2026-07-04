@@ -129,6 +129,14 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   editLogEndDate:       Date | null = null;
   editLogEndTimeDate:   Date | null = null;
 
+  /** Minute step for the edit-log END picker — follows the SELECTED job's billing granularity
+   *  (FIXED packages step 10 min, HOURLY jobs snap to the 30-min block). The START picker stays a
+   *  fixed 30-min step by requirement — only the check-out end follows pay type. Unknown → 30. */
+  get editLogEndStep(): number {
+    const role = this.availableRoles().find(r => r.id === this.editLogForm.roleId);
+    return role?.payType === 'fixed' ? 10 : 30;
+  }
+
   editForm: UpdateStaffRequest = {
     staffId: '', firstName: '', lastName: '', email: null, roles: [], locations: [],
     phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: null,

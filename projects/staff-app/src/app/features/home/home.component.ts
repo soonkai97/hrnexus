@@ -5,7 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
-  AuthService, LeaveService, WorkLogService, AmPmPipe,
+  AuthService, LeaveService, WorkLogService, HmPipe,
   LeaveBalance, WorkLogDto, LocalizedNamePipe,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -15,7 +15,7 @@ import { Tag } from 'primeng/tag';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, DatePipe, UpperCasePipe, TranslatePipe, AmPmPipe, LocalizedNamePipe, Button, Card, Tag],
+  imports: [RouterLink, DecimalPipe, DatePipe, UpperCasePipe, TranslatePipe, HmPipe, LocalizedNamePipe, Button, Card, Tag],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

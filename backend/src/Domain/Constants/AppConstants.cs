@@ -88,9 +88,11 @@ public static class AppConstants
     // ── Shift limits ─────────────────────────────────────────────────────────────
     public static class WorkLog
     {
-        /// <summary>Maximum length of a single shift, in days (sanity/typo guard). Shifts may span
-        /// multiple days (some jobs run continuously), but an end date more than this many days after
-        /// the start is rejected across clock-out, manual entry, and admin close/edit.</summary>
+        /// <summary>Default (and hard ceiling) for a single shift's length, in days. Each job carries its
+        /// own <c>Role.MaxShiftDays</c> (configurable 1..this) that the shift-capture flows enforce; this
+        /// constant is the default for new jobs, the upper bound for the per-job setting, and the fallback
+        /// when a shift's job can't be resolved. Shifts may span multiple days (some jobs run continuously),
+        /// but an end date beyond the job's cap is rejected across clock-out, manual entry, and admin close/edit.</summary>
         public const int MaxShiftDays = 30;
     }
 

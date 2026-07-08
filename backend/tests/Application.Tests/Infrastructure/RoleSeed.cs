@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using HRNexus.Domain.Constants;
 using E = HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Tests.Infrastructure;
@@ -13,12 +14,12 @@ public static class RoleSeed
     /// <summary>Ensures a Role with the given name exists (creating it if absent) and returns its Id.
     /// Names are uppercase-normalised by <see cref="E.Role.Create"/>, matching production.</summary>
     public static async Task<Guid> EnsureRoleAsync(TestDbContext db, string name, decimal hourlyRate = 0,
-        bool isSystem = false)
+        bool isSystem = false, int maxShiftDays = AppConstants.WorkLog.MaxShiftDays)
     {
         var normalized = name.Trim().ToUpperInvariant();
         var existing = await db.Roles.FirstOrDefaultAsync(r => r.Name == normalized);
         if (existing != null) return existing.Id;
-        var role = E.Role.Create(name, isSystem: isSystem, hourlyRate: hourlyRate);
+        var role = E.Role.Create(name, isSystem: isSystem, hourlyRate: hourlyRate, maxShiftDays: maxShiftDays);
         db.Roles.Add(role);
         await db.SaveChangesAsync();
         return role.Id;

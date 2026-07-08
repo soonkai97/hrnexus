@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.WorkLog.Queries;
-using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.WorkLog.Commands;
 
@@ -26,13 +25,15 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
         // shift may run for several days; fall back to the same-day/overnight inference if none was sent.
         var endDate = req.EndDate ?? ShiftHours.DeriveEndDate(log.WorkDate, log.StartTime, req.EndTime);
 
-        // Duration must be positive and within the sanity cap — multi-day is allowed, an absurd span
-        // (likely a mis-picked date) is rejected so one shift can't be stretched to months.
+        // Duration must be positive and within the job's cap — multi-day is allowed, an absurd span
+        // (likely a mis-picked date) is rejected so one shift can't be stretched to months. The cap is
+        // per-job; the log only carries the role-name snapshot, so name-join back to the job for it.
         var hours = ShiftHours.CalcHours(log.WorkDate, log.StartTime, endDate, req.EndTime);
         if (hours <= 0)
             throw new ArgumentException("End time must be after the shift start.");
-        if (hours > AppConstants.WorkLog.MaxShiftDays * 24)
-            throw new ArgumentException($"A shift cannot exceed {AppConstants.WorkLog.MaxShiftDays} days — please check the dates.");
+        var maxDays = await RoleShiftLimit.MaxDaysByNameAsync(db, log.RoleName, ct);
+        if (hours > maxDays * 24)
+            throw new ArgumentException($"A shift for this job cannot exceed {maxDays} days — please check the dates.");
 
         // Reject if the resolved interval overlaps another completed shift for this staff member.
         // Clock-in only guards the START instant, so a shift that starts at a free time but runs into

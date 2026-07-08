@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.WorkLog.Commands;
 
@@ -22,12 +21,11 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         // may span multiple days. Fall back to the same-day/overnight inference if none was sent.
         var endDate = req.EndDate ?? ShiftHours.DeriveEndDate(req.WorkDate, req.StartTime, req.EndTime);
 
-        // Duration must be positive and within the sanity cap (multi-day allowed, absurd spans rejected).
+        // Duration must be positive (multi-day allowed); the per-job cap is checked once the job is
+        // loaded below, so an absurd span is rejected against this job's own limit.
         var hours = ShiftHours.CalcHours(req.WorkDate, req.StartTime, endDate, req.EndTime);
         if (hours <= 0)
             throw new ArgumentException("End must be after start.");
-        if (hours > AppConstants.WorkLog.MaxShiftDays * 24)
-            throw new ArgumentException($"A shift cannot exceed {AppConstants.WorkLog.MaxShiftDays} days — please check the dates.");
 
         // Can't add a shift into a locked payroll period.
         await PayrollLockGuard.EnsureDateOpenAsync(db, req.WorkDate, ct);
@@ -37,6 +35,9 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
 
         var role = await db.Roles.FindAsync([req.RoleId], ct)
             ?? throw new KeyNotFoundException($"Role {req.RoleId} not found.");
+
+        if (hours > role.MaxShiftDays * 24)
+            throw new ArgumentException($"A shift for this job cannot exceed {role.MaxShiftDays} days — please check the dates.");
 
         // Verify the employee is assigned to this location (no assignment ⇒ cannot log a shift here).
         var locationAssigned = await db.Staff

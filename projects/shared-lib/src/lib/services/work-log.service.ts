@@ -58,9 +58,12 @@ export interface CreateManualWorkLogRequest {
   /** Role GUID id — the backend resolves the role and snapshots its name into the log. */
   roleId: string;
   locationId: string;
-  workDate: string;    // yyyy-MM-dd
+  workDate: string;    // yyyy-MM-dd (start date)
   startTime: string;  // HH:mm
   endTime: string;    // HH:mm
+  /** yyyy-MM-dd end date. Omit for a same-day/overnight shift (backend infers ≤24h); set it to log
+   *  a multi-day shift that runs across several days. */
+  endDate?: string | null;
   notes?: string | null;
 }
 
@@ -84,8 +87,10 @@ export class WorkLogService {
     return this.http.post<{ id: string }>('/api/worklogs/entry', req);
   }
 
-  end(id: string, endTime: string): Observable<void> {
-    return this.http.put<void>(`/api/worklogs/${id}/end`, { endTime });
+  /** Staff clock-out. `endDate` (yyyy-MM-dd) defaults on the client to the clock-out day so a shift
+   *  can span multiple days; omit it and the backend infers a same-day/overnight (≤24h) end. */
+  end(id: string, endTime: string, endDate?: string | null): Observable<void> {
+    return this.http.put<void>(`/api/worklogs/${id}/end`, { endTime, endDate });
   }
 
   /** Push a fresh GPS fix for the caller's current shift (staff "Update location" button). */

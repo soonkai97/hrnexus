@@ -334,7 +334,7 @@ describe('LogShiftComponent', () => {
     it('calls end() with the stored shift id', () => {
       component.endingId.set('log-99');
       component.confirmEnd();
-      expect(mockWorkLogSvc.end).toHaveBeenCalledWith('log-99', expect.any(String));
+      expect(mockWorkLogSvc.end).toHaveBeenCalledWith('log-99', expect.any(String), expect.any(String));
     });
 
     it('clears activeLog after ending the shift — prevents ghost "active shift" UI', () => {
@@ -438,6 +438,7 @@ describe('LogShiftComponent', () => {
         workDate:   '2026-05-17',
         startTime:  '18:00',
         endTime:    '23:00',
+        endDate:    null,
         notes:      'Covered for sick colleague',
       });
     });
@@ -466,6 +467,23 @@ describe('LogShiftComponent', () => {
       component.manualFormEndTime   = new Date(2026, 4, 17, 6, 0);  // 06:00 — next day
       component.submitManual();
       expect(mockWorkLogSvc.createManual).toHaveBeenCalled();
+    });
+
+    it('sends an explicit end date for a multi-day shift', () => {
+      fillManualForm();
+      component.manualForm.endDate = '2026-05-19'; // 2 days after the 2026-05-17 start
+      component.submitManual();
+      expect(mockWorkLogSvc.createManual).toHaveBeenCalledWith(
+        expect.objectContaining({ endDate: '2026-05-19' }),
+      );
+    });
+
+    it('rejects an end date before the start date', () => {
+      fillManualForm();
+      component.manualForm.endDate = '2026-05-16'; // before the 2026-05-17 start
+      component.submitManual();
+      expect(component.formError()).toBe('logShift.errEndBeforeStart');
+      expect(mockWorkLogSvc.createManual).not.toHaveBeenCalled();
     });
 
     it('shows success toast after logging a manual shift', () => {

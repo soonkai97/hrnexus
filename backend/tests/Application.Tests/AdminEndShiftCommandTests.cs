@@ -94,8 +94,9 @@ public class AdminEndShiftCommandTests
     }
 
     [Fact]
-    public async Task Rejects_an_absurd_end_date_more_than_14_days_out()
+    public async Task Rejects_an_absurd_end_date_beyond_the_max_shift_days()
     {
+        // Multi-day is allowed up to the 30-day sanity cap; a wildly out-of-range end date is rejected.
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
         var workDate = new DateOnly(2026, 6, 1);
@@ -104,7 +105,7 @@ public class AdminEndShiftCommandTests
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate.AddDays(20), "18:00"), CancellationToken.None));
+            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate.AddDays(31), "18:00"), CancellationToken.None));
     }
 
     [Fact]

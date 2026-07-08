@@ -59,7 +59,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     {
         try
         {
-            var id = await mediator.Send(new CreateManualWorkLogCommand(CallerId, req.RoleId, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes), ct);
+            var id = await mediator.Send(new CreateManualWorkLogCommand(CallerId, req.RoleId, req.LocationId, req.WorkDate, req.StartTime, req.EndTime, req.Notes, req.EndDate), ct);
             return Ok(new { id });
         }
         catch (ArgumentException ex)      { return BadRequest(new { error = ex.Message }); }
@@ -87,7 +87,7 @@ public class WorkLogController(IMediator mediator) : ControllerBase
     {
         try
         {
-            await mediator.Send(new EndWorkLogCommand(id, CallerId, req.EndTime), ct);
+            await mediator.Send(new EndWorkLogCommand(id, CallerId, req.EndTime, req.EndDate), ct);
             return NoContent();
         }
         catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
@@ -137,9 +137,9 @@ public class WorkLogController(IMediator mediator) : ControllerBase
 }
 
 public record StartWorkLogRequest(Guid RoleId, string LocationId, string StartTime, string? Notes, double? Latitude = null, double? Longitude = null);
-public record ManualWorkLogRequest(Guid RoleId, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes);
+public record ManualWorkLogRequest(Guid RoleId, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes, DateOnly? EndDate = null);
 public record UpdateWorkLogRequest(Guid RoleId, string LocationId, DateOnly WorkDate, string StartTime, DateOnly EndDate, string EndTime, string? Notes);
-public record EndWorkLogRequest(string EndTime);
+public record EndWorkLogRequest(string EndTime, DateOnly? EndDate = null);
 public record UpdateLocationRequest(double Latitude, double Longitude);
 public record AdminEndShiftRequest(DateOnly EndDate, string EndTime);
 public record GetAllWorkLogsParams(DateTime? From, DateTime? To, Guid? EmployeeId, int Page = 1, int PageSize = 10);

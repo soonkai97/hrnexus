@@ -38,12 +38,12 @@ export class StaffManagementService {
     return this.http.get<StaffRole[]>('/api/staff/roles');
   }
 
-  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly'): Observable<void> {
-    return this.http.post<void>('/api/staff/roles', { name, hourlyRate, nameZh, nameVi, payType });
+  createRole(name: string, hourlyRate: number = 0, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly', maxShiftDays = 30): Observable<void> {
+    return this.http.post<void>('/api/staff/roles', { name, hourlyRate, nameZh, nameVi, payType, maxShiftDays });
   }
 
-  updateRoleRate(id: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly', name: string | null = null): Observable<void> {
-    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(id)}/rate`, { hourlyRate, nameZh, nameVi, payType, name });
+  updateRoleRate(id: string, hourlyRate: number, nameZh: string | null = null, nameVi: string | null = null, payType: PayType = 'hourly', name: string | null = null, maxShiftDays = 30): Observable<void> {
+    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(id)}/rate`, { hourlyRate, nameZh, nameVi, payType, name, maxShiftDays });
   }
 
   deleteRole(id: string): Observable<void> {

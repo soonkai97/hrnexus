@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using System.Globalization;
 
@@ -62,12 +61,10 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
             throw new ArgumentException("EndTime must be in HH:mm format.");
 
         // Hours from the explicit start/end date+time — a multi-day span is allowed; only a
-        // non-positive span or an absurd one (likely a typo) is rejected.
+        // non-positive span or an absurd one (checked against the target job's cap below) is rejected.
         var hours = ShiftHours.CalcHours(req.WorkDate, req.StartTime, req.EndDate, req.EndTime);
         if (hours <= 0)
             throw new ArgumentException("The end date/time must be after the start.");
-        if (hours > AppConstants.WorkLog.MaxShiftDays * 24)
-            throw new ArgumentException($"That shift spans more than {AppConstants.WorkLog.MaxShiftDays} days — please check the dates.");
 
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location '{req.LocationId}' not found.");
@@ -76,6 +73,11 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         var targetRole = await db.Roles.FindAsync([req.RoleId], ct)
             ?? throw new KeyNotFoundException($"Role '{req.RoleId}' not found.");
         var newRoleName = targetRole.Name;
+
+        // Cap the span against the job this shift is being assigned to (a multi-day span is allowed up
+        // to that job's own limit; anything beyond is treated as a mis-picked date).
+        if (hours > targetRole.MaxShiftDays * 24)
+            throw new ArgumentException($"That shift spans more than {targetRole.MaxShiftDays} days for this job — please check the dates.");
 
         // The rate is system-derived (never hand-edited). We only touch it when the role actually
         // changes: re-snapshot to its rate as-of the work date. A time/notes-only edit (role

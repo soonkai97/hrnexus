@@ -391,6 +391,44 @@ public class WorkLogCommandTests
     }
 
     [Fact]
+    public async Task End_Throws_WhenSpanExceedsThisJobsCap_EvenUnderGlobalMax()
+    {
+        // The cap is per-job: a job configured to allow only 2 days rejects a 3-day span even though
+        // that is well within the 30-day global ceiling. The cap is looked up by the log's role name.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var start = new DateOnly(2026, 7, 1);
+        await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m, maxShiftDays: 2);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", start, "10:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            EndHandler(db).Handle(
+                new EndWorkLogCommand(log.Id, empId, "10:00", start.AddDays(3)), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task End_AllowsSpan_WithinThisJobsRaisedCap()
+    {
+        // A job configured for up to 10 days accepts an 8-day span (which would be far past the old 24h
+        // limit) — the per-job setting widens the allowance, not just the global default.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var start = new DateOnly(2026, 7, 1);
+        await RoleSeed.EnsureRoleAsync(db, "SECURITY", hourlyRate: 40m, maxShiftDays: 10);
+        var log = E.WorkLog.StartLive(empId, "SECURITY", "loc-1", "Main Bar", start, "10:00", 40m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await EndHandler(db).Handle(
+            new EndWorkLogCommand(log.Id, empId, "10:00", start.AddDays(8)), CancellationToken.None);
+
+        await db.Entry(log).ReloadAsync();
+        Assert.Equal(start.AddDays(8), log.EndDate);
+    }
+
+    [Fact]
     public async Task Update_Succeeds_WhenTwoNonOverlappingShiftsOnSameDay()
     {
         // Multiple shifts on the same day are allowed as long as they don't overlap.
@@ -632,6 +670,24 @@ public class WorkLogCommandTests
 
         var log = await db.WorkLogs.FindAsync(id);
         Assert.Equal(77m, log!.HourlyRateSnapshot);
+    }
+
+    [Fact]
+    public async Task ManualEntry_Throws_WhenSpanExceedsThisJobsCap()
+    {
+        // A manual entry for a same-day-only job (cap = 1) is rejected when an explicit end date pushes
+        // the span past that job's limit, even though it's under the 30-day global ceiling.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        db.Locations.Add(MakeLocation("loc-1"));
+        var roleId = await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m, maxShiftDays: 1);
+        db.Staff.Add(MakeStaffWithRole(empId, roleId));
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            new CreateManualWorkLogCommandHandler(db).Handle(new CreateManualWorkLogCommand(
+                empId, roleId, "loc-1", new DateOnly(2026, 4, 15), "10:00", "10:00", null, new DateOnly(2026, 4, 18)),
+                CancellationToken.None));
     }
 
     [Fact]

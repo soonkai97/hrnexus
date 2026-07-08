@@ -107,6 +107,32 @@ public class StaffMiscCommandTests
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "WAITRESS");
         Assert.NotNull(role);
         Assert.Equal(15.5m, role.HourlyRate);
+        Assert.Equal(30, role.MaxShiftDays);   // defaults to the global cap when unspecified
+    }
+
+    [Fact]
+    public async Task CreateRole_PersistsCustomMaxShiftDays()
+    {
+        await using var db = CreateDb();
+        var handler = new CreateRoleCommandHandler(db);
+
+        await handler.Handle(new CreateRoleCommand("night guard", MaxShiftDays: 7), CancellationToken.None);
+
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "NIGHT GUARD");
+        Assert.NotNull(role);
+        Assert.Equal(7, role.MaxShiftDays);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(31)]
+    public async Task CreateRole_ThrowsArgument_WhenMaxShiftDaysOutOfRange(int days)
+    {
+        await using var db = CreateDb();
+        var handler = new CreateRoleCommandHandler(db);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(new CreateRoleCommand("courier", MaxShiftDays: days), CancellationToken.None));
     }
 
     // ── DeleteRoleCommand ─────────────────────────────────────────────────────

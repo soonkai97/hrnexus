@@ -368,6 +368,11 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<bool>("IsSystem")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("MaxShiftDays")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(30);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)

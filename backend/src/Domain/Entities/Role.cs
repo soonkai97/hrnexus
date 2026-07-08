@@ -14,21 +14,27 @@ public class Role
     public decimal  HourlyRate { get; private set; }  // per hour (hourly) OR flat per shift (fixed)
     /// <summary>"hourly" = pay is HourlyRate × hours; "fixed" = pay is HourlyRate flat per shift.</summary>
     public string   PayType    { get; private set; } = AppConstants.PayType.Hourly;
+    /// <summary>Maximum length (in days) a single shift for this job may span — a sanity/typo guard on
+    /// clock-out and manual/admin entry. Some jobs run continuously for days; others are always same-day.
+    /// Defaults to <see cref="AppConstants.WorkLog.MaxShiftDays"/>.</summary>
+    public int      MaxShiftDays { get; private set; } = AppConstants.WorkLog.MaxShiftDays;
     public DateTime CreatedAt  { get; private set; }
 
     private Role() { }
 
     public static Role Create(string name, bool isSystem = false, decimal hourlyRate = 0,
-        string? nameZh = null, string? nameVi = null, string payType = AppConstants.PayType.Hourly) => new()
+        string? nameZh = null, string? nameVi = null, string payType = AppConstants.PayType.Hourly,
+        int maxShiftDays = AppConstants.WorkLog.MaxShiftDays) => new()
     {
-        Id         = Guid.NewGuid(),
-        Name       = name.Trim().ToUpperInvariant(),
-        NameZh     = Clean(nameZh),
-        NameVi     = Clean(nameVi),
-        IsSystem   = isSystem,
-        HourlyRate = hourlyRate,
-        PayType    = NormalizePayType(payType),
-        CreatedAt  = DateTime.UtcNow,
+        Id           = Guid.NewGuid(),
+        Name         = name.Trim().ToUpperInvariant(),
+        NameZh       = Clean(nameZh),
+        NameVi       = Clean(nameVi),
+        IsSystem     = isSystem,
+        HourlyRate   = hourlyRate,
+        PayType      = NormalizePayType(payType),
+        MaxShiftDays = ClampDays(maxShiftDays),
+        CreatedAt    = DateTime.UtcNow,
     };
 
     /// <summary>Renames the job's primary (English) display name. Stored UPPERCASE to match the
@@ -38,10 +44,15 @@ public class Role
     public void SetPayType(string payType) => PayType = NormalizePayType(payType);
     public void SetNameZh(string? nameZh) => NameZh = Clean(nameZh);
     public void SetNameVi(string? nameVi) => NameVi = Clean(nameVi);
+    public void SetMaxShiftDays(int days) => MaxShiftDays = ClampDays(days);
 
     private static string NormalizePayType(string? p) =>
         string.Equals(p, AppConstants.PayType.Fixed, StringComparison.OrdinalIgnoreCase)
             ? AppConstants.PayType.Fixed : AppConstants.PayType.Hourly;
+
+    // Keep the per-job cap within the sane 1..MaxShiftDays window so it always functions as a typo
+    // guard (a job can't be configured to allow an unbounded shift, nor a zero-length one).
+    private static int ClampDays(int days) => Math.Clamp(days, 1, AppConstants.WorkLog.MaxShiftDays);
 
     private static string? Clean(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 }

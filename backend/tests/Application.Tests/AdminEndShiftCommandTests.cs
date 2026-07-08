@@ -109,6 +109,23 @@ public class AdminEndShiftCommandTests
     }
 
     [Fact]
+    public async Task Rejects_an_end_date_beyond_this_jobs_configured_cap()
+    {
+        // The cap is per-job: a job limited to 3 days rejects a 5-day close even though that is under
+        // the 30-day global ceiling. The limit is resolved by the shift's role name.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var workDate = new DateOnly(2026, 6, 1);
+        await RoleSeed.EnsureRoleAsync(db, "BARTENDER", hourlyRate: 50m, maxShiftDays: 3);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", workDate, "09:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            Handler(db).Handle(new AdminEndShiftCommand(log.Id, Guid.NewGuid(), workDate.AddDays(5), "18:00"), CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Rejects_a_close_whose_span_would_overlap_a_later_shift()
     {
         // Closing an open shift to a multi-day end must not swallow a later completed shift.

@@ -37,6 +37,11 @@
       <label for="rl-role-rate">{{ (newRolePayType === 'fixed' ? 'roles.rateFixedLabel' : 'roles.rateLabel') | translate }}</label>
       <p-inputnumber inputId="rl-role-rate" [(ngModel)]="newRoleRate" [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2" [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
     </div>
+    <div class="field">
+      <label for="rl-role-maxdays">{{ 'roles.maxShiftDaysLabel' | translate }}</label>
+      <p-inputnumber inputId="rl-role-maxdays" [(ngModel)]="newRoleMaxDays" [min]="1" [max]="30" [step]="1" [showButtons]="true" [pt]="$any({ input: { inputmode: 'numeric' } })" styleClass="w-full" />
+      <small class="field-hint">{{ 'roles.maxShiftDaysHint' | translate }}</small>
+    </div>
     <ng-template pTemplate="footer">
       <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
       <p-button [label]="saving() ? ('common.saving' | translate) : ('roles.addBtn' | translate)" severity="primary"
@@ -79,6 +84,13 @@
       <p-inputnumber inputId="rl-edit-rate" [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
                      [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2"
                      [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
+    </div>
+    <div class="field">
+      <label for="rl-edit-maxdays">{{ 'roles.maxShiftDaysLabel' | translate }}</label>
+      <p-inputnumber inputId="rl-edit-maxdays" [ngModel]="editingRateMaxDays()" (ngModelChange)="editingRateMaxDays.set(+$event)"
+                     [min]="1" [max]="30" [step]="1" [showButtons]="true"
+                     [pt]="$any({ input: { inputmode: 'numeric' } })" styleClass="w-full" />
+      <small class="field-hint">{{ 'roles.maxShiftDaysHint' | translate }}</small>
     </div>
     <ng-template pTemplate="footer">
       <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEditRate()" />

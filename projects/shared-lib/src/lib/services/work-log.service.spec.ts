@@ -176,6 +176,13 @@ describe('WorkLogService', () => {
       req.flush(null);
     });
 
+    it('includes the endDate in the body for a multi-day clock-out', () => {
+      service.end('log-42', '08:00', '2026-05-19').subscribe();
+      const req = http.expectOne('/api/worklogs/log-42/end');
+      expect(req.request.body).toEqual({ endTime: '08:00', endDate: '2026-05-19' });
+      req.flush(null);
+    });
+
     it('uses the provided id in the URL — not a hardcoded value', () => {
       service.end('log-xyz', '01:00').subscribe();
       const req = http.expectOne('/api/worklogs/log-xyz/end');

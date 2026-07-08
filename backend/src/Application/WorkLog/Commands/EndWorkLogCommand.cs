@@ -3,12 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.WorkLog.Queries;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.WorkLog.Commands;
 
-public record EndWorkLogCommand(Guid Id, Guid EmployeeId, string EndTime) : IRequest;
+public record EndWorkLogCommand(Guid Id, Guid EmployeeId, string EndTime, DateOnly? EndDate = null) : IRequest;
 
-public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub, IDateTimeProvider dateTime)
+public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotificationHub hub)
     : IRequestHandler<EndWorkLogCommand>
 {
     public async Task Handle(EndWorkLogCommand req, CancellationToken ct)
@@ -21,21 +22,17 @@ public class EndWorkLogCommandHandler(IAppDbContext db, ISender sender, INotific
         if (log.EmployeeId != req.EmployeeId) throw new UnauthorizedAccessException("Not your shift.");
         if (log.EndTime != null) throw new InvalidOperationException("Shift already ended.");
 
-        // A self clock-out derives a same-day/overnight (≤24h) end. If the shift has actually been
-        // open longer than that, the staff plainly forgot — recording it as a short same-day shift
-        // would be wrong, so route them to a manager (who can close it with a real multi-day end).
-        var startLocal = log.WorkDate.ToDateTime(TimeOnly.Parse(log.StartTime));
-        if (dateTime.LocalNow - startLocal > TimeSpan.FromHours(24))
-            throw new InvalidOperationException("This shift has been open for more than 24 hours. Please ask a manager to close it.");
+        // The clock-out records an explicit end date (the client defaults it to the clock-out day), so a
+        // shift may run for several days; fall back to the same-day/overnight inference if none was sent.
+        var endDate = req.EndDate ?? ShiftHours.DeriveEndDate(log.WorkDate, log.StartTime, req.EndTime);
 
-        // Validate end time produces a non-zero duration (guard against identical start/end)
-        var hours = HRNexus.Application.Common.ShiftHours.CalcHours(log.StartTime, req.EndTime);
+        // Duration must be positive and within the sanity cap — multi-day is allowed, an absurd span
+        // (likely a mis-picked date) is rejected so one shift can't be stretched to months.
+        var hours = ShiftHours.CalcHours(log.WorkDate, log.StartTime, endDate, req.EndTime);
         if (hours <= 0)
-            throw new ArgumentException("End time must be different from the shift start time.");
-
-        // A staff clock-out is "now", so the end date is the same day or the next (overnight) — derive
-        // it the historical way; multi-day spans only ever come from an admin correction.
-        var endDate = ShiftHours.DeriveEndDate(log.WorkDate, log.StartTime, req.EndTime);
+            throw new ArgumentException("End time must be after the shift start.");
+        if (hours > AppConstants.WorkLog.MaxShiftDays * 24)
+            throw new ArgumentException($"A shift cannot exceed {AppConstants.WorkLog.MaxShiftDays} days — please check the dates.");
 
         // Reject if the resolved interval overlaps another completed shift for this staff member.
         // Clock-in only guards the START instant, so a shift that starts at a free time but runs into

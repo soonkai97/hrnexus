@@ -82,7 +82,7 @@ public class WorkLogCommandTests
         new(db, new NullSender(), new NullNotificationHub(), new NullDateTimeProvider());
 
     private static EndWorkLogCommandHandler EndHandler(IAppDbContext db) =>
-        new(db, new NullSender(), new NullNotificationHub(), new NullDateTimeProvider());
+        new(db, new NullSender(), new NullNotificationHub());
 
     // ── UpdateWorkLogCommand ──────────────────────────────────────────────────
 
@@ -355,19 +355,39 @@ public class WorkLogCommandTests
     }
 
     [Fact]
-    public async Task End_Throws_WhenShiftHasBeenOpenMoreThan24Hours()
+    public async Task End_AllowsMultiDay_WhenEndDateProvided()
     {
-        // A staff self clock-out can't faithfully record a >24h-old open shift — it must route to a
-        // manager instead of silently logging a short same-day shift.
+        // Some jobs run continuously for days. A staff clock-out that supplies an explicit end date
+        // records the full multi-day span (no 24h limit) — here ~2 days.
         await using var db = CreateDb();
         var empId = Guid.NewGuid();
-        var twoDaysAgo = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-2);
-        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", twoDaysAgo, "10:00", 50m);
+        var start = new DateOnly(2026, 7, 1);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", start, "10:00", 50m);
         db.WorkLogs.Add(log);
         await db.SaveChangesAsync();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            EndHandler(db).Handle(new EndWorkLogCommand(log.Id, empId, "12:00"), CancellationToken.None));
+        await EndHandler(db).Handle(
+            new EndWorkLogCommand(log.Id, empId, "12:00", start.AddDays(2)), CancellationToken.None);
+
+        await db.Entry(log).ReloadAsync();
+        Assert.Equal(start.AddDays(2), log.EndDate);
+        Assert.Equal("12:00", log.EndTime);
+    }
+
+    [Fact]
+    public async Task End_Throws_WhenSpanExceedsMaxShiftDays()
+    {
+        // The 30-day sanity cap still guards against a mis-picked end date stretching one shift to months.
+        await using var db = CreateDb();
+        var empId = Guid.NewGuid();
+        var start = new DateOnly(2026, 7, 1);
+        var log = E.WorkLog.StartLive(empId, "BARTENDER", "loc-1", "Main Bar", start, "10:00", 50m);
+        db.WorkLogs.Add(log);
+        await db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            EndHandler(db).Handle(
+                new EndWorkLogCommand(log.Id, empId, "12:00", start.AddDays(31)), CancellationToken.None));
     }
 
     [Fact]

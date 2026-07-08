@@ -35,6 +35,11 @@
         @if (endingId() === a.id) {
           <div class="end-panel">
             <div class="field">
+              <label for="ls-end-date">{{ 'logShift.endDate' | translate }}</label>
+              <p-datepicker inputId="ls-end-date" [(ngModel)]="endDateStr" dateFormat="yy-mm-dd" dataType="string"
+                [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" appendTo="body" styleClass="w-full" />
+            </div>
+            <div class="field">
               <label for="ls-end-time">{{ 'logShift.endTime' | translate }}</label>
               <p-datepicker inputId="ls-end-time" [(ngModel)]="endTimeDate" [timeOnly]="true" [hourFormat]="'24'" [stepMinute]="endStep"
                 [showIcon]="true" icon="pi pi-clock"
@@ -161,7 +166,14 @@
                 [readonlyInput]="true" [showOnFocus]="false" [placeholder]="'logShift.selectTime' | translate" appendTo="body" styleClass="w-full" />
             </div>
           </div>
-          @if (isOvernightManual) {
+          <div class="field">
+            <label for="ls-manual-end-date">{{ 'logShift.endDateOptional' | translate }}</label>
+            <p-datepicker inputId="ls-manual-end-date" [(ngModel)]="manualForm.endDate" dateFormat="yy-mm-dd" dataType="string"
+              [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" [showClear]="true"
+              [placeholder]="'logShift.sameDayPlaceholder' | translate" appendTo="body" styleClass="w-full" />
+            <small class="field-hint">{{ 'logShift.endDateHint' | translate }}</small>
+          </div>
+          @if (isOvernightManual && !manualForm.endDate) {
             <small class="overnight-hint">
               <i class="pi pi-moon"></i> {{ 'logShift.overnightHint' | translate }}
               <strong>{{ 'logShift.endsOn' | translate }} {{ manualEndDate }}</strong>

@@ -108,6 +108,8 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   endTime = nowHHmm(); // kept for API compat; template uses endTimeDate
   endingId = signal<string | null>(null);
   endTimeDate: Date | null = null; // UI binding for end time
+  endDateStr  = todayLocalString(); // UI binding for end date — defaults to the clock-out day so a
+                                     // shift can span several days; staff only change it for an edge case.
 
   /** Minute step for a check-out picker, chosen by the job's billing granularity: FIXED packages
    *  allow fine 10-min adjustments (the exact minutes don't change their flat pay), while HOURLY jobs
@@ -173,6 +175,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     workDate:   todayLocalString(),
     startTime:  '', // kept for API compat; template uses manualFormStartTime
     endTime:    '', // kept for API compat; template uses manualFormEndTime
+    endDate:    '', // yyyy-MM-dd; blank = same-day/overnight (backend infers), set for a multi-day shift
     notes:      '',
   };
   manualFormStartTime: Date | null = null; // UI binding
@@ -336,6 +339,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
   // ── Live: end shift ──────────────────────────────────────────────────────────
 
   openEndShift(id: string): void {
+    this.endDateStr  = todayLocalString();
     this.endTimeDate = nowRoundedToHalfHour();
     this.endingId.set(id);
   }
@@ -350,7 +354,7 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     if (!id) return;
     const endTime = this.endTimeDate ? this.toTimeStr(this.endTimeDate) : nowHHmm();
     this.submitting.set(true);
-    this.workLogSvc.end(id, endTime).subscribe({
+    this.workLogSvc.end(id, endTime, this.endDateStr).subscribe({
       next: () => {
         this.submitting.set(false);
         this.endingId.set(null);
@@ -379,13 +383,19 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
     const [eh = 0, em = 0] = endTime.split(':').map(Number);
     const startMins = sh * 60 + sm;
     const endMins   = eh * 60 + em;
-    // >= so same-time gives 0 (not 1440); overnight gives [1, 1439]
-    const durationMins = endMins >= startMins ? endMins - startMins : endMins + 1440 - startMins;
-    if (durationMins === 0) {
+    // A blank end date means a same-day/overnight shift — the backend infers the end date (≤24h) and
+    // rejects a zero-duration entry. An explicit end date logs a multi-day shift; the 30-day cap is
+    // enforced by the backend, so here we only catch the obvious end-before-start mistakes.
+    const endDate = this.manualForm.endDate || null;
+    if (endDate) {
+      if (endDate < this.manualForm.workDate) {
+        this.formError.set(this.translate.instant('logShift.errEndBeforeStart')); return;
+      }
+      if (endDate === this.manualForm.workDate && endMins <= startMins) {
+        this.formError.set(this.translate.instant('logShift.errSameTime')); return;
+      }
+    } else if (startMins === endMins) {
       this.formError.set(this.translate.instant('logShift.errSameTime')); return;
-    }
-    if (durationMins > 1440) {
-      this.formError.set(this.translate.instant('logShift.errMax24')); return;
     }
     this.submitting.set(true);
     this.formError.set('');
@@ -395,12 +405,13 @@ export class LogShiftComponent implements OnInit, CanComponentDeactivate {
       workDate:   this.manualForm.workDate,
       startTime,
       endTime,
+      endDate,
       notes:      this.manualForm.notes || null,
     }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.toast.success(this.translate.instant('logShift.toast.logged'));
-        this.manualForm = { roleId: '', locationId: '', workDate: todayLocalString(), startTime: '', endTime: '', notes: '' };
+        this.manualForm = { roleId: '', locationId: '', workDate: todayLocalString(), startTime: '', endTime: '', endDate: '', notes: '' };
         this.manualFormStartTime = null;
         this.manualFormEndTime   = null;
         this.loadHistory();

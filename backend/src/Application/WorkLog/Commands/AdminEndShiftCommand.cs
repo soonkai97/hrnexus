@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.WorkLog.Queries;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using System.Globalization;
 
@@ -45,8 +46,8 @@ public class AdminEndShiftCommandHandler(IAppDbContext db, ISender sender, INoti
         var spanMins  = endMins - startMins;
         if (spanMins <= 0)
             throw new ArgumentException("The end date/time must be after the shift started.");
-        if (spanMins > 14 * 1440)
-            throw new ArgumentException("That end date is more than 14 days after the shift started — please check it.");
+        if (spanMins > AppConstants.WorkLog.MaxShiftDays * 1440)
+            throw new ArgumentException($"That end date is more than {AppConstants.WorkLog.MaxShiftDays} days after the shift started — please check it.");
 
         // Closing to a multi-day span could now swallow a later completed shift for the same staff —
         // reject if the resolved interval overlaps one (date-interval candidate query, minute-precise).

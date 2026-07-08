@@ -85,6 +85,15 @@ public static class AppConstants
         public const string Fixed  = "fixed";
     }
 
+    // ── Shift limits ─────────────────────────────────────────────────────────────
+    public static class WorkLog
+    {
+        /// <summary>Maximum length of a single shift, in days (sanity/typo guard). Shifts may span
+        /// multiple days (some jobs run continuously), but an end date more than this many days after
+        /// the start is rejected across clock-out, manual entry, and admin close/edit.</summary>
+        public const int MaxShiftDays = 30;
+    }
+
     // ── Notification types ─────────────────────────────────────────────────────
     public static class NotificationType
     {

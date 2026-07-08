@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using System.Globalization;
 
@@ -65,8 +66,8 @@ public class UpdateWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<Upd
         var hours = ShiftHours.CalcHours(req.WorkDate, req.StartTime, req.EndDate, req.EndTime);
         if (hours <= 0)
             throw new ArgumentException("The end date/time must be after the start.");
-        if (hours > 14 * 24)
-            throw new ArgumentException("That shift spans more than 14 days — please check the dates.");
+        if (hours > AppConstants.WorkLog.MaxShiftDays * 24)
+            throw new ArgumentException($"That shift spans more than {AppConstants.WorkLog.MaxShiftDays} days — please check the dates.");
 
         var location = await db.Locations.FindAsync([req.LocationId], ct)
             ?? throw new KeyNotFoundException($"Location '{req.LocationId}' not found.");

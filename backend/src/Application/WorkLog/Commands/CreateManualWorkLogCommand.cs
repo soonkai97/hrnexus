@@ -2,10 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 
 namespace HRNexus.Application.WorkLog.Commands;
 
-public record CreateManualWorkLogCommand(Guid EmployeeId, Guid RoleId, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes) : IRequest<Guid>;
+public record CreateManualWorkLogCommand(Guid EmployeeId, Guid RoleId, string LocationId, DateOnly WorkDate, string StartTime, string EndTime, string? Notes, DateOnly? EndDate = null) : IRequest<Guid>;
 
 public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandler<CreateManualWorkLogCommand, Guid>
 {
@@ -17,12 +18,16 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
         if (!TimeOnly.TryParseExact(req.EndTime, "HH:mm", null, System.Globalization.DateTimeStyles.None, out _))
             throw new ArgumentException("EndTime must be in HH:mm format.");
 
-        // Validate time range: supports overnight shifts, but rejects identical or >24h spans
-        var hours = ShiftHours.CalcHours(req.StartTime, req.EndTime);
+        // The end date is explicit (the client sends it; defaults to the start date), so a manual shift
+        // may span multiple days. Fall back to the same-day/overnight inference if none was sent.
+        var endDate = req.EndDate ?? ShiftHours.DeriveEndDate(req.WorkDate, req.StartTime, req.EndTime);
+
+        // Duration must be positive and within the sanity cap (multi-day allowed, absurd spans rejected).
+        var hours = ShiftHours.CalcHours(req.WorkDate, req.StartTime, endDate, req.EndTime);
         if (hours <= 0)
-            throw new ArgumentException("End time must be different from start time.");
-        if (hours > 24)
-            throw new ArgumentException("A single shift cannot exceed 24 hours.");
+            throw new ArgumentException("End must be after start.");
+        if (hours > AppConstants.WorkLog.MaxShiftDays * 24)
+            throw new ArgumentException($"A shift cannot exceed {AppConstants.WorkLog.MaxShiftDays} days — please check the dates.");
 
         // Can't add a shift into a locked payroll period.
         await PayrollLockGuard.EnsureDateOpenAsync(db, req.WorkDate, ct);
@@ -48,9 +53,6 @@ public class CreateManualWorkLogCommandHandler(IAppDbContext db) : IRequestHandl
               && l.EndDate   >= workDateUtc, ct);
         if (onLeave)
             throw new InvalidOperationException("Cannot start a shift while on approved leave.");
-
-        // Manual entry stays single-overnight (≤24h, guarded above); derive the end date.
-        var endDate = ShiftHours.DeriveEndDate(req.WorkDate, req.StartTime, req.EndTime);
 
         // Reject if the new shift overlaps in time with any existing completed shift. Candidates are
         // selected by DATE-interval overlap (their end date >= our start date AND their start date <=

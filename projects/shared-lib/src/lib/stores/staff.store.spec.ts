@@ -175,6 +175,24 @@ describe('StaffStore', () => {
     expect(store.staff().find(s => s.id === '1')?.isActive).toBe(false);
   });
 
+  // ── setHidden() ─────────────────────────────────────────────────────────────
+
+  it('setHidden() PATCHes the hidden flag for the target staff member', async () => {
+    const promise = firstValueFrom(store.setHidden('9', true));
+    const req = http.expectOne(r => r.url.includes('/api/staff/9/hidden'));
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ hidden: true });
+    req.flush(null);
+    await promise;
+  });
+
+  it('loadStaff() forwards includeHidden as a query param when set', () => {
+    store.loadStaff(undefined, 1, 10, true);
+    const req = http.expectOne(r => r.url.includes('/api/staff'));
+    expect(req.request.urlWithParams).toContain('includeHidden=true');
+    req.flush({ items: [], total: 0 });
+  });
+
   // ── loadRoles() ───────────────────────────────────────────────────────────
 
   it('populates the roles signal from the API', () => {

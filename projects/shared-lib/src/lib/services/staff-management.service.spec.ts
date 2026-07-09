@@ -55,6 +55,32 @@ describe('StaffManagementService', () => {
       expect(req.request.urlWithParams).not.toContain('search=');
       req.flush({ items: [], total: 0 });
     });
+
+    it('does not include includeHidden by default', () => {
+      service.getAll().subscribe();
+      const req = http.expectOne(r => r.url === '/api/staff');
+      expect(req.request.urlWithParams).not.toContain('includeHidden');
+      req.flush({ items: [], total: 0 });
+    });
+
+    it('includes includeHidden=true when requested', () => {
+      service.getAll(undefined, 1, 10, true).subscribe();
+      const req = http.expectOne(r => r.url === '/api/staff');
+      expect(req.request.urlWithParams).toContain('includeHidden=true');
+      req.flush({ items: [], total: 0 });
+    });
+  });
+
+  // ── setHidden() ─────────────────────────────────────────────────────────────
+
+  describe('setHidden()', () => {
+    it('PATCHes /api/staff/{id}/hidden with the hidden flag', () => {
+      service.setHidden('emp-9', true).subscribe();
+      const req = http.expectOne('/api/staff/emp-9/hidden');
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ hidden: true });
+      req.flush(null);
+    });
   });
 
   // ── getById() ─────────────────────────────────────────────────────────────

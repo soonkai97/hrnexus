@@ -35,12 +35,13 @@ public class StaffController(IMediator mediator) : ControllerBase
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffView)]
     public async Task<IActionResult> List(
         [FromQuery] string? search,
+        [FromQuery] bool    includeHidden = false,
         [FromQuery] int     page     = 1,
         [FromQuery] int     pageSize = 10,
         CancellationToken   ct       = default)
     {
         var result = await mediator.Send(
-            new GetStaffListQuery(search, ExcludeAdmins: IsManagerCaller, Page: page, PageSize: pageSize), ct);
+            new GetStaffListQuery(search, ExcludeAdmins: IsManagerCaller, IncludeHidden: includeHidden, Page: page, PageSize: pageSize), ct);
         return Ok(result);
     }
 
@@ -146,6 +147,22 @@ public class StaffController(IMediator mediator) : ControllerBase
         try
         {
             await mediator.Send(new DeactivateStaffCommand(id), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
+    }
+
+    [HttpPatch("{id:guid}/hidden")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
+    public async Task<IActionResult> SetHidden(Guid id, [FromBody] SetHiddenBody body,
+        [FromServices] IAppDbContext db, CancellationToken ct)
+    {
+        // A manager can't touch an admin account (same guard as activate/deactivate).
+        if (IsManagerCaller && await IsAdminAsync(id, db, ct))
+            return Forbid();
+        try
+        {
+            await mediator.Send(new SetStaffHiddenCommand(id, body.Hidden), ct);
             return NoContent();
         }
         catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
@@ -309,3 +326,4 @@ public record ResetPasswordBody(string NewPassword);
 public record BulkAssignLocationsBody(List<Guid> StaffIds, List<string> LocationIds);
 public record BulkAssignRolesBody(List<Guid> StaffIds, List<Guid> Roles);
 public record BulkDeactivateBody(List<Guid> StaffIds);
+public record SetHiddenBody(bool Hidden);

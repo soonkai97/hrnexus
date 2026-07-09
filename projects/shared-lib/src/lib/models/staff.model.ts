@@ -14,6 +14,9 @@ export interface Staff {
   passportNo: string | null;
   dateOfBirth: string | null;
   age: number | null;
+  /** When true, this account is hidden from the roster by default (seeded system accounts). Optional so
+   *  a cached list response from before this field shipped still parses; treated as false when absent. */
+  isHidden?: boolean;
 }
 
 export interface RegisterStaffRequest {

@@ -39,7 +39,7 @@
     </div>
     <div class="field">
       <label for="rl-role-maxdays">{{ 'roles.maxShiftDaysLabel' | translate }}</label>
-      <p-inputnumber inputId="rl-role-maxdays" [(ngModel)]="newRoleMaxDays" [min]="1" [max]="30" [step]="1" [showButtons]="true" [pt]="$any({ input: { inputmode: 'numeric' } })" styleClass="w-full" />
+      <p-inputnumber inputId="rl-role-maxdays" [(ngModel)]="newRoleMaxDays" [min]="1" [max]="100" [step]="1" [showButtons]="true" [pt]="$any({ input: { inputmode: 'numeric' } })" styleClass="w-full" />
       <small class="field-hint">{{ 'roles.maxShiftDaysHint' | translate }}</small>
     </div>
     <ng-template pTemplate="footer">
@@ -88,7 +88,7 @@
     <div class="field">
       <label for="rl-edit-maxdays">{{ 'roles.maxShiftDaysLabel' | translate }}</label>
       <p-inputnumber inputId="rl-edit-maxdays" [ngModel]="editingRateMaxDays()" (ngModelChange)="editingRateMaxDays.set(+$event)"
-                     [min]="1" [max]="30" [step]="1" [showButtons]="true"
+                     [min]="1" [max]="100" [step]="1" [showButtons]="true"
                      [pt]="$any({ input: { inputmode: 'numeric' } })" styleClass="w-full" />
       <small class="field-hint">{{ 'roles.maxShiftDaysHint' | translate }}</small>
     </div>

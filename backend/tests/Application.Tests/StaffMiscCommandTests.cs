@@ -123,9 +123,21 @@ public class StaffMiscCommandTests
         Assert.Equal(7, role.MaxShiftDays);
     }
 
+    [Fact]
+    public async Task CreateRole_Accepts100_TheCeiling()
+    {
+        await using var db = CreateDb();
+        var handler = new CreateRoleCommandHandler(db);
+
+        await handler.Handle(new CreateRoleCommand("expedition", MaxShiftDays: 100), CancellationToken.None);
+
+        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "EXPEDITION");
+        Assert.Equal(100, role!.MaxShiftDays);
+    }
+
     [Theory]
     [InlineData(0)]
-    [InlineData(31)]
+    [InlineData(101)]
     public async Task CreateRole_ThrowsArgument_WhenMaxShiftDaysOutOfRange(int days)
     {
         await using var db = CreateDb();

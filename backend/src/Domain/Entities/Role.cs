@@ -50,9 +50,9 @@ public class Role
         string.Equals(p, AppConstants.PayType.Fixed, StringComparison.OrdinalIgnoreCase)
             ? AppConstants.PayType.Fixed : AppConstants.PayType.Hourly;
 
-    // Keep the per-job cap within the sane 1..MaxShiftDays window so it always functions as a typo
-    // guard (a job can't be configured to allow an unbounded shift, nor a zero-length one).
-    private static int ClampDays(int days) => Math.Clamp(days, 1, AppConstants.WorkLog.MaxShiftDays);
+    // Keep the per-job cap within the sane 1..ceiling window so it always functions as a typo guard
+    // (a job can't be configured to allow an unbounded shift, nor a zero-length one).
+    private static int ClampDays(int days) => Math.Clamp(days, 1, AppConstants.WorkLog.MaxShiftDaysCeiling);
 
     private static string? Clean(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 }

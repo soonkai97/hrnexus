@@ -743,7 +743,7 @@
     "payHourlyHint":    "Lương = số giờ làm × mức lương.",
     "payFixedHint":     "Lương = số tiền cố định mỗi ca, không phụ thuộc số giờ.",
     "maxShiftDaysLabel":"Độ dài ca tối đa (ngày)",
-    "maxShiftDaysHint": "Số ngày tối đa một ca của công việc này có thể kéo dài (1–30 ngày). Hầu hết công việc là 1. Chỉ tăng cho công việc thực sự chạy liên tục nhiều ngày.",
+    "maxShiftDaysHint": "Số ngày tối đa một ca của công việc này có thể kéo dài (1–100 ngày). Hầu hết công việc là 1. Chỉ tăng cho công việc thực sự chạy liên tục nhiều ngày.",
     "perHourSuffix":    "/giờ",
     "perShiftSuffix":   " /ca",
     "editRate":         "Sửa",

@@ -15,8 +15,8 @@ public class CreateRoleCommandHandler(IAppDbContext db)
     {
         var name = req.Name.Trim().ToUpperInvariant();
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Role name cannot be empty.");
-        if (req.MaxShiftDays < 1 || req.MaxShiftDays > AppConstants.WorkLog.MaxShiftDays)
-            throw new ArgumentException($"Max shift days must be between 1 and {AppConstants.WorkLog.MaxShiftDays}.");
+        if (req.MaxShiftDays < 1 || req.MaxShiftDays > AppConstants.WorkLog.MaxShiftDaysCeiling)
+            throw new ArgumentException($"Max shift days must be between 1 and {AppConstants.WorkLog.MaxShiftDaysCeiling}.");
 
         var exists = await db.Roles.AnyAsync(r => r.Name == name, ct);
         if (exists) throw new InvalidOperationException($"Role '{name}' already exists.");

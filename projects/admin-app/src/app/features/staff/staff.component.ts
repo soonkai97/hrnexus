@@ -62,6 +62,8 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   saving           = signal(false);
   error            = signal('');
   staffMenuItems   = signal<MenuItem[]>([]);
+  /** When on, hidden (e.g. seeded system) accounts are included in the roster so they can be unhidden. */
+  showHidden       = signal(false);
 
   newStaff: RegisterStaffRequest = {
     staffId: '', firstName: '', lastName: '', email: null, password: '', roles: [], locations: [],
@@ -125,14 +127,14 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   });
 
   ngOnInit(): void {
-    this.staffStore.loadStaff('', 1, this.pageSize);
+    this.staffStore.loadStaff('', 1, this.pageSize, this.showHidden());
     this.staffStore.loadRoles();
     this.locationStore.load();
     this.searchSub = this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
     ).subscribe(value => {
-      this.staffStore.loadStaff(value, 1, this.pageSize);
+      this.staffStore.loadStaff(value, 1, this.pageSize, this.showHidden());
     });
   }
 
@@ -142,7 +144,24 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   loadPage(page: number): void {
     this.currentPage.set(page);
-    this.staffStore.loadStaff(this.search(), page, this.pageSize);
+    this.staffStore.loadStaff(this.search(), page, this.pageSize, this.showHidden());
+  }
+
+  /** Toggle whether hidden accounts appear in the list, then reload from page 1. */
+  toggleShowHidden(): void {
+    this.showHidden.update(v => !v);
+    this.loadPage(1);
+  }
+
+  /** Hide or unhide a staff account in the roster (presentational only). */
+  setHidden(s: Staff, hidden: boolean): void {
+    this.staffStore.setHidden(s.id, hidden).subscribe({
+      next: () => {
+        this.toast.success(this.translate.instant(hidden ? 'staff.hiddenToast' : 'staff.unhiddenToast', { name: s.fullName }));
+        this.loadPage(this.currentPage());
+      },
+      error: (e) => this.toast.error(e?.error?.error ?? this.translate.instant('staff.statusUpdateFailed')),
+    });
   }
 
   onSearch(value: string): void {
@@ -170,6 +189,13 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
           : this.translate.instant('staff.activate'),
         icon: 'pi pi-power-off',
         command: () => this.toggleActive(s.id, s.isActive),
+      },
+      {
+        label: s.isHidden
+          ? this.translate.instant('staff.unhide')
+          : this.translate.instant('staff.hide'),
+        icon: s.isHidden ? 'pi pi-eye' : 'pi pi-eye-slash',
+        command: () => this.setHidden(s, !s.isHidden),
       },
       {
         label: this.translate.instant('staff.delete'),

@@ -135,6 +135,38 @@ public class StaffMiscCommandTests
             handler.Handle(new CreateRoleCommand("courier", MaxShiftDays: days), CancellationToken.None));
     }
 
+    // ── SetStaffHiddenCommand ─────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SetStaffHidden_HidesAndUnhides_WithoutTouchingActive()
+    {
+        await using var db = CreateDb();
+        var staff = MakeStaff();
+        db.Staff.Add(staff);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var handler = new SetStaffHiddenCommandHandler(db);
+        await handler.Handle(new SetStaffHiddenCommand(staff.Id, true), CancellationToken.None);
+        var hidden = await db.Staff.FirstAsync(s => s.Id == staff.Id);
+        Assert.True(hidden.IsHidden);
+        Assert.True(hidden.IsActive);   // hiding is presentational — the account stays active
+
+        await handler.Handle(new SetStaffHiddenCommand(staff.Id, false), CancellationToken.None);
+        var shown = await db.Staff.FirstAsync(s => s.Id == staff.Id);
+        Assert.False(shown.IsHidden);
+    }
+
+    [Fact]
+    public async Task SetStaffHidden_ThrowsKeyNotFound_WhenStaffDoesNotExist()
+    {
+        await using var db = CreateDb();
+        var handler = new SetStaffHiddenCommandHandler(db);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            handler.Handle(new SetStaffHiddenCommand(Guid.NewGuid(), true), CancellationToken.None));
+    }
+
     // ── DeleteRoleCommand ─────────────────────────────────────────────────────
 
     [Fact]

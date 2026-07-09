@@ -26,6 +26,10 @@ public class Staff : IHasAudit, ISoftDelete
     /// <summary>Computed assigned location IDs derived from LocationEntries. Not stored directly.</summary>
     public List<string> LocationIds => LocationEntries.Select(l => l.LocationId).ToList();
     public bool   IsActive         { get; private set; }
+    /// <summary>When true, this account is hidden from the admin staff roster (e.g. the seeded
+    /// HRADMIN / HRMANAGER system accounts). It stays fully functional — login, permissions, payroll
+    /// are unaffected — it just doesn't clutter the list. Toggleable from the roster.</summary>
+    public bool   IsHidden         { get; private set; }
     public DateTime  CreatedAt   { get; private set; }
     public string    CreatedBy   { get; private set; } = string.Empty;
     public DateTime? ModifiedAt  { get; private set; }
@@ -150,6 +154,10 @@ public class Staff : IHasAudit, ISoftDelete
     // rather than lingering until the cookie's 30-day expiry.
     public void Deactivate() { IsActive = false; ClearRefreshToken(); }
     public void Activate()   => IsActive = true;
+
+    /// <summary>Show/hide this account in the admin staff roster. Purely presentational — does not
+    /// touch IsActive, permissions, or the session.</summary>
+    public void SetHidden(bool hidden) => IsHidden = hidden;
 
     public void UpdateProfile(string? phoneNumber) => PhoneNumber = phoneNumber;
     public void SetLanguage(string lang) => PreferredLanguage = lang;

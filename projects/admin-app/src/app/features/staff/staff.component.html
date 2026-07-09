@@ -154,6 +154,10 @@
                 size="small" severity="danger" [outlined]="true"
                 [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="bulkDeactivateSelected()" />
     }
+    <p-button [label]="(showHidden() ? 'staff.hideHidden' : 'staff.showHidden') | translate"
+              [icon]="showHidden() ? 'pi pi-eye-slash' : 'pi pi-eye'"
+              [text]="true" severity="secondary" size="small" class="ms-md-auto"
+              (onClick)="toggleShowHidden()" />
   </div>
 
   <!-- Table -->
@@ -211,6 +215,9 @@
           <td>
             <span class="p-column-title">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</span>
             <a [routerLink]="['/staff', s.id]" class="staff-name-link">{{ s.fullName }}</a>
+            @if (s.isHidden) {
+              <p-tag [value]="'staff.hiddenBadge' | translate" severity="warn" styleClass="ms-2" />
+            }
           </td>
           <td>
             <span class="p-column-title">{{ 'staff.statusCol' | translate }}</span>

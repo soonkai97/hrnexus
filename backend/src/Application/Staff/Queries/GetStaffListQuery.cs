@@ -9,12 +9,13 @@ namespace HRNexus.Application.Staff.Queries;
 public record GetStaffListQuery(
     string? Search       = null,
     bool    ExcludeAdmins = false,
+    bool    IncludeHidden = false,
     int     Page         = 1,
     int     PageSize     = 10) : IRequest<PagedResult<StaffDto>>;
 
 public record StaffDto(Guid Id, string StaffId, string FirstName, string LastName, string FullName, string? Email, List<string> Roles,
     bool IsActive, string? PhoneNumber,
-    string? IcNo, string? PassportNo, string? DateOfBirth, int? Age);
+    string? IcNo, string? PassportNo, string? DateOfBirth, int? Age, bool IsHidden);
 
 public class GetStaffListQueryHandler(IAppDbContext db)
     : IRequestHandler<GetStaffListQuery, PagedResult<StaffDto>>
@@ -22,6 +23,11 @@ public class GetStaffListQueryHandler(IAppDbContext db)
     public async Task<PagedResult<StaffDto>> Handle(GetStaffListQuery req, CancellationToken ct)
     {
         var query = db.Staff.AsQueryable();
+
+        // Hidden accounts (e.g. the seeded HRADMIN / HRMANAGER) are kept off the roster by default;
+        // the admin can opt to see them (to unhide, or just to review) via the "show hidden" toggle.
+        if (!req.IncludeHidden)
+            query = query.Where(e => !e.IsHidden);
 
         if (req.ExcludeAdmins)
             query = query.Where(e => !e.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin));
@@ -52,7 +58,7 @@ public class GetStaffListQueryHandler(IAppDbContext db)
             e.Roles.ToList(),
             e.IsActive, e.PhoneNumber,
             e.IcNo, e.PassportNo,
-            e.DateOfBirth?.ToString("yyyy-MM-dd"), e.Age)).ToList();
+            e.DateOfBirth?.ToString("yyyy-MM-dd"), e.Age, e.IsHidden)).ToList();
 
         return new PagedResult<StaffDto>(items, total);
     }

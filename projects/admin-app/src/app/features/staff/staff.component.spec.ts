@@ -54,6 +54,7 @@ describe('StaffComponent', () => {
     loadRoles:    ReturnType<typeof vi.fn>;
     register:     ReturnType<typeof vi.fn>;
     toggleActive: ReturnType<typeof vi.fn>;
+    setHidden:    ReturnType<typeof vi.fn>;
     deleteStaff:  ReturnType<typeof vi.fn>;
     resetPassword: ReturnType<typeof vi.fn>;
     bulkAssignLocations: ReturnType<typeof vi.fn>;
@@ -74,6 +75,7 @@ describe('StaffComponent', () => {
       loadRoles:     vi.fn(),
       register:      vi.fn().mockReturnValue(of(makeStaff())),
       toggleActive:  vi.fn().mockReturnValue(of(undefined)),
+      setHidden:     vi.fn().mockReturnValue(of(undefined)),
       deleteStaff:   vi.fn().mockReturnValue(of(undefined)),
       resetPassword: vi.fn().mockReturnValue(of(undefined)),
       bulkAssignLocations: vi.fn().mockReturnValue(of({ count: 2 })),
@@ -204,7 +206,7 @@ describe('StaffComponent', () => {
   describe('ngOnInit()', () => {
     it('loads staff list on init so the table is populated immediately', () => {
       component.ngOnInit();
-      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('', 1, 10);
+      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('', 1, 10, false);
     });
 
     it('loads roles on init so the form role selector is populated', () => {
@@ -240,7 +242,7 @@ describe('StaffComponent', () => {
       mockStaffStore.loadStaff.mockClear();
       component.onSearch('alice');
       vi.advanceTimersByTime(300);
-      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('alice', 1, 10);
+      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('alice', 1, 10, false);
     });
 
     it('does NOT call loadStaff before the 300ms debounce elapses', () => {
@@ -263,7 +265,7 @@ describe('StaffComponent', () => {
       component.onSearch('alice');
       vi.advanceTimersByTime(300);
       expect(mockStaffStore.loadStaff).toHaveBeenCalledTimes(1);
-      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('alice', 1, 10);
+      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('alice', 1, 10, false);
     });
   });
 
@@ -276,7 +278,23 @@ describe('StaffComponent', () => {
       mockStaffStore.loadStaff.mockClear();
       component.loadPage(3);
       expect(component.currentPage()).toBe(3);
-      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('test', 3, 10);
+      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('test', 3, 10, false);
+    });
+
+    it('toggleShowHidden flips the flag and reloads from page 1 including hidden', () => {
+      component.ngOnInit();
+      mockStaffStore.loadStaff.mockClear();
+      component.toggleShowHidden();
+      expect(component.showHidden()).toBe(true);
+      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('', 1, 10, true);
+    });
+
+    it('setHidden calls the store and reloads the current page', () => {
+      component.ngOnInit();
+      mockStaffStore.loadStaff.mockClear();
+      component.setHidden(makeStaff({ id: '9' }), true);
+      expect(mockStaffStore.setHidden).toHaveBeenCalledWith('9', true);
+      expect(mockStaffStore.loadStaff).toHaveBeenCalled();
     });
   });
 
@@ -375,7 +393,7 @@ describe('StaffComponent', () => {
       mockStaffStore.loadStaff.mockClear();
       fillAndSubmit();
       expect(component.search()).toBe('');
-      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('', 1, 10);
+      expect(mockStaffStore.loadStaff).toHaveBeenCalledWith('', 1, 10, false);
     });
   });
 

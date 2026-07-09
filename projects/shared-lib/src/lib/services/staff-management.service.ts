@@ -10,12 +10,18 @@ export interface VenueLocation { id: string; name: string; }
 export class StaffManagementService {
   private readonly http = inject(HttpClient);
 
-  getAll(search?: string, page = 1, pageSize = 10): Observable<PagedResult<Staff>> {
+  getAll(search?: string, page = 1, pageSize = 10, includeHidden = false): Observable<PagedResult<Staff>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
     if (search) params = params.set('search', search);
+    if (includeHidden) params = params.set('includeHidden', 'true');
     return this.http.get<PagedResult<Staff>>('/api/staff', { params });
+  }
+
+  /** Show or hide a staff account in the admin roster (presentational only — does not deactivate). */
+  setHidden(id: string, hidden: boolean): Observable<void> {
+    return this.http.patch<void>(`/api/staff/${id}/hidden`, { hidden });
   }
 
   getById(id: string): Observable<StaffDetail> {

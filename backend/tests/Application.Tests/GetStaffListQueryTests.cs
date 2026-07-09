@@ -182,6 +182,40 @@ public class GetStaffListQueryTests
         Assert.Equal(2, result.Total);
     }
 
+    // ── Hidden filtering ───────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_ExcludesHiddenAccounts_ByDefault()
+    {
+        await using var db = CreateDb();
+        await AddStaffAsync(db, "S001", "Regular", "Staff", "bartender");
+        var hidden = await AddStaffAsync(db, "HRADMIN", "HR", "Admin", "superadmin");
+        hidden.SetHidden(true);
+        await db.SaveChangesAsync();
+
+        var result = await CreateHandler(db).Handle(
+            new GetStaffListQuery(), CancellationToken.None);
+
+        Assert.Equal(1, result.Total);
+        Assert.Equal("Regular", result.Items[0].FirstName);
+    }
+
+    [Fact]
+    public async Task Handle_IncludeHidden_ReturnsHiddenAccountsToo()
+    {
+        await using var db = CreateDb();
+        await AddStaffAsync(db, "S001", "Regular", "Staff", "bartender");
+        var hidden = await AddStaffAsync(db, "HRADMIN", "HR", "Admin", "superadmin");
+        hidden.SetHidden(true);
+        await db.SaveChangesAsync();
+
+        var result = await CreateHandler(db).Handle(
+            new GetStaffListQuery(IncludeHidden: true), CancellationToken.None);
+
+        Assert.Equal(2, result.Total);
+        Assert.Contains(result.Items, i => i.StaffId == "HRADMIN" && i.IsHidden);
+    }
+
     // ── DTO mapping ──────────────────────────────────────────────────────────
 
     [Fact]

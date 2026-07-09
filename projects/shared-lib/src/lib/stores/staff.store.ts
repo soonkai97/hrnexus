@@ -22,13 +22,13 @@ export class StaffStore {
 
   // switchMap cancels any in-flight request when a newer loadStaff() call arrives —
   // prevents stale page data appearing after rapid pagination or search changes.
-  private readonly _loadTrigger$ = new Subject<{ search?: string; page: number; pageSize: number }>();
+  private readonly _loadTrigger$ = new Subject<{ search?: string; page: number; pageSize: number; includeHidden: boolean }>();
 
   constructor() {
     this._loadTrigger$.pipe(
-      switchMap(({ search, page, pageSize }) => {
+      switchMap(({ search, page, pageSize, includeHidden }) => {
         this.#loading.set(true);
-        return this.svc.getAll(search, page, pageSize).pipe(
+        return this.svc.getAll(search, page, pageSize, includeHidden).pipe(
           catchError(() => {
             this.#error.set('Failed to load staff.');
             this.#loading.set(false);
@@ -43,8 +43,14 @@ export class StaffStore {
     });
   }
 
-  loadStaff(search?: string, page = 1, pageSize = 10): void {
-    this._loadTrigger$.next({ search, page, pageSize });
+  loadStaff(search?: string, page = 1, pageSize = 10, includeHidden = false): void {
+    this._loadTrigger$.next({ search, page, pageSize, includeHidden });
+  }
+
+  /** Show/hide a staff account in the roster. Presentational only — caller reloads the list after,
+   *  since hiding a row removes it from the default view. */
+  setHidden(id: string, hidden: boolean) {
+    return this.svc.setHidden(id, hidden);
   }
 
   private rolesLoading = false;

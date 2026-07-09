@@ -743,7 +743,7 @@
     "payHourlyHint":    "Pay = hours worked × rate.",
     "payFixedHint":     "Pay = a flat amount per shift, regardless of hours.",
     "maxShiftDaysLabel":"Max shift length (days)",
-    "maxShiftDaysHint": "Longest a single shift for this job may run (1–30 days). Most jobs are 1. Raise it only for jobs that genuinely run continuously across days.",
+    "maxShiftDaysHint": "Longest a single shift for this job may run (1–100 days). Most jobs are 1. Raise it only for jobs that genuinely run continuously across days.",
     "perHourSuffix":    "/hr",
     "perShiftSuffix":   " /shift",
     "editRate":         "Edit",

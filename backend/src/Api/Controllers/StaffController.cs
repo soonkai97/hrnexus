@@ -273,8 +273,8 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         if (body.HourlyRate < 0)
             return BadRequest(new { error = "Hourly rate cannot be negative." });
-        if (body.MaxShiftDays < 1 || body.MaxShiftDays > AppConstants.WorkLog.MaxShiftDays)
-            return BadRequest(new { error = $"Max shift days must be between 1 and {AppConstants.WorkLog.MaxShiftDays}." });
+        if (body.MaxShiftDays < 1 || body.MaxShiftDays > AppConstants.WorkLog.MaxShiftDaysCeiling)
+            return BadRequest(new { error = $"Max shift days must be between 1 and {AppConstants.WorkLog.MaxShiftDaysCeiling}." });
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Id == id, ct);
         if (role is null) return NotFound(new { error = "Role not found." });
         // The English Name is editable ONLY for custom jobs. System roles (SUPERADMIN/MANAGER/EMPLOYEE)

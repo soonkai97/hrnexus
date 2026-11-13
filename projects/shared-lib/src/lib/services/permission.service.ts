@@ -8,7 +8,6 @@ import { tap, map, catchError } from 'rxjs/operators';
  * Access is gated by these, resolved per-user from role defaults + per-user overrides.
  */
 export type PermissionKey =
-  | 'portal.admin'
   | 'staff.view'   | 'staff.manage'
   | 'leave.approve' | 'leave.manage' | 'policy.manage'
   | 'reports.view'

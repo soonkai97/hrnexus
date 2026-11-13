@@ -19,9 +19,9 @@ describe('PermissionService', () => {
 
   it('loads effective permissions and answers has()', () => {
     service.load().subscribe();
-    http.expectOne('/api/auth/me/permissions').flush(['portal.admin', 'staff.view']);
+    http.expectOne('/api/auth/me/permissions').flush(['roles.manage', 'staff.view']);
 
-    expect(service.has('portal.admin')).toBe(true);
+    expect(service.has('roles.manage')).toBe(true);
     expect(service.has('staff.view')).toBe(true);
     expect(service.has('staff.manage')).toBe(false);
     expect(service.loaded()).toBe(true);
@@ -31,16 +31,16 @@ describe('PermissionService', () => {
     service.load().subscribe();
     http.expectOne('/api/auth/me/permissions').flush('boom', { status: 500, statusText: 'Server Error' });
 
-    expect(service.has('portal.admin')).toBe(false);
+    expect(service.has('staff.view')).toBe(false);
     expect(service.loaded()).toBe(true);
   });
 
   it('clear() empties the set and resets loaded', () => {
     service.load().subscribe();
-    http.expectOne('/api/auth/me/permissions').flush(['portal.admin']);
+    http.expectOne('/api/auth/me/permissions').flush(['staff.view']);
 
     service.clear();
-    expect(service.has('portal.admin')).toBe(false);
+    expect(service.has('staff.view')).toBe(false);
     expect(service.loaded()).toBe(false);
   });
 });

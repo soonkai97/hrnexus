@@ -53,19 +53,19 @@ public class BulkDeactivateStaffCommandHandler(IAppDbContext db, IAuditService a
         var staff = await db.Staff.Where(s => req.StaffIds.Contains(s.Id) && s.IsActive).ToListAsync(ct);
         if (staff.Count == 0) return 0;
 
-        // Whole-selection last-admin guard: if EVERY active admin-portal user is in this batch,
+        // Whole-selection last-admin guard: if EVERY active user who can manage jobs and permissions is in this batch,
         // deactivating them all would lock everyone out. The per-row guard can't see this — it would
         // pass each one because the others are still committed-active until the single SaveChanges.
         var adminRoles = await db.RolePermissions
-            .Where(rp => rp.PermissionKey == AppConstants.Permissions.PortalAdmin)
+            .Where(rp => rp.PermissionKey == AppConstants.Permissions.RolesManage)
             .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
-        var totalActiveAdmins = await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: null, ct);
+        var totalActiveAdmins = await RolesManageInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: null, ct);
         var selectedAdmins = 0;
         foreach (var emp in staff)
-            if (await PortalAdminInvariant.UserHasAdminAsync(db, emp.Id, ct)) selectedAdmins++;
+            if (await RolesManageInvariant.UserHasAdminAsync(db, emp.Id, ct)) selectedAdmins++;
         if (selectedAdmins > 0 && totalActiveAdmins - selectedAdmins < 1)
             throw new ArgumentException(
-                "This selection includes every active user with admin-portal access — deactivating them " +
+                "This selection includes every active user with role-management access — deactivating them " +
                 "would lock everyone out. Keep at least one administrator active.");
 
         foreach (var emp in staff)

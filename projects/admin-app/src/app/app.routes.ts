@@ -11,8 +11,7 @@ export const routes: Routes = [
   {
     path: '',
     component: ShellComponent,
-    // Admin-portal access is gated by the portal.admin permission (was: manager/admin role).
-    canActivate: [authGuard, permissionGuard('portal.admin', '/auth/login')],
+    canActivate: [authGuard],
     children: [
       { path: 'dashboard',     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'staff',         canActivate: [permissionGuard('staff.view', '/dashboard')], loadChildren:  () => import('./features/staff/staff.routes').then(m => m.STAFF_ROUTES) },

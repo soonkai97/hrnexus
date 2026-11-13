@@ -12,12 +12,11 @@ export interface StaffOverride {
 export interface PermissionGroup { label: string; keys: string[]; }
 
 /** Permission catalog organised into sections (display order). Every catalog key belongs to one. */
-// Mirrors the sidebar nav grouping (Access + Operations / Finance / Communication / Setup) so the
+// Mirrors the sidebar nav grouping (Operations / Finance / Communication / Setup) so the
 // permission editors read the same way as the menu. Each key sits in the same group as the page it
-// gates: Announcements → Communication, Payroll Locks → Setup, etc. 'access' has no nav page (it's the
-// portal gate). Keep this in lockstep with ShellComponent.navGroupOrder + the page→group assignments.
+// gates: Announcements → Communication, Payroll Locks → Setup, etc.
+// Keep this in lockstep with ShellComponent.navGroupOrder + the page→group assignments.
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
-  { label: 'Access',     keys: ['portal.admin'] },
   { label: 'Operations', keys: ['staff.view', 'staff.manage', 'leave.approve', 'leave.manage', 'reports.view'] },
   { label: 'Finance',    keys: ['payroll.view', 'payroll.manage'] },
   { label: 'Setup',      keys: ['roles.manage', 'policy.manage', 'payroll.lock'] },
@@ -26,7 +25,6 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
 /** Display names and one-line explanations for each catalog permission key. */
 export const PERMISSION_LABELS: Readonly<Record<string, string>> = {
   'cashadvance.manage': 'Manage cash advances',
-  'portal.admin': 'Admin portal access',
   'staff.view': 'View staff',
   'staff.manage': 'Manage staff',
   'leave.approve': 'Approve leave',
@@ -41,7 +39,6 @@ export const PERMISSION_LABELS: Readonly<Record<string, string>> = {
 
 export const PERMISSION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   'cashadvance.manage': 'Record and settle staff cash advances.',
-  'portal.admin': 'Sign in to this management portal. Without it, the account can only use the staff app.',
   'staff.view': 'See the staff list and open staff profiles (read-only).',
   'staff.manage': 'Add, edit, deactivate staff and reset their passwords.',
   'leave.approve': 'Approve or reject leave requests, and record leave for staff.',

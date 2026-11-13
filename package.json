@@ -49,15 +49,15 @@
     "@angular/compiler-cli": "^21.2.26",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.0",
-    "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/coverage-v8": "^5.1.0",
     "angular-eslint": "21.4.0",
     "eslint": "^10.14.0",
-    "jsdom": "^28.0.0",
+    "jsdom": "^31.0.0",
     "ng-packagr": "^21.2.7",
     "prettier": "^3.10.1",
     "sharp": "^0.35.5",
     "typescript": "~5.9.2",
     "typescript-eslint": "8.59.4",
-    "vitest": "^4.1.12"
+    "vitest": "^5.1.0"
   }
 }

@@ -19,7 +19,7 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            var response = await next();
+            var response = await next(ct);
             stopwatch.Stop();
             logger.LogInformation("{Request} handled in {ElapsedMs} ms", requestName, stopwatch.ElapsedMilliseconds);
             return response;

@@ -28,7 +28,7 @@ public class PipelineBehaviorTests
     {
         var behavior = new ValidationBehavior<DemoRequest, string>(Array.Empty<IValidator<DemoRequest>>());
 
-        var result = await behavior.Handle(new DemoRequest(""), () => Task.FromResult("handler-ran"), CancellationToken.None);
+        var result = await behavior.Handle(new DemoRequest(""), _ => Task.FromResult("handler-ran"), CancellationToken.None);
 
         Assert.Equal("handler-ran", result);   // no validator → request passes straight through
     }
@@ -38,7 +38,7 @@ public class PipelineBehaviorTests
     {
         var behavior = new ValidationBehavior<DemoRequest, string>([new DemoValidator()]);
 
-        var result = await behavior.Handle(new DemoRequest("ok"), () => Task.FromResult("handler-ran"), CancellationToken.None);
+        var result = await behavior.Handle(new DemoRequest("ok"), _ => Task.FromResult("handler-ran"), CancellationToken.None);
 
         Assert.Equal("handler-ran", result);
     }
@@ -50,7 +50,7 @@ public class PipelineBehaviorTests
         var handlerRan = false;
 
         var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
-            behavior.Handle(new DemoRequest(""), () => { handlerRan = true; return Task.FromResult("x"); }, CancellationToken.None));
+            behavior.Handle(new DemoRequest(""), _ => { handlerRan = true; return Task.FromResult("x"); }, CancellationToken.None));
 
         Assert.Equal("Name is required.", ex.Message);   // surfaced for the ExceptionMiddleware → 400
         Assert.False(handlerRan);                          // handler never invoked
@@ -63,7 +63,7 @@ public class PipelineBehaviorTests
     {
         var behavior = new LoggingBehavior<DemoRequest, string>(NullLogger<LoggingBehavior<DemoRequest, string>>.Instance);
 
-        var result = await behavior.Handle(new DemoRequest("ok"), () => Task.FromResult("done"), CancellationToken.None);
+        var result = await behavior.Handle(new DemoRequest("ok"), _ => Task.FromResult("done"), CancellationToken.None);
 
         Assert.Equal("done", result);
     }
@@ -75,6 +75,6 @@ public class PipelineBehaviorTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             behavior.Handle(new DemoRequest("x"),
-                () => throw new InvalidOperationException("boom"), CancellationToken.None));
+                _ => throw new InvalidOperationException("boom"), CancellationToken.None));
     }
 }

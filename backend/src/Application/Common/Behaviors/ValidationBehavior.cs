@@ -30,6 +30,6 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
                 throw new ArgumentException(failures[0].ErrorMessage);
         }
 
-        return await next();
+        return await next(ct);
     }
 }

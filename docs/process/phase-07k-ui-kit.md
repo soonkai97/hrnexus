@@ -17,8 +17,11 @@ PrimeNG 22 is published by PrimeUI and shows an "Invalid PrimeUI License" badge 
 ## Scope
 
 ### In scope
+
 - Design direction, tokens, motion, icons, the `app-*` kit, migration of both apps and shared-lib, lint and stylelint rules, the screenshot review ritual.
+
 ### Out of scope (deferred)
+
 - Nx workspace and tiers (7g): the kit lives in `projects/shared-lib/src/lib/ui` and moves to `@hrnexus/ui` when 7g lands. A command palette and density modes (IMS has them) are later options. Charts, rich-text editor, file viewer.
 
 ## Design quality (first-class)
@@ -39,12 +42,12 @@ PrimeNG 22 is published by PrimeUI and shows an "Invalid PrimeUI License" badge 
 
 ## Dependencies
 
-| Dependency | Type | Status |
-|---|---|---|
-| 7j and 7i merged (templates stable, English text inline) | Code | Pending |
-| PrimeNG 21 stays installed until the allowlist is empty | Code | Done |
-| Owner availability for gates G1, G2, G3 | Decision | Pending |
-| Icon set licence check (below) | External | Pending |
+| Dependency                                               | Type     | Status  |
+| -------------------------------------------------------- | -------- | ------- |
+| 7j and 7i merged (templates stable, English text inline) | Code     | Pending |
+| PrimeNG 21 stays installed until the allowlist is empty  | Code     | Done    |
+| Owner availability for gates G1, G2, G3                  | Decision | Pending |
+| Icon set licence check (below)                           | External | Pending |
 
 ## Facts measured on master
 
@@ -52,19 +55,19 @@ PrimeNG: 27 modules in 48 files (21 are specs providing `MessageService`/`Confir
 
 ## Component mapping
 
-| PrimeNG | `app-*` replacement | Built on | Diff | Uses |
-|---|---|---|---|---|
-| p-button, pInputText, p-card, p-tag, p-badge, p-progressbar, p-message, p-skeleton, checkbox, selectbutton (radio-group), password | `app-button`, `app-input`, `app-card`, `app-status-chip`, `app-banner`, `app-skeleton`, `app-checkbox`, `app-segmented` | hand-built, tokens | S | ~270 |
-| primeicons | `app-icon` (24px paths, `aria-hidden`) | inline SVG | S | 158 |
-| pTooltip | `appTooltip` | native popover | S | 12 |
-| p-inputnumber | `app-number-input` | hand-built, locale-free | M | 8 |
-| **p-dialog, p-confirmdialog** | `app-dialog` (dialog on desktop, bottom sheet below 600px), `ConfirmService` | native `<dialog>` (focus trap, Esc free) | **L** | 11 |
-| **p-toast** | `app-toast` host + `ToastService` (aria-live, errors persist) | hand-built | M | 1 |
-| **p-datepicker** | `app-date-field` (text `dd/MM/yyyy`, hidden native input + `showPicker()`) and `app-time-field` (24 h) | native + hand-built | **L** | 13 |
-| **p-select, p-multiselect** | `app-select`, `app-multi-select` (combobox, typeahead, `aria-activedescendant`) | CDK listbox + overlay | **L** | 17 |
-| **p-table, p-sort, p-paginator** | `app-table` (server sort), `app-pager` (live region), card list on phones | hand-built + native popover column menu | **L** | 20 |
-| **p-menu** | `app-menu` | native popover + CDK menu keys | M | 10 |
-| p-tabs | `app-tabs` (arrow keys, `aria-selected`) | hand-built | M | 9 |
+| PrimeNG                                                                                                                            | `app-*` replacement                                                                                                     | Built on                                 | Diff  | Uses |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----- | ---- |
+| p-button, pInputText, p-card, p-tag, p-badge, p-progressbar, p-message, p-skeleton, checkbox, selectbutton (radio-group), password | `app-button`, `app-input`, `app-card`, `app-status-chip`, `app-banner`, `app-skeleton`, `app-checkbox`, `app-segmented` | hand-built, tokens                       | S     | ~270 |
+| primeicons                                                                                                                         | `app-icon` (24px paths, `aria-hidden`)                                                                                  | inline SVG                               | S     | 158  |
+| pTooltip                                                                                                                           | `appTooltip`                                                                                                            | native popover                           | S     | 12   |
+| p-inputnumber                                                                                                                      | `app-number-input`                                                                                                      | hand-built, locale-free                  | M     | 8    |
+| **p-dialog, p-confirmdialog**                                                                                                      | `app-dialog` (dialog on desktop, bottom sheet below 600px), `ConfirmService`                                            | native `<dialog>` (focus trap, Esc free) | **L** | 11   |
+| **p-toast**                                                                                                                        | `app-toast` host + `ToastService` (aria-live, errors persist)                                                           | hand-built                               | M     | 1    |
+| **p-datepicker**                                                                                                                   | `app-date-field` (text `dd/MM/yyyy`, hidden native input + `showPicker()`) and `app-time-field` (24 h)                  | native + hand-built                      | **L** | 13   |
+| **p-select, p-multiselect**                                                                                                        | `app-select`, `app-multi-select` (combobox, typeahead, `aria-activedescendant`)                                         | CDK listbox + overlay                    | **L** | 17   |
+| **p-table, p-sort, p-paginator**                                                                                                   | `app-table` (server sort), `app-pager` (live region), card list on phones                                               | hand-built + native popover column menu  | **L** | 20   |
+| **p-menu**                                                                                                                         | `app-menu`                                                                                                              | native popover + CDK menu keys           | M     | 10   |
+| p-tabs                                                                                                                             | `app-tabs` (arrow keys, `aria-selected`)                                                                                | hand-built                               | M     | 9    |
 
 Hard six (bold) dominate the effort. IMS ships the same set except `menu` and `multiselect`, which are added here.
 
@@ -88,25 +91,25 @@ Hard six (bold) dominate the effort. IMS ships the same set except `menu` and `m
 
 ## Effort (working days, honest ranges)
 
-| Group | Days | Reasoning |
-|---|---|---|
-| **Design**: brief + style tile (G1), 5 flagship screens, states and motion, checklist, review rounds | 8 to 10 | Separate from build; the owner's sign-off time is extra |
-| Foundation: tokens, lint/stylelint, contrast script, icon, 11 simple components, screenshot script | 5 | Mostly mechanical, IMS patterns |
-| Hard six (dialog/confirm/toast, datepicker + time, select/multiselect, table/sort/pager, menu, tabs) | 14 to 18 | Native `<dialog>`, popover and CDK cut the cost; a11y specs per component |
-| Migration of 48 files, 119 `styleClass`, 151 selectors, 21 spec providers, codemod | 7 to 9 | Codemod handles simple tags |
-| Visual QA rounds, a11y fixes, E2E, review | 5 | Screenshot ritual, Lighthouse |
-| **Total** | **39 to 47** (about 8 to 9 weeks), design included | Hard six and design dominate |
+| Group                                                                                                | Days                                               | Reasoning                                                                 |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Design**: brief + style tile (G1), 5 flagship screens, states and motion, checklist, review rounds | 8 to 10                                            | Separate from build; the owner's sign-off time is extra                   |
+| Foundation: tokens, lint/stylelint, contrast script, icon, 11 simple components, screenshot script   | 5                                                  | Mostly mechanical, IMS patterns                                           |
+| Hard six (dialog/confirm/toast, datepicker + time, select/multiselect, table/sort/pager, menu, tabs) | 14 to 18                                           | Native `<dialog>`, popover and CDK cut the cost; a11y specs per component |
+| Migration of 48 files, 119 `styleClass`, 151 selectors, 21 spec providers, codemod                   | 7 to 9                                             | Codemod handles simple tags                                               |
+| Visual QA rounds, a11y fixes, E2E, review                                                            | 5                                                  | Screenshot ritual, Lighthouse                                             |
+| **Total**                                                                                            | **39 to 47** (about 8 to 9 weeks), design included | Hard six and design dominate                                              |
 
 ## Risks
 
-| Risk | L | I | Mitigation |
-|---|---|---|---|
-| Accessibility regressions in hand-built comboboxes and datepicker | Med | High | CDK listbox, per-component keyboard specs, contrast script, qa-edge-accessibility run |
-| Date handling (time zone, 24 h, `dd/MM/yyyy`) | Med | Med | One `formatDate`, `Asia/Kuala_Lumpur`, typed-text field like IMS |
-| Scope creep (command palette, density, charts) | High | Med | Out of scope list, gates, phase doc updates |
-| Looks generic or inconsistent | Med | High | Style tile and flagship gates before bulk work, beauty checklist |
-| Service-worker caches serve old CSS after the swap | Low | Med | Hash-named assets, update prompt, verify after deploy |
-| Long migration blocks HRM phases | Med | Med | New modules use `app-*` from G2, PrimeNG allowlist shrinks per PR |
+| Risk                                                              | L    | I    | Mitigation                                                                            |
+| ----------------------------------------------------------------- | ---- | ---- | ------------------------------------------------------------------------------------- |
+| Accessibility regressions in hand-built comboboxes and datepicker | Med  | High | CDK listbox, per-component keyboard specs, contrast script, qa-edge-accessibility run |
+| Date handling (time zone, 24 h, `dd/MM/yyyy`)                     | Med  | Med  | One `formatDate`, `Asia/Kuala_Lumpur`, typed-text field like IMS                      |
+| Scope creep (command palette, density, charts)                    | High | Med  | Out of scope list, gates, phase doc updates                                           |
+| Looks generic or inconsistent                                     | Med  | High | Style tile and flagship gates before bulk work, beauty checklist                      |
+| Service-worker caches serve old CSS after the swap                | Low  | Med  | Hash-named assets, update prompt, verify after deploy                                 |
+| Long migration blocks HRM phases                                  | Med  | Med  | New modules use `app-*` from G2, PrimeNG allowlist shrinks per PR                     |
 
 ## Implementation steps
 

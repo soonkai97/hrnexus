@@ -82,14 +82,18 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
 
   test('an approver cannot record their own leave as already approved', async () => {
     const me = await (await admin.get('/api/auth/me')).json();
-    const day = futureWeekday(50);
+    // HRADMIN persists between runs, so use a random date and remove the pending leave afterwards.
+    const day = futureWeekday(60 + Math.floor(Math.random() * 120));
     const body = { employeeId: me.id, leaveType: 'unpaid', startDate: day, endDate: day, startTime: '09:00', endTime: '17:00', hours: 8, notes: 'neg' };
 
     const approved = await admin.post('/api/admin/leave', { data: { ...body, status: 'approved' } });
     expect(approved.status(), 'own leave recorded as approved').toBe(409);
+    expect((await approved.json()).error, 'refused because it is their own leave').toMatch(/own leave/i);
 
     const pending = await admin.post('/api/admin/leave', { data: { ...body, status: 'pending' } });
     expect(pending.ok(), 'own leave recorded as pending is allowed').toBeTruthy();
+    const { id } = await pending.json();
+    await admin.delete(`/api/admin/leave/${id}`);
   });
 
   // ── Leave field validation ──────────────────────────────────────────────────

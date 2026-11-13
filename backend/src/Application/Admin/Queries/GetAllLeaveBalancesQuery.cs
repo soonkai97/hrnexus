@@ -67,7 +67,7 @@ public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider
         return staff.Select(s =>
         {
             var ent       = entitlements.GetValueOrDefault(s.Id);
-            var annualEnt = ent?.AnnualHours   ?? 0m;
+            var annualEnt = ent?.TotalAnnualHours ?? 0m;   // base + carry-over
             var sickEnt   = ent?.SickHours     ?? 0m;
             var carryOver = ent?.CarryOverHours ?? 0m;
 

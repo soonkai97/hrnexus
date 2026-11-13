@@ -6,9 +6,12 @@ public class LeaveEntitlement
     public Guid    Id         { get; private set; }
     public Guid    EmployeeId { get; private set; }
     public int     Year       { get; private set; }
-    public decimal AnnualHours   { get; private set; }  // entitlement in hours; 0 = not yet set
+    public decimal AnnualHours   { get; private set; }  // BASE yearly entitlement in hours (excludes carry-over); 0 = not yet set
     public decimal SickHours     { get; private set; }  // entitlement in hours; 0 = not yet set
-    public decimal CarryOverHours { get; private set; } // hours added from previous year's carry-over
+    public decimal CarryOverHours { get; private set; } // hours carried over from the previous year (kept apart from AnnualHours)
+
+    /// <summary>Usable annual pool: the base entitlement plus hours carried over from last year.</summary>
+    public decimal TotalAnnualHours => AnnualHours + CarryOverHours;
 
     public Staff Employee { get; private set; } = default!;
 
@@ -26,13 +29,10 @@ public class LeaveEntitlement
     {
         AnnualHours = annualHours;
         SickHours   = sickHours;
-        // CarryOverHours is intentionally NOT reset here — it is only set by AddCarryOver().
+        // CarryOverHours is kept: it is a separate figure, so editing the base can't delete it.
     }
 
-    /// <summary>Add carry-over hours (accumulated from a prior-year rollover operation).</summary>
-    public void AddCarryOver(decimal hours)
-    {
-        AnnualHours   += hours;
-        CarryOverHours += hours;
-    }
+    /// <summary>Add carry-over hours (from a prior-year rollover). They raise the usable pool
+    /// (<see cref="TotalAnnualHours"/>) but never the base entitlement.</summary>
+    public void AddCarryOver(decimal hours) => CarryOverHours += hours;
 }

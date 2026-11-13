@@ -1065,7 +1065,9 @@ public class LeaveCommandTests
 
         Assert.Equal(1, count);
         var updated2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
-        Assert.Equal(88m, updated2026.AnnualHours);   // 80 base + 8 carry-over (remaining was 8)
+        Assert.Equal(80m, updated2026.AnnualHours);        // the base is untouched
+        Assert.Equal(8m,  updated2026.CarryOverHours);     // remaining was 8
+        Assert.Equal(88m, updated2026.TotalAnnualHours);   // usable pool = 80 + 8
     }
 
     [Fact]
@@ -1095,7 +1097,7 @@ public class LeaveCommandTests
         Assert.Equal(1, first);
         Assert.Equal(0, second);   // second run skips the already-carried employee
         var ent = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
-        Assert.Equal(88m, ent.AnnualHours);   // still 80 + 8, NOT 80 + 16
+        Assert.Equal(88m, ent.TotalAnnualHours);   // still 80 + 8, NOT 80 + 16
     }
 
     [Fact]
@@ -1116,7 +1118,7 @@ public class LeaveCommandTests
         await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
 
         var updated2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
-        Assert.Equal(94m, updated2026.AnnualHours);   // 80 + 14 (capped)
+        Assert.Equal(94m, updated2026.TotalAnnualHours);   // 80 + 14 (capped)
     }
 
     [Fact]
@@ -1137,7 +1139,9 @@ public class LeaveCommandTests
 
         Assert.Equal(1, count);
         var new2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
-        Assert.Equal(14m, new2026.AnnualHours);  // carry-over (all 40 → capped at 14)
+        Assert.Equal(0m,  new2026.AnnualHours);       // no base entitlement set yet
+        Assert.Equal(14m, new2026.CarryOverHours);    // carry-over (all 40 → capped at 14)
+        Assert.Equal(14m, new2026.TotalAnnualHours);
         Assert.Equal(0m,  new2026.SickHours);
     }
 

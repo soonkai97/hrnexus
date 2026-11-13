@@ -569,7 +569,9 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
       this.leaveSvc.getBalance(this.filterEmployeeId, year).subscribe({
         next: b => {
           this.staffBalance.set(b);
-          this.entitlementForm = { year: b.year, annualHours: b.annualEntitlement, sickHours: b.sickEntitlement };
+          // The balance reports the usable pool (base + carry-over); the form edits the BASE only, so
+          // saving it never changes or deletes the carried-over hours.
+          this.entitlementForm = { year: b.year, annualHours: b.annualEntitlement - b.carryOverHours, sickHours: b.sickEntitlement };
         },
         error: () => this.staffBalance.set(null),
       });

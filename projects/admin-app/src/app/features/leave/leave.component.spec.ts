@@ -984,6 +984,19 @@ describe('LeaveComponent', () => {
     });
   });
 
+  // ── Phase 7l (D2): the entitlement form edits the BASE, never the carry-over ───
+
+  describe('loadBalances() entitlement form', () => {
+    it('prefills the base entitlement without the carried-over hours', () => {
+      component.filterEmployeeId = 'emp-1';
+      mockLeaveSvc.getBalance.mockReturnValue(of({ ...fakeBalance, annualEntitlement: 88, carryOverHours: 8 }));
+
+      component.loadBalances();
+
+      expect(component.entitlementForm.annualHours).toBe(80);   // 88 pool - 8 carried over
+    });
+  });
+
   // ── Item 15: markNoShow() calls loadBalances() ────────────────────────────────
 
   describe('markNoShow()', () => {

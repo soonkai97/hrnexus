@@ -11,7 +11,10 @@ import { join, resolve } from 'node:path';
 const FORBIDDEN: { label: string; pattern: RegExp }[] = [
   { label: 'ngx-translate', pattern: new RegExp('ngx' + '-translate') },
   { label: 'translate pipe', pattern: new RegExp('\\|\\s*trans' + 'late\\b') },
-  { label: 'TranslatePipe/Service/Module', pattern: new RegExp('Trans' + 'late(Pipe|Service|Module)') },
+  {
+    label: 'TranslatePipe/Service/Module',
+    pattern: new RegExp('Trans' + 'late(Pipe|Service|Module)'),
+  },
   { label: 'provideTranslateService', pattern: new RegExp('provideTrans' + 'lateService') },
   { label: 'LangService', pattern: new RegExp('Lang' + 'Service') },
   { label: 'LocalizedNamePipe', pattern: new RegExp('Localized' + 'NamePipe') },
@@ -36,7 +39,9 @@ function walk(dir: string, out: string[]): string[] {
 
 describe('English only (Phase 7i guard)', () => {
   const root = resolve('.');
-  const files = walk(join(root, 'projects'), []).filter(f => !f.endsWith('english-only.guard.spec.ts'));
+  const files = walk(join(root, 'projects'), []).filter(
+    (f) => !f.endsWith('english-only.guard.spec.ts'),
+  );
 
   it('finds source files to scan', () => {
     expect(files.length).toBeGreaterThan(100);
@@ -44,13 +49,17 @@ describe('English only (Phase 7i guard)', () => {
 
   for (const { label, pattern } of FORBIDDEN) {
     it(`has no "${label}" anywhere under projects/`, () => {
-      const hits = files.filter(f => pattern.test(readFileSync(f, 'utf8'))).map(f => f.replace(root, ''));
+      const hits = files
+        .filter((f) => pattern.test(readFileSync(f, 'utf8')))
+        .map((f) => f.replace(root, ''));
       expect(hits).toEqual([]);
     });
   }
 
   it('has no i18n locale folders', () => {
-    const locales = files.filter(f => /[\\/]public[\\/]i18n[\\/]/.test(f)).map(f => f.replace(root, ''));
+    const locales = files
+      .filter((f) => /[\\/]public[\\/]i18n[\\/]/.test(f))
+      .map((f) => f.replace(root, ''));
     expect(locales).toEqual([]);
   });
 

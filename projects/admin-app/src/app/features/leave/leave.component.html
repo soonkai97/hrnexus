@@ -121,9 +121,11 @@
                       [loading]="processingId() === r.id" [disabled]="!!processingId()"
                       (click)="quickStatus(r.id, 'rejected')" />
                   }
-                  <p-button label="No-Show" severity="warn" [outlined]="true"
-                    [loading]="processingId() === r.id" [disabled]="!!processingId()"
-                    (click)="markNoShow(r)" />
+                  @if (!isOwn(r)) {
+                    <p-button label="No-Show" severity="warn" [outlined]="true"
+                      [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                      (click)="markNoShow(r)" />
+                  }
                 </div>
               </div>
             }

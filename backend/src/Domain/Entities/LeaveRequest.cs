@@ -46,6 +46,8 @@ public class LeaveRequest
         string? startTime, string? endTime, decimal? hours,
         string? notes, string status, string? rejectionReason = null)
     {
+        if (Status is AppConstants.Leave.Rejected or AppConstants.Leave.Cancelled)
+            throw new InvalidOperationException($"A {Status} leave request cannot be edited.");
         EnsureCanBecome(status);
         LeaveType       = leaveType.ToLower();
         StartDate       = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc);

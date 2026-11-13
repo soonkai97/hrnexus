@@ -33,9 +33,6 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     {
         ValidateRequest(req);
 
-        // The server owns the hours: working days (Mon-Fri, 8h), never the client's number.
-        var hours = LeaveHoursCalculator.Calculate(req.StartDate, req.EndDate, req.StartTime, req.EndTime);
-
         // Stable Id for the create path so a retried attempt can recognise its own committed row.
         // EnableRetryOnFailure re-runs the whole delegate on a transient; without this, an attempt
         // that already COMMITTED could be retried, the retry would re-read the now-full balance and
@@ -73,18 +70,36 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                     return newLeaveId;
                 }
 
+                // An update is checked against the person who OWNS the leave: a body naming another
+                // employee would otherwise run the balance and overlap checks on the wrong person.
+                LeaveRequest? existing = null;
+                if (req.Id.HasValue)
+                {
+                    existing = await db.LeaveRequests.FindAsync([req.Id.Value], ct)
+                        ?? throw new KeyNotFoundException($"Leave request {req.Id} not found.");
+                    if (existing.EmployeeId != req.EmployeeId)
+                        throw new ArgumentException("This leave request belongs to a different employee.");
+                    EnsureNotOwnDecision(req.ActingUserId, existing.EmployeeId, req.Status);
+                    EnsureEditableAfterTheFact(existing, req);
+                }
+
+                // The server owns the hours: working days (Mon-Fri, 8h), never the client's number. A
+                // status-only edit keeps the stored hours, so a row recorded before this rule (for
+                // example a weekend) can still be approved, rejected or marked no-show.
+                var datesOrTimesChanged = existing is null
+                    || existing.StartDate.Date != req.StartDate.Date || existing.EndDate.Date != req.EndDate.Date
+                    || existing.StartTime != req.StartTime || existing.EndTime != req.EndTime;
+                var hours = datesOrTimesChanged || existing?.Hours is null
+                    ? LeaveHoursCalculator.Calculate(req.StartDate, req.EndDate, req.StartTime, req.EndTime)
+                    : existing.Hours.Value;
+
                 if (!isRejectedOrCancelled && (isAnnualOrEmergency || isSick))
                     await EnsureSufficientBalanceAsync(req, hours, isAnnualOrEmergency, ct);
 
                 await EnsureNoOverlapAsync(req, ct);
 
-                if (req.Id.HasValue)
+                if (existing is not null)
                 {
-                    var existing = await db.LeaveRequests.FindAsync([req.Id.Value], ct)
-                        ?? throw new KeyNotFoundException($"Leave request {req.Id} not found.");
-
-                    EnsureNotOwnDecision(req.ActingUserId, existing.EmployeeId, req.Status);
-
                     var prevStatus = existing.Status;
                     existing.Update(req.LeaveType, req.StartDate, req.EndDate,
                         req.StartTime, req.EndTime, hours,
@@ -210,6 +225,24 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
+    }
+
+    /// <summary>
+    /// Leave that has already ended keeps its dates, times and type: changing them after the fact would
+    /// refund a balance or hide an absence. Its status can still change, and an overdue request can
+    /// still become a no-show.
+    /// </summary>
+    private void EnsureEditableAfterTheFact(LeaveRequest existing, UpsertLeaveCommand req)
+    {
+        if (existing.EndDate.Date >= dt.LocalNow.Date) return;
+
+        var datesOrTimesChanged = existing.StartDate.Date != req.StartDate.Date || existing.EndDate.Date != req.EndDate.Date
+                               || existing.StartTime != req.StartTime || existing.EndTime != req.EndTime;
+        var retyped = !existing.LeaveType.Equals(req.LeaveType, StringComparison.OrdinalIgnoreCase);
+        var becomesNoShow = req.LeaveType.Equals(AppConstants.Leave.NoShow, StringComparison.OrdinalIgnoreCase);
+        if (datesOrTimesChanged || (retyped && !becomesNoShow))
+            throw new InvalidOperationException(
+                "Leave that has already ended can only have its status changed or be marked as a no-show.");
     }
 
     /// <summary>

@@ -21,6 +21,9 @@ namespace HRNexus.Infrastructure.Migrations
         }
 
         /// <inheritdoc />
+        // Lossy: a base smaller than its carry-over was clamped to 0 by Up, and rows whose base was edited
+        // after a carry-over (so the carry-over was no longer inside it) are over-counted here.
+        // Acceptable while no production data exists; take a backup before reverting on real data.
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"

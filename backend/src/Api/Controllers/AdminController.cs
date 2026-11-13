@@ -177,7 +177,7 @@ public class AdminController(IMediator mediator) : ControllerBase
     {
         try
         {
-            var count = await mediator.Send(new BulkMarkLeaveNoShowCommand(body.Ids), ct);
+            var count = await mediator.Send(new BulkMarkLeaveNoShowCommand(body.Ids, CallerId), ct);
             return Ok(new { count });
         }
         catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }

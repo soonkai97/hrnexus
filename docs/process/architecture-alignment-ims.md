@@ -103,7 +103,7 @@ Order = cheapest and highest-leverage first; big rewrites last. Each phase follo
 | **12d** Dispatcher swap | Replace MediatR registrations with the dispatcher, bulk-mechanical (`bulk-editor` agent), remove package | all tests green; no `MediatR` reference | M |
 | **12e** Cursor pagination + opaque cursors | `ICursorProtector`, seek lists for audit, notifications, leave history | cursor tamper tests | M |
 | **12f** Public-id policy | Confirm Q1; document "Guid Id is the public id", add the OpenAPI "every id is a uuid" test, 404 for out-of-scope ids | test green | S |
-| **12g** UI kit | Per the 13 Nov 2026 PrimeNG decision: `app-*` kit and facades over PrimeNG in `shared/ui`, token rename, contrast script | contrast checks pass | M-XL |
+| **12g** UI kit (planned in detail as [phase 7k](phase-07k-ui-kit.md)) | Per the 13 Nov 2026 PrimeNG decision: `app-*` kit and facades over PrimeNG in `shared/ui`, token rename, contrast script | contrast checks pass | M-XL |
 
 Per-phase rule: a phase that changes the API wire format (7d, 7e, 12b) ships FE + E2E changes in the same PR; DB migrations follow the CLAUDE.md maintenance-window rule.
 

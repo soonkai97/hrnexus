@@ -104,7 +104,7 @@ deploy are in [docs/process/git-workflow.md](docs/process/git-workflow.md).
 |---|---|---|
 | `ci.yml` | push, PR | web lint/test/build, API build + unit + integration tests, dependency audit |
 | `pr-guard.yml` | PR | conventional PR title, branch naming |
-| `e2e.yml` | PR, manual | Playwright suite against the compose stack |
+| `e2e.yml` | manual, scheduled | Playwright suite against the compose stack |
 | `codeql.yml` | PR, weekly | CodeQL for C# and TypeScript |
 | `dast.yml` | scheduled, manual | OWASP ZAP baseline scan |
 | `release.yml` | tag `v*` | GitHub release |

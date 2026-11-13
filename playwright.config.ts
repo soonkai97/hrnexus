@@ -9,6 +9,9 @@ import { defineConfig, devices } from '@playwright/test';
  * Or against ng serve (dev):
  *   ng serve admin-app &
  *   BASE_URL_ADMIN=http://localhost:4200 npm run test:e2e:admin
+ *
+ * PW_CHANNEL=msedge (or chrome) runs the installed browser instead of Playwright's bundled
+ * Chromium: use it where the bundled headless shell cannot start (for example a locked-down Windows sandbox).
  */
 export default defineConfig({
   testDir: './tests/e2e',
@@ -22,6 +25,7 @@ export default defineConfig({
   reporter: [['html', { open: 'never' }], ['list']],
 
   use: {
+    channel: process.env['PW_CHANNEL'] || undefined,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

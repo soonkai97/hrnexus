@@ -1,4 +1,5 @@
 import { test, expect, request as pwRequest, type APIRequestContext } from '@playwright/test';
+import { ensureRole } from '../shared/api';
 
 /**
  * NEGATIVE PATHS — every business guard must reject cleanly through the full stack.
@@ -28,6 +29,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
   let staff: APIRequestContext;
   let assignedLoc = '';
   let roleName    = '';
+  let roleId      = '';
   let staffId     = '';
 
   test.beforeAll(async () => {
@@ -44,10 +46,10 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
     r = await admin.post('/api/locations', { data: { name: `NEGA${uid}` } });
     assignedLoc = (await r.json()).id;
 
-    await admin.post('/api/staff/roles', { data: { name: roleName, hourlyRate: 20 } });
+    roleId = await ensureRole(admin, roleName, 20);
     r = await admin.post('/api/staff', { data: {
       staffId, firstName: 'Neg', lastName: 'Case', email: null, password,
-      roles: [roleName], locations: [assignedLoc],
+      roles: [roleId], locations: [assignedLoc],
     } });
     expect(r.ok(), 'hire staff').toBeTruthy();
 
@@ -94,14 +96,14 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
   });
 
   test('deleting a role still assigned to staff is blocked', async () => {
-    const r = await admin.delete(`/api/staff/roles/${roleName}`);
+    const r = await admin.delete(`/api/staff/roles/${roleId}`);
     expectRejected(r.status(), 'delete role assigned to staff');
   });
 
   // ── Uniqueness guard ────────────────────────────────────────────────────────
   test('registering a duplicate Staff ID is rejected', async () => {
     const r = await admin.post('/api/staff', { data: {
-      staffId, firstName: 'Dup', lastName: 'Licate', email: null, password: 'Test@1234', roles: [roleName], locations: [assignedLoc],
+      staffId, firstName: 'Dup', lastName: 'Licate', email: null, password: 'Test@1234', roles: [roleId], locations: [assignedLoc],
     } });
     expectRejected(r.status(), 'duplicate Staff ID');
   });

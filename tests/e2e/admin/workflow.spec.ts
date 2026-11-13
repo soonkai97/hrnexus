@@ -1,4 +1,5 @@
 import { test, expect, request as pwRequest } from '@playwright/test';
+import { ensureRole } from '../shared/api';
 
 /**
  * FULL BUSINESS WORKFLOW — the end-to-end path, in one chained test.
@@ -44,12 +45,11 @@ test.describe('Full workflow — hire → leave → approve', () => {
     expect(locations.length, 'seed has at least one location').toBeGreaterThan(0);
     const locationId: string = locations[0].id;
 
-    r = await admin.post('/api/staff/roles', { data: { name: roleName, hourlyRate: 25 } });
-    expect(r.ok(), `create role (${r.status()})`).toBeTruthy();
+    const roleId = await ensureRole(admin, roleName, 25);
 
     r = await admin.post('/api/staff', { data: {
       staffId, firstName: 'Flow', lastName: 'Test', email: null, password,
-      roles: [roleName], locations: [locationId],
+      roles: [roleId], locations: [locationId],
     } });
     expect(r.ok(), `hire staff (${r.status()})`).toBeTruthy();
     const employeeId: string = (await r.json()).id;
@@ -67,7 +67,7 @@ test.describe('Full workflow — hire → leave → approve', () => {
     expect(r.ok(), `apply leave (${r.status()})`).toBeTruthy();
 
     // ── 5. Admin finds the pending request and approves it ──────────────────────
-    r = await admin.get('/api/admin/leave?status=pending&page=1&pageSize=200');
+    r = await admin.get(`/api/admin/leave?status=pending&employeeId=${employeeId}&page=1&pageSize=50`);
     const pendingBody = await r.json();
     const pending = (pendingBody.items ?? pendingBody) as Array<{ id: string; employeeId?: string }>;
     const mine = pending.find(l => l.employeeId === employeeId);
@@ -80,7 +80,7 @@ test.describe('Full workflow — hire → leave → approve', () => {
     expect(r.ok(), `approve leave (${r.status()})`).toBeTruthy();
 
     // ── 6. Read models reflect the chain ────────────────────────────────────────
-    r = await admin.get('/api/admin/leave?status=approved&page=1&pageSize=200');
+    r = await admin.get(`/api/admin/leave?status=approved&employeeId=${employeeId}&page=1&pageSize=50`);
     const approvedBody = await r.json();
     const approved = (approvedBody.items ?? approvedBody) as Array<{ employeeId?: string }>;
     expect(approved.some(l => l.employeeId === employeeId), 'leave now shows approved').toBeTruthy();

@@ -1274,6 +1274,7 @@ npm run test:e2e          # all tests (admin + staff)
 npm run test:e2e:admin    # admin project only
 npm run test:e2e:staff    # staff project only
 npm run test:e2e:ui       # interactive Playwright UI
+PW_CHANNEL=msedge npm run test:e2e   # use the installed Edge/Chrome when Playwright's bundled Chromium cannot start (PowerShell: $env:PW_CHANNEL='msedge')
 ```
 
 **Current E2E specs:**

@@ -520,25 +520,7 @@ public class StaffCommandTests
     }
 
     [Fact]
-    public async Task Delete_ThrowsInvalidOperation_WhenStaffHasShiftHistory()
-    {
-        // Staff with attendance records must be deactivated, not deleted, to preserve payroll integrity.
-        await using var db = CreateDb();
-        var staff = MakeStaff();
-        db.Staff.Add(staff);
-        var workDate = DateOnly.FromDateTime(DateTime.UtcNow);
-        var log = E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc-1", "Main Bar", workDate, "18:00", "23:00", 50m);
-        db.WorkLogs.Add(log);
-        await db.SaveChangesAsync();
-
-        var handler = DeleteHandler(db);
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new DeleteStaffCommand(staff.Id), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task Delete_RemovesStaff_WhenNoShiftHistory()
+    public async Task Delete_RemovesStaff()
     {
         await using var db = CreateDb();
         var staff = MakeStaff();

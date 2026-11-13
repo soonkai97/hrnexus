@@ -56,7 +56,7 @@ export interface StaffDetail extends Staff {
 export type PayType = 'hourly' | 'fixed';
 
 export interface StaffRole {
-  /** GUID primary key — used as the value for role pickers and for clock-in / rate / delete calls. */
+  /** GUID primary key — used as the value for role pickers and for rate / delete calls. */
   id: string;
   name: string;
   isSystem: boolean;
@@ -67,8 +67,4 @@ export interface StaffRole {
   nameZh?: string | null;
   /** Optional Vietnamese name; shown instead of `name` when the UI language is Vietnamese. */
   nameVi?: string | null;
-  /** Maximum number of days a single shift for this job may span (1–30). Enforced on clock-out and
-   *  manual/admin entry. Optional so a cached response from just before this field shipped still
-   *  parses; read sites default a missing value to 30. */
-  maxShiftDays?: number;
 }

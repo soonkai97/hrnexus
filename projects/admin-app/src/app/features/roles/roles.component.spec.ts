@@ -101,7 +101,7 @@ describe('RolesComponent', () => {
       component.newRoleName = '  bartender  ';
       component.newRoleRate = 15;
       component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, null, null, 'hourly', 30);
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, null, null, 'hourly');
     });
 
     it('passes the selected pay type (fixed) through to createRole', () => {
@@ -109,7 +109,7 @@ describe('RolesComponent', () => {
       component.newRoleRate = 500;
       component.newRolePayType = 'fixed';
       component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('PACKAGE', 500, null, null, 'fixed', 30);
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('PACKAGE', 500, null, null, 'fixed');
     });
 
     it('shows success toast after creating a role', () => {
@@ -148,7 +148,7 @@ describe('RolesComponent', () => {
 
   // ── startEditRate() / cancelEditRate() ────────────────────────────────────────
 
-  const bartender = { id: 'role-bartender-id', name: 'BARTENDER', hourlyRate: 12, nameZh: null, nameVi: null, payType: 'hourly' as const, isSystem: false, maxShiftDays: 30 };
+  const bartender = { id: 'role-bartender-id', name: 'BARTENDER', hourlyRate: 12, nameZh: null, nameVi: null, payType: 'hourly' as const, isSystem: false };
 
   describe('startEditRate() / cancelEditRate()', () => {
     it('sets editingRateId to the role id', () => {
@@ -174,18 +174,13 @@ describe('RolesComponent', () => {
     });
 
     it('seeds editingRatePayType from the role so the toggle reflects the current pay model', () => {
-      component.startEditRate({ id: 'role-package-id', name: 'PACKAGE', hourlyRate: 500, nameZh: null, nameVi: null, payType: 'fixed', isSystem: false, maxShiftDays: 30 });
+      component.startEditRate({ id: 'role-package-id', name: 'PACKAGE', hourlyRate: 500, nameZh: null, nameVi: null, payType: 'fixed', isSystem: false });
       expect(component.editingRatePayType()).toBe('fixed');
     });
 
     it('marks system roles so the English-name field is locked', () => {
-      component.startEditRate({ id: 'role-admin-id', name: 'SUPERADMIN', hourlyRate: 0, nameZh: null, nameVi: null, payType: 'hourly', isSystem: true, maxShiftDays: 30 });
+      component.startEditRate({ id: 'role-admin-id', name: 'SUPERADMIN', hourlyRate: 0, nameZh: null, nameVi: null, payType: 'hourly', isSystem: true });
       expect(component.editingRateIsSystem()).toBe(true);
-    });
-
-    it('seeds editingRateMaxDays from the role so the modal reflects this job\'s cap', () => {
-      component.startEditRate({ ...bartender, maxShiftDays: 7 });
-      expect(component.editingRateMaxDays()).toBe(7);
     });
   });
 
@@ -200,20 +195,14 @@ describe('RolesComponent', () => {
 
     it('calls updateRoleRate with the role id, new rate, and English name (custom job)', () => {
       component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', 'BARTENDER', 30);
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', 'BARTENDER');
     });
 
     it('sends a null name for system roles so their auth key is never renamed', () => {
       component.editingRateIsSystem.set(true);
       component.editingRateName.set('SUPERADMIN');
       component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', null, 30);
-    });
-
-    it('sends the edited max shift days for this job', () => {
-      component.editingRateMaxDays.set(14);
-      component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', 'BARTENDER', 14);
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', null);
     });
 
     it('does nothing when a custom job has a blank English name', () => {

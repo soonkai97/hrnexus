@@ -15,11 +15,7 @@ public record LoginCommand(string StaffId, string Password, string? Portal = nul
 
 public record LoginResult(string AccessToken, string RefreshToken, int ExpiresIn, UserDto User);
 
-/// <summary>An assigned job/role, carrying the localizable display names so the staff-app
-/// log-shift dropdown can render a language-aware label and submit the role's GUID id.</summary>
-public record JobDto(Guid Id, string Name, string? NameZh, string? NameVi, string PayType);
-
-public record UserDto(Guid Id, string StaffId, string FullName, string? Email, List<string> Roles, List<JobDto> Jobs);
+public record UserDto(Guid Id, string StaffId, string FullName, string? Email, List<string> Roles);
 
 public class LoginCommandHandler(
     IAppDbContext db, IPasswordHasher hasher, ITokenService tokens, IDateTimeProvider clock,
@@ -75,15 +71,10 @@ public class LoginCommandHandler(
 }
 
 /// <summary>Builds the login/refresh <see cref="UserDto"/> from a loaded Staff (with RoleEntries +
-/// the AutoInclude'd Role nav). Keeps <c>Roles</c> as role NAMES for the FE auth-tier logic, and
-/// adds <c>Jobs</c> (id + localizable names) for the staff-app log-shift role dropdown.</summary>
+/// the AutoInclude'd Role nav). Keeps <c>Roles</c> as role NAMES for the FE auth-tier logic.</summary>
 public static class UserDtoFactory
 {
     public static UserDto From(HRNexus.Domain.Entities.Staff employee) =>
         new(employee.Id, employee.StaffId, employee.FullName, employee.Email,
-            employee.Roles.ToList(),
-            employee.RoleEntries
-                .Where(re => re.Role != null)
-                .Select(re => new JobDto(re.RoleId, re.Role.Name, re.Role.NameZh, re.Role.NameVi, re.Role.PayType))
-                .ToList());
+            employee.Roles.ToList());
 }

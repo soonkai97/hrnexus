@@ -6,7 +6,7 @@ namespace HRNexus.Application.Staff.Queries;
 
 public record GetRolesQuery : IRequest<List<RoleDto>>;
 
-public record RoleDto(Guid Id, string Name, bool IsSystem, decimal HourlyRate, string? NameZh, string? NameVi, string PayType, int MaxShiftDays);
+public record RoleDto(Guid Id, string Name, bool IsSystem, decimal HourlyRate, string? NameZh, string? NameVi, string PayType);
 
 public class GetRolesQueryHandler(IAppDbContext db)
     : IRequestHandler<GetRolesQuery, List<RoleDto>>
@@ -14,6 +14,6 @@ public class GetRolesQueryHandler(IAppDbContext db)
     public async Task<List<RoleDto>> Handle(GetRolesQuery req, CancellationToken ct) =>
         await db.Roles
             .OrderBy(r => r.IsSystem ? 1 : 0).ThenBy(r => r.Name)
-            .Select(r => new RoleDto(r.Id, r.Name, r.IsSystem, r.HourlyRate, r.NameZh, r.NameVi, r.PayType, r.MaxShiftDays))
+            .Select(r => new RoleDto(r.Id, r.Name, r.IsSystem, r.HourlyRate, r.NameZh, r.NameVi, r.PayType))
             .ToListAsync(ct);
 }

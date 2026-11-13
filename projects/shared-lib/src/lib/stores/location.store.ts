@@ -24,19 +24,6 @@ export class LocationStore {
   readonly error     = this.#error.asReadonly();
   readonly count     = computed(() => this.#locations().length);
 
-  // The signed-in staff member's assigned locations (the only ones they may log shifts at).
-  readonly #myLocations = signal<Location[]>([]);
-  readonly #myLoaded    = signal(false);
-  readonly myLocations  = this.#myLocations.asReadonly();
-  readonly myLoaded     = this.#myLoaded.asReadonly();
-
-  loadMine(): void {
-    this.http.get<Location[]>('/api/locations/mine').subscribe({
-      next: list => { this.#myLocations.set(list); this.#myLoaded.set(true); },
-      error: ()   => { this.#myLoaded.set(true); },
-    });
-  }
-
   load(): void {
     if (this.#loading()) return; // dedup: skip if a fetch is already in flight
     this.#loading.set(true);

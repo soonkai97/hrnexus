@@ -19,6 +19,5 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         b.Property(r => r.PayType).HasMaxLength(10).IsRequired();
         // Existing rows (and any created before the app set it) default to the global cap so every job
         // starts at 30 days — the migration backfills the column with this default.
-        b.Property(r => r.MaxShiftDays).HasDefaultValue(HRNexus.Domain.Constants.AppConstants.WorkLog.MaxShiftDays);
     }
 }

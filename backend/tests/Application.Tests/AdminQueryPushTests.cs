@@ -11,7 +11,6 @@ namespace HRNexus.Application.Tests;
 /// <summary>
 /// Handler-level tests for:
 /// - GetDashboardQuery
-/// - GetReportQuery
 /// - GetLeaveQuery
 /// - GetLeaveBalanceQuery
 /// - GetAllLeaveBalancesQuery
@@ -52,9 +51,6 @@ public class AdminQueryPushTests
         return s;
     }
 
-    // Fixed UTC reference used across dashboard tests.
-    private static readonly DateTime UtcRef = new(2025, 6, 15, 14, 0, 0, DateTimeKind.Utc);
-
     // ═════════════════════════════════════════════════════════════════════════
     // GetDashboardQuery
     // ═════════════════════════════════════════════════════════════════════════
@@ -63,15 +59,11 @@ public class AdminQueryPushTests
     public async Task GetDashboard_ReturnsZeroStats_WhenNoData()
     {
         await using var db  = CreateDb();
-        var dt              = new FixedDateTimeProvider(UtcRef);
-        var handler         = new GetDashboardQueryHandler(db, dt);
+        var handler         = new GetDashboardQueryHandler(db);
 
         var result = await handler.Handle(new GetDashboardQuery(), CancellationToken.None);
 
-        Assert.Equal(0, result.Stats.OnShiftCount);
         Assert.Equal(0, result.Stats.TotalStaff);
-        Assert.Empty(result.CurrentlyOnShift);
-        Assert.Empty(result.RecentActivity);
     }
 
     [Fact]
@@ -85,289 +77,11 @@ public class AdminQueryPushTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var dt      = new FixedDateTimeProvider(UtcRef);
-        var handler = new GetDashboardQueryHandler(db, dt);
+        var handler = new GetDashboardQueryHandler(db);
 
         var result = await handler.Handle(new GetDashboardQuery(), CancellationToken.None);
 
         Assert.Equal(2, result.Stats.TotalStaff);
-    }
-
-    [Fact]
-    public async Task GetDashboard_ReportsOnShiftStaff_WhenOpenShiftExists()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaffAsync(db, "S001");
-        db.Staff.Add(staff);
-
-        // Today in UTC date
-        var today = DateOnly.FromDateTime(UtcRef);
-        var log = E.WorkLog.StartLive(staff.Id, "BARTENDER", "loc1", "Main Hall",
-            today, "12:00", 20m, notes: "covering front desk");
-        db.WorkLogs.Add(log);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var dt      = new FixedDateTimeProvider(UtcRef);
-        var handler = new GetDashboardQueryHandler(db, dt);
-
-        var result = await handler.Handle(new GetDashboardQuery(), CancellationToken.None);
-
-        Assert.Equal(1, result.Stats.OnShiftCount);
-        Assert.Single(result.CurrentlyOnShift);
-        Assert.Equal("S001", result.CurrentlyOnShift[0].StaffId);
-        Assert.Equal("Main Hall", result.CurrentlyOnShift[0].LocationName);
-        // The shift note surfaces on the dashboard's on-shift list, not just in Reports.
-        Assert.Equal("covering front desk", result.CurrentlyOnShift[0].Notes);
-    }
-
-    [Fact]
-    public async Task GetDashboard_OpenShiftsCount_OnlyCountsStaleShifts()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaffAsync(db, "S001");
-        db.Staff.Add(staff);
-
-        var today     = DateOnly.FromDateTime(UtcRef);
-        var yesterday = today.AddDays(-1);
-
-        // Today's open shift — NOT stale
-        db.WorkLogs.Add(E.WorkLog.StartLive(staff.Id, "BARTENDER", "loc1", "Main",
-            today, "22:00", 20m));
-        // Yesterday's open shift — stale (forgot to clock out)
-        db.WorkLogs.Add(E.WorkLog.StartLive(staff.Id, "BARTENDER", "loc1", "Main",
-            yesterday, "22:00", 20m));
-
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var dt      = new FixedDateTimeProvider(UtcRef);
-        var handler = new GetDashboardQueryHandler(db, dt);
-
-        var result = await handler.Handle(new GetDashboardQuery(), CancellationToken.None);
-
-        // Total on-shift = 2 (both open), but stale = 1
-        Assert.Equal(2, result.Stats.OnShiftCount);
-        Assert.Equal(1, result.Stats.OpenShiftsCount);
-    }
-
-    [Fact]
-    public async Task GetDashboard_RecentActivity_OnlyContainsTodaysLogs()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaffAsync(db, "S001");
-        db.Staff.Add(staff);
-
-        var today     = DateOnly.FromDateTime(UtcRef);
-        var yesterday = today.AddDays(-1);
-
-        // Completed shift today
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main",
-            today, "09:00", "17:00", 20m));
-        // Completed shift yesterday — should NOT appear in RecentActivity
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main",
-            yesterday, "09:00", "17:00", 20m));
-
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var dt      = new FixedDateTimeProvider(UtcRef);
-        var handler = new GetDashboardQueryHandler(db, dt);
-
-        var result = await handler.Handle(new GetDashboardQuery(), CancellationToken.None);
-
-        Assert.Single(result.RecentActivity);
-    }
-
-    // ═════════════════════════════════════════════════════════════════════════
-    // GetReportQuery
-    // ═════════════════════════════════════════════════════════════════════════
-
-    [Fact]
-    public async Task GetReport_ReturnsEmptyResponse_WhenNoLogsExist()
-    {
-        await using var db  = CreateDb();
-        var handler         = new GetReportQueryHandler(db);
-        var from            = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var to              = new DateTime(2025, 1, 31, 0, 0, 0, DateTimeKind.Utc);
-
-        var result = await handler.Handle(
-            new GetReportQuery(from, to, null, null, null),
-            CancellationToken.None);
-
-        Assert.Equal(0, result.Summary.TotalShifts);
-        Assert.Empty(result.Shifts);
-        Assert.Empty(result.ByStaff);
-    }
-
-    [Fact]
-    public async Task GetReport_ReturnsSummary_WhenCompletedShiftsExist()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaffAsync(db, "S001");
-        db.Staff.Add(staff);
-
-        var workDate = new DateOnly(2025, 6, 1);
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main Hall",
-            workDate, "09:00", "17:00", 20m));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new GetReportQueryHandler(db);
-        var result  = await handler.Handle(
-            new GetReportQuery(
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                null, null, null),
-            CancellationToken.None);
-
-        Assert.Equal(1, result.Summary.TotalShifts);
-        Assert.Equal(8m, result.Summary.TotalHours);
-        Assert.Single(result.Shifts);
-        Assert.Equal("Main Hall", result.Shifts[0].LocationName);
-    }
-
-    [Fact]
-    public async Task GetReport_SplitsCostByPayType_AndExposesPayTypePerShift()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaffAsync(db, "S001");
-        db.Staff.Add(staff);
-
-        var workDate = new DateOnly(2025, 6, 1);
-        // Hourly: 8h × 20 = 160
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main",
-            workDate, "09:00", "17:00", 20m));
-        // Fixed overnight package: 12h, flat 500 (cost must NOT be 12 × 500)
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "PACKAGE", "loc1", "Main",
-            workDate, "20:00", "08:00", 500m, notes: null, payType: HRNexus.Domain.Constants.AppConstants.PayType.Fixed));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new GetReportQueryHandler(db);
-        var result  = await handler.Handle(
-            new GetReportQuery(
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                null, null, null),
-            CancellationToken.None);
-
-        Assert.Equal(1,    result.Summary.HourlyShifts);
-        Assert.Equal(160m, result.Summary.HourlyCost);
-        Assert.Equal(1,    result.Summary.FixedShifts);
-        Assert.Equal(500m, result.Summary.FixedCost);          // flat, not 12 × 500
-        Assert.Equal(660m, result.Summary.TotalCost);
-        Assert.Contains(result.Shifts, s => s.PayType == "fixed"  && s.Cost == 500m);
-        Assert.Contains(result.Shifts, s => s.PayType == "hourly" && s.Cost == 160m);
-    }
-
-    [Fact]
-    public async Task GetReport_ExcludesOpenShifts()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaffAsync(db, "S001");
-        db.Staff.Add(staff);
-
-        var workDate = new DateOnly(2025, 6, 1);
-        // Active (open) shift — EndTime is null → must be excluded from report
-        db.WorkLogs.Add(E.WorkLog.StartLive(staff.Id, "BARTENDER", "loc1", "Main",
-            workDate, "09:00", 20m));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new GetReportQueryHandler(db);
-        var result  = await handler.Handle(
-            new GetReportQuery(
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                null, null, null),
-            CancellationToken.None);
-
-        Assert.Equal(0, result.Summary.TotalShifts);
-        Assert.Empty(result.Shifts);
-    }
-
-    [Fact]
-    public async Task GetReport_FiltersBy_StaffId()
-    {
-        await using var db = CreateDb();
-        var staff1 = await MakeStaffAsync(db, "S001");
-        var staff2 = await MakeStaffAsync(db, "S002");
-        db.Staff.AddRange(staff1, staff2);
-
-        var workDate = new DateOnly(2025, 6, 1);
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff1.Id, "BARTENDER", "loc1", "Main",
-            workDate, "09:00", "17:00", 20m));
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff2.Id, "BARTENDER", "loc1", "Main",
-            workDate, "09:00", "17:00", 20m));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new GetReportQueryHandler(db);
-        var result  = await handler.Handle(
-            new GetReportQuery(
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                new List<Guid> { staff1.Id }, null, null),
-            CancellationToken.None);
-
-        Assert.Equal(1, result.Summary.TotalShifts);
-        Assert.All(result.Shifts, s => Assert.Equal(staff1.StaffId, s.StaffId));
-    }
-
-    [Fact]
-    public async Task GetReport_FiltersBy_LocationName()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaffAsync(db, "S001");
-        db.Staff.Add(staff);
-
-        var workDate = new DateOnly(2025, 6, 1);
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "VIP Room",
-            workDate, "09:00", "17:00", 20m));
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc2", "Main Hall",
-            workDate, "09:00", "17:00", 20m));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new GetReportQueryHandler(db);
-        var result  = await handler.Handle(
-            new GetReportQuery(
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                null, new List<string> { "VIP Room" }, null),
-            CancellationToken.None);
-
-        Assert.Equal(1, result.Summary.TotalShifts);
-        Assert.Equal("VIP Room", result.Shifts[0].LocationName);
-    }
-
-    [Fact]
-    public async Task GetReport_FiltersBy_DateRange()
-    {
-        await using var db = CreateDb();
-        var staff = await MakeStaffAsync(db, "S001");
-        db.Staff.Add(staff);
-
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main",
-            new DateOnly(2025, 5, 31), "09:00", "17:00", 20m)); // before range
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main",
-            new DateOnly(2025, 6, 1), "09:00", "17:00", 20m)); // in range
-        db.WorkLogs.Add(E.WorkLog.CreateManual(staff.Id, "BARTENDER", "loc1", "Main",
-            new DateOnly(2025, 6, 2), "09:00", "17:00", 20m)); // after range
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new GetReportQueryHandler(db);
-        var result  = await handler.Handle(
-            new GetReportQuery(
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                null, null, null),
-            CancellationToken.None);
-
-        Assert.Equal(1, result.Summary.TotalShifts);
-        Assert.Equal("2025-06-01", result.Shifts[0].WorkDate);
     }
 
     // ═════════════════════════════════════════════════════════════════════════

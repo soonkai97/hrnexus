@@ -44,7 +44,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   newRoleNameVi  = '';
   newRoleRate    = 0;
   newRolePayType: PayType = 'hourly';
-  newRoleMaxDays = 30;
   saving         = signal(false);
   deletingRole   = signal<string | null>(null);
 
@@ -65,7 +64,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   editingRateNameVi   = signal('');
   editingRateValue    = signal(0);
   editingRatePayType  = signal<PayType>('hourly');
-  editingRateMaxDays  = signal(30);
   editingRateIsSystem = signal(false);
   savingRate          = signal(false);
 
@@ -94,7 +92,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     this.newRoleNameVi = '';
     this.newRoleRate = 0;
     this.newRolePayType = 'hourly';
-    this.newRoleMaxDays = 30;
     this.touched.set(new Set());
     this.showForm.set(true);
   }
@@ -105,14 +102,13 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     const name = this.newRoleName.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
-    this.store.createRole(name, this.newRoleRate, this.newRoleNameZh.trim() || null, this.newRoleNameVi.trim() || null, this.newRolePayType, this.newRoleMaxDays).subscribe({
+    this.store.createRole(name, this.newRoleRate, this.newRoleNameZh.trim() || null, this.newRoleNameVi.trim() || null, this.newRolePayType).subscribe({
       next: () => {
         this.newRoleName = '';
         this.newRoleNameZh = '';
         this.newRoleNameVi = '';
         this.newRoleRate = 0;
         this.newRolePayType = 'hourly';
-        this.newRoleMaxDays = 30;
         this.saving.set(false);
         this.showForm.set(false);
         this.toast.success(this.translate.instant('roles.created'));
@@ -122,14 +118,13 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   }
 
   /** Open the edit-role modal, prefilled from the row. `isSystem` locks the English-name field. */
-  startEditRate(role: { id: string; name: string; hourlyRate: number; nameZh: string | null; nameVi: string | null; payType: PayType; isSystem: boolean; maxShiftDays?: number }): void {
+  startEditRate(role: { id: string; name: string; hourlyRate: number; nameZh: string | null; nameVi: string | null; payType: PayType; isSystem: boolean }): void {
     this.editingRateId.set(role.id);
     this.editingRateName.set(role.name);
     this.editingRateNameZh.set(role.nameZh ?? '');
     this.editingRateNameVi.set(role.nameVi ?? '');
     this.editingRateValue.set(role.hourlyRate);
     this.editingRatePayType.set(role.payType);
-    this.editingRateMaxDays.set(role.maxShiftDays ?? 30);
     this.editingRateIsSystem.set(role.isSystem);
   }
 
@@ -142,7 +137,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     const name = this.editingRateIsSystem() ? null : (this.editingRateName().trim().toUpperCase() || null);
     if (!this.editingRateIsSystem() && !name) return; // English name is required for custom jobs
     this.savingRate.set(true);
-    this.store.updateRoleRate(id, this.editingRateValue(), this.editingRateNameZh().trim() || null, this.editingRateNameVi().trim() || null, this.editingRatePayType(), name, this.editingRateMaxDays()).subscribe({
+    this.store.updateRoleRate(id, this.editingRateValue(), this.editingRateNameZh().trim() || null, this.editingRateNameVi().trim() || null, this.editingRatePayType(), name).subscribe({
       next: () => {
         this.savingRate.set(false);
         this.editingRateId.set(null);
@@ -179,7 +174,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   // ── Role permissions editor ────────────────────────────────────────────────
 
   /** Per-row actions via the ellipsis menu (Delete only for custom roles). */
-  openRoleMenu(role: { id: string; name: string; hourlyRate: number; isSystem: boolean; nameZh: string | null; nameVi: string | null; payType: PayType; maxShiftDays?: number }, event: Event): void {
+  openRoleMenu(role: { id: string; name: string; hourlyRate: number; isSystem: boolean; nameZh: string | null; nameVi: string | null; payType: PayType }, event: Event): void {
     const items: MenuItem[] = [
       { label: this.translate.instant('roles.editRate'), icon: 'pi pi-pencil',
         command: () => this.startEditRate(role) },

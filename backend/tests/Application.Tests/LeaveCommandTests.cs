@@ -21,7 +21,6 @@ public class LeaveCommandTests
     private sealed class NullNotificationHub : INotificationHub
     {
         public Task SendToUserAsync(Guid id, NotificationPayload p, CancellationToken ct = default) => Task.CompletedTask;
-        public Task BroadcastLiveStatsAsync(LiveStatsDto s, CancellationToken ct = default) => Task.CompletedTask;
     }
 
     private sealed class NullPushSvc : IPushNotificationService
@@ -1366,7 +1365,6 @@ public class LeaveCommandTests
     {
         public Task SendToUserAsync(Guid id, NotificationPayload p, CancellationToken ct = default)
             => throw new InvalidOperationException("simulated dead WebSocket connection");
-        public Task BroadcastLiveStatsAsync(LiveStatsDto s, CancellationToken ct = default) => Task.CompletedTask;
     }
 
     [Fact]

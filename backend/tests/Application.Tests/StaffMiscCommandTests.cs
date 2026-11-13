@@ -107,44 +107,6 @@ public class StaffMiscCommandTests
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "WAITRESS");
         Assert.NotNull(role);
         Assert.Equal(15.5m, role.HourlyRate);
-        Assert.Equal(30, role.MaxShiftDays);   // defaults to the global cap when unspecified
-    }
-
-    [Fact]
-    public async Task CreateRole_PersistsCustomMaxShiftDays()
-    {
-        await using var db = CreateDb();
-        var handler = new CreateRoleCommandHandler(db);
-
-        await handler.Handle(new CreateRoleCommand("night guard", MaxShiftDays: 7), CancellationToken.None);
-
-        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "NIGHT GUARD");
-        Assert.NotNull(role);
-        Assert.Equal(7, role.MaxShiftDays);
-    }
-
-    [Fact]
-    public async Task CreateRole_Accepts100_TheCeiling()
-    {
-        await using var db = CreateDb();
-        var handler = new CreateRoleCommandHandler(db);
-
-        await handler.Handle(new CreateRoleCommand("expedition", MaxShiftDays: 100), CancellationToken.None);
-
-        var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "EXPEDITION");
-        Assert.Equal(100, role!.MaxShiftDays);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(101)]
-    public async Task CreateRole_ThrowsArgument_WhenMaxShiftDaysOutOfRange(int days)
-    {
-        await using var db = CreateDb();
-        var handler = new CreateRoleCommandHandler(db);
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new CreateRoleCommand("courier", MaxShiftDays: days), CancellationToken.None));
     }
 
     // ── SetStaffHiddenCommand ─────────────────────────────────────────────────
@@ -262,26 +224,6 @@ public class StaffMiscCommandTests
         Assert.False(await db.Roles.AnyAsync(r => r.Id == roles["BARTENDER"]));                 // role itself removed
         Assert.False(await db.RolePermissions.AnyAsync(rp => rp.RoleId == roles["BARTENDER"])); // its perms cleaned up
         Assert.True(await db.RolePermissions.AnyAsync(rp => rp.RoleId == roles["MANAGER"]));    // other role untouched
-    }
-
-    [Fact]
-    public async Task DeleteRole_ThrowsInvalidOperation_WhenShiftInProgressUnderRole()
-    {
-        // A role with a shift currently in progress under it must not be deletable (mirrors the
-        // location active-shift guard). No StaffRole row here, so the assignment guard passes first.
-        await using var db = CreateDb();
-        var role = E.Role.Create("BARTENDER", isSystem: false);
-        db.Roles.Add(role);
-        db.WorkLogs.Add(E.WorkLog.StartLive(Guid.NewGuid(), "BARTENDER", "loc-1", "Main Bar",
-            new DateOnly(2026, 6, 1), "18:00", 50m));   // EndTime == null → active
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new DeleteRoleCommandHandler(db);
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            handler.Handle(new DeleteRoleCommand(role.Id), CancellationToken.None));
-
-        Assert.Equal(1, await db.Roles.CountAsync());   // still there — not deleted
     }
 
     // ── UpdateProfileCommand ──────────────────────────────────────────────────

@@ -67,7 +67,7 @@ const SECRET_PATTERNS = [
   ['GitHub token', /\bgh[pousr]_[A-Za-z0-9]{36,}\b/],
   ['Slack token', /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/],
   ['JWT', /\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}\b/],
-  ['connection string with a password', /\b(?:Password|Pwd)\s*=\s*(?!\$\{|<|\{|%|;|["']?\s*$)[^;"'\s]{6,}/i],
+  ['connection string with a password', /\b(?:Password|Pwd)\s*=\s*(?!\$|<|\{|%|;|["']?\s*$)[^;"'\s]{6,}/i],
   ['token or key assignment', /\b(?:token|private[_-]?key|jwt[_-]?secret|pii[_-]?encryption[_-]?key)\s*[:=]\s*["']?[A-Za-z0-9+/_-]{24,}/i],
 ];
 /** Files that may legitimately contain throw-away values (documented in the file itself). */

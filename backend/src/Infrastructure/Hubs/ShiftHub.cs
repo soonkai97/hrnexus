@@ -25,16 +25,4 @@ public class NotificationHubAdapter(IHubContext<ShiftHub> ctx) : INotificationHu
             createdAt = payload.CreatedAt,
         }, ct);
     }
-
-    public async Task BroadcastLiveStatsAsync(LiveStatsDto stats, CancellationToken ct = default)
-    {
-        await ctx.Clients.All.SendAsync("LiveStatsUpdate", new
-        {
-            onShiftCount        = stats.OnShiftCount,
-            totalStaff          = stats.TotalStaff,
-            tonightHours        = stats.TonightHours,
-            estimatedLabourCost = stats.EstimatedLabourCost,
-        }, ct);
-    }
 }
-

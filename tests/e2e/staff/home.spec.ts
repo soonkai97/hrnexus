@@ -6,10 +6,7 @@ import { loginStaff } from '../shared/helpers';
  *
  * WHY these tests matter:
  *  - The home screen is the first thing a staff member sees; a blank or broken
- *    page means they can't verify their shift status or leave balance before
- *    starting work.
- *  - The active shift banner is the primary UX signal that tells staff they
- *    are currently clocked in — if it's missing, staff may try to clock in again.
+ *    page means they can't verify their leave balance.
  *  - Leave balance cards feed into staff planning their time off; incorrect
  *    counts (from a broken computed or API call) cause unexpected leave denials.
  */
@@ -29,17 +26,6 @@ test.describe('Staff — Home Screen', () => {
 
   test('shows the sidebar navigation', async ({ page }) => {
     await expect(page.locator('.sidebar')).toBeVisible({ timeout: 5_000 });
-  });
-
-  test('shows clock-in status card (active shift or log-shift prompt)', async ({ page }) => {
-    // Either an active shift banner or the "not clocked in" quick-log card
-    await page.waitForSelector(
-      '.active-banner, .quick-log, [class*="active"]',
-      { timeout: 10_000 }
-    );
-    const hasActiveBanner = await page.locator('.active-banner').count();
-    const hasQuickLog     = await page.locator('.quick-log').count();
-    expect(hasActiveBanner + hasQuickLog).toBeGreaterThan(0);
   });
 
   test('shows leave balance cards', async ({ page }) => {

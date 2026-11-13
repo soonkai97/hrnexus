@@ -8,7 +8,6 @@ export const TestIds = {
   NAV_STAFF: 'nav-staff',
   NAV_DASHBOARD: 'nav-dashboard',
   NAV_LEAVE: 'nav-leave',
-  NAV_REPORTS: 'nav-reports',
 
   // Staff
   STAFF_TABLE: 'staff-list-table',

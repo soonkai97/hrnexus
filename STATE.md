@@ -11,20 +11,16 @@ learned → Last session (resume pointer).
   is **not** seeded anywhere in code; it's a real manager account created later. Both are now
   hidden from the roster via `Staff.IsHidden`, but neither should ever be treated as safe to
   delete outright.
-- `WorkLog` stores `RoleName` as an uppercase **snapshot string**, not an FK to `Roles`. Any
-  per-job rule that must apply to an existing shift (e.g. the max-shift-days cap on clock-out /
-  admin-close) has to resolve the job by a name-join back to `Roles`, since the log doesn't carry
-  the job's GUID.
-- `Role.MaxShiftDays` defaults to 30 for new/existing jobs; the configurable ceiling is 100
-  (`AppConstants.WorkLog.MaxShiftDaysCeiling`), separate from the default
-  (`AppConstants.WorkLog.MaxShiftDays`). Migration `AddRoleMaxShiftDays` backfilled all existing
-  jobs to 30 (`NOT NULL DEFAULT 30`).
-- Shift overlap is enforced **per staff member, across all jobs** — not per-job. A person cannot
-  clock into a second job while one shift is open (`StartWorkLogCommand` refuses + a partial
-  unique index backs it up), and clock-out/manual/admin-edit all reject any time-overlap with an
-  existing shift regardless of which job it's for. Confirmed by reading
-  `StartWorkLogCommand.cs`, `EndWorkLogCommand.cs`, `CreateManualWorkLogCommand.cs`,
-  `UpdateWorkLogCommand.cs`, `AdminEndShiftCommand.cs` — all guard on `EmployeeId` only.
+- **Clock-in/out (WorkLog), per-job `MaxShiftDays` and shift-derived pay were removed in Phase 7**
+  (`docs/process/phase-07-remove-shift-log.md`). Earlier facts about shift overlap, the 30/100-day caps
+  and `WorkLog.RoleName` snapshots are obsolete. `Role.HourlyRate`/`PayType` remain until Phase 8.
+- The two leave background jobs (Jan-1 entitlement reset, daily auto-reject of overdue leave) live in
+  `Infrastructure/Jobs/LeaveJobs.cs`. They once shared a file with the long-shift reminder: never delete
+  that file wholesale.
+- The user's personal code standard is the IMS repo (github.com/soonkai97/IMS); alignment plan in
+  `docs/process/architecture-alignment-ims.md`. A 2026-11-13 leave audit found defects (clock-time
+  hours, cancelled leave blocks re-apply, carry-over overwritten, self-approval, cross-year leave);
+  not yet fixed.
 - In this dev environment, the `Bash` tool has intermittently failed (`exit 1`, no output) on
   plain `git status`/`branch` calls from the repo root, while the same commands work fine via
   the `PowerShell` tool. Root cause not diagnosed — treat as a known flake, not a real repo issue.
@@ -66,22 +62,16 @@ learned → Last session (resume pointer).
 
 ## Last session
 
-**Date:** 2026-07-09/10 (session covering multi-day shifts + per-job caps + roster hiding)
+**Date:** 2026-11-13 (Phase 7: remove clock-in/out; IMS alignment planning)
 
-**Shipped (all merged to `master`, local Docker rebuilt and healthy):**
-- PR #48 `8b8d536` — multi-day shifts (removed 24h clock-out/manual limit, unified 30-day cap)
-- PR #49 `ef67d32` — per-job configurable max shift days (default 30)
-- PR #50 `df58585` — hide HRADMIN/HRMANAGER from staff roster + unhide toggle
-  (`Staff.IsHidden`, `GetStaffListQuery.IncludeHidden`)
-- PR #51 `acca378` — raised per-job max-shift-days ceiling 30 → 100
+**In flight:** branch `feat/remove-shift-log` (uncommitted when this was written). Frontend and backend
+removal done and green; domain cleanup in progress. The irreversible **drop migration for the WorkLogs
+table has NOT been created**: it needs the user's explicit go-ahead and a fresh DB backup + maintenance
+window.
 
-**Master HEAD:** `acca378`. Working tree clean. Local Docker last rebuilt at build `20260709.02`.
+**Planned (docs only):** `docs/process/architecture-alignment-ims.md` (phases 7b-7g), feature management
+(modules gate) phase 7h, HRM phases 8-12 (payroll rebuild, documents, onboarding, recruitment,
+performance). Role agents ported to `.claude/agents/` + `docs/team/` (separate PR).
 
-**Not done / explicitly deferred:**
-- Customer's "Shooting Game" job (fake-gun target practice, hourly RM150, EN/VI names proposed)
-  — user said "leave it", not yet added to the system.
-
-**Resume pointer:** No in-flight branch or uncommitted work. Next session starts clean from
-`master`. If the user asks to continue, natural next steps are either adding the Shooting Game
-job (translations already drafted above) or whatever they bring up next — nothing is
-blocking or half-finished.
+**Resume pointer:** finish Phase 7 (migration after approval, full test run, PR, Docker rebuild
+`--no-cache`), then ask the user the open questions in the alignment doc.

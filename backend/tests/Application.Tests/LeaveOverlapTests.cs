@@ -18,7 +18,6 @@ public class LeaveOverlapTests
     private sealed class NullNotificationHub : INotificationHub
     {
         public Task SendToUserAsync(Guid employeeId, NotificationPayload payload, CancellationToken ct = default) => Task.CompletedTask;
-        public Task BroadcastLiveStatsAsync(LiveStatsDto stats, CancellationToken ct = default) => Task.CompletedTask;
     }
 
     private sealed class NullPushService : IPushNotificationService

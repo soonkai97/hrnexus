@@ -21,7 +21,7 @@ describe('NotificationBellComponent — portal filtering', () => {
     { id: '2', type: 'leave_approved',  title: '', message: '', isRead: false, relatedId: null, createdAt: '' }, // staff
     { id: '3', type: 'announcement',    title: '', message: '', isRead: true,  relatedId: null, createdAt: '' }, // both
     { id: '4', type: 'password_reset',  title: '', message: '', isRead: false, relatedId: null, createdAt: '' }, // admin
-    { id: '5', type: 'stale_shift',     title: '', message: '', isRead: false, relatedId: null, createdAt: '' }, // staff
+    { id: '5', type: 'message',         title: '', message: '', isRead: false, relatedId: null, createdAt: '' }, // staff
   ];
 
   function make(portal: 'admin' | 'staff'): NotificationBellComponent {

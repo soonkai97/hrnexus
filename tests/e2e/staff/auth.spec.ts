@@ -18,8 +18,8 @@ test.describe('Staff app — authentication', () => {
     await expect(page).toHaveURL(/\/auth\/login/);
   });
 
-  test('accessing /log-shift while logged out redirects to /auth/login', async ({ page }) => {
-    await page.goto('/log-shift');
+  test('accessing /my-leave while logged out redirects to /auth/login', async ({ page }) => {
+    await page.goto('/my-leave');
     await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });
   });
 

@@ -164,28 +164,21 @@ describe('StaffManagementService', () => {
       service.createRole('BARTENDER', 25).subscribe();
       const req = http.expectOne('/api/staff/roles');
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ name: 'BARTENDER', hourlyRate: 25, nameZh: null, nameVi: null, payType: 'hourly', maxShiftDays: 30 });
+      expect(req.request.body).toEqual({ name: 'BARTENDER', hourlyRate: 25, nameZh: null, nameVi: null, payType: 'hourly' });
       req.flush(null);
     });
 
-    it('defaults hourlyRate to 0 and maxShiftDays to 30 when not provided', () => {
+    it('defaults hourlyRate to 0 when not provided', () => {
       service.createRole('DOORMAN').subscribe();
       const req = http.expectOne('/api/staff/roles');
-      expect(req.request.body).toEqual({ name: 'DOORMAN', hourlyRate: 0, nameZh: null, nameVi: null, payType: 'hourly', maxShiftDays: 30 });
+      expect(req.request.body).toEqual({ name: 'DOORMAN', hourlyRate: 0, nameZh: null, nameVi: null, payType: 'hourly' });
       req.flush(null);
     });
 
     it('sends payType "fixed" for a flat-per-shift job', () => {
       service.createRole('PACKAGE', 500, null, null, 'fixed').subscribe();
       const req = http.expectOne('/api/staff/roles');
-      expect(req.request.body).toEqual({ name: 'PACKAGE', hourlyRate: 500, nameZh: null, nameVi: null, payType: 'fixed', maxShiftDays: 30 });
-      req.flush(null);
-    });
-
-    it('sends a custom maxShiftDays for a multi-day job', () => {
-      service.createRole('SECURITY', 40, null, null, 'hourly', 7).subscribe();
-      const req = http.expectOne('/api/staff/roles');
-      expect(req.request.body).toEqual({ name: 'SECURITY', hourlyRate: 40, nameZh: null, nameVi: null, payType: 'hourly', maxShiftDays: 7 });
+      expect(req.request.body).toEqual({ name: 'PACKAGE', hourlyRate: 500, nameZh: null, nameVi: null, payType: 'fixed' });
       req.flush(null);
     });
   });
@@ -197,14 +190,7 @@ describe('StaffManagementService', () => {
       service.updateRoleRate('role-guid-1', 30).subscribe();
       const req = http.expectOne('/api/staff/roles/role-guid-1/rate');
       expect(req.request.method).toBe('PATCH');
-      expect(req.request.body).toEqual({ hourlyRate: 30, nameZh: null, nameVi: null, payType: 'hourly', name: null, maxShiftDays: 30 });
-      req.flush(null);
-    });
-
-    it('sends an updated maxShiftDays', () => {
-      service.updateRoleRate('role-guid-1', 30, null, null, 'hourly', null, 5).subscribe();
-      const req = http.expectOne('/api/staff/roles/role-guid-1/rate');
-      expect(req.request.body).toEqual({ hourlyRate: 30, nameZh: null, nameVi: null, payType: 'hourly', name: null, maxShiftDays: 5 });
+      expect(req.request.body).toEqual({ hourlyRate: 30, nameZh: null, nameVi: null, payType: 'hourly', name: null });
       req.flush(null);
     });
   });

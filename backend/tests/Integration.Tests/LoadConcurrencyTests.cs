@@ -1,4 +1,4 @@
-using HRNexus.Application.Admin.Commands;
+﻿using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Constants;
 using HRNexus.Infrastructure.Persistence;
@@ -24,7 +24,6 @@ public class LoadConcurrencyTests(PostgresFixture fx, ITestOutputHelper output)
     private sealed class NullHub : INotificationHub
     {
         public Task SendToUserAsync(Guid id, NotificationPayload p, CancellationToken ct = default) => Task.CompletedTask;
-        public Task BroadcastLiveStatsAsync(LiveStatsDto s, CancellationToken ct = default) => Task.CompletedTask;
     }
     private sealed class NullPush : IPushNotificationService
     {
@@ -96,48 +95,7 @@ public class LoadConcurrencyTests(PostgresFixture fx, ITestOutputHelper output)
         finally { try { await db.DisposeAsync(); } catch { /* teardown noise under load */ } }
     }
 
-    // ── A. Throughput: 50 distinct staff clock in at once → all succeed ───────────
-    [Fact]
-    public async Task FiftyDistinctStaff_ClockInConcurrently_AllSucceed()
-    {
-        var ids = await SeedStaffAsync(N, "TPUT");
-
-        var results = await RunAllAsync(N, i => WithDb(async db =>
-        {
-            db.WorkLogs.Add(E.WorkLog.StartLive(ids[i], "BARTENDER", "loc1", "Main", new DateOnly(2026, 1, 1), "09:00", 20m));
-            await db.SaveChangesAsync();
-        }));
-
-        var failures = results.Count(r => r != null);
-        output.WriteLine($"distinct-staff clock-in: {N - failures}/{N} succeeded, {failures} failed");
-        Assert.Equal(0, failures);   // no contention between different employees → none should fail
-
-        await using var verify = fx.NewDb();
-        Assert.Equal(N, await verify.WorkLogs.CountAsync(w => ids.Contains(w.EmployeeId) && w.EndTime == null));
-    }
-
-    // ── B. Contention: 50 clock-ins for the SAME staff → exactly one wins ─────────
-    [Fact]
-    public async Task FiftyConcurrentClockIns_SameStaff_ExactlyOneSucceeds()
-    {
-        var ids = await SeedStaffAsync(1, "SAME");
-        var empId = ids[0];
-
-        var results = await RunAllAsync(N, i => WithDb(async db =>
-        {
-            db.WorkLogs.Add(E.WorkLog.StartLive(empId, "BARTENDER", "loc1", "Main", new DateOnly(2026, 1, 1), "09:00", 20m));
-            await db.SaveChangesAsync();   // active-shift partial unique index arbitrates
-        }));
-
-        var successes = results.Count(r => r == null);
-        output.WriteLine($"same-staff clock-in: {successes} succeeded, {results.Length - successes} rejected");
-        Assert.Equal(1, successes);
-
-        await using var verify = fx.NewDb();
-        Assert.Equal(1, await verify.WorkLogs.CountAsync(w => w.EmployeeId == empId && w.EndTime == null));
-    }
-
-    // ── C. Balance overrun under 50-way load → never exceeds entitlement ──────────
+    // ── Balance overrun under 50-way load → never exceeds entitlement ──────────
     [Fact]
     public async Task FiftyConcurrentApprovals_NeverOverdrawEntitlement_UnderHeavyContention()
     {

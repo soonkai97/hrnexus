@@ -17,7 +17,7 @@ export function makeJwt(offsetSeconds: number): string {
 }
 
 /** Build a minimal AuthUser fixture for testing role/auth scenarios.
- * `roles` are role NAMES (auth tier); `jobs` mirrors them with ids for the shift dropdown. */
+ * `roles` are role NAMES (auth tier). */
 export function fakeUser(roles: string[], overrides: Partial<AuthUser> = {}): AuthUser {
   return {
     id: 'u1',
@@ -25,7 +25,6 @@ export function fakeUser(roles: string[], overrides: Partial<AuthUser> = {}): Au
     fullName: 'Test User',
     email: 't@test.com',
     roles,
-    jobs: roles.map((name, i) => ({ id: `job-${i}`, name })),
     ...overrides,
   };
 }

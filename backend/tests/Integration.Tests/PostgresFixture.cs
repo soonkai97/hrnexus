@@ -16,8 +16,7 @@ namespace HRNexus.Integration.Tests;
 /// </summary>
 public sealed class PostgresFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
-        .WithImage("postgres:17-alpine")
+    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("hrnexus_test")
         .WithUsername("test")
         .WithPassword("test")

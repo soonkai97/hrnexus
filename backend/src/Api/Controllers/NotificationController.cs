@@ -1,9 +1,9 @@
 ﻿using System.Security.Claims;
+using HRNexus.Application.Notifications.Commands;
+using HRNexus.Application.Notifications.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HRNexus.Application.Notifications.Commands;
-using HRNexus.Application.Notifications.Queries;
 
 namespace HRNexus.Api.Controllers;
 

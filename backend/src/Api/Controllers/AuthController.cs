@@ -1,13 +1,13 @@
 ﻿using System.Security.Claims;
+using HRNexus.Application.Auth.Commands;
+using HRNexus.Application.Staff.Commands;
+using HRNexus.Application.Staff.Queries;
+using HRNexus.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Auth.Commands;
-using HRNexus.Application.Staff.Commands;
-using HRNexus.Application.Staff.Queries;
-using HRNexus.Domain.Constants;
 
 namespace HRNexus.Api.Controllers;
 

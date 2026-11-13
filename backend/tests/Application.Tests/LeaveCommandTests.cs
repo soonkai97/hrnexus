@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Admin.Commands;
+﻿using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Leave.Commands;
 using HRNexus.Application.Tests.Infrastructure;
-using E = HRNexus.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
+using E = HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Tests;
 

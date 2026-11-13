@@ -1,5 +1,5 @@
-using MediatR;
 using HRNexus.Domain.Constants;
+using MediatR;
 
 namespace HRNexus.Application.Permissions.Queries;
 

@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using HRNexus.Application.Tests.Infrastructure;
 using HRNexus.Infrastructure.Auth;
-using E = HRNexus.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
+using E = HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Tests;
 

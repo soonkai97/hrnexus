@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Constants;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Application.Permissions.Commands;
 

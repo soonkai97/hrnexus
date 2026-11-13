@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using HRNexus.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using HRNexus.Application.Common.Interfaces;
-using System.Text.Json;
 using WebPush;
 using DomainPushSub = HRNexus.Domain.Entities.PushSubscription;
 

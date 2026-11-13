@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using HRNexus.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Infrastructure.Hubs;
 

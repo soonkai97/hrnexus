@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
+using HRNexus.Application.Push;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HRNexus.Application.Push;
 
 namespace HRNexus.Api.Controllers;
 

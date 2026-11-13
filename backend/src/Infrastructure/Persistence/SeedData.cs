@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using HRNexus.Domain.Constants;
+﻿using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Infrastructure.Persistence;
 

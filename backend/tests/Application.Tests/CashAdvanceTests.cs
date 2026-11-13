@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.CashAdvance.Commands;
 using HRNexus.Application.CashAdvance.Queries;
 using HRNexus.Application.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using E = HRNexus.Domain.Entities;
 

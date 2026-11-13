@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Admin.Queries;
 using HRNexus.Domain.Constants;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HRNexus.Api.Controllers;
 

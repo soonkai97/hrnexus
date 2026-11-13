@@ -1,21 +1,21 @@
 ﻿using System.Text;
 using Hangfire;
 using Hangfire.PostgreSql;
+using HRNexus.Application.Common;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
+using HRNexus.Infrastructure.Auth;
+using HRNexus.Infrastructure.Files;
+using HRNexus.Infrastructure.Hubs;
+using HRNexus.Infrastructure.Jobs;
+using HRNexus.Infrastructure.Persistence;
+using HRNexus.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using HRNexus.Application.Common;
-using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Constants;
-using HRNexus.Infrastructure.Auth;
-using HRNexus.Infrastructure.Hubs;
-using HRNexus.Infrastructure.Jobs;
-using HRNexus.Infrastructure.Persistence;
-using HRNexus.Infrastructure.Files;
-using HRNexus.Infrastructure.Services;
 
 namespace HRNexus.Infrastructure;
 

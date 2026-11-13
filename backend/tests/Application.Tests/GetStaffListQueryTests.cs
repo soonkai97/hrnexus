@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Staff.Queries;
+﻿using HRNexus.Application.Staff.Queries;
 using HRNexus.Application.Tests.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using E = HRNexus.Domain.Entities;
 

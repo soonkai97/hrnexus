@@ -1,12 +1,12 @@
 ﻿using System.Security.Claims;
-using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Locations.Commands;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Api.Controllers;
 

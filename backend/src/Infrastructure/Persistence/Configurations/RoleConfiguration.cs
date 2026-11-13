@@ -1,6 +1,6 @@
+using HRNexus.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using HRNexus.Domain.Entities;
 
 namespace HRNexus.Infrastructure.Persistence.Configurations;
 

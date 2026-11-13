@@ -1,9 +1,9 @@
 ﻿using System.Globalization;
+using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Entities;
 
 namespace HRNexus.Infrastructure.Persistence.Configurations;
 

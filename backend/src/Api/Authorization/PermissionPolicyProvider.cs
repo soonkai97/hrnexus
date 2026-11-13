@@ -1,6 +1,6 @@
+using HRNexus.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using HRNexus.Domain.Constants;
 
 namespace HRNexus.Api.Authorization;
 

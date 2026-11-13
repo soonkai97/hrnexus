@@ -4,3 +4,7 @@
 *.user
 *.db
 appsettings.Production.json
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3

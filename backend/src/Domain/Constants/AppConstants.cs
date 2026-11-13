@@ -24,13 +24,12 @@ public static class AppConstants
 
     // ── Permissions ──────────────────────────────────────────────────────────────
     /// <summary>
-    /// Permission catalog — the named capabilities that gate portal access and each admin
+    /// Permission catalog — the named capabilities that gate each management
     /// feature. Access is resolved from these (role defaults + per-user overrides), NOT from
     /// roles directly. One key per existing controller/feature gate.
     /// </summary>
     public static class Permissions
     {
-        public const string PortalAdmin        = "portal.admin";        // sign into the admin portal
         public const string StaffView          = "staff.view";          // view staff list/details
         public const string StaffManage        = "staff.manage";        // create/edit/deactivate staff
         public const string LeaveApprove       = "leave.approve";       // approve/reject leave
@@ -45,7 +44,7 @@ public static class AppConstants
         /// <summary>Every catalog key — used for validation and seeding system roles.</summary>
         public static readonly IReadOnlyList<string> All = new[]
         {
-            PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage,
+            StaffView, StaffManage, LeaveApprove, LeaveManage,
             ReportsView, PayrollView, PayrollManage, PayrollLock,
             RolesManage, CashAdvanceManage,
         };

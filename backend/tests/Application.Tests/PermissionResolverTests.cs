@@ -56,11 +56,11 @@ public class PermissionResolverTests
     {
         await using var db = CreateDb();
         var id = await SeedUser(db, ["MANAGER", "BARTENDER"],
-            rolePerms: new() { ["MANAGER"] = ["portal.admin", "staff.view"], ["BARTENDER"] = ["reports.view"] });
+            rolePerms: new() { ["MANAGER"] = ["roles.manage", "staff.view"], ["BARTENDER"] = ["reports.view"] });
 
         var perms = await MakeResolver(db).GetEffectivePermissionsAsync(id);
 
-        Assert.Contains("portal.admin", perms);
+        Assert.Contains("roles.manage", perms);
         Assert.Contains("staff.view", perms);
         Assert.Contains("reports.view", perms);
     }
@@ -69,10 +69,10 @@ public class PermissionResolverTests
     public async Task Grant_AddsPermissionBeyondRoleDefaults()
     {
         await using var db = CreateDb();
-        // EMPLOYEE has no role permissions, but is individually granted admin-portal access.
-        var id = await SeedUser(db, ["EMPLOYEE"], overrides: [("portal.admin", true)]);
+        // EMPLOYEE has no role permissions, but is individually granted role-management access.
+        var id = await SeedUser(db, ["EMPLOYEE"], overrides: [("roles.manage", true)]);
 
-        Assert.True(await MakeResolver(db).HasAsync(id, "portal.admin"));
+        Assert.True(await MakeResolver(db).HasAsync(id, "roles.manage"));
     }
 
     [Fact]
@@ -80,12 +80,12 @@ public class PermissionResolverTests
     {
         await using var db = CreateDb();
         var id = await SeedUser(db, ["MANAGER"],
-            rolePerms: new() { ["MANAGER"] = ["portal.admin", "staff.manage"] },
+            rolePerms: new() { ["MANAGER"] = ["roles.manage", "staff.manage"] },
             overrides: [("staff.manage", false)]);   // revoke just this one
 
         var perms = await MakeResolver(db).GetEffectivePermissionsAsync(id);
 
-        Assert.Contains("portal.admin", perms);          // kept
+        Assert.Contains("roles.manage", perms);          // kept
         Assert.DoesNotContain("staff.manage", perms);    // revoke wins
     }
 
@@ -94,7 +94,7 @@ public class PermissionResolverTests
     {
         await using var db = CreateDb();
         var id = await SeedUser(db, ["MANAGER"],
-            rolePerms: new() { ["MANAGER"] = ["portal.admin"] }, active: false);
+            rolePerms: new() { ["MANAGER"] = ["roles.manage"] }, active: false);
 
         Assert.Empty(await MakeResolver(db).GetEffectivePermissionsAsync(id));
     }
@@ -106,13 +106,13 @@ public class PermissionResolverTests
         var id = await SeedUser(db, ["EMPLOYEE"]);
         var resolver = MakeResolver(db);
 
-        Assert.False(await resolver.HasAsync(id, "portal.admin"));   // caches the empty set
+        Assert.False(await resolver.HasAsync(id, "roles.manage"));   // caches the empty set
 
-        db.StaffPermissionOverrides.Add(E.StaffPermissionOverride.Create(id, "portal.admin", true));
+        db.StaffPermissionOverrides.Add(E.StaffPermissionOverride.Create(id, "roles.manage", true));
         await db.SaveChangesAsync();
 
-        Assert.False(await resolver.HasAsync(id, "portal.admin"));   // still cached
+        Assert.False(await resolver.HasAsync(id, "roles.manage"));   // still cached
         resolver.Invalidate(id);
-        Assert.True(await resolver.HasAsync(id, "portal.admin"));    // recomputed
+        Assert.True(await resolver.HasAsync(id, "roles.manage"));    // recomputed
     }
 }

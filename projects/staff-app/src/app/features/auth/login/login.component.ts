@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { AuthService, ThemeToggleComponent, apiErrorMessage } from 'shared-lib';
+import { AuthService, ThemeToggleComponent } from 'shared-lib';
 
 @Component({
   selector: 'app-login',
@@ -36,17 +36,12 @@ export class LoginComponent {
     if (!staffId) { this.error.set('Please enter your Staff ID.'); return; }
     this.loading.set(true);
     this.error.set('');
-    this.auth.login({ ...this.form.value, staffId, portal: 'staff' }).subscribe({
+    this.auth.login({ ...this.form.value, staffId }).subscribe({
       next: () => {
         this.router.navigate(['/home']);
       },
-      error: (e: unknown) => {
-        const msg = apiErrorMessage(e) ?? '';
-        this.error.set(
-          msg.includes('Admin accounts')
-            ? 'Admin accounts must use the admin portal.'
-            : 'Invalid Staff ID or password.'
-        );
+      error: () => {
+        this.error.set('Invalid Staff ID or password.');
         this.loading.set(false);
       },
     });

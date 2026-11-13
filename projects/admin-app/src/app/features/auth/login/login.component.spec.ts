@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { Component } from '@angular/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AdminLoginComponent } from './login.component';
@@ -10,15 +10,14 @@ import { AuthService, PermissionService } from 'shared-lib';
 @Component({ template: '', standalone: true }) class StubComponent {}
 
 /**
- * AdminLoginComponent — admin portal login page.
+ * AdminLoginComponent — admin-app login page.
  *
  * WHY these tests matter:
  *  - submit() must reject invalid forms early — calling the API with empty fields
  *    wastes a round-trip and can reveal form state to attackers.
- *  - Role guard inside submit() enforces that only admin/manager accounts can access
- *    the admin portal; missing this allows any staff member to log in.
- *  - Error messaging must distinguish auth failures from access-denied so users know
- *    whether to retry or contact an admin.
+ *  - Any active account may sign in (one app for every role); the login page must not
+ *    gate on a permission — route guards decide what each user can open.
+ *  - A failed sign-in shows one generic message so the page never reveals why.
  */
 
 describe('AdminLoginComponent', () => {
@@ -35,7 +34,7 @@ describe('AdminLoginComponent', () => {
       login:  vi.fn().mockReturnValue(of({ user: { roles: ['SUPERADMIN'] } })),
       logout: vi.fn(),
     };
-    // By default the signed-in user HAS admin-portal access; gate tests override has().
+    // Spies prove the login page never consults permissions.
     mockPermissions = { load: vi.fn().mockReturnValue(of(void 0)), has: vi.fn().mockReturnValue(true), clear: vi.fn() };
 
     await TestBed.configureTestingModule({
@@ -113,15 +112,15 @@ describe('AdminLoginComponent', () => {
       component.form.patchValue({ staffId: 'NC001', password: 'pass123' });
     });
 
-    it('calls auth.login with the form values and portal=admin', () => {
+    it('calls auth.login with only the staff ID and password', () => {
       component.submit();
-      expect(mockAuth.login).toHaveBeenCalledWith({ staffId: 'NC001', password: 'pass123', portal: 'admin' });
+      expect(mockAuth.login).toHaveBeenCalledWith({ staffId: 'NC001', password: 'pass123' });
     });
 
     it('uppercases the Staff ID before submitting (stored uppercase)', () => {
       component.form.patchValue({ staffId: ' nc001 ', password: 'pass123' });
       component.submit();
-      expect(mockAuth.login).toHaveBeenCalledWith(expect.objectContaining({ staffId: 'NC001', portal: 'admin' }));
+      expect(mockAuth.login).toHaveBeenCalledWith(expect.objectContaining({ staffId: 'NC001' }));
     });
 
     it('navigates to /dashboard when login succeeds', () => {
@@ -132,28 +131,23 @@ describe('AdminLoginComponent', () => {
     });
   });
 
-  // ── submit() — role guard ─────────────────────────────────────────────────────
+  // ── submit() — one app for every role ─────────────────────────────────────────
 
-  describe('submit() — portal.admin gate: user without admin-portal permission', () => {
-    beforeEach(() => {
+  describe('submit() — any active account signs in', () => {
+    it('navigates to /dashboard after login without checking any permission', () => {
+      // An employee holds no management permission; the sign-in must still succeed. What the
+      // user can open is decided later by each route guard, not by the login page.
+      mockAuth.login.mockReturnValue(of({ user: { roles: ['EMPLOYEE'] } }));
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
       component.form.patchValue({ staffId: 'NC002', password: 'pass123' });
-      // Login succeeded (defense-in-depth) but the effective permissions lack portal.admin.
-      mockPermissions.has.mockReturnValue(false);
-    });
 
-    it('calls auth.logout() when the user lacks portal.admin', () => {
       component.submit();
-      expect(mockAuth.logout).toHaveBeenCalled();
-    });
 
-    it('sets access-denied error when the user lacks portal.admin', () => {
-      component.submit();
-      expect(component.error()).toBe('Access denied. Only Admin or Manager accounts can log in to this portal.');
-    });
-
-    it('clears loading after rejecting a user without portal.admin', () => {
-      component.submit();
-      expect(component.loading()).toBe(false);
+      expect(navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(mockAuth.logout).not.toHaveBeenCalled();
+      expect(mockPermissions.load).not.toHaveBeenCalled();
+      expect(mockPermissions.has).not.toHaveBeenCalled();
+      expect(component.error()).toBe('');
     });
   });
 
@@ -168,12 +162,6 @@ describe('AdminLoginComponent', () => {
       mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Bad credentials' } })));
       component.submit();
       expect(component.error()).toBe('Invalid Staff ID or password.');
-    });
-
-    it('sets access-denied message when the API reports no admin-portal access', () => {
-      mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Access denied. You do not have admin portal access.' } })));
-      component.submit();
-      expect(component.error()).toBe('Access denied. Only Admin or Manager accounts can log in to this portal.');
     });
 
     it('clears loading flag after an API error', () => {

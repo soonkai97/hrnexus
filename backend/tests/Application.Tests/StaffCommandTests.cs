@@ -631,17 +631,17 @@ public class StaffCommandTests
     [Fact]
     public async Task Deactivate_Throws_WhenLastActiveAdmin()
     {
-        // Deactivating the only user who can reach the admin portal would lock everyone out.
+        // Deactivating the only user who can reach the role management would lock everyone out.
         await using var db = CreateDb();
         var managerRoleId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
-        db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.RolesManage));
         var admin = MakeAdmin("MGR1", "meg@test.com", managerRoleId);
         db.Staff.Add(admin);
         await db.SaveChangesAsync();
 
         var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
             DeactivateHandler(db).Handle(new DeactivateStaffCommand(admin.Id), CancellationToken.None));
-        Assert.Contains("admin-portal access", ex.Message);
+        Assert.Contains("role-management access", ex.Message);
 
         await db.Entry(admin).ReloadAsync();
         Assert.True(admin.IsActive);   // unchanged — deactivation was refused
@@ -652,7 +652,7 @@ public class StaffCommandTests
     {
         await using var db = CreateDb();
         var managerRoleId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
-        db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.RolesManage));
         var a = MakeAdmin("MGR1", "meg@test.com", managerRoleId);
         var b = MakeAdmin("MGR2", "moe@test.com", managerRoleId);
         db.Staff.AddRange(a, b);
@@ -670,7 +670,7 @@ public class StaffCommandTests
         // Re-roling the only admin to a non-admin role would lock everyone out.
         await using var db = CreateDb();
         var roles = await RoleSeed.EnsureRolesAsync(db, "MANAGER", "BARTENDER");
-        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.RolesManage));
         var admin = MakeAdmin("MGR1", "meg@test.com", roles["MANAGER"]);
         db.Staff.Add(admin);
         await db.SaveChangesAsync();
@@ -689,7 +689,7 @@ public class StaffCommandTests
     {
         await using var db = CreateDb();
         var roles = await RoleSeed.EnsureRolesAsync(db, "MANAGER", "BARTENDER");
-        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.RolesManage));
         var a = MakeAdmin("MGR1", "meg@test.com", roles["MANAGER"]);
         var b = MakeAdmin("MGR2", "moe@test.com", roles["MANAGER"]);
         db.Staff.AddRange(a, b);
@@ -702,7 +702,7 @@ public class StaffCommandTests
             CancellationToken.None);
 
         // Reaching here without an ArgumentException is the assertion: the guard ALLOWED the role
-        // change because admin b still covers admin-portal access. (Role reconciliation itself is
+        // change because admin b still covers role-management access. (Role reconciliation itself is
         // exercised by Update_ChangesFirstAndLastName / the resolver tests.)
         var still = await db.Staff.FindAsync(a.Id);
         Assert.NotNull(still);

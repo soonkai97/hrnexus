@@ -7,19 +7,17 @@ using Microsoft.EntityFrameworkCore;
 namespace HRNexus.Application.Auth.Commands;
 
 /// <summary>
-/// Portal = "staff"  → staff app (admins blocked).
-/// Portal = "admin"  → admin app (only manager/admin allowed).
-/// Portal = null     → no portal restriction (backwards compat / API testing).
+/// Any active account can sign in. What a person may open or do is decided by their permissions (roles and
+/// per-user overrides), enforced by the server on every request; there is no separate staff or admin portal.
 /// </summary>
-public record LoginCommand(string StaffId, string Password, string? Portal = null) : IRequest<LoginResult>;
+public record LoginCommand(string StaffId, string Password) : IRequest<LoginResult>;
 
 public record LoginResult(string AccessToken, string RefreshToken, int ExpiresIn, UserDto User);
 
 public record UserDto(Guid Id, string StaffId, string FullName, string? Email, List<string> Roles);
 
 public class LoginCommandHandler(
-    IAppDbContext db, IPasswordHasher hasher, ITokenService tokens, IDateTimeProvider clock,
-    IPermissionResolver permissions)
+    IAppDbContext db, IPasswordHasher hasher, ITokenService tokens, IDateTimeProvider clock)
     : IRequestHandler<LoginCommand, LoginResult>
 {
     public async Task<LoginResult> Handle(LoginCommand req, CancellationToken ct)
@@ -49,14 +47,6 @@ public class LoginCommandHandler(
                     "Account temporarily locked after too many failed attempts. Please try again later.");
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
-
-        // Portal access control. The staff portal is open to all staff (admins/managers can log
-        // their own shifts/leave there). The admin portal is gated by the portal.admin PERMISSION
-        // (role-default or per-user override), resolved fresh from the DB so a revocation takes
-        // effect on the next login rather than waiting out the token lifetime.
-        if (req.Portal == "admin" &&
-            !await permissions.HasAsync(employee.Id, AppConstants.Permissions.PortalAdmin, ct))
-            throw new UnauthorizedAccessException("Access denied. You do not have admin portal access.");
 
         // Successful auth — clear any accumulated failed-attempt state and issue tokens.
         employee.RegisterSuccessfulLogin();

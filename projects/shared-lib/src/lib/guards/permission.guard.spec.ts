@@ -23,13 +23,13 @@ describe('permissionGuard', () => {
     TestBed.runInInjectionContext(() => permissionGuard(key, fallback)(null as any, null as any));
 
   it('allows access when loaded and the permission is held', () => {
-    expect(exec('portal.admin')).toBe(true);
+    expect(exec('staff.view')).toBe(true);
   });
 
   it('redirects to the fallback when loaded and the permission is missing', () => {
     mockPerms.has.mockReturnValue(false);
-    exec('portal.admin', '/auth/login');
-    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/auth/login']);
+    exec('roles.manage', '/dashboard');
+    expect(mockRouter.createUrlTree).toHaveBeenCalledWith(['/dashboard']);
   });
 
   it('loads permissions first on a fresh page load, then decides', async () => {

@@ -38,7 +38,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
     const password = 'Test@1234';
 
     admin = await pwRequest.newContext({ baseURL: API });
-    let r = await admin.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password, portal: 'admin' } });
+    let r = await admin.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password } });
     expect(r.ok(), 'admin login').toBeTruthy();
 
     roleId = await ensureRole(admin, roleName);
@@ -49,7 +49,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
     expect(r.ok(), 'hire staff').toBeTruthy();
 
     staff = await pwRequest.newContext({ baseURL: API });
-    r = await staff.post('/api/auth/login', { data: { staffId, password, portal: 'staff' } });
+    r = await staff.post('/api/auth/login', { data: { staffId, password } });
     expect(r.ok(), 'staff login').toBeTruthy();
   });
 
@@ -152,7 +152,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
   // ── Auth guards ─────────────────────────────────────────────────────────────
   test('wrong password is rejected (401)', async () => {
     const fresh = await pwRequest.newContext({ baseURL: API });
-    const r = await fresh.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: 'WrongPass!', portal: 'admin' } });
+    const r = await fresh.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: 'WrongPass!' } });
     expectRejected(r.status(), 'wrong password');
     await fresh.dispose();
   });

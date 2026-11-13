@@ -28,9 +28,9 @@ public class SetStaffOverridesHandler(IAppDbContext db, IPermissionResolver reso
         if (unknown.Count > 0)
             throw new ArgumentException($"Unknown permission(s): {string.Join(", ", unknown)}");
 
-        // Lockout guard: if this edit removes the user's OWN admin-portal access and they currently have
+        // Lockout guard: if this edit removes the user's OWN role-management access and they currently have
         // it, ensure at least one OTHER active user still does (else nobody could log in to undo it).
-        var adminOverride = overrides.FirstOrDefault(o => o.PermissionKey == AppConstants.Permissions.PortalAdmin);
+        var adminOverride = overrides.FirstOrDefault(o => o.PermissionKey == AppConstants.Permissions.RolesManage);
         bool userKeepsAdmin;
         if (adminOverride is not null)
         {
@@ -44,18 +44,18 @@ public class SetStaffOverridesHandler(IAppDbContext db, IPermissionResolver reso
             userKeepsAdmin = userRoles.Count > 0
                 && await db.RolePermissions.AnyAsync(
                     rp => userRoles.Contains(rp.RoleId)
-                       && rp.PermissionKey == AppConstants.Permissions.PortalAdmin, ct);
+                       && rp.PermissionKey == AppConstants.Permissions.RolesManage, ct);
         }
 
-        if (!userKeepsAdmin && await PortalAdminInvariant.UserHasAdminAsync(db, req.EmployeeId, ct))
+        if (!userKeepsAdmin && await RolesManageInvariant.UserHasAdminAsync(db, req.EmployeeId, ct))
         {
             var adminRoles = await db.RolePermissions
-                .Where(rp => rp.PermissionKey == AppConstants.Permissions.PortalAdmin)
+                .Where(rp => rp.PermissionKey == AppConstants.Permissions.RolesManage)
                 .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
-            if (await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.EmployeeId, ct) == 0)
+            if (await RolesManageInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.EmployeeId, ct) == 0)
                 throw new ArgumentException(
-                    "This change would remove admin-portal access from the last administrator. " +
-                    "Grant 'Admin portal access' to another user or role first.");
+                    "This change would remove role-management access from the last administrator. " +
+                    "Grant 'Manage jobs & permissions' to another user or role first.");
         }
 
         var existing = await db.StaffPermissionOverrides

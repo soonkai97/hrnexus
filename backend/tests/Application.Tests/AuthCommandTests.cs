@@ -13,7 +13,7 @@ namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Handler-level tests for Auth commands — Login, ForgotPassword, RefreshToken.
-/// Guards authentication flow, portal access-control, and password policies.
+/// Guards authentication flow and password policies.
 /// </summary>
 public class AuthCommandTests
 {
@@ -75,10 +75,8 @@ public class AuthCommandTests
     private static PermissionResolver MakeResolver(TestDbContext db) =>
         new(db, new MemoryCache(new MemoryCacheOptions()), new PermissionCacheState());
 
-    /// <summary>Login handler wired with the REAL permission resolver, so the admin-portal gate
-    /// reflects actual portal.admin permissions in the test DB.</summary>
     private static LoginCommandHandler MakeLoginHandler(TestDbContext db, IDateTimeProvider? clock = null) =>
-        new(db, new StubHasher(), new StubTokenService(), clock ?? new StubClock(), MakeResolver(db));
+        new(db, new StubHasher(), new StubTokenService(), clock ?? new StubClock());
 
     // ── LoginCommand ──────────────────────────────────────────────────────────
 
@@ -106,70 +104,24 @@ public class AuthCommandTests
             handler.Handle(new LoginCommand("S001", "wrong"), CancellationToken.None));
     }
 
-    [Fact]
-    public async Task Login_Succeeds_WhenAdminAccessesStaffPortal()
+    [Theory]
+    [InlineData("SUPERADMIN")]
+    [InlineData("MANAGER")]
+    [InlineData("BARTENDER")]
+    public async Task Login_Succeeds_ForAnyActiveAccount_WhateverItsRole(string role)
     {
-        // Superadmins are treated as normal users in the staff portal — they can log in there
-        // (e.g. to record their own shifts/leave). Only the admin portal is role-gated.
+        // There is one web app: everybody signs in the same way, and what a person may open or do is
+        // decided by their permissions on every request, not by a portal gate at login.
         await using var db = CreateDb();
-        db.Staff.Add(await MakeStaff(db, roleNames: "SUPERADMIN"));
+        db.Staff.Add(await MakeStaff(db, roleNames: role));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
-        var handler = MakeLoginHandler(db);
-
-        var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
-
-        Assert.NotNull(result);
-        Assert.NotNull(result.AccessToken);
-    }
-
-    [Fact]
-    public async Task Login_ThrowsUnauthorized_WhenEmployeeAccessesAdminPortal()
-    {
-        await using var db = CreateDb();
-        db.Staff.Add(await MakeStaff(db, roleNames: "BARTENDER"));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = MakeLoginHandler(db);
-
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            handler.Handle(new LoginCommand("S001", "pass", Portal: "admin"), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task Login_Succeeds_WhenManagerAccessesAdminPortal()
-    {
-        await using var db = CreateDb();
-        db.Staff.Add(await MakeStaff(db, roleNames: "MANAGER"));
-        // MANAGER role grants admin-portal access (matches the seeded backfill). The permission row
-        // must key on the SAME role id the resolver joins by, so resolve the seeded MANAGER role's id.
-        var managerRoleId = await RoleSeed.RoleIdAsync(db, "MANAGER");
-        db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.PortalAdmin));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = MakeLoginHandler(db);
-        var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "admin"), CancellationToken.None);
-
-        Assert.NotNull(result.AccessToken);
-        Assert.Equal("stub-refresh", result.RefreshToken);
-    }
-
-    [Fact]
-    public async Task Login_Succeeds_EmployeeOnStaffPortal_ReturnsLowercaseRoles()
-    {
-        await using var db = CreateDb();
-        db.Staff.Add(await MakeStaff(db, roleNames: "BARTENDER"));
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = MakeLoginHandler(db);
-        var result = await handler.Handle(new LoginCommand("S001", "pass", Portal: "staff"), CancellationToken.None);
+        var result = await MakeLoginHandler(db).Handle(new LoginCommand("S001", "pass"), CancellationToken.None);
 
         Assert.Equal("stub-access", result.AccessToken);
-        Assert.Contains("BARTENDER", result.User.Roles);
+        Assert.Equal("stub-refresh", result.RefreshToken);
+        Assert.Contains(role, result.User.Roles);
     }
 
     // ── LoginCommand: brute-force lockout ─────────────────────────────────────

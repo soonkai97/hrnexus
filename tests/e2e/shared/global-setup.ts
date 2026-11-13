@@ -5,8 +5,8 @@ import { ensureRole } from './api';
  * Global setup — runs once before all Playwright tests.
  *
  * Creates the TESTSTAFF01 employee account that staff-app E2E tests need.
- * HRADMIN (admin role) is blocked from the staff portal, so the tests need
- * a dedicated EMPLOYEE-role account.
+ * The staff specs assert a plain employee's view, so they need a dedicated
+ * EMPLOYEE-role account rather than the HRADMIN superadmin.
  *
  * Safe to run repeatedly: a 409 Conflict response means the account already
  * exists and is silently skipped.
@@ -27,7 +27,7 @@ export default async function globalSetup(): Promise<void> {
     let loginStatus: number;
     try {
       const login = await api.post('/api/auth/login', {
-        data: { staffId: 'HRADMIN', password: 'Admin@1234', portal: 'admin' },
+        data: { staffId: 'HRADMIN', password: 'Admin@1234' },
       });
       loginStatus = login.status();
     } catch (err) {

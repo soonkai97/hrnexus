@@ -5,7 +5,7 @@ const angular = require('angular-eslint');
 
 module.exports = tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', '.angular/**', 'node_modules/**', 'tests/e2e/**'],
+    ignores: ['dist/**', 'coverage/**', '.angular/**', 'node_modules/**'],
   },
   {
     files: ['projects/**/*.ts'],
@@ -27,6 +27,11 @@ module.exports = tseslint.config(
       // is required so the variable is always assigned), which this rule flags as "useless".
       'no-useless-assignment': 'off',
     },
+  },
+  {
+    // Playwright end-to-end specs: plain TypeScript, no Angular rules.
+    files: ['tests/e2e/**/*.ts'],
+    extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
   },
   {
     // `any` is idiomatic in test mocks (vi.fn() casts, partial stubs) — enforcing real types there

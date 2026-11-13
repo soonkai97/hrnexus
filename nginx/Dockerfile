@@ -1,5 +1,5 @@
 # Stage 1 — build Angular apps
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /workspace
 
 COPY package.json package-lock.json ./

@@ -131,7 +131,7 @@ input[type="time"] {
 
 .field {
   display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.9rem;
-  label { font-size: 0.75rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  label, .field-label { font-size: 0.75rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
 }
 
 // Normalise the height of PrimeNG select/multiselect labels in filter rows
@@ -321,7 +321,7 @@ table { min-width: 480px; }
   ::-webkit-scrollbar-thumb { background: var(--nc-border-glow); }
 
   // Field labels
-  .field label { color: var(--nc-text-muted) !important; }
+  .field label, .field .field-label { color: var(--nc-text-muted) !important; }
 
   // Shell overrides
   app-shell .shell { background: var(--nc-bg-base); }

@@ -1,4 +1,3 @@
-import type { FullConfig } from '@playwright/test';
 import { execSync } from 'child_process';
 
 /**
@@ -18,7 +17,7 @@ export const STAFF_CREDS = {
   password: 'Test@1234',
 };
 
-export default async function globalSetup(_config: FullConfig): Promise<void> {
+export default async function globalSetup(): Promise<void> {
   // ── Step 0: Enable all feature flags in the test DB ──────────────────────────
   // Pass the SQL via stdin (not -c "...") so the double-quoted Postgres
   // identifiers survive cross-platform shell quoting — cmd.exe on Windows does

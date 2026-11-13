@@ -1,6 +1,6 @@
 # Architecture alignment: HRNexus to the IMS standard
 
-> **Status:** `Draft` (analysis only, nothing changed in code)
+> **Status:** `Draft` (7b guardrails: hooks, CI, git workflow, PR template and CODEOWNERS are done, merged as #57; 7c to 7h and the later phases are pending)
 > **Created:** 2026-11-13 | **Depends on:** Phase 7 (remove shift log)
 > **Reference:** github.com/soonkai97/IMS (`docs/architecture/{backend,frontend,data-and-performance-rules}.md`, ADRs, `.github`, `.githooks`, `tests/`, `web/`)
 
@@ -41,7 +41,7 @@ SQL Server specifics are excluded (section 2), each with a reason. Sizes: S ≤ 
 | Tiers + boundaries | shared / core / features (stores, no pages) / containers (routed pages), `@nx/enforce-module-boundaries` fails lint | admin/staff `features/<page>` hold pages + data access; shared-lib is a flat bag (services, stores, models) | XL (incremental; new code first) |
 | State | Signal stores + `QueryLoader` / `ApiCommand` (uniform loading/error/empty), `createPageState`, no NgRx | Signal stores (`StaffStore`, `LocationStore`) for 2 domains; other domains call services/HttpClient with ad-hoc `loading` signals | M-L |
 | API client | NSwag-generated client committed from OpenAPI, `withIfMatch` | Hand-written services, hand-written models | L (needs 7e first) |
-| UI kit / theme | No component library; `app-*` kit in `shared/ui`, role-named tokens, WCAG contrast check script | PrimeNG 21 + Aura + custom neon SCSS tokens | XL if PrimeNG is replaced; M if wrapped (Q2) |
+| UI kit / theme | No component library; `app-*` kit in `shared/ui`, role-named tokens, WCAG contrast check script | PrimeNG 22 + Aura + custom neon SCSS tokens | XL if PrimeNG is replaced; M if wrapped (Q2) |
 | i18n | Runtime switch, typed message keys, catalog-completeness test | ngx-translate, 3 locale files per app, no completeness test | S-M (add completeness test) |
 | Errors/HTTP | Interceptor chain: error mapping (ProblemDetails→`ApiError`), correlation id, credentials, CSRF, If-Match, timeout | `jwtInterceptor`, `maintenanceInterceptor`, `error.interceptor`; reads `err.error.error` | M (with 7d) |
 | Lint / rules | ESLint + Stylelint + Prettier, husky pre-commit, banned patterns (autofocus, literal motion) | ESLint (angular-eslint) + Prettier; no Stylelint, no hooks | S |
@@ -110,7 +110,7 @@ Per-phase rule: a phase that changes the API wire format (7d, 7e, 12b) ships FE 
 ## 5. Open questions (ranked)
 
 1. **Ids:** keep HRNexus's existing random `Guid` primary keys as the public ids (no int-key + `PublicId` hybrid)? On PostgreSQL the hybrid's clustered-index rationale does not apply and the migration is XL. Recommended: yes, keep.
-2. **UI:** IMS builds its own `app-*` kit and bans component libraries; HRNexus uses PrimeNG 21. Replace it (XL) or wrap PrimeNG behind `shared/ui` facades? Recommended: wrap.
+2. **UI:** IMS builds its own `app-*` kit and bans component libraries; HRNexus uses PrimeNG 22. Replace it (XL) or wrap PrimeNG behind `shared/ui` facades? Recommended: wrap.
 3. **Pause for alignment:** run 7b-7g (about 6-8 days) before Phase 8, or interleave (7b-7e now, 7f-7g in parallel with Phase 8 design)? Recommended: 7b-7f first, 7g in parallel.
-4. **Test stack / Angular version:** IMS uses Jest + Spectator on Angular 22; HRNexus uses Vitest on Angular 21. Keep Vitest and stay on 21 until the standard is migrated?
+4. **Test stack / Angular version:** IMS uses Jest + Spectator on Angular 22; HRNexus now uses Vitest on Angular 22 too (upgraded in PR #81). Keep Vitest?
 5. **Database:** confirm HRNexus stays on PostgreSQL 17 (IMS is SQL Server), with `xmin` and advisory locks as the equivalents.

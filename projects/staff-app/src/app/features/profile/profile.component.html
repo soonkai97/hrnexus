@@ -12,13 +12,13 @@
     <!-- Info card -->
     <p-card styleClass="info-card">
       <div class="info-row">
-        <span class="info-label">{{ 'profile.staffId' | translate }}</span>
+        <span class="info-label">Staff ID</span>
         <span class="info-value mono">{{ user()!.staffId }}</span>
       </div>
       @if (user()!.email) {
         <div class="divider"></div>
         <div class="info-row">
-          <span class="info-label">{{ 'profile.email' | translate }}</span>
+          <span class="info-label">Email</span>
           <span class="info-value">{{ user()!.email }}</span>
         </div>
       }
@@ -26,36 +26,36 @@
         @if (p.phoneNumber) {
           <div class="divider"></div>
           <div class="info-row">
-            <span class="info-label">{{ 'profile.phone' | translate }}</span>
+            <span class="info-label">Phone</span>
             <span class="info-value">{{ p.phoneNumber }}</span>
           </div>
         }
         @if (p.icNo) {
           <div class="divider"></div>
           <div class="info-row">
-            <span class="info-label">{{ 'profile.icNo' | translate }}</span>
+            <span class="info-label">IC No</span>
             <span class="info-value mono">{{ p.icNo }}</span>
           </div>
         }
         @if (p.passportNo) {
           <div class="divider"></div>
           <div class="info-row">
-            <span class="info-label">{{ 'profile.passportNo' | translate }}</span>
+            <span class="info-label">Passport No</span>
             <span class="info-value mono">{{ p.passportNo }}</span>
           </div>
         }
         @if (p.dateOfBirth) {
           <div class="divider"></div>
           <div class="info-row">
-            <span class="info-label">{{ 'profile.dateOfBirth' | translate }}</span>
+            <span class="info-label">Date of Birth</span>
             <span class="info-value">{{ p.dateOfBirth }}</span>
           </div>
         }
         @if (p.age !== null && p.age !== undefined) {
           <div class="divider"></div>
           <div class="info-row">
-            <span class="info-label">{{ 'profile.age' | translate }}</span>
-            <span class="info-value">{{ p.age }} {{ 'profile.yearsOld' | translate }}</span>
+            <span class="info-label">Age</span>
+            <span class="info-value">{{ p.age }} years old</span>
           </div>
         }
       }
@@ -63,35 +63,27 @@
 
     <!-- Push Notifications -->
     <p-card class="mt-3">
-      <h3 style="font-size:0.9rem;margin-bottom:0.75rem"><i class="pi pi-bell"></i> {{ 'profile.pushTitle' | translate }}</h3>
+      <h3 style="font-size:0.9rem;margin-bottom:0.75rem"><i class="pi pi-bell"></i> Push Notifications</h3>
       <p style="font-size:0.82rem;color:var(--p-text-muted-color);margin-bottom:0.75rem">
-        {{ 'profile.pushDesc' | translate }}
+        Receive alerts for leave updates, new roster assignments and missed clock-out reminders even when the app is closed.
       </p>
       <p-button
-        [label]="pushEnabled() ? ('profile.disableNotif' | translate) : ('profile.enableNotif' | translate)"
+        [label]="pushEnabled() ? 'Disable Notifications' : 'Enable Notifications'"
         severity="primary"
         [loading]="pushLoading()"
         (click)="togglePush()" />
     </p-card>
 
-    <!-- Language -->
-    <p-card class="mt-3">
-      <h3 style="font-size:0.9rem;margin-bottom:0.75rem"><i class="pi pi-globe"></i> {{ 'profile.language' | translate }}</h3>
-      <p-selectbutton [options]="langOptions"
-        [ngModel]="lang.current()" (ngModelChange)="lang.set($any($event))"
-        optionLabel="label" optionValue="value" />
-    </p-card>
-
     <!-- Sign out -->
     <div class="sign-out-wrap">
       <p-button
-        [label]="'profile.signOut' | translate"
+        label="Sign Out"
         severity="danger"
         (click)="logout()" />
     </div>
 
     <!-- Build version -->
-    <p class="build-version">{{ 'profile.buildVersion' | translate }} {{ build().version }}</p>
+    <p class="build-version">Build {{ build().version }}</p>
   }
 
 </div>

@@ -282,12 +282,7 @@ input[type="time"] {
     box-shadow: 0 8px 32px rgba(100,60,200,0.12) !important;
     backdrop-filter: none !important;
   }
-  .login-lang-btn {
-    color: var(--nc-text-secondary) !important;
-    border-color: var(--nc-border-subtle) !important;
-    background: transparent !important;
   }
-}
 
 // ── PrimeNG icon-field container border-radius + padding ─────────────────────
 .p-iconfield { border-radius: $radius-md !important; }

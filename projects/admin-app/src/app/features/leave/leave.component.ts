@@ -4,7 +4,6 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance,
   LeaveSummary, LeavePatternWarning,
@@ -35,7 +34,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
 @Component({
   selector: 'app-leave',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslatePipe, TrimInputDirective,
+  imports: [DatePipe, FormsModule, TrimInputDirective,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
     Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, Dialog, PrimeTemplate],
   templateUrl: './leave.component.html',
@@ -46,7 +45,6 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   private readonly leaveSvc   = inject(LeaveService);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
-  private readonly translate  = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
   // switchMap cancels any in-flight getAll request when a newer load(page) call arrives —
@@ -68,7 +66,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
           pageSize:   this.pageSize,
         }).pipe(
           catchError(() => {
-            this.toast.error(this.translate.instant('leave.loadFailed'));
+            this.toast.error('Failed to load leave records.');
             this.loading.set(false);
             return EMPTY;
           }),
@@ -109,12 +107,12 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
 
   get presetTypes() {
     return [
-      { label: this.translate.instant('leave.presetAll'),       value: '' },
-      { label: this.translate.instant('leave.sickLeave'),       value: 'sick' },
-      { label: this.translate.instant('leave.annualLeave'),     value: 'annual' },
-      { label: this.translate.instant('leave.unpaidLeave'),     value: 'unpaid' },
-      { label: this.translate.instant('leave.summaryEmergency'), value: 'emergency' },
-      { label: this.translate.instant('leave.noShow'),          value: 'no-show' },   // item 4
+      { label: 'All',       value: '' },
+      { label: 'Sick Leave',       value: 'sick' },
+      { label: 'Annual Leave',     value: 'annual' },
+      { label: 'Unpaid Leave',     value: 'unpaid' },
+      { label: 'Emergency', value: 'emergency' },
+      { label: 'No-Show',          value: 'no-show' },   // item 4
     ];
   }
 
@@ -126,11 +124,11 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
 
   get datePresets() {
     return [
-      { label: this.translate.instant('reports.today'),      value: 'today'         as const },
-      { label: this.translate.instant('common.thisWeek'),    value: 'week'          as const },
-      { label: this.translate.instant('common.thisMonth'),   value: 'month'         as const },
-      { label: this.translate.instant('reports.lastMonth'),  value: 'last-month'    as const },
-      { label: this.translate.instant('leave.last3Months'),  value: 'last-3-months' as const },
+      { label: 'Today',      value: 'today'         as const },
+      { label: 'This Week',    value: 'week'          as const },
+      { label: 'This Month',   value: 'month'         as const },
+      { label: 'Last Month',  value: 'last-month'    as const },
+      { label: 'Last 3 Months',  value: 'last-3-months' as const },
     ];
   }
 
@@ -250,20 +248,20 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     const ids = [...this.selectedIds()];
     if (!ids.length) return;
     this.confirmSvc.confirm({
-      title: this.translate.instant('leave.bulkApproveTitle', { n: ids.length }),
-      message: this.translate.instant('leave.bulkApproveMessage', { n: ids.length }),
-      confirmLabel: this.translate.instant('leave.bulkApproveConfirm'),
+      title: `Approve ${ids.length} Leave Request(s)`,
+      message: `Approve all ${ids.length} selected leave request(s)?`,
+      confirmLabel: 'Approve All',
     }).subscribe(ok => {
       if (!ok) return;
       this.bulkStatusSaving.set(true);
       this.leaveSvc.bulkUpdateStatus(ids, 'approved').subscribe({
         next: r => {
           this.bulkStatusSaving.set(false);
-          this.toast.success(this.translate.instant('leave.bulkApprovedToast', { n: r.count }));
+          this.toast.success(`${r.count} leave request(s) approved.`);
           this.selectedIds.set(new Set());
           this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
         },
-        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkApproveFailed')); this.bulkStatusSaving.set(false); },
+        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? 'Bulk approve failed.'); this.bulkStatusSaving.set(false); },
       });
     });
   }
@@ -273,11 +271,11 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     if (!ids.length) return;
     const reason = this.bulkRejReason().trim() || undefined;
     this.confirmSvc.confirm({
-      title: this.translate.instant('leave.bulkRejectTitle', { n: ids.length }),
+      title: `Reject ${ids.length} Leave Request(s)`,
       message: reason
-        ? this.translate.instant('leave.bulkRejectMessageReason', { n: ids.length, reason })
-        : this.translate.instant('leave.bulkRejectMessage', { n: ids.length }),
-      confirmLabel: this.translate.instant('leave.bulkRejectConfirm'),
+        ? `Reject all ${ids.length} selected leave request(s)? Reason: "${reason}"`
+        : `Reject all ${ids.length} selected leave request(s)?`,
+      confirmLabel: 'Reject All',
       danger: true,
     }).subscribe(ok => {
       if (!ok) return;
@@ -285,11 +283,11 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
       this.leaveSvc.bulkUpdateStatus(ids, 'rejected', reason).subscribe({
         next: r => {
           this.bulkStatusSaving.set(false);
-          this.toast.success(this.translate.instant('leave.bulkRejectedToast', { n: r.count }));
+          this.toast.success(`${r.count} leave request(s) rejected.`);
           this.selectedIds.set(new Set()); this.bulkRejReason.set('');
           this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
         },
-        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkRejectFailed')); this.bulkStatusSaving.set(false); },
+        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? 'Bulk reject failed.'); this.bulkStatusSaving.set(false); },
       });
     });
   }
@@ -298,20 +296,20 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     const ids = [...this.selectedIds()];
     if (!ids.length) return;
     this.confirmSvc.confirm({
-      title: this.translate.instant('leave.bulkNoShowTitle', { n: ids.length }),
-      message: this.translate.instant('leave.bulkNoShowMessage', { n: ids.length }),
-      confirmLabel: this.translate.instant('leave.bulkNoShowConfirm'),
+      title: 'Mark as no-show',
+      message: `Mark ${ids.length} selected leave record(s) as no-show?`,
+      confirmLabel: 'Mark No-Show',
     }).subscribe(ok => {
       if (!ok) return;
       this.bulkStatusSaving.set(true);
       this.leaveSvc.bulkMarkNoShow(ids).subscribe({
         next: r => {
           this.bulkStatusSaving.set(false);
-          this.toast.success(this.translate.instant('leave.bulkNoShowToast', { n: r.count }));
+          this.toast.success(`${r.count} record(s) marked as no-show.`);
           this.selectedIds.set(new Set());
           this.load(); this.loadOverdue(); this.refreshPendingCount(); this.loadBalances();
         },
-        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.updateFailed')); this.bulkStatusSaving.set(false); },
+        error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? 'Update failed.'); this.bulkStatusSaving.set(false); },
       });
     });
   }
@@ -339,26 +337,26 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
 
   readonly currentYear = new Date().getFullYear();
   readonly leaveTypes: string[] = [...LEAVE_TYPES];
-  private readonly leaveTypeLabelKeys: Record<string, string> = {
-    sick: 'leave.sickLeave', annual: 'leave.annualLeave', unpaid: 'leave.unpaidLeave',
-    'no-show': 'leave.noShow', emergency: 'leave.summaryEmergency',
+  private readonly leaveTypeLabels: Record<string, string> = {
+    sick: 'Sick Leave', annual: 'Annual Leave', unpaid: 'Unpaid Leave',
+    'no-show': 'No-Show', emergency: 'Emergency',
   };
   get leaveTypeOptions() {
     return LEAVE_TYPES.map(t => ({
-      label: this.translate.instant(this.leaveTypeLabelKeys[t] ?? ''),
+      label: (this.leaveTypeLabels[t] ?? ''),
       value: t,
     }));
   }
-  readonly calDayKeys  = ['leave.calDayMon','leave.calDayTue','leave.calDayWed','leave.calDayThu','leave.calDayFri','leave.calDaySat','leave.calDaySun'];
+  readonly calDayLabels  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
   readonly tabOptions = [
-    { labelKey: 'leave.recordsTab',  value: 'records'  },
-    { labelKey: 'leave.balancesTab', value: 'balances' },
+    { label: 'Records',  value: 'records'  },
+    { label: 'Balances', value: 'balances' },
   ];
   get viewModeOptions() {
     return [
-      { label: this.translate.instant('leave.tableView'),    value: 'table'    },
-      { label: this.translate.instant('leave.calendarView'), value: 'calendar' },
+      { label: 'Table',    value: 'table'    },
+      { label: 'Calendar', value: 'calendar' },
     ];
   }
 
@@ -410,7 +408,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     this.loading.set(true);
     this.leaveSvc.getAll({ dateFrom: from, dateTo: to, status: this.filterStatus || undefined, leaveType: this.filterLeaveType || undefined, page: 1, pageSize: 200 }).subscribe({
       next:  r  => { this.records.set(r?.items ?? []); this.loading.set(false); },
-      error: () => { this.toast.error(this.translate.instant('leave.loadFailed')); this.loading.set(false); },
+      error: () => { this.toast.error('Failed to load leave records.'); this.loading.set(false); },
     });
   }
 
@@ -448,17 +446,17 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   }
 
   readonly statuses: string[] = [...STATUSES];
-  private readonly statusLabelKeys: Record<string, string> = {
-    approved: 'common.approved', pending: 'common.pending',
-    rejected: 'common.rejected', cancelled: 'leave.cancelled',
+  private readonly statusLabels: Record<string, string> = {
+    approved: 'Approved', pending: 'Pending',
+    rejected: 'Rejected', cancelled: 'Cancelled',
   };
 
   /** i18n keys for leave-type / status enums, for the translate pipe in badges, chips and tooltips. */
-  leaveTypeKey(t: string): string { return this.leaveTypeLabelKeys[t] ?? t; }
-  statusKey(s: string): string { return this.statusLabelKeys[s] ?? s; }
+  leaveTypeLabel(t: string): string { return this.leaveTypeLabels[t] ?? t; }
+  statusLabel(s: string): string { return this.statusLabels[s] ?? s; }
   get statusOptions() {
     return STATUSES.map(s => ({
-      label: this.translate.instant(this.statusLabelKeys[s] ?? ''),
+      label: (this.statusLabels[s] ?? ''),
       value: s,
     }));
   }
@@ -540,9 +538,9 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         this.processingId.set(null);
         this.load(); this.loadOverdue(); this.refreshPendingCount();
         this.loadBalances();   // item 15
-        this.toast.success(this.translate.instant('leave.markedNoShow'));
+        this.toast.success('Marked as no-show.');
       },
-      error: () => { this.processingId.set(null); this.toast.error(this.translate.instant('leave.updateFailed')); },
+      error: () => { this.processingId.set(null); this.toast.error('Update failed.'); },
     });
   }
 
@@ -612,19 +610,19 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
       next: () => {
         this.savingEntitlement.set(false);
         this.editingEntitlement.set(false);
-        this.toast.success(this.translate.instant('leave.entitlementUpdated'));
+        this.toast.success('Entitlement updated.');
         this.load();
       },
-      error: () => { this.toast.error(this.translate.instant('leave.entitlementFailed')); this.savingEntitlement.set(false); },
+      error: () => { this.toast.error('Failed to update entitlement.'); this.savingEntitlement.set(false); },
     });
   }
 
   bulkApplyEntitlement(): void {
     const { year, annualHours, sickHours } = this.entitlementForm;
     this.confirmSvc.confirm({
-      title:        this.translate.instant('leave.bulkApply'),
-      message:      this.translate.instant('leave.bulkApplyMessage', { annual: annualHours, sick: sickHours, year }),
-      confirmLabel: this.translate.instant('leave.bulkApplyConfirm'),
+      title:        'Apply to All Staff',
+      message:      `Set ${annualHours}h annual + ${sickHours}h sick leave for ALL active staff for ${year}? Existing entitlements will be overwritten.`,
+      confirmLabel: 'Apply to All',
     }).subscribe(ok => {
       if (!ok) return;
       this.bulkSaving.set(true);
@@ -632,11 +630,11 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         next: r => {
           this.bulkSaving.set(false);
           this.showBulkEntForm.set(false);
-          this.toast.success(this.translate.instant('leave.bulkApplyToast', { n: r.count }));
+          this.toast.success(`Entitlements applied to ${r.count} staff members.`);
           this.loadBalances();
         },
         error: (e: unknown) => {
-          this.toast.error(apiErrorMessage(e) ?? this.translate.instant('leave.bulkApplyFailed'));
+          this.toast.error(apiErrorMessage(e) ?? 'Bulk apply failed.');
           this.bulkSaving.set(false);
         },
       });
@@ -662,23 +660,23 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     }).subscribe({
       next: r => {
         const rows = r?.items ?? [];
-        if (rows.length === 0) { this.toast.warning(this.translate.instant('leave.noRecordsExport')); return; }
+        if (rows.length === 0) { this.toast.warning('No records to export.'); return; }
         const escape = (v: string | number | null | undefined) => {
           const s = String(v ?? '');
           return s.includes(',') || s.includes('"') || s.includes('\n')
             ? `"${s.replace(/"/g, '""')}"` : s;
         };
         const header = [
-          this.translate.instant('leave.csvStaffId'),
-          this.translate.instant('leave.csvName'),
-          this.translate.instant('leave.csvLeaveType'),
-          this.translate.instant('leave.csvStartDate'),
-          this.translate.instant('leave.csvEndDate'),
-          this.translate.instant('leave.csvHours'),
-          this.translate.instant('leave.csvStatus'),
-          this.translate.instant('leave.csvNotes'),
-          this.translate.instant('leave.csvRejectionReason'),
-          this.translate.instant('leave.csvCreatedAt'),
+          'Staff ID',
+          'Name',
+          'Leave Type',
+          'Start Date',
+          'End Date',
+          'Hours',
+          'Status',
+          'Notes',
+          'Rejection Reason',
+          'Created At',
         ].join(',');
         const body = rows.map(row =>
           [row.staffId, row.staffName, row.leaveType, row.startDate, row.endDate,
@@ -692,9 +690,9 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         a.download = `leave-export-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-        this.toast.success(this.translate.instant('leave.exportedToast', { n: rows.length }));
+        this.toast.success(`Exported ${rows.length} records.`);
       },
-      error: () => this.toast.error(this.translate.instant('leave.exportFailed')),
+      error: () => this.toast.error('Export failed.'),
     });
   }
 
@@ -719,9 +717,9 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         this.processingId.set(null);
         this.load(); this.loadOverdue(); this.refreshPendingCount();
         this.loadBalances();  // item 15
-        this.toast.success(this.translate.instant(status === 'approved' ? 'leave.leaveApproved' : 'leave.leaveRejected'));
+        this.toast.success((status === 'approved' ? 'Leave approved.' : 'Leave rejected.'));
       },
-      error: () => { this.processingId.set(null); this.toast.error(this.translate.instant('leave.updateFailed')); },
+      error: () => { this.processingId.set(null); this.toast.error('Update failed.'); },
     });
   }
 
@@ -816,21 +814,21 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
 
     if (!this.form.employeeId || !this.form.startDate || !this.form.endDate
         || !this.startTimeDate || !this.endTimeDate) {
-      this.formError.set(this.translate.instant('leave.errRequiredFields')); return;
+      this.formError.set('Please fill in all required fields.'); return;
     }
     const h = this.calcHours;
-    if (h <= 0) { this.formError.set(this.translate.instant('leave.errDateOrder')); return; }
+    if (h <= 0) { this.formError.set('End date/time must be after start date/time.'); return; }
     this.form.hours = h;
 
     this.saving.set(true);
     const id   = this.editing();
-    const fail = (e: unknown) => { this.formError.set(apiErrorMessage(e) ?? this.translate.instant('leave.saveFailed')); this.saving.set(false); };
+    const fail = (e: unknown) => { this.formError.set(apiErrorMessage(e) ?? 'Save failed.'); this.saving.set(false); };
     if (id) {
       this.leaveSvc.update(id, this.form).subscribe({
         next: () => {
           this.saving.set(false); this.cancelForm();
           this.load(); this.loadOverdue(); this.refreshPendingCount();
-          this.toast.success(this.translate.instant('leave.leaveSaved'));
+          this.toast.success('Leave saved.');
         },
         error: fail,
       });
@@ -839,7 +837,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         next: () => {
           this.saving.set(false); this.cancelForm();
           this.load(); this.loadOverdue(); this.refreshPendingCount();
-          this.toast.success(this.translate.instant('leave.leaveSaved'));
+          this.toast.success('Leave saved.');
         },
         error: fail,
       });
@@ -847,7 +845,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   }
 
   remove(id: string): void {
-    this.confirmSvc.confirm({ title: this.translate.instant('leave.deleteTitle'), message: this.translate.instant('leave.deleteMessage'), confirmLabel: this.translate.instant('common.delete'), danger: true })
+    this.confirmSvc.confirm({ title: 'Delete Leave Record', message: 'Remove this leave record? This cannot be undone.', confirmLabel: 'Delete', danger: true })
       .subscribe(ok => {
         if (!ok) return;
         this.deletingLeaveId.set(id);
@@ -856,9 +854,9 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
             this.deletingLeaveId.set(null);
             this.load(); this.loadOverdue(); this.refreshPendingCount();
             this.loadBalances();   // item 15
-            this.toast.success(this.translate.instant('leave.leaveDeleted'));
+            this.toast.success('Leave deleted.');
           },
-          error: () => { this.deletingLeaveId.set(null); this.toast.error(this.translate.instant('leave.deleteFailed')); },
+          error: () => { this.deletingLeaveId.set(null); this.toast.error('Delete failed.'); },
         });
       });
   }

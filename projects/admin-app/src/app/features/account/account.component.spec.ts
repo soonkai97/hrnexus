@@ -2,10 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AccountComponent } from './account.component';
-import { AuthService, StaffManagementService, LangService, VersionService } from 'shared-lib';
+import { AuthService, StaffManagementService, VersionService } from 'shared-lib';
 
 /**
  * AccountComponent — admin account profile page.
@@ -27,7 +26,6 @@ const fakeProfile = {
 describe('AccountComponent', () => {
   let mockAuth:     { user: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
   let mockStaffSvc: { getMyProfile: ReturnType<typeof vi.fn> };
-  let mockLangSvc:  { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
 
   function createComponent(fullName: string | null = 'Jane Doe') {
     mockAuth.user.mockReturnValue(
@@ -41,17 +39,14 @@ describe('AccountComponent', () => {
   beforeEach(async () => {
     mockAuth     = { user: vi.fn().mockReturnValue(null), logout: vi.fn() };
     mockStaffSvc = { getMyProfile: vi.fn().mockReturnValue(of(fakeProfile)) };
-    mockLangSvc  = { current: vi.fn().mockReturnValue('en'), set: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [AccountComponent],
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,  useValue: mockAuth },
         { provide: StaffManagementService, useValue: mockStaffSvc },
-        { provide: LangService,  useValue: mockLangSvc },
         { provide: VersionService, useValue: { info: () => ({ version: 'dev' }), load: vi.fn() } },
         MessageService,
         ConfirmationService,

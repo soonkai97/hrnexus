@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PayrollLockService, ToastService, ConfirmService } from 'shared-lib';
@@ -30,7 +29,6 @@ describe('PayrollLocksComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: PayrollLockService, useValue: svc },
         { provide: ToastService,       useValue: toast },
         { provide: ConfirmService,     useValue: confirmSvc },

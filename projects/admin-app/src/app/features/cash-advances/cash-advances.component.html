@@ -1,59 +1,59 @@
 <div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
-    <h1 class="page-title">{{ 'cashAdvances.title' | translate }}</h1>
-    <p-button icon="pi pi-plus" [label]="'cashAdvances.record' | translate" severity="primary" (click)="openAdd()" />
+    <h1 class="page-title">Cash Advances</h1>
+    <p-button icon="pi pi-plus" label="Record Advance" severity="primary" (click)="openAdd()" />
   </div>
 
-  <p class="page-hint"><i class="pi pi-info-circle"></i> {{ 'cashAdvances.hint' | translate }}</p>
+  <p class="page-hint"><i class="pi pi-info-circle"></i> Record a salary advance given to a staff member. This only records it (to deduct from the next salary) — it does not move money.</p>
 
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
     <p-selectButton [options]="filterOptions" [ngModel]="filter()" (onChange)="setFilter($event.value)"
                     optionLabel="label" optionValue="value" [allowEmpty]="false" />
     @if (totalOutstanding() > 0) {
-      <span class="outstanding-pill">{{ 'cashAdvances.totalOutstanding' | translate }}: <strong>RM {{ totalOutstanding() | number:'1.2-2' }}</strong></span>
+      <span class="outstanding-pill">Total outstanding: <strong>RM {{ totalOutstanding() | number:'1.2-2' }}</strong></span>
     }
   </div>
 
   <!-- Record dialog -->
   <p-dialog [visible]="showForm()" (visibleChange)="!$event && cancel()"
-            [header]="'cashAdvances.record' | translate" [modal]="true"
+            header="Record Advance" [modal]="true"
             [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     <div class="field">
-      <label for="ca-staff"><span class="req">*</span> {{ 'cashAdvances.staff' | translate }}</label>
+      <label for="ca-staff"><span class="req">*</span> Staff</label>
       <p-select inputId="ca-staff" [(ngModel)]="form.employeeId" [options]="staffOptions()"
                 optionLabel="label" optionValue="value" [filter]="true"
-                [placeholder]="'cashAdvances.selectStaff' | translate" appendTo="body" styleClass="w-full" />
+                placeholder="Select staff…" appendTo="body" styleClass="w-full" />
     </div>
     <div class="field">
-      <label for="ca-amount"><span class="req">*</span> {{ 'cashAdvances.amount' | translate }}</label>
+      <label for="ca-amount"><span class="req">*</span> Amount</label>
       <p-inputnumber inputId="ca-amount" [(ngModel)]="form.amount" mode="currency" currency="MYR" locale="en-MY"
                      [min]="0" [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
     </div>
     <div class="field">
-      <label for="ca-date"><span class="req">*</span> {{ 'cashAdvances.date' | translate }}</label>
+      <label for="ca-date"><span class="req">*</span> Date</label>
       <p-datepicker inputId="ca-date" [(ngModel)]="form.advanceDate" dateFormat="yy-mm-dd" [maxDate]="todayDate"
                     [showIcon]="true" [readonlyInput]="true" appendTo="body" styleClass="w-full" />
     </div>
     <div class="field">
-      <label for="ca-reason">{{ 'cashAdvances.reason' | translate }}</label>
+      <label for="ca-reason">Reason</label>
       <input id="ca-reason" pInputText type="text" [(ngModel)]="form.reason" maxlength="500"
-             [placeholder]="'cashAdvances.reasonPlaceholder' | translate" styleClass="w-full" />
+             placeholder="Optional note…" styleClass="w-full" />
     </div>
     <ng-template pTemplate="footer">
-      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
-      <p-button [label]="saving() ? ('common.saving' | translate) : ('cashAdvances.record' | translate)"
+      <p-button label="Cancel" [text]="true" severity="secondary" (click)="cancel()" />
+      <p-button [label]="saving() ? 'Saving…' : 'Record Advance'"
                 severity="primary" (click)="save()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
     </ng-template>
   </p-dialog>
 
   <!-- List -->
   @if (loading()) {
-    <p-card styleClass="loading-card">{{ 'cashAdvances.loading' | translate }}</p-card>
+    <p-card styleClass="loading-card">Loading…</p-card>
   } @else if (advances().length === 0) {
     <p-card styleClass="empty-state">
       <div class="empty-inner d-flex flex-column align-items-center gap-2 py-4">
         <i class="pi pi-money-bill" style="font-size:2rem;color:var(--p-text-muted-color)"></i>
-        <p style="color:var(--p-text-muted-color)">{{ 'cashAdvances.emptyState' | translate }}</p>
+        <p style="color:var(--p-text-muted-color)">No cash advances recorded yet.</p>
       </div>
     </p-card>
   } @else {
@@ -63,37 +63,37 @@
         [paginator]="advances().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="staffName">{{ 'cashAdvances.staff' | translate }} <p-sortIcon field="staffName" /></th>
-            <th pSortableColumn="amount">{{ 'cashAdvances.amount' | translate }} <p-sortIcon field="amount" /></th>
-            <th pSortableColumn="advanceDate">{{ 'cashAdvances.date' | translate }} <p-sortIcon field="advanceDate" /></th>
-            <th>{{ 'cashAdvances.reason' | translate }}</th>
-            <th pSortableColumn="status">{{ 'cashAdvances.status' | translate }} <p-sortIcon field="status" /></th>
+            <th pSortableColumn="staffName">Staff <p-sortIcon field="staffName" /></th>
+            <th pSortableColumn="amount">Amount <p-sortIcon field="amount" /></th>
+            <th pSortableColumn="advanceDate">Date <p-sortIcon field="advanceDate" /></th>
+            <th>Reason</th>
+            <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
             <th class="td-actions"></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-a>
           <tr>
-            <td><span class="p-column-title">{{ 'cashAdvances.staff' | translate }}</span>
+            <td><span class="p-column-title">Staff</span>
               <span class="ca-staff"><span class="mono">{{ a.staffId }}</span> · {{ a.staffName }}</span>
             </td>
-            <td class="td-bold"><span class="p-column-title">{{ 'cashAdvances.amount' | translate }}</span>RM {{ a.amount | number:'1.2-2' }}</td>
-            <td class="td-muted"><span class="p-column-title">{{ 'cashAdvances.date' | translate }}</span>{{ a.advanceDate }}</td>
+            <td class="td-bold"><span class="p-column-title">Amount</span>RM {{ a.amount | number:'1.2-2' }}</td>
+            <td class="td-muted"><span class="p-column-title">Date</span>{{ a.advanceDate }}</td>
             <td class="td-muted td-reason" [pTooltip]="a.reason || ''" tooltipPosition="top">
-              <span class="p-column-title">{{ 'cashAdvances.reason' | translate }}</span>{{ a.reason || '—' }}</td>
-            <td><span class="p-column-title">{{ 'cashAdvances.status' | translate }}</span>
+              <span class="p-column-title">Reason</span>{{ a.reason || '—' }}</td>
+            <td><span class="p-column-title">Status</span>
               @if (a.status === 'settled') {
-                <p-tag [value]="'cashAdvances.settled' | translate" severity="success" />
+                <p-tag value="Settled" severity="success" />
               } @else {
-                <p-tag [value]="'cashAdvances.outstanding' | translate" severity="warn" />
+                <p-tag value="Outstanding" severity="warn" />
               }
             </td>
             <td class="td-actions">
               <div class="d-flex gap-1 justify-content-end">
-                <p-button [label]="(a.status === 'settled' ? 'cashAdvances.reopen' : 'cashAdvances.markSettled') | translate"
+                <p-button [label]="(a.status === 'settled' ? 'Reopen' : 'Mark settled')"
                           [text]="true" size="small" [severity]="a.status === 'settled' ? 'secondary' : 'success'"
                           [loading]="busyId() === a.id" [disabled]="!!busyId()" (onClick)="toggleSettled(a)" />
                 <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" rounded
-                          [attr.aria-label]="'common.delete' | translate"
+                          aria-label="Delete"
                           [disabled]="!!busyId()" (onClick)="remove(a)" />
               </div>
             </td>

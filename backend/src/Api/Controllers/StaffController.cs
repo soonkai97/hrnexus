@@ -247,7 +247,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         try
         {
-            await mediator.Send(new CreateRoleCommand(body.Name, body.HourlyRate, body.NameZh, body.NameVi, body.PayType), ct);
+            await mediator.Send(new CreateRoleCommand(body.Name, body.HourlyRate, body.PayType), ct);
             return NoContent();
         }
         catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
@@ -275,8 +275,6 @@ public class StaffController(IMediator mediator) : ControllerBase
                 return Conflict(new { error = $"A job named '{newName}' already exists." });
             role.SetName(newName);
         }
-        role.SetNameZh(body.NameZh);
-        role.SetNameVi(body.NameVi);
         role.SetPayType(body.PayType);
         if (role.HourlyRate != body.HourlyRate)
         {
@@ -304,8 +302,8 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 }
 
-public record CreateRoleBody(string Name, decimal HourlyRate = 0, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly);
-public record UpdateRoleRateBody(decimal HourlyRate, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly, string? Name = null);
+public record CreateRoleBody(string Name, decimal HourlyRate = 0, string PayType = AppConstants.PayType.Hourly);
+public record UpdateRoleRateBody(decimal HourlyRate, string PayType = AppConstants.PayType.Hourly, string? Name = null);
 public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<Guid> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth);
 public record ResetPasswordBody(string NewPassword);
 public record BulkAssignRolesBody(List<Guid> StaffIds, List<Guid> Roles);

@@ -1,10 +1,10 @@
 ﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
-    <h1 class="page-title">{{ 'dashboard.title' | translate }}</h1>
+    <h1 class="page-title">Dashboard</h1>
     @if (hubConnected()) {
-      <p-tag severity="success"><span class="pulse-dot"></span> {{ 'dashboard.live' | translate }}</p-tag>
+      <p-tag severity="success"><span class="pulse-dot"></span> Live</p-tag>
     } @else {
-      <p-tag severity="secondary" [value]="'dashboard.connecting' | translate" />
+      <p-tag severity="secondary" value="Connecting…" />
     }
   </div>
 
@@ -20,9 +20,9 @@
     <div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
       <div class="col">
         <p-card styleClass="stat-card accent-purple h-100">
-          <span class="stat-label">{{ 'dashboard.totalStaff' | translate }}</span>
+          <span class="stat-label">Total Staff</span>
           <span class="stat-value">{{ s.totalStaff }}</span>
-          <span class="stat-sub">{{ 'dashboard.activeStaffMembers' | translate }}</span>
+          <span class="stat-sub">active staff members</span>
         </p-card>
       </div>
     </div>

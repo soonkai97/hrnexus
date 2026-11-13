@@ -6,9 +6,9 @@
     [text]="true"
     severity="secondary"
     [class.has-unread]="visibleUnread() > 0"
-    [pTooltip]="'notifications.title' | translate"
+    pTooltip="Notifications"
     tooltipPosition="bottom"
-    [attr.aria-label]="'notifications.title' | translate"
+    aria-label="Notifications"
     (onClick)="toggle()" />
   @if (visibleUnread() > 0) {
     <span class="bell-badge">{{ visibleUnread() > 9 ? '9+' : visibleUnread() }}</span>
@@ -19,14 +19,14 @@
     <div class="notif-backdrop" (click)="close()" tabindex="0" role="button" (keydown.enter)="close()"></div>
 
     <!-- Notification panel -->
-    <div class="notif-panel" role="dialog" [attr.aria-label]="'notifications.title' | translate">
+    <div class="notif-panel" role="dialog" aria-label="Notifications">
       <div class="panel-header">
-        <span class="panel-title">{{ 'notifications.title' | translate }}</span>
+        <span class="panel-title">Notifications</span>
         <div class="header-actions">
           @if (visibleUnread() > 0) {
-            <p-button [label]="'notifications.markAllRead' | translate" [text]="true" size="small" severity="secondary" (onClick)="markAll()" />
+            <p-button label="Mark all read" [text]="true" size="small" severity="secondary" (onClick)="markAll()" />
           }
-          <p-button icon="pi pi-times" [text]="true" severity="secondary" [attr.aria-label]="'notifications.close' | translate" (onClick)="close()" />
+          <p-button icon="pi pi-times" [text]="true" severity="secondary" aria-label="Close" (onClick)="close()" />
         </div>
       </div>
 
@@ -34,7 +34,7 @@
         @if (visible().length === 0) {
           <div class="empty-notif">
             <span class="empty-icon">🔔</span>
-            <span>{{ 'notifications.empty' | translate }}</span>
+            <span>No notifications yet.</span>
           </div>
         }
         @for (n of visible(); track n.id) {

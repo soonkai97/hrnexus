@@ -2,14 +2,14 @@
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <div>
       <a routerLink="/staff" class="back-link">
-        <i class="pi pi-arrow-left"></i> {{ 'nav.staff' | translate }}
+        <i class="pi pi-arrow-left"></i> Staff
       </a>
       <h1 class="page-title">{{ staff()?.fullName ?? '…' }}</h1>
       <span class="page-sub">{{ staff()?.staffId }}</span>
     </div>
     <div class="d-flex gap-2">
       @if (activeTab() === 'profile' && !editMode()) {
-        <p-button icon="pi pi-pencil" [label]="'staffDetail.editBtn' | translate" severity="primary" (click)="startEdit()" />
+        <p-button icon="pi pi-pencil" label="Edit" severity="primary" (click)="startEdit()" />
       }
     </div>
   </div>
@@ -29,8 +29,8 @@
 
     <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($any($event))" styleClass="detail-tabs">
       <p-tablist>
-        <p-tab value="profile">{{ 'staffDetail.tabProfile' | translate }}</p-tab>
-        <p-tab value="permissions">{{ 'staffDetail.tabPermissions' | translate }}</p-tab>
+        <p-tab value="profile">Profile</p-tab>
+        <p-tab value="permissions">Permissions</p-tab>
       </p-tablist>
     </p-tabs>
 
@@ -39,22 +39,22 @@
     <p-card styleClass="nc-card" class="mb-4">
       @if (!editMode()) {
         <div class="detail-info-grid">
-          <div><label for="sd-view-fullName" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.fullName' | translate }}</label><div>{{ s.fullName }}</div></div>
-          <div><label for="sd-view-staffId" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.staffId' | translate }}</label><div>{{ s.staffId }}</div></div>
-          <div><label for="sd-view-email" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.email' | translate }}</label><div>{{ s.email }}</div></div>
-          <div><label for="sd-view-phone" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.phone' | translate }}</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
-          <div><label for="sd-view-icNo" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.icNo' | translate }}</label><div>{{ s.icNo ?? '—' }}</div></div>
-          <div><label for="sd-view-passport" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.passport' | translate }}</label><div>{{ s.passportNo ?? '—' }}</div></div>
-          <div><label for="sd-view-dob" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.dob' | translate }}</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'dd/MM/yyyy':'UTC') : '—' }}</div></div>
-          <div><label for="sd-view-status" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.status' | translate }}</label>
+          <div><label for="sd-view-fullName" style="font-size:.75rem;color:var(--p-text-muted-color)">Full Name</label><div>{{ s.fullName }}</div></div>
+          <div><label for="sd-view-staffId" style="font-size:.75rem;color:var(--p-text-muted-color)">Staff ID</label><div>{{ s.staffId }}</div></div>
+          <div><label for="sd-view-email" style="font-size:.75rem;color:var(--p-text-muted-color)">Email</label><div>{{ s.email }}</div></div>
+          <div><label for="sd-view-phone" style="font-size:.75rem;color:var(--p-text-muted-color)">Phone</label><div>{{ s.phoneNumber ?? '—' }}</div></div>
+          <div><label for="sd-view-icNo" style="font-size:.75rem;color:var(--p-text-muted-color)">IC No.</label><div>{{ s.icNo ?? '—' }}</div></div>
+          <div><label for="sd-view-passport" style="font-size:.75rem;color:var(--p-text-muted-color)">Passport</label><div>{{ s.passportNo ?? '—' }}</div></div>
+          <div><label for="sd-view-dob" style="font-size:.75rem;color:var(--p-text-muted-color)">DOB</label><div>{{ s.dateOfBirth ? (s.dateOfBirth | date:'dd/MM/yyyy':'UTC') : '—' }}</div></div>
+          <div><label for="sd-view-status" style="font-size:.75rem;color:var(--p-text-muted-color)">Status</label>
             <div>
-              @if (s.isActive) { <p-tag [value]="'common.active' | translate" severity="success" /> }
-              @else            { <p-tag [value]="'common.inactive' | translate" severity="secondary" /> }
+              @if (s.isActive) { <p-tag value="Active" severity="success" /> }
+              @else            { <p-tag value="Inactive" severity="secondary" /> }
             </div>
           </div>
-          <div><label for="sd-view-roles" style="font-size:.75rem;color:var(--p-text-muted-color)">{{ 'staffDetail.roles' | translate }}</label>
+          <div><label for="sd-view-roles" style="font-size:.75rem;color:var(--p-text-muted-color)">Jobs</label>
             <div class="d-flex flex-wrap gap-1">
-              @for (r of s.roles; track r) { <p-tag [value]="roleName(r)" severity="info" styleClass="mr-1" /> }
+              @for (r of s.roles; track r) { <p-tag [value]="r" severity="info" styleClass="mr-1" /> }
             </div>
           </div>
         </div>
@@ -62,37 +62,37 @@
         <!-- Edit form -->
         <div class="row g-3">
           <div class="col-12 col-md-6 field">
-            <label for="sd-staffId"><span class="req">*</span> {{ 'staffDetail.staffId' | translate }}</label>
+            <label for="sd-staffId"><span class="req">*</span> Staff ID</label>
             <input id="sd-staffId" pInputText type="text" [(ngModel)]="editForm.staffId"
                    (blur)="markTouched('staffId')" [class.input-invalid]="!!fieldError('staffId')" />
             @if (fieldError('staffId'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
-            <label for="sd-email">{{ 'staffDetail.email' | translate }}</label>
+            <label for="sd-email">Email</label>
             <input id="sd-email" pInputText type="email" [(ngModel)]="editForm.email"
                    (blur)="markTouched('email')" [class.input-invalid]="!!fieldError('email')" />
             @if (fieldError('email'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
-            <label for="sd-firstName"><span class="req">*</span> {{ 'staffDetail.firstName' | translate }}</label>
+            <label for="sd-firstName"><span class="req">*</span> First Name</label>
             <input id="sd-firstName" pInputText type="text" [(ngModel)]="editForm.firstName"
                    (blur)="markTouched('firstName')" [class.input-invalid]="!!fieldError('firstName')" />
             @if (fieldError('firstName'); as err) { <small class="field-err">{{ err }}</small> }
           </div>
           <div class="col-12 col-md-6 field">
-            <label for="sd-lastName">{{ 'staffDetail.lastName' | translate }}</label>
+            <label for="sd-lastName">Last Name</label>
             <input id="sd-lastName" pInputText type="text" [(ngModel)]="editForm.lastName" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label for="sd-phone">{{ 'staffDetail.phone' | translate }}</label>
+            <label for="sd-phone">Phone</label>
             <input id="sd-phone" pInputText type="tel" [(ngModel)]="editForm.phoneNumber" />
           </div>
           <div class="col-12 col-md-6 field">
             <div class="d-flex justify-content-between align-items-center">
-              <label for="sd-dob">{{ 'staffDetail.dateOfBirth' | translate }}</label>
+              <label for="sd-dob">Date of Birth</label>
               @if (editForm.dateOfBirth) {
                 <button type="button" class="dob-clear-link" (click)="editForm.dateOfBirth = null">
-                  <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
+                  <i class="pi pi-times"></i> Clear
                 </button>
               }
             </div>
@@ -106,24 +106,24 @@
               appendTo="body" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label for="sd-icNo">{{ 'staffDetail.icNoOptional' | translate }}</label>
+            <label for="sd-icNo">IC No.</label>
             <input id="sd-icNo" pInputText type="text" [(ngModel)]="editForm.icNo" />
           </div>
           <div class="col-12 col-md-6 field">
-            <label for="sd-passportNo">{{ 'staffDetail.passportNoOptional' | translate }}</label>
+            <label for="sd-passportNo">Passport No.</label>
             <input id="sd-passportNo" pInputText type="text" [(ngModel)]="editForm.passportNo" />
           </div>
           <!-- Roles — admins only; managers can't change role assignments -->
           @if (!isManager()) {
             <div class="field col-12">
-              <label for="sd-roles">{{ 'staffDetail.roles' | translate }}</label>
+              <label for="sd-roles">Jobs</label>
               <p-multiselect
                 inputId="sd-roles"
                 [(ngModel)]="editForm.roles"
                 [options]="roleOptions()"
                 optionLabel="label"
                 optionValue="value"
-                [placeholder]="'staffDetail.selectRoles' | translate"
+                placeholder="Select job(s)…"
                 [filter]="true"
                 display="chip"
                 [maxSelectedLabels]="50"
@@ -132,9 +132,9 @@
           }
         </div>
         <div class="d-flex gap-2 mt-4">
-          <p-button [label]="'common.save' | translate" severity="primary"
+          <p-button label="Save" severity="primary"
                     (click)="saveEdit()" [disabled]="saving() || !isEditFormValid" [loading]="saving()" />
-          <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEdit()" />
+          <p-button label="Cancel" [text]="true" severity="secondary" (click)="cancelEdit()" />
         </div>
       }
     </p-card>
@@ -145,13 +145,13 @@
     <p-card styleClass="nc-card">
       <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
         <div>
-          <h3 class="m-0">{{ 'permissions.userTitle' | translate }}</h3>
-          <p style="color:var(--p-text-muted-color);font-size:.85rem;margin:.35rem 0 0">{{ 'permissions.userDesc' | translate }}</p>
+          <h3 class="m-0">Permission overrides</h3>
+          <p style="color:var(--p-text-muted-color);font-size:.85rem;margin:.35rem 0 0">Grant or revoke specific permissions for this person, on top of their jobs.</p>
           <p style="color:var(--p-text-muted-color);font-size:.78rem;margin:.4rem 0 0;line-height:1.45;max-width:60ch">
-            <i class="pi pi-info-circle" style="margin-right:.35rem"></i>{{ 'permissions.howItWorks' | translate }}</p>
+            <i class="pi pi-info-circle" style="margin-right:.35rem"></i>How it works: a person gets the combined permissions of all their jobs. On their profile, an override can grant an extra permission or revoke one — revoke always wins. Changes take effect immediately.</p>
         </div>
         @if (!permLoading() && !permEditMode()) {
-          <p-button [label]="'common.edit' | translate" icon="pi pi-pencil" severity="primary"
+          <p-button label="Edit" icon="pi pi-pencil" severity="primary"
                     (onClick)="startPermEdit()" />
         }
       </div>
@@ -168,12 +168,12 @@
       } @else if (!permEditMode()) {
         <!-- View mode: only the active overrides, colour-coded; role defaults are implied. -->
         @if (activeOverrides().length === 0) {
-          <p style="color:var(--p-text-muted-color);font-size:.9rem;margin:0">{{ 'permissions.noOverrides' | translate }}</p>
+          <p style="color:var(--p-text-muted-color);font-size:.9rem;margin:0">No overrides — this person inherits all permissions from their jobs.</p>
         } @else {
           <div class="perm-list">
             @for (key of activeOverrides(); track key) {
               <div class="perm-row">
-                <span class="perm-label">{{ ('permissions.keys.' + key) | translate }}</span>
+                <span class="perm-label">{{ permLabel(key) }}</span>
                 <p-tag [value]="permChoiceLabel(permChoices()[key])" [severity]="permChoiceSeverity(permChoices()[key])" />
               </div>
             }
@@ -182,19 +182,19 @@
       } @else {
         <!-- Edit mode: tri-state per permission; selected Grant=green / Revoke=red via row class. -->
         <div class="perm-list">
-          @for (group of visiblePermGroups(); track group.labelKey) {
+          @for (group of visiblePermGroups(); track group.label) {
             <div class="perm-group">
-              <div class="perm-group-title">{{ group.labelKey | translate }}</div>
+              <div class="perm-group-title">{{ group.label }}</div>
               @for (key of group.keys; track key) {
                 <div class="perm-row"
                      [class.choice-grant]="permChoices()[key] === 'grant'"
                      [class.choice-revoke]="permChoices()[key] === 'revoke'">
                   <span class="perm-label" [id]="'perm-label-' + key">
-                    <span class="perm-label-text">{{ ('permissions.keys.' + key) | translate }}</span>
-                    <small class="perm-desc">{{ ('permissions.desc.' + key) | translate }}</small>
+                    <span class="perm-label-text">{{ permLabel(key) }}</span>
+                    <small class="perm-desc">{{ permDesc(key) }}</small>
                   </span>
                   <p-selectButton
-                    [options]="permOptions()"
+                    [options]="permOptions"
                     optionLabel="label"
                     optionValue="value"
                     [allowEmpty]="false"
@@ -207,9 +207,9 @@
           }
         </div>
         <div class="d-flex gap-2 mt-4">
-          <p-button [label]="'permissions.save' | translate" severity="primary"
+          <p-button label="Save permissions" severity="primary"
                     (onClick)="savePermissions()" [disabled]="permSaving() || !permDirty()" [loading]="permSaving()" />
-          <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (onClick)="cancelPermEdit()" />
+          <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="cancelPermEdit()" />
         </div>
       }
     </p-card>

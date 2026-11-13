@@ -10,7 +10,7 @@ namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// Handler-level tests for miscellaneous Staff commands and queries:
-/// AdminResetPassword, CreateRole, DeleteRole, UpdateProfile, UpdateLanguage,
+/// AdminResetPassword, CreateRole, DeleteRole, UpdateProfile,
 /// GetStaffById, GetRoles.
 /// </summary>
 public class StaffMiscCommandTests
@@ -254,81 +254,6 @@ public class StaffMiscCommandTests
 
         var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
         Assert.NotNull(updated.PhoneNumber);
-    }
-
-    // ── UpdateLanguageCommand ─────────────────────────────────────────────────
-
-    [Fact]
-    public async Task UpdateLanguage_ThrowsArgument_WhenUnsupportedLanguage()
-    {
-        await using var db = CreateDb();
-        var staff = MakeStaff();
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new UpdateLanguageCommandHandler(db);
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new UpdateLanguageCommand(staff.Id, "fr"), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task UpdateLanguage_ThrowsKeyNotFound_WhenEmployeeDoesNotExist()
-    {
-        await using var db = CreateDb();
-        var handler = new UpdateLanguageCommandHandler(db);
-
-        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            handler.Handle(new UpdateLanguageCommand(Guid.NewGuid(), "en"), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task UpdateLanguage_Succeeds_WithEnglish()
-    {
-        await using var db = CreateDb();
-        var staff = MakeStaff();
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new UpdateLanguageCommandHandler(db);
-        await handler.Handle(new UpdateLanguageCommand(staff.Id, "en"), CancellationToken.None);
-
-        var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
-        Assert.Equal("en", updated.PreferredLanguage);
-    }
-
-    [Fact]
-    public async Task UpdateLanguage_Succeeds_WithChinese()
-    {
-        await using var db = CreateDb();
-        var staff = MakeStaff();
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new UpdateLanguageCommandHandler(db);
-        await handler.Handle(new UpdateLanguageCommand(staff.Id, "zh"), CancellationToken.None);
-
-        var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
-        Assert.Equal("zh", updated.PreferredLanguage);
-    }
-
-    [Fact]
-    public async Task UpdateLanguage_Succeeds_WithVietnamese()
-    {
-        await using var db = CreateDb();
-        var staff = MakeStaff();
-        db.Staff.Add(staff);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var handler = new UpdateLanguageCommandHandler(db);
-        await handler.Handle(new UpdateLanguageCommand(staff.Id, "vi"), CancellationToken.None);
-
-        var updated = await db.Staff.FirstAsync(e => e.Id == staff.Id);
-        Assert.Equal("vi", updated.PreferredLanguage);
     }
 
     // ── GetStaffByIdQuery ─────────────────────────────────────────────────────

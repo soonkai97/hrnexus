@@ -47,11 +47,10 @@ Development patterns and conventions: [CLAUDE.md](CLAUDE.md). Current state and 
 |---|---|
 | `/home` | Greeting and leave balances |
 | `/my-leave` | Submit leave, view history and balance |
-| `/profile` | Personal info, change password, push notifications, language |
+| `/profile` | Personal info, change password, push notifications |
 
 ## Planned
 
-- **English only (phase 7i):** the zh and vi translations and the language switcher are removed, see [phase-07i](docs/process/phase-07i-english-only.md).
 - Then the leave fixes and the payroll rebuild (phase 8), see [docs/process](docs/process).
 
 ## Run it locally
@@ -129,11 +128,6 @@ are resolved server-side per request (cached, invalidated on change), so a revoc
 - **Sessions:** httpOnly cookies (`SameSite=Strict`, `Secure` over HTTPS). Tokens are never exposed to JavaScript.
 - **Login hardening:** an account locks for 15 minutes after 5 consecutive failed logins, plus a per-client-IP rate limiter on `/api/auth/*`.
 - **PII at rest:** IC, passport, phone and date of birth are encrypted (AES-256-GCM) with a key from the environment.
-
-## i18n
-
-The UI currently ships English, Simplified Chinese and Vietnamese (`projects/*/public/i18n/{en,zh,vi}.json`).
-Multi-language support is being removed in favour of English only (see [docs/process](docs/process)).
 
 ## Team
 

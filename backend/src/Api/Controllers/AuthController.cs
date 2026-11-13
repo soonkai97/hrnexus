@@ -7,7 +7,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Api.Controllers;
 
@@ -96,33 +95,6 @@ public class AuthController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("language")]
-    [Authorize]
-    public async Task<IActionResult> GetLanguage(
-        [FromServices] HRNexus.Application.Common.Interfaces.IAppDbContext db,
-        CancellationToken ct)
-    {
-        var employeeId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var lang = await db.Staff
-            .Where(e => e.Id == employeeId)
-            .Select(e => e.PreferredLanguage)
-            .FirstOrDefaultAsync(ct);
-        return Ok(new { language = lang ?? "en" });
-    }
-
-    [HttpPatch("language")]
-    [Authorize]
-    public async Task<IActionResult> UpdateLanguage([FromBody] UpdateLanguageBody body, CancellationToken ct)
-    {
-        var employeeId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        try
-        {
-            await mediator.Send(new UpdateLanguageCommand(employeeId, body.Language), ct);
-            return NoContent();
-        }
-        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
-    }
-
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordBody body, CancellationToken ct)
     {
@@ -173,5 +145,4 @@ public class AuthController(IMediator mediator) : ControllerBase
 }
 
 public record UpdateProfileBody(string? PhoneNumber);
-public record UpdateLanguageBody(string Language);
 public record ForgotPasswordBody(string StaffId);

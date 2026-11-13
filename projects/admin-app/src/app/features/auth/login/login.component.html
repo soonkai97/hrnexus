@@ -4,31 +4,29 @@
 
   <div class="login-controls">
     <nc-theme-toggle />
-    <p-button icon="pi pi-globe" styleClass="login-lang-btn" [label]="lang.label()" [text]="true" severity="secondary" [attr.aria-label]="'shell.switchLanguage' | translate" (onClick)="langMenu.toggle($event)" />
-    <p-menu #langMenu [model]="lang.menuItems()" [popup]="true" appendTo="body" />
   </div>
 
   <div class="login-card">
     <div class="brand">
       <span class="brand-icon"><i class="pi pi-users"></i></span>
       <h1 class="brand-name">HRNexus</h1>
-      <p class="brand-sub">{{ 'auth.managementPortal' | translate }}</p>
+      <p class="brand-sub">Management Portal</p>
     </div>
 
     <div [formGroup]="form">
       <div class="field">
-        <label for="login-staff-id"><span class="req">*</span> {{ 'auth.staffId' | translate }}</label>
-        <input id="login-staff-id" pInputText type="text" formControlName="staffId" [placeholder]="'auth.staffIdPlaceholder' | translate"
+        <label for="login-staff-id"><span class="req">*</span> Staff ID</label>
+        <input id="login-staff-id" pInputText type="text" formControlName="staffId" placeholder="Your Staff ID"
                class="w-full" autocomplete="off" />
       </div>
       <div class="field">
-        <label for="login-password"><span class="req">*</span> {{ 'auth.password' | translate }}</label>
+        <label for="login-password"><span class="req">*</span> Password</label>
         <div class="pwd-wrap">
           <input id="login-password" pInputText [type]="showPwd() ? 'text' : 'password'" formControlName="password"
-                 class="w-full" [placeholder]="'auth.passwordPlaceholder' | translate" autocomplete="current-password"
+                 class="w-full" placeholder="Your password" autocomplete="current-password"
                  (keydown.enter)="submit()" />
           <span class="eye-btn" role="button" tabindex="0"
-                [attr.aria-label]="(showPwd() ? 'auth.hidePassword' : 'auth.showPassword') | translate"
+                [attr.aria-label]="(showPwd() ? 'Hide password' : 'Show password')"
                 (click)="showPwd.set(!showPwd())"
                 (keydown.enter)="showPwd.set(!showPwd())"
                 (keydown.space)="showPwd.set(!showPwd())">
@@ -41,7 +39,7 @@
       }
       <p-button
         type="button"
-        [label]="loading() ? ('auth.signingIn' | translate) : ('auth.signIn' | translate)"
+        [label]="loading() ? 'Signing in…' : 'Sign In'"
         severity="primary"
         class="w-full"
         styleClass="w-full mt-1"
@@ -49,7 +47,7 @@
         [disabled]="loading() || form.invalid"
         (onClick)="submit()" />
       <div class="text-center mt-3">
-        <a routerLink="/auth/forgot-password" class="forgot-link">{{ 'auth.forgotPassword' | translate }}</a>
+        <a routerLink="/auth/forgot-password" class="forgot-link">Forgot password?</a>
       </div>
     </div>
   </div>

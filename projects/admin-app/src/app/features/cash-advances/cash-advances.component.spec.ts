@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { CashAdvanceService, StaffStore, ToastService, ConfirmService } from 'shared-lib';
 import { CashAdvancesComponent } from './cash-advances.component';
@@ -39,7 +38,6 @@ describe('CashAdvancesComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: CashAdvanceService, useValue: mockSvc },
         { provide: StaffStore,         useValue: mockStore },
         { provide: ToastService,       useValue: mockToast },

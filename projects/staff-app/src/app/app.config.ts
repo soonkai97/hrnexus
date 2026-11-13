@@ -3,8 +3,6 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { provideServiceWorker } from '@angular/service-worker';
-import { provideTranslateService } from '@ngx-translate/core';
-import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import Aura from '@primeuix/themes/aura';
@@ -51,8 +49,6 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideNoAutofill(),
-    provideTranslateService({ defaultLanguage: 'en' }),
-    ...provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
     providePrimeNG({
       theme: {
         preset: HRNexusTheme,

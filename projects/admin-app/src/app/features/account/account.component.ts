@@ -1,16 +1,14 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AuthService, StaffManagementService, StaffDetail, LangService, ToastService, PushService, VersionService } from 'shared-lib';
+import { AuthService, StaffManagementService, StaffDetail, ToastService, PushService, VersionService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
-import { SelectButton } from 'primeng/selectbutton';
 
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [RouterLink, FormsModule, TranslatePipe, Button, Card, SelectButton],
+  imports: [RouterLink, FormsModule, Button, Card],
   templateUrl: './account.component.html',
   styleUrl:    './account.component.scss',
 })
@@ -19,18 +17,11 @@ export class AccountComponent implements OnInit {
   private readonly staffSvc = inject(StaffManagementService);
   private readonly toast    = inject(ToastService);
   private readonly pushSvc  = inject(PushService);
-  private readonly translate = inject(TranslateService);
   private readonly versionSvc = inject(VersionService);
-  readonly lang             = inject(LangService);
 
   /** Build stamp shown at the bottom of the page (e.g. "20260704.01"). */
   readonly build = this.versionSvc.info;
 
-  readonly langOptions = [
-    { label: 'English',     value: 'en' },
-    { label: '中文',        value: 'zh' },
-    { label: 'Tiếng Việt', value: 'vi' },
-  ];
 
   user        = computed(() => this.auth.user());
   profile     = signal<StaffDetail | null>(null);
@@ -54,7 +45,7 @@ export class AccountComponent implements OnInit {
 
   async togglePush(): Promise<void> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      this.toast.error(this.translate.instant('account.pushNotSupported'));
+      this.toast.error('Push notifications are not supported in this browser.');
       return;
     }
 
@@ -66,12 +57,12 @@ export class AccountComponent implements OnInit {
         await existing.unsubscribe();
         await this.pushSvc.unsubscribe(existing.endpoint).toPromise();
         this.pushEnabled.set(false);
-        this.toast.success(this.translate.instant('account.pushDisabled'));
+        this.toast.success('Push notifications disabled.');
       } else {
         const keyRes = await this.pushSvc.getPublicKey().toPromise();
-        if (!keyRes?.publicKey) { this.toast.error(this.translate.instant('account.pushNotConfigured')); return; }
+        if (!keyRes?.publicKey) { this.toast.error('Push notifications are not configured on this server.'); return; }
         const sub = await this.pushSvc.requestPermission(keyRes.publicKey);
-        if (!sub) { this.toast.error(this.translate.instant('account.pushPermissionDenied')); return; }
+        if (!sub) { this.toast.error('Notification permission denied.'); return; }
         const json = sub.toJSON();
         await this.pushSvc.subscribe({
           endpoint: json.endpoint!,
@@ -79,10 +70,10 @@ export class AccountComponent implements OnInit {
           auth:     json.keys?.['auth']   ?? '',
         }).toPromise();
         this.pushEnabled.set(true);
-        this.toast.success(this.translate.instant('account.pushEnabled'));
+        this.toast.success('Push notifications enabled.');
       }
     } catch {
-      this.toast.error(this.translate.instant('account.pushToggleFailed'));
+      this.toast.error('Could not toggle notifications. Please try again.');
     } finally {
       this.pushLoading.set(false);
     }

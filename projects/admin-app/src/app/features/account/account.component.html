@@ -12,20 +12,20 @@
     <!-- Info card -->
     <p-card styleClass="info-card">
       <div class="info-row">
-        <span class="info-label">{{ 'account.staffId' | translate }}</span>
+        <span class="info-label">Staff ID</span>
         <span class="info-value mono">{{ user()!.staffId }}</span>
       </div>
       @if (user()!.email) {
         <div class="divider"></div>
         <div class="info-row">
-          <span class="info-label">{{ 'account.email' | translate }}</span>
+          <span class="info-label">Email</span>
           <span class="info-value">{{ user()!.email }}</span>
         </div>
       }
       @if (profile()?.phoneNumber) {
         <div class="divider"></div>
         <div class="info-row">
-          <span class="info-label">{{ 'account.phoneNumber' | translate }}</span>
+          <span class="info-label">Phone Number</span>
           <span class="info-value">{{ profile()!.phoneNumber }}</span>
         </div>
       }
@@ -34,30 +34,22 @@
 
     <!-- Push Notifications -->
     <p-card styleClass="action-card">
-      <h3 class="card-heading"><i class="pi pi-bell"></i> {{ 'account.pushTitle' | translate }}</h3>
-      <p class="card-sub">{{ 'account.pushDesc' | translate }}</p>
+      <h3 class="card-heading"><i class="pi pi-bell"></i> Push Notifications</h3>
+      <p class="card-sub">Receive alerts when staff have open shifts or new leave requests, even when this tab is in the background.</p>
       <p-button
-        [label]="pushEnabled() ? ('account.disableNotif' | translate) : ('account.enableNotif' | translate)"
+        [label]="pushEnabled() ? 'Disable Notifications' : 'Enable Notifications'"
         [severity]="pushEnabled() ? 'secondary' : 'primary'"
         [loading]="pushLoading()"
         (click)="togglePush()" />
     </p-card>
 
-    <!-- Language -->
-    <p-card styleClass="lang-card">
-      <h3 class="card-heading"><i class="pi pi-globe"></i> {{ 'account.language' | translate }}</h3>
-      <p-selectbutton [options]="langOptions"
-        [ngModel]="lang.current()" (ngModelChange)="lang.set($any($event))"
-        optionLabel="label" optionValue="value" />
-    </p-card>
-
     <!-- Sign out -->
     <div class="sign-out-wrap">
-      <p-button [label]="'account.signOut' | translate" severity="danger" (click)="logout()" />
+      <p-button label="Sign Out" severity="danger" (click)="logout()" />
     </div>
 
     <!-- Build version -->
-    <p class="build-version">{{ 'account.buildVersion' | translate }} {{ build().version }}</p>
+    <p class="build-version">Build {{ build().version }}</p>
   }
 
 </div>

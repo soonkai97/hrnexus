@@ -337,14 +337,6 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<string>("NameVi")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("NameZh")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<string>("PayType")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -471,10 +463,6 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PreferredLanguage")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("RefreshToken")

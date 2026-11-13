@@ -3,10 +3,9 @@ import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { StaffStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
-         passwordChecks, isStrongPassword, LangService, localizedNameFor } from 'shared-lib';
+         passwordChecks, isStrongPassword } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -28,7 +27,7 @@ import { Checkbox } from 'primeng/checkbox';
 @Component({
   selector: 'app-staff',
   standalone: true,
-  imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective,
+  imports: [FormsModule, RouterLink, TrimInputDirective,
     Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, Message, DatePicker,
     MultiSelect, Menu, Paginator, Skeleton, Checkbox],
   templateUrl: './staff.component.html',
@@ -38,8 +37,6 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   private readonly staffStore  = inject(StaffStore);
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);
-  private readonly translate   = inject(TranslateService);
-  private readonly lang        = inject(LangService);
 
   @ViewChild('staffMenu') staffMenu!: Menu;
 
@@ -100,12 +97,12 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     if (!this.touched().has(field)) return '';
     const f = this.newStaff;
     switch (field) {
-      case 'staffId':   return f.staffId?.trim()   ? '' : this.translate.instant('staff.errStaffIdRequired');
-      case 'firstName': return f.firstName?.trim() ? '' : this.translate.instant('staff.errFirstNameRequired');
-      case 'password':  return isStrongPassword(f.password) ? '' : this.translate.instant('staff.errPasswordWeak');
+      case 'staffId':   return f.staffId?.trim()   ? '' : 'Staff ID is required.';
+      case 'firstName': return f.firstName?.trim() ? '' : 'First name is required.';
+      case 'password':  return isStrongPassword(f.password) ? '' : 'Min. 6 characters.';
       case 'email': {
         const e = f.email?.trim();
-        return !e || this.emailRegex.test(e) ? '' : this.translate.instant('staff.errEmailInvalid');
+        return !e || this.emailRegex.test(e) ? '' : 'Enter a valid email address.';
       }
     }
   }
@@ -113,12 +110,8 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
   availableRoles = computed(() => this.roles());
 
-  // Picker options whose label follows the UI language (Chinese name when set + lang is zh).
-  // Role value is the GUID id (register/update expect role IDS).
-  readonly roleOptions = computed(() => {
-    const lang = this.lang.current();
-    return this.availableRoles().map(r => ({ label: localizedNameFor(lang, r.name, r.nameZh, r.nameVi), value: r.id }));
-  });
+  // Picker options; the value is the role GUID id (register/update expect role IDS).
+  readonly roleOptions = computed(() => this.availableRoles().map(r => ({ label: r.name, value: r.id })));
 
   ngOnInit(): void {
     this.staffStore.loadStaff('', 1, this.pageSize, this.showHidden());
@@ -150,10 +143,10 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   setHidden(s: Staff, hidden: boolean): void {
     this.staffStore.setHidden(s.id, hidden).subscribe({
       next: () => {
-        this.toast.success(this.translate.instant(hidden ? 'staff.hiddenToast' : 'staff.unhiddenToast', { name: s.fullName }));
+        this.toast.success(hidden ? `${s.fullName} is now hidden from the list.` : `${s.fullName} is now shown in the list.`);
         this.loadPage(this.currentPage());
       },
-      error: (e) => this.toast.error(e?.error?.error ?? this.translate.instant('staff.statusUpdateFailed')),
+      error: (e) => this.toast.error(e?.error?.error ?? 'Failed to update status.'),
     });
   }
 
@@ -166,32 +159,32 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   openStaffMenu(s: Staff, event: Event): void {
     this.staffMenuItems.set([
       {
-        label: this.translate.instant('staff.editStaff'),
+        label: 'Edit',
         icon: 'pi pi-pencil',
         routerLink: ['/staff', s.id],
       },
       {
-        label: this.translate.instant('staff.resetPassword'),
+        label: 'Reset Password',
         icon: 'pi pi-key',
         command: () => this.openResetPassword(s),
       },
       { separator: true },
       {
         label: s.isActive
-          ? this.translate.instant('staff.deactivate')
-          : this.translate.instant('staff.activate'),
+          ? 'Deactivate'
+          : 'Activate',
         icon: 'pi pi-power-off',
         command: () => this.toggleActive(s.id, s.isActive),
       },
       {
         label: s.isHidden
-          ? this.translate.instant('staff.unhide')
-          : this.translate.instant('staff.hide'),
+          ? 'Unhide'
+          : 'Hide from list',
         icon: s.isHidden ? 'pi pi-eye' : 'pi pi-eye-slash',
         command: () => this.setHidden(s, !s.isHidden),
       },
       {
-        label: this.translate.instant('staff.delete'),
+        label: 'Delete',
         icon: 'pi pi-trash',
         styleClass: 'nc-danger-item',
         command: () => this.deleteStaff(s),
@@ -221,15 +214,15 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     if (email) {
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
-        this.error.set(this.translate.instant('staff.errEmailInvalidFull'));
-        this.toast.error(this.translate.instant('staff.errEmailInvalidFull'));
+        this.error.set('Please enter a valid email address.');
+        this.toast.error('Please enter a valid email address.');
         return;
       }
     }
 
     if (!this.newStaff.roles.length) {
       const defaultRole = this.availableRoles()[0]?.id;
-      if (!defaultRole) { this.error.set(this.translate.instant('staff.errSelectRole')); return; }
+      if (!defaultRole) { this.error.set('Please select at least one job.'); return; }
       this.newStaff.roles = [defaultRole];
     }
     this.saving.set(true);
@@ -242,12 +235,12 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
         this.showNewStaffPwd.set(false);
         this.saving.set(false);
         this.showForm.set(false);
-        this.toast.success(this.translate.instant('staff.registered'));
+        this.toast.success('Staff registered.');
         this.search.set('');
         this.loadPage(1);
       },
       error: (e) => {
-        const msg = e?.error?.error ?? this.translate.instant('staff.registerFailed');
+        const msg = e?.error?.error ?? 'Failed to register staff.';
         this.error.set(msg);
         this.toast.error(msg);
         this.saving.set(false);
@@ -257,21 +250,21 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   toggleActive(id: string, isActive: boolean): void {
     if (isActive) {
-      const fullName = this.staff().find(s => s.id === id)?.fullName ?? this.translate.instant('staff.thisStaffMember');
+      const fullName = this.staff().find(s => s.id === id)?.fullName ?? 'this staff member';
       this.confirmSvc.confirm({
-        title: this.translate.instant('staff.deactivateTitle'),
-        message: this.translate.instant('staff.deactivateMessage', { name: fullName }),
-        confirmLabel: this.translate.instant('staff.deactivate'),
+        title: 'Deactivate Staff',
+        message: `This will prevent ${fullName} from logging in. Are you sure?`,
+        confirmLabel: 'Deactivate',
         danger: true,
       }).subscribe((confirmed: boolean) => {
         if (!confirmed) return;
         this.staffStore.toggleActive(id, isActive).subscribe({
-          error: () => this.toast.error(this.translate.instant('staff.statusUpdateFailed')),
+          error: () => this.toast.error('Failed to update status.'),
         });
       });
     } else {
       this.staffStore.toggleActive(id, isActive).subscribe({
-        error: () => this.toast.error(this.translate.instant('staff.statusUpdateFailed')),
+        error: () => this.toast.error('Failed to update status.'),
       });
     }
   }
@@ -280,18 +273,18 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   deleteStaff(s: Staff): void {
     this.confirmSvc.confirm({
-      title:        this.translate.instant('staff.deleteTitle'),
-      message:      this.translate.instant('staff.deleteMessage', { name: s.fullName }),
-      confirmLabel: this.translate.instant('common.delete'),
+      title:        'Delete Staff Member',
+      message:      `Permanently delete ${s.fullName}? This cannot be undone. Staff with shift history cannot be deleted — deactivate them instead.`,
+      confirmLabel: 'Delete',
       danger:       true,
     }).subscribe(confirmed => {
       if (!confirmed) return;
       this.staffStore.deleteStaff(s.id).subscribe({
         next: () => {
-          this.toast.success(this.translate.instant('staff.deletedToast', { name: s.fullName }));
+          this.toast.success(`${s.fullName} deleted.`);
           this.loadPage(this.currentPage());
         },
-        error: (e) => this.toast.error(e?.error?.error ?? this.translate.instant('staff.deleteFailed')),
+        error: (e) => this.toast.error(e?.error?.error ?? 'Failed to delete staff.'),
       });
     });
   }
@@ -317,10 +310,10 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
       next: () => {
         this.savingReset.set(false);
         this.resetPassTarget.set(null);
-        this.toast.success(this.translate.instant('staff.passwordResetToast', { name: target.name }));
+        this.toast.success(`Password reset for ${target.name}. Inform them of the new password verbally.`);
       },
       error: (e) => {
-        const msg = e?.error?.error ?? this.translate.instant('staff.resetFailed');
+        const msg = e?.error?.error ?? 'Failed to reset password.';
         this.toast.error(msg);
         this.savingReset.set(false);
       },
@@ -376,12 +369,12 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
       next: (r) => {
         this.bulkSaving.set(false);
         this.showBulkRoles.set(false);
-        this.toast.success(this.translate.instant('staff.bulkRolesToast', { n: r.count }));
+        this.toast.success(`Jobs assigned to ${r.count} staff.`);
         this.afterBulk();
       },
       error: (e) => {
         this.bulkSaving.set(false);
-        this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
+        this.toast.error(e?.error?.error ?? 'Bulk action failed.');
       },
     });
   }
@@ -390,9 +383,9 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     const ids = [...this.selectedIds()];
     if (!ids.length) return;
     this.confirmSvc.confirm({
-      title:        this.translate.instant('staff.bulkDeactivateTitle'),
-      message:      this.translate.instant('staff.bulkDeactivateMessage', { n: ids.length }),
-      confirmLabel: this.translate.instant('staff.deactivate'),
+      title:        'Deactivate staff',
+      message:      `Deactivate ${ids.length} selected staff member(s)? They will no longer be able to sign in.`,
+      confirmLabel: 'Deactivate',
       danger:       true,
     }).subscribe(confirmed => {
       if (!confirmed) return;
@@ -400,12 +393,12 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
       this.staffStore.bulkDeactivate(ids).subscribe({
         next: (r) => {
           this.bulkSaving.set(false);
-          this.toast.success(this.translate.instant('staff.bulkDeactivatedToast', { n: r.count }));
+          this.toast.success(`${r.count} staff deactivated.`);
           this.afterBulk();
         },
         error: (e) => {
           this.bulkSaving.set(false);
-          this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
+          this.toast.error(e?.error?.error ?? 'Bulk action failed.');
         },
       });
     });

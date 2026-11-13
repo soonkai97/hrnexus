@@ -1,9 +1,9 @@
 ﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
-    <h1 class="page-title">{{ 'staff.title' | translate }}</h1>
+    <h1 class="page-title">Staff</h1>
     @if (!showForm()) {
       <div class="d-flex gap-2">
-        <p-button icon="pi pi-plus" [label]="'staff.addStaff' | translate" severity="primary" (click)="openAdd()" />
+        <p-button icon="pi pi-plus" label="Add Staff" severity="primary" (click)="openAdd()" />
       </div>
     }
   </div>
@@ -14,82 +14,82 @@
 
   <!-- Add staff dialog -->
   <p-dialog [visible]="showForm()" (visibleChange)="!$event && closeForm()"
-            [header]="'staff.newStaffMember' | translate" [modal]="true"
+            header="New Staff Member" [modal]="true"
             [style]="{'width':'min(760px, 96vw)'}" [draggable]="false" [closable]="true" appendTo="body">
       <div class="row g-3">
         <div class="col-12 col-md-6 field">
-          <label for="st-staff-id"><span class="req">*</span> {{ 'staff.staffId' | translate }}</label>
-          <input id="st-staff-id" pInputText type="text" [(ngModel)]="newStaff.staffId" [placeholder]="'staff.staffIdPlaceholder' | translate" maxlength="20" style="text-transform:uppercase"
+          <label for="st-staff-id"><span class="req">*</span> Staff ID</label>
+          <input id="st-staff-id" pInputText type="text" [(ngModel)]="newStaff.staffId" placeholder="e.g. NC1001" maxlength="20" style="text-transform:uppercase"
                  (blur)="markTouched('staffId')" [class.input-invalid]="!!fieldError('staffId')" />
           @if (fieldError('staffId'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-first-name"><span class="req">*</span> {{ 'staff.firstName' | translate }}</label>
-          <input id="st-first-name" pInputText type="text" [(ngModel)]="newStaff.firstName" [placeholder]="'staff.firstNamePlaceholder' | translate" maxlength="100"
+          <label for="st-first-name"><span class="req">*</span> First Name</label>
+          <input id="st-first-name" pInputText type="text" [(ngModel)]="newStaff.firstName" placeholder="e.g. Marcus" maxlength="100"
                  (blur)="markTouched('firstName')" [class.input-invalid]="!!fieldError('firstName')" />
           @if (fieldError('firstName'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-last-name">{{ 'staff.lastName' | translate }}</label>
-          <input id="st-last-name" pInputText type="text" [(ngModel)]="newStaff.lastName" [placeholder]="'staff.lastNamePlaceholder' | translate" maxlength="100" />
+          <label for="st-last-name">Last Name</label>
+          <input id="st-last-name" pInputText type="text" [(ngModel)]="newStaff.lastName" placeholder="e.g. Torres" maxlength="100" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-email">{{ 'staff.email' | translate }}</label>
-          <input id="st-email" pInputText type="email" [(ngModel)]="newStaff.email" [placeholder]="'staff.emailPlaceholder' | translate" maxlength="254" autocomplete="off"
+          <label for="st-email">Email</label>
+          <input id="st-email" pInputText type="email" [(ngModel)]="newStaff.email" placeholder="staff@venue.com" maxlength="254" autocomplete="off"
                  (blur)="markTouched('email')" [class.input-invalid]="!!fieldError('email')" />
           @if (fieldError('email'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-roles">{{ 'staff.roles' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.rolesHint' | translate }}</span></label>
+          <label for="st-roles">Jobs <span style="color:var(--p-text-muted-color);font-weight:400">(select all that apply)</span></label>
           <p-multiselect
             inputId="st-roles"
             [(ngModel)]="newStaff.roles"
             [options]="roleOptions()"
             optionLabel="label"
             optionValue="value"
-            [placeholder]="'staff.selectRoles' | translate"
+            placeholder="Select job(s)…"
             [filter]="true"
             display="chip"
             [maxSelectedLabels]="50"
             styleClass="w-full" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-phone-number">{{ 'staff.phoneNumber' | translate }}</label>
-          <input id="st-phone-number" pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" [placeholder]="'staff.phonePlaceholder' | translate" maxlength="20" />
+          <label for="st-phone-number">Phone Number</label>
+          <input id="st-phone-number" pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" placeholder="e.g. +60 11-1234 5678" maxlength="20" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-initial-password"><span class="req">*</span> {{ 'staff.initialPassword' | translate }}</label>
+          <label for="st-initial-password"><span class="req">*</span> Initial Password</label>
           <div class="pwd-wrap">
             <input id="st-initial-password" pInputText [type]="showNewStaffPwd() ? 'text' : 'password'"
                    [(ngModel)]="newStaff.password"
-                   [placeholder]="showNewStaffPwd() ? ('staff.minChars' | translate) : ''"
+                   [placeholder]="showNewStaffPwd() ? 'Min. 6 characters' : ''"
                    autocomplete="new-password" class="w-full"
                    (blur)="markTouched('password')" [class.input-invalid]="!!fieldError('password')" />
             <span class="eye-btn" role="button" tabindex="0"
-                  [attr.aria-label]="(showNewStaffPwd() ? 'auth.hidePassword' : 'auth.showPassword') | translate"
+                  [attr.aria-label]="(showNewStaffPwd() ? 'Hide password' : 'Show password')"
                   (click)="showNewStaffPwd.set(!showNewStaffPwd())"
                   (keydown.enter)="showNewStaffPwd.set(!showNewStaffPwd())">
               <i [class]="showNewStaffPwd() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
             </span>
           </div>
-          <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
-            <li [class.met]="pwdChecks.minLength"><i [class]="pwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>
+          <ul class="pwd-reqs" aria-label="Password requirements">
+            <li [class.met]="pwdChecks.minLength"><i [class]="pwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> At least 6 characters</li>
           </ul>
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-ic-no">{{ 'staff.icNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.icNoHint' | translate }}</span></label>
-          <input id="st-ic-no" pInputText type="text" [(ngModel)]="newStaff.icNo" [placeholder]="'staff.icNoPlaceholder' | translate" />
+          <label for="st-ic-no">IC No <span style="font-weight:400;font-size:0.72rem;text-transform:none">(Malaysian)</span></label>
+          <input id="st-ic-no" pInputText type="text" [(ngModel)]="newStaff.icNo" placeholder="e.g. 990101-01-1234" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-passport-no">{{ 'staff.passportNo' | translate }} <span style="font-weight:400;font-size:0.72rem;text-transform:none">{{ 'staff.passportNoHint' | translate }}</span></label>
-          <input id="st-passport-no" pInputText type="text" [(ngModel)]="newStaff.passportNo" [placeholder]="'staff.passportNoPlaceholder' | translate" />
+          <label for="st-passport-no">Passport No <span style="font-weight:400;font-size:0.72rem;text-transform:none">(Overseas)</span></label>
+          <input id="st-passport-no" pInputText type="text" [(ngModel)]="newStaff.passportNo" placeholder="e.g. A12345678" />
         </div>
         <div class="col-12 col-md-6 field">
           <div class="d-flex justify-content-between align-items-center">
-            <label for="st-date-of-birth">{{ 'staff.dateOfBirth' | translate }}</label>
+            <label for="st-date-of-birth">Date of Birth</label>
             @if (newStaff.dateOfBirth) {
               <button type="button" class="dob-clear-link" (click)="newStaff.dateOfBirth = null">
-                <i class="pi pi-times"></i> {{ 'common.clear' | translate }}
+                <i class="pi pi-times"></i> Clear
               </button>
             }
           </div>
@@ -105,8 +105,8 @@
         </div>
       </div>
       <ng-template pTemplate="footer">
-        <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="closeForm()" />
-        <p-button [label]="saving() ? ('common.saving' | translate) : ('staff.saveStaff' | translate)"
+        <p-button label="Cancel" [text]="true" severity="secondary" (click)="closeForm()" />
+        <p-button [label]="saving() ? 'Saving…' : 'Save Staff'"
                   severity="primary" (click)="saveStaff()" [disabled]="saving() || !isFormValid" [loading]="saving()" />
       </ng-template>
   </p-dialog>
@@ -115,7 +115,7 @@
   <div class="search-wrap">
     <p-iconfield>
       <p-inputicon styleClass="pi pi-search" />
-      <input pInputText type="text" [placeholder]="'staff.searchPlaceholder' | translate"
+      <input pInputText type="text" placeholder="Search by name, job or staff ID…"
              [value]="search()" (input)="onSearch($any($event.target).value)" />
       @if (search()) {
         <p-inputicon styleClass="pi pi-times search-clear" style="cursor:pointer;pointer-events:all" (click)="onSearch('')" />
@@ -125,19 +125,19 @@
 
   <!-- Bulk actions -->
   <div class="bulk-toolbar d-flex align-items-center gap-2 flex-wrap">
-    <p-button [label]="bulkSelecting() ? ('common.cancel' | translate) : ('staff.bulkSelect' | translate)"
+    <p-button [label]="bulkSelecting() ? 'Cancel' : 'Bulk select'"
               [icon]="bulkSelecting() ? 'pi pi-times' : 'pi pi-check-square'"
               [text]="true" severity="secondary" size="small" (onClick)="toggleBulkMode()" />
     @if (bulkSelecting()) {
-      <span class="bulk-count">{{ 'staff.bulkSelected' | translate:{ n: selectedCount() } }}</span>
-      <p-button [label]="'staff.bulkAssignRoles' | translate" icon="pi pi-id-card"
+      <span class="bulk-count">{{ selectedCount() }} selected</span>
+      <p-button label="Assign jobs" icon="pi pi-id-card"
                 size="small" severity="secondary" [outlined]="true"
                 [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="openBulkRoles()" />
-      <p-button [label]="'staff.bulkDeactivate' | translate" icon="pi pi-power-off"
+      <p-button label="Deactivate" icon="pi pi-power-off"
                 size="small" severity="danger" [outlined]="true"
                 [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="bulkDeactivateSelected()" />
     }
-    <p-button [label]="(showHidden() ? 'staff.hideHidden' : 'staff.showHidden') | translate"
+    <p-button [label]="(showHidden() ? 'Hide hidden' : 'Show hidden')"
               [icon]="showHidden() ? 'pi pi-eye-slash' : 'pi pi-eye'"
               [text]="true" severity="secondary" size="small" class="ms-md-auto"
               (onClick)="toggleShowHidden()" />
@@ -164,7 +164,7 @@
     <p-card styleClass="empty-state">
       <div class="empty-inner d-flex flex-column align-items-center gap-2">
         <span><i class="pi pi-users"></i></span>
-        <p>{{ 'staff.noStaffFound' | translate }}</p>
+        <p>No staff found.</p>
       </div>
     </p-card>
   } @else {
@@ -176,12 +176,12 @@
           @if (bulkSelecting()) {
             <th scope="col" class="td-check">
               <p-checkbox [binary]="true" [ngModel]="allVisibleSelected()" (onChange)="toggleSelectAll()"
-                          [attr.aria-label]="'staff.bulkSelectAll' | translate" />
+                          aria-label="Select all on this page" />
             </th>
           }
-          <th scope="col" pSortableColumn="staffId">{{ 'staff.staffId' | translate }} <p-sortIcon field="staffId" /></th>
-          <th scope="col" pSortableColumn="firstName">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }} <p-sortIcon field="firstName" /></th>
-          <th scope="col" pSortableColumn="isActive">{{ 'staff.statusCol' | translate }} <p-sortIcon field="isActive" /></th>
+          <th scope="col" pSortableColumn="staffId">Staff ID <p-sortIcon field="staffId" /></th>
+          <th scope="col" pSortableColumn="firstName">First Name / Last Name <p-sortIcon field="firstName" /></th>
+          <th scope="col" pSortableColumn="isActive">Status <p-sortIcon field="isActive" /></th>
           <th scope="col" class="td-actions"></th>
         </tr>
       </ng-template>
@@ -189,27 +189,27 @@
         <tr>
           @if (bulkSelecting()) {
             <td class="td-check">
-              <span class="p-column-title">{{ 'staff.bulkSelect' | translate }}</span>
+              <span class="p-column-title">Bulk select</span>
               <p-checkbox [binary]="true" [ngModel]="selectedIds().has(s.id)" (onChange)="toggleSelect(s.id)"
-                          [attr.aria-label]="('staff.actionsFor' | translate:{ name: s.fullName })" />
+                          [attr.aria-label]="('Actions for ' + (s.fullName))" />
             </td>
           }
-          <td class="td-muted mono"><span class="p-column-title">{{ 'staff.staffId' | translate }}</span>{{ s.staffId }}</td>
+          <td class="td-muted mono"><span class="p-column-title">Staff ID</span>{{ s.staffId }}</td>
           <td>
-            <span class="p-column-title">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }}</span>
+            <span class="p-column-title">First Name / Last Name</span>
             <a [routerLink]="['/staff', s.id]" class="staff-name-link">{{ s.fullName }}</a>
             @if (s.isHidden) {
-              <p-tag [value]="'staff.hiddenBadge' | translate" severity="warn" styleClass="ms-2" />
+              <p-tag value="Hidden" severity="warn" styleClass="ms-2" />
             }
           </td>
           <td>
-            <span class="p-column-title">{{ 'staff.statusCol' | translate }}</span>
-            <p-tag [value]="s.isActive ? ('common.active' | translate) : ('common.inactive' | translate)"
+            <span class="p-column-title">Status</span>
+            <p-tag [value]="s.isActive ? 'Active' : 'Inactive'"
                    [severity]="s.isActive ? 'success' : 'secondary'" />
           </td>
           <td class="td-actions">
             <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small" rounded
-                      [attr.aria-label]="'staff.actionsFor' | translate:{ name: s.fullName }"
+                      [attr.aria-label]="('Actions for ' + (s.fullName))"
                       (click)="openStaffMenu(s, $event)" />
           </td>
         </tr>
@@ -232,29 +232,29 @@
 <p-dialog
   [visible]="!!resetPassTarget()"
   (visibleChange)="!$event && closeResetPassword()"
-  [header]="'staff.resetPasswordTitle' | translate"
+  header="Reset Password"
   [modal]="true"
   [style]="{'width':'min(440px, 92vw)'}"
   [draggable]="false" [closable]="true" appendTo="body">
 
   @if (resetPassTarget()) {
     <p class="modal-desc">
-      {{ 'staff.resetPasswordDesc' | translate:{ name: resetPassTarget()!.name } }}
+      Set a new password for {{ resetPassTarget()!.name }}. After saving, inform them of the new password verbally — they will be prompted to change it on next login.
     </p>
 
     <div class="field">
-      <label for="st-new-password">{{ 'staff.newPassword' | translate }}</label>
+      <label for="st-new-password">New Password</label>
       <p-password inputId="st-new-password" [(ngModel)]="newPassword" [feedback]="false" [toggleMask]="true"
-                  [placeholder]="'staff.minChars' | translate" autocomplete="new-password" />
-      <ul class="pwd-reqs" [attr.aria-label]="'changePassword.reqAria' | translate">
-        <li [class.met]="resetPwdChecks.minLength"><i [class]="resetPwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> {{ 'changePassword.reqMinLength' | translate }}</li>
+                  placeholder="Min. 6 characters" autocomplete="new-password" />
+      <ul class="pwd-reqs" aria-label="Password requirements">
+        <li [class.met]="resetPwdChecks.minLength"><i [class]="resetPwdChecks.minLength ? 'pi pi-check-circle' : 'pi pi-circle'"></i> At least 6 characters</li>
       </ul>
     </div>
   }
 
   <ng-template pTemplate="footer">
-    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="closeResetPassword()" />
-    <p-button [label]="savingReset() ? ('common.saving' | translate) : ('staff.saveReset' | translate)"
+    <p-button label="Cancel" [text]="true" severity="secondary" (click)="closeResetPassword()" />
+    <p-button [label]="savingReset() ? 'Saving…' : 'Save & Reset'"
               severity="primary" (click)="saveResetPassword()"
               [disabled]="savingReset() || !isResetPwdValid" [loading]="savingReset()" />
   </ng-template>
@@ -262,18 +262,18 @@
 
 <!-- ── Bulk: Assign Roles Dialog ───────────────────────────────────────────── -->
 <p-dialog [visible]="showBulkRoles()" (visibleChange)="!$event && showBulkRoles.set(false)"
-          [header]="'staff.bulkAssignRoles' | translate" [modal]="true"
+          header="Assign jobs" [modal]="true"
           [style]="{'width':'min(480px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
-  <p class="modal-desc">{{ 'staff.bulkAssignRolesDesc' | translate:{ n: selectedCount() } }}</p>
+  <p class="modal-desc">Add the chosen job(s) to {{ selectedCount() }} selected staff. Existing jobs are kept.</p>
   <div class="field">
-    <label for="bulk-roles">{{ 'staff.roleCol' | translate }}</label>
+    <label for="bulk-roles">Job(s)</label>
     <p-multiselect inputId="bulk-roles" [(ngModel)]="bulkRoles" [options]="roleOptions()"
                    optionLabel="label" optionValue="value" [filter]="true" display="chip"
-                   [placeholder]="'staff.selectRoles' | translate" appendTo="body" styleClass="w-full" />
+                   placeholder="Select job(s)…" appendTo="body" styleClass="w-full" />
   </div>
   <ng-template pTemplate="footer">
-    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulkRoles.set(false)" />
-    <p-button [label]="bulkSaving() ? ('common.saving' | translate) : ('common.apply' | translate)"
+    <p-button label="Cancel" [text]="true" severity="secondary" (click)="showBulkRoles.set(false)" />
+    <p-button [label]="bulkSaving() ? 'Saving…' : 'Apply'"
               severity="primary" (click)="saveBulkRoles()"
               [disabled]="bulkSaving() || !bulkRoles.length" [loading]="bulkSaving()" />
   </ng-template>

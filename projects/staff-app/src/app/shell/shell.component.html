@@ -20,20 +20,20 @@
         [text]="true"
         severity="secondary"
         size="small"
-        [pTooltip]="(collapsed() ? 'shell.expandSidebar' : 'shell.collapseSidebar') | translate"
+        [pTooltip]="(collapsed() ? 'Expand sidebar' : 'Collapse sidebar')"
         tooltipPosition="right"
-        [attr.aria-label]="(collapsed() ? 'shell.expandSidebar' : 'shell.collapseSidebar') | translate"
+        [attr.aria-label]="(collapsed() ? 'Expand sidebar' : 'Collapse sidebar')"
         (onClick)="toggleSidebar()" />
     </div>
 
     <nav class="sidebar-nav">
       @for (item of navItems(); track item.path) {
         <a [routerLink]="item.path" routerLinkActive="active" class="nav-item"
-           [pTooltip]="collapsed() ? (item.labelKey | translate) : ''"
+           [pTooltip]="collapsed() ? (item.label) : ''"
            tooltipPosition="right">
           <span class="nav-icon"><i [class]="item.icon"></i></span>
           @if (!collapsed()) {
-            <span class="nav-label">{{ item.labelKey | translate }}</span>
+            <span class="nav-label">{{ item.label }}</span>
           }
           @if (item.path === '/my-leave' && leaveChangeCount() > 0) {
             <span class="nav-badge">{{ leaveChangeCount() > 99 ? '99+' : leaveChangeCount() }}</span>
@@ -54,23 +54,13 @@
           [text]="true"
           severity="secondary"
           class="mobile-menu-btn"
-          [attr.aria-label]="'shell.openNavMenu' | translate"
+          aria-label="Open navigation menu"
           (onClick)="toggleSidebar()" />
       </div>
       <div class="topbar-right">
         @if (user()) {
           <nc-notification-bell portal="staff" />
           <nc-theme-toggle />
-          <p-button
-            icon="pi pi-globe"
-            [label]="lang.label()"
-            severity="secondary"
-            [outlined]="true"
-            size="small"
-            [pTooltip]="'shell.switchLanguage' | translate"
-            [attr.aria-label]="'shell.switchLanguage' | translate"
-            (onClick)="langMenu.toggle($event)" />
-          <p-menu #langMenu [model]="lang.menuItems()" [popup]="true" appendTo="body" />
           <button class="topbar-avatar" (click)="avatarMenu.toggle($event)" [attr.title]="user()!.fullName">
             {{ initials() }}
           </button>
@@ -80,13 +70,13 @@
     </header>
     @if (isOffline()) {
       <div class="offline-banner">
-        <i class="pi pi-wifi"></i> {{ 'shell.offline' | translate }}
+        <i class="pi pi-wifi"></i> You're offline — showing cached data
       </div>
     }
     @if (pullProgress() > 0) {
       <div class="ptr-indicator" [style.opacity]="pullProgress() / 100">
         <i class="pi pi-refresh" [style.transform]="'rotate(' + (pullProgress() * 3.6) + 'deg)'"></i>
-        <span>{{ (pullProgress() >= 100 ? 'shell.releaseToRefresh' : 'shell.pullToRefresh') | translate }}</span>
+        <span>{{ (pullProgress() >= 100 ? 'Release to refresh' : 'Pull to refresh') }}</span>
       </div>
     }
     <div class="content" #mainContent>
@@ -105,6 +95,6 @@
 @if (signingOut()) {
   <div class="signing-out-overlay" role="status" aria-live="polite">
     <i class="pi pi-spin pi-spinner"></i>
-    <span>{{ 'common.signingOut' | translate }}</span>
+    <span>Signing out…</span>
   </div>
 }

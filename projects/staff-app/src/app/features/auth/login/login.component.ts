@@ -1,17 +1,15 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { Menu } from 'primeng/menu';
-import { AuthService, ThemeToggleComponent, LangService, apiErrorMessage } from 'shared-lib';
+import { AuthService, ThemeToggleComponent, apiErrorMessage } from 'shared-lib';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message, Menu],
+  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, Button, InputText, Message],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -19,8 +17,6 @@ export class LoginComponent {
   private readonly fb     = inject(FormBuilder);
   private readonly auth   = inject(AuthService);
   private readonly router = inject(Router);
-  readonly lang           = inject(LangService);
-  private readonly translate = inject(TranslateService);
 
   form: FormGroup;
   loading  = signal(false);
@@ -37,7 +33,7 @@ export class LoginComponent {
   submit(): void {
     if (this.form.invalid || this.loading()) return;
     const staffId = (this.form.value.staffId as string).trim().toUpperCase();
-    if (!staffId) { this.error.set(this.translate.instant('auth.errEnterStaffId')); return; }
+    if (!staffId) { this.error.set('Please enter your Staff ID.'); return; }
     this.loading.set(true);
     this.error.set('');
     this.auth.login({ ...this.form.value, staffId, portal: 'staff' }).subscribe({
@@ -48,8 +44,8 @@ export class LoginComponent {
         const msg = apiErrorMessage(e) ?? '';
         this.error.set(
           msg.includes('Admin accounts')
-            ? this.translate.instant('auth.errAdminPortal')
-            : this.translate.instant('auth.errInvalidCredentials')
+            ? 'Admin accounts must use the admin portal.'
+            : 'Invalid Staff ID or password.'
         );
         this.loading.set(false);
       },

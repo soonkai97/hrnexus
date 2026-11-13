@@ -1,19 +1,17 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inject, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { merge } from 'rxjs';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, PermissionService, LangService, SignalRService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, PermissionService, SignalRService } from 'shared-lib';
 
 interface NavItem {
   path: string;
-  labelKey: string;
+  label: string;
   icon: string;
   group: string;
   adminOnly?: boolean;
@@ -22,7 +20,7 @@ interface NavItem {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, TranslatePipe, Button, BadgeModule, TooltipModule, Menu],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, Button, BadgeModule, TooltipModule, Menu],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
@@ -74,21 +72,12 @@ export class ShellComponent implements AfterViewInit {
   private readonly auth      = inject(AuthService);
   private readonly router    = inject(Router);
   private readonly signalR   = inject(SignalRService);
-  readonly lang              = inject(LangService);
-  private readonly translate = inject(TranslateService);
   readonly permissions       = inject(PermissionService);
 
-  // Translation files load asynchronously after bootstrap, so instant() inside a computed
-  // returns the raw key on first render. Tick this on translation (re)loads so label
-  // computeds (e.g. the avatar menu) re-evaluate once the file has arrived.
-  private readonly _i18nReady = toSignal(
-    merge(this.translate.onLangChange, this.translate.onDefaultLangChange),
-    { initialValue: null });
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
   constructor() {
     this.permissions.load().subscribe();   // so in-app guards + *ncHasPermission resolve synchronously
-    this.lang.syncFromApi();
     this.signalR.startConnection();
 
     this.router.events.pipe(
@@ -119,19 +108,19 @@ export class ShellComponent implements AfterViewInit {
 
   private readonly allNavItems: NavItem[] = [
     // Grouped + ordered by importance / daily-use frequency: operations → finance → comms → setup.
-    { path: '/dashboard',     labelKey: 'nav.dashboard',     icon: 'pi pi-th-large',  group: 'operations' },
-    { path: '/staff',         labelKey: 'nav.staff',         icon: 'pi pi-users',     group: 'operations' },
-    { path: '/leave',         labelKey: 'nav.leave',         icon: 'pi pi-calendar',  group: 'operations' },
-    { path: '/cash-advances',  labelKey: 'nav.cashAdvances',   icon: 'pi pi-money-bill', group: 'finance' },
-    { path: '/roles',         labelKey: 'nav.roles',         icon: 'pi pi-id-card',   group: 'setup'    },
-    { path: '/payroll-locks',  labelKey: 'nav.payrollLocks',  icon: 'pi pi-lock',      group: 'setup' },
+    { path: '/dashboard',     label: 'Dashboard',     icon: 'pi pi-th-large',  group: 'operations' },
+    { path: '/staff',         label: 'Staff',         icon: 'pi pi-users',     group: 'operations' },
+    { path: '/leave',         label: 'Leave Requests',         icon: 'pi pi-calendar',  group: 'operations' },
+    { path: '/cash-advances',  label: 'Cash Advances',   icon: 'pi pi-money-bill', group: 'finance' },
+    { path: '/roles',         label: 'Jobs',         icon: 'pi pi-id-card',   group: 'setup'    },
+    { path: '/payroll-locks',  label: 'Payroll Locks',  icon: 'pi pi-lock',      group: 'setup' },
   ];
 
   /** Section order for the grouped sidebar. */
   private readonly navGroupOrder = [
-    { key: 'operations', labelKey: 'nav.group.operations' },
-    { key: 'finance',    labelKey: 'nav.group.finance'    },
-    { key: 'setup',      labelKey: 'nav.group.setup'      },
+    { key: 'operations', label: 'Operations' },
+    { key: 'finance',    label: 'Finance'    },
+    { key: 'setup',      label: 'Setup'      },
   ];
 
   navItems = computed(() => {
@@ -145,19 +134,17 @@ export class ShellComponent implements AfterViewInit {
   navGroups = computed(() => {
     const items = this.navItems();
     return this.navGroupOrder
-      .map(g => ({ labelKey: g.labelKey, items: items.filter(i => i.group === g.key) }))
+      .map(g => ({ label: g.label, items: items.filter(i => i.group === g.key) }))
       .filter(g => g.items.length > 0);
   });
 
   readonly avatarMenuItems = computed<MenuItem[]>(() => {
-    this.lang.current(); // re-evaluate labels on language change
-    this._i18nReady();   // re-evaluate once translation files finish loading
     return [
       { label: this.user()?.fullName ?? '', disabled: true },
       { separator: true },
-      { label: this.translate.instant('account.title'), icon: 'pi pi-user', routerLink: '/account' },
+      { label: 'My Account', icon: 'pi pi-user', routerLink: '/account' },
       { separator: true },
-      { label: this.translate.instant('shell.signOut'), icon: 'pi pi-power-off', command: () => this.logout() },
+      { label: 'Sign out', icon: 'pi pi-power-off', command: () => this.logout() },
     ];
   });
 

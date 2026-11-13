@@ -9,7 +9,7 @@ export interface StaffOverride {
 }
 
 /** An ordered, labelled grouping of permission keys for display in the editors. */
-export interface PermissionGroup { labelKey: string; keys: string[]; }
+export interface PermissionGroup { label: string; keys: string[]; }
 
 /** Permission catalog organised into sections (display order). Every catalog key belongs to one. */
 // Mirrors the sidebar nav grouping (Access + Operations / Finance / Communication / Setup) so the
@@ -17,11 +17,44 @@ export interface PermissionGroup { labelKey: string; keys: string[]; }
 // gates: Announcements → Communication, Payroll Locks → Setup, etc. 'access' has no nav page (it's the
 // portal gate). Keep this in lockstep with ShellComponent.navGroupOrder + the page→group assignments.
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
-  { labelKey: 'permissions.groups.access',     keys: ['portal.admin'] },
-  { labelKey: 'permissions.groups.operations', keys: ['staff.view', 'staff.manage', 'leave.approve', 'leave.manage', 'reports.view'] },
-  { labelKey: 'permissions.groups.finance',    keys: ['payroll.view', 'payroll.manage'] },
-  { labelKey: 'permissions.groups.setup',      keys: ['roles.manage', 'payroll.lock'] },
+  { label: 'Access',     keys: ['portal.admin'] },
+  { label: 'Operations', keys: ['staff.view', 'staff.manage', 'leave.approve', 'leave.manage', 'reports.view'] },
+  { label: 'Finance',    keys: ['payroll.view', 'payroll.manage'] },
+  { label: 'Setup',      keys: ['roles.manage', 'payroll.lock'] },
 ];
+
+/** Display names and one-line explanations for each catalog permission key. */
+export const PERMISSION_LABELS: Readonly<Record<string, string>> = {
+  'cashadvance.manage': 'Manage cash advances',
+  'portal.admin': 'Admin portal access',
+  'staff.view': 'View staff',
+  'staff.manage': 'Manage staff',
+  'leave.approve': 'Approve leave',
+  'leave.manage': 'Manage leave entitlements',
+  'reports.view': 'View reports',
+  'payroll.view': 'View payroll',
+  'payroll.manage': 'Manage payroll',
+  'payroll.lock': 'Lock payroll periods',
+  'roles.manage': 'Manage jobs & permissions',
+};
+
+export const PERMISSION_DESCRIPTIONS: Readonly<Record<string, string>> = {
+  'cashadvance.manage': 'Record and settle staff cash advances.',
+  'portal.admin': 'Sign in to this management portal. Without it, the account can only use the staff app.',
+  'staff.view': 'See the staff list and open staff profiles (read-only).',
+  'staff.manage': 'Add, edit, deactivate staff and reset their passwords.',
+  'leave.approve': 'Approve or reject leave requests, and record leave for staff.',
+  'leave.manage': "Set each staff member's yearly leave entitlement (annual / sick hours).",
+  'reports.view': 'Open the Reports page and download attendance CSV exports.',
+  'payroll.view': 'Open the Payroll report (hours × hourly rate per staff).',
+  'payroll.manage': 'Export the payroll data to CSV.',
+  'payroll.lock': 'Lock or reopen a month to freeze its shift logs.',
+  'roles.manage': 'Create jobs, set their hourly rate, and assign these permissions.',
+};
+
+/** Falls back to the raw key so an unlisted permission is never shown blank. */
+export const permissionLabel = (key: string): string => PERMISSION_LABELS[key] ?? key;
+export const permissionDescription = (key: string): string => PERMISSION_DESCRIPTIONS[key] ?? '';
 
 /**
  * Projects a flat set of visible permission keys onto the ordered groups, keeping only the keys
@@ -31,11 +64,11 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
 export function groupedPermissions(visibleKeys: string[]): PermissionGroup[] {
   const set = new Set(visibleKeys);
   const grouped = PERMISSION_GROUPS
-    .map(g => ({ labelKey: g.labelKey, keys: g.keys.filter(k => set.has(k)) }))
+    .map(g => ({ label: g.label, keys: g.keys.filter(k => set.has(k)) }))
     .filter(g => g.keys.length > 0);
   const known = new Set(PERMISSION_GROUPS.flatMap(g => g.keys));
   const other = visibleKeys.filter(k => !known.has(k));
-  if (other.length) grouped.push({ labelKey: 'permissions.groups.other', keys: other });
+  if (other.length) grouped.push({ label: 'Other', keys: other });
   return grouped;
 }
 

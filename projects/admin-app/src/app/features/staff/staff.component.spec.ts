@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { StaffComponent } from './staff.component';
 import {
@@ -89,7 +88,6 @@ describe('StaffComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: StaffStore,         useValue: mockStaffStore },
         { provide: AuthService,        useValue: mockAuth },
         { provide: ToastService,       useValue: mockToastSvc },
@@ -129,13 +127,13 @@ describe('StaffComponent', () => {
       component.newStaff.staffId = '';
       expect(component.fieldError('staffId')).toBe('');   // not touched yet
       component.markTouched('staffId');
-      expect(component.fieldError('staffId')).toBe('staff.errStaffIdRequired');
+      expect(component.fieldError('staffId')).toBe('Staff ID is required.');
     });
 
     it('fieldError flags an invalid email but accepts a blank one (optional)', () => {
       component.markTouched('email');
       component.newStaff.email = 'not-an-email';
-      expect(component.fieldError('email')).toBe('staff.errEmailInvalid');
+      expect(component.fieldError('email')).toBe('Enter a valid email address.');
       component.newStaff.email = '';
       expect(component.fieldError('email')).toBe('');
       component.newStaff.email = 'ok@test.com';
@@ -144,7 +142,7 @@ describe('StaffComponent', () => {
 
     it('fieldError clears once a required field is filled', () => {
       component.markTouched('firstName');
-      expect(component.fieldError('firstName')).toBe('staff.errFirstNameRequired');
+      expect(component.fieldError('firstName')).toBe('First name is required.');
       component.newStaff.firstName = 'Alice';
       expect(component.fieldError('firstName')).toBe('');
     });
@@ -305,7 +303,7 @@ describe('StaffComponent', () => {
       component.newStaff.password  = 'Password1!';
       component.newStaff.email     = 'not-an-email';
       component.saveStaff();
-      expect(component.error()).toBe('staff.errEmailInvalidFull');
+      expect(component.error()).toBe('Please enter a valid email address.');
       expect(mockStaffStore.register).not.toHaveBeenCalled();
     });
 
@@ -341,7 +339,7 @@ describe('StaffComponent', () => {
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
-      expect(component.error()).toBe('staff.errSelectRole');
+      expect(component.error()).toBe('Please select at least one job.');
     });
   });
 
@@ -366,7 +364,7 @@ describe('StaffComponent', () => {
 
     it('shows success toast after registering a new staff member', () => {
       fillAndSubmit();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('staff.registered');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Staff registered.');
     });
 
     it('hides the form after successful registration', () => {
@@ -475,7 +473,7 @@ describe('StaffComponent', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       component.ngOnInit();
       component.deleteStaff(makeStaff({ fullName: 'Jane Doe' }));
-      expect(mockToastSvc.success).toHaveBeenCalledWith('staff.deletedToast');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Jane Doe deleted.');
     });
 
     it('does NOT call store.deleteStaff when user cancels the dialog', () => {
@@ -523,7 +521,7 @@ describe('StaffComponent', () => {
     it('shows error toast when toggle fails', () => {
       mockStaffStore.toggleActive.mockReturnValue(throwError(() => new Error('Network')));
       component.toggleActive('s1', false); // activation path (no confirm)
-      expect(mockToastSvc.error).toHaveBeenCalledWith('staff.statusUpdateFailed');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to update status.');
     });
   });
 

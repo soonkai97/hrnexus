@@ -45,7 +45,7 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-hr_nexus};Username=${POSTGRES_USER:-ncuser};Password=${POSTGRES_PASSWORD:-ncpassword}"
       # Web Push (VAPID) — generate keys with: npx web-push generate-vapid-keys
       # Leave empty to disable push notifications without breaking anything
-      WebPush__Subject: "${VAPID_SUBJECT:-mailto:chiansoonkai97@gmail.com}"
+      WebPush__Subject: "${VAPID_SUBJECT:-mailto:admin@example.com}"
       WebPush__PublicKey: "${VAPID_PUBLIC_KEY:-}"
       WebPush__PrivateKey: "${VAPID_PRIVATE_KEY:-}"
       # Observability (Phase 2) — opt-in, empty by default so logs/traces stay local until enabled.

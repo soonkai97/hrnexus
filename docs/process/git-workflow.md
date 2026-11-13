@@ -16,7 +16,7 @@ npm run hooks:install      # sets core.hooksPath=.githooks, pull.ff=only, push.a
 3. `git push` (the first push sets the upstream), open a PR into `master` with the template. The PR title becomes the commit on `master`, so it follows the same format.
 4. The required checks (below) must be green and every review conversation resolved. Non-trivial PRs also get the independent review in `docs/team/PR-REVIEW.md` section 8.
 5. **Squash-merge** (the only allowed method). The branch is deleted on merge. Then `git switch master && git pull`.
-6. Deploy through the manual **Deploy** workflow (see below), then hard-refresh the browser.
+6. Rebuild Docker locally (`docker compose build --no-cache`) and hard-refresh the browser. There is no deploy step while there is no production.
 
 Never push to `master`, never force-push, never commit `.env` or keys. The ruleset and the hooks both enforce this.
 
@@ -85,16 +85,9 @@ JSON
 
 Repository-level auto-merge and delete-branch-on-merge are enabled; enable auto-merge on an individual PR only when you want that PR to merge itself once the checks pass.
 
-## Deploying (manual, approval-gated)
+## No production deployment
 
-`deploy.yml` (Actions -> Deploy -> Run workflow) never runs automatically. It checks that the current tip of `master` passed CI, SSHes to the droplet and runs `./deploy.sh <web|api|all>` (which pulls `master`, rebuilds with `--no-cache`, switches maintenance mode on and off and waits for healthy containers), then calls the health URL. Because `deploy.sh` runs `git pull`, only the tip of `master` can be deployed.
-
-Set up once (Settings -> Environments -> `production`):
-
-1. **Required reviewers:** yourself, so every run waits for an approval. **Deployment branches:** `master` only.
-2. **Environment secrets:** `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` (a dedicated deploy key, authorised on the droplet), `DEPLOY_KNOWN_HOSTS` (output of `ssh-keyscan -t ed25519 <host>`).
-3. **Environment variables:** `DEPLOY_PATH` (for example `/root/hrnexus`), `DEPLOY_HEALTH_URL` (the public `/api/health` URL).
-4. Tick **backup_confirmed** at run time: a release with an EF migration needs a fresh backup and a maintenance window (CLAUDE.md "Production deploy").
+There is currently no production server and no deploy workflow (the manual `deploy.yml` was removed together with the server on 13 Nov 2026). When a server exists, recreate a deploy workflow with the same rules: manual `workflow_dispatch` only, a protected GitHub environment with a required reviewer, deploy keys and host details stored as environment secrets (never in the repository), only the tip of `master` after green CI, and a fresh database backup plus maintenance window for any release with a destructive migration. `deploy.sh` (maintenance mode, `--wait` for healthy containers) and `scripts/backup-db.sh` / `restore-db.sh` stay for that day.
 
 ## Releases
 

@@ -11,6 +11,15 @@ updates:
     directory: /
     schedule: { interval: weekly }
     commit-message: { prefix: "build(deps)" }
+    ignore:
+      # Angular 22 is planned as its own phase (ng update, TypeScript 6), not an automatic bump.
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+      # PrimeNG 22 needs Angular 22 and its licence terms are unchecked; revisit in the Angular 22 phase.
+      - dependency-name: "primeng"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "primeicons"
+        update-types: ["version-update:semver-major"]
     groups:
       angular: { patterns: ["@angular/*", "@angular-devkit/*", "@angular-eslint/*"] }
       primeng: { patterns: ["primeng", "@primeng/*", "primeicons"] }
@@ -23,3 +32,12 @@ updates:
     directories: ["/backend", "/nginx"]
     schedule: { interval: monthly }
     commit-message: { prefix: "build(deps)" }
+    ignore:
+      # Stay on the .NET 10 LTS line; .NET 11 is short-term support.
+      - dependency-name: "dotnet/sdk"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "dotnet/aspnet"
+        update-types: ["version-update:semver-major"]
+      # Stay on an even-numbered Node LTS line; odd majors are not LTS.
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]

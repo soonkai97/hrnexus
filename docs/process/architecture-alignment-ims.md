@@ -55,7 +55,7 @@ SQL Server specifics are excluded (section 2), each with a reason. Sizes: S ≤ 
 | Git hooks | `.githooks/{pre-commit,commit-msg,pre-push}` → `scripts/guard/*.mjs` (+ node tests) | none | S |
 | CI | `ci.yml` (build `-warnaserror`, unit + architecture, integration on SQL service, smoke), `codeql`, `dast`, `e2e`, `release`, `deploy`, `pr-guard`, dependabot | one `ci.yml` (lint, build, unit tests; backend build + test) | M |
 | PR hygiene | PR template with checklist + reviewer roles, `CODEOWNERS`, rulesets, conventional titles | none | S |
-| Docs | `docs/architecture` (backend, frontend, ADRs), `docs/pm`, `docs/qa`, `docs/reviews`, `docs/team`, `TEMPLATE.md`, `TASKS.md` | `docs/process` (phases), `docs/team` (ported), `DEPLOY.md`, CLAUDE.md, STATE.md | S |
+| Docs | `docs/architecture` (backend, frontend, ADRs), `docs/pm`, `docs/qa`, `docs/reviews`, `docs/team`, `TEMPLATE.md`, `TASKS.md` | `docs/process` (phases), `docs/team` (ported), CLAUDE.md, STATE.md | S |
 | Agent team | 19 role agents + PROTOCOL/HANDOFFS/PR-REVIEW | being ported by another worker | done on merge |
 
 ## 2. Not copied (and why)

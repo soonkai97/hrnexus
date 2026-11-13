@@ -10,7 +10,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$COMPOSE_FILES = @("-f", "docker-compose.yml", "-f", "docker-compose.uat.yml")
+$COMPOSE_FILES = @("-f", "docker-compose.yml")
 
 # ── Verify .env exists ────────────────────────────────────────────────────────
 if (-not (Test-Path ".env")) {

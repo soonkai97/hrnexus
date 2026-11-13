@@ -55,21 +55,12 @@ These are different hosts → independent cookie jars → no collision. Bare `lo
 still work for single-portal use and the E2E suite (each test uses one portal), but do **not**
 open both bare-`localhost` portals in one browser — they will collide.
 
-**Production — give each portal its own subdomain** (`admin.<domain>` / `staff.<domain>`), each
-with its own nginx `server_name` block + TLS cert, instead of one host on two ports. Host-only
-cookies are per-exact-host, so separate subdomains can never collide. (The earlier
-same-host-two-ports prod layout — `:443` admin / `:8443` staff — had this collision.)
+Any future deployment should serve each portal on its own hostname (for example `admin.<domain>` and
+`staff.<domain>`) for the same reason: host-only cookies are per exact host, so separate hosts never collide.
 
-**Production deploy (on the server):**
-```bash
-./deploy.sh        # rebuild + restart web only (most common)
-./deploy.sh all    # rebuild + restart web + api
-```
-`deploy.sh` automatically enables maintenance mode before building and removes it after containers are healthy (`--wait`).
-
-> **Full from-scratch provisioning** (new droplet → DuckDNS → Let's Encrypt → cron → Uptime Robot)
-> is documented step-by-step in [`docs/DEPLOY.md`](docs/DEPLOY.md). Use it when re-creating the
-> server; the routine `./deploy.sh` above is for day-to-day deploys onto an already-provisioned box.
+**Deploying:** there is currently no production deployment. On a host that has the Docker stack, `./deploy.sh`
+rebuilds and restarts `web` and `./deploy.sh all` also restarts `api`; it enables maintenance mode first and
+removes it after the containers are healthy (`--wait`).
 
 > **Rule 18**: After any coding session, always commit to GitHub AND rebuild Docker before closing.  
 > See **Rule 18 — Docker and GitHub must always reflect the latest code** in the Process rules section.
@@ -606,104 +597,13 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 
 **No `environment.ts` files.** All config is relative URLs or runtime API calls.
 
-### Production server
+### Deployment status
 
-| Property | Value |
-|---|---|
-| Provider | DigitalOcean droplet `hrnexus-prod` |
-| Region | SGP1 (Singapore) |
-| OS | Ubuntu 24.04 LTS x64 |
-| RAM | 4 GB (Angular `--no-cache` build needs ~1.5 GB; add swap if running closer to 2 GB) |
-| Repo path | `/root/hrnexus` |
-| Domain | `hrnexus.duckdns.org` (DuckDNS free dynamic DNS) |
-| SSL | Let's Encrypt — certs at `/etc/letsencrypt/live/hrnexus.duckdns.org/` |
-
-**Live URLs:**
-- Admin portal: `https://hrnexus.duckdns.org` (port 443)
-- Staff portal: `https://hrnexus.duckdns.org:8443`
-
-> ⚠️ This same-host/two-ports layout shares one auth-cookie jar → admin and staff logins collide
-> in the same browser (see **Access the two portals on DIFFERENT hostnames** above). On the next
-> deploy, serve each portal on its own **subdomain** (`admin.<domain>` / `staff.<domain>`) with a
-> matching `server_name` block + TLS cert so cookies can't collide. Until then, keep admin and
-> staff in separate browsers/profiles.
-- HTTP (80 / 8081) redirects to HTTPS automatically
-
-**Docker Compose setup:**
-Uses `docker-compose.uat.yml` overlay on top of the base `docker-compose.yml`. This overlay:
-- Exposes ports 80, 443, 8081, 8443 on the host
-- Mounts `/etc/letsencrypt` into the nginx container for SSL certs
-- Replaces `nginx.conf` with `nginx.uat.conf` (HTTPS + redirect config)
-- Rewrites CORS to accept `https://hrnexus.duckdns.org` and `https://hrnexus.duckdns.org:8443`
-
-**`.env` file on the server** (never commit — lives at `/root/hrnexus/.env`):
-```
-DOMAIN=hrnexus.duckdns.org
-UAT_HOST=hrnexus.duckdns.org
-JWT_SECRET=<random-long-string-min-32-chars>
-PII_ENCRYPTION_KEY=<random-long-string-min-32-chars>   # encrypts staff IC/passport/phone/DOB at rest
-POSTGRES_USER=ncuser
-POSTGRES_PASSWORD=<password>
-POSTGRES_DB=hr_nexus
-VAPID_SUBJECT=mailto:admin@...
-VAPID_PUBLIC_KEY=<key>
-VAPID_PRIVATE_KEY=<key>
-```
-
-**First-time launch:**
-```bash
-docker compose -f docker-compose.yml -f docker-compose.uat.yml up -d --build
-```
-
-**Routine deploy (after `git push`):**
-```bash
-./deploy.sh          # web only (most common)
-./deploy.sh all      # web + api (when backend changed)
-```
-
-**Firewall (ufw):**
-```bash
-ufw allow 22 && ufw allow 80 && ufw allow 443 && ufw allow 8081 && ufw allow 8443 && ufw enable
-```
-
-**Cron jobs (already configured on server — `crontab -l` to verify):**
-```
-0 2 * * *    /root/hrnexus/scripts/backup-db.sh      >> /var/log/hrnexus-backup.log 2>&1
-0 3 1 */2 *  /root/hrnexus/scripts/renew-cert.sh     >> /var/log/hrnexus-renew.log 2>&1
-*/5 * * * *  /root/hrnexus/scripts/update-duckdns.sh >> /var/log/hrnexus-duckdns.log 2>&1
-```
-
----
-
-### Production infrastructure services
-
-#### DigitalOcean
-- **Droplet** — the VM that runs everything (Docker, nginx, API, Postgres)
-- **Automated Backups** — Weekly full-droplet snapshot (Sunday 8PM–12AM UTC), ~4 weeks retention. Enabled in DO dashboard → droplet → Backups. Restoring from a snapshot reverts the entire server (OS + Docker volumes + data).
-- **Dashboard**: https://cloud.digitalocean.com → Droplets → `hrnexus-prod`
-- Use for: resizing the droplet, viewing bandwidth/CPU graphs, restoring from snapshot, SSH console fallback
-
-#### DuckDNS (free dynamic DNS)
-- **Purpose**: maps `hrnexus.duckdns.org` to the droplet's public IP. DigitalOcean droplets get a static IP, but DuckDNS is used as the domain provider (free alternative to buying a domain).
-- **Dashboard**: https://www.duckdns.org — log in with Google to see the token and update the IP manually if needed
-- **Auto-update cron**: `scripts/update-duckdns.sh` runs every 5 minutes and pings `https://www.duckdns.org/update?domains=hrnexus&token=<TOKEN>&ip=` — DuckDNS auto-detects the caller's public IP. The `DUCKDNS_TOKEN` is stored in `.env` (or hardcoded in the script — check the script for the actual location).
-- If DNS stops resolving, check: (1) cron log `/var/log/hrnexus-duckdns.log`, (2) DuckDNS dashboard to verify the IP is current, (3) `curl "https://www.duckdns.org/update?domains=hrnexus&token=<TOKEN>&ip="` manually on the server.
-
-#### Let's Encrypt (SSL)
-- **Certs**: `/etc/letsencrypt/live/hrnexus.duckdns.org/fullchain.pem` and `privkey.pem` — mounted read-only into the nginx container
-- **Renewal cron**: `scripts/renew-cert.sh` runs on the 1st of every other month at 3AM (`0 3 1 */2 *`). It runs `certbot renew` and then reloads nginx to pick up the new cert.
-- **Cert expiry**: 90-day validity. The every-2-month cron gives a comfortable renewal window. If Uptime Robot starts alerting on SSL errors, check: `certbot certificates` on the server.
-- **First-time issuance** was done with: `certbot certonly --standalone -d hrnexus.duckdns.org` (nginx stopped during issuance)
-
-#### Uptime Robot (free uptime monitoring)
-- **Purpose**: pings the live URLs every 5 minutes and sends email alerts when the site goes down or SSL expires
-- **Dashboard**: https://uptimerobot.com — log in to see monitor status and alert history
-- **Monitors configured**:
-  - Admin portal `https://hrnexus.duckdns.org` (HTTP monitor, port 443)
-  - Staff portal `https://hrnexus.duckdns.org:8443` (HTTP monitor, port 8443)
-- **Alerts**: sent by email when a monitor goes down or comes back up; also shows SSL cert expiry warnings ~30 days before expiry
-- **Free tier limits**: up to 50 monitors, 5-minute check interval — sufficient for this project
-- If an alert fires: SSH into the server, run `docker compose ps` to check container health, then `docker compose logs web` or `docker compose logs api` for errors
+There is currently **no production deployment** (the server was removed on 13 Nov 2026). When one exists:
+run the base `docker-compose.yml` with the variables in `.env.example` (never commit `.env`), use
+`./deploy.sh`, and recreate a deploy workflow as described in `docs/process/git-workflow.md`.
+Production keys (`JWT_SECRET`, `PII_ENCRYPTION_KEY`, database password, VAPID keys) come from the server
+environment only. **Never change `PII_ENCRYPTION_KEY` once data is encrypted.**
 
 ---
 
@@ -737,7 +637,7 @@ SignalR uses its own fetch for `/hubs/negotiate` — it bypasses `HttpClient` an
 | File | Role |
 |---|---|
 | `nginx/maintenance.html` | Maintenance page — dark glassmorphism, animated gears, elapsed timer, 30s health poll |
-| `nginx/nginx.conf` / `nginx.uat.conf` | `if (-f /tmp/maintenance/on)` checks in every location block |
+| `nginx/nginx.conf` | `if (-f /tmp/maintenance/on)` checks in every location block |
 | `maintenance/` | Host directory bind-mounted to `/tmp/maintenance` in the nginx container; `on` file is git-ignored |
 | `deploy.sh` | Creates/removes `maintenance/on`; uses `--wait` |
 | `shared-lib/auth/maintenance.interceptor.ts` | `HttpInterceptorFn` — catches 503 and redirects |
@@ -747,22 +647,11 @@ SignalR uses its own fetch for `/hubs/negotiate` — it bypasses `HttpClient` an
 
 ## Backup & recovery
 
-Two layers are in place on the production server:
+Take a database backup before any deployment that holds data or runs a data-dropping migration.
 
-### 1. DigitalOcean Automated Backups (weekly)
-- Full droplet snapshot every **Sunday 8PM–12AM UTC**
-- Keeps ~4 weeks of snapshots
-- Use for: entire server loss / OS corruption
-- Restore: DigitalOcean dashboard → restore droplet
-
-### 2. Daily PostgreSQL dump (cron)
-- Script: `scripts/backup-db.sh` — `pg_dump` → gzipped file in `/opt/hrnexus/backups/`
-- Keeps last **7 days** of dumps
-- Cron on prod server: `0 2 * * * /root/hrnexus/scripts/backup-db.sh >> /var/log/hrnexus-backup.log 2>&1`
-- Use for: accidental data deletion, migration gone wrong — surgical DB restore without touching the server
-- Restore: `scripts/restore-db.sh /opt/hrnexus/backups/hrnexus_YYYYMMDD_HHMMSS.sql.gz` (prompts "YES" confirmation, destructive)
-
-All three cron jobs are documented in the **Production infrastructure services → DuckDNS / Let's Encrypt / DigitalOcean** section above.
+- Script: `scripts/backup-db.sh` — `pg_dump` → gzipped file in `/opt/hrnexus/backups/`, keeps the last **7 days**; schedule it with cron on the host.
+- Restore: `scripts/restore-db.sh <file>.sql.gz` (prompts "YES" confirmation, destructive).
+- Whole-server snapshots depend on the hosting provider and are set up when a server exists.
 
 ---
 
@@ -813,25 +702,20 @@ Do **not** duplicate these at the API — doing so produces invalid doubled head
   The `EncryptStaffPii` migration changes DOB `timestamptz → text`; deploy it in a maintenance
   window with a fresh DB backup.
 
-### Enabling Seq in prod (opt-in)
-Seq has **no authentication** in the free tier, so it's loopback-bound + behind ufw — reach the UI
-**only via an SSH tunnel**, never a public port.
+### Enabling Seq (opt-in)
+Seq has **no authentication** in the free tier, so it is loopback-bound — reach the UI **only through an SSH
+tunnel**, never a public port.
 
 ```bash
-# On the droplet — add to /root/hrnexus/.env:
-#   SEQ_SERVER_URL=http://seq
-#   OTEL_EXPORTER_OTLP_ENDPOINT=http://seq/ingest/otlp/v1/traces   # optional traces
-cd /root/hrnexus
-docker compose -f docker-compose.yml -f docker-compose.uat.yml --profile observability up -d
+# Add to .env:  SEQ_SERVER_URL=http://seq   (optional traces: OTEL_EXPORTER_OTLP_ENDPOINT=http://seq/ingest/otlp/v1/traces)
+docker compose --profile observability up -d
 
 # From your laptop — tunnel, then browse http://localhost:5341:
-ssh -L 5341:localhost:5341 root@hrnexus.duckdns.org
+ssh -L 5341:localhost:5341 <user>@<host>
 ```
-Disable: remove `SEQ_SERVER_URL` from `.env`, `… up -d` (recreates api without the sink), then
-`… --profile observability stop seq`. Future `./deploy.sh` runs don't stop an already-running `seq`
-(profiles only affect what a command targets) and the api keeps shipping logs (env lives in `.env`).
-Seq uses ~150–300 MB RAM (fine on the 4 GB droplet). Seq stores logs + traces, not metrics — point
-`OTEL_EXPORTER_OTLP_ENDPOINT` at a real OTLP collector if you later want metrics dashboards.
+Disable: remove `SEQ_SERVER_URL` from `.env`, `docker compose up -d` (recreates api without the sink), then
+`docker compose --profile observability stop seq`. Seq uses ~150–300 MB RAM and stores logs + traces, not
+metrics: point `OTEL_EXPORTER_OTLP_ENDPOINT` at a real OTLP collector if you later want metrics dashboards.
 
 ---
 
@@ -1029,8 +913,8 @@ docker compose build web --no-cache
 docker compose up -d web
 ```
 
-**Workflow:** feature branch → commit → PR → squash-merge into `master`. The app is live in
-production, so `master` only advances through merged PRs. Auto mode **blocks** `git push origin master`
+**Workflow:** feature branch → commit → PR → squash-merge into `master`. There is currently no production
+deployment and the manual deploy workflow no longer exists, but `master` still only advances through merged PRs. Auto mode **blocks** `git push origin master`
 (bypasses PR review) but allows feature-branch push, `gh pr create`, and `gh pr merge` — so the PR flow
 is the path of least friction. (This supersedes the earlier "push to master" instruction.)
 

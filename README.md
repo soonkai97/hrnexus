@@ -77,7 +77,7 @@ npx ng serve staff-app            # http://localhost:4201
 ```
 
 Seeded development accounts are created by `SeedData` on first start. They exist for local databases only:
-change or remove them before exposing any instance, and see [docs/DEPLOY.md](docs/DEPLOY.md) for production.
+change or remove them before exposing any instance.
 
 ## Test
 
@@ -108,7 +108,6 @@ deploy are in [docs/process/git-workflow.md](docs/process/git-workflow.md).
 | `codeql.yml` | PR, weekly | CodeQL for C# and TypeScript |
 | `dast.yml` | scheduled, manual | OWASP ZAP baseline scan |
 | `release.yml` | tag `v*` | GitHub release |
-| `deploy.yml` | manual only | environment-gated deploy to the production server |
 
 ## Auth and permissions
 

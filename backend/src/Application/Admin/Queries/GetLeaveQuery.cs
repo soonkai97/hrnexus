@@ -1,7 +1,7 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Common;
+﻿using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Application.Admin.Queries;
 

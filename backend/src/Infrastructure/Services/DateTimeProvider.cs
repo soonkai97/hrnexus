@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Options;
-using HRNexus.Application.Common;
+﻿using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace HRNexus.Infrastructure.Services;
 

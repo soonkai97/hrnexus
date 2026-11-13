@@ -1,8 +1,8 @@
 ﻿using Hangfire;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace HRNexus.Infrastructure.Jobs;
 

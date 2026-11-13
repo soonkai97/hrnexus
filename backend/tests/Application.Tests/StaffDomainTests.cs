@@ -1,6 +1,6 @@
 ﻿using HRNexus.Application.Tests.Infrastructure;
-using E = HRNexus.Domain.Entities;
 using Xunit;
+using E = HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Tests;
 

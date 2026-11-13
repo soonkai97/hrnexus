@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using HRNexus.Infrastructure.Persistence;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace HRNexus.Api.Health;
 

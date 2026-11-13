@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using HRNexus.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HRNexus.Api.Authorization;
 

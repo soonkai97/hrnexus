@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HRNexus.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Common.Interfaces;
 

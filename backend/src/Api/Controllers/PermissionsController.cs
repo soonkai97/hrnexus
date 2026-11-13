@@ -1,8 +1,8 @@
+using HRNexus.Application.Permissions.Commands;
+using HRNexus.Application.Permissions.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HRNexus.Application.Permissions.Commands;
-using HRNexus.Application.Permissions.Queries;
 
 namespace HRNexus.Api.Controllers;
 

@@ -1,6 +1,6 @@
 using System.Globalization;
-using Microsoft.EntityFrameworkCore;
 using HRNexus.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Application.Common;
 

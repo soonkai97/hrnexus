@@ -103,14 +103,14 @@ Order = cheapest and highest-leverage first; big rewrites last. Each phase follo
 | **12d** Dispatcher swap | Replace MediatR registrations with the dispatcher, bulk-mechanical (`bulk-editor` agent), remove package | all tests green; no `MediatR` reference | M |
 | **12e** Cursor pagination + opaque cursors | `ICursorProtector`, seek lists for audit, notifications, leave history | cursor tamper tests | M |
 | **12f** Public-id policy | Confirm Q1; document "Guid Id is the public id", add the OpenAPI "every id is a uuid" test, 404 for out-of-scope ids | test green | S |
-| **12g** UI kit | Per Q2: `app-*` facades over PrimeNG in `shared/ui`, token rename, contrast script | contrast checks pass | M-XL |
+| **12g** UI kit | Per the 13 Nov 2026 PrimeNG decision: `app-*` kit and facades over PrimeNG in `shared/ui`, token rename, contrast script | contrast checks pass | M-XL |
 
 Per-phase rule: a phase that changes the API wire format (7d, 7e, 12b) ships FE + E2E changes in the same PR; DB migrations follow the CLAUDE.md maintenance-window rule.
 
 ## 5. Open questions (ranked)
 
 1. **Ids:** keep HRNexus's existing random `Guid` primary keys as the public ids (no int-key + `PublicId` hybrid)? On PostgreSQL the hybrid's clustered-index rationale does not apply and the migration is XL. Recommended: yes, keep.
-2. **UI:** IMS builds its own `app-*` kit and bans component libraries; HRNexus uses PrimeNG 21. Replace it (XL) or wrap PrimeNG behind `shared/ui` facades? Recommended: wrap.
+2. **UI:** IMS builds its own `app-*` kit and bans component libraries; HRNexus uses PrimeNG 21. Replace it (XL) or wrap PrimeNG behind `shared/ui` facades? Recommended: wrap. **Decision 13 Nov 2026:** PrimeNG 22 is published by PrimeUI and shows an 'Invalid PrimeUI License' badge unless a license is configured, and Angular 22 requires it. HRNexus stays on Angular 21 + PrimeNG 21 (MIT, security fixes only; PR #81 closed). Because that line gets no new features and blocks Angular 22, the long-term direction is the IMS-style own `app-*` kit (phase 12g), replacing PrimeNG gradually behind `shared/ui` facades.
 3. **Pause for alignment:** run 7b-7g (about 6-8 days) before Phase 8, or interleave (7b-7e now, 7f-7g in parallel with Phase 8 design)? Recommended: 7b-7f first, 7g in parallel.
 4. **Test stack / Angular version:** IMS uses Jest + Spectator on Angular 22; HRNexus uses Vitest on Angular 21. Keep Vitest and stay on 21 until the standard is migrated?
 5. **Database:** confirm HRNexus stays on PostgreSQL 17 (IMS is SQL Server), with `xmin` and advisory locks as the equivalents.

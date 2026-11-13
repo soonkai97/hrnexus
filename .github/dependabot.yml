@@ -35,13 +35,31 @@ updates:
     schedule: { interval: weekly }
     commit-message: { prefix: "build(deps)" }
     ignore:
-      # Angular 22 is planned as its own phase (ng update, TypeScript 6), not an automatic bump.
+      # Stay on Angular 21: Angular 22 needs PrimeNG 22, which is published by PrimeUI and shows an
+      # 'Invalid PrimeUI License' badge unless a license is configured. PrimeNG 21 stays MIT.
       - dependency-name: "@angular/*"
         update-types: ["version-update:semver-major"]
-      # PrimeNG 22 needs Angular 22 and its licence terms are unchecked; revisit in the Angular 22 phase.
       - dependency-name: "primeng"
         update-types: ["version-update:semver-major"]
       - dependency-name: "primeicons"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@primeuix/*"
+        update-types: ["version-update:semver-major"]
+      # Tooling that moves with the Angular major (angular-eslint 22, ng-packagr 22, TypeScript 6).
+      - dependency-name: "angular-eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@angular-eslint/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "ng-packagr"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # vitest 5 and jsdom 31 are held with the Angular major until the test stack is re-checked.
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jsdom"
         update-types: ["version-update:semver-major"]
       # ngx-translate is removed in the English-only phase (7i), so do not upgrade it.
       - dependency-name: "@ngx-translate/*"

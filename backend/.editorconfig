@@ -1,6 +1,36 @@
 root = true
 
 [*.cs]
+indent_style = space
+indent_size = 4
+
+# ── Style parity with the IMS standard (github.com/soonkai97/IMS) ────────────────────────────────────
+# `suggestion` on purpose: they show in the IDE but never fail the build (CI builds with -warnaserror). Raise a
+# rule to `warning` only after the existing code base passes it (about 22 files still use block-scoped namespaces).
+csharp_style_namespace_declarations = file_scoped:suggestion
+csharp_using_directive_placement = outside_namespace:suggestion
+dotnet_sort_system_directives_first = true
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_prefer_braces = when_multiline:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+# Private fields: _camelCase
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel
+dotnet_naming_rule.private_fields_underscore.severity = suggestion
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+# Interfaces start with I
+dotnet_naming_rule.interfaces_start_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_start_with_i.style = begins_with_i
+dotnet_naming_rule.interfaces_start_with_i.severity = suggestion
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.begins_with_i.required_prefix = I
+dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
 # Fail the build on unused using directives (the C# analog of FE's noUnusedLocals for imports).
 dotnet_diagnostic.IDE0005.severity = error
 

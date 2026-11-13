@@ -1,6 +1,6 @@
 # Architecture alignment: HRNexus to the IMS standard
 
-> **Status:** `Draft` (analysis only, nothing changed in code)
+> **Status:** `Draft` (7b guardrails: hooks, CI, git workflow, PR template and CODEOWNERS are done, merged as #57; 7c to 7h and the later phases are pending)
 > **Created:** 2026-11-13 | **Depends on:** Phase 7 (remove shift log)
 > **Reference:** github.com/soonkai97/IMS (`docs/architecture/{backend,frontend,data-and-performance-rules}.md`, ADRs, `.github`, `.githooks`, `tests/`, `web/`)
 

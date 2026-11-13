@@ -1,0 +1,8 @@
+# Accepted findings for the weekly ZAP baseline scan (.github/workflows/dast.yml). Format, tab separated:
+#   <ZAP rule id> <TAB> <IGNORE|INFO|WARN|FAIL> <TAB> <why this is accepted>
+# IGNORE hides the rule from the scan summary AND from the high-risk gate. Rules not listed here are reported as WARN; only HIGH-risk
+# alerts fail the run. Every line needs a reason and an owner decision in the pull request that adds it; remove it when the cause is fixed.
+# Rule ids: https://www.zaproxy.org/docs/alerts/
+10049	IGNORE	Storable and Cacheable Content: static SPA assets and JSON API responses are cacheable by design; index.html is served no-cache
+90005	IGNORE	Sec-Fetch-* headers missing: a request header the browser sends, nothing the response can fix
+10104	IGNORE	User Agent Fuzzer: informational, the app answers every user agent the same way by design

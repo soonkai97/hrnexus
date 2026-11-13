@@ -1,5 +1,5 @@
 import { test, expect, request as pwRequest, type APIRequestContext } from '@playwright/test';
-import { ensureRole } from '../shared/api';
+import { ensureRole, futureWeekday } from '../shared/api';
 
 /**
  * NEGATIVE PATHS — every business guard must reject cleanly through the full stack.
@@ -57,7 +57,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
 
   // ── Leave overlap guard ─────────────────────────────────────────────────────
   test('overlapping leave request is rejected', async () => {
-    const day = isoDate(new Date(Date.now() + 30 * 86_400_000));
+    const day = futureWeekday(30);
     const body = { leaveType: 'unpaid', startDate: day, endDate: day, startTime: '09:00', endTime: '17:00', hours: 8, notes: 'neg' };
     const ok = await staff.post('/api/leave', { data: body });
     expect(ok.ok(), 'first leave should be accepted').toBeTruthy();
@@ -67,7 +67,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
 
   // ── Phase 7l: cancelled leave frees its dates; nobody approves their own leave ──
   test('cancelling a leave frees its dates for a new request', async () => {
-    const day = isoDate(new Date(Date.now() + 45 * 86_400_000));
+    const day = futureWeekday(45);
     const body = { leaveType: 'unpaid', startDate: day, endDate: day, startTime: '09:00', endTime: '17:00', hours: 8, notes: 'neg' };
     const first = await staff.post('/api/leave', { data: body });
     expect(first.ok(), 'first leave should be accepted').toBeTruthy();
@@ -82,7 +82,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
 
   test('an approver cannot record their own leave as already approved', async () => {
     const me = await (await admin.get('/api/auth/me')).json();
-    const day = isoDate(new Date(Date.now() + 50 * 86_400_000));
+    const day = futureWeekday(50);
     const body = { employeeId: me.id, leaveType: 'unpaid', startDate: day, endDate: day, startTime: '09:00', endTime: '17:00', hours: 8, notes: 'neg' };
 
     const approved = await admin.post('/api/admin/leave', { data: { ...body, status: 'approved' } });

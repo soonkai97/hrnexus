@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Leave;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,23 +33,27 @@ public class GetLeaveBalanceQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var sickEnt     = ent?.SickHours     ?? 0m;
         var carryOver   = ent?.CarryOverHours ?? 0m;
 
-        var startOfYear = new DateTime(year,     1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var endOfYear   = new DateTime(year + 1, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(-1);
+        var startOfYear = new DateTime(year, 1, 1,   0, 0, 0, DateTimeKind.Utc);
+        var endOfYear   = new DateTime(year, 12, 31, 0, 0, 0, DateTimeKind.Utc);
 
         var countedLeaves = await db.LeaveRequests
             .Where(l => l.EmployeeId == req.EmployeeId
                      && l.Status != "rejected"
                      && l.Status != "cancelled"
-                     && l.StartDate >= startOfYear
-                     && l.StartDate <= endOfYear)
-            .Select(l => new { l.LeaveType, l.Hours })
+                     && l.StartDate <= endOfYear
+                     && l.EndDate   >= startOfYear)
+            .Select(l => new { l.LeaveType, l.StartDate, l.EndDate, l.Hours })
             .ToListAsync(ct);
+        // A leave across New Year is charged to each year by the working days that fall in it.
+        var inYear = countedLeaves
+            .Select(l => new { l.LeaveType, Hours = LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year) })
+            .ToList();
 
         // Annual + emergency both count against the annual pool
-        var annualUsed    = countedLeaves.Where(l => l.LeaveType == "annual" || l.LeaveType == "emergency").Sum(l => l.Hours ?? 0m);
-        var emergencyUsed = countedLeaves.Where(l => l.LeaveType == "emergency").Sum(l => l.Hours ?? 0m);
-        var sickUsed      = countedLeaves.Where(l => l.LeaveType == "sick"  ).Sum(l => l.Hours ?? 0m);
-        var unpaidUsed    = countedLeaves.Where(l => l.LeaveType == "unpaid" ).Sum(l => l.Hours ?? 0m);
+        var annualUsed    = inYear.Where(l => l.LeaveType == "annual" || l.LeaveType == "emergency").Sum(l => l.Hours);
+        var emergencyUsed = inYear.Where(l => l.LeaveType == "emergency").Sum(l => l.Hours);
+        var sickUsed      = inYear.Where(l => l.LeaveType == "sick"  ).Sum(l => l.Hours);
+        var unpaidUsed    = inYear.Where(l => l.LeaveType == "unpaid" ).Sum(l => l.Hours);
 
         return new LeaveBalanceDto(
             year,

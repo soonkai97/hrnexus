@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, nowRoundedToHalfHour, HmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
+import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, nowRoundedToHalfHour, leaveHours, HmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -209,16 +209,16 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
-  /** Auto-calculated hours from date+time range. Returns 0 if any field is missing. */
-  get calcHours(): number {
+  /** Working-day hours (Mon-Fri, 8h) for the chosen dates/times, or null when invalid. Same rule as the server. */
+  private get previewHours(): number | null {
     const { startDate, endDate, startTime, endTime } = this.form;
-    if (!startDate || !startTime || !endDate || !endTime) return 0;
-    const start = new Date(startDate);
-    start.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
-    const end = new Date(endDate);
-    end.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
-    const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    return Math.round(h * 10) / 10;
+    if (!startDate || !startTime || !endDate || !endTime) return null;
+    return leaveHours(startDate, endDate, this.toTimeStr(startTime), this.toTimeStr(endTime));
+  }
+
+  /** Live preview of the leave hours. Returns 0 if any field is missing or the request is invalid. */
+  get calcHours(): number {
+    return this.previewHours ?? 0;
   }
 
   /** Required fields present — gates the Apply button (consistent with every other form). */
@@ -246,12 +246,9 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
       this.formError.set('Please select start date, end date, and times.'); return;
     }
 
-    const hours = this.calcHours;
-    if (hours <= 0) {
-      this.formError.set('End date/time must be after start date/time.'); return;
-    }
-    if (hours > 720) {
-      this.formError.set('Leave duration cannot exceed 720 hours (30 days) in a single request.'); return;
+    const hours = this.previewHours;
+    if (hours === null) {
+      this.formError.set('Choose at least one working day (Mon-Fri) and valid times.'); return;
     }
 
     const maxFuture = new Date();

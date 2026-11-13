@@ -9,7 +9,7 @@ import {
   LeaveSummary, LeavePatternWarning,
   AuthService, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
   TrimInputDirective, CanComponentDeactivate,
-  apiErrorMessage, nowRoundedToHalfHour,
+  apiErrorMessage, nowRoundedToHalfHour, leaveHours,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
@@ -496,17 +496,18 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     return (parts[0] ?? '') + (initial ? ` ${initial}.` : '');
   }
 
-  get calcHours(): number {
+  /** Working-day hours (Mon-Fri, 8h) for the chosen dates/times, or null when invalid. Same rule as the server. */
+  private get previewHours(): number | null {
     const { startDate, endDate } = this.form;
     const st = this.startTimeDate;
     const et = this.endTimeDate;
-    if (!startDate || !st || !endDate || !et) return 0;
-    const start = new Date(startDate);
-    start.setHours(st.getHours(), st.getMinutes(), 0, 0);
-    const end = new Date(endDate);
-    end.setHours(et.getHours(), et.getMinutes(), 0, 0);
-    const h = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    return Math.round(h * 10) / 10;
+    if (!startDate || !st || !endDate || !et) return null;
+    return leaveHours(startDate, endDate, this.toTimeStr(st), this.toTimeStr(et));
+  }
+
+  /** Live preview of the leave hours. Returns 0 if any field is missing or the request is invalid. */
+  get calcHours(): number {
+    return this.previewHours ?? 0;
   }
 
   onStartDateChange(date: string): void {
@@ -823,8 +824,8 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         || !this.startTimeDate || !this.endTimeDate) {
       this.formError.set('Please fill in all required fields.'); return;
     }
-    const h = this.calcHours;
-    if (h <= 0) { this.formError.set('End date/time must be after start date/time.'); return; }
+    const h = this.previewHours;
+    if (h === null) { this.formError.set('Choose at least one working day (Mon-Fri) and valid times.'); return; }
     this.form.hours = h;
 
     this.saving.set(true);

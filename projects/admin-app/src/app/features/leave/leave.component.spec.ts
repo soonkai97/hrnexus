@@ -195,7 +195,7 @@ describe('LeaveComponent', () => {
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
     });
 
-    it('sets formError when times produce negative hours (end before start)', () => {
+    it('sets formError when single-day times produce no positive span (end before start)', () => {
       component.form.employeeId = 'e1';
       component.form.startDate  = '2026-06-01';
       component.form.endDate    = '2026-06-01';
@@ -203,8 +203,58 @@ describe('LeaveComponent', () => {
       component.startTimeDate   = new Date(2026, 5, 1, 18, 0); // 6:00 PM
       component.endTimeDate     = new Date(2026, 5, 1, 10, 0); // 10:00 AM — before start
       component.save();
-      expect(component.formError()).toBe('End date/time must be after start date/time.');
+      expect(component.formError()).toBe('Choose at least one working day (Mon-Fri) and valid times.');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
+    });
+
+    it('sets formError when the range has no working day (a weekend is not leave)', () => {
+      component.form.employeeId = 'e1';
+      component.form.startDate  = '2026-06-06'; // Saturday
+      component.form.endDate    = '2026-06-07'; // Sunday
+      component.startTimeDate   = new Date(2026, 5, 6, 9, 0);
+      component.endTimeDate     = new Date(2026, 5, 6, 17, 0);
+      component.save();
+      expect(component.formError()).toBe('Choose at least one working day (Mon-Fri) and valid times.');
+      expect(mockLeaveSvc.create).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── calcHours — working-day rule ──────────────────────────────────────────────
+
+  describe('calcHours — working days, not clock time', () => {
+    it('previews Mon-Wed as 24h even when the clock difference would be 56h', () => {
+      component.form.startDate = '2026-06-01'; // Monday
+      component.form.endDate   = '2026-06-03'; // Wednesday
+      component.startTimeDate  = new Date(2026, 5, 1, 10, 0);
+      component.endTimeDate    = new Date(2026, 5, 3, 18, 0);
+      expect(component.calcHours).toBe(24);
+    });
+
+    it('skips the weekend: Friday to Monday is 2 working days = 16h', () => {
+      component.form.startDate = '2026-06-05';
+      component.form.endDate   = '2026-06-08';
+      component.startTimeDate  = new Date(2026, 5, 5, 9, 0);
+      component.endTimeDate    = new Date(2026, 5, 8, 17, 0);
+      expect(component.calcHours).toBe(16);
+    });
+
+    it('uses the clock span for a single weekday (9:00-13:00 = 4h)', () => {
+      component.form.startDate = '2026-06-01';
+      component.form.endDate   = '2026-06-01';
+      component.startTimeDate  = new Date(2026, 5, 1, 9, 0);
+      component.endTimeDate    = new Date(2026, 5, 1, 13, 0);
+      expect(component.calcHours).toBe(4);
+    });
+
+    it('sends the computed working-day hours as form.hours on save', () => {
+      component.form.employeeId = 'e1';
+      component.form.startDate  = '2026-06-01';
+      component.form.endDate    = '2026-06-03';
+      component.startTimeDate   = new Date(2026, 5, 1, 10, 0);
+      component.endTimeDate     = new Date(2026, 5, 3, 18, 0);
+      component.editing.set(null);
+      component.save();
+      expect(mockLeaveSvc.create).toHaveBeenCalledWith(expect.objectContaining({ hours: 24 }));
     });
   });
 

@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Leave;
 using HRNexus.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -44,19 +45,24 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
                 .ToListAsync(ct);
             var fromMap = fromEntitlements.ToDictionary(e => e.EmployeeId);
 
-            var fromYearStart = new DateTime(req.FromYear,     1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var fromYearEnd   = new DateTime(req.FromYear + 1, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(-1);
+            var fromYearStart = new DateTime(req.FromYear, 1, 1,   0, 0, 0, DateTimeKind.Utc);
+            var fromYearEnd   = new DateTime(req.FromYear, 12, 31, 0, 0, 0, DateTimeKind.Utc);
 
-            var usedByEmployee = await db.LeaveRequests
+            var fromYearLeaves = await db.LeaveRequests
                 .Where(l => activeStaffIds.Contains(l.EmployeeId)
                          && (l.LeaveType == "annual" || l.LeaveType == "emergency")
-                         && l.StartDate >= fromYearStart
                          && l.StartDate <= fromYearEnd
+                         && l.EndDate   >= fromYearStart
                          && l.Status != "rejected"
                          && l.Status != "cancelled")
-                .GroupBy(l => l.EmployeeId)
-                .Select(g => new { EmployeeId = g.Key, Used = g.Sum(l => l.Hours ?? 0m) })
+                .Select(l => new { l.EmployeeId, l.StartDate, l.EndDate, l.Hours })
                 .ToListAsync(ct);
+            // Only the working days that fall in the closing year count as used in it.
+            var usedByEmployee = fromYearLeaves
+                .GroupBy(l => l.EmployeeId)
+                .Select(g => new { EmployeeId = g.Key,
+                    Used = g.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, req.FromYear)) })
+                .ToList();
 
             var usedMap = usedByEmployee.ToDictionary(u => u.EmployeeId, u => u.Used);
 

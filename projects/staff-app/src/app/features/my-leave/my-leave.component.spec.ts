@@ -19,10 +19,11 @@ import { LeaveService, ToastService, ConfirmService, LeaveRecord } from 'shared-
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Returns a YYYY-MM-DD string offset by `offsetDays` from today (local date). */
-function dateStr(offsetDays: number): string {
+/** YYYY-MM-DD offset from today (local), with Saturday/Sunday rolled forward to Monday so the working-day rule never makes a test date-dependent. */
+function weekdayStr(offsetDays: number): string {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
   const y   = d.getFullYear();
   const m   = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -174,23 +175,23 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = new Date(2026, 5, 1, 18, 0);
       component.form.endTime    = new Date(2026, 5, 1, 10, 0); // earlier on same date
       component.submit();
-      expect(component.formError()).toBe('End date/time must be after start date/time.');
+      expect(component.formError()).toBe('Choose at least one working day (Mon-Fri) and valid times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
-    it('blocks submission when duration exceeds 720 hours — single requests are capped at 30 days', () => {
-      component.form.startDate  = dateStr(0);
-      component.form.endDate    = dateStr(31); // 31 days = 744h > 720h cap
-      component.form.startTime  = new Date(2026, 5, 1, 10, 0);
-      component.form.endTime    = new Date(2026, 5, 1, 10, 0);
+    it('blocks submission when the range has no working day — a weekend is not leave', () => {
+      component.form.startDate  = '2026-06-06'; // Saturday
+      component.form.endDate    = '2026-06-07'; // Sunday
+      component.form.startTime  = new Date(2026, 5, 6, 9, 0);
+      component.form.endTime    = new Date(2026, 5, 6, 17, 0);
       component.submit();
-      expect(component.formError()).toBe('Leave duration cannot exceed 720 hours (30 days) in a single request.');
+      expect(component.formError()).toBe('Choose at least one working day (Mon-Fri) and valid times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
     it('blocks submission when start date is more than 1 year in advance', () => {
-      component.form.startDate  = dateStr(400);
-      component.form.endDate    = dateStr(401);
+      component.form.startDate  = weekdayStr(400);
+      component.form.endDate    = weekdayStr(400);
       component.form.startTime  = new Date(2026, 5, 1, 10, 0);
       component.form.endTime    = new Date(2026, 5, 1, 18, 0);
       component.submit();
@@ -211,10 +212,10 @@ describe('MyLeaveComponent', () => {
 
   describe('submit() — success', () => {
     beforeEach(() => {
-      component.form.startDate  = dateStr(1);
-      component.form.endDate    = dateStr(2);
+      component.form.startDate  = '2026-06-01'; // Monday
+      component.form.endDate    = '2026-06-03'; // Wednesday → 3 working days
       component.form.startTime  = new Date(2026, 5, 1, 10, 0);  // 10:00 AM
-      component.form.endTime    = new Date(2026, 5, 2, 18, 0);  // 18:00 next day → 32h
+      component.form.endTime    = new Date(2026, 5, 3, 18, 0);  // 18:00 — ignored on multi-day leave
       component.form.leaveType  = 'annual';
       component.form.notes      = 'Family trip';
     });
@@ -224,13 +225,32 @@ describe('MyLeaveComponent', () => {
       expect(mockLeaveSvc.apply).toHaveBeenCalledWith(
         expect.objectContaining({
           leaveType: 'annual',
-          startDate: dateStr(1),
-          endDate:   dateStr(2),
+          startDate: '2026-06-01',
+          endDate:   '2026-06-03',
           startTime: '10:00',
           endTime:   '18:00',
           notes:     'Family trip',
         }),
       );
+    });
+
+    it('sends working-day hours (Mon-Wed = 24h), not the 56h clock difference', () => {
+      expect(component.calcHours).toBe(24);
+      component.submit();
+      expect(mockLeaveSvc.apply).toHaveBeenCalledWith(expect.objectContaining({ hours: 24 }));
+    });
+
+    it('previews 4h for a single-day morning request', () => {
+      component.form.endDate   = '2026-06-01';
+      component.form.startTime = new Date(2026, 5, 1, 9, 0);
+      component.form.endTime   = new Date(2026, 5, 1, 13, 0);
+      expect(component.calcHours).toBe(4);
+    });
+
+    it('previews 0 for an invalid request so the hours pill stays hidden', () => {
+      component.form.startDate = '2026-06-06'; // Saturday
+      component.form.endDate   = '2026-06-06';
+      expect(component.calcHours).toBe(0);
     });
 
     it('converts empty notes to null so the API does not receive empty strings', () => {
@@ -277,8 +297,8 @@ describe('MyLeaveComponent', () => {
 
   describe('submit() — API error', () => {
     beforeEach(() => {
-      component.form.startDate = dateStr(1);
-      component.form.endDate   = dateStr(2);
+      component.form.startDate = '2026-06-01';
+      component.form.endDate   = '2026-06-02';
       component.form.startTime = new Date(2026, 5, 1, 10, 0);
       component.form.endTime   = new Date(2026, 5, 2, 18, 0);
     });

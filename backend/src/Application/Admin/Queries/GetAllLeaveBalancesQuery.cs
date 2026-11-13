@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Leave;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -49,10 +50,15 @@ public class GetAllLeaveBalancesQueryHandler(IAppDbContext db, IDateTimeProvider
             .Where(l => staffIds.Contains(l.EmployeeId)
                      && l.Status != "rejected"
                      && l.Status != "cancelled"
-                     && l.StartDate >= startOfYear
-                     && l.StartDate <= endOfYear)
-            .Select(l => new { l.EmployeeId, l.LeaveType, l.Hours })
+                     && l.StartDate <= endOfYear
+                     && l.EndDate   >= startOfYear)
+            .Select(l => new { l.EmployeeId, l.LeaveType, l.StartDate, l.EndDate, l.Hours })
             .ToListAsync(ct);
+        // A leave across New Year is charged to each year by the working days that fall in it.
+        leaves = leaves
+            .Select(l => new { l.EmployeeId, l.LeaveType, l.StartDate, l.EndDate,
+                Hours = (decimal?)LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, startOfYear.Year) })
+            .ToList();
 
         var byEmployee = leaves
             .GroupBy(l => l.EmployeeId)

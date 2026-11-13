@@ -1,6 +1,6 @@
+using HRNexus.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.Staff.Commands;
 

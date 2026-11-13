@@ -1,6 +1,6 @@
+using HRNexus.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Infrastructure.Auth;
 

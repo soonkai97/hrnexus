@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HRNexus.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Api.Controllers;
 

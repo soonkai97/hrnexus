@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using HRNexus.Application.Common.Interfaces;
+﻿using HRNexus.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 
 namespace HRNexus.Infrastructure.Files;
 

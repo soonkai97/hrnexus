@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HRNexus.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using HRNexus.Application.Common.Interfaces;
 using E = HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Tests.Infrastructure;

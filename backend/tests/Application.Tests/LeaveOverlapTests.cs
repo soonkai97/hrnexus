@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Admin.Commands;
+﻿using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Tests.Infrastructure;
 using HRNexus.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace HRNexus.Application.Tests;

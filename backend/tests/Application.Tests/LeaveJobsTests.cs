@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Tests.Infrastructure;
 using HRNexus.Infrastructure.Jobs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using E = HRNexus.Domain.Entities;
 

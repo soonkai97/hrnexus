@@ -1,7 +1,7 @@
 using FluentValidation;
+using HRNexus.Application.Common.Behaviors;
 using MediatR;
 using Microsoft.Extensions.Logging.Abstractions;
-using HRNexus.Application.Common.Behaviors;
 using Xunit;
 
 namespace HRNexus.Application.Tests;

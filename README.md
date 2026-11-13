@@ -3,7 +3,7 @@
 Internal HR management for venue staff and managers: staff records, roles and permissions, leave, and
 notifications. Two Angular PWAs (a desktop-first admin app and a mobile-first staff app) on one ASP.NET Core API.
 
-**Stack:** Angular 21 (standalone components, signals) · PrimeNG 21 · ASP.NET Core 10 · Entity Framework Core · SignalR · PostgreSQL 17 · Docker + nginx
+**Stack:** Angular 22 (standalone components, signals) · PrimeNG 22 · ASP.NET Core 10 · Entity Framework Core · SignalR · PostgreSQL 17 · Docker + nginx
 
 Direction: clock-in/out was removed (Phase 7); the product is being built out into a standard HRM
 (payroll, documents and compliance, onboarding, recruitment, performance reviews). The roadmap is in

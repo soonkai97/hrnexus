@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Angular 21 + PrimeNG 21 monorepo. Two frontend apps share one backend and one library:
+Angular 22 + PrimeNG 22 monorepo. Two frontend apps share one backend and one library:
 
 | Project | Path | Audience | Notes |
 |---|---|---|---|
@@ -136,6 +136,12 @@ providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '[data-them
 MessageService, ConfirmationService
 provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStrategy: 'registerWhenStable:30000' })
 ```
+
+### Angular 22 / PrimeNG 22 notes
+
+- `ng update` kept every existing component on `ChangeDetectionStrategy.Eager` (Angular 22 defaults to OnPush) and added `withXhr()` to `provideHttpClient(...)` in specs; the ESLint rule that forbids opting out of OnPush is off until components move to OnPush one by one.
+- PrimeNG 22 selectors are lowercase or kebab-case: `<p-confirm-dialog>`, `<p-select-button>`, `<p-sort-icon>`. `<p-message>` has no `[text]` input any more: put the text inside the tag, `<p-message severity="error">{{ error() }}</p-message>`.
+- The `-lts` PrimeNG versions are paid; stay on the community versions (MIT).
 
 ---
 
@@ -1121,7 +1127,7 @@ dotnet test
 
 ---
 
-## Component unit test pattern (Angular 21 standalone)
+## Component unit test pattern (Angular 22 standalone)
 
 Mock all injected services; do NOT call `detectChanges()` — this avoids PrimeNG template errors and keeps tests focused on TypeScript logic only.
 

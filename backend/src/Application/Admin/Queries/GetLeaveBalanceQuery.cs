@@ -29,7 +29,7 @@ public class GetLeaveBalanceQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var ent = await db.LeaveEntitlements
             .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
 
-        var annualEnt   = ent?.AnnualHours   ?? 0m;
+        var annualEnt   = ent?.TotalAnnualHours ?? 0m;   // base + carry-over
         var sickEnt     = ent?.SickHours     ?? 0m;
         var carryOver   = ent?.CarryOverHours ?? 0m;
 

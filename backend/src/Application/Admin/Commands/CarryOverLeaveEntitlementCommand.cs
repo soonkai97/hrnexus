@@ -9,8 +9,9 @@ namespace HRNexus.Application.Admin.Commands;
 /// <summary>
 /// Carries over unused annual leave hours from one year to the next for all active staff.
 /// The carry-over amount per person is capped at <see cref="MaxCarryOver"/> hours.
-/// Carry-over hours are ADDED to the destination year's annual entitlement — they do not
-/// replace it. Returns the number of employees who had carry-over hours added.
+/// What is left of the closing year's whole annual pool (base plus its own carry-over) is carried.
+/// Carry-over hours are stored in CarryOverHours and add to the destination year's usable pool;
+/// the base entitlement is never changed. Returns the number of employees who had carry-over added.
 /// </summary>
 public record CarryOverLeaveEntitlementCommand(
     int     FromYear,
@@ -74,7 +75,7 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
             int count = 0;
             foreach (var empId in activeStaffIds)
             {
-                var annualEnt = fromMap.TryGetValue(empId, out var fe) ? fe.AnnualHours : 0m;
+                var annualEnt = fromMap.TryGetValue(empId, out var fe) ? fe.TotalAnnualHours : 0m;
                 var used      = usedMap.TryGetValue(empId, out var u) ? u : 0m;
                 var remaining = Math.Max(0m, annualEnt - used);
                 var carryOver = Math.Min(remaining, req.MaxCarryOver);

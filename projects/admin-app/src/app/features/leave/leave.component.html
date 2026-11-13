@@ -541,6 +541,9 @@
             <div class="field m-0">
               <label for="leave-ent-annual">Annual Hours</label>
               <p-inputnumber inputId="leave-ent-annual" [(ngModel)]="entitlementForm.annualHours" [min]="0" [max]="999" suffix="h" [pt]="$any({ input: { inputmode: 'decimal' } })" />
+              @if ((staffBalance()?.carryOverHours ?? 0) > 0) {
+                <small class="field-hint">+ {{ staffBalance()?.carryOverHours }}h carry-over is added on top.</small>
+              }
             </div>
             <div class="field m-0">
               <label for="leave-ent-sick">Sick Hours</label>

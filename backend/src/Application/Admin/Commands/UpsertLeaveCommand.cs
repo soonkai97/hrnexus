@@ -243,7 +243,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
 
             decimal entitlementHours = isAnnualOrEmergency
-                ? (entitlement?.AnnualHours ?? 0m)
+                ? (entitlement?.TotalAnnualHours ?? 0m)
                 : (entitlement?.SickHours   ?? 0m);
 
             if (entitlementHours <= 0)

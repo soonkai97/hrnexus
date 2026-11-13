@@ -35,6 +35,7 @@ public static class AppConstants
         public const string StaffManage        = "staff.manage";        // create/edit/deactivate staff
         public const string LeaveApprove       = "leave.approve";       // approve/reject leave
         public const string LeaveManage        = "leave.manage";        // entitlements / leave admin
+        public const string PolicyManage       = "policy.manage";       // company policy: working week, leave rules
         public const string ReportsView        = "reports.view";        // workforce/leave reports
         public const string PayrollView        = "payroll.view";        // view payroll
         public const string PayrollManage      = "payroll.manage";      // run/export payroll
@@ -45,7 +46,7 @@ public static class AppConstants
         /// <summary>Every catalog key — used for validation and seeding system roles.</summary>
         public static readonly IReadOnlyList<string> All = new[]
         {
-            PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage,
+            PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage, PolicyManage,
             ReportsView, PayrollView, PayrollManage, PayrollLock,
             RolesManage, CashAdvanceManage,
         };
@@ -75,6 +76,20 @@ public static class AppConstants
 
         /// <summary>Hours in one working day (Monday to Friday); leave is charged in these units.</summary>
         public const decimal WorkdayHours = 8m;
+
+        /// <summary>Default for the longest single leave request (days); the company policy can change it.</summary>
+        public const int MaxLeaveDays = 30;
+    }
+
+    // ── Company policy defaults ────────────────────────────────────────────────
+    public static class Policy
+    {
+        public const string CarryOverNone      = "none";
+        public const string CarryOverCapped    = "capped";
+        public const string CarryOverUnlimited = "unlimited";
+
+        public const decimal DefaultCarryOverMaxHours  = 14m;
+        public const decimal DefaultUnpaidLeaveDivisor = 26m;
     }
 
     // ── Payroll ────────────────────────────────────────────────────────────────

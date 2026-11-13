@@ -148,7 +148,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         try
         {
             var count = await mediator.Send(
-                new CarryOverLeaveEntitlementCommand(body.FromYear, body.ToYear, body.MaxCarryOver ?? 14m), ct);
+                new CarryOverLeaveEntitlementCommand(body.FromYear, body.ToYear), ct);
             return Ok(new { count });
         }
         catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
@@ -207,4 +207,4 @@ public record BulkUpdateLeaveStatusBody(List<Guid> Ids, string Status, string? R
 public record BulkMarkLeaveNoShowBody(List<Guid> Ids);
 public record LeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
 public record BulkLeaveEntitlementBody(int Year, decimal AnnualHours, decimal SickHours);
-public record CarryOverBody(int FromYear, int ToYear, decimal? MaxCarryOver);
+public record CarryOverBody(int FromYear, int ToYear);

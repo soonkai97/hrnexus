@@ -217,8 +217,11 @@ public class LeaveServerHoursTests
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
+        // Cumulative leave: everything left carries forward, so the carried figure shows what counted as used.
+        await new HRNexus.Application.Policy.UpdateCompanyPolicyCommandHandler(db, new NullAudit())
+            .Handle(new HRNexus.Application.Policy.UpdateCompanyPolicyCommand([1, 2, 3, 4, 5], 8m, 3, 30, "unlimited", 14m, 26m, null), CancellationToken.None);
         var moved = await new CarryOverLeaveEntitlementCommandHandler(db)
-            .Handle(new CarryOverLeaveEntitlementCommand(2026, 2027, MaxCarryOver: 720m), CancellationToken.None);
+            .Handle(new CarryOverLeaveEntitlementCommand(2026, 2027), CancellationToken.None);
 
         db.ChangeTracker.Clear();
         Assert.Equal(1, moved);

@@ -160,5 +160,128 @@
       "endTime": "13:00",
       "hours": 4
     }
+  ],
+  "_comment_scheduled": "Company-policy variants (Phase 7m). schedule.days are ISO weekdays (1=Mon .. 7=Sun); schedule.hours is the length of a working day. Asserted by the backend now; the frontend asserts them in 7m-b.",
+  "scheduled": [
+    {
+      "name": "Mon-Sat: a Saturday alone is a full day",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6],
+        "hours": 8
+      },
+      "start": "2026-06-06",
+      "end": "2026-06-06",
+      "startTime": null,
+      "endTime": null,
+      "hours": 8
+    },
+    {
+      "name": "Mon-Sat: Monday to Sunday skips only the Sunday",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6],
+        "hours": 8
+      },
+      "start": "2026-06-01",
+      "end": "2026-06-07",
+      "startTime": null,
+      "endTime": null,
+      "hours": 48
+    },
+    {
+      "name": "Mon-Fri: a Saturday alone is refused",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5],
+        "hours": 8
+      },
+      "start": "2026-06-06",
+      "end": "2026-06-06",
+      "startTime": null,
+      "endTime": null,
+      "error": true
+    },
+    {
+      "name": "Mon-Sat: a Sunday alone is refused",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6],
+        "hours": 8
+      },
+      "start": "2026-06-07",
+      "end": "2026-06-07",
+      "startTime": null,
+      "endTime": null,
+      "error": true
+    },
+    {
+      "name": "six-hour day: a full day is six hours",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5],
+        "hours": 6
+      },
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "startTime": null,
+      "endTime": null,
+      "hours": 6
+    },
+    {
+      "name": "six-hour day: timed leave is capped at six hours",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5],
+        "hours": 6
+      },
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "hours": 6
+    },
+    {
+      "name": "six-hour day: three days are eighteen hours",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5],
+        "hours": 6
+      },
+      "start": "2026-06-01",
+      "end": "2026-06-03",
+      "startTime": null,
+      "endTime": null,
+      "hours": 18
+    },
+    {
+      "name": "four-day week Mon-Thu: Monday to Friday is four days",
+      "schedule": {
+        "days": [1, 2, 3, 4],
+        "hours": 8
+      },
+      "start": "2026-06-01",
+      "end": "2026-06-05",
+      "startTime": null,
+      "endTime": null,
+      "hours": 32
+    }
+  ],
+  "scheduledInYear": [
+    {
+      "name": "Mon-Sat across New Year, old year share",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6],
+        "hours": 8
+      },
+      "start": "2026-12-28",
+      "end": "2027-01-02",
+      "year": 2026,
+      "hours": 32
+    },
+    {
+      "name": "Mon-Sat across New Year, new year share",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6],
+        "hours": 8
+      },
+      "start": "2026-12-28",
+      "end": "2027-01-02",
+      "year": 2027,
+      "hours": 16
+    }
   ]
 }

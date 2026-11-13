@@ -716,6 +716,23 @@ or hourly pay without a new phase document.
 
 ---
 
+## Company policy (Phase 7m)
+
+HR rules that differ between companies are **settings, not constants**. One installation serves one company;
+`CompanyPolicy` is a single row (`Id = 1`; when nothing is saved the defaults apply, and the defaults equal the
+rules the product shipped with: Mon-Fri, 8h, 3 days' notice, 30-day cap, capped carry-over of 14h, divisor 26).
+
+- **Read** with `CompanyPolicyReader.GetAsync(db, ct)` (never read `AppConstants` for policy). It holds the working
+  week (`WorkSchedule`: ISO weekdays and hours per day), annual-leave notice days, the longest single leave request,
+  the carry-over rule (`none` lapses, `capped` up to the cap, `unlimited` = cumulative) and the payroll unpaid-leave
+  divisor. `LeaveHoursCalculator` is pure and takes the `WorkSchedule` as an argument.
+- **API:** `GET /api/company-policy` for any signed-in user (every client previews hours with the working week);
+  `PUT` needs `policy.manage`, validates every field, and refuses a stale `version` (409).
+- **Policy changes are not retroactive:** stored leave `Hours` stay authoritative. Only the year split of an old
+  multi-day leave that crosses New Year reads the current schedule.
+- **Carry-over** (`CarryOverLeaveEntitlementCommand(FromYear, ToYear)`) follows the policy; it takes no cap argument.
+- Tests that book a single day must use a day that is a working day under the schedule they set up.
+
 ## Leave rules (Phase 7l)
 
 Rules the leave handlers enforce; each has a test in `LeaveFixesTests` (`docs/process/phase-07l-leave-fixes.md`).
@@ -730,12 +747,13 @@ Rules the leave handlers enforce; each has a test in `LeaveFixesTests` (`docs/pr
   Recording your own leave as `pending` is allowed, so an installation needs a second person with
   `leave.approve`. The check uses the **stored** owner of an existing leave, never the client-supplied `employeeId`.
   New code paths that decide leave must pass `ActingUserId`; `null` means self-service or a background job.
-- **Hours are server-owned working days** (`LeaveHoursCalculator`): a working day is Monday to Friday and
-  `AppConstants.Leave.WorkdayHours` (8h). Several days = working days x 8 (times ignored); one weekday = the
-  clock difference of the two times capped at 8h, or 8h with no times; a range with no working day is a 400.
+- **Hours are server-owned working days** (`LeaveHoursCalculator`): a working day is one of the company's working
+  days (default Monday to Friday) and as long as the policy's hours per day (default 8h). Several days = working days x 8 (times ignored); one weekday = the
+  clock difference of the two times capped at the working-day length, or a full day with no times; a range with no
+  working day is a 400.
   The `hours` in a request body is ignored. The frontend mirrors the rule in `leaveHours()` (shared-lib); both
   are tested against `tests/fixtures/leave-hours.json`, so change the rule and the fixture together. Leave
-  longer than 30 days is refused. Public holidays are not modelled yet (Phase 8).
+  longer than the policy's limit (default 30 days) is refused. Public holidays are not modelled yet (Phase 8).
 - **Charged per year** (`LeaveHoursCalculator.HoursInYear`): a leave across 31 Dec / 1 Jan is charged to each
   year by the working days that fall in it, in the apply-time balance check (every touched year needs an
   entitlement), balances, the summary and carry-over. Tests that book a single day must use a weekday.

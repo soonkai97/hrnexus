@@ -20,7 +20,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   { label: 'Access',     keys: ['portal.admin'] },
   { label: 'Operations', keys: ['staff.view', 'staff.manage', 'leave.approve', 'leave.manage', 'reports.view'] },
   { label: 'Finance',    keys: ['payroll.view', 'payroll.manage'] },
-  { label: 'Setup',      keys: ['roles.manage', 'payroll.lock'] },
+  { label: 'Setup',      keys: ['roles.manage', 'policy.manage', 'payroll.lock'] },
 ];
 
 /** Display names and one-line explanations for each catalog permission key. */
@@ -31,6 +31,7 @@ export const PERMISSION_LABELS: Readonly<Record<string, string>> = {
   'staff.manage': 'Manage staff',
   'leave.approve': 'Approve leave',
   'leave.manage': 'Manage leave entitlements',
+  'policy.manage': 'Manage company policy',
   'reports.view': 'View reports',
   'payroll.view': 'View payroll',
   'payroll.manage': 'Manage payroll',
@@ -45,6 +46,7 @@ export const PERMISSION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   'staff.manage': 'Add, edit, deactivate staff and reset their passwords.',
   'leave.approve': 'Approve or reject leave requests, and record leave for staff.',
   'leave.manage': "Set each staff member's yearly leave entitlement (annual / sick hours).",
+  'policy.manage': 'Set the working week, hours per day, leave limits and the carry-over rule for the whole company.',
   'reports.view': 'Open the Reports page and download attendance CSV exports.',
   'payroll.view': 'Open the Payroll report (hours × hourly rate per staff).',
   'payroll.manage': 'Export the payroll data to CSV.',

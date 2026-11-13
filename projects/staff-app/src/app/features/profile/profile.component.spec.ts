@@ -2,10 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ProfileComponent } from './profile.component';
-import { AuthService, StaffManagementService, ToastService, PushService, LangService, VersionService } from 'shared-lib';
+import { AuthService, StaffManagementService, ToastService, PushService, VersionService } from 'shared-lib';
 
 /**
  * ProfileComponent — staff profile view with push notification toggle.
@@ -51,7 +50,6 @@ describe('ProfileComponent', () => {
     subscribe:          ReturnType<typeof vi.fn>;
     unsubscribe:        ReturnType<typeof vi.fn>;
   };
-  let mockLangSvc: { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; toggle: ReturnType<typeof vi.fn> };
 
   function createComponent(fullName = 'Jane Doe') {
     mockAuth.user.mockReturnValue({ id: 'e1', staffId: 'NC001', fullName, email: 'j@ex.com', roles: [] });
@@ -68,19 +66,16 @@ describe('ProfileComponent', () => {
       subscribe:         vi.fn().mockReturnValue(of(undefined)),
       unsubscribe:       vi.fn().mockReturnValue(of(undefined)),
     };
-    mockLangSvc  = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), toggle: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [ProfileComponent],
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,   useValue: mockAuth },
         { provide: StaffManagementService,  useValue: mockStaffSvc },
         { provide: ToastService,  useValue: mockToastSvc },
         { provide: PushService,   useValue: mockPushSvc },
-        { provide: LangService,   useValue: mockLangSvc },
         { provide: VersionService, useValue: { info: () => ({ version: 'dev' }), load: vi.fn() } },
         MessageService,
         ConfirmationService,
@@ -260,14 +255,14 @@ describe('ProfileComponent', () => {
     it('shows error toast and does not subscribe when publicKey is missing', async () => {
       mockPushSvc.getPublicKey.mockReturnValue(of({ publicKey: '' }));
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('profile.toast.pushNotConfigured');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Push notifications are not configured on this server.');
       expect(mockPushSvc.subscribe).not.toHaveBeenCalled();
     });
 
     it('shows error toast and does not subscribe when permission is denied (requestPermission returns null)', async () => {
       mockPushSvc.requestPermission.mockResolvedValue(null);
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('profile.toast.permissionDenied');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Notification permission denied.');
       expect(mockPushSvc.subscribe).not.toHaveBeenCalled();
     });
   });
@@ -290,7 +285,7 @@ describe('ProfileComponent', () => {
 
     it('shows push error toast when an exception is thrown', async () => {
       await component.togglePush();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('profile.toast.enableFailed');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Could not enable notifications. Please try again.');
     });
 
     it('clears pushLoading even when an exception is thrown — finally block', async () => {

@@ -314,27 +314,6 @@
   &:hover { box-shadow: 0 0 18px rgba(37, 99, 235,0.7); transform: scale(1.06); }
 }
 
-.lang-btn {
-  height: 34px;
-  padding: 0 0.65rem;
-  border-radius: 17px;
-  border: 1px solid $border-subtle;
-  background: transparent;
-  color: $text-secondary;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  letter-spacing: 0.03em;
-  flex-shrink: 0;
-  transition: background $transition-fast, border-color $transition-fast, color $transition-fast;
-
-  &:hover {
-    background: rgba(37, 99, 235,0.08);
-    border-color: $border-glow;
-    color: $neon-purple;
-  }
-}
-
 .mobile-menu-btn {
   display: none;
   background: none; border: none;

@@ -73,7 +73,7 @@ removes it after the containers are healthy (`--wait`).
 projects/
 ├── admin-app/src/app/
 │   ├── app.ts                    # root component (<router-outlet />)
-│   ├── app.config.ts             # providers (HttpClient, PrimeNG, i18n, guards)
+│   ├── app.config.ts             # providers (HttpClient, PrimeNG, guards)
 │   ├── app.routes.ts             # all routes
 │   ├── shell/                    # layout shell (sidebar, topbar, nav)
 │   └── features/                 # one folder per route page
@@ -96,11 +96,11 @@ projects/
 │
 └── shared-lib/src/lib/
     ├── models/                   # DTOs and interfaces
-    ├── services/                 # HTTP services + LangService + ToastService + ConfirmService
+    ├── services/                 # HTTP services + ToastService + ConfirmService
     ├── stores/                   # signal-based state (StaffStore)
     ├── guards/                   # authGuard, roleGuard, permissionGuard, unsavedChangesGuard
     ├── auth/                     # AuthService, jwt/error/maintenance interceptors, ForgotPasswordBase
-    ├── pipes/                    # HmPipe (24-hour time), LocalizedNamePipe
+    ├── pipes/                    # HmPipe (24-hour time)
     ├── directives/               # HasPermissionDirective, PickerOnlyDirective, TrimInputDirective
     ├── utils/                    # date and password helpers
     └── components/               # ToastComponent, ConfirmDialogComponent, NotificationBellComponent,
@@ -133,7 +133,6 @@ provideAppInitializer(async () => {
       await new Promise<never>(() => {});
   }
 })
-provideTranslateService({ defaultLanguage: 'en' })
 providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '[data-theme="dark"]' } } })
 MessageService, ConfirmationService
 provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStrategy: 'registerWhenStable:30000' })
@@ -153,7 +152,7 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /roles                 permissionGuard('roles.manage')
 /payroll-locks         permissionGuard('payroll.lock')
 /cash-advances         permissionGuard('cashadvance.manage')
-/account               own profile, push notifications, language
+/account               own profile, push notifications
 /auth/**               login, forgot-password (public)
 ```
 
@@ -236,7 +235,6 @@ hasRole(...roles: UserRole[]): boolean
 | `NotificationService` | Notification list + unread count |
 | `PushService` | Web Push public key + subscribe/unsubscribe |
 | `SignalRService` | WebSocket connection to `/hubs/shift` (the notifications hub; rename planned) |
-| `LangService` | Language cycle en → zh → vi (see i18n section) |
 | `ToastService` | `success/error/warning/info(msg)` |
 | `ConfirmService` | `confirm(opts) → Observable<boolean>` |
 | `ThemeService` | Dark/light toggle |
@@ -254,8 +252,7 @@ hasRole(...roles: UserRole[]): boolean
 **Base classes:**
 - `ForgotPasswordBase` — logic for forgot-password pages (both apps extend this)
 
-**Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time); `LocalizedNamePipe` — picks the zh/vi/en name of a role
-
+**Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time)
 **Directives:** `HasPermissionDirective` — hides an element without a permission; `PickerOnlyDirective` — disables keyboard on date inputs on mobile; `TrimInputDirective`
 
 **Utilities:** `provideNoAutofill()`, date utils, password utils
@@ -452,45 +449,12 @@ Rule: use `<p-skeleton>` for initial page loads (>150 ms). Use `[loading]="savin
 
 ---
 
-## i18n
+## Language
 
-**Language support:** English (`en`), Chinese Simplified (`zh`), and Vietnamese (`vi`).
-The topbar globe button **cycles** en → zh → vi → en (`LangService.toggle()`); `SUPPORTED` in
-`lang.service.ts` and the `Supported` whitelist in `UpdateLanguageCommand` must stay in sync.
-Always add new keys to **all three** locale files per app.
-
-**File locations:**
-```
-projects/admin-app/public/i18n/{en,zh,vi}.json
-projects/staff-app/public/i18n/{en,zh,vi}.json
-```
-
-**Key structure (namespaced, flat values):**
-```json
-{
-  "nav":   { "staff": "Staff", "leave": "Leave" },
-  "auth":  { "staffId": "Staff ID", "signIn": "Sign In" },
-  "common":{ "save": "Save", "cancel": "Cancel", "active": "Active" },
-  "staff": { "addStaff": "Add Staff", "fullName": "Full Name" }
-}
-```
-
-Add every new key to all three files of the app you are editing. (Removing multi-language support is planned as phase 7i, `docs/process/phase-07i-english-only.md`.)
-
-**In templates:** `{{ 'key.sub' | translate }}`
-
-**In components:**
-```typescript
-private readonly translate = inject(TranslateService);
-const msg = this.translate.instant('staff.saved');
-```
-
-**LangService** (`shared-lib`):
-```typescript
-readonly current = signal<'en' | 'zh' | 'vi'>('en');   // persisted to localStorage
-toggle(): void                                   // cycles en → zh → vi → en
-set(lang, syncToApi = true): void                // updates signal + localStorage + PATCH /api/auth/profile
-```
+The product is **English only**. UI text is written as inline English literals in templates and
+components. Never add `ngx-translate`, translation pipes/services, locale JSON files or i18n keys.
+Reintroducing a second language needs a new phase document and an ADR (see
+`docs/architecture/adr-english-only.md`).
 
 ---
 
@@ -594,7 +558,7 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 - `/api/` → proxied to `http://api:8080`
 - `/hubs/` → proxied with WebSocket upgrade headers (SignalR)
 - `/uploads/` → proxied to API (media files)
-- `index.html` and `/i18n/` — `no-cache` headers so new deploys take effect immediately
+- `index.html` — `no-cache` headers so new deploys take effect immediately
 - Static file extensions (`.js`, `.css`, `.json`, `.webmanifest`, fonts, images) — **always served even during maintenance** so the SW can download updated bundles
 
 **No `environment.ts` files.** All config is relative URLs or runtime API calls.
@@ -1101,7 +1065,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 await TestBed.configureTestingModule({
@@ -1109,7 +1072,6 @@ await TestBed.configureTestingModule({
   providers: [
     provideHttpClient(),
     provideRouter([]),
-    provideTranslateService({ defaultLanguage: 'en' }),
     { provide: SomeService, useValue: { method: vi.fn().mockReturnValue(of(data)) } },
     MessageService,       // always provide — PrimeNG requires these even in unit tests
     ConfirmationService,
@@ -1260,4 +1222,4 @@ PW_CHANNEL=msedge npm run test:e2e   # use the installed Edge/Chrome when Playwr
 | `tests/e2e/staff/auth.spec.ts` | Login → /home, wrong password, authGuard, logout |
 | `tests/e2e/staff/home.spec.ts` | Greeting, sidebar navigation, leave balance cards |
 | `tests/e2e/staff/my-leave.spec.ts` | Balances, Apply/History tabs, application form validation |
-| `tests/e2e/staff/profile.spec.ts` | Profile card, personal details, push toggle, language selector, sign-out |
+| `tests/e2e/staff/profile.spec.ts` | Profile card, personal details, push toggle, sign-out |

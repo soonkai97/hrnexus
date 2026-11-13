@@ -2,10 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ForgotPasswordComponent } from './forgot-password.component';
-import { AuthService, LangService } from 'shared-lib';
+import { AuthService } from 'shared-lib';
 
 /**
  * ForgotPasswordComponent (staff-app) — self-service password reset request.
@@ -23,20 +22,16 @@ describe('ForgotPasswordComponent (staff-app)', () => {
   let component: ForgotPasswordComponent;
 
   let mockAuth: { forgotPassword: ReturnType<typeof vi.fn> };
-  let mockLang: { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockAuth = { forgotPassword: vi.fn().mockReturnValue(of({ found: true })) };
-    mockLang = { current: vi.fn().mockReturnValue('en'), set: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [ForgotPasswordComponent],
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService, useValue: mockAuth },
-        { provide: LangService, useValue: mockLang },
         MessageService,
         ConfirmationService,
       ],

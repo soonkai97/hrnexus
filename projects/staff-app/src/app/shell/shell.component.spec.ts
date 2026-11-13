@@ -2,10 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ShellComponent } from './shell.component';
-import { AuthService, LangService, SignalRService, NotificationService, AppUpdateService } from 'shared-lib';
+import { AuthService, SignalRService, NotificationService, AppUpdateService } from 'shared-lib';
 
 /**
  * Staff ShellComponent — layout shell with bottom navigation bar.
@@ -20,7 +19,6 @@ import { AuthService, LangService, SignalRService, NotificationService, AppUpdat
 
 describe('ShellComponent (staff-app)', () => {
   let mockAuth:            { user: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
-  let mockLang:            { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn>; syncFromApi: ReturnType<typeof vi.fn>; label: ReturnType<typeof vi.fn>; menuItems: ReturnType<typeof vi.fn> };
   let mockSignalR:         { startConnection: ReturnType<typeof vi.fn>; stopConnection: ReturnType<typeof vi.fn>; notifications$: unknown };
   let mockNotifSvc:        { notifications: ReturnType<typeof vi.fn>; unreadCount: ReturnType<typeof vi.fn>; load: ReturnType<typeof vi.fn>; push: ReturnType<typeof vi.fn> };
   let mockAppUpdate:       { init: ReturnType<typeof vi.fn> };
@@ -32,7 +30,6 @@ describe('ShellComponent (staff-app)', () => {
 
   beforeEach(async () => {
     mockAuth            = { user: vi.fn().mockReturnValue(null), logout: vi.fn() };
-    mockLang            = { current: vi.fn().mockReturnValue('en'), set: vi.fn(), syncFromApi: vi.fn(), label: vi.fn().mockReturnValue('EN'), menuItems: vi.fn().mockReturnValue([]) };
     mockSignalR         = { startConnection: vi.fn(), stopConnection: vi.fn(), notifications$: of(null) };
     mockNotifSvc        = { notifications: vi.fn().mockReturnValue([]), unreadCount: vi.fn().mockReturnValue(0), load: vi.fn().mockReturnValue(of(undefined)), push: vi.fn() };
     mockAppUpdate       = { init: vi.fn() };
@@ -42,9 +39,7 @@ describe('ShellComponent (staff-app)', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,          useValue: mockAuth },
-        { provide: LangService,          useValue: mockLang },
         { provide: SignalRService,       useValue: mockSignalR },
         { provide: NotificationService,  useValue: mockNotifSvc },
         { provide: AppUpdateService,     useValue: mockAppUpdate },
@@ -124,14 +119,14 @@ describe('ShellComponent (staff-app)', () => {
 
     it('includes a Profile item linking to /profile', () => {
       const c = createComponent();
-      const profile = c.avatarMenuItems().find((i: any) => i.label === 'nav.profile');
+      const profile = c.avatarMenuItems().find((i: any) => i.label === 'Profile');
       expect(profile).toBeDefined();
       expect(profile!.routerLink).toBe('/profile');
     });
 
     it('includes a Sign Out item with a command callback', () => {
       const c = createComponent();
-      const signOut = c.avatarMenuItems().find((i: any) => i.label === 'profile.signOut');
+      const signOut = c.avatarMenuItems().find((i: any) => i.label === 'Sign Out');
       expect(signOut).toBeDefined();
       expect(typeof signOut!.command).toBe('function');
     });

@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { MyLeaveComponent } from './my-leave.component';
 import { LeaveService, ToastService, ConfirmService, LeaveRecord } from 'shared-lib';
@@ -83,7 +82,6 @@ describe('MyLeaveComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: LeaveService,   useValue: mockLeaveSvc },
         { provide: ToastService,   useValue: mockToastSvc },
         { provide: ConfirmService, useValue: mockConfirmSvc },
@@ -133,7 +131,7 @@ describe('MyLeaveComponent', () => {
     it('shows error toast when records fail to load', () => {
       mockLeaveSvc.getMine.mockReturnValue(throwError(() => new Error('Network error')));
       component.ngOnInit();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('leave.errLoad');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load leave records.');
     });
   });
 
@@ -146,7 +144,7 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = new Date(2026, 5, 1, 10, 0);
       component.form.endTime    = new Date(2026, 5, 1, 18, 0);
       component.submit();
-      expect(component.formError()).toBe('leave.errSelectDates');
+      expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
@@ -156,7 +154,7 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = new Date(2026, 5, 1, 10, 0);
       component.form.endTime    = new Date(2026, 5, 1, 18, 0);
       component.submit();
-      expect(component.formError()).toBe('leave.errSelectDates');
+      expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
@@ -166,7 +164,7 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = null;
       component.form.endTime    = new Date(2026, 5, 1, 18, 0);
       component.submit();
-      expect(component.formError()).toBe('leave.errSelectDates');
+      expect(component.formError()).toBe('Please select start date, end date, and times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
@@ -176,7 +174,7 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = new Date(2026, 5, 1, 18, 0);
       component.form.endTime    = new Date(2026, 5, 1, 10, 0); // earlier on same date
       component.submit();
-      expect(component.formError()).toBe('leave.errEndAfterStart');
+      expect(component.formError()).toBe('End date/time must be after start date/time.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
@@ -186,7 +184,7 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = new Date(2026, 5, 1, 10, 0);
       component.form.endTime    = new Date(2026, 5, 1, 10, 0);
       component.submit();
-      expect(component.formError()).toBe('leave.errMaxDuration');
+      expect(component.formError()).toBe('Leave duration cannot exceed 720 hours (30 days) in a single request.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
@@ -196,7 +194,7 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = new Date(2026, 5, 1, 10, 0);
       component.form.endTime    = new Date(2026, 5, 1, 18, 0);
       component.submit();
-      expect(component.formError()).toBe('leave.errMaxFuture');
+      expect(component.formError()).toBe('Leave cannot be requested more than 1 year in advance.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
@@ -205,7 +203,7 @@ describe('MyLeaveComponent', () => {
       component.form.startDate = '';
       component.submit();
       // Error is cleared then set to the new validation message — old text never survives
-      expect(component.formError()).toBe('leave.errSelectDates');
+      expect(component.formError()).toBe('Please select start date, end date, and times.');
     });
   });
 
@@ -261,7 +259,7 @@ describe('MyLeaveComponent', () => {
 
     it('shows a success toast confirming the request was submitted', () => {
       component.submit();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.toast.submitted');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave request submitted.');
     });
 
     it('switches to the history view so staff can see the pending request', () => {
@@ -296,7 +294,7 @@ describe('MyLeaveComponent', () => {
     it('falls back to a generic message when the API does not provide one', () => {
       mockLeaveSvc.apply.mockReturnValue(throwError(() => ({})));
       component.submit();
-      expect(component.formError()).toBe('leave.errSubmit');
+      expect(component.formError()).toBe('Submission failed. Please try again.');
     });
 
     it('clears saving flag after an error so the submit button is re-enabled', () => {
@@ -317,13 +315,13 @@ describe('MyLeaveComponent', () => {
     it('uses "Withdraw Approved Leave" title for approved leave — sets correct manager expectations', () => {
       component.cancel(makeRecord({ status: 'approved' }));
       const opts = mockConfirmSvc.confirm.mock.calls[0][0];
-      expect(opts.title).toBe('leave.confirm.withdrawTitle');
+      expect(opts.title).toBe('Withdraw Approved Leave');
     });
 
     it('uses "Cancel Leave Request" title for pending leave', () => {
       component.cancel(makeRecord({ status: 'pending' }));
       const opts = mockConfirmSvc.confirm.mock.calls[0][0];
-      expect(opts.title).toBe('leave.confirm.cancelTitle');
+      expect(opts.title).toBe('Cancel Leave Request');
     });
 
     it('marks the dialog as dangerous — cancel uses a red confirm button', () => {
@@ -341,7 +339,7 @@ describe('MyLeaveComponent', () => {
     it('shows success toast after successful cancellation', () => {
       mockConfirmSvc.confirm.mockReturnValue(of(true));
       component.cancel(makeRecord());
-      expect(mockToastSvc.success).toHaveBeenCalledWith('leave.toast.withdrawn');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Leave request withdrawn.');
     });
 
     it('reloads records after cancellation so the list is up to date', () => {
@@ -363,7 +361,7 @@ describe('MyLeaveComponent', () => {
         throwError(() => ({ error: { error: 'Unknown server error' } })),
       );
       component.cancel(makeRecord());
-      expect(mockToastSvc.error).toHaveBeenCalledWith('leave.errCancel');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to cancel leave.');
     });
 
     it('shows "already ended" message when the API says the leave period has ended', () => {
@@ -372,7 +370,7 @@ describe('MyLeaveComponent', () => {
         throwError(() => ({ error: { error: 'Leave has already ended' } })),
       );
       component.cancel(makeRecord());
-      expect(mockToastSvc.error).toHaveBeenCalledWith('leave.errAlreadyEnded');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('This leave has already ended and cannot be cancelled. Contact your manager.');
     });
   });
 

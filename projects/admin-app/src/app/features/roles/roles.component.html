@@ -1,45 +1,35 @@
 ﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
-    <h1 class="page-title">{{ 'roles.title' | translate }}</h1>
+    <h1 class="page-title">Jobs</h1>
     <div class="d-flex gap-2">
-      <p-button icon="pi pi-plus" [label]="'roles.addNewRole' | translate" severity="primary" (click)="openAdd()" />
+      <p-button icon="pi pi-plus" label="Add New Job" severity="primary" (click)="openAdd()" />
     </div>
   </div>
 
   <!-- Add new role dialog -->
   <p-dialog [visible]="showForm()" (visibleChange)="!$event && cancel()"
-            [header]="'roles.addNewRole' | translate" [modal]="true"
+            header="Add New Job" [modal]="true"
             [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     <div class="field">
-      <label for="rl-role-name"><span class="req">*</span> {{ 'roles.roleNameCol' | translate }}</label>
+      <label for="rl-role-name"><span class="req">*</span> Job Name</label>
       <input id="rl-role-name" pInputText type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
-             [placeholder]="'roles.rolePlaceholder' | translate" maxlength="50" (keydown.enter)="addRole()"
+             placeholder="e.g. SUPERVISOR" maxlength="50" (keydown.enter)="addRole()"
              (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" styleClass="w-full" />
       @if (fieldError('name'); as err) { <small class="field-err">{{ err }}</small> }
     </div>
     <div class="field">
-      <label for="rl-role-name-zh">{{ 'common.nameZhLabel' | translate }}</label>
-      <input id="rl-role-name-zh" pInputText type="text" [(ngModel)]="newRoleNameZh"
-             [placeholder]="'common.nameZhPlaceholder' | translate" maxlength="100" styleClass="w-full" />
-    </div>
-    <div class="field">
-      <label for="rl-role-name-vi">{{ 'common.nameViLabel' | translate }}</label>
-      <input id="rl-role-name-vi" pInputText type="text" [(ngModel)]="newRoleNameVi"
-             [placeholder]="'common.nameViPlaceholder' | translate" maxlength="100" styleClass="w-full" />
-    </div>
-    <div class="field">
-      <span id="rl-pay-type-label" class="field-label">{{ 'roles.payTypeLabel' | translate }}</span>
+      <span id="rl-pay-type-label" class="field-label">Pay type</span>
       <p-selectbutton [options]="payTypeOptions" [(ngModel)]="newRolePayType" ariaLabelledBy="rl-pay-type-label"
                       optionLabel="label" optionValue="value" [allowEmpty]="false" />
-      <small class="field-hint">{{ (newRolePayType === 'fixed' ? 'roles.payFixedHint' : 'roles.payHourlyHint') | translate }}</small>
+      <small class="field-hint">{{ (newRolePayType === 'fixed' ? 'Pay = a flat amount per shift, regardless of hours.' : 'Pay = hours worked × rate.') }}</small>
     </div>
     <div class="field">
-      <label for="rl-role-rate">{{ (newRolePayType === 'fixed' ? 'roles.rateFixedLabel' : 'roles.rateLabel') | translate }}</label>
+      <label for="rl-role-rate">{{ (newRolePayType === 'fixed' ? 'Amount (RM/shift)' : 'Rate (RM/hr)') }}</label>
       <p-inputnumber inputId="rl-role-rate" [(ngModel)]="newRoleRate" [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2" [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
     </div>
     <ng-template pTemplate="footer">
-      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancel()" />
-      <p-button [label]="saving() ? ('common.saving' | translate) : ('roles.addBtn' | translate)" severity="primary"
+      <p-button label="Cancel" [text]="true" severity="secondary" (click)="cancel()" />
+      <p-button [label]="saving() ? 'Saving…' : 'Add'" severity="primary"
                 (click)="addRole()" [disabled]="saving() || !newRoleName.trim()" [loading]="saving()" />
     </ng-template>
   </p-dialog>
@@ -47,42 +37,32 @@
   <!-- Edit role dialog — all three display names + pay type + rate. English name is locked for
        system roles (it's the authorization key). -->
   <p-dialog [visible]="editingRateId() !== null" (visibleChange)="!$event && cancelEditRate()"
-            [header]="'roles.editRoleTitle' | translate" [modal]="true"
+            header="Edit Job" [modal]="true"
             [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     <div class="field">
-      <label for="rl-edit-name"><span class="req">*</span> {{ 'roles.roleNameCol' | translate }}</label>
+      <label for="rl-edit-name"><span class="req">*</span> Job Name</label>
       <input id="rl-edit-name" pInputText type="text" [ngModel]="editingRateName()"
              (ngModelChange)="editingRateName.set($event.toUpperCase())"
              [disabled]="editingRateIsSystem()" maxlength="50" styleClass="w-full"
              (keydown.enter)="saveRate()" />
-      @if (editingRateIsSystem()) { <small class="field-hint">{{ 'roles.systemNameLocked' | translate }}</small> }
+      @if (editingRateIsSystem()) { <small class="field-hint">System jobs keep their name — it's used for access control.</small> }
     </div>
     <div class="field">
-      <label for="rl-edit-name-zh">{{ 'common.nameZhLabel' | translate }}</label>
-      <input id="rl-edit-name-zh" pInputText type="text" [ngModel]="editingRateNameZh()" (ngModelChange)="editingRateNameZh.set($event)"
-             [placeholder]="'common.nameZhPlaceholder' | translate" maxlength="100" styleClass="w-full" />
-    </div>
-    <div class="field">
-      <label for="rl-edit-name-vi">{{ 'common.nameViLabel' | translate }}</label>
-      <input id="rl-edit-name-vi" pInputText type="text" [ngModel]="editingRateNameVi()" (ngModelChange)="editingRateNameVi.set($event)"
-             [placeholder]="'common.nameViPlaceholder' | translate" maxlength="100" styleClass="w-full" />
-    </div>
-    <div class="field">
-      <span id="rl-edit-pay-type-label" class="field-label">{{ 'roles.payTypeLabel' | translate }}</span>
+      <span id="rl-edit-pay-type-label" class="field-label">Pay type</span>
       <p-selectbutton [options]="payTypeOptions" [ngModel]="editingRatePayType()" ariaLabelledBy="rl-edit-pay-type-label"
                       (ngModelChange)="editingRatePayType.set($event)"
                       optionLabel="label" optionValue="value" [allowEmpty]="false" />
-      <small class="field-hint">{{ (editingRatePayType() === 'fixed' ? 'roles.payFixedHint' : 'roles.payHourlyHint') | translate }}</small>
+      <small class="field-hint">{{ (editingRatePayType() === 'fixed' ? 'Pay = a flat amount per shift, regardless of hours.' : 'Pay = hours worked × rate.') }}</small>
     </div>
     <div class="field">
-      <label for="rl-edit-rate">{{ (editingRatePayType() === 'fixed' ? 'roles.rateFixedLabel' : 'roles.rateLabel') | translate }}</label>
+      <label for="rl-edit-rate">{{ (editingRatePayType() === 'fixed' ? 'Amount (RM/shift)' : 'Rate (RM/hr)') }}</label>
       <p-inputnumber inputId="rl-edit-rate" [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
                      [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2"
                      [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
     </div>
     <ng-template pTemplate="footer">
-      <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelEditRate()" />
-      <p-button [label]="savingRate() ? ('common.saving' | translate) : ('common.save' | translate)" severity="primary"
+      <p-button label="Cancel" [text]="true" severity="secondary" (click)="cancelEditRate()" />
+      <p-button [label]="savingRate() ? 'Saving…' : 'Save'" severity="primary"
                 (click)="saveRate()" [disabled]="savingRate() || (!editingRateIsSystem() && !editingRateName().trim())" [loading]="savingRate()" />
     </ng-template>
   </p-dialog>
@@ -92,7 +72,7 @@
     <p-card styleClass="empty-state">
       <div class="empty-inner d-flex flex-column align-items-center gap-2">
         <span><i class="pi pi-id-card"></i></span>
-        <p>{{ 'roles.noRoles' | translate }}</p>
+        <p>No jobs found.</p>
       </div>
     </p-card>
   } @else {
@@ -102,34 +82,34 @@
       [paginator]="roles().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
       <ng-template pTemplate="header">
         <tr>
-          <th scope="col" pSortableColumn="name">{{ 'roles.roleNameCol' | translate }} <p-sortIcon field="name" /></th>
-          <th scope="col" pSortableColumn="hourlyRate">{{ 'roles.hourlyRateCol' | translate }} <p-sortIcon field="hourlyRate" /></th>
-          <th scope="col" pSortableColumn="isSystem">{{ 'roles.typeCol' | translate }} <p-sortIcon field="isSystem" /></th>
+          <th scope="col" pSortableColumn="name">Job Name <p-sortIcon field="name" /></th>
+          <th scope="col" pSortableColumn="hourlyRate">Hourly Rate (RM) <p-sortIcon field="hourlyRate" /></th>
+          <th scope="col" pSortableColumn="isSystem">Type <p-sortIcon field="isSystem" /></th>
           <th scope="col" class="td-actions"></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-role>
         <tr>
           <td>
-            <span class="p-column-title">{{ 'roles.roleNameCol' | translate }}</span>
-            <p-tag [value]="role.name | localizedName: role.nameZh : role.nameVi" severity="info" />
+            <span class="p-column-title">Job Name</span>
+            <p-tag [value]="role.name" severity="info" />
           </td>
           <td>
-            <span class="p-column-title">{{ 'roles.hourlyRateCol' | translate }}</span>
-            <span>RM {{ role.hourlyRate | number:'1.2-2' }}{{ (role.payType === 'fixed' ? 'roles.perShiftSuffix' : 'roles.perHourSuffix') | translate }}</span>
+            <span class="p-column-title">Hourly Rate (RM)</span>
+            <span>RM {{ role.hourlyRate | number:'1.2-2' }}{{ (role.payType === 'fixed' ? ' /shift' : '/hr') }}</span>
           </td>
           <td>
-            <span class="p-column-title">{{ 'roles.typeCol' | translate }}</span>
+            <span class="p-column-title">Type</span>
             @if (role.isSystem) {
-              <p-tag [value]="'roles.system' | translate" severity="success" />
+              <p-tag value="System" severity="success" />
             } @else {
-              <p-tag [value]="'roles.custom' | translate" severity="info" />
+              <p-tag value="Custom" severity="info" />
             }
           </td>
           <td class="td-actions">
-            <span class="p-column-title">{{ 'roles.actionsCol' | translate }}</span>
+            <span class="p-column-title">Actions</span>
             <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small" rounded
-                      [attr.aria-label]="('roles.actionsCol' | translate) + ' — ' + role.name"
+                      [attr.aria-label]="'Actions' + ' — ' + role.name"
                       (click)="openRoleMenu(role, $event)" />
           </td>
         </tr>
@@ -145,19 +125,19 @@
 <p-dialog
   [visible]="!!permRole()"
   (visibleChange)="!$event && closePermissions()"
-  [header]="('permissions.roleTitle' | translate) + (permRole() ? ' — ' + permRole() : '')"
+  [header]="'Job permissions' + (permRole() ? ' — ' + permRole() : '')"
   [modal]="true"
   [style]="{'width':'min(480px, 92vw)'}"
   [draggable]="false" [closable]="true" appendTo="body">
 
-  <p class="modal-desc">{{ 'permissions.roleDesc' | translate }}</p>
+  <p class="modal-desc">Default permissions granted to everyone with this job.</p>
   <p class="modal-desc" style="font-size:.78rem;line-height:1.45">
-    <i class="pi pi-info-circle" style="margin-right:.35rem"></i>{{ 'permissions.howItWorks' | translate }}</p>
+    <i class="pi pi-info-circle" style="margin-right:.35rem"></i>How it works: a person gets the combined permissions of all their jobs. On their profile, an override can grant an extra permission or revoke one — revoke always wins. Changes take effect immediately.</p>
 
   <div class="perm-list">
-    @for (group of visiblePermGroups(); track group.labelKey) {
+    @for (group of visiblePermGroups(); track group.label) {
       <div class="perm-group">
-        <div class="perm-group-title">{{ group.labelKey | translate }}</div>
+        <div class="perm-group-title">{{ group.label }}</div>
         @for (key of group.keys; track key) {
           <div class="perm-row">
             <p-checkbox [inputId]="'perm-' + key" [binary]="true"
@@ -165,8 +145,8 @@
                         (ngModelChange)="togglePermission(key, $event)"
                         [disabled]="permLoading()" />
             <label [for]="'perm-' + key" class="perm-label-block">
-              <span class="perm-label-text">{{ ('permissions.keys.' + key) | translate }}</span>
-              <small class="perm-desc">{{ ('permissions.desc.' + key) | translate }}</small>
+              <span class="perm-label-text">{{ permLabel(key) }}</span>
+              <small class="perm-desc">{{ permDesc(key) }}</small>
             </label>
           </div>
         }
@@ -175,9 +155,9 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary"
+    <p-button label="Cancel" [text]="true" severity="secondary"
               (click)="closePermissions()" />
-    <p-button [label]="'permissions.save' | translate" severity="primary"
+    <p-button label="Save permissions" severity="primary"
               (click)="savePermissions()" [disabled]="permLoading() || permSaving()" [loading]="permSaving()" />
   </ng-template>
 </p-dialog>

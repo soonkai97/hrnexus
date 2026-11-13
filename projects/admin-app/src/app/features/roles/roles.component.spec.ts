@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { RolesComponent } from './roles.component';
 import { StaffStore, ToastService, ConfirmService, PermissionAdminService } from 'shared-lib';
@@ -60,7 +59,6 @@ describe('RolesComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: StaffStore,    useValue: mockStaffStore },
         { provide: ToastService,  useValue: mockToastSvc },
         { provide: ConfirmService, useValue: mockConfirmSvc },
@@ -101,7 +99,7 @@ describe('RolesComponent', () => {
       component.newRoleName = '  bartender  ';
       component.newRoleRate = 15;
       component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, null, null, 'hourly');
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, 'hourly');
     });
 
     it('passes the selected pay type (fixed) through to createRole', () => {
@@ -109,13 +107,13 @@ describe('RolesComponent', () => {
       component.newRoleRate = 500;
       component.newRolePayType = 'fixed';
       component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('PACKAGE', 500, null, null, 'fixed');
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('PACKAGE', 500, 'fixed');
     });
 
     it('shows success toast after creating a role', () => {
       component.newRoleName = 'host';
       component.addRole();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('roles.created');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Job created.');
     });
 
     it('hides the form after successfully creating a role', () => {
@@ -148,7 +146,7 @@ describe('RolesComponent', () => {
 
   // ── startEditRate() / cancelEditRate() ────────────────────────────────────────
 
-  const bartender = { id: 'role-bartender-id', name: 'BARTENDER', hourlyRate: 12, nameZh: null, nameVi: null, payType: 'hourly' as const, isSystem: false };
+  const bartender = { id: 'role-bartender-id', name: 'BARTENDER', hourlyRate: 12, payType: 'hourly' as const, isSystem: false };
 
   describe('startEditRate() / cancelEditRate()', () => {
     it('sets editingRateId to the role id', () => {
@@ -174,12 +172,12 @@ describe('RolesComponent', () => {
     });
 
     it('seeds editingRatePayType from the role so the toggle reflects the current pay model', () => {
-      component.startEditRate({ id: 'role-package-id', name: 'PACKAGE', hourlyRate: 500, nameZh: null, nameVi: null, payType: 'fixed', isSystem: false });
+      component.startEditRate({ id: 'role-package-id', name: 'PACKAGE', hourlyRate: 500, payType: 'fixed', isSystem: false });
       expect(component.editingRatePayType()).toBe('fixed');
     });
 
     it('marks system roles so the English-name field is locked', () => {
-      component.startEditRate({ id: 'role-admin-id', name: 'SUPERADMIN', hourlyRate: 0, nameZh: null, nameVi: null, payType: 'hourly', isSystem: true });
+      component.startEditRate({ id: 'role-admin-id', name: 'SUPERADMIN', hourlyRate: 0, payType: 'hourly', isSystem: true });
       expect(component.editingRateIsSystem()).toBe(true);
     });
   });
@@ -195,14 +193,14 @@ describe('RolesComponent', () => {
 
     it('calls updateRoleRate with the role id, new rate, and English name (custom job)', () => {
       component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', 'BARTENDER');
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, 'hourly', 'BARTENDER');
     });
 
     it('sends a null name for system roles so their auth key is never renamed', () => {
       component.editingRateIsSystem.set(true);
       component.editingRateName.set('SUPERADMIN');
       component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, null, null, 'hourly', null);
+      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, 'hourly', null);
     });
 
     it('does nothing when a custom job has a blank English name', () => {
@@ -218,7 +216,7 @@ describe('RolesComponent', () => {
 
     it('shows success toast after updating the rate', () => {
       component.saveRate();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('roles.rateUpdated');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Job updated.');
     });
 
     it('clears savingRate flag after success', () => {
@@ -260,7 +258,7 @@ describe('RolesComponent', () => {
 
     it('shows success toast after deletion', () => {
       component.deleteRole('role-bartender-id');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('roles.deleted');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Job deleted.');
     });
 
     it('does NOT delete when confirmation is cancelled', () => {
@@ -299,7 +297,7 @@ describe('RolesComponent', () => {
     it('toasts loadFailed when current permissions cannot be loaded', () => {
       mockPermSvc.getRolePermissions.mockReturnValue(throwError(() => new Error('boom')));
       component.openPermissions('BARTENDER');
-      expect(mockToastSvc.error).toHaveBeenCalledWith('permissions.loadFailed');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to load permissions.');
     });
   });
 
@@ -330,14 +328,14 @@ describe('RolesComponent', () => {
 
     it('toasts success and closes the dialog after saving', () => {
       component.savePermissions();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('permissions.saved');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Permissions updated.');
       expect(component.permRole()).toBeNull();
     });
 
     it('toasts saveFailed and keeps the dialog open on error', () => {
       mockPermSvc.setRolePermissions.mockReturnValue(throwError(() => new Error('boom')));
       component.savePermissions();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('permissions.saveFailed');
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Failed to save permissions.');
       expect(component.permRole()).toBe('BARTENDER');
       expect(component.permSaving()).toBe(false);
     });

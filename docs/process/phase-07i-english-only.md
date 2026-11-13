@@ -1,6 +1,6 @@
 # Phase 7i: English only (remove multi-lingual support)
 
-> **Status:** `Draft`
+> **Status:** `Complete (implemented on feat/english-only; DropMultilingualFields migration generated)`
 > **Created:** 2026-11-13 | **Updated:** 2026-11-13
 > **Depends on:** Phase 7 (remove shift log) merged, **Phase 7j (remove Locations) merged**. Phase 7g (Nx workspace) starts after this.
 > **Environment note (13 Nov 2026):** no production deployment exists, so the backup, approval and maintenance-window steps below apply to the next deployment that holds data.
@@ -158,4 +158,10 @@ Estimate: **about 3 days** (codemod + review 1.5, backend + migration 0.5, tests
 - [ ] All validation criteria met
 - [ ] Review completed (all 7 perspectives)
 - [ ] Phase 7g plan updated (i18n completeness test removed)
-- [ ] CLAUDE.md updated (i18n section deleted, new rule: English literals only)
+- [x] CLAUDE.md updated (i18n section deleted, new rule: English literals only)
+
+---
+
+## Review Notes
+
+- Dynamic keys were converted by a one-off codemod plus hand edits; guards added in both stacks.

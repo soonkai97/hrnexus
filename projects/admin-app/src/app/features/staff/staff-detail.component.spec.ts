@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { StaffDetailComponent } from './staff-detail.component';
 import { StaffStore, StaffManagementService, AuthService, ToastService, StaffDetail, PermissionAdminService } from 'shared-lib';
@@ -66,7 +65,6 @@ describe('StaffDetailComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: StaffStore,             useValue: mockStaffStore },
         { provide: StaffManagementService, useValue: mockStaffSvc },
         { provide: AuthService,            useValue: mockAuth },
@@ -125,7 +123,7 @@ describe('StaffDetailComponent', () => {
     it('shows error toast and clears loading when staff fetch fails', () => {
       mockStaffSvc.getById.mockReturnValue(throwError(() => new Error('Not found')));
       component.ngOnInit();
-      expect(mockToast.error).toHaveBeenCalledWith('staffDetail.loadFailed');
+      expect(mockToast.error).toHaveBeenCalledWith('Failed to load staff details.');
       expect(component.loading()).toBe(false);
     });
   });
@@ -158,14 +156,14 @@ describe('StaffDetailComponent', () => {
       component.editForm.staffId = '';
       expect(component.fieldError('staffId')).toBe('');   // not touched yet
       component.markTouched('staffId');
-      expect(component.fieldError('staffId')).toBe('staff.errStaffIdRequired');
+      expect(component.fieldError('staffId')).toBe('Staff ID is required.');
     });
 
     it('fieldError flags a malformed email once touched, clears when blank or valid', () => {
       fillValid();
       component.markTouched('email');
       component.editForm.email = 'bad-email';
-      expect(component.fieldError('email')).toBe('staff.errEmailInvalid');
+      expect(component.fieldError('email')).toBe('Enter a valid email address.');
       component.editForm.email = null;
       expect(component.fieldError('email')).toBe('');
     });
@@ -279,7 +277,7 @@ describe('StaffDetailComponent', () => {
 
     it('shows success toast after save', () => {
       component.saveEdit();
-      expect(mockToast.success).toHaveBeenCalledWith('staffDetail.profileUpdated');
+      expect(mockToast.success).toHaveBeenCalledWith('Profile updated.');
     });
 
     it('clears saving flag after success', () => {
@@ -356,7 +354,7 @@ describe('StaffDetailComponent', () => {
       component.permKeys.set(['staff.view']);
       component.permChoices.set({ 'staff.view': 'grant' });
       component.savePermissions();
-      expect(mockToast.success).toHaveBeenCalledWith('permissions.saved');
+      expect(mockToast.success).toHaveBeenCalledWith('Permissions updated.');
       expect(component.permSaving()).toBe(false);
     });
 
@@ -365,7 +363,7 @@ describe('StaffDetailComponent', () => {
       component.permKeys.set(['staff.view']);
       component.permChoices.set({ 'staff.view': 'grant' });
       component.savePermissions();
-      expect(mockToast.error).toHaveBeenCalledWith('permissions.saveFailed');
+      expect(mockToast.error).toHaveBeenCalledWith('Failed to save permissions.');
       expect(component.permSaving()).toBe(false);
     });
 
@@ -379,7 +377,7 @@ describe('StaffDetailComponent', () => {
       mockPermSvc.catalog.mockReturnValue(throwError(() => new Error('nope')));
       const c2 = TestBed.createComponent(StaffDetailComponent).componentInstance;
       c2.loadPermissions();
-      expect(mockToast.error).toHaveBeenCalledWith('permissions.loadFailed');
+      expect(mockToast.error).toHaveBeenCalledWith('Failed to load permissions.');
       expect(c2.permLoading()).toBe(false);
     });
   });

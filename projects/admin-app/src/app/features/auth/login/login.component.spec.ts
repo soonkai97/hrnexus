@@ -3,10 +3,9 @@ import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { Component } from '@angular/core';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AdminLoginComponent } from './login.component';
-import { AuthService, LangService, PermissionService } from 'shared-lib';
+import { AuthService, PermissionService } from 'shared-lib';
 
 @Component({ template: '', standalone: true }) class StubComponent {}
 
@@ -29,7 +28,6 @@ describe('AdminLoginComponent', () => {
     login:  ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn>;
   };
-  let mockLang:   { current: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
   let mockPermissions: { load: ReturnType<typeof vi.fn>; has: ReturnType<typeof vi.fn>; clear: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -37,7 +35,6 @@ describe('AdminLoginComponent', () => {
       login:  vi.fn().mockReturnValue(of({ user: { roles: ['SUPERADMIN'] } })),
       logout: vi.fn(),
     };
-    mockLang = { current: vi.fn().mockReturnValue('en'), set: vi.fn() };
     // By default the signed-in user HAS admin-portal access; gate tests override has().
     mockPermissions = { load: vi.fn().mockReturnValue(of(void 0)), has: vi.fn().mockReturnValue(true), clear: vi.fn() };
 
@@ -48,9 +45,7 @@ describe('AdminLoginComponent', () => {
         provideRouter([
           { path: 'dashboard', component: StubComponent },
         ]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService, useValue: mockAuth },
-        { provide: LangService, useValue: mockLang },
         { provide: PermissionService, useValue: mockPermissions },
         MessageService,
         ConfirmationService,
@@ -107,7 +102,7 @@ describe('AdminLoginComponent', () => {
       component.form.patchValue({ staffId: '   ', password: 'pass123' });
       component.submit();
       expect(mockAuth.login).not.toHaveBeenCalled();
-      expect(component.error()).toBe('auth.errEnterStaffId');
+      expect(component.error()).toBe('Please enter your Staff ID.');
     });
   });
 
@@ -153,7 +148,7 @@ describe('AdminLoginComponent', () => {
 
     it('sets access-denied error when the user lacks portal.admin', () => {
       component.submit();
-      expect(component.error()).toBe('auth.errAccessDeniedPortal');
+      expect(component.error()).toBe('Access denied. Only Admin or Manager accounts can log in to this portal.');
     });
 
     it('clears loading after rejecting a user without portal.admin', () => {
@@ -172,13 +167,13 @@ describe('AdminLoginComponent', () => {
     it('sets generic error message on credential failure', () => {
       mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Bad credentials' } })));
       component.submit();
-      expect(component.error()).toBe('auth.errInvalidCredentials');
+      expect(component.error()).toBe('Invalid Staff ID or password.');
     });
 
     it('sets access-denied message when the API reports no admin-portal access', () => {
       mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Access denied. You do not have admin portal access.' } })));
       component.submit();
-      expect(component.error()).toBe('auth.errAccessDeniedPortal');
+      expect(component.error()).toBe('Access denied. Only Admin or Manager accounts can log in to this portal.');
     });
 
     it('clears loading flag after an API error', () => {

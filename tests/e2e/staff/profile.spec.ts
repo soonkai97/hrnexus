@@ -9,8 +9,6 @@ import { loginStaff } from '../shared/helpers';
  *    or staff ID are blank, staff can't verify they're logged into the right account.
  *  - The push notification toggle is the only way staff opt in to leave and other
  *    alerts on mobile; if it's missing or broken, staff miss real-time alerts.
- *  - The language selector must render so bilingual staff can switch to their
- *    preferred language — a broken selector locks them into English.
  *  - The sign-out button must be present; its absence traps staff in the app.
  */
 test.describe('Staff — Profile', () => {
@@ -48,11 +46,6 @@ test.describe('Staff — Profile', () => {
     await expect(
       page.getByRole('button', { name: /enable.*notification|disable.*notification|push/i })
     ).toBeVisible({ timeout: 8_000 });
-  });
-
-  test('shows the language selector (EN / ZH toggle)', async ({ page }) => {
-    // p-selectbutton with EN and ZH options
-    await expect(page.locator('.p-selectbutton')).toBeVisible({ timeout: 8_000 });
   });
 
   test('shows the sign-out button', async ({ page }) => {

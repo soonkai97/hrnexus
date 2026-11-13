@@ -1,16 +1,14 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { AuthService, StaffManagementService, StaffDetail, ToastService, PushService, LangService, VersionService } from 'shared-lib';
+import { AuthService, StaffManagementService, StaffDetail, ToastService, PushService, VersionService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
-import { SelectButton } from 'primeng/selectbutton';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [RouterLink, FormsModule, TranslatePipe, Button, Card, SelectButton],
+  imports: [RouterLink, FormsModule, Button, Card],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
@@ -19,18 +17,11 @@ export class ProfileComponent implements OnInit {
   private readonly staffSvc = inject(StaffManagementService);
   private readonly toast    = inject(ToastService);
   private readonly pushSvc  = inject(PushService);
-  readonly lang             = inject(LangService);
-  private readonly translate = inject(TranslateService);
   private readonly versionSvc = inject(VersionService);
 
   /** Build stamp shown at the bottom of the page (e.g. "20260704.01"). */
   readonly build = this.versionSvc.info;
 
-  readonly langOptions = [
-    { label: 'English',     value: 'en' },
-    { label: '中文',        value: 'zh' },
-    { label: 'Tiếng Việt', value: 'vi' },
-  ];
 
   user         = computed(() => this.auth.user());
   profile      = signal<StaffDetail | null>(null);
@@ -63,12 +54,12 @@ export class ProfileComponent implements OnInit {
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const isStandalone = ('standalone' in navigator) && (navigator as Navigator & { standalone?: boolean }).standalone;
     if (isIos && !isStandalone) {
-      this.toast.warning(this.translate.instant('profile.toast.iosHomeScreen'));
+      this.toast.warning('To enable notifications on iPhone, add this app to your Home Screen first.');
       return;
     }
 
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      this.toast.error(this.translate.instant('profile.toast.pushUnsupported'));
+      this.toast.error('Push notifications are not supported in this browser.');
       return;
     }
 
@@ -82,9 +73,9 @@ export class ProfileComponent implements OnInit {
         this.pushEnabled.set(false);
       } else {
         const keyRes = await this.pushSvc.getPublicKey().toPromise();
-        if (!keyRes?.publicKey) { this.toast.error(this.translate.instant('profile.toast.pushNotConfigured')); return; }
+        if (!keyRes?.publicKey) { this.toast.error('Push notifications are not configured on this server.'); return; }
         const sub = await this.pushSvc.requestPermission(keyRes.publicKey);
-        if (!sub) { this.toast.error(this.translate.instant('profile.toast.permissionDenied')); return; }
+        if (!sub) { this.toast.error('Notification permission denied.'); return; }
         const json = sub.toJSON();
         await this.pushSvc.subscribe({
           endpoint: json.endpoint!,
@@ -94,7 +85,7 @@ export class ProfileComponent implements OnInit {
         this.pushEnabled.set(true);
       }
     } catch {
-      this.toast.error(this.translate.instant('profile.toast.enableFailed'));
+      this.toast.error('Could not enable notifications. Please try again.');
     } finally {
       this.pushLoading.set(false);
     }

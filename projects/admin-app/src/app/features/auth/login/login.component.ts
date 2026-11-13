@@ -1,17 +1,15 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { Menu } from 'primeng/menu';
-import { AuthService, PermissionService, ThemeToggleComponent, LangService, apiErrorMessage } from 'shared-lib';
+import { AuthService, PermissionService, ThemeToggleComponent, apiErrorMessage } from 'shared-lib';
 
 @Component({
   selector: 'app-admin-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, TranslatePipe, Button, InputText, Message, Menu],
+  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, Button, InputText, Message],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -20,8 +18,6 @@ export class AdminLoginComponent {
   private readonly auth   = inject(AuthService);
   private readonly permissions = inject(PermissionService);
   private readonly router = inject(Router);
-  private readonly translate = inject(TranslateService);
-  readonly lang           = inject(LangService);
 
   form: FormGroup;
   loading  = signal(false);
@@ -38,7 +34,7 @@ export class AdminLoginComponent {
   submit(): void {
     if (this.form.invalid || this.loading()) return;
     const staffId = (this.form.value.staffId as string).trim().toUpperCase();
-    if (!staffId) { this.error.set(this.translate.instant('auth.errEnterStaffId')); return; }
+    if (!staffId) { this.error.set('Please enter your Staff ID.'); return; }
     this.loading.set(true);
     this.error.set('');
     this.auth.login({ ...this.form.value, staffId, portal: 'admin' }).subscribe({
@@ -48,7 +44,7 @@ export class AdminLoginComponent {
         this.permissions.load().subscribe(() => {
           if (!this.permissions.has('portal.admin')) {
             this.auth.logout();
-            this.error.set(this.translate.instant('auth.errAccessDeniedPortal'));
+            this.error.set('Access denied. Only Admin or Manager accounts can log in to this portal.');
             this.loading.set(false);
             return;
           }
@@ -59,8 +55,8 @@ export class AdminLoginComponent {
         const msg = apiErrorMessage(e) ?? '';
         this.error.set(
           msg.toLowerCase().includes('admin portal')
-            ? this.translate.instant('auth.errAccessDeniedPortal')
-            : this.translate.instant('auth.errInvalidCredentials')
+            ? 'Access denied. Only Admin or Manager accounts can log in to this portal.'
+            : 'Invalid Staff ID or password.'
         );
         this.loading.set(false);
       },

@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { HomeComponent } from './home.component';
 import { AuthService, LeaveService } from 'shared-lib';
@@ -38,7 +37,6 @@ describe('HomeComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: AuthService,  useValue: mockAuth },
         { provide: LeaveService, useValue: mockLeaveSvc },
         MessageService,
@@ -58,25 +56,25 @@ describe('HomeComponent', () => {
     it('returns goodMorning key when the hour is before noon', () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date(2026, 4, 17, 9, 0, 0)); // 9am
-      expect(createComponent().greeting()).toBe('home.goodMorning');
+      expect(createComponent().greeting()).toBe('Good morning');
     });
 
     it('returns goodAfternoon key between noon (inclusive) and 5pm', () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date(2026, 4, 17, 14, 0, 0)); // 2pm
-      expect(createComponent().greeting()).toBe('home.goodAfternoon');
+      expect(createComponent().greeting()).toBe('Good afternoon');
     });
 
     it('returns goodEvening key at 5pm or later', () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date(2026, 4, 17, 20, 0, 0)); // 8pm
-      expect(createComponent().greeting()).toBe('home.goodEvening');
+      expect(createComponent().greeting()).toBe('Good evening');
     });
 
     it('uses hour 17 as the evening boundary', () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date(2026, 4, 17, 17, 0, 0)); // exactly 5pm
-      expect(createComponent().greeting()).toBe('home.goodEvening');
+      expect(createComponent().greeting()).toBe('Good evening');
     });
   });
 

@@ -16,7 +16,6 @@ Map the changed paths to roles. Always include `be-architect` or `fe-architect` 
 | `backend/tests` | unit-test-engineer, integration-test-engineer |
 | `projects/*` (components, stores, services) | fe-architect, fe-framework, unit-test-engineer |
 | `projects/*/src/styles`, `*.scss` | fe-designer, fe-architect |
-| `projects/*/public/i18n` | fe-architect |
 | `tests/e2e`, `tests/features` | behavior-test-engineer |
 | `docs/process/phase-*.md`, `STATE.md`, `CLAUDE.md` | project-manager, product-manager |
 | any user-visible flow | business-analyst, ui-ux-designer, qa-* personas |
@@ -43,7 +42,7 @@ Map the changed paths to roles. Always include `be-architect` or `fe-architect` 
 | Severity | Meaning | Blocks merge |
 |---|---|---|
 | BLOCKER | Wrong behaviour, data loss or corruption, security hole, broken build/test, a CLAUDE.md rule or phase-doc criterion violated | yes |
-| MAJOR | Likely bug, missing test for a rule, layering or contract violation, missing i18n key in a locale, performance risk | yes unless the author explains |
+| MAJOR | Likely bug, missing test for a rule, layering or contract violation, performance risk | yes unless the author explains |
 | MINOR | Maintainability, naming, small gaps | no |
 | NIT | Optional polish | no |
 
@@ -89,11 +88,11 @@ Then append one entry to `docs/team/HANDOFFS.md` (see `PROTOCOL.md`).
 
 **project-manager** - PR links a phase step, description says what/why/how tested, STATE.md and the phase doc status are updated, size is reviewable (split if large), risks and follow-ups recorded.
 
-**ui-ux-designer** - Flow is phone-first for staff-app and desktop-first for admin-app; empty, loading (skeleton) and error states; copy in all three languages; confirmation only where it protects data.
+**ui-ux-designer** - Flow is phone-first for staff-app and desktop-first for admin-app; empty, loading (skeleton) and error states; English copy; confirmation only where it protects data.
 
 **fe-designer** - Uses design tokens (`$neon-*`, `$bg-*`, CSS custom properties), no hard-coded colours or spacing, contrast AA, 44px targets, dark and light mode, responsive table stack pattern where tables exist.
 
-**fe-architect** - Standalone components, signals, no new `BehaviorSubject`/`Subject`, state in stores or signals, lazy routes, guards (`authGuard`, `permissionGuard`) on every new route, `ngModel` form pattern unless reactive is justified, i18n keys in en, zh and vi for both apps, PrimeNG overlays use `appendTo="body"`, `:host :deep()` instead of `.class :deep()`, no full-page spinner, no `environment.ts`.
+**fe-architect** - Standalone components, signals, no new `BehaviorSubject`/`Subject`, state in stores or signals, lazy routes, guards (`authGuard`, `permissionGuard`) on every new route, `ngModel` form pattern unless reactive is justified, PrimeNG overlays use `appendTo="body"`, `:host :deep()` instead of `.class :deep()`, no full-page spinner, no `environment.ts`.
 
 **fe-framework** - `npx ng build` and unit tests pass for the touched projects; no direct edits to backend; shared code lives in shared-lib; spec file exists for every new component/service/store/guard (Rule 17 scan returns 0 gaps).
 

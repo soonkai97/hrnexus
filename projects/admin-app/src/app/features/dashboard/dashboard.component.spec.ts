@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DashboardComponent } from './dashboard.component';
 import { SignalRService, AdminService, ToastService } from 'shared-lib';
@@ -38,7 +37,6 @@ describe('DashboardComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
-        provideTranslateService({ defaultLanguage: 'en' }),
         { provide: SignalRService, useValue: mockSignalR },
         { provide: AdminService,   useValue: mockAdminSvc },
         { provide: ToastService,   useValue: mockToastSvc },

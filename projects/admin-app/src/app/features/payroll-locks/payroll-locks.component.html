@@ -1,28 +1,28 @@
 <div class="page">
   <div class="page-header">
-    <h1 class="page-title">{{ 'payrollLocks.title' | translate }}</h1>
-    <p class="page-subtitle">{{ 'payrollLocks.subtitle' | translate }}</p>
+    <h1 class="page-title">Payroll Locks</h1>
+    <p class="page-subtitle">Lock a month to freeze its shift logs. Locked periods can't be edited until reopened.</p>
   </div>
 
   <!-- Lock a period -->
   <p-card styleClass="form-card">
     <div class="lock-form">
       <div class="field">
-        <label for="lock-year"><span class="req">*</span> {{ 'payrollLocks.year' | translate }}</label>
+        <label for="lock-year"><span class="req">*</span> Year</label>
         <p-select [(ngModel)]="form.year" [options]="yearOptions" optionLabel="label" optionValue="value"
                   appendTo="body" inputId="lock-year" />
       </div>
       <div class="field">
-        <label for="lock-month"><span class="req">*</span> {{ 'payrollLocks.month' | translate }}</label>
+        <label for="lock-month"><span class="req">*</span> Month</label>
         <p-select [(ngModel)]="form.month" [options]="monthOptions" optionLabel="label" optionValue="value"
                   appendTo="body" inputId="lock-month" />
       </div>
       <div class="field field-grow">
-        <label for="pl-note">{{ 'payrollLocks.note' | translate }}</label>
-        <input id="pl-note" pInputText [(ngModel)]="form.note" [placeholder]="'payrollLocks.notePlaceholder' | translate" maxlength="500" />
+        <label for="pl-note">Note</label>
+        <input id="pl-note" pInputText [(ngModel)]="form.note" placeholder="Optional reason or reference…" maxlength="500" />
       </div>
       <div class="field field-action">
-        <p-button [label]="'payrollLocks.lockBtn' | translate" icon="pi pi-lock" severity="primary"
+        <p-button label="Lock period" icon="pi pi-lock" severity="primary"
                   [disabled]="!isFormValid || saving()" [loading]="saving()" (onClick)="lockPeriod()" />
       </div>
     </div>
@@ -35,16 +35,16 @@
         <div class="skeleton-row"><p-skeleton width="30%" height="0.7rem" /><p-skeleton width="50%" height="0.7rem" /></div>
       }
     } @else if (locks().length === 0) {
-      <div class="empty-state">{{ 'payrollLocks.noLocks' | translate }}</div>
+      <div class="empty-state">No periods are locked.</div>
     } @else {
       <p-table [value]="locks()" [tableStyle]="{ 'min-width': '100%' }"
         [paginator]="locks().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
         <ng-template pTemplate="header">
           <tr>
-            <th>{{ 'payrollLocks.period' | translate }}</th>
-            <th>{{ 'payrollLocks.lockedBy' | translate }}</th>
-            <th>{{ 'payrollLocks.lockedAt' | translate }}</th>
-            <th>{{ 'payrollLocks.note' | translate }}</th>
+            <th>Period</th>
+            <th>Locked by</th>
+            <th>Locked at</th>
+            <th>Note</th>
             <th></th>
           </tr>
         </ng-template>
@@ -55,7 +55,7 @@
             <td class="td-muted">{{ l.lockedAt | date:'dd/MM/yyyy HH:mm':'+0800' }}</td>
             <td class="td-muted">{{ l.note || '—' }}</td>
             <td class="td-action">
-              <p-button [label]="'payrollLocks.reopen' | translate" icon="pi pi-lock-open" [text]="true"
+              <p-button label="Reopen" icon="pi pi-lock-open" [text]="true"
                         severity="secondary" size="small" (onClick)="reopen(l)" />
             </td>
           </tr>

@@ -1,6 +1,5 @@
 import { signal, inject } from '@angular/core';
 import { AuthService } from './auth.service';
-import { LangService } from '../services/lang.service';
 
 /**
  * Shared logic for the forgot-password page.
@@ -8,7 +7,6 @@ import { LangService } from '../services/lang.service';
  */
 export abstract class ForgotPasswordBase {
   protected readonly auth = inject(AuthService);
-  readonly lang           = inject(LangService);
 
   staffId = '';
   loading = signal(false);

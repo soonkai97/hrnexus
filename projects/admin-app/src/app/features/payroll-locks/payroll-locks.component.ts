@@ -1,7 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -16,7 +15,7 @@ import {
 @Component({
   selector: 'app-payroll-locks',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslatePipe, Card, Button, TableModule, Tag, InputText, Select, Skeleton],
+  imports: [DatePipe, FormsModule, Card, Button, TableModule, Tag, InputText, Select, Skeleton],
   templateUrl: './payroll-locks.component.html',
   styleUrl: './payroll-locks.component.scss',
 })
@@ -24,7 +23,6 @@ export class PayrollLocksComponent implements OnInit {
   private readonly svc       = inject(PayrollLockService);
   private readonly toast     = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
-  private readonly translate = inject(TranslateService);
 
   readonly locks   = signal<PayrollLockDto[]>([]);
   readonly loading = signal(false);
@@ -46,7 +44,7 @@ export class PayrollLocksComponent implements OnInit {
     this.loading.set(true);
     this.svc.list().subscribe({
       next: (rows) => { this.locks.set(rows); this.loading.set(false); },
-      error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('payrollLocks.loadFailed')); this.loading.set(false); },
+      error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? 'Failed to load payroll locks.'); this.loading.set(false); },
     });
   }
 
@@ -59,13 +57,13 @@ export class PayrollLocksComponent implements OnInit {
     this.saving.set(true);
     this.svc.lock(this.form.year, this.form.month, this.form.note?.trim() || null).subscribe({
       next: () => {
-        this.toast.success(this.translate.instant('payrollLocks.lockedToast'));
+        this.toast.success('Period locked.');
         this.form.note = '';
         this.saving.set(false);
         this.load();
       },
       error: (e: unknown) => {
-        this.toast.error(apiErrorMessage(e) ?? this.translate.instant('payrollLocks.lockFailed'));
+        this.toast.error(apiErrorMessage(e) ?? 'Failed to lock the period.');
         this.saving.set(false);
       },
     });
@@ -73,13 +71,13 @@ export class PayrollLocksComponent implements OnInit {
 
   reopen(lock: PayrollLockDto): void {
     this.confirmSvc.confirm({
-      message: this.translate.instant('payrollLocks.reopenConfirm', { period: this.period(lock) }),
+      message: `Reopen ${this.period(lock)}? Its shift logs will become editable again.`,
       danger: true,
     }).subscribe((ok) => {
       if (!ok) return;
       this.svc.reopen(lock.year, lock.month).subscribe({
-        next: () => { this.toast.success(this.translate.instant('payrollLocks.reopenedToast')); this.load(); },
-        error: (e: unknown) => this.toast.error(apiErrorMessage(e) ?? this.translate.instant('payrollLocks.reopenFailed')),
+        next: () => { this.toast.success('Period reopened.'); this.load(); },
+        error: (e: unknown) => this.toast.error(apiErrorMessage(e) ?? 'Failed to reopen the period.'),
       });
     });
   }

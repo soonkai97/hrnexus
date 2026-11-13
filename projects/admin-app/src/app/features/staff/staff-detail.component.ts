@@ -1,11 +1,8 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { merge } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions, LangService, localizedNameFor } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions, permissionLabel, permissionDescription } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
@@ -24,7 +21,7 @@ type DetailTab = 'profile' | 'permissions';
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink, TranslatePipe, TrimInputDirective,
+  imports: [DatePipe, FormsModule, RouterLink, TrimInputDirective,
     Button, InputText, Tag, Card, Skeleton, DatePicker, MultiSelect, SelectButton, Tabs, TabList, Tab],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
@@ -36,8 +33,6 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly route       = inject(ActivatedRoute);
   private readonly permSvc     = inject(PermissionAdminService);
-  private readonly translate   = inject(TranslateService);
-  private readonly lang        = inject(LangService);
 
   staff            = signal<StaffDetail | null>(null);
   loading          = signal(true);
@@ -51,17 +46,8 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
   availableRoles = computed(() => this.staffStore.roles());
 
-  /** Pick a record's display name in the current UI language (Chinese/Vietnamese when set). */
-  private localized(name: string, nameZh: string | null | undefined, nameVi: string | null | undefined): string {
-    return localizedNameFor(this.lang.current(), name, nameZh, nameVi);
-  }
-  /** Resolve a role name to its (localized) display name — read-only assigned-role tags. */
-  roleName(name: string): string {
-    const role = this.availableRoles().find(r => r.name === name);
-    return role ? this.localized(role.name, role.nameZh, role.nameVi) : name;
-  }
   // Pickers use the GUID id (the edit-staff DTO submits role IDS).
-  readonly roleOptions     = computed(() => this.availableRoles().map(r => ({ label: this.localized(r.name, r.nameZh, r.nameVi), value: r.id })));
+  readonly roleOptions     = computed(() => this.availableRoles().map(r => ({ label: r.name, value: r.id })));
 
   /** Map a role NAME (as stored on the staff record) to its GUID id via the loaded roles. */
   private roleIdForName(name: string): string {
@@ -93,27 +79,21 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   });
   /** Catalog keys organised into labelled sections for the edit list. */
   readonly visiblePermGroups = computed(() => groupedPermissions(this.permKeys()));
+  readonly permLabel = permissionLabel;
+  readonly permDesc = permissionDescription;
 
   /** Keys with a non-inherit choice — what the read-only view lists. */
   readonly activeOverrides = computed(() =>
     this.permKeys().filter(k => (this.permChoices()[k] ?? 'inherit') !== 'inherit'));
 
-  // Ticks on language (re)load so instant()-based label computeds re-evaluate — otherwise the
-  // SelectButton option labels would cache in the first language and never switch.
-  private readonly _langTick = toSignal(
-    merge(this.translate.onLangChange, this.translate.onDefaultLangChange), { initialValue: null });
+  /** Options for each tri-state p-selectButton. */
+  readonly permOptions: { label: string; value: OverrideChoice }[] = [
+    { label: 'Inherit', value: 'inherit' },
+    { label: 'Grant',   value: 'grant'   },
+    { label: 'Revoke',  value: 'revoke'  },
+  ];
 
-  /** Options for each tri-state p-selectButton (labels resolved at runtime via translate). */
-  readonly permOptions = computed<{ label: string; value: OverrideChoice }[]>(() => {
-    this._langTick();   // dependency: recompute when the language changes
-    return [
-      { label: this.translate.instant('permissions.inherit'), value: 'inherit' },
-      { label: this.translate.instant('permissions.grant'),   value: 'grant'   },
-      { label: this.translate.instant('permissions.revoke'),  value: 'revoke'  },
-    ];
-  });
-
-  permChoiceLabel(c: OverrideChoice | undefined): string { return this.translate.instant('permissions.' + (c ?? 'inherit')); }
+  permChoiceLabel(c: OverrideChoice | undefined): string { return { inherit: 'Inherit', grant: 'Grant', revoke: 'Revoke' }[c ?? 'inherit']; }
   permChoiceSeverity(c: OverrideChoice | undefined): 'success' | 'danger' | 'secondary' {
     return c === 'grant' ? 'success' : c === 'revoke' ? 'danger' : 'secondary';
   }
@@ -131,7 +111,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     this.loading.set(true);
     this.staffSvc.getById(this.staffId).subscribe({
       next:  d  => { this.staff.set(d); this.loading.set(false); },
-      error: () => { this.toast.error(this.translate.instant('staffDetail.loadFailed')); this.loading.set(false); },
+      error: () => { this.toast.error('Failed to load staff details.'); this.loading.set(false); },
     });
   }
 
@@ -181,18 +161,18 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     if (!this.touched().has(field)) return '';
     const f = this.editForm;
     switch (field) {
-      case 'staffId':   return f.staffId?.trim()   ? '' : this.translate.instant('staff.errStaffIdRequired');
-      case 'firstName': return f.firstName?.trim() ? '' : this.translate.instant('staff.errFirstNameRequired');
-      case 'email':     return this.emailIsValid() ? '' : this.translate.instant('staff.errEmailInvalid');
+      case 'staffId':   return f.staffId?.trim()   ? '' : 'Staff ID is required.';
+      case 'firstName': return f.firstName?.trim() ? '' : 'First name is required.';
+      case 'email':     return this.emailIsValid() ? '' : 'Enter a valid email address.';
     }
   }
 
   cancelEdit(): void {
     if (this.hasUnsavedChanges()) {
       this.confirmSvc.confirm({
-        title: this.translate.instant('staffDetail.discardTitle'),
-        message: this.translate.instant('staffDetail.discardMessage'),
-        confirmLabel: this.translate.instant('staffDetail.discardConfirm'),
+        title: 'Discard Changes',
+        message: 'You have unsaved changes. Discard them?',
+        confirmLabel: 'Discard',
         danger: true,
       }).subscribe(ok => { if (ok) this.editMode.set(false); });
     } else {
@@ -208,8 +188,8 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
       dateOfBirth: this.editForm.dateOfBirth?.trim() || null,
     };
     this.staffStore.update(this.staffId, req).subscribe({
-      next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success(this.translate.instant('staffDetail.profileUpdated')); },
-      error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? this.translate.instant('staffDetail.updateFailed')); this.saving.set(false); },
+      next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success('Profile updated.'); },
+      error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? 'Update failed.'); this.saving.set(false); },
     });
   }
 
@@ -230,10 +210,10 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
             this.permInitial.set({ ...choices });
             this.permLoading.set(false);
           },
-          error: () => { this.toast.error(this.translate.instant('permissions.loadFailed')); this.permLoading.set(false); },
+          error: () => { this.toast.error('Failed to load permissions.'); this.permLoading.set(false); },
         });
       },
-      error: () => { this.toast.error(this.translate.instant('permissions.loadFailed')); this.permLoading.set(false); },
+      error: () => { this.toast.error('Failed to load permissions.'); this.permLoading.set(false); },
     });
   }
 
@@ -251,12 +231,12 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
       .map(k => ({ permissionKey: k, granted: choices[k] === 'grant' }));
     this.permSvc.setUserOverrides(this.staffId, overrides).subscribe({
       next:  () => {
-        this.toast.success(this.translate.instant('permissions.saved'));
+        this.toast.success('Permissions updated.');
         this.permInitial.set({ ...choices });   // new clean baseline
         this.permEditMode.set(false);            // back to view mode
         this.permSaving.set(false);
       },
-      error: () => { this.toast.error(this.translate.instant('permissions.saveFailed')); this.permSaving.set(false); },
+      error: () => { this.toast.error('Failed to save permissions.'); this.permSaving.set(false); },
     });
   }
 }

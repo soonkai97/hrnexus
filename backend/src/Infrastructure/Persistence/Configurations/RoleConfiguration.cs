@@ -13,8 +13,6 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         // Name is now a normal display column but must stay unique — role names are still the
         // human identity (auth matches on them, the create-role dup-check keys on them).
         b.HasIndex(r => r.Name).IsUnique();
-        b.Property(r => r.NameZh).HasMaxLength(100);
-        b.Property(r => r.NameVi).HasMaxLength(100);
         b.Property(r => r.HourlyRate).HasColumnType("decimal(10,2)");
         b.Property(r => r.PayType).HasMaxLength(10).IsRequired();
         // Existing rows (and any created before the app set it) default to the global cap so every job

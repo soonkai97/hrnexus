@@ -44,11 +44,10 @@ Record findings in the phase document's **Review Notes** section.
 ## Perspective 4 — Maintainability
 
 - [ ] All new code follows CLAUDE.md Rules 1–12
-- [ ] No magic strings — use i18n keys, constants, or enums
+- [ ] No magic strings — use constants or enums (UI text stays as inline English literals)
 - [ ] No commented-out code blocks left behind
 - [ ] Component files are ≤300 lines — extract if larger
 - [ ] SCSS uses design tokens (`$neon-purple`, `$bg-surface`, etc.) — no hardcoded hex values
-- [ ] New i18n keys added to **both** `en.json` and `zh.json`
 - [ ] PrimeNG `:deep()` rules use `:host :deep()` — not `.class-name :deep()`
 
 ## Perspective 5 — Testing

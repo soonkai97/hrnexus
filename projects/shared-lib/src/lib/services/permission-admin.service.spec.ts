@@ -70,17 +70,17 @@ describe('PermissionAdminService', () => {
 describe('groupedPermissions', () => {
   it('keeps only visible keys, in group order, dropping empty groups', () => {
     const groups = groupedPermissions(['portal.admin', 'staff.view', 'payroll.view']);
-    expect(groups.map(g => g.labelKey)).toEqual([
-      'permissions.groups.access',
-      'permissions.groups.operations',
-      'permissions.groups.finance',
+    expect(groups.map(g => g.label)).toEqual([
+      'Access',
+      'Operations',
+      'Finance',
     ]);
     expect(groups[1]!.keys).toEqual(['staff.view']); // setup group has no visible key → dropped
   });
 
   it('appends any unknown key to a trailing "other" group so nothing is hidden', () => {
     const groups = groupedPermissions(['staff.view', 'some.future.key']);
-    const other = groups.find(g => g.labelKey === 'permissions.groups.other');
+    const other = groups.find(g => g.label === 'Other');
     expect(other?.keys).toEqual(['some.future.key']);
   });
 

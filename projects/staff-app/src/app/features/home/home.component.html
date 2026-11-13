@@ -3,7 +3,7 @@
   <!-- Greeting -->
   <div class="greeting d-flex align-items-start justify-content-between flex-wrap gap-3">
     <div>
-      <h1 class="greeting-text">{{ greeting() | translate }}, {{ firstName() }}</h1>
+      <h1 class="greeting-text">{{ greeting() }}, {{ firstName() }}</h1>
       @if (user()?.roles?.length) {
         <p class="greeting-role">{{ user()!.roles[0] | uppercase }}</p>
       }
@@ -27,9 +27,9 @@
           <div class="d-flex align-items-start gap-3">
             <div class="stat-icon"><i class="pi pi-sun"></i></div>
             <div class="stat-body">
-              <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
+              <div class="stat-label">Annual Leave</div>
               <div class="stat-value">{{ lb.annualRemaining }}<span class="stat-unit">h</span></div>
-              <div class="stat-sub">{{ lb.annualUsed }}h / {{ lb.annualEntitlement }}h {{ 'home.used' | translate }}</div>
+              <div class="stat-sub">{{ lb.annualUsed }}h / {{ lb.annualEntitlement }}h used</div>
             </div>
           </div>
         </p-card>
@@ -37,9 +37,9 @@
           <div class="d-flex align-items-start gap-3">
             <div class="stat-icon"><i class="pi pi-heart"></i></div>
             <div class="stat-body">
-              <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
+              <div class="stat-label">Sick Leave</div>
               <div class="stat-value">{{ lb.sickRemaining }}<span class="stat-unit">h</span></div>
-              <div class="stat-sub">{{ lb.sickUsed }}h / {{ lb.sickEntitlement }}h {{ 'home.used' | translate }}</div>
+              <div class="stat-sub">{{ lb.sickUsed }}h / {{ lb.sickEntitlement }}h used</div>
             </div>
           </div>
         </p-card>
@@ -49,8 +49,8 @@
           <div class="d-flex align-items-start gap-3">
             <div class="stat-icon"><i class="pi pi-sun"></i></div>
             <div class="stat-body">
-              <div class="stat-label">{{ 'home.annualLeave' | translate }}</div>
-              <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+              <div class="stat-label">Annual Leave</div>
+              <div class="stat-sub">Unavailable</div>
             </div>
           </div>
         </p-card>
@@ -58,8 +58,8 @@
           <div class="d-flex align-items-start gap-3">
             <div class="stat-icon"><i class="pi pi-heart"></i></div>
             <div class="stat-body">
-              <div class="stat-label">{{ 'home.sickLeave' | translate }}</div>
-              <div class="stat-sub">{{ 'home.dataUnavailable' | translate }}</div>
+              <div class="stat-label">Sick Leave</div>
+              <div class="stat-sub">Unavailable</div>
             </div>
           </div>
         </p-card>

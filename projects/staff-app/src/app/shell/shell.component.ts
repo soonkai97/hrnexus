@@ -1,20 +1,19 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inject, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
-import { interval, merge } from 'rxjs';
+import { interval } from 'rxjs';
 import { filter, startWith } from 'rxjs/operators';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Button } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, LangService, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, SignalRService, NotificationService, LeaveService, ToastService } from 'shared-lib';
 
 const LEAVE_SNAPSHOT_KEY = 'nc_leave_status_snapshot';
 const POLL_INTERVAL_MS   = 60_000;
 
-interface NavItem { path: string; labelKey: string; icon: string; }
+interface NavItem { path: string; label: string; icon: string; }
 
 @Component({
   selector: 'app-shell',
@@ -22,8 +21,7 @@ interface NavItem { path: string; labelKey: string; icon: string; }
   imports: [
     RouterOutlet, RouterLink, RouterLinkActive,
     ToastComponent, ConfirmDialogComponent,
-    NotificationBellComponent, ThemeToggleComponent,
-    TranslatePipe, Button, BadgeModule, TooltipModule, Menu,
+    NotificationBellComponent, ThemeToggleComponent, Button, BadgeModule, TooltipModule, Menu,
   ],
   templateUrl: './shell.component.html',
   styleUrl:    './shell.component.scss',
@@ -88,25 +86,16 @@ export class ShellComponent implements AfterViewInit {
   private readonly auth            = inject(AuthService);
   private readonly router          = inject(Router);
   private readonly signalR         = inject(SignalRService);
-  readonly lang                    = inject(LangService);
   readonly notifSvc                = inject(NotificationService);
   private readonly leaveSvc        = inject(LeaveService);
   private readonly toast           = inject(ToastService);
-  private readonly translate       = inject(TranslateService);
 
-  // Translation files load asynchronously after bootstrap, so instant() inside a computed
-  // returns the raw key on first render. Tick this on translation (re)loads so label
-  // computeds (e.g. the avatar menu) re-evaluate once the file has arrived.
-  private readonly _i18nReady = toSignal(
-    merge(this.translate.onLangChange, this.translate.onDefaultLangChange),
-    { initialValue: null });
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
   unreadNotifications = computed(() => this.notifSvc.unreadCount());
   leaveChangeCount    = signal(0);
 
   constructor() {
-    this.lang.syncFromApi();
     this.signalR.startConnection();
 
     // Background poll: detect leave status changes
@@ -150,10 +139,10 @@ export class ShellComponent implements AfterViewInit {
           const prev = snapshot[r.id];
           if (prev === 'pending') {
             if (r.status === 'approved') {
-              this.toast.success(this.translate.instant('polling.leaveApproved'));
+              this.toast.success('Your leave request has been approved.');
               newChanges++;
             } else if (r.status === 'rejected') {
-              this.toast.error(this.translate.instant('polling.leaveRejected'));
+              this.toast.error('Your leave request has been rejected.');
               newChanges++;
             }
           }
@@ -200,21 +189,19 @@ export class ShellComponent implements AfterViewInit {
   });
 
   private readonly allNavItems: NavItem[] = [
-    { path: '/home',          labelKey: 'nav.home',          icon: 'pi pi-home'                                      },
-    { path: '/my-leave',      labelKey: 'nav.leave',         icon: 'pi pi-calendar'                                  },
+    { path: '/home',          label: 'Home',          icon: 'pi pi-home'                                      },
+    { path: '/my-leave',      label: 'Leave',         icon: 'pi pi-calendar'                                  },
   ];
 
   navItems = computed(() => this.allNavItems);
 
   readonly avatarMenuItems = computed<MenuItem[]>(() => {
-    this.lang.current(); // re-evaluate labels on language change
-    this._i18nReady();   // re-evaluate once translation files finish loading
     return [
       { label: this.user()?.fullName ?? '', disabled: true },
       { separator: true },
-      { label: this.translate.instant('nav.profile'), icon: 'pi pi-user', routerLink: '/profile' },
+      { label: 'Profile', icon: 'pi pi-user', routerLink: '/profile' },
       { separator: true },
-      { label: this.translate.instant('profile.signOut'), icon: 'pi pi-power-off', command: () => this.logout() },
+      { label: 'Sign Out', icon: 'pi pi-power-off', command: () => this.logout() },
     ];
   });
 

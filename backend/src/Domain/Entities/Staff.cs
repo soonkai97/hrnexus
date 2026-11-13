@@ -43,9 +43,6 @@ public class Staff : IHasAudit, ISoftDelete
         ? (int)((DateTime.UtcNow - DateOfBirth.Value).TotalDays / 365.25)
         : null;
 
-    /// <summary>UI language preference — ISO 639-1 code, e.g. "en" or "zh".</summary>
-    public string PreferredLanguage { get; private set; } = "en";
-
     public string? RefreshToken    { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
 
@@ -154,7 +151,6 @@ public class Staff : IHasAudit, ISoftDelete
     public void SetHidden(bool hidden) => IsHidden = hidden;
 
     public void UpdateProfile(string? phoneNumber) => PhoneNumber = phoneNumber;
-    public void SetLanguage(string lang) => PreferredLanguage = lang;
     public void SetPasswordHash(string hash) => PasswordHash = hash;
 
     public void UpdateDetails(string staffId, string firstName, string? lastName, string? email, List<Guid> roles,

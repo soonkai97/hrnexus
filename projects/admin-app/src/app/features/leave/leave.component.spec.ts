@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { LeaveComponent } from './leave.component';
-import { LeaveService, StaffStore, ToastService, ConfirmService, LeaveRecord } from 'shared-lib';
+import { AuthService, LeaveService, StaffStore, ToastService, ConfirmService, LeaveRecord } from 'shared-lib';
 
 /**
  * LeaveComponent — admin leave records management.
@@ -97,6 +97,7 @@ describe('LeaveComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
+        { provide: AuthService,        useValue: { user: vi.fn().mockReturnValue({ id: 'me' }) } },
         { provide: LeaveService,       useValue: mockLeaveSvc },
         { provide: StaffStore,         useValue: mockStaffStore },
         { provide: ToastService,       useValue: mockToastSvc },
@@ -781,6 +782,20 @@ describe('LeaveComponent', () => {
       component.selectedIds.set(new Set(['r1']));
       component.toggleSelect('r1');
       expect(component.selectedIds().has('r1')).toBe(false);
+    });
+
+    it('isOwn() recognises the signed-in approver own leave so the UI never offers to decide it', () => {
+      expect(component.isOwn(makeRecord({ employeeId: 'me' }))).toBe(true);
+      expect(component.isOwn(makeRecord({ employeeId: 'e1' }))).toBe(false);
+    });
+
+    it('toggleSelectAll() never selects the own pending leave of the approver (the server refuses it)', () => {
+      component.records.set([
+        makeRecord({ id: 'theirs', employeeId: 'e1', status: 'pending' }),
+        makeRecord({ id: 'mine', employeeId: 'me', status: 'pending' }),
+      ]);
+      component.toggleSelectAll();
+      expect([...component.selectedIds()]).toEqual(['theirs']);
     });
 
     it('toggleSelectAll() selects all pending records — skips non-pending', () => {

@@ -14,7 +14,8 @@ namespace HRNexus.Application.Admin.Commands;
 public record BulkUpdateLeaveStatusCommand(
     List<Guid> Ids,
     string     Status,
-    string?    RejectionReason = null) : IRequest<int>;
+    string?    RejectionReason = null,
+    Guid?      ActingUserId = null) : IRequest<int>;
 
 public class BulkUpdateLeaveStatusCommandHandler(
     IAppDbContext db, INotificationHub notifHub,
@@ -36,6 +37,12 @@ public class BulkUpdateLeaveStatusCommandHandler(
         var leaves = await db.LeaveRequests
             .Where(l => req.Ids.Contains(l.Id))
             .ToListAsync(ct);
+
+        // Nobody decides their own leave: refuse the whole batch (nothing is changed) rather than
+        // silently skipping the approver's own request.
+        foreach (var own in leaves.Where(l => l.EmployeeId == req.ActingUserId
+                 && l.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase)))
+            UpsertLeaveCommandHandler.EnsureNotOwnDecision(req.ActingUserId, own.EmployeeId, req.Status);
 
         int count = 0;
         // Collect the live notifications to dispatch AFTER the status changes commit. We do not

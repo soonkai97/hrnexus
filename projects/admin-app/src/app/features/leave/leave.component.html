@@ -113,12 +113,14 @@
                   <span class="overdue-dates">{{ r.startDate | date:'dd/MM':'UTC' }}{{ r.startDate !== r.endDate ? ' to ' + (r.endDate | date:'dd/MM':'UTC') : '' }} · {{ r.hours }}h</span>
                 </div>
                 <div class="overdue-row-actions">
-                  <p-button icon="pi pi-check" label="Approved" styleClass="btn-approve overdue-action-btn" severity="primary"
-                    [loading]="processingId() === r.id" [disabled]="!!processingId()"
-                    (click)="quickStatus(r.id, 'approved')" />
-                  <p-button icon="pi pi-times" label="Rejected" styleClass="btn-reject overdue-action-btn" severity="danger"
-                    [loading]="processingId() === r.id" [disabled]="!!processingId()"
-                    (click)="quickStatus(r.id, 'rejected')" />
+                  @if (!isOwn(r)) {
+                    <p-button icon="pi pi-check" label="Approved" styleClass="btn-approve overdue-action-btn" severity="primary"
+                      [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                      (click)="quickStatus(r.id, 'approved')" />
+                    <p-button icon="pi pi-times" label="Rejected" styleClass="btn-reject overdue-action-btn" severity="danger"
+                      [loading]="processingId() === r.id" [disabled]="!!processingId()"
+                      (click)="quickStatus(r.id, 'rejected')" />
+                  }
                   <p-button label="No-Show" severity="warn" [outlined]="true"
                     [loading]="processingId() === r.id" [disabled]="!!processingId()"
                     (click)="markNoShow(r)" />
@@ -348,7 +350,7 @@
                       </div>
                       <div class="cal-day-row-right">
                         <p-tag [value]="statusLabel(r.status)" [severity]="statusSeverity(r.status)" />
-                        @if (r.status === 'pending') {
+                        @if (r.status === 'pending' && !isOwn(r)) {
                           <p-button icon="pi pi-check" label="Approved" styleClass="btn-approve cal-approve-btn" severity="primary"
                             [loading]="processingId() === r.id" [disabled]="!!processingId()"
                             (click)="quickStatus(r.id, 'approved')" />
@@ -405,7 +407,7 @@
               <div class="leave-top">
                 <div class="leave-top-left">
                   <!-- Item 3: bulk select checkbox (pending only) -->
-                  @if (bulkSelecting() && r.status === 'pending') {
+                  @if (bulkSelecting() && r.status === 'pending' && !isOwn(r)) {
                     <p-checkbox
                       [ngModel]="selectedIds().has(r.id)"
                       (ngModelChange)="toggleSelect(r.id)"
@@ -443,7 +445,7 @@
                 </div>
               }
               <!-- Item 1: approve/reject with inline rejection form -->
-              @if (r.status === 'pending') {
+              @if (r.status === 'pending' && !isOwn(r)) {
                 @if (rejectingId() === r.id) {
                   <!-- Inline rejection reason entry -->
                   <div class="leave-reject-form">

@@ -54,7 +54,7 @@ public class AdminController(IMediator mediator) : ControllerBase
                 body.StartDate, body.EndDate,
                 body.StartTime, body.EndTime, body.Hours,
                 body.Notes, body.Status ?? "approved", body.RejectionReason,
-                SkipAdvanceNotice: true), ct);
+                SkipAdvanceNotice: true, ActingUserId: CallerId), ct);
             return Ok(new { id });
         }
         catch (ArgumentException ex)        { return BadRequest(new { error = ex.Message }); }
@@ -71,7 +71,8 @@ public class AdminController(IMediator mediator) : ControllerBase
                 id, body.EmployeeId, body.LeaveType,
                 body.StartDate, body.EndDate,
                 body.StartTime, body.EndTime, body.Hours,
-                body.Notes, body.Status ?? "approved", body.RejectionReason), ct);
+                body.Notes, body.Status ?? "approved", body.RejectionReason,
+                ActingUserId: CallerId), ct);
             return NoContent();
         }
         catch (KeyNotFoundException ex)      { return NotFound(new { error = ex.Message }); }
@@ -162,7 +163,7 @@ public class AdminController(IMediator mediator) : ControllerBase
         try
         {
             var count = await mediator.Send(
-                new BulkUpdateLeaveStatusCommand(body.Ids, body.Status, body.RejectionReason), ct);
+                new BulkUpdateLeaveStatusCommand(body.Ids, body.Status, body.RejectionReason, CallerId), ct);
             return Ok(new { count });
         }
         catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }

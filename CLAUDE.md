@@ -702,6 +702,25 @@ pay without a new phase document.
 
 ---
 
+## Leave rules (Phase 7l)
+
+Rules the leave handlers enforce; each has a test in `LeaveFixesTests` (`docs/process/phase-07l-leave-fixes.md`).
+
+- **Status state machine** (`LeaveRequest.EnsureCanBecome`): `pending → approved | rejected | cancelled`,
+  `approved → rejected | cancelled`; `rejected` and `cancelled` are **final** (the person applies again).
+  Staying in the same status is allowed so notes/dates can be edited. `Cancel()` on a closed leave throws.
+- **Overlap** (`UpsertLeaveCommand.EnsureNoOverlapAsync`): only `pending` and `approved` leave blocks a new
+  request; `rejected` and `cancelled` never do.
+- **No self-approval**: the admin endpoints pass the signed-in user as `ActingUserId`; approving or rejecting
+  your own leave (single, or any own pending leave in a bulk selection) throws `InvalidOperationException` (409).
+  Recording your own leave as `pending` is allowed, so an installation needs a second person with
+  `leave.approve`. The check uses the **stored** owner of an existing leave, never the client-supplied `employeeId`.
+  New code paths that decide leave must pass `ActingUserId`; `null` means self-service or a background job.
+- **Withdrawal**: staff cancelling an **approved** leave notifies every other active manager/admin
+  ("Leave Withdrawn", `leave_pending` type so the bell links to `/leave`); cancelling a pending one is silent.
+
+---
+
 ## Bulk admin actions
 
 Bulk operations act on a selected set of records in one request. **Canonical backend pattern**
@@ -739,16 +758,11 @@ Separate from the mutate actions — each setup page can create many records at 
   (required fields, intra-batch + DB duplicate Staff ID/email, and a **required admin-set password**
   via `PasswordPolicy` — no auto-generation), returns `BulkStaffImportResult { Created, Failed, Rows[] }`
   where each row carries `{ staffId, success, error }`.
-- `BulkCreateLeaveCommand` (`POST admin/leave/bulk-create`): delegates each employee to
-  `UpsertLeaveCommand` via `ISender` (full overlap/balance/notify validation), partial success →
-  `BulkLeaveResult { Created, Failed, Errors[] }`. Requires positive `hours` (same rule as single create).
 
 FE dialogs: Roles is an **editable row grid** (Name+Rate `bulkRows:{name,rate}[]` → mapped to
 `{name,hourlyRate}`); Staff "Import" is an **editable row grid**
 (`importRows` model → `importRowsToSubmit` maps/trims/drops-blank → `bulkImportStaff`; per-row inputs
-+ an admin-set **password** column + a roles `p-multiselect`, Add/remove row) showing a per-row results table;
-Leave "Bulk Record" is a staff-multiselect + type + start/end date + start/end time form (mandatory,
-mirroring the single Record-Leave form; hours are derived from the times — no manual hours field).
++ an admin-set **password** column + a roles `p-multiselect`, Add/remove row) showing a per-row results table.
 Note: staff import collects
 **roles** (from the roles dropdown). Grid inputs start readonly (anti-autofill) — E2E must
 click-then-fill.
@@ -1044,13 +1058,13 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 28 | 266 | ✅ |
-| admin-app components | 11 | 346 | ✅ |
+| shared-lib (services + stores + guards + auth) | 27 | 255 | ✅ |
+| admin-app components | 11 | 348 | ✅ |
 | staff-app components | 6 | 135 | ✅ |
-| backend Application.Tests | — | 273 | ✅ |
+| backend Application.Tests | — | 298 | ✅ |
 | backend Integration.Tests (Testcontainers) | — | 18 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 12 | 54 | ✅ |
+| E2E (Playwright) | 12 | 56 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1161,13 +1175,13 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 266 tests
-npx ng test admin-app  --no-watch   # 346 tests
+npx ng test shared-lib --no-watch   # 255 tests
+npx ng test admin-app  --no-watch   # 348 tests
 npx ng test staff-app  --no-watch   # 135 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 301 tests (273 Application + 18 Integration + 10 Infrastructure)
+dotnet test                          # 326 tests (298 Application + 18 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```

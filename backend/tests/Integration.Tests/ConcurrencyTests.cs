@@ -101,8 +101,8 @@ public class ConcurrencyTests(PostgresFixture fx)
         // thing that can reject, which is exactly what we want to stress under concurrency.
         UpsertLeaveCommand Cmd(DateTime start) => new(
             Id: null, EmployeeId: empId, LeaveType: AppConstants.Leave.Annual,
-            StartDate: start, EndDate: start, StartTime: null, EndTime: null,
-            Hours: 5m, Notes: null, Status: AppConstants.Leave.Approved,
+            StartDate: start, EndDate: start, StartTime: "09:00", EndTime: "14:00",
+            Hours: null, Notes: null, Status: AppConstants.Leave.Approved,
             RejectionReason: null, SkipAdvanceNotice: true);
 
         async Task<Exception?> Run(DateTime start)
@@ -131,5 +131,49 @@ public class ConcurrencyTests(PostgresFixture fx)
                      && l.Status == AppConstants.Leave.Approved)
             .SumAsync(l => l.Hours ?? 0m);
         Assert.True(approvedHours <= 8m, $"Overdraw! approved={approvedHours}h exceeds 8h entitlement.");
+    }
+
+    // ── Phase 7l (D5): the same guarantee when requests straddle New Year ────────
+    [Fact]
+    public async Task CrossYearBalance_SerializableStillAllowsOnlyOneOverdrawingRequest()
+    {
+        var empId = await SeedStaffWithRoleAsync("LEAVE02");
+        await using (var seed = fx.NewDb())
+        {
+            // 2026 allows 28h; 2027 has plenty. Request A (Mon 28 to Wed 30 Dec) needs 24h of 2026.
+            // Request B (Thu 31 Dec to Fri 1 Jan) needs 8h of 2026 and 8h of 2027. Each fits alone,
+            // together they need 32h of 2026 (> 28h), so exactly one may commit.
+            seed.LeaveEntitlements.Add(E.LeaveEntitlement.Create(empId, 2026, annualHours: 28m));
+            seed.LeaveEntitlements.Add(E.LeaveEntitlement.Create(empId, 2027, annualHours: 100m));
+            await seed.SaveChangesAsync();
+        }
+
+        UpsertLeaveCommand Cmd(DateTime start, DateTime end) => new(
+            Id: null, EmployeeId: empId, LeaveType: AppConstants.Leave.Annual,
+            StartDate: start, EndDate: end, StartTime: null, EndTime: null,
+            Hours: null, Notes: null, Status: AppConstants.Leave.Approved,
+            RejectionReason: null, SkipAdvanceNotice: true);
+
+        async Task<Exception?> Run(DateTime start, DateTime end)
+        {
+            await using var db = fx.NewDb();
+            var handler = new UpsertLeaveCommandHandler(db, new NullHub(), new NullPush(), new NullAudit(), new FixedClock());
+            try { await handler.Handle(Cmd(start, end), CancellationToken.None); return null; }
+            catch (Exception ex) { return ex; }
+        }
+
+        var results = await Task.WhenAll(
+            Run(new DateTime(2026, 12, 28, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 12, 30, 0, 0, 0, DateTimeKind.Utc)),
+            Run(new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc), new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc)));
+
+        Assert.Equal(1, results.Count(r => r == null));
+
+        await using var verify = fx.NewDb();
+        var leaves = await verify.LeaveRequests
+            .Where(l => l.EmployeeId == empId && l.Status == AppConstants.Leave.Approved)
+            .Select(l => new { l.StartDate, l.EndDate, l.Hours })
+            .ToListAsync();
+        var used2026 = leaves.Sum(l => HRNexus.Application.Leave.LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, 2026));
+        Assert.True(used2026 <= 28m, $"Overdraw! {used2026}h of 2026 used, entitlement is 28h.");
     }
 }

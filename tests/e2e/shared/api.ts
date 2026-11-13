@@ -39,3 +39,14 @@ export async function ensureRole(
   if (!id) throw new Error(`role ${name} not found after creating it`);
   return id;
 }
+
+/**
+ * yyyy-MM-dd of the first weekday on or after `daysAhead` days from now. Leave is charged by
+ * working days (Mon-Fri), so a single-day request on a weekend is rejected; tests that need an
+ * accepted request must not land on one.
+ */
+export function futureWeekday(daysAhead: number): string {
+  let d = new Date(Date.now() + daysAhead * 86_400_000);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d = new Date(d.getTime() + 86_400_000);
+  return d.toISOString().slice(0, 10);
+}

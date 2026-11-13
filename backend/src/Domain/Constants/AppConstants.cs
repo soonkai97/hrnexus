@@ -72,6 +72,9 @@ public static class AppConstants
 
         /// <summary>Number of calendar days ahead that annual leave must be applied.</summary>
         public const int AnnualLeaveAdvanceDays = 3;
+
+        /// <summary>Hours in one working day (Monday to Friday); leave is charged in these units.</summary>
+        public const decimal WorkdayHours = 8m;
     }
 
     // ── Pay types ────────────────────────────────────────────────────────────────

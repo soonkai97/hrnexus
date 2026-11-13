@@ -1,0 +1,164 @@
+{
+  "_comment": "Shared by the backend (LeaveHoursCalculatorTests) and the frontend (leave-hours.spec.ts). Working day = Mon-Fri, 8 hours. Dates are yyyy-MM-dd; 2026-06-01 is a Monday.",
+  "calculate": [
+    {
+      "name": "one weekday, no times is a full day",
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "startTime": null,
+      "endTime": null,
+      "hours": 8
+    },
+    {
+      "name": "one weekday, morning only",
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "hours": 4
+    },
+    {
+      "name": "one weekday, half hour",
+      "start": "2026-06-02",
+      "end": "2026-06-02",
+      "startTime": "09:00",
+      "endTime": "09:30",
+      "hours": 0.5
+    },
+    {
+      "name": "one weekday, long span is capped at one workday",
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "startTime": "09:00",
+      "endTime": "20:00",
+      "hours": 8
+    },
+    {
+      "name": "one weekday, end before start",
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "startTime": "17:00",
+      "endTime": "09:00",
+      "error": true
+    },
+    {
+      "name": "one weekday, zero length",
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "startTime": "09:00",
+      "endTime": "09:00",
+      "error": true
+    },
+    {
+      "name": "one weekday, only a start time",
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "startTime": "09:00",
+      "endTime": null,
+      "error": true
+    },
+    {
+      "name": "Monday to Friday",
+      "start": "2026-06-01",
+      "end": "2026-06-05",
+      "startTime": null,
+      "endTime": null,
+      "hours": 40
+    },
+    {
+      "name": "times are ignored on multi-day leave",
+      "start": "2026-06-01",
+      "end": "2026-06-05",
+      "startTime": "09:00",
+      "endTime": "10:00",
+      "hours": 40
+    },
+    {
+      "name": "Monday to Sunday skips the weekend",
+      "start": "2026-06-01",
+      "end": "2026-06-07",
+      "startTime": null,
+      "endTime": null,
+      "hours": 40
+    },
+    {
+      "name": "Friday to Monday is two working days",
+      "start": "2026-06-05",
+      "end": "2026-06-08",
+      "startTime": null,
+      "endTime": null,
+      "hours": 16
+    },
+    {
+      "name": "Wednesday to Wednesday two weeks later",
+      "start": "2026-06-03",
+      "end": "2026-06-17",
+      "startTime": null,
+      "endTime": null,
+      "hours": 88
+    },
+    {
+      "name": "a Saturday alone has no working day",
+      "start": "2026-06-06",
+      "end": "2026-06-06",
+      "startTime": null,
+      "endTime": null,
+      "error": true
+    },
+    {
+      "name": "a weekend has no working day",
+      "start": "2026-06-06",
+      "end": "2026-06-07",
+      "startTime": null,
+      "endTime": null,
+      "error": true
+    },
+    {
+      "name": "end before start",
+      "start": "2026-06-05",
+      "end": "2026-06-01",
+      "startTime": null,
+      "endTime": null,
+      "error": true
+    }
+  ],
+  "hoursInYear": [
+    {
+      "name": "year boundary, old year share",
+      "start": "2026-12-28",
+      "end": "2027-01-01",
+      "year": 2026,
+      "hours": 32
+    },
+    {
+      "name": "year boundary, new year share",
+      "start": "2026-12-28",
+      "end": "2027-01-01",
+      "year": 2027,
+      "hours": 8
+    },
+    {
+      "name": "a year the leave does not touch",
+      "start": "2026-12-28",
+      "end": "2027-01-01",
+      "year": 2025,
+      "hours": 0
+    },
+    {
+      "name": "inside one year the whole leave counts",
+      "start": "2026-06-01",
+      "end": "2026-06-05",
+      "year": 2026,
+      "hours": 40
+    },
+    {
+      "name": "single partial day counts in full",
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "year": 2026,
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "hours": 4
+    }
+  ]
+}

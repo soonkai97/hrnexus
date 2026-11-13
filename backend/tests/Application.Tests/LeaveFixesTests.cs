@@ -56,7 +56,13 @@ public class LeaveFixesTests
         return staff;
     }
 
-    private static DateTime Day(int offset) => DateTime.UtcNow.Date.AddDays(offset);
+    /// <summary>A weekday <paramref name="offset"/> days from today (leave needs a working day).</summary>
+    private static DateTime Day(int offset)
+    {
+        var d = DateTime.UtcNow.Date.AddDays(offset);
+        while (d.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) d = d.AddDays(1);
+        return d;
+    }
 
     private static async Task<E.LeaveRequest> AddLeave(TestDbContext db, Guid employeeId, string status,
         DateTime start, DateTime end, string type = "unpaid")

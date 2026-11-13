@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Leave;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using MediatR;
@@ -26,9 +27,14 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     IPushNotificationService pushSvc, IAuditService audit, IDateTimeProvider dt)
     : IRequestHandler<UpsertLeaveCommand, Guid>
 {
+    private const int MaxLeaveDays = 30;
+
     public async Task<Guid> Handle(UpsertLeaveCommand req, CancellationToken ct)
     {
         ValidateRequest(req);
+
+        // The server owns the hours: working days (Mon-Fri, 8h), never the client's number.
+        var hours = LeaveHoursCalculator.Calculate(req.StartDate, req.EndDate, req.StartTime, req.EndTime);
 
         // Stable Id for the create path so a retried attempt can recognise its own committed row.
         // EnableRetryOnFailure re-runs the whole delegate on a transient; without this, an attempt
@@ -68,7 +74,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 }
 
                 if (!isRejectedOrCancelled && (isAnnualOrEmergency || isSick))
-                    await EnsureSufficientBalanceAsync(req, isAnnualOrEmergency, ct);
+                    await EnsureSufficientBalanceAsync(req, hours, isAnnualOrEmergency, ct);
 
                 await EnsureNoOverlapAsync(req, ct);
 
@@ -81,7 +87,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 
                     var prevStatus = existing.Status;
                     existing.Update(req.LeaveType, req.StartDate, req.EndDate,
-                        req.StartTime, req.EndTime, req.Hours,
+                        req.StartTime, req.EndTime, hours,
                         req.Notes, req.Status, req.RejectionReason);
                     await db.SaveChangesAsync(ct);
 
@@ -110,11 +116,11 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 
                     var leave = LeaveRequest.Create(req.EmployeeId, req.LeaveType,
                         req.StartDate, req.EndDate,
-                        req.StartTime, req.EndTime, req.Hours,
+                        req.StartTime, req.EndTime, hours,
                         req.Notes, id: newLeaveId);
                     if (!resolvedStatus.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
                         leave.Update(req.LeaveType, req.StartDate, req.EndDate,
-                            req.StartTime, req.EndTime, req.Hours,
+                            req.StartTime, req.EndTime, hours,
                             req.Notes, resolvedStatus);
                     db.LeaveRequests.Add(leave);
                     await db.SaveChangesAsync(ct);
@@ -125,7 +131,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                     // caller (the admin who recorded it, or the staff member for self-service) rather
                     // than always crediting the leave's subject employee.
                     await audit.LogAsync("LeaveRequest", leave.Id.ToString(), "Created",
-                        null, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({req.Hours:0.##}h)", ct);
+                        null, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({hours:0.##}h)", ct);
 
                     if (wasPendingAutoApproved)
                     {
@@ -135,8 +141,8 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                         var emp = await db.Staff.FindAsync([req.EmployeeId], ct);
                         var who = emp?.FullName ?? "An employee";
                         var (title, message) = isSick
-                            ? ("Sick Leave Reported",   $"{who} has reported sick leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {req.Hours:0.##}h).")
-                            : ("Emergency Leave Taken", $"{who} has taken emergency leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {req.Hours:0.##}h).");
+                            ? ("Sick Leave Reported",   $"{who} has reported sick leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).")
+                            : ("Emergency Leave Taken", $"{who} has taken emergency leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).");
                         await NotifyManagersAsync(leave.Id.ToString(), title, message, ct);
                     }
                     else if (resolvedStatus.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
@@ -144,7 +150,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                         var emp = await db.Staff.FindAsync([req.EmployeeId], ct);
                         var who = emp?.FullName ?? "An employee";
                         var message = $"{who} applied for {req.LeaveType} leave " +
-                                      $"({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {req.Hours:0.##}h).";
+                                      $"({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).";
                         await NotifyManagersAsync(leave.Id.ToString(), "New Leave Request", message, ct);
                     }
 
@@ -199,11 +205,8 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 "For urgent or same-day requests, please select Emergency Leave instead.");
         }
 
-        if (req.Hours is null or <= 0)
-            throw new ArgumentException("Hours must be a positive value.");
-
-        if (req.Hours > 720)
-            throw new ArgumentException("Leave duration cannot exceed 720 hours (30 days) in a single request.");
+        if ((req.EndDate.Date - req.StartDate.Date).Days + 1 > MaxLeaveDays)
+            throw new ArgumentException($"Leave duration cannot exceed {MaxLeaveDays} days in a single request.");
 
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
@@ -224,41 +227,50 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     }
 
     /// <summary>Throws if the request would exceed the employee's annual (incl. emergency) or sick
-    /// balance for the year. Runs inside the Serializable transaction so the read can't race a
+    /// balance. A request that crosses 31 Dec / 1 Jan is checked per year, by the working days that
+    /// fall in each year. Runs inside the Serializable transaction so the read can't race a
     /// concurrent insert.</summary>
-    private async Task EnsureSufficientBalanceAsync(UpsertLeaveCommand req, bool isAnnualOrEmergency, CancellationToken ct)
+    private async Task EnsureSufficientBalanceAsync(UpsertLeaveCommand req, decimal hours, bool isAnnualOrEmergency, CancellationToken ct)
     {
-        var year = req.StartDate.Year;
-
-        var entitlement = await db.LeaveEntitlements
-            .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
-
-        decimal entitlementHours = isAnnualOrEmergency
-            ? (entitlement?.AnnualHours ?? 0m)
-            : (entitlement?.SickHours   ?? 0m);
-
         var poolName = isAnnualOrEmergency ? "annual" : "sick";
 
-        if (entitlementHours <= 0)
-            throw new InvalidOperationException(
-                $"No {poolName} leave entitlement has been set for {year}. Please contact your manager.");
-
-        var usedHours = await db.LeaveRequests
-            .Where(l => l.EmployeeId == req.EmployeeId
-                     && (isAnnualOrEmergency
-                         ? (l.LeaveType == AppConstants.Leave.Annual || l.LeaveType == AppConstants.Leave.Emergency)
-                         : l.LeaveType == AppConstants.Leave.Sick)
-                     && l.StartDate.Year == year
-                     && l.Status != AppConstants.Leave.Rejected
-                     && l.Status != AppConstants.Leave.Cancelled
-                     && l.Id != (req.Id ?? Guid.Empty))
-            .SumAsync(l => l.Hours ?? 0m, ct);
-
-        if (usedHours + req.Hours > entitlementHours)
+        for (var year = req.StartDate.Year; year <= req.EndDate.Year; year++)
         {
-            var remaining = Math.Max(0, entitlementHours - usedHours);
-            throw new InvalidOperationException(
-                $"Insufficient {poolName} leave balance. {remaining:0.##}h remaining.");
+            var requested = LeaveHoursCalculator.HoursInYear(req.StartDate, req.EndDate, hours, year);
+            if (requested <= 0) continue;
+
+            var entitlement = await db.LeaveEntitlements
+                .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
+
+            decimal entitlementHours = isAnnualOrEmergency
+                ? (entitlement?.AnnualHours ?? 0m)
+                : (entitlement?.SickHours   ?? 0m);
+
+            if (entitlementHours <= 0)
+                throw new InvalidOperationException(
+                    $"No {poolName} leave entitlement has been set for {year}. Please contact your manager.");
+
+            var yearStart = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var yearEnd   = new DateTime(year, 12, 31, 0, 0, 0, DateTimeKind.Utc);
+            var others = await db.LeaveRequests
+                .Where(l => l.EmployeeId == req.EmployeeId
+                         && (isAnnualOrEmergency
+                             ? (l.LeaveType == AppConstants.Leave.Annual || l.LeaveType == AppConstants.Leave.Emergency)
+                             : l.LeaveType == AppConstants.Leave.Sick)
+                         && l.StartDate <= yearEnd && l.EndDate >= yearStart
+                         && l.Status != AppConstants.Leave.Rejected
+                         && l.Status != AppConstants.Leave.Cancelled
+                         && l.Id != (req.Id ?? Guid.Empty))
+                .Select(l => new { l.StartDate, l.EndDate, l.Hours })
+                .ToListAsync(ct);
+            var usedHours = others.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year));
+
+            if (usedHours + requested > entitlementHours)
+            {
+                var remaining = Math.Max(0, entitlementHours - usedHours);
+                throw new InvalidOperationException(
+                    $"Insufficient {poolName} leave balance for {year}. {remaining:0.##}h remaining.");
+            }
         }
     }
 

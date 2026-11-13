@@ -111,12 +111,13 @@ public class LoadConcurrencyTests(PostgresFixture fx, ITestOutputHelper output)
         var results = await RunAllAsync(N, i => WithDb(async db =>
         {
             var handler = new UpsertLeaveCommandHandler(db, new NullHub(), new NullPush(), new NullAudit(), new FixedClock());
-            // Distinct, non-overlapping dates so ONLY the balance check can reject.
-            var start = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(i);
+            // Distinct, non-overlapping WEEKDAYS (Mon-Fri; leave is charged by working days) so ONLY
+            // the balance check can reject. Each request is one hour (09:00-10:00) on its own day.
+            var start = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(i / 5 * 7 + i % 5);
             await handler.Handle(new UpsertLeaveCommand(
                 Id: null, EmployeeId: empId, LeaveType: AppConstants.Leave.Annual,
-                StartDate: start, EndDate: start, StartTime: null, EndTime: null,
-                Hours: 1m, Notes: null, Status: AppConstants.Leave.Approved,
+                StartDate: start, EndDate: start, StartTime: "09:00", EndTime: "10:00",
+                Hours: null, Notes: null, Status: AppConstants.Leave.Approved,
                 RejectionReason: null, SkipAdvanceNotice: true), CancellationToken.None);
         }));
 

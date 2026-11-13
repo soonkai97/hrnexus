@@ -1,5 +1,5 @@
 import { test, expect, request as pwRequest } from '@playwright/test';
-import { ensureRole } from '../shared/api';
+import { ensureRole, futureWeekday } from '../shared/api';
 
 /**
  * FULL BUSINESS WORKFLOW — the end-to-end path, in one chained test.
@@ -19,7 +19,6 @@ import { ensureRole } from '../shared/api';
 const ADMIN = { staffId: 'HRADMIN', password: 'Admin@1234' };
 const API   = 'http://localhost:8080';   // both portals proxy /api to the same backend
 
-const isoDate = (d: Date) => d.toISOString().slice(0, 10);
 
 test.describe('Full workflow — hire → leave → approve', () => {
   test('the end-to-end path holds across both portals', async () => {
@@ -29,7 +28,7 @@ test.describe('Full workflow — hire → leave → approve', () => {
     const staffId   = `WF${uid}`;
     const roleName  = `WFROLE${uid}`.toUpperCase();   // backend stores roles uppercase
     const password  = 'Test@1234';
-    const leaveDay  = isoDate(new Date(Date.now() + 21 * 86_400_000));  // 3 weeks out (clears advance rules; unpaid anyway)
+    const leaveDay  = futureWeekday(21);  // 3 weeks out (clears advance rules; unpaid anyway)
 
     // ── Separate API cookie jars ────────────────────────────────────────────────
     const admin = await pwRequest.newContext({ baseURL: API });

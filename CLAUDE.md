@@ -716,6 +716,15 @@ Rules the leave handlers enforce; each has a test in `LeaveFixesTests` (`docs/pr
   Recording your own leave as `pending` is allowed, so an installation needs a second person with
   `leave.approve`. The check uses the **stored** owner of an existing leave, never the client-supplied `employeeId`.
   New code paths that decide leave must pass `ActingUserId`; `null` means self-service or a background job.
+- **Hours are server-owned working days** (`LeaveHoursCalculator`): a working day is Monday to Friday and
+  `AppConstants.Leave.WorkdayHours` (8h). Several days = working days x 8 (times ignored); one weekday = the
+  clock difference of the two times capped at 8h, or 8h with no times; a range with no working day is a 400.
+  The `hours` in a request body is ignored. The frontend mirrors the rule in `leaveHours()` (shared-lib); both
+  are tested against `tests/fixtures/leave-hours.json`, so change the rule and the fixture together. Leave
+  longer than 30 days is refused. Public holidays are not modelled yet (Phase 8).
+- **Charged per year** (`LeaveHoursCalculator.HoursInYear`): a leave across 31 Dec / 1 Jan is charged to each
+  year by the working days that fall in it, in the apply-time balance check (every touched year needs an
+  entitlement), balances, the summary and carry-over. Tests that book a single day must use a weekday.
 - **Withdrawal**: staff cancelling an **approved** leave notifies every other active manager/admin
   ("Leave Withdrawn", `leave_pending` type so the bell links to `/leave`); cancelling a pending one is silent.
 
@@ -1058,11 +1067,11 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 27 | 255 | ✅ |
-| admin-app components | 11 | 348 | ✅ |
-| staff-app components | 6 | 135 | ✅ |
-| backend Application.Tests | — | 298 | ✅ |
-| backend Integration.Tests (Testcontainers) | — | 18 | ✅ |
+| shared-lib (services + stores + guards + auth) | 28 | 279 | ✅ |
+| admin-app components | 11 | 353 | ✅ |
+| staff-app components | 6 | 138 | ✅ |
+| backend Application.Tests | — | 331 | ✅ |
+| backend Integration.Tests (Testcontainers) | — | 19 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
 | E2E (Playwright) | 12 | 56 | ✅ |
 
@@ -1175,13 +1184,13 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 255 tests
-npx ng test admin-app  --no-watch   # 348 tests
-npx ng test staff-app  --no-watch   # 135 tests
+npx ng test shared-lib --no-watch   # 279 tests
+npx ng test admin-app  --no-watch   # 353 tests
+npx ng test staff-app  --no-watch   # 138 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 326 tests (298 Application + 18 Integration + 10 Infrastructure)
+dotnet test                          # 360 tests (331 Application + 19 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```

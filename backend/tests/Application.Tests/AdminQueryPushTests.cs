@@ -332,9 +332,9 @@ public class AdminQueryPushTests
         await using var db = CreateDb();
         var empId          = Guid.NewGuid();
 
-        // 16 hours annual leave (pending, counts towards balance)
-        var start = new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
-        var end   = new DateTime(2025, 3, 2, 0, 0, 0, DateTimeKind.Utc);
+        // 16 hours annual leave (Mon-Tue, pending, counts towards balance)
+        var start = new DateTime(2025, 3, 3, 0, 0, 0, DateTimeKind.Utc);
+        var end   = new DateTime(2025, 3, 4, 0, 0, 0, DateTimeKind.Utc);
         db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(empId, 2025, annualHours: 80m, sickHours: 40m));
         db.LeaveRequests.Add(E.LeaveRequest.Create(empId, "annual", start, end, null, null, 16m, null));
         await db.SaveChangesAsync();
@@ -449,9 +449,9 @@ public class AdminQueryPushTests
         var staff = await MakeStaffAsync(db, "S001");
         db.Staff.Add(staff);
 
-        // 24 hours annual leave approved
-        var start    = new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
-        var end      = new DateTime(2025, 3, 3, 0, 0, 0, DateTimeKind.Utc);
+        // 24 hours annual leave approved (Mon-Wed)
+        var start    = new DateTime(2025, 3, 3, 0, 0, 0, DateTimeKind.Utc);
+        var end      = new DateTime(2025, 3, 5, 0, 0, 0, DateTimeKind.Utc);
         db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(staff.Id, 2025, annualHours: 80m, sickHours: 40m));
         var approved = E.LeaveRequest.Create(staff.Id, "annual", start, end, null, null, 24m, null);
         approved.Update("annual", start, end, null, null, 24m, null, "approved");

@@ -87,3 +87,14 @@
   border-color: #dc2626;
   color: #fff;
 }
+
+// Pay section
+.pay-label {
+  display: block;
+  font-size: 0.75rem;
+  color: $text-muted;
+}
+.pay-amount { font-size: 1.25rem; font-weight: 700; color: $text-primary; }
+.pay-empty  { color: $text-muted; font-size: 0.9rem; margin: 0; }
+.mono       { font-family: monospace; }
+.td-bold    { font-weight: 600; }

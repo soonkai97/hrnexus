@@ -197,8 +197,8 @@ describe('StaffStore', () => {
   it('populates the roles signal from the API', () => {
     store.loadRoles();
     http.expectOne('/api/staff/roles').flush([
-      { name: 'bartender', hourlyRate: 15 },
-      { name: 'manager',   hourlyRate: 25 },
+      { name: 'bartender', isSystem: false },
+      { name: 'manager',   isSystem: false },
     ]);
 
     expect(store.roles().length).toBe(2);
@@ -229,27 +229,31 @@ describe('StaffStore', () => {
   // ── createRole() ──────────────────────────────────────────────────────────
 
   it('createRole() POST /api/staff/roles and triggers a roles reload', async () => {
-    const promise = firstValueFrom(store.createRole('bouncer', 20));
+    const promise = firstValueFrom(store.createRole('bouncer'));
     http.expectOne('/api/staff/roles').flush(null); // POST
     await promise;
     // createRole() calls loadRoles() via tap — consume that request
-    http.expectOne('/api/staff/roles').flush([{ name: 'bouncer', isSystem: false, hourlyRate: 20 }]);
+    http.expectOne('/api/staff/roles').flush([{ name: 'bouncer', isSystem: false }]);
   });
 
-  // ── updateRoleRate() ──────────────────────────────────────────────────────
+  // ── renameRole() ──────────────────────────────────────────────────────────
 
-  it('updateRoleRate() PATCH the role rate and updates the signal in-place', async () => {
+  it('renameRole() PATCH the role and updates the cached name in place', async () => {
     store.loadRoles();
     http.expectOne('/api/staff/roles').flush([
-      { id: 'id-bar', name: 'bartender', isSystem: false, hourlyRate: 15 },
+      { id: 'id-bar', name: 'bartender', isSystem: false },
+      { id: 'id-host', name: 'host', isSystem: false },
     ]);
 
-    // Roles are keyed by GUID id now — the PATCH URL and in-place update both use the id.
-    const promise = firstValueFrom(store.updateRoleRate('id-bar', 18));
-    http.expectOne(r => r.url.includes('/api/staff/roles/id-bar/rate')).flush(null);
+    // Roles are keyed by GUID id — the PATCH URL and in-place update both use the id.
+    const promise = firstValueFrom(store.renameRole('id-bar', 'MIXOLOGIST'));
+    const req = http.expectOne(r => r.url.includes('/api/staff/roles/id-bar'));
+    expect(req.request.body).toEqual({ name: 'MIXOLOGIST' });
+    req.flush(null);
     await promise;
 
-    expect(store.roles().find(r => r.id === 'id-bar')?.hourlyRate).toBe(18);
+    expect(store.roles().find(r => r.id === 'id-bar')?.name).toBe('MIXOLOGIST');
+    expect(store.roles().find(r => r.id === 'id-host')?.name).toBe('host');
   });
 
   // ── deleteRole() ──────────────────────────────────────────────────────────
@@ -257,8 +261,8 @@ describe('StaffStore', () => {
   it('deleteRole() DELETE the role and removes it from the signal', async () => {
     store.loadRoles();
     http.expectOne('/api/staff/roles').flush([
-      { id: 'id-temp', name: 'temp', isSystem: false, hourlyRate: 10 },
-      { id: 'id-bar', name: 'bartender', isSystem: false, hourlyRate: 15 },
+      { id: 'id-temp', name: 'temp', isSystem: false },
+      { id: 'id-bar', name: 'bartender', isSystem: false },
     ]);
 
     const promise = firstValueFrom(store.deleteRole('id-temp'));

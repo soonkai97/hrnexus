@@ -21,7 +21,7 @@ public class StaffDeleteCascadeTests(PostgresFixture fx)
         Guid empId;
         await using (var db = fx.NewDb())
         {
-            var role = E.Role.Create($"JOB{Guid.NewGuid():N}"[..12], hourlyRate: 20m);
+            var role = E.Role.Create($"JOB{Guid.NewGuid():N}"[..12]);
             db.Roles.Add(role);
             var staff = E.Staff.Create($"DC{Guid.NewGuid():N}"[..10], "Del", "Cascade", null, "hash",
                 new List<Guid> { role.Id });

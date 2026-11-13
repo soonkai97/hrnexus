@@ -77,13 +77,15 @@ public static class AppConstants
         public const decimal WorkdayHours = 8m;
     }
 
-    // ── Pay types ────────────────────────────────────────────────────────────────
-    /// <summary>How a job is paid. "hourly" = hours × rate; "fixed" = a flat amount per shift
-    /// (e.g. an overnight package) regardless of hours logged.</summary>
-    public static class PayType
+    // ── Payroll ────────────────────────────────────────────────────────────────
+    public static class Payroll
     {
-        public const string Hourly = "hourly";
-        public const string Fixed  = "fixed";
+        public const string Monthly           = "monthly";
+        public const string Citizen           = "citizen";
+        public const string PermanentResident = "permanent-resident";
+
+        /// <summary>Sanity ceiling for one person's monthly basic salary (MYR); rejects typos like an extra zero.</summary>
+        public const decimal MaxMonthlySalary = 1_000_000m;
     }
 
     // ── Notification types ─────────────────────────────────────────────────────

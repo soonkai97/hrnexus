@@ -22,15 +22,11 @@ export async function roleIdByName(
 }
 
 /** Returns the id of the named role, creating the role first when it does not exist. */
-export async function ensureRole(
-  api: APIRequestContext,
-  name: string,
-  hourlyRate = 0,
-): Promise<string> {
+export async function ensureRole(api: APIRequestContext, name: string): Promise<string> {
   const existing = await roleIdByName(api, name);
   if (existing) return existing;
 
-  const created = await api.post('/api/staff/roles', { data: { name, hourlyRate } });
+  const created = await api.post('/api/staff/roles', { data: { name } });
   if (!created.ok() && created.status() !== 409) {
     throw new Error(`create role ${name} failed (${created.status()}): ${await created.text()}`);
   }

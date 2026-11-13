@@ -247,43 +247,30 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         try
         {
-            await mediator.Send(new CreateRoleCommand(body.Name, body.HourlyRate, body.PayType), ct);
+            await mediator.Send(new CreateRoleCommand(body.Name), ct);
             return NoContent();
         }
         catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
         catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
     }
 
-    [HttpPatch("roles/{id:guid}/rate")]
+    [HttpPatch("roles/{id:guid}")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.RolesManage)]
-    public async Task<IActionResult> UpdateRoleRate(Guid id, [FromBody] UpdateRoleRateBody body,
+    public async Task<IActionResult> RenameRole(Guid id, [FromBody] RenameRoleBody body,
         [FromServices] IAppDbContext db, CancellationToken ct)
     {
-        if (body.HourlyRate < 0)
-            return BadRequest(new { error = "Hourly rate cannot be negative." });
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Id == id, ct);
         if (role is null) return NotFound(new { error = "Role not found." });
-        // The English Name is editable ONLY for custom jobs. System roles (SUPERADMIN/MANAGER/EMPLOYEE)
-        // keep their Name locked — it's the key that authorization matches on, so renaming would break
-        // access control. A rename is rejected if it would collide with another job's name.
-        if (body.Name is not null && !role.IsSystem)
-        {
-            var newName = body.Name.Trim().ToUpperInvariant();
-            if (newName.Length == 0)
-                return BadRequest(new { error = "Role name cannot be empty." });
-            if (newName != role.Name && await db.Roles.AnyAsync(r => r.Id != id && r.Name == newName, ct))
-                return Conflict(new { error = $"A job named '{newName}' already exists." });
-            role.SetName(newName);
-        }
-        role.SetPayType(body.PayType);
-        if (role.HourlyRate != body.HourlyRate)
-        {
-            role.SetRate(body.HourlyRate);
-            // Append a rate-history row effective today. Existing rows are never mutated, so shifts
-            // worked before this change keep being priced at the prior rate (as-of their work date).
-            db.RoleRates.Add(HRNexus.Domain.Entities.RoleRate.Create(
-                role.Id, body.HourlyRate, DateOnly.FromDateTime(DateTime.UtcNow)));
-        }
+        // System roles (SUPERADMIN/MANAGER/EMPLOYEE) keep their name locked: it is the key that
+        // authorization matches on, so renaming would break access control.
+        if (role.IsSystem)
+            return BadRequest(new { error = "System jobs keep their name — it's used for access control." });
+        var newName = (body.Name ?? "").Trim().ToUpperInvariant();
+        if (newName.Length == 0)
+            return BadRequest(new { error = "Role name cannot be empty." });
+        if (newName != role.Name && await db.Roles.AnyAsync(r => r.Id != id && r.Name == newName, ct))
+            return Conflict(new { error = $"A job named '{newName}' already exists." });
+        role.SetName(newName);
         await db.SaveChangesAsync(ct);
         return NoContent();
     }
@@ -302,8 +289,8 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 }
 
-public record CreateRoleBody(string Name, decimal HourlyRate = 0, string PayType = AppConstants.PayType.Hourly);
-public record UpdateRoleRateBody(decimal HourlyRate, string PayType = AppConstants.PayType.Hourly, string? Name = null);
+public record CreateRoleBody(string Name);
+public record RenameRoleBody(string? Name);
 public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<Guid> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth);
 public record ResetPasswordBody(string NewPassword);
 public record BulkAssignRolesBody(List<Guid> StaffIds, List<Guid> Roles);

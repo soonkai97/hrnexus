@@ -1,6 +1,6 @@
 @use 'styles/theme' as *;
 
-// ── Bulk-add row grid (Name + Rate) ───────────────────────────────────────────
+// ── Bulk-add row grid (Name) ───────────────────────────────────────────
 .bulk-grid {
   display: flex;
   flex-direction: column;
@@ -91,11 +91,6 @@
   }
 }
 
-.rate-field {
-  margin: 0;
-  width: 130px;
-}
-
 .field-hint {
   display: block;
   margin-top: 0.25rem;
@@ -109,19 +104,6 @@
   font-size: 0.85rem;
 }
 
-// ── Inline rate editor ────────────────────────────────────────────────────────
-
-.rate-input {
-  width: 90px;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  border: 1px solid $border-glow;
-  background: $bg-raised;
-  color: $text-primary;
-  font-size: 0.9rem;
-  outline: none;
-  &:focus { box-shadow: $glow-sm; }
-}
 
 
 // ── Custom badge variant ──────────────────────────────────────────────────────

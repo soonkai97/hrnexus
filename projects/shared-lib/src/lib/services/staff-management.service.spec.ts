@@ -160,37 +160,23 @@ describe('StaffManagementService', () => {
   // ── createRole() ──────────────────────────────────────────────────────────
 
   describe('createRole()', () => {
-    it('calls POST /api/staff/roles with name and hourlyRate', () => {
-      service.createRole('BARTENDER', 25).subscribe();
+    it('calls POST /api/staff/roles with the name only — jobs carry no pay data', () => {
+      service.createRole('BARTENDER').subscribe();
       const req = http.expectOne('/api/staff/roles');
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ name: 'BARTENDER', hourlyRate: 25, payType: 'hourly' });
-      req.flush(null);
-    });
-
-    it('defaults hourlyRate to 0 when not provided', () => {
-      service.createRole('DOORMAN').subscribe();
-      const req = http.expectOne('/api/staff/roles');
-      expect(req.request.body).toEqual({ name: 'DOORMAN', hourlyRate: 0, payType: 'hourly' });
-      req.flush(null);
-    });
-
-    it('sends payType "fixed" for a flat-per-shift job', () => {
-      service.createRole('PACKAGE', 500, 'fixed').subscribe();
-      const req = http.expectOne('/api/staff/roles');
-      expect(req.request.body).toEqual({ name: 'PACKAGE', hourlyRate: 500, payType: 'fixed' });
+      expect(req.request.body).toEqual({ name: 'BARTENDER' });
       req.flush(null);
     });
   });
 
-  // ── updateRoleRate() ──────────────────────────────────────────────────────
+  // ── renameRole() ──────────────────────────────────────────────────────────
 
-  describe('updateRoleRate()', () => {
-    it('calls PATCH /api/staff/roles/{id}/rate with hourlyRate body', () => {
-      service.updateRoleRate('role-guid-1', 30).subscribe();
-      const req = http.expectOne('/api/staff/roles/role-guid-1/rate');
+  describe('renameRole()', () => {
+    it('calls PATCH /api/staff/roles/{id} with the new name', () => {
+      service.renameRole('role-guid-1', 'HOST').subscribe();
+      const req = http.expectOne('/api/staff/roles/role-guid-1');
       expect(req.request.method).toBe('PATCH');
-      expect(req.request.body).toEqual({ hourlyRate: 30, payType: 'hourly', name: null });
+      expect(req.request.body).toEqual({ name: 'HOST' });
       req.flush(null);
     });
   });

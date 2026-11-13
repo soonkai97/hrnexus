@@ -690,9 +690,23 @@ metrics: point `OTEL_EXPORTER_OTLP_ENDPOINT` at a real OTLP collector if you lat
 **Clock-in/out (shift logs) was removed** (Phase 7, `docs/process/phase-07-remove-shift-log.md`):
 the `WorkLog` feature, its hourly-pay calculation (hours × `HourlyRateSnapshot`), the "Est. Labour
 Cost" report/dashboard figures, payroll export and payslips that derived from it no longer exist.
-`Role.HourlyRate` / `Role.PayType` are kept as role attributes only until **Phase 8 (payroll
-rebuild)** defines the replacement pay model. Don't reintroduce attendance or hourly-from-shifts
-pay without a new phase document.
+Hourly pay is gone from the product: `Role.HourlyRate`, `Role.PayType` and `RoleRate` were removed in
+Phase 8a. Pay is a **monthly salary** (`docs/process/phase-08-payroll.md`). Don't reintroduce attendance
+or hourly pay without a new phase document.
+
+### Salary and employment (Phase 8a)
+
+- **`SalaryProfile`**: one row per effective date, **append-only** (a raise adds a row; rows are never edited
+  or deleted; the same `EffectiveFrom` twice is a 409). The profile in effect is the latest row whose date has
+  arrived. Salary, bank account and holder are **encrypted at rest** (same `IFieldEncryptor` as Staff PII); the
+  money column is text ciphertext, so never query or sort on it. Money is `decimal` (MYR, 2 places, at most
+  RM 1,000,000); the frontend only displays and sends it, it never does arithmetic on money.
+- **Masking**: salary is returned **only** by `GET /api/staff/{id}/salary` (`payroll.view`); `POST` and
+  `PUT /api/staff/{id}/employment` need `payroll.manage`. The ordinary staff endpoints never carry salary.
+- **Audit rows say THAT pay changed and from when, never the amounts or the account number.**
+- Employment details on `Staff` (`CitizenshipStatus`: `citizen` | `permanent-resident`, start and end date)
+  are what payroll proration and statutory class need. Pay history is a payroll record kept for the retention
+  period, so it is not removed when a person is deleted.
 
 > The former in-app **Staff Ledger** and **Staff Settings** features (per-staff earnings ledger,
 > work types, settlements) were **removed** — the venue handles final payslips and statutory
@@ -764,24 +778,6 @@ Current bulk commands:
 checkbox column + action bar); the staff list mirrors it. Service methods live on
 `StaffManagementService` / `LeaveService` (+ `StaffStore` delegators). Bulk commands return
 `{ count }`. Backend `ArgumentException` → 400 surfaced as a toast.
-
-### Bulk create (import)
-
-Separate from the mutate actions — each setup page can create many records at once (≤100):
-- `BulkCreateRolesCommand` (`Application/Staff/Commands`, `POST staff/roles/bulk`): normalise + dedupe
-  names, skip existing, return `BulkCreateResult { Created, Skipped }`.
-- `BulkRegisterStaffCommand` (`POST staff/bulk-import`): **partial success** — validates each row
-  (required fields, intra-batch + DB duplicate Staff ID/email, and a **required admin-set password**
-  via `PasswordPolicy` — no auto-generation), returns `BulkStaffImportResult { Created, Failed, Rows[] }`
-  where each row carries `{ staffId, success, error }`.
-
-FE dialogs: Roles is an **editable row grid** (Name+Rate `bulkRows:{name,rate}[]` → mapped to
-`{name,hourlyRate}`); Staff "Import" is an **editable row grid**
-(`importRows` model → `importRowsToSubmit` maps/trims/drops-blank → `bulkImportStaff`; per-row inputs
-+ an admin-set **password** column + a roles `p-multiselect`, Add/remove row) showing a per-row results table.
-Note: staff import collects
-**roles** (from the roles dropdown). Grid inputs start readonly (anti-autofill) — E2E must
-click-then-fill.
 
 ---
 
@@ -977,8 +973,8 @@ public class MyFeatureTests
 `Role.Create(name)` stores `Name = name.Trim().ToUpperInvariant()`. All handlers query roles using `.ToUpperInvariant()` to match. In tests, `E.Role.Create("bartender")` already produces `Name = "BARTENDER"` — no reflection workaround needed:
 
 ```csharp
-private static E.Role MakeRole(string name = "bartender", decimal rate = 20m) =>
-    E.Role.Create(name, hourlyRate: rate);   // Name stored as "BARTENDER" — matches handler queries
+private static E.Role MakeRole(string name = "bartender") =>
+    E.Role.Create(name);   // Name stored as "BARTENDER" — matches handler queries
 ```
 
 ### TDD cycle for backend
@@ -1074,13 +1070,13 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 28 | 279 | ✅ |
-| admin-app components | 11 | 353 | ✅ |
+| shared-lib (services + stores + guards + auth) | 29 | 281 | ✅ |
+| admin-app components | 11 | 373 | ✅ |
 | staff-app components | 6 | 138 | ✅ |
-| backend Application.Tests | — | 331 | ✅ |
-| backend Integration.Tests (Testcontainers) | — | 19 | ✅ |
+| backend Application.Tests | — | 362 | ✅ |
+| backend Integration.Tests (Testcontainers) | — | 23 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 12 | 56 | ✅ |
+| E2E (Playwright) | 12 | 57 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1191,13 +1187,13 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 279 tests
-npx ng test admin-app  --no-watch   # 353 tests
+npx ng test shared-lib --no-watch   # 281 tests
+npx ng test admin-app  --no-watch   # 373 tests
 npx ng test staff-app  --no-watch   # 138 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 360 tests (331 Application + 19 Integration + 10 Infrastructure)
+dotnet test                          # 395 tests (362 Application + 23 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```

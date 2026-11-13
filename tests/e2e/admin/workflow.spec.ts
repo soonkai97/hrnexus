@@ -39,7 +39,7 @@ test.describe('Full workflow — hire → leave → approve', () => {
     expect(r.ok(), `admin login (${r.status()})`).toBeTruthy();
 
     // ── 2. Create a role, hire the staff onto it ────────────────────────────────
-    const roleId = await ensureRole(admin, roleName, 25);
+    const roleId = await ensureRole(admin, roleName);
 
     r = await admin.post('/api/staff', { data: {
       staffId, firstName: 'Flow', lastName: 'Test', email: null, password,

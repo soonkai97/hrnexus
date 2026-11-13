@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Subject, EMPTY } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 import { StaffManagementService } from '../services/staff-management.service';
-import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole, PayType } from '../models';
+import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class StaffStore {
@@ -84,17 +84,13 @@ export class StaffStore {
     );
   }
 
-  createRole(name: string, hourlyRate: number = 0, payType: PayType = 'hourly') {
-    return this.svc.createRole(name, hourlyRate, payType).pipe(tap(() => this.loadRoles()));
+  createRole(name: string) {
+    return this.svc.createRole(name).pipe(tap(() => this.loadRoles()));
   }
 
-  updateRoleRate(id: string, hourlyRate: number, payType: PayType = 'hourly', name: string | null = null) {
-    return this.svc.updateRoleRate(id, hourlyRate, payType, name).pipe(
-      tap(() => this.#roles.update(list =>
-        list.map(r => r.id === id
-          ? { ...r, hourlyRate, payType, ...(name ? { name } : {}) }
-          : r)
-      ))
+  renameRole(id: string, name: string) {
+    return this.svc.renameRole(id, name).pipe(
+      tap(() => this.#roles.update(list => list.map(r => r.id === id ? { ...r, name } : r)))
     );
   }
 

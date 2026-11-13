@@ -7,13 +7,14 @@ import { RolesComponent } from './roles.component';
 import { StaffStore, ToastService, ConfirmService, PermissionAdminService } from 'shared-lib';
 
 /**
- * RolesComponent — job-role CRUD with inline rate editing.
+ * RolesComponent — job-role CRUD (add, rename custom jobs, delete, permissions).
  *
  * WHY these tests matter:
  *  - addRole() must trim and guard empty names — a blank role name breaks the
  *    role dropdown in every staff form and can cause FK constraint errors.
- *  - saveRate() must clear editingRateName after success — leaving it set would
- *    keep the row in edit mode, allowing accidental double-saves.
+ *  - saveEdit() must close the dialog after success — leaving it open would
+ *    allow accidental double-saves.
+ *  - System jobs cannot be renamed — their name is the authorization key.
  *  - deleteRole() confirm flow ensures managers don't accidentally remove a role
  *    that is still assigned to staff members.
  */
@@ -26,7 +27,7 @@ describe('RolesComponent', () => {
     roles:          ReturnType<typeof vi.fn>;
     loading:        ReturnType<typeof vi.fn>;
     createRole:     ReturnType<typeof vi.fn>;
-    updateRoleRate: ReturnType<typeof vi.fn>;
+    renameRole:     ReturnType<typeof vi.fn>;
     deleteRole:     ReturnType<typeof vi.fn>;
   };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
@@ -43,7 +44,7 @@ describe('RolesComponent', () => {
       roles:          vi.fn().mockReturnValue([]),
       loading:        vi.fn().mockReturnValue(false),
       createRole:     vi.fn().mockReturnValue(of(undefined)),
-      updateRoleRate: vi.fn().mockReturnValue(of(undefined)),
+      renameRole:     vi.fn().mockReturnValue(of(undefined)),
       deleteRole:     vi.fn().mockReturnValue(of(undefined)),
     };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
@@ -95,19 +96,10 @@ describe('RolesComponent', () => {
       expect(mockStaffStore.createRole).not.toHaveBeenCalled();
     });
 
-    it('calls createRole with the trimmed uppercased name and rate', () => {
+    it('calls createRole with the trimmed uppercased name only — jobs carry no pay data', () => {
       component.newRoleName = '  bartender  ';
-      component.newRoleRate = 15;
       component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER', 15, 'hourly');
-    });
-
-    it('passes the selected pay type (fixed) through to createRole', () => {
-      component.newRoleName = 'package';
-      component.newRoleRate = 500;
-      component.newRolePayType = 'fixed';
-      component.addRole();
-      expect(mockStaffStore.createRole).toHaveBeenCalledWith('PACKAGE', 500, 'fixed');
+      expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER');
     });
 
     it('shows success toast after creating a role', () => {
@@ -144,102 +136,98 @@ describe('RolesComponent', () => {
     });
   });
 
-  // ── startEditRate() / cancelEditRate() ────────────────────────────────────────
+  // ── startEdit() / cancelEdit() ────────────────────────────────────────────────
 
-  const bartender = { id: 'role-bartender-id', name: 'BARTENDER', hourlyRate: 12, payType: 'hourly' as const, isSystem: false };
+  const bartender = { id: 'role-bartender-id', name: 'BARTENDER', isSystem: false };
 
-  describe('startEditRate() / cancelEditRate()', () => {
-    it('sets editingRateId to the role id', () => {
-      component.startEditRate(bartender);
-      expect(component.editingRateId()).toBe('role-bartender-id');
+  describe('startEdit() / cancelEdit()', () => {
+    it('opens the dialog for the role id, prefilled with its current name', () => {
+      component.startEdit({ ...bartender, name: 'MIXOLOGIST' });
+      expect(component.editingId()).toBe('role-bartender-id');
+      expect(component.editingName()).toBe('MIXOLOGIST');
     });
 
-    it('seeds the English name so the modal is editable for custom jobs', () => {
-      component.startEditRate({ ...bartender, name: 'MIXOLOGIST' });
-      expect(component.editingRateName()).toBe('MIXOLOGIST');
-      expect(component.editingRateIsSystem()).toBe(false);
+    it('does not open for a system job — its name is the authorization key', () => {
+      component.startEdit({ id: 'role-admin-id', name: 'SUPERADMIN', isSystem: true });
+      expect(component.editingId()).toBeNull();
     });
 
-    it('sets editingRateValue to the current rate', () => {
-      component.startEditRate({ ...bartender, hourlyRate: 12.50 });
-      expect(component.editingRateValue()).toBe(12.50);
-    });
-
-    it('cancelEditRate clears editingRateId', () => {
-      component.startEditRate(bartender);
-      component.cancelEditRate();
-      expect(component.editingRateId()).toBeNull();
-    });
-
-    it('seeds editingRatePayType from the role so the toggle reflects the current pay model', () => {
-      component.startEditRate({ id: 'role-package-id', name: 'PACKAGE', hourlyRate: 500, payType: 'fixed', isSystem: false });
-      expect(component.editingRatePayType()).toBe('fixed');
-    });
-
-    it('marks system roles so the English-name field is locked', () => {
-      component.startEditRate({ id: 'role-admin-id', name: 'SUPERADMIN', hourlyRate: 0, payType: 'hourly', isSystem: true });
-      expect(component.editingRateIsSystem()).toBe(true);
+    it('cancelEdit clears editingId', () => {
+      component.startEdit(bartender);
+      component.cancelEdit();
+      expect(component.editingId()).toBeNull();
     });
   });
 
-  // ── saveRate() ────────────────────────────────────────────────────────────────
+  // ── openRoleMenu() ────────────────────────────────────────────────────────────
 
-  describe('saveRate()', () => {
+  describe('openRoleMenu()', () => {
+    const open = (role: { id: string; name: string; isSystem: boolean }) => {
+      (component as unknown as { roleMenu: { toggle: () => void } }).roleMenu = { toggle: vi.fn() };
+      component.openRoleMenu(role, new Event('click'));
+      return component.roleMenuItems().map(i => i.label);
+    };
+
+    it('offers Edit, permissions and Delete for a custom job', () => {
+      expect(open(bartender)).toEqual(['Edit', 'Job permissions', undefined, 'Delete']);
+    });
+
+    it('offers only permissions for a system job — it cannot be edited or deleted', () => {
+      expect(open({ id: 'role-admin-id', name: 'SUPERADMIN', isSystem: true })).toEqual(['Job permissions']);
+    });
+  });
+
+  // ── saveEdit() ────────────────────────────────────────────────────────────────
+
+  describe('saveEdit()', () => {
     beforeEach(() => {
-      component.editingRateId.set('role-bartender-id');
-      component.editingRateName.set('BARTENDER');
-      component.editingRateValue.set(15);
+      component.startEdit(bartender);
     });
 
-    it('calls updateRoleRate with the role id, new rate, and English name (custom job)', () => {
-      component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, 'hourly', 'BARTENDER');
+    it('calls renameRole with the role id and the trimmed uppercased name', () => {
+      component.editingName.set('  mixologist ');
+      component.saveEdit();
+      expect(mockStaffStore.renameRole).toHaveBeenCalledWith('role-bartender-id', 'MIXOLOGIST');
     });
 
-    it('sends a null name for system roles so their auth key is never renamed', () => {
-      component.editingRateIsSystem.set(true);
-      component.editingRateName.set('SUPERADMIN');
-      component.saveRate();
-      expect(mockStaffStore.updateRoleRate).toHaveBeenCalledWith('role-bartender-id', 15, 'hourly', null);
+    it('does nothing when the name is blank', () => {
+      component.editingName.set('   ');
+      component.saveEdit();
+      expect(mockStaffStore.renameRole).not.toHaveBeenCalled();
     });
 
-    it('does nothing when a custom job has a blank English name', () => {
-      component.editingRateName.set('   ');
-      component.saveRate();
-      expect(mockStaffStore.updateRoleRate).not.toHaveBeenCalled();
+    it('closes the dialog after success — prevents accidental double-save', () => {
+      component.saveEdit();
+      expect(component.editingId()).toBeNull();
     });
 
-    it('clears editingRateId after success — prevents accidental double-save', () => {
-      component.saveRate();
-      expect(component.editingRateId()).toBeNull();
-    });
-
-    it('shows success toast after updating the rate', () => {
-      component.saveRate();
+    it('shows success toast after renaming', () => {
+      component.saveEdit();
       expect(mockToastSvc.success).toHaveBeenCalledWith('Job updated.');
     });
 
-    it('clears savingRate flag after success', () => {
-      component.saveRate();
-      expect(component.savingRate()).toBe(false);
+    it('clears savingEdit flag after success', () => {
+      component.saveEdit();
+      expect(component.savingEdit()).toBe(false);
     });
 
-    it('shows error toast on API failure', () => {
-      mockStaffStore.updateRoleRate.mockReturnValue(throwError(() => ({ error: { error: 'Not found.' } })));
-      component.saveRate();
-      expect(mockToastSvc.error).toHaveBeenCalledWith('Not found.');
+    it('shows error toast on API failure and keeps the dialog open', () => {
+      mockStaffStore.renameRole.mockReturnValue(throwError(() => ({ error: { error: 'Name taken.' } })));
+      component.saveEdit();
+      expect(mockToastSvc.error).toHaveBeenCalledWith('Name taken.');
+      expect(component.editingId()).toBe('role-bartender-id');
     });
 
-    it('clears savingRate flag on API failure', () => {
-      mockStaffStore.updateRoleRate.mockReturnValue(throwError(() => new Error('Network')));
-      component.saveRate();
-      expect(component.savingRate()).toBe(false);
+    it('clears savingEdit flag on API failure', () => {
+      mockStaffStore.renameRole.mockReturnValue(throwError(() => new Error('Network')));
+      component.saveEdit();
+      expect(component.savingEdit()).toBe(false);
     });
 
-    it('does nothing when editingRateId is null', () => {
-      component.editingRateId.set(null);
-      component.saveRate();
-      expect(mockStaffStore.updateRoleRate).not.toHaveBeenCalled();
+    it('does nothing when no job is being edited', () => {
+      component.cancelEdit();
+      component.saveEdit();
+      expect(mockStaffStore.renameRole).not.toHaveBeenCalled();
     });
   });
 

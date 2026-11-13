@@ -36,7 +36,7 @@ public class HttpAuthTests(PostgresFixture fx) : IAsyncLifetime
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "BARTENDER");
         if (role is null)
         {
-            role = E.Role.Create("bartender", hourlyRate: 20m);
+            role = E.Role.Create("bartender");
             db.Roles.Add(role);
             await db.SaveChangesAsync();
         }

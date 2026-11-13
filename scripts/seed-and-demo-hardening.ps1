@@ -34,7 +34,7 @@ Write-Host '  admin token acquired (200)'
 
 Write-Host ''
 Write-Host '=== 2. Seeding job role (idempotent) ===' -ForegroundColor Cyan
-$role = Send-Json 'POST' '/staff/roles' @{ name = 'Bartender'; hourlyRate = 20 } $adminToken
+$role = Send-Json 'POST' '/staff/roles' @{ name = 'Bartender' } $adminToken
 Write-Host "  role 'Bartender' -> $($role.Status) (204 created / 409 already exists)"
 
 Write-Host ''

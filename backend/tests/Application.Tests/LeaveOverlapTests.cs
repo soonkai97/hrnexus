@@ -40,6 +40,14 @@ public class LeaveOverlapTests
         public DateTime     LocalNow      => DateTime.Now;
     }
 
+    private sealed class FixedClock(DateTime now) : IDateTimeProvider
+    {
+        public DateTime     UtcNow        => now;
+        public DateOnly     TodayUtc      => DateOnly.FromDateTime(now);
+        public TimeZoneInfo VenueTimeZone => TimeZoneInfo.Utc;
+        public DateTime     LocalNow      => now;
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static TestDbContext CreateDb()
@@ -226,7 +234,10 @@ public class LeaveOverlapTests
         await SeedLeave(db, empId, Utc(2025, 6, 1), Utc(2025, 6, 5),
             status: "pending", id: leaveId);
 
-        var handler = CreateHandler(db);
+        // Fixed clock: the leave must still be in the future, because ended leave can no longer have its
+        // dates changed (Phase 7l). The point here is only that a record never blocks itself.
+        var handler = new UpsertLeaveCommandHandler(db, new NullNotificationHub(), new NullPushService(),
+            new NullAuditService(), new FixedClock(Utc(2025, 5, 1)));
         // Update same record: extend end date (same start, later end)
         var result = await handler.Handle(
             new UpsertLeaveCommand(leaveId, empId, "unpaid",

@@ -725,6 +725,13 @@ Rules the leave handlers enforce; each has a test in `LeaveFixesTests` (`docs/pr
 - **Charged per year** (`LeaveHoursCalculator.HoursInYear`): a leave across 31 Dec / 1 Jan is charged to each
   year by the working days that fall in it, in the apply-time balance check (every touched year needs an
   entitlement), balances, the summary and carry-over. Tests that book a single day must use a weekday.
+- **Edits** (`UpsertLeaveCommand`): an update must name the leave's real owner (a different `employeeId` is a
+  400), so the balance and overlap checks always run on the right person. `rejected` and `cancelled` leave is
+  immutable. Leave that has **ended** keeps its dates, times and type; only its status can change, or it can
+  become a `no-show`. A status-only edit keeps the stored hours, so a row recorded before the working-day rule
+  (for example a weekend) can still be approved, rejected or marked no-show.
+- **No-show** (`BulkMarkLeaveNoShowCommand`) frees the annual hours a leave used, so it follows the self-approval
+  rule too (own leave in the selection throws) and skips rejected/cancelled leave.
 - **Withdrawal**: staff cancelling an **approved** leave notifies every other active manager/admin
   ("Leave Withdrawn", `leave_pending` type so the bell links to `/leave`); cancelling a pending one is silent.
 

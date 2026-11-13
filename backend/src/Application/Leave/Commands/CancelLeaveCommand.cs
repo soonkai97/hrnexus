@@ -38,6 +38,14 @@ public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt, I
             changes:         changes));
 
         leave.Cancel();
+
+        // Withdrawing approved leave changes the roster, so tell the managers. The notification rows
+        // are saved in the SAME save as the cancellation, so a failure can never report an error for a
+        // withdrawal that actually went through. Pending requests were never relied on: silent.
+        var notes = wasApproved
+            ? await AddManagerNotificationsAsync(leave, employee?.FullName ?? "An employee", req.EmployeeId, ct)
+            : [];
+
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException)
         {
@@ -46,30 +54,6 @@ public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt, I
             throw new InvalidOperationException(
                 "This leave request was modified concurrently. Please refresh and try again.");
         }
-
-        // Withdrawing approved leave changes the roster, so tell the managers. Pending requests were
-        // never relied on, so withdrawing those stays silent.
-        if (wasApproved)
-            await NotifyManagersAsync(leave, employee?.FullName ?? "An employee", req.EmployeeId, ct);
-    }
-
-    private async Task NotifyManagersAsync(LeaveRequest leave, string who, Guid withdrawnBy, CancellationToken ct)
-    {
-        var managers = await db.Staff
-            .Where(s => s.IsActive && s.Id != withdrawnBy &&
-                (s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager) ||
-                 s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin)))
-            .ToListAsync(ct);
-        if (managers.Count == 0) return;
-
-        var message = $"{who} withdrew approved {leave.LeaveType} leave " +
-                      $"({leave.StartDate:dd/MM} – {leave.EndDate:dd/MM}).";
-        var notes = managers
-            .Select(m => Notification.Create(m.Id, "Leave Withdrawn", message,
-                AppConstants.NotificationType.LeavePending, leave.Id.ToString()))
-            .ToList();
-        db.Notifications.AddRange(notes);
-        await db.SaveChangesAsync(ct);
 
         // Live delivery is best-effort; the persisted rows above already guarantee the bell shows it.
         foreach (var n in notes)
@@ -82,5 +66,24 @@ public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt, I
             }
             catch { /* best-effort */ }
         }
+    }
+
+    private async Task<List<Notification>> AddManagerNotificationsAsync(LeaveRequest leave, string who, Guid withdrawnBy, CancellationToken ct)
+    {
+        var managers = await db.Staff
+            .Where(s => s.IsActive && s.Id != withdrawnBy &&
+                (s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager) ||
+                 s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin)))
+            .ToListAsync(ct);
+        if (managers.Count == 0) return [];
+
+        var message = $"{who} withdrew approved {leave.LeaveType} leave " +
+                      $"({leave.StartDate:dd/MM} – {leave.EndDate:dd/MM}).";
+        var notes = managers
+            .Select(m => Notification.Create(m.Id, "Leave Withdrawn", message,
+                AppConstants.NotificationType.LeavePending, leave.Id.ToString()))
+            .ToList();
+        db.Notifications.AddRange(notes);   // saved by the caller, together with the cancellation
+        return notes;
     }
 }

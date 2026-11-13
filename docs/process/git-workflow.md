@@ -85,6 +85,14 @@ JSON
 
 Repository-level auto-merge and delete-branch-on-merge are enabled; enable auto-merge on an individual PR only when you want that PR to merge itself once the checks pass.
 
+## Lint gates
+
+The Web job runs ESLint with zero warnings allowed (`npm run lint -- --max-warnings 0`, Playwright specs included) and a Prettier ratchet
+on changed files (`npm run format:check`, script `scripts/format-check.mjs`): new files must be formatted, files that were already formatted
+must stay formatted, and legacy unformatted files are skipped so nothing is mass-reformatted. Run `BASE_SHA=origin/master npm run format:check`
+locally and fix with `npx prettier --write <file>`. The API job runs `dotnet format style` and `dotnet format analyzers` (whitespace layout is
+not enforced yet). Stylelint for SCSS is planned after the Angular 22 upgrade merges, because it adds devDependencies that would conflict with it.
+
 ## No production deployment
 
 There is currently no production server and no deploy workflow (the manual `deploy.yml` was removed together with the server on 13 Nov 2026). When a server exists, recreate a deploy workflow with the same rules: manual `workflow_dispatch` only, a protected GitHub environment with a required reviewer, deploy keys and host details stored as environment secrets (never in the repository), only the tip of `master` after green CI, and a fresh database backup plus maintenance window for any release with a destructive migration. `deploy.sh` (maintenance mode, `--wait` for healthy containers) and `scripts/backup-db.sh` / `restore-db.sh` stay for that day.

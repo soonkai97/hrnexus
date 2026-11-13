@@ -24,13 +24,6 @@ public class DeleteRoleCommandHandler(IAppDbContext db)
             throw new InvalidOperationException(
                 $"Cannot delete role '{role.Name}' — it is still assigned to one or more staff. Reassign them first.");
 
-        // Block deletion while a shift is currently in progress under this role. WorkLog only keeps a
-        // frozen RoleName snapshot (no FK), so the check is on that name — matching role.Name (uppercase).
-        var shiftInProgress = await db.WorkLogs.AnyAsync(w => w.RoleName == role.Name && w.EndTime == null, ct);
-        if (shiftInProgress)
-            throw new InvalidOperationException(
-                $"Cannot delete role '{role.Name}' — a shift is currently in progress under this role. End it first.");
-
         // Explicitly clean up the role's default-permission and rate-history rows. The Postgres FK is
         // ON DELETE CASCADE, but the EF InMemory provider (unit tests) does NOT cascade, so we remove
         // them here to keep behaviour identical on both providers (and avoid orphans on any provider).

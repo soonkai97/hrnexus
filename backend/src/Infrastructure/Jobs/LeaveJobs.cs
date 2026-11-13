@@ -2,17 +2,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 
 namespace HRNexus.Infrastructure.Jobs;
 
-public class ShiftJobs(
+public class LeaveJobs(
     IAppDbContext            db,
     IDateTimeProvider        dateTime,
     IPushNotificationService pushSvc,
-    INotificationHub         notifHub,
-    ILogger<ShiftJobs>       logger)
+    ILogger<LeaveJobs>       logger)
 {
     /// <summary>
     /// Reset annual leave entitlements at start of each new year.
@@ -56,123 +54,6 @@ public class ShiftJobs(
         }
         logger.LogInformation(
             "Leave entitlement reset: created {Count} records for year {Year}", created, newYear);
-    }
-
-    /// <summary>
-    /// Remind staff with shifts running over 12 hours to clock out.
-    /// Sends a browser push (best-effort, every run) and one in-app notification
-    /// per stale work log (deduped by RelatedId so the bell doesn't spam).
-    /// Runs every 15 minutes via Hangfire.
-    /// </summary>
-    [AutomaticRetry(Attempts = 1)]
-    [DisableConcurrentExecution(timeoutInSeconds: 300)]
-    public async Task RemindLongRunningWorkLogsAsync(CancellationToken ct = default)
-    {
-        var cutoff = dateTime.UtcNow.AddHours(-12);
-
-        var stale = await db.WorkLogs
-            .Include(w => w.Employee)
-            .Where(w => w.EndTime == null && w.CreatedAt <= cutoff)
-            .ToListAsync(ct);
-
-        if (stale.Count == 0) return;
-
-        // ── Browser push (best-effort, fires every run) ────────────────────────
-        foreach (var wl in stale)
-        {
-            try
-            {
-                await pushSvc.SendAsync(
-                    wl.EmployeeId,
-                    "⏰ Shift still active",
-                    $"Your shift at {wl.LocationName} has been running for over 12 hours. Please end it if you're done.",
-                    "/log-shift", ct);
-            }
-            catch { /* non-critical */ }
-        }
-
-        // ── In-app notifications (once per stale work log) ────────────────────
-        // Check which logs have already had a notification created so we don't
-        // add a new bell entry on every 15-minute tick.
-        var staleIds = stale.Select(w => w.Id.ToString()).ToList();
-        var alreadyNotifiedIds = await db.Notifications
-            .Where(n => n.Type == "stale_shift" && staleIds.Contains(n.RelatedId!))
-            .Select(n => n.RelatedId!)
-            .ToListAsync(ct);
-
-        var newlyStale = stale
-            .Where(w => !alreadyNotifiedIds.Contains(w.Id.ToString()))
-            .ToList();
-
-        if (newlyStale.Count == 0) return;
-
-        // Create employee notifications
-        var employeeNotifs = newlyStale.Select(wl => (
-            wl.EmployeeId,
-            Notif: Notification.Create(
-                wl.EmployeeId,
-                "⏰ Shift still active",
-                $"Your shift at {wl.LocationName} has been running for over 12 hours. Please end it if you're done.",
-                "stale_shift",
-                wl.Id.ToString())
-        )).ToList();
-
-        foreach (var (_, notif) in employeeNotifs)
-            db.Notifications.Add(notif);
-
-        // Create supervisor notifications
-        var supervisorIds = await db.Staff
-            .Where(s => s.IsActive &&
-                        s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager || r.Role.Name == AppConstants.Roles.Admin))
-            .Select(s => s.Id)
-            .ToListAsync(ct);
-
-        var supervisorBody = newlyStale.Count == 1
-            ? $"{newlyStale[0].Employee?.FullName ?? "A staff member"} has been on shift for over 12 hours without clocking out."
-            : $"{newlyStale.Count} staff members have been on shift for 12+ hours without clocking out.";
-
-        var supervisorNotifs = supervisorIds.Select(supId => (
-            supId,
-            Notif: Notification.Create(supId,
-                "⚠️ Open shift — no clock-out",
-                supervisorBody,
-                "stale_shift_admin")
-        )).ToList();
-
-        foreach (var (_, notif) in supervisorNotifs)
-            db.Notifications.Add(notif);
-
-        await db.SaveChangesAsync(ct);
-
-        // ── Real-time push via SignalR (after save so IDs are stable) ─────────
-        foreach (var (employeeId, notif) in employeeNotifs)
-        {
-            try
-            {
-                await notifHub.SendToUserAsync(employeeId, new NotificationPayload(
-                    notif.Id.ToString(), notif.Title, notif.Message,
-                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("O")), ct);
-            }
-            catch { /* non-critical */ }
-        }
-
-        foreach (var (supId, notif) in supervisorNotifs)
-        {
-            try
-            {
-                await notifHub.SendToUserAsync(supId, new NotificationPayload(
-                    notif.Id.ToString(), notif.Title, notif.Message,
-                    notif.Type, notif.RelatedId, notif.CreatedAt.ToString("O")), ct);
-            }
-            catch { /* non-critical */ }
-        }
-
-        try { await pushSvc.SendToManyAsync(supervisorIds, "⚠️ Staff haven't clocked out", supervisorBody, "/", ct); }
-        catch { /* non-critical */ }
-
-        logger.LogInformation(
-            "Stale-shift: created in-app notifications for {EmpCount} employee(s), alerted {SupCount} supervisor(s)",
-            newlyStale.Count, supervisorIds.Count);
     }
 
     /// <summary>

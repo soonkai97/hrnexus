@@ -39,8 +39,7 @@ export class NotificationBellComponent implements OnInit {
   private audienceOf(type: string): 'admin' | 'staff' | 'both' {
     switch (type) {
       case 'leave_pending':
-      case 'password_reset':
-      case 'stale_shift_admin': return 'admin';
+      case 'password_reset':    return 'admin';
       case 'announcement':      return 'both';
       default:                  return 'staff';
     }
@@ -99,8 +98,6 @@ export class NotificationBellComponent implements OnInit {
       case 'leave_approved':
       case 'leave_rejected':    return '/my-leave';
       case 'leave_pending':     return '/leave';
-      case 'stale_shift':       return '/log-shift';
-      case 'stale_shift_admin': return '/dashboard';
       case 'password_reset':    return '/staff';
       default:                  return null;
     }

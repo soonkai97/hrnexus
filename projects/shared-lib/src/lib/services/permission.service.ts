@@ -11,7 +11,6 @@ export type PermissionKey =
   | 'portal.admin'
   | 'staff.view'   | 'staff.manage'
   | 'leave.approve' | 'leave.manage'
-  | 'worklog.manage'
   | 'reports.view'
   | 'payroll.view' | 'payroll.manage' | 'payroll.lock'
   | 'roles.manage'

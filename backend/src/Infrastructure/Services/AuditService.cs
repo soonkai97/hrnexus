@@ -11,7 +11,7 @@ public class AuditService(IAppDbContext db, ICurrentUserService currentUser) : I
         // When a command doesn't supply a performer (many admin/bulk commands historically passed
         // null + a placeholder like "Admin"), attribute the entry to the authenticated caller so the
         // audit trail records WHICH admin acted, not a placeholder. Commands that already pass a real
-        // performer (e.g. WorkLog edits, payroll lock/reopen) keep theirs.
+        // performer (e.g. payroll lock/reopen) keep theirs.
         var id   = performedById ?? currentUser.UserId;
         var name = performedById is null && !string.IsNullOrWhiteSpace(currentUser.UserName)
             ? currentUser.UserName!

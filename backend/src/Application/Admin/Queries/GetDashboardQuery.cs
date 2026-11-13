@@ -1,178 +1,21 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 
 namespace HRNexus.Application.Admin.Queries;
 
 public record GetDashboardQuery : IRequest<DashboardResponse>;
 
-public record DashboardResponse(
-    DashboardStats         Stats,
-    List<ActiveStaffDto>   CurrentlyOnShift,
-    List<RecentEventDto>   RecentActivity);
+public record DashboardResponse(DashboardStats Stats);
 
-public record DashboardStats(
-    int     OnShiftCount,
-    int     TotalStaff,
-    decimal TonightHours,
-    decimal TonightCost,
-    int     OpenShiftsCount);
+public record DashboardStats(int TotalStaff);
 
-public record ActiveStaffDto(
-    Guid     WorkLogId,
-    string   StaffId,
-    string   Name,
-    string   Role,
-    string   LocationName,
-    DateOnly WorkDate,
-    string   StartTime,
-    DateTime ClockedInAt,
-    int      MinutesOnShift,
-    string?  Notes,
-    double?  StartLatitude,
-    double?  StartLongitude,
-    double?  LastLatitude,
-    double?  LastLongitude,
-    DateTime? LastLocationAt,
-    string?  RoleZh = null,
-    string?  RoleVi = null,
-    string?  LocationNameZh = null,
-    string?  LocationNameVi = null);
-
-public record RecentEventDto(
-    string   StaffName,
-    string   Role,
-    string   LocationName,
-    DateTime Timestamp,
-    string   EventType,
-    string?  Notes,
-    string?  RoleZh = null,
-    string?  RoleVi = null,
-    string?  LocationNameZh = null,
-    string?  LocationNameVi = null);
-
-public class GetDashboardQueryHandler(IAppDbContext db, IDateTimeProvider dt)
+public class GetDashboardQueryHandler(IAppDbContext db)
     : IRequestHandler<GetDashboardQuery, DashboardResponse>
 {
     public async Task<DashboardResponse> Handle(GetDashboardQuery req, CancellationToken ct)
     {
-        var tz        = dt.VenueTimeZone;
-        var localNow  = dt.LocalNow;
-        var today     = DateOnly.FromDateTime(localNow);  // "today" in venue local time
-        var utcNow    = dt.UtcNow;
-
-        // All currently-open shifts (EndTime is null), any date.
-        // A shift can start before midnight and still be running the next day,
-        // so we must not filter by WorkDate here.
-        var activeShifts = await db.WorkLogs
-            .Include(w => w.Employee)
-            .Where(w => w.EndTime == null)
-            .OrderBy(w => w.StartTime)
-            .ToListAsync(ct);
-
-        // Load today's work logs (by venue-local date) for the activity feed and
-        // tonight's hours / cost totals (separate from the live "who is on shift" list).
-        var todayLogs = await db.WorkLogs
-            .Include(w => w.Employee)
-            .Where(w => w.WorkDate == today)
-            .OrderByDescending(w => w.StartTime)
-            .ToListAsync(ct);
-
-        // Localized job + location names for the viewer's language, resolved once from the union of
-        // the live-on-shift list and today's activity feed (role by frozen name, location by exact id).
-        var allShifts  = activeShifts.Concat(todayLogs);
-        var roleLoc    = await RoleLocalization.BuildAsync(db, allShifts.Select(w => w.RoleName), ct);
-        var locLoc     = await LocationLocalization.BuildByIdsAsync(db, allShifts.Select(w => w.LocationId), ct);
-
-        // Helper: convert WorkDate + HH:mm local string → UTC DateTime
-        DateTime LocalShiftToUtc(DateOnly workDate, string hhMm)
-        {
-            var localDt = workDate.ToDateTime(TimeOnly.Parse(hhMm));          // Kind=Unspecified = venue local
-            return TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(localDt, DateTimeKind.Unspecified), tz);
-        }
-
-        // Tonight totals — include active shifts using current local time as effective end
-        var tonightHours = 0m;
-        var tonightCost  = 0m;
-        foreach (var w in todayLogs)
-        {
-            var endHhMm = w.EndTime
-                       ?? $"{localNow.Hour:D2}:{localNow.Minute:D2}";   // active: use now
-
-            var s    = TimeSpan.Parse(w.StartTime);
-            var e    = TimeSpan.Parse(endHhMm);
-            var diff = e > s ? e - s : e + TimeSpan.FromHours(24) - s;  // handle overnight
-            var h    = (decimal)diff.TotalHours;
-            tonightHours += h;
-            tonightCost  += ShiftPay.Calc(w.PayTypeSnapshot, h, w.HourlyRateSnapshot);
-        }
-
         var totalStaff = await db.Staff.CountAsync(e => e.IsActive, ct);
-
-        // "Stale" open shifts: still clocked in but WorkDate is NOT today.
-        // These are almost certainly staff who forgot to clock out from a previous day.
-        var openShiftsCount = activeShifts.Count(w => w.WorkDate != today);
-
-        var stats = new DashboardStats(
-            activeShifts.Count,   // everyone currently clocked in, any date
-            totalStaff,
-            Math.Round(tonightHours, 1),
-            Math.Round(tonightCost, 2),
-            openShiftsCount);     // only stale (forgot-to-clock-out) entries
-
-        var onShift = activeShifts
-            .Where(w => w.Employee != null)
-            .Select(w =>
-            {
-                var clockedInUtc  = LocalShiftToUtc(w.WorkDate, w.StartTime);
-                var minutesOnShift = Math.Max(0, (int)(utcNow - clockedInUtc).TotalMinutes);
-                var (roleZh, roleVi) = roleLoc.For(w.RoleName);
-                var (locZh, locVi)   = locLoc.For(w.LocationId);
-                return new ActiveStaffDto(
-                    w.Id,
-                    w.Employee!.StaffId,
-                    w.Employee.FullName,
-                    w.RoleName,
-                    w.LocationName,
-                    w.WorkDate,
-                    w.StartTime,
-                    clockedInUtc,
-                    minutesOnShift,
-                    w.Notes,
-                    w.StartLatitude,
-                    w.StartLongitude,
-                    w.LastLatitude,
-                    w.LastLongitude,
-                    w.LastLocationAt,
-                    roleZh,
-                    roleVi,
-                    locZh,
-                    locVi);
-            })
-            .OrderBy(s => s.ClockedInAt)
-            .ToList();
-
-        var recent = todayLogs
-            .Take(30)
-            .Select(w =>
-            {
-                var (roleZh, roleVi) = roleLoc.For(w.RoleName);
-                var (locZh, locVi)   = locLoc.For(w.LocationId);
-                return new RecentEventDto(
-                    w.Employee?.FullName ?? "Unknown",
-                    w.RoleName,
-                    w.LocationName,
-                    LocalShiftToUtc(w.WorkDate, w.StartTime),
-                    w.EndTime == null ? "shift-started" : "shift-ended",
-                    w.Notes,
-                    roleZh,
-                    roleVi,
-                    locZh,
-                    locVi);
-            })
-            .ToList();
-
-        return new DashboardResponse(stats, onShift, recent);
+        return new DashboardResponse(new DashboardStats(totalStaff));
     }
 }

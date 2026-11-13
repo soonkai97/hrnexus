@@ -46,7 +46,7 @@ export async function ensureRole(
  * accepted request must not land on one.
  */
 export function futureWeekday(daysAhead: number): string {
-  const d = new Date(Date.now() + daysAhead * 86_400_000);
+  let d = new Date(Date.now() + daysAhead * 86_400_000);
   while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d = new Date(d.getTime() + 86_400_000);
   return d.toISOString().slice(0, 10);
 }

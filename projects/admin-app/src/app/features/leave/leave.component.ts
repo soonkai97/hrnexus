@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 import {
   LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance,
   LeaveSummary, LeavePatternWarning,
-  LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
+  AuthService, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
   TrimInputDirective, CanComponentDeactivate,
   apiErrorMessage, nowRoundedToHalfHour,
 } from 'shared-lib';
@@ -42,6 +42,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
 })
 export class LeaveComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
+  private readonly auth       = inject(AuthService);
   private readonly leaveSvc   = inject(LeaveService);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
@@ -213,10 +214,16 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   bulkRejReason    = signal('');
   bulkStatusSaving = signal(false);
 
+  /** The server refuses to let anyone approve or reject their own leave, so the UI never offers it. */
+  isOwn(r: LeaveRecord): boolean { return r.employeeId === this.auth.user()?.id; }
+
+  /** Pending records the signed-in approver may decide (everything pending except their own). */
+  private decidable(): LeaveRecord[] { return this.records().filter(r => r.status === 'pending' && !this.isOwn(r)); }
+
   selectedCount = computed(() => this.selectedIds().size);
   allVisibleSelected = computed(() => {
     const ids = this.selectedIds();
-    const pending = this.records().filter(r => r.status === 'pending');
+    const pending = this.decidable();
     return pending.length > 0 && pending.every(r => ids.has(r.id));
   });
 
@@ -226,7 +233,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   }
 
   toggleSelectAll(): void {
-    const pending = this.records().filter(r => r.status === 'pending');
+    const pending = this.decidable();
     if (this.allVisibleSelected()) {
       const next = new Set(this.selectedIds());
       pending.forEach(r => next.delete(r.id));

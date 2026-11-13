@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ namespace HRNexus.Application.Leave.Commands;
 
 public record CancelLeaveCommand(Guid LeaveId, Guid EmployeeId) : IRequest;
 
-public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt) : IRequestHandler<CancelLeaveCommand>
+public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt, INotificationHub notifHub) : IRequestHandler<CancelLeaveCommand>
 {
     public async Task Handle(CancelLeaveCommand req, CancellationToken ct)
     {
@@ -44,6 +45,42 @@ public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt) :
             // Surface a friendly error so the staff member can refresh and retry.
             throw new InvalidOperationException(
                 "This leave request was modified concurrently. Please refresh and try again.");
+        }
+
+        // Withdrawing approved leave changes the roster, so tell the managers. Pending requests were
+        // never relied on, so withdrawing those stays silent.
+        if (wasApproved)
+            await NotifyManagersAsync(leave, employee?.FullName ?? "An employee", req.EmployeeId, ct);
+    }
+
+    private async Task NotifyManagersAsync(LeaveRequest leave, string who, Guid withdrawnBy, CancellationToken ct)
+    {
+        var managers = await db.Staff
+            .Where(s => s.IsActive && s.Id != withdrawnBy &&
+                (s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager) ||
+                 s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin)))
+            .ToListAsync(ct);
+        if (managers.Count == 0) return;
+
+        var message = $"{who} withdrew approved {leave.LeaveType} leave " +
+                      $"({leave.StartDate:dd/MM} – {leave.EndDate:dd/MM}).";
+        var notes = managers
+            .Select(m => Notification.Create(m.Id, "Leave Withdrawn", message,
+                AppConstants.NotificationType.LeavePending, leave.Id.ToString()))
+            .ToList();
+        db.Notifications.AddRange(notes);
+        await db.SaveChangesAsync(ct);
+
+        // Live delivery is best-effort; the persisted rows above already guarantee the bell shows it.
+        foreach (var n in notes)
+        {
+            try
+            {
+                await notifHub.SendToUserAsync(n.EmployeeId,
+                    new NotificationPayload(n.Id.ToString(), n.Title, n.Message, n.Type,
+                        n.RelatedId, n.CreatedAt.ToString("yyyy-MM-dd HH:mm")), ct);
+            }
+            catch { /* best-effort */ }
         }
     }
 }

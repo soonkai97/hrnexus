@@ -46,6 +46,7 @@ public class LeaveRequest
         string? startTime, string? endTime, decimal? hours,
         string? notes, string status, string? rejectionReason = null)
     {
+        EnsureCanBecome(status);
         LeaveType       = leaveType.ToLower();
         StartDate       = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc);
         EndDate         = DateTime.SpecifyKind(endDate.Date,   DateTimeKind.Utc);
@@ -59,11 +60,37 @@ public class LeaveRequest
             : null;  // clear rejection reason when status is no longer rejected
     }
 
-    public void Cancel() => Status = AppConstants.Leave.Cancelled;
+    public void Cancel()
+    {
+        // Unlike Update, cancelling twice is an error rather than a no-op.
+        if (Status is not (AppConstants.Leave.Pending or AppConstants.Leave.Approved))
+            throw new InvalidOperationException($"A {Status} leave request cannot be cancelled.");
+        Status = AppConstants.Leave.Cancelled;
+    }
+
+    /// <summary>
+    /// Status state machine: pending moves to approved, rejected or cancelled; approved moves to
+    /// rejected or cancelled; rejected and cancelled are final (apply again instead). Staying in the
+    /// same status is allowed so notes, dates and hours can still be edited.
+    /// </summary>
+    private void EnsureCanBecome(string next)
+    {
+        next = next.ToLowerInvariant();
+        if (next == Status) return;
+        var allowed = Status switch
+        {
+            AppConstants.Leave.Pending  => next is AppConstants.Leave.Approved or AppConstants.Leave.Rejected or AppConstants.Leave.Cancelled,
+            AppConstants.Leave.Approved => next is AppConstants.Leave.Rejected or AppConstants.Leave.Cancelled,
+            _                           => false,
+        };
+        if (!allowed)
+            throw new InvalidOperationException($"A {Status} leave request cannot be changed to {next}.");
+    }
 
     /// <summary>Auto-reject this leave and stamp a system note onto it.</summary>
     public void AutoReject(string systemNote)
     {
+        EnsureCanBecome(AppConstants.Leave.Rejected);
         Status = AppConstants.Leave.Rejected;
         Notes  = string.IsNullOrWhiteSpace(Notes)
             ? systemNote

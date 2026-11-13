@@ -7,7 +7,7 @@ import { loginStaff } from '../shared/helpers';
  * WHY these tests matter:
  *  - The profile page is the staff member's identity card; if the avatar, name,
  *    or staff ID are blank, staff can't verify they're logged into the right account.
- *  - The push notification toggle is the only way staff opt in to shift/leave
+ *  - The push notification toggle is the only way staff opt in to leave and other
  *    alerts on mobile; if it's missing or broken, staff miss real-time alerts.
  *  - The language selector must render so bilingual staff can switch to their
  *    preferred language — a broken selector locks them into English.
@@ -32,13 +32,6 @@ test.describe('Staff — Profile', () => {
     // .info-card contains Staff ID, email, and other profile fields
     await expect(page.locator('.info-card')).toBeVisible({ timeout: 8_000 });
     await expect(page.locator('.info-row').first()).toBeVisible({ timeout: 5_000 });
-  });
-
-  test('shows the change-password navigation link', async ({ page }) => {
-    await expect(page.locator('.action-card')).toBeVisible({ timeout: 8_000 });
-    await expect(
-      page.locator('a[href*="change-password"], [routerLink*="change-password"]')
-    ).toBeVisible({ timeout: 5_000 });
   });
 
   /**

@@ -62,16 +62,19 @@ learned → Last session (resume pointer).
 
 ## Last session
 
-**Date:** 2026-11-13 (Phase 7: remove clock-in/out; IMS alignment planning)
+**Date:** 2026-11-13 (Phase 7 landed; repo hardening; planning)
 
-**In flight:** branch `feat/remove-shift-log` (uncommitted when this was written). Frontend and backend
-removal done and green; domain cleanup in progress. The irreversible **drop migration for the WorkLogs
-table has NOT been created**: it needs the user's explicit go-ahead and a fresh DB backup + maintenance
-window.
+**Done (merged to `master` through PRs):** Phase 7 removed clock-in/out (`DropWorkLogs` migration created, not deployed
+anywhere); IMS-style CI/CD, hooks and a protected `master` (PR-only, squash, required checks API, Web, Git workflow
+guard); dependency security upgrades (Dependabot alerts 144 to 1); `.gitignore` hardening; git history purged of two
+SQLite files, three demo seed files and an employer email; role agents under `.claude/agents/`.
 
-**Planned (docs only):** `docs/process/architecture-alignment-ims.md` (phases 7b-7g), feature management
-(modules gate) phase 7h, HRM phases 8-12 (payroll rebuild, documents, onboarding, recruitment,
-performance). Role agents ported to `.claude/agents/` + `docs/team/` (separate PR).
+**State:** there is **no production deployment** (the server was removed on 13 Nov 2026) and no real data, so no
+backup or maintenance window is needed until a new deployment exists. Public docs no longer describe the old server.
 
-**Resume pointer:** finish Phase 7 (migration after approval, full test run, PR, Docker rebuild
-`--no-cache`), then ask the user the open questions in the alignment doc.
+**Planned (docs only):** `docs/process/phase-07j-remove-locations.md`, `phase-07i-english-only.md`,
+`architecture-alignment-ims.md` (7b to 7g), `phase-07h-feature-management.md`, then HRM phases 8 to 12. The PRD lives
+as a private Claude Doc (HRNexus PRD v1.0).
+
+**Resume pointer:** next the Locations removal (7j), then English only (7i); the first admin password and all keys must
+come from the environment before any deployment (the seed currently hardcodes a development password).

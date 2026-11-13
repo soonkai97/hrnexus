@@ -33,19 +33,19 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      Jwt__Key: "${JWT_SECRET:-HRNexus_Dev_Secret_Change_In_Production_Min32Chars}"
+      Jwt__Key: "${JWT_SECRET:-HRNexus_Dev_Secret_Change_In_Production_Min32Chars}"  # guard:allow-secret local development default only
       Jwt__Issuer: hrnexus
       Jwt__Audience: hrnexus-clients
-      Pii__Key: "${PII_ENCRYPTION_KEY:-HRNexus_Dev_PII_Key_Change_In_Production_32c}"
-      Cors__AllowedOrigins__0: "http://admin.${DOMAIN}"
-      Cors__AllowedOrigins__1: "http://staff.${DOMAIN}"
-      Cors__AllowedOrigins__2: "https://admin.${DOMAIN}"
-      Cors__AllowedOrigins__3: "https://staff.${DOMAIN}"
+      Pii__Key: "${PII_ENCRYPTION_KEY:-HRNexus_Dev_PII_Key_Change_In_Production_32c}"  # guard:allow-secret local development default only
+      Cors__AllowedOrigins__0: "http://admin.${DOMAIN:-localhost}"
+      Cors__AllowedOrigins__1: "http://staff.${DOMAIN:-localhost}"
+      Cors__AllowedOrigins__2: "https://admin.${DOMAIN:-localhost}"
+      Cors__AllowedOrigins__3: "https://staff.${DOMAIN:-localhost}"
       # Override connection string so the API reaches postgres by service name
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-hr_nexus};Username=${POSTGRES_USER:-ncuser};Password=${POSTGRES_PASSWORD:-ncpassword}"
       # Web Push (VAPID) — generate keys with: npx web-push generate-vapid-keys
       # Leave empty to disable push notifications without breaking anything
-      WebPush__Subject: "${VAPID_SUBJECT:-mailto:chiansoonkai97@gmail.com}"
+      WebPush__Subject: "${VAPID_SUBJECT:-mailto:admin@example.com}"
       WebPush__PublicKey: "${VAPID_PUBLIC_KEY:-}"
       WebPush__PrivateKey: "${VAPID_PRIVATE_KEY:-}"
       # Observability (Phase 2) — opt-in, empty by default so logs/traces stay local until enabled.

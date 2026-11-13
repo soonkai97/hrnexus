@@ -150,7 +150,7 @@ Steps marked `[TDD]` write the failing test first (Rule 14).
 10. Shell nav gating (admin + staff) and route guards; i18n keys en/zh/vi - S
 11. `[TDD]` Features page + dialog + specs (stubbed routes, no `detectChanges`, per CLAUDE.md pattern) - M
 12. E2E: admin turns `cash-advances` off with a reason, API 404, nav entry gone, turns it on, state restored in `afterAll`; permission-hidden test - S
-13. Docs: CLAUDE.md "Feature management" section, ADR 0002 `docs/architecture/adr-modules.md` (adapted from IMS), Rule 17 coverage scan, `docs/DEPLOY.md` stale `FEATURE_TOKEN_SECRET` lines removed - S
+13. Docs: CLAUDE.md "Feature management" section, ADR 0002 `docs/architecture/adr-modules.md` (adapted from IMS), Rule 17 coverage scan (the stale `FEATURE_TOKEN_SECRET` and PIN variables were already removed from `.env.example`) - S
 
 **Size:** about 2 days (backend 1 day, frontend 0.75 day, E2E/docs 0.25 day). Longest step: 4 and 6 (gate ordering and permission merge).
 

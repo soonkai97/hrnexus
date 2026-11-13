@@ -14,7 +14,7 @@
 - [ ] UI text: i18n keys added to en, zh and vi in both apps (while the app is multilingual)
 - [ ] No secrets, keys or real credentials in code, config or docs; PII stays encrypted at rest
 - [ ] Docs updated (CLAUDE.md, STATE.md, phase doc status)
-- [ ] After merge: Docker rebuilt `--no-cache` / deployed through the manual **Deploy** workflow (CLAUDE.md Rule 18)
+- [ ] After merge: Docker rebuilt `--no-cache` (CLAUDE.md Rule 18; no deploy workflow exists while there is no production)
 
 ## Reviewers
 <!-- List the roles that should review (path-to-role table in docs/team/PR-REVIEW.md, section 1). PRs over about 200 lines or touching payroll, auth, migrations, PII or Docker/nginx need an independent review (PR-REVIEW.md, section 8). -->

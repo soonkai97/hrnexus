@@ -11,7 +11,7 @@
 set -euo pipefail
 
 SERVICE="${1:-web}"
-COMPOSE="docker compose -f docker-compose.yml -f docker-compose.uat.yml"
+COMPOSE="docker compose -f docker-compose.yml"
 MAINTENANCE_FLAG="./maintenance/on"
 
 # ── Always remove the maintenance flag on exit (even on error/Ctrl-C) ─────────

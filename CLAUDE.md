@@ -1023,6 +1023,8 @@ Default to surfacing uncertainty, not hiding it.
 
 ### Rule 18 — Docker and GitHub must always reflect the latest code
 
+Git workflow, hooks, required CI checks and the manual deploy workflow: [`docs/process/git-workflow.md`](docs/process/git-workflow.md).
+
 After any session that modifies source files, spec files, config, or migrations:
 
 1. **All tests green first** — never ship broken code.

@@ -1,7 +1,7 @@
 // Run with: node --test scripts/guard
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkCommitMessage, checkBranchName, forbiddenPath, findSecrets, MAX_SUBJECT, PROTECTED_BRANCHES } from './lib.mjs';
+import { checkCommitMessage, checkBranchName, forbiddenPath, findSecrets, MAX_SUBJECT, PROTECTED_BRANCHES, GENERATED_PATHSPECS, git } from './lib.mjs';
 
 const merged = { fromTargetHistory: true };
 /** A valid conventional subject of exactly `length` characters. */
@@ -74,4 +74,13 @@ test('secret scan flags real-looking secrets and skips placeholders and allow-li
   assert.deepEqual(findSecrets('docker-compose.yml', 'JWT_SECRET: "${JWT_SECRET:-dev}"'), []);
   assert.deepEqual(findSecrets('backend/tests/X.cs', 'Password=SuperSecret99;'), []);
   assert.deepEqual(findSecrets('backend/src/X.cs', 'Password=SuperSecret99; // guard:allow-secret test value'), []);
+});
+
+test('the repo-root package-lock.json and EF designer or snapshot files do not count towards the size limit', () => {
+  const counted = git('ls-files', '--', '.', ...GENERATED_PATHSPECS).split('\n');
+  const all = git('ls-files').split('\n');
+  assert.ok(all.includes('package-lock.json'), 'the repo has a root lock file to exclude');
+  assert.ok(!counted.includes('package-lock.json'), 'the root lock file must be excluded');
+  assert.ok(!counted.some((f) => /\/Migrations\/.*(\.Designer\.cs|ModelSnapshot\.cs)$/.test(f)), 'EF generated files must be excluded');
+  assert.ok(counted.includes('scripts/guard/lib.mjs'), 'ordinary source files stay counted');
 });

@@ -1,197 +1,137 @@
-# HRNexus — Workforce Management System
+# HRNexus: HR Management System
 
-Internal web application for managing venue staff — attendance, leave, and payroll reporting.
+Internal HR management for venue staff and managers: staff records, roles and permissions, leave, and
+notifications. Two Angular PWAs (a desktop-first admin app and a mobile-first staff app) on one ASP.NET Core API.
 
-**Stack:** Angular 21 (standalone components, signals) · ASP.NET Core 10 · Entity Framework Core · SignalR · PostgreSQL 17
+**Stack:** Angular 21 (standalone components, signals) · PrimeNG 21 · ASP.NET Core 10 · Entity Framework Core · SignalR · PostgreSQL 17 · Docker + nginx
 
----
+Direction: clock-in/out was removed (Phase 7); the product is being built out into a standard HRM
+(payroll, documents and compliance, onboarding, recruitment, performance reviews). The roadmap is in
+[docs/process](docs/process).
 
-## Architecture
+## Layout
 
-```
-hrnexus/
-├── backend/                         # ASP.NET Core 10 Web API
-│   └── src/
-│       ├── Api/Controllers/         # REST endpoints
-│       ├── Domain/Entities/         # Business entities (private setters, domain methods)
-│       └── Infrastructure/          # EF Core, SignalR hub
-├── projects/
-│   ├── shared-lib/                  # Angular library shared by both apps
-│   │   └── src/lib/
-│   │       ├── models/              # DTOs and interfaces
-│   │       ├── services/            # HTTP services, ToastService, ConfirmService
-│   │       ├── stores/              # Signal-based state (StaffStore, LocationStore)
-│   │       ├── guards/              # authGuard, permissionGuard
-│   │       └── components/          # Toast, ConfirmDialog, ThemeToggle, etc.
-│   ├── admin-app/                   # Manager / admin dashboard — PWA (desktop-first)
-│   └── staff-app/                   # Staff-facing PWA (mobile-first)
-└── nginx/                           # Reverse proxy config (Docker)
-```
-
----
-
-## Running
-
-```bash
-# Full stack (recommended)
-docker compose build --no-cache && docker compose up -d
-
-# After frontend changes only
-docker compose build web --no-cache && docker compose up -d web
-
-# After backend changes only
-docker compose build api --no-cache && docker compose up -d api
-```
-
-After any deploy, hard-refresh the browser (**Ctrl+Shift+R**).
-
-| App | URL |
+| Path | What |
 |---|---|
-| Admin app | http://localhost |
-| Staff app | http://localhost:8081 |
+| `backend/src/Domain` | Entities with private setters and behaviour, constants |
+| `backend/src/Application` | Use cases (commands and queries), validators, interfaces |
+| `backend/src/Infrastructure` | EF Core + migrations, SignalR hub, background jobs, auth, services |
+| `backend/src/Api` | REST controllers, middleware, composition root |
+| `backend/tests` | Application (EF InMemory), Infrastructure and Integration (Testcontainers) tests |
+| `projects/admin-app` | Manager and admin PWA (desktop-first) |
+| `projects/staff-app` | Staff PWA (mobile-first) |
+| `projects/shared-lib` | Angular library shared by both apps: models, services, stores, guards, components |
+| `tests/e2e` | Playwright end-to-end tests |
+| `nginx/` | Reverse proxy configuration (Docker) |
+| `docs/` | Process phases, team protocol, deployment guide |
 
-**Local dev (no Docker)** — requires the API running separately:
-```bash
-npx ng build shared-lib       # build shared library first
-npx ng serve admin-app        # → localhost:4200
-npx ng serve staff-app        # → localhost:4201
-```
-
----
+Development patterns and conventions: [CLAUDE.md](CLAUDE.md). Current state and resume pointer: [STATE.md](STATE.md).
 
 ## Features
 
-### Admin app (`/`)
+### Admin app
 
 | Route | Feature | Gate |
 |---|---|---|
-| `/dashboard` | Live KPIs (on-shift count, hours, est. cost) + SignalR activity feed | `portal.admin` |
-| `/staff` | Staff list, register, edit, deactivate, reset password, assign roles + work locations | `staff.view` |
-| `/staff/:id` | Staff detail — profile, work logs, per-user permission overrides, assigned locations | `staff.view` |
-| `/leave` | Leave requests — approve / reject, create, edit, balance overview | `leave.approve` |
-| `/reports` | Workforce attendance report (date range, by staff / location / role / date) | `reports.view` |
-| `/payroll` | Monthly work-pay report (hours × hourly rate) + CSV export | `payroll.view` |
-| `/payroll-locks` | Freeze a month so its shift logs can no longer be edited | `payroll.lock` |
-| `/roles` | Role management + per-role default permissions | `roles.manage` |
-| `/locations` | Location management (venues staff can be assigned to and clock in at) | `locations.manage` |
-| `/account` | Own profile, change password, push notifications | — |
+| `/dashboard` | Total-staff KPI with live SignalR connection status | `portal.admin` |
+| `/staff`, `/staff/:id` | Staff list, register, edit, deactivate, reset password, roles, locations, per-user permission overrides, bulk actions | `staff.view` |
+| `/leave` | Leave requests: approve, reject, create, edit, balances, bulk actions | `leave.approve` |
+| `/roles` | Role management and per-role default permissions | `roles.manage` |
+| `/locations` | Location management | `locations.manage` |
+| `/payroll-locks` | Payroll month locks (no enforcement yet; redefined in the payroll rebuild) | `payroll.lock` |
+| `/cash-advances` | Salary advance records | `cashadvance.manage` |
+| `/account` | Own profile, change password, push notifications | none |
 
-### Staff app (`/`)
+### Staff app
 
 | Route | Feature |
 |---|---|
-| `/home` | Overview dashboard — greeting, clock-in status, leave balances, recent shifts |
-| `/log-shift` | Clock in / clock out, manual entry, shift history (location list limited to assigned venues) |
+| `/home` | Greeting and leave balances |
 | `/my-leave` | Submit leave, view history and balance |
 | `/profile` | Personal info, change password, push notifications, language |
 
----
+## Run it locally
 
-## Pay model
+Prerequisites: Docker, or Node 22 + .NET 10 SDK + PostgreSQL 17 for running without Docker.
 
-Staff are **paid hourly** — gross pay = logged shift hours × the role's hourly rate. The app computes
-this; **statutory deductions (EPF / SOCSO / tax) and final payslips are handled by the venue outside
-the system**. The app does not hold a per-staff earnings ledger.
+```bash
+# Full stack
+cp .env.example .env              # fill in the values (never commit .env)
+docker compose build --no-cache && docker compose up -d
+```
 
-- **Shift logs** (`/log-shift` → workforce report) — attendance + pay basis. Records clock-in/out times.
-  The "Est. Labour Cost" in Reports and the **Payroll** report (total shift hours × the role's hourly
-  rate, snapshotted on each log) is the **computed gross pay** — excluding still-open shifts and before
-  deductions.
-- Leave is tracked for scheduling and balances; the pay figure counts **worked hours only** (it does
-  not add pay for leave days).
+| App | URL |
+|---|---|
+| Admin app | http://localhost:8080 |
+| Staff app | http://localhost:8081 |
 
-Hourly rates are kept as **effective-dated history**, so a rate change never rewrites past pay estimates.
+Use different hostnames for the two apps in one browser (`admin.localhost:8080`, `staff.localhost:8081`),
+because the auth cookie is host-only and a login on one app would replace the other's. After any deploy,
+hard-refresh the browser (**Ctrl+Shift+R**).
 
----
+```bash
+# Without Docker (API running separately; proxy.conf.json routes /api to it)
+npx ng build shared-lib           # build the shared library first
+npx ng serve admin-app            # http://localhost:4200
+npx ng serve staff-app            # http://localhost:4201
+```
 
-## Staff ↔ location assignment
+Seeded development accounts are created by `SeedData` on first start. They exist for local databases only:
+change or remove them before exposing any instance, and see [docs/DEPLOY.md](docs/DEPLOY.md) for production.
 
-Each staff member is assigned the **work location(s)** they're allowed to clock in at (many-to-many,
-independent of roles). Assignment is managed by an admin on the **Staff add / detail** pages.
+## Test
 
-- **Enforcement is two-layered:** the staff `/log-shift` location dropdown shows **only the venues the
-  staff is assigned to** (fetched from `GET /api/locations/mine`), and the backend independently
-  re-checks the assignment when a shift is started or a manual entry is created — a clock-in for an
-  unassigned location is rejected with *"You are not assigned to this location."*
-- **No assignment ⇒ blocked from clocking in.** A staff with zero assigned locations sees an empty
-  dropdown and a warning banner ("ask your manager"); they cannot start a shift until an admin assigns
-  at least one location.
+```bash
+npx ng test shared-lib --no-watch
+npx ng test admin-app  --no-watch
+npx ng test staff-app  --no-watch
 
-Stored as a `StaffLocations` join table (composite PK `EmployeeId` + `LocationId`, additive migration
-`AddStaffLocations`). Roles are untouched — pay and display still derive from roles.
+cd backend
+dotnet test tests/Application.Tests/         # fast, EF InMemory
+dotnet test tests/Infrastructure.Tests/
+dotnet test tests/Integration.Tests/         # needs Docker (Testcontainers)
 
----
+npm run test:e2e                             # Playwright against the running Docker stack
+```
 
-## Bulk admin actions
+## Git workflow and CI/CD
 
-Both list pages support acting on many records at once (max 100 per request, server-validated):
+Feature branch, then pull request, then squash-merge into `master`. Direct pushes to `master` are blocked by a
+branch ruleset. The full flow, branch and commit naming, git hooks, required checks and the manual production
+deploy are in [docs/process/git-workflow.md](docs/process/git-workflow.md).
 
-- **Staff list** — a *Bulk select* toggle reveals a checkbox column and an action bar:
-  **Assign locations** and **Assign roles** (both *additive* — they add to each staff member's
-  existing set, never replacing it) and **Deactivate**. Bulk-deactivate is refused if the selection
-  would remove the last active admin-portal user.
-- **Leave records** — bulk **Approve** / **Reject** (pending only) and **Mark no-show**, alongside the
-  per-row actions.
+| Workflow | When | Does |
+|---|---|---|
+| `ci.yml` | push, PR | web lint/test/build, API build + unit + integration tests, dependency audit |
+| `pr-guard.yml` | PR | conventional PR title, branch naming |
+| `e2e.yml` | manual, scheduled | Playwright suite against the compose stack |
+| `codeql.yml` | PR, weekly | CodeQL for C# and TypeScript |
+| `dast.yml` | scheduled, manual | OWASP ZAP baseline scan |
+| `release.yml` | tag `v*` | GitHub release |
+| `deploy.yml` | manual only | environment-gated deploy to the production server |
 
-All bulk endpoints follow one backend pattern (load → mutate → single save → per-row audit in the same
-transaction); see `BulkUpdateLeaveStatusCommand` and the `Bulk*` staff commands.
-
-### Bulk create (import)
-
-Each setup page also supports creating many records at once (max 100 per request):
-
-- **Locations** / **Roles** — a *Bulk Add* dialog with an editable **row grid** (Locations: a name per
-  row; Roles: Name + hourly-rate per row), with *Add row* / remove. Existing names are skipped.
-- **Staff** — an *Import* dialog with an **editable row grid** (starts with one row; *Add row* /
-  remove): one row per staff with only the required fields plus optional work locations — Staff ID,
-  first name, an admin-set **password**, a roles multiselect, and a work-locations multiselect
-  (last name / email are optional and can be added later on the staff detail page). The password you
-  enter is the one the staff logs in with (validated against the password policy). The result table
-  reports per-row success/failure. **Partial success** — a bad row is reported and skipped, the rest
-  still import.
-- **Leave** — a *Bulk Record* dialog (same required fields as the single Record-Leave form): pick
-  staff + type + start/end date + start/end time to record the same leave (e.g. a public holiday)
-  for many staff; hours are derived from the times. Each goes through the normal leave validation.
-
----
-
-## Auth & permissions
+## Auth and permissions
 
 | Role | Portals | Notes |
 |---|---|---|
-| `admin` (SuperAdmin) | Both | Full permissions by default; can also use the staff portal as a normal user |
-| `manager` | Both | Full permissions by default; can also use the staff portal |
-| `employee` | Staff only | Own data only; no admin-portal permissions by default |
+| `admin` (SuperAdmin) | Both | Full permissions by default |
+| `manager` | Both | Full permissions by default |
+| `employee` | Staff only | Own data only |
 
-Access is controlled by a **permission framework**, not roles directly. Each role carries default
-permissions; each user can have per-user **overrides** (grant/revoke). Admin-portal access requires the
-`portal.admin` permission; the staff portal is open to any active account. Permissions are resolved
-server-side per request (cached, invalidated on change) so a revocation takes effect immediately — they
-are **not** baked into the token.
+Access is controlled by a permission framework, not by roles directly. Each role carries default permissions and
+each user can have per-user overrides (grant or revoke). Admin-portal access requires `portal.admin`. Permissions
+are resolved server-side per request (cached, invalidated on change), so a revocation takes effect immediately.
 
-**Sessions** use **httpOnly cookies** (`hrnexus_at` access + `hrnexus_rt` refresh; `SameSite=Strict`,
-`Secure` over HTTPS) — tokens are never exposed to JavaScript. The JWT bearer reads the access token
-from the cookie.
-
-**Login hardening:** an account locks for 15 min after 5 consecutive failed logins (per-account, returns
-429), plus a per-client-IP rate limiter on `/api/auth/*` (default 100/min, tunable via `RateLimit:Auth*`)
-as a coarse flood ceiling.
-
-**PII at rest:** IC / passport / phone / date-of-birth are encrypted (AES-256-GCM) in the database via EF
-Core value converters; the key comes from `PII_ENCRYPTION_KEY` (`Pii:Key`).
-
----
+- **Sessions:** httpOnly cookies (`SameSite=Strict`, `Secure` over HTTPS). Tokens are never exposed to JavaScript.
+- **Login hardening:** an account locks for 15 minutes after 5 consecutive failed logins, plus a per-client-IP rate limiter on `/api/auth/*`.
+- **PII at rest:** IC, passport, phone and date of birth are encrypted (AES-256-GCM) with a key from the environment.
 
 ## i18n
 
-English and Simplified Chinese. Language files:
-```
-projects/admin-app/public/i18n/en.json  zh.json
-projects/staff-app/public/i18n/en.json  zh.json
-```
+The UI currently ships English, Simplified Chinese and Vietnamese (`projects/*/public/i18n/{en,zh,vi}.json`).
+Multi-language support is being removed in favour of English only (see [docs/process](docs/process)).
 
-Always update **both** files when adding UI text.
+## Team
 
----
-
-For development patterns, architecture decisions, and coding conventions see **`CLAUDE.md`**.
+Delivery roles (product, BA, design, architecture, QA personas, testers) are defined as agents in `.claude/agents/`;
+the hand-off protocol is in [docs/team/PROTOCOL.md](docs/team/PROTOCOL.md).

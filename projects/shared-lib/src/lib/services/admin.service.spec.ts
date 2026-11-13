@@ -4,9 +4,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { AdminService } from './admin.service';
 
 /**
- * AdminService — HTTP transport for admin-facing data.
- * WHY: ensures each method hits the correct URL, sends the right params/body,
- * and passes through API responses without transformation.
+ * AdminService — HTTP transport for the admin dashboard.
+ * WHY: the dashboard's only data source; a wrong URL silently blanks the landing page.
  */
 describe('AdminService', () => {
   let service: AdminService;
@@ -22,111 +21,14 @@ describe('AdminService', () => {
 
   afterEach(() => http.verify());
 
-  // ── getDashboard() ────────────────────────────────────────────────────────
-
   describe('getDashboard()', () => {
-    it('calls GET /api/admin/dashboard', () => {
-      service.getDashboard().subscribe();
+    it('calls GET /api/admin/dashboard and passes the response through', () => {
+      let result: unknown;
+      service.getDashboard().subscribe(r => (result = r));
       const req = http.expectOne('/api/admin/dashboard');
       expect(req.request.method).toBe('GET');
-      req.flush({});
-    });
-  });
-
-  // ── getReport() ───────────────────────────────────────────────────────────
-
-  describe('getReport()', () => {
-    const baseFilters = { dateFrom: '2026-01-01', dateTo: '2026-01-31' };
-
-    it('calls GET /api/admin/report with dateFrom and dateTo', () => {
-      service.getReport(baseFilters).subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/report');
-      expect(req.request.method).toBe('GET');
-      expect(req.request.urlWithParams).toContain('dateFrom=2026-01-01');
-      expect(req.request.urlWithParams).toContain('dateTo=2026-01-31');
-      req.flush({});
-    });
-
-    it('appends staffIds as repeated params when provided', () => {
-      service.getReport({ ...baseFilters, staffIds: ['id-1', 'id-2'] }).subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/report');
-      expect(req.request.urlWithParams).toContain('staffIds=id-1');
-      expect(req.request.urlWithParams).toContain('staffIds=id-2');
-      req.flush({});
-    });
-
-    it('appends locationNames as repeated params when provided', () => {
-      service.getReport({ ...baseFilters, locationNames: ['Main Bar'] }).subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/report');
-      expect(req.request.urlWithParams).toContain('locationNames=Main%20Bar');
-      req.flush({});
-    });
-
-    it('appends roles as repeated params when provided', () => {
-      service.getReport({ ...baseFilters, roles: ['BARTENDER'] }).subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/report');
-      expect(req.request.urlWithParams).toContain('roles=BARTENDER');
-      req.flush({});
-    });
-  });
-
-  // ── exportPayrollCsv() ────────────────────────────────────────────────────
-
-  describe('exportPayrollCsv()', () => {
-    it('calls GET /api/admin/payroll/export with year and month params', () => {
-      service.exportPayrollCsv(2026, 5).subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/payroll/export');
-      expect(req.request.method).toBe('GET');
-      expect(req.request.urlWithParams).toContain('year=2026');
-      expect(req.request.urlWithParams).toContain('month=5');
-      req.flush(new Blob());
-    });
-
-    it('requests a blob response type for binary download', () => {
-      service.exportPayrollCsv(2026, 1).subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/payroll/export');
-      expect(req.request.responseType).toBe('blob');
-      req.flush(new Blob());
-    });
-  });
-
-  // ── getPayrollSummary() ───────────────────────────────────────────────────
-
-  describe('getPayrollSummary()', () => {
-    it('calls GET /api/admin/payroll/summary with year and month params', () => {
-      service.getPayrollSummary(2026, 5).subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/payroll/summary');
-      expect(req.request.method).toBe('GET');
-      expect(req.request.urlWithParams).toContain('year=2026');
-      expect(req.request.urlWithParams).toContain('month=5');
-      req.flush({ year: 2026, month: 5, staff: [], totalGross: 0 });
-    });
-  });
-
-  // ── getPayslip() ──────────────────────────────────────────────────────────
-
-  describe('getPayslip()', () => {
-    it('calls GET /api/admin/payroll/payslip with employeeId + from/to params', () => {
-      service.getPayslip('S001', '2026-05-01', '2026-05-31').subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/payroll/payslip');
-      expect(req.request.method).toBe('GET');
-      expect(req.request.urlWithParams).toContain('staffId=S001');
-      expect(req.request.urlWithParams).toContain('from=2026-05-01');
-      expect(req.request.urlWithParams).toContain('to=2026-05-31');
-      req.flush({ staffId: 'S1', staffName: 'A', from: '2026-05-01', to: '2026-05-31', totalHours: 0, totalPay: 0, shifts: [] });
-    });
-  });
-
-  // ── exportPayslipCsv() ────────────────────────────────────────────────────
-
-  describe('exportPayslipCsv()', () => {
-    it('requests a blob from the payslip export endpoint with the date range', () => {
-      service.exportPayslipCsv('S001', '2026-05-01', '2026-05-31').subscribe();
-      const req = http.expectOne(r => r.url === '/api/admin/payroll/payslip/export');
-      expect(req.request.method).toBe('GET');
-      expect(req.request.responseType).toBe('blob');
-      expect(req.request.urlWithParams).toContain('staffId=S001');
-      req.flush(new Blob());
+      req.flush({ stats: { totalStaff: 7 } });
+      expect(result).toEqual({ stats: { totalStaff: 7 } });
     });
   });
 });

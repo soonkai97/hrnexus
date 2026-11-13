@@ -368,11 +368,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<bool>("IsSystem")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("MaxShiftDays")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(30);
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -585,127 +580,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("StaffRoles", (string)null);
                 });
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.WorkLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("EditedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateOnly?>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("EndTime")
-                        .HasMaxLength(5)
-                        .HasColumnType("character varying(5)");
-
-                    b.Property<decimal>("HourlyRateSnapshot")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsEdited")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsManualEntry")
-                        .HasColumnType("boolean");
-
-                    b.Property<double?>("LastLatitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<DateTime?>("LastLocationAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<double?>("LastLongitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("LocationId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("LocationName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("PayTypeSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<double?>("StartLatitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("StartLongitude")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("StartTime")
-                        .IsRequired()
-                        .HasMaxLength(5)
-                        .HasColumnType("character varying(5)");
-
-                    b.Property<DateOnly>("WorkDate")
-                        .HasColumnType("date");
-
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_WorkLogs_EmployeeId_Active")
-                        .HasFilter("\"EndTime\" IS NULL AND \"IsDeleted\" = false");
-
-                    b.HasIndex("WorkDate");
-
-                    b.HasIndex("EmployeeId", "WorkDate")
-                        .HasDatabaseName("IX_WorkLogs_EmployeeId_WorkDate");
-
-                    b.ToTable("WorkLogs");
-                });
-
             modelBuilder.Entity("HRNexus.Domain.Entities.CashAdvance", b =>
                 {
                     b.HasOne("HRNexus.Domain.Entities.Staff", "Employee")
@@ -792,17 +666,6 @@ namespace HRNexus.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("HRNexus.Domain.Entities.WorkLog", b =>
-                {
-                    b.HasOne("HRNexus.Domain.Entities.Staff", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>

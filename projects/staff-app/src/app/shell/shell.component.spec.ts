@@ -108,7 +108,6 @@ describe('ShellComponent (staff-app)', () => {
       const c = createComponent();
       const paths = c.navItems().map((n: any) => n.path);
       expect(paths).toContain('/home');
-      expect(paths).toContain('/log-shift');
       expect(paths).toContain('/my-leave');
     });
   });

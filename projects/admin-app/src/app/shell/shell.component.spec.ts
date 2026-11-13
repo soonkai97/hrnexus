@@ -112,7 +112,7 @@ describe('ShellComponent', () => {
       const c = createComponent();
       const paths = c.navItems().map((n: any) => n.path);
       expect(paths).toContain('/dashboard');
-      expect(paths).toContain('/payroll');
+      expect(paths).toContain('/cash-advances');
       expect(paths).toContain('/payroll-locks');
     });
   });

@@ -1,4 +1,4 @@
-using HRNexus.Application.Admin.Commands;
+﻿using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Constants;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +9,7 @@ namespace HRNexus.Integration.Tests;
 
 /// <summary>
 /// Proves the concurrency guards actually win real races against PostgreSQL — the xmin optimistic
-/// lock, the partial unique indexes, the tips unique constraint, and the Serializable balance check.
+/// lock and the Serializable balance check.
 /// Each test runs genuine parallel operations on SEPARATE DbContexts (real connections), which is
 /// the only way to exercise transaction isolation and DB-level constraints.
 /// </summary>
@@ -20,7 +20,6 @@ public class ConcurrencyTests(PostgresFixture fx)
     private sealed class NullHub : INotificationHub
     {
         public Task SendToUserAsync(Guid id, NotificationPayload p, CancellationToken ct = default) => Task.CompletedTask;
-        public Task BroadcastLiveStatsAsync(LiveStatsDto s, CancellationToken ct = default) => Task.CompletedTask;
     }
     private sealed class NullPush : IPushNotificationService
     {
@@ -57,54 +56,34 @@ public class ConcurrencyTests(PostgresFixture fx)
         return staff.Id;
     }
 
-    // ── Fix #2: WorkLog xmin optimistic lock ──────────────────────────────────────
+    // ── xmin optimistic lock (LeaveRequest) ───────────────────────────────────────
     [Fact]
-    public async Task Xmin_BlocksConcurrentWorkLogUpdate_SecondSaveThrows()
+    public async Task Xmin_BlocksConcurrentLeaveUpdate_SecondSaveThrows()
     {
         var empId = await SeedStaffWithRoleAsync("XMIN01");
-        Guid logId;
+        var day = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc);
+        Guid leaveId;
         await using (var seed = fx.NewDb())
         {
-            var wl = E.WorkLog.CreateManual(empId, "BARTENDER", "loc1", "Main",
-                new DateOnly(2026, 1, 1), "09:00", "17:00", 20m, "original");
-            seed.WorkLogs.Add(wl);
+            var lr = E.LeaveRequest.Create(empId, AppConstants.Leave.Unpaid, day, day, null, null, 8m, "original");
+            seed.LeaveRequests.Add(lr);
             await seed.SaveChangesAsync();
-            logId = wl.Id;
+            leaveId = lr.Id;
         }
 
         // Two contexts load the SAME row (same xmin snapshot)…
         await using var ctx1 = fx.NewDb();
         await using var ctx2 = fx.NewDb();
-        var w1 = await ctx1.WorkLogs.FirstAsync(w => w.Id == logId);
-        var w2 = await ctx2.WorkLogs.FirstAsync(w => w.Id == logId);
+        var l1 = await ctx1.LeaveRequests.FirstAsync(l => l.Id == leaveId);
+        var l2 = await ctx2.LeaveRequests.FirstAsync(l => l.Id == leaveId);
 
-        w1.Update("BARTENDER", "loc1", "Main", new DateOnly(2026, 1, 1), "09:00", "17:00", "edit-by-1");
+        l1.Update(AppConstants.Leave.Unpaid, day, day, null, null, 8m, "edit-by-1", AppConstants.Leave.Approved);
         await ctx1.SaveChangesAsync();   // bumps xmin
 
         // …ctx2 still holds the stale xmin → its UPDATE matches 0 rows → concurrency exception.
-        w2.Update("BARTENDER", "loc1", "Main", new DateOnly(2026, 1, 1), "09:00", "17:00", "edit-by-2");
+        l2.Update(AppConstants.Leave.Unpaid, day, day, null, null, 8m, "edit-by-2", AppConstants.Leave.Rejected);
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => ctx2.SaveChangesAsync());
     }
-
-    // ── Double clock-in: partial unique index IX_WorkLogs_EmployeeId_Active ────────
-    [Fact]
-    public async Task ActiveShiftUniqueIndex_BlocksSecondConcurrentClockIn()
-    {
-        var empId = await SeedStaffWithRoleAsync("CLOCK01");
-
-        await using var ctx1 = fx.NewDb();
-        await using var ctx2 = fx.NewDb();
-        ctx1.WorkLogs.Add(E.WorkLog.StartLive(empId, "BARTENDER", "loc1", "Main", new DateOnly(2026, 1, 1), "09:00", 20m));
-        ctx2.WorkLogs.Add(E.WorkLog.StartLive(empId, "BARTENDER", "loc1", "Main", new DateOnly(2026, 1, 1), "10:00", 20m));
-
-        await ctx1.SaveChangesAsync();   // first active shift inserts fine
-        // Second active shift for the same employee violates the partial unique index (EndTime IS NULL).
-        await Assert.ThrowsAsync<DbUpdateException>(() => ctx2.SaveChangesAsync());
-
-        await using var verify = fx.NewDb();
-        Assert.Equal(1, await verify.WorkLogs.CountAsync(w => w.EmployeeId == empId && w.EndTime == null));
-    }
-
 
     // ── Fix #1: balance overrun under Serializable isolation ──────────────────────
     [Fact]

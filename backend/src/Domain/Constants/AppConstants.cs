@@ -35,7 +35,6 @@ public static class AppConstants
         public const string StaffManage        = "staff.manage";        // create/edit/deactivate staff
         public const string LeaveApprove       = "leave.approve";       // approve/reject leave
         public const string LeaveManage        = "leave.manage";        // entitlements / leave admin
-        public const string WorkLogManage      = "worklog.manage";      // edit others' shifts, approve
         public const string ReportsView        = "reports.view";        // workforce/leave reports
         public const string PayrollView        = "payroll.view";        // view payroll
         public const string PayrollManage      = "payroll.manage";      // run/export payroll
@@ -47,7 +46,7 @@ public static class AppConstants
         /// <summary>Every catalog key — used for validation and seeding system roles.</summary>
         public static readonly IReadOnlyList<string> All = new[]
         {
-            PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage, WorkLogManage,
+            PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage,
             ReportsView, PayrollView, PayrollManage, PayrollLock,
             RolesManage, LocationsManage, CashAdvanceManage,
         };
@@ -83,21 +82,6 @@ public static class AppConstants
     {
         public const string Hourly = "hourly";
         public const string Fixed  = "fixed";
-    }
-
-    // ── Shift limits ─────────────────────────────────────────────────────────────
-    public static class WorkLog
-    {
-        /// <summary>Default single-shift length, in days, for a newly-created job and the fallback when a
-        /// shift's job can't be resolved. Each job carries its own <c>Role.MaxShiftDays</c> (configurable
-        /// 1..<see cref="MaxShiftDaysCeiling"/>) that the shift-capture flows enforce. Shifts may span
-        /// multiple days (some jobs run continuously), but an end date beyond the job's cap is rejected
-        /// across clock-out, manual entry, and admin close/edit.</summary>
-        public const int MaxShiftDays = 30;
-
-        /// <summary>Hard upper bound a job's <c>MaxShiftDays</c> may be configured to — a sanity ceiling
-        /// so the per-job typo guard can't be set arbitrarily high.</summary>
-        public const int MaxShiftDaysCeiling = 100;
     }
 
     // ── Notification types ─────────────────────────────────────────────────────

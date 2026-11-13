@@ -76,7 +76,7 @@ public static class DependencyInjection
                     JobExpirationCheckInterval = TimeSpan.FromHours(1),
                 }));
         services.AddHangfireServer();
-        services.AddScoped<ShiftJobs>();
+        services.AddScoped<LeaveJobs>();
 
         // JWT
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -133,16 +133,13 @@ public static class DependencyInjection
     {
         var jobs = services.GetRequiredService<IRecurringJobManager>();
 
-        jobs.AddOrUpdate<ShiftJobs>("remind-long-running-worklogs",
-            j => j.RemindLongRunningWorkLogsAsync(), "*/15 * * * *");
-
-        jobs.AddOrUpdate<ShiftJobs>("reset-leave-entitlements",
+        jobs.AddOrUpdate<LeaveJobs>("reset-leave-entitlements",
             j => j.ResetLeaveEntitlementsAsync(), "0 1 1 1 *"); // 01:00 UTC on Jan 1
 
-        jobs.AddOrUpdate<ShiftJobs>("auto-reject-overdue-leave",
+        jobs.AddOrUpdate<LeaveJobs>("auto-reject-overdue-leave",
             j => j.AutoRejectOverdueLeaveAsync(), "0 2 * * *"); // 02:00 UTC daily
 
-        jobs.AddOrUpdate<ShiftJobs>("cleanup-hangfire-jobs",
+        jobs.AddOrUpdate<LeaveJobs>("cleanup-hangfire-jobs",
             j => j.CleanupOldJobsAsync(), "0 4 * * 0"); // Sun 04:00 UTC weekly
     }
 }

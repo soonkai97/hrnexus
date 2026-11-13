@@ -49,7 +49,7 @@ public class AuditServiceTests
         // currentUser is someone else — the explicitly-passed performer must win.
         var svc = new AuditService(db, new StubCurrentUser(Guid.NewGuid(), "SOMEONE_ELSE"));
 
-        await svc.LogAsync("WorkLog", "w1", "Updated", performedById: explicitActor, performedByName: "Jane Manager");
+        await svc.LogAsync("LeaveRequest", "w1", "Updated", performedById: explicitActor, performedByName: "Jane Manager");
 
         var row = await db.AuditLogs.SingleAsync();
         Assert.Equal(explicitActor, row.PerformedById);

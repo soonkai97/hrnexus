@@ -20,7 +20,7 @@ import { SignalRService } from './signalr.service';
  *  - Initial signal state
  *  - State transitions controlled by the service itself (stopConnection, ngOnDestroy)
  *  - The computed isConnected derived signal
- *  - Observable surface (liveStats$, notifications$) — that they are observable
+ *  - Observable surface (notifications$) — that it is observable
  *    and do not error on subscribe
  */
 describe('SignalRService', () => {
@@ -47,10 +47,6 @@ describe('SignalRService', () => {
 
     it('starts with isConnected = false because no hub has been started', () => {
       expect(service.isConnected()).toBe(false);
-    });
-
-    it('exposes liveStats$ as an Observable without throwing', () => {
-      expect(() => service.liveStats$.subscribe()).not.toThrow();
     });
 
     it('exposes notifications$ as an Observable without throwing', () => {
@@ -115,13 +111,6 @@ describe('SignalRService', () => {
   // ── ngOnDestroy() ─────────────────────────────────────────────────────────
 
   describe('ngOnDestroy()', () => {
-    it('completes liveStats$ so subscribers do not receive further events', () => {
-      let completed = false;
-      service.liveStats$.subscribe({ complete: () => (completed = true) });
-      service.ngOnDestroy();
-      expect(completed).toBe(true);
-    });
-
     it('completes notifications$ so subscribers do not leak after destroy', () => {
       let completed = false;
       service.notifications$.subscribe({ complete: () => (completed = true) });

@@ -12,8 +12,8 @@ export interface PayrollLockDto {
 }
 
 /**
- * Manage payroll-period locks. Locking a month freezes its shift logs and ledger records on the
- * backend (manager/admin only). Used by the dedicated locks page and the Reports quick-action.
+ * Manage payroll-period locks. Locking a month freezes its payroll records on the backend
+ * (manager/admin only). Used by the dedicated locks page.
  */
 @Injectable({ providedIn: 'root' })
 export class PayrollLockService {

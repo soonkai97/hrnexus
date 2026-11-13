@@ -7,10 +7,9 @@ import { AuthService } from './auth.service';
 import { AuthUser } from '../models';
 
 function fakeUser(roles: string[]): AuthUser {
-  // `roles` are NAMES (drives the auth tier); `jobs` mirrors them with ids for the shift dropdown.
+  // `roles` are NAMES (drives the auth tier).
   return {
     id: 'u1', staffId: 'NC001', fullName: 'Test User', email: 't@test.com', roles,
-    jobs: roles.map((name, i) => ({ id: `job-${i}`, name })),
   };
 }
 

@@ -1,80 +1,10 @@
 @use 'styles/theme' as *;
 
-// Clickable clock-in location → opens the captured GPS in Google Maps.
-.map-link {
-  color: $neon-blue;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  &:hover { text-decoration: underline; }
-  i { font-size: 0.8rem; }
-}
-
-.section-label {
-  font-size: 0.73rem; color: $text-muted;
-  text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;
-  margin-bottom: 0.6rem;
-}
-
 .pulse-dot { @include pulse-dot; display: inline-block; }
 
-.td-name  { font-weight: 600; color: $text-primary; }
-.td-muted { color: $text-secondary; font-size: 0.825rem; }
-.td-notes { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mono     { font-family: 'Courier New', monospace; font-size: 0.8rem; }
-
-// ── Skeleton loading states ───────────────────────────────────────────────────
 .skeleton-card {
   background: $bg-surface;
   border: 1px solid $border-subtle;
   border-radius: $radius-lg;
   padding: 1rem 1.25rem;
-}
-
-.skeleton-section {
-  margin-top: 1.5rem;
-}
-
-.row-new {
-  animation: row-flash 3s ease forwards;
-}
-
-@keyframes row-flash {
-  0%   { background: rgba(37, 99, 235, 0.18); }
-  100% { background: transparent; }
-}
-
-.warn-card {
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  border-radius: 10px;
-}
-
-.warn-inner {
-  .stat-icon { font-size: 1.5rem; }
-
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #f59e0b;
-    line-height: 1;
-  }
-
-  .stat-label {
-    font-size: 0.78rem;
-    color: #d97706;
-    font-weight: 500;
-  }
-
-  .stat-info {
-    font-size: 0.7rem;
-    opacity: 0.65;
-    cursor: help;
-    margin-left: 0.15rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .bottom-grid { grid-template-columns: 1fr; }
 }

@@ -14,9 +14,9 @@ import { LocationStore, ToastService, ConfirmService } from 'shared-lib';
  *  - save() must call create vs update based on whether a location is being edited —
  *    mixing them up creates a duplicate instead of updating the existing record.
  *  - The empty-name guard prevents blank location names from reaching the API, which
- *    would break QR clock-in lookups that match on locationName.
+ *    would break lookups that match on locationName.
  *  - remove() confirm ensures managers don't accidentally delete a location that still
- *    has active shifts or QR codes assigned.
+ *    has QR codes assigned.
  */
 
 const fakeLocation = { id: 'loc-1', name: 'Main Bar' };
@@ -78,7 +78,7 @@ describe('LocationsComponent', () => {
   // ── save() — empty guard ───────────────────────────────────────────────────────
 
   describe('save() — empty-name guard', () => {
-    it('does nothing when form.name is empty — blank names break QR clock-in lookups', () => {
+    it('does nothing when form.name is empty — blank names break locationName lookups', () => {
       component.form.name = '';
       component.save();
       expect(mockLocationStore.create).not.toHaveBeenCalled();

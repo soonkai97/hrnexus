@@ -9,7 +9,7 @@ import { test, expect, request as pwRequest, type APIRequestContext } from '@pla
  * exercising the entire request pipeline. Complements the happy-path workflow.spec and the
  * 300+ backend unit/integration negative tests.
  *
- * Serial: shared fixtures (one venue the staff is assigned to, one they're NOT, a role, a
+ * Serial: shared fixtures (a venue the staff is assigned to, a role, a
  * staff) are created once. Guards that "block a delete" don't actually delete, so state holds.
  */
 
@@ -27,7 +27,6 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
   let admin: APIRequestContext;
   let staff: APIRequestContext;
   let assignedLoc = '';
-  let otherLoc    = '';
   let roleName    = '';
   let staffId     = '';
 
@@ -41,11 +40,9 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
     let r = await admin.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password, portal: 'admin' } });
     expect(r.ok(), 'admin login').toBeTruthy();
 
-    // Two distinct venues: one the staff IS assigned to, one they are NOT.
+    // A venue the staff is assigned to.
     r = await admin.post('/api/locations', { data: { name: `NEGA${uid}` } });
     assignedLoc = (await r.json()).id;
-    r = await admin.post('/api/locations', { data: { name: `NEGB${uid}` } });
-    otherLoc = (await r.json()).id;
 
     await admin.post('/api/staff/roles', { data: { name: roleName, hourlyRate: 20 } });
     r = await admin.post('/api/staff', { data: {
@@ -60,27 +57,6 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
   });
 
   test.afterAll(async () => { await admin?.dispose(); await staff?.dispose(); });
-
-  // ── Location-assignment guard ───────────────────────────────────────────────
-  test('clock-in at a NOT-assigned location is rejected', async () => {
-    const r = await staff.post('/api/worklogs/start', {
-      data: { roleName, locationId: otherLoc, startTime: '09:00', notes: 'neg' },
-    });
-    expectRejected(r.status(), 'clock-in at unassigned location');
-  });
-
-  // ── WorkLog overlap guard ───────────────────────────────────────────────────
-  test('overlapping manual shift on the same day is rejected', async () => {
-    const day = isoDate(new Date());
-    const ok = await staff.post('/api/worklogs/entry', {
-      data: { roleName, locationId: assignedLoc, workDate: day, startTime: '09:00', endTime: '17:00', notes: 'neg-base' },
-    });
-    expect(ok.ok(), 'first shift should be accepted').toBeTruthy();
-    const clash = await staff.post('/api/worklogs/entry', {
-      data: { roleName, locationId: assignedLoc, workDate: day, startTime: '10:00', endTime: '12:00', notes: 'neg-overlap' },
-    });
-    expectRejected(clash.status(), 'overlapping shift');
-  });
 
   // ── Leave overlap guard ─────────────────────────────────────────────────────
   test('overlapping leave request is rejected', async () => {

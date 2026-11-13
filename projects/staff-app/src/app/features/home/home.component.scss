@@ -1,15 +1,5 @@
 @use 'styles/theme' as *;
 
-// "+N" superscript shown next to an end time when the shift ended on a later day (overnight/multi-day).
-.day-offset {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: var(--p-orange-500, #f59e0b);
-  vertical-align: super;
-  margin-left: 1px;
-}
-
-
 // ── Greeting ────────────────────────────────────────────────────────────────
 .greeting {
   margin-bottom: 1.25rem;
@@ -65,45 +55,6 @@
   100% { background-position: -200% 0; }
 }
 
-// ── Active / Quick-log ───────────────────────────────────────────────────────
-.active-banner {
-  padding: 1rem 1.25rem;
-  margin-bottom: 1rem;
-  border-color: rgba(37, 99, 235,0.4);
-}
-
-
-// .live-tag styles the p-tag in the active-shift banner
-:host :deep(.live-tag.p-tag) {
-  white-space: nowrap;
-  animation: neon-flicker 3s ease-in-out infinite;
-}
-
-.active-details {
-  min-width: 0;
-}
-
-.active-role { font-weight: 700; font-size: 0.9rem; }
-.active-loc,
-.active-time { color: $text-muted; font-size: 0.85rem; }
-
-.btn-end-link {
-  color: $neon-purple;
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  &:hover { text-decoration: underline; }
-}
-
-.quick-log {
-  padding: 0.875rem 1.25rem;
-  margin-bottom: 1rem;
-  color: $text-muted;
-  font-size: 0.875rem;
-}
-
-
 .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.82rem; }
 
 // ── Stats grid ───────────────────────────────────────────────────────────────
@@ -146,58 +97,9 @@
 // ── Unavailable state ────────────────────────────────────────────────────────
 .stat-card-muted { opacity: 0.55; }
 
-.no-shifts-hint {
-  text-align: center;
-  color: $text-muted;
-  font-size: 0.85rem;
-  padding: 1.5rem 0;
-  margin: 0;
-}
-
-// ── Recent shifts ────────────────────────────────────────────────────────────
-.section-title {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: $text-muted;
-  margin-bottom: 0.6rem;
-}
-
-.recent-list { overflow: hidden; }
-
-.recent-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  gap: 0.5rem 1rem;
-  align-items: center;
-  padding: 0.65rem 1.1rem;
-  border-bottom: 1px solid $border-subtle;
-  font-size: 0.85rem;
-
-  &:last-child { border-bottom: none; }
-}
-
-// Fixed min-width so the role column always starts at the same x, regardless of the date text
-// (e.g. a short "Fri, 9/05" vs a wider "Wed, 29/05").
-.recent-date { color: $text-muted; white-space: nowrap; min-width: 5.25rem; }
-.recent-role { font-weight: 600; display: flex; flex-direction: column; gap: 0.1rem; }
-.recent-time { font-size: 0.75rem; color: $text-muted; font-weight: 400; }
-.recent-loc  { color: $text-muted; font-size: 0.8rem; }
-.recent-hrs  { color: $neon-green; font-weight: 600; white-space: nowrap; }
-
 @media (max-width: 480px) {
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .recent-row {
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
-
-    .recent-date { grid-column: 1; grid-row: 2; font-size: 0.75rem; }
-    .recent-role { grid-column: 1; grid-row: 1; }
-    .recent-loc  { display: none; }
-    .recent-hrs  { grid-column: 2; grid-row: 1; }
-  }
 }

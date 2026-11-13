@@ -4,9 +4,7 @@ export type NotificationType =
   | 'leave_pending'
   | 'password_reset'
   | 'message'
-  | 'announcement'
-  | 'stale_shift'
-  | 'stale_shift_admin';
+  | 'announcement';
 
 export interface AppNotification {
   id: string;

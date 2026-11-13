@@ -5,10 +5,10 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { StaffDetailComponent } from './staff-detail.component';
-import { StaffStore, StaffManagementService, AuthService, ToastService, WorkLogService, StaffDetail, PermissionAdminService } from 'shared-lib';
+import { StaffStore, StaffManagementService, AuthService, ToastService, StaffDetail, PermissionAdminService } from 'shared-lib';
 
 /**
- * StaffDetailComponent — per-staff profile + edit form + work log history.
+ * StaffDetailComponent — per-staff profile + edit form + permission overrides.
  *
  * WHY these tests matter:
  *  - isEditFormValid gates the Save button — a wrong formula could allow an admin
@@ -17,9 +17,8 @@ import { StaffStore, StaffManagementService, AuthService, ToastService, WorkLogS
  *    incorrectly, edits will clobber unintended fields.
  *  - saveEdit() must call store.update() with the correct staff ID (from the route
  *    param), not an empty string or the wrong record.
- *  - loadWorkLogs() paginates correctly — wrong page-size or employee-ID filtering
- *    would mix up shift records across staff members.
- *  - totalPages computed must always be at least 1 to avoid an empty paginator.
+ *  - permission overrides persist only grant/revoke choices — saving 'inherit' rows would
+ *    turn role defaults into hard-coded per-user overrides.
  */
 
 function makeStaffDetail(overrides: Partial<StaffDetail> = {}): StaffDetail {
@@ -43,7 +42,6 @@ describe('StaffDetailComponent', () => {
   let mockStaffSvc:  { getById: ReturnType<typeof vi.fn> };
   let mockAuth:      { hasRole: ReturnType<typeof vi.fn> };
   let mockToast:     { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
-  let mockWorkLogSvc: { getAll: ReturnType<typeof vi.fn> };
   let mockPermSvc:    { catalog: ReturnType<typeof vi.fn>; getUserOverrides: ReturnType<typeof vi.fn>; setUserOverrides: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -57,9 +55,6 @@ describe('StaffDetailComponent', () => {
     };
     mockAuth = { hasRole: vi.fn().mockReturnValue(false) };
     mockToast = { success: vi.fn(), error: vi.fn() };
-    mockWorkLogSvc = {
-      getAll: vi.fn().mockReturnValue(of({ items: [], total: 0 })),
-    };
     mockPermSvc = {
       catalog:          vi.fn().mockReturnValue(of([])),
       getUserOverrides: vi.fn().mockReturnValue(of([])),
@@ -76,7 +71,6 @@ describe('StaffDetailComponent', () => {
         { provide: StaffManagementService, useValue: mockStaffSvc },
         { provide: AuthService,            useValue: mockAuth },
         { provide: ToastService,           useValue: mockToast },
-        { provide: WorkLogService,         useValue: mockWorkLogSvc },
         { provide: PermissionAdminService, useValue: mockPermSvc },
         MessageService,
         ConfirmationService,
@@ -115,13 +109,6 @@ describe('StaffDetailComponent', () => {
     it('loads staff details from the API', () => {
       component.ngOnInit();
       expect(mockStaffSvc.getById).toHaveBeenCalled();
-    });
-
-    it('loads the first page of work logs on init', () => {
-      component.ngOnInit();
-      expect(mockWorkLogSvc.getAll).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1, pageSize: 10 }),
-      );
     });
 
     it('populates the staff signal after successful load', () => {
@@ -330,58 +317,6 @@ describe('StaffDetailComponent', () => {
     });
   });
 
-  // ── loadWorkLogs() ────────────────────────────────────────────────────────────
-
-  describe('loadWorkLogs()', () => {
-    it('updates currentPage to the requested page', () => {
-      component.loadWorkLogs(3);
-      expect(component.currentPage()).toBe(3);
-    });
-
-    it('calls workLogSvc.getAll with the correct employee ID and page', () => {
-      component.loadWorkLogs(2);
-      expect(mockWorkLogSvc.getAll).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 2, pageSize: 10 }),
-      );
-    });
-
-    it('populates workLogs signal with API response', () => {
-      const fakeLog = { id: 'wl1', roleName: 'bartender' } as any;
-      mockWorkLogSvc.getAll.mockReturnValue(of({ items: [fakeLog], total: 1 }));
-      component.loadWorkLogs(1);
-      expect(component.workLogs()).toEqual([fakeLog]);
-    });
-
-    it('sets totalLogs from the API response total', () => {
-      mockWorkLogSvc.getAll.mockReturnValue(of({ items: [], total: 42 }));
-      component.loadWorkLogs(1);
-      expect(component.totalLogs()).toBe(42);
-    });
-
-    it('clears workLogsLoading after fetch', () => {
-      component.loadWorkLogs(1);
-      expect(component.workLogsLoading()).toBe(false);
-    });
-  });
-
-  // ── totalPages computed ───────────────────────────────────────────────────────
-
-  describe('totalPages computed', () => {
-    it('returns at least 1 when there are no logs', () => {
-      expect(component.totalPages()).toBe(1);
-    });
-
-    it('calculates correct page count via ceiling division', () => {
-      component.totalLogs.set(25);
-      expect(component.totalPages()).toBe(3); // ceil(25/10)
-    });
-
-    it('returns exact count when total divides evenly', () => {
-      component.totalLogs.set(20);
-      expect(component.totalPages()).toBe(2);
-    });
-  });
-
   // ── permission overrides ──────────────────────────────────────────────────────
 
   describe('permission overrides', () => {
@@ -463,35 +398,6 @@ describe('StaffDetailComponent', () => {
       expect(names).toContain('SUPERADMIN');
       expect(names).toContain('MANAGER');
       expect(names).toContain('EMPLOYEE');
-    });
-  });
-
-  // ── editLogEndStep (edit-log END picker follows the SELECTED job's pay type) ─────
-  describe('editLogEndStep', () => {
-    function withRoles() {
-      mockStaffStore.roles.mockReturnValue([
-        { id: 'j-fixed',  name: 'OVERNIGHT 8H', isSystem: false, hourlyRate: 500, payType: 'fixed'  },
-        { id: 'j-hourly', name: 'TABLE ROUNDS', isSystem: false, hourlyRate: 20,  payType: 'hourly' },
-      ]);
-      return TestBed.createComponent(StaffDetailComponent).componentInstance;
-    }
-
-    it('steps 10 min when the selected job is FIXED', () => {
-      const c2 = withRoles();
-      c2.editLogForm.roleId = 'j-fixed';
-      expect(c2.editLogEndStep).toBe(10);
-    });
-
-    it('steps 30 min when the selected job is HOURLY', () => {
-      const c2 = withRoles();
-      c2.editLogForm.roleId = 'j-hourly';
-      expect(c2.editLogEndStep).toBe(30);
-    });
-
-    it('defaults to 30 min when no job is selected', () => {
-      const c2 = withRoles();
-      c2.editLogForm.roleId = '';
-      expect(c2.editLogEndStep).toBe(30);
     });
   });
 });

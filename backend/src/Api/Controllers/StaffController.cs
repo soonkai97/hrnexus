@@ -259,7 +259,7 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         try
         {
-            await mediator.Send(new CreateRoleCommand(body.Name, body.HourlyRate, body.NameZh, body.NameVi, body.PayType, body.MaxShiftDays), ct);
+            await mediator.Send(new CreateRoleCommand(body.Name, body.HourlyRate, body.NameZh, body.NameVi, body.PayType), ct);
             return NoContent();
         }
         catch (ArgumentException ex)         { return BadRequest(new { error = ex.Message }); }
@@ -273,8 +273,6 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         if (body.HourlyRate < 0)
             return BadRequest(new { error = "Hourly rate cannot be negative." });
-        if (body.MaxShiftDays < 1 || body.MaxShiftDays > AppConstants.WorkLog.MaxShiftDaysCeiling)
-            return BadRequest(new { error = $"Max shift days must be between 1 and {AppConstants.WorkLog.MaxShiftDaysCeiling}." });
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Id == id, ct);
         if (role is null) return NotFound(new { error = "Role not found." });
         // The English Name is editable ONLY for custom jobs. System roles (SUPERADMIN/MANAGER/EMPLOYEE)
@@ -292,7 +290,6 @@ public class StaffController(IMediator mediator) : ControllerBase
         role.SetNameZh(body.NameZh);
         role.SetNameVi(body.NameVi);
         role.SetPayType(body.PayType);
-        role.SetMaxShiftDays(body.MaxShiftDays);
         if (role.HourlyRate != body.HourlyRate)
         {
             role.SetRate(body.HourlyRate);
@@ -319,8 +316,8 @@ public class StaffController(IMediator mediator) : ControllerBase
     }
 }
 
-public record CreateRoleBody(string Name, decimal HourlyRate = 0, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly, int MaxShiftDays = AppConstants.WorkLog.MaxShiftDays);
-public record UpdateRoleRateBody(decimal HourlyRate, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly, string? Name = null, int MaxShiftDays = AppConstants.WorkLog.MaxShiftDays);
+public record CreateRoleBody(string Name, decimal HourlyRate = 0, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly);
+public record UpdateRoleRateBody(decimal HourlyRate, string? NameZh = null, string? NameVi = null, string PayType = AppConstants.PayType.Hourly, string? Name = null);
 public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<Guid> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth, List<string>? Locations = null);
 public record ResetPasswordBody(string NewPassword);
 public record BulkAssignLocationsBody(List<Guid> StaffIds, List<string> LocationIds);

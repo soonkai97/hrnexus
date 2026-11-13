@@ -1,5 +1,5 @@
 # Seeds sample data into the running local Docker stack and demonstrates the new hardening
-# (account lockout + a real double-clock-in race) against the LIVE API at localhost:8080.
+# (account lockout) against the LIVE API at localhost:8080.
 # Idempotent for seeding; safe to re-run. Requires the api container to be up.
 
 $ErrorActionPreference = 'Stop'
@@ -70,34 +70,6 @@ for ($i = 1; $i -le 6; $i++) {
 Write-Host "  sequence: $($seq -join ', ')  (fresh account expects 401,401,401,401,429,429)"
 $correct = Login 'LOCKDEMO' 'Passw0rd1' 'staff'
 Write-Host "  correct password while locked -> HTTP $($correct.Status) (expect 429)" -ForegroundColor Yellow
-
-Write-Host ''
-Write-Host '=== 5. LIVE DEMO: concurrent double clock-in race ===' -ForegroundColor Yellow
-$emp = Login 'EMP002' 'Passw0rd1' 'staff'
-if ($emp.Status -ne 200) {
-    Write-Host "  EMP002 login failed ($($emp.Status)). Skipping race demo." -ForegroundColor Red
-} else {
-    $empToken = ($emp.Body | ConvertFrom-Json).accessToken
-    $clockIn = {
-        param($api, $token, $locationId)
-        $headers = @{ Authorization = "Bearer $token" }
-        $body = (@{ roleName = 'Bartender'; locationId = $locationId; startTime = '09:00'; notes = $null } | ConvertTo-Json)
-        try {
-            $r = Invoke-WebRequest -Uri "$api/worklogs/start" -Method Post -Headers $headers -Body $body -ContentType 'application/json' -UseBasicParsing -ErrorAction Stop
-            return [int]$r.StatusCode
-        } catch {
-            $resp = $_.Exception.Response
-            if ($resp) { return [int]$resp.StatusCode } else { return -1 }
-        }
-    }
-    $j1 = Start-Job -ScriptBlock $clockIn -ArgumentList $api, $empToken, $locationId
-    $j2 = Start-Job -ScriptBlock $clockIn -ArgumentList $api, $empToken, $locationId
-    $codes = Receive-Job -Job @($j1, $j2) -Wait -AutoRemoveJob
-    $ok  = @($codes | Where-Object { $_ -eq 200 }).Count
-    $bad = @($codes | Where-Object { $_ -ne 200 }).Count
-    Write-Host "  parallel clock-in results: $($codes -join ', ')"
-    Write-Host "  -> $ok succeeded, $bad rejected (expect exactly 1 and 1)" -ForegroundColor Yellow
-}
 
 Write-Host ''
 Write-Host 'Done.' -ForegroundColor Green

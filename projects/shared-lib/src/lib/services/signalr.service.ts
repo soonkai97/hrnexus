@@ -36,10 +36,8 @@ export class SignalRService implements OnDestroy {
   readonly hubState = signal<HubState>('disconnected');
   readonly isConnected = computed(() => this.hubState() === 'connected');
 
-  private _liveStats$ = new Subject<LiveStats>();
   private _notifications$ = new Subject<AppNotification>();
 
-  readonly liveStats$ = this._liveStats$.asObservable();
   readonly notifications$ = this._notifications$.asObservable();
 
   startConnection(hubUrl = '/hubs/shift'): void {
@@ -65,16 +63,11 @@ export class SignalRService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.stopConnection();
-    this._liveStats$.complete();
     this._notifications$.complete();
   }
 
   private registerHandlers(): void {
     if (!this.hub) return;
-
-    this.hub.on('LiveStatsUpdate', (stats: LiveStats) => {
-      this._liveStats$.next(stats);
-    });
 
     this.hub.on('Notification', (n: AppNotification) => {
       this._notifications$.next(n);
@@ -101,11 +94,4 @@ export class SignalRService implements OnDestroy {
         this.hubState.set('failed');
       });
   }
-}
-
-export interface LiveStats {
-  onShiftCount: number;
-  totalStaff: number;
-  tonightHours: number;
-  estimatedLabourCost: number;
 }

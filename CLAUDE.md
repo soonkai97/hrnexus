@@ -42,7 +42,7 @@ Auth lives in a **host-only** cookie (`hrnexus_at`, `path=/`, **no `Domain`**). 
 **not** scoped by port — only by hostname. The admin and staff portals share a host (`localhost`
 locally, or one domain in prod), so logging into one portal **overwrites the other's auth
 cookie** (last login wins). The other portal then silently runs as the *wrong* user — e.g. the
-staff log-shift location dropdown shows "no locations assigned" because the request is actually
+staff leave page loads the admin's data (or a 403) because the request is actually
 authenticated as the admin. The on-screen name still looks right because that comes from
 `localStorage` (which *is* per-port), but API calls use the shared cookie.
 
@@ -99,7 +99,6 @@ projects/
 │   ├── (same shell + app structure)
 │   └── features/
 │       ├── home/
-│       ├── log-shift/
 │       ├── my-leave/
 │       └── profile/
 │
@@ -169,7 +168,6 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 **Staff routes (selected):**
 ```
 /home                  authGuard
-/log-shift             authGuard
 /my-leave              authGuard
 /profile/**            authGuard (sub-routes: profile, change-password)
 /auth/**               public
@@ -235,14 +233,13 @@ getAccessToken(): string | null
 
 ## Shared-lib exports
 
-**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `Location`, `WorkLogDto`, `PagedResult<T>`
+**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `Location`, `PagedResult<T>`
 
 **Services:**
 | Service | Purpose |
 |---|---|
 | `AuthService` | Login, logout, token refresh, password change |
 | `StaffManagementService` | Employee CRUD (get, register, update, toggleActive, getRoles) |
-| `WorkLogService` | Shift log CRUD; exports `PagedResult<T>` |
 | `LeaveService` | Leave requests + balances |
 | `NotificationService` | Notification list + unread count |
 | `SignalRService` | WebSocket connection to `/hubs/` |
@@ -840,24 +837,12 @@ Seq uses ~150–300 MB RAM (fine on the 4 GB droplet). Seq stores logs + traces,
 
 ## Staff pay model — design intent
 
-**Shift logs** (`WorkLogService`, `/api/work-logs`, staff-app `log-shift`, admin Reports workforce
-tab) record attendance & compliance — who was physically present, clock-in/out times, shift duration.
-
-**Shift duration is date-aware (multi-day capable).** `WorkLog` stores `WorkDate` + `StartTime`
-(HH:mm) **and** a nullable `EndDate` + `EndTime` (null while active). Hours =
-`ShiftHours.CalcHours(WorkDate, StartTime, EndDate, EndTime)` — a true datetime span supporting
-overnight **and** multi-day shifts (migration `AddWorkLogEndDate` backfilled existing rows:
-`EndDate = WorkDate`, or `WorkDate+1` when `EndTime <= StartTime`). Flows that capture only an end time
-(staff clock-out, manual entry, the staff edit form) infer `EndDate` via `ShiftHours.DeriveEndDate`
-(overnight, ≤24h); the admin paths (dashboard **Close shift**, Reports **Edit shift**) take an explicit
-end date and allow >24h (capped at 14 days as a typo guard). Every hours-computing read — my-shifts,
-all-shifts, reports, payroll export — is date-aware; the dashboard "tonight" totals stay a same-night
-estimate. **The `AddWorkLogEndDate` migration must deploy in a maintenance window with a DB backup.**
-
-**Staff are paid hourly** — gross pay = logged shift hours × the role's `HourlyRateSnapshot`. The
-"Est. Labour Cost" column in the workforce report **is** that computed gross figure (not commission,
-not a placeholder); it excludes still-open shifts and is **before statutory deductions (EPF / SOCSO /
-tax), which the venue calculates and pays outside the system**.
+**Clock-in/out (shift logs) was removed** (Phase 7, `docs/process/phase-07-remove-shift-log.md`):
+the `WorkLog` feature, its hourly-pay calculation (hours × `HourlyRateSnapshot`), the "Est. Labour
+Cost" report/dashboard figures, payroll export and payslips that derived from it no longer exist.
+`Role.HourlyRate` / `Role.PayType` are kept as role attributes only until **Phase 8 (payroll
+rebuild)** defines the replacement pay model. Don't reintroduce attendance or hourly-from-shifts
+pay without a new phase document.
 
 > The former in-app **Staff Ledger** and **Staff Settings** features (per-staff earnings ledger,
 > work types, settlements) were **removed** — the venue handles final payslips and statutory
@@ -869,8 +854,9 @@ tax), which the venue calculates and pays outside the system**.
 
 ## Staff ↔ location assignment
 
-Staff are assigned the **work location(s)** they may clock in at — a **many-to-many** relationship
-**independent of roles** (roles still drive pay + display; locations gate where a shift can be logged).
+Staff are assigned the **work location(s)** they belong to — a **many-to-many** relationship
+**independent of roles**. Since clock-in/out was removed (Phase 7) locations are a staff attribute
+(display, filtering, future rosters); nothing enforces them at write time.
 
 **Data model** mirrors the `StaffRole` join-entity pattern:
 - `StaffLocation` entity — composite key `(EmployeeId, LocationId)`, table `StaffLocations`, additive
@@ -880,16 +866,6 @@ Staff are assigned the **work location(s)** they may clock in at — a **many-to
   locations`; `SetLocations(...)` mutates the collection in place (trim, remove dropped, add new with
   `EmployeeId = Id`). `StaffConfiguration` ignores `LocationIds` and `Navigation(...).AutoInclude()`.
 
-**Enforcement = filter + backend guard (both layers):**
-- Staff `/log-shift` location dropdown is populated from `GET /api/locations/mine` (caller's assigned
-  locations, via `LocationStore.loadMine()` → `myLocations` signal). Zero assignments ⇒ empty dropdown
-  + a warning banner (`logShift.noLocationsAssigned`) and the staff **cannot start a shift**.
-- `StartWorkLogCommand` and `CreateManualWorkLogCommand` independently re-check
-  `db.Staff.Any(s => s.Id == req.EmployeeId && s.LocationEntries.Any(l => l.LocationId == req.LocationId))`
-  and throw `InvalidOperationException("You are not assigned to this location.")` if not. **Order
-  matters in the manual command:** the location guard runs *after* the role-lookup so a missing-role
-  test still throws `KeyNotFound`.
-
 **Admin UI:** Staff add (`staff.component`) + detail (`staff-detail.component`) inject `LocationStore`,
 expose `availableLocations`, and bind a `p-multiselect` (`optionValue="id"`). `RegisterStaffCommand` /
 `UpdateStaffCommand` (+ `UpdateStaffBody`) carry `List<string>? Locations`; `StaffDetailDto` returns
@@ -898,7 +874,7 @@ expose `availableLocations`, and bind a `p-multiselect` (`optionValue="id"`). `R
 > **InMemory test gotcha:** to seed an assignment, mutate the **navigation collection**
 > (`staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id })`), **not**
 > `db.StaffLocations.Add(new { EmployeeId = ... })` — under the InMemory provider a manually-set shadow
-> FK does **not** link the row to the parent, so the guard query won't see it.
+> FK does **not** link the row to the parent, so queries won't see it.
 
 ---
 
@@ -1095,21 +1071,20 @@ dotnet test                                         # run everything
 
 > **`tests/Integration.Tests/` requires Docker.** It spins up a throwaway `postgres:17-alpine`
 > via Testcontainers to prove things EF InMemory cannot: optimistic concurrency (the `xmin`
-> token), partial unique indexes (e.g. double clock-in), Serializable balance-overrun
+> token), Serializable balance-overrun
 > arbitration, and the HTTP pipeline (rate limiter + exception→status mapping via
 > `WebApplicationFactory<Program>`). If Docker isn't available these tests fail to start — run
 > the Application suite instead. `scripts/seed-and-demo-hardening.ps1` seeds sample data and
-> demonstrates lockout + a live clock-in race against the running local stack.
+> demonstrates lockout against the running local stack.
 >
-> `LoadConcurrencyTests` drives **50 concurrent** ops: 50 distinct staff clock in (all succeed),
-> 50 clock-ins for one staff (exactly 1 wins), and 50 leave approvals vs a 10h cap (never
+> `LoadConcurrencyTests` drives **50 concurrent** leave approvals vs a 10h cap (never
 > overdraws, and reported successes EXACTLY equal committed rows). The last assertion guards a
 > subtlety: `EnableRetryOnFailure` isn't transaction-aware, so a create that committed and was then
 > retried used to re-check the now-full balance and falsely report "insufficient" while its row
 > stayed committed. `UpsertLeaveCommand` fixes this with an **idempotency guard** — it pre-generates
 > the leave Id, clears the change tracker at the start of each attempt, and on entry returns the
-> already-committed row instead of re-inserting. `scripts/load-test-50-live.ps1` runs the same
-> 50-way guard + rate-limiter burst against the live API.
+> already-committed row instead of re-inserting. `scripts/load-test-50-live.ps1` runs the
+> rate-limiter burst against the live API.
 
 ### Auth hardening (login defense)
 Two complementary layers guard `/api/auth`:
@@ -1422,4 +1397,3 @@ npm run test:e2e:ui       # interactive Playwright UI
 | `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation |
 | `tests/e2e/admin/locations.spec.ts` | Locations page renders, Add button visible |
 | `tests/e2e/staff/auth.spec.ts` | Login → /home, wrong password, authGuard, logout |
-| `tests/e2e/staff/log-shift.spec.ts` | Page renders, Manual tab, History tab |

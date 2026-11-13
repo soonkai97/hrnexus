@@ -36,7 +36,7 @@
     "@microsoft/signalr": "^10.0.11",
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
-    "@primeuix/themes": "^2.0.3",
+    "@primeuix/themes": "^3.1.0",
     "bootstrap": "^5.3.9",
     "primeicons": "^7.0.0",
     "primeng": "^21.1.7",

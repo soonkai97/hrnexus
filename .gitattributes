@@ -14,3 +14,8 @@
 *.pdf  binary
 *.dll  binary
 *.exe  binary
+
+# Git hooks and shell scripts must keep LF line endings (they run under sh/bash).
+.githooks/* text eol=lf
+*.sh text eol=lf
+*.mjs text eol=lf

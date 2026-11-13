@@ -49,13 +49,53 @@ Thumbs.db
 # Secrets / local overrides — never commit these
 .env
 .env.*
+!.env.example
 docker-compose.local.yml
 docker-compose.override.yml
 
-# Database dumps / backups — never commit (may contain real PII)
+# Keys, certificates and credentials — never commit
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.ppk
+id_rsa*
+id_ed25519*
+
+# Database dumps / backups / local data files — never commit (may contain real PII)
 *.dump
 *.sql.gz
-nightclub_workforce_backup.dump
+*.bak
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+/backups/
+/uploads/
+
+# E2E auth state and browser captures (hold cookies and tokens)
+tests/e2e/.auth/
+playwright/.auth/
+/playwright/.cache/
+/blob-report/
+*.har
+
+# Local tool config — may hold paths or tokens
+.claude/settings.local.json
+.claude/worktrees/
+CLAUDE.local.md
+
+# Tool leftovers
+.git-rewrite/
+.angular/
+.vs/
+*.user
+*.suo
+*.orig
+*.rej
 
 # Ad-hoc E2E screenshot captures (local UI/UX review)
 tmp-e2e-capture/

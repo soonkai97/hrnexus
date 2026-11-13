@@ -13,7 +13,7 @@ Angular 21 + PrimeNG 21 monorepo. Two frontend apps share one backend and one li
 | `admin-app` | `projects/admin-app` | Venue managers | Desktop-first PWA (service worker) |
 | `staff-app` | `projects/staff-app` | Venue staff | Mobile-first PWA (service worker) |
 | `shared-lib` | `projects/shared-lib` | Both apps | Models, services, stores, guards, pipes, base components |
-| .NET API | separate repo | Backend | `/api/` proxied by nginx |
+| `backend` | `backend/` | Backend | ASP.NET Core 10 API (Clean Architecture); `/api/` proxied by nginx |
 
 ---
 
@@ -77,18 +77,20 @@ projects/
 │   ├── app.routes.ts             # all routes
 │   ├── shell/                    # layout shell (sidebar, topbar, nav)
 │   └── features/                 # one folder per route page
+│       ├── auth/                 # login, forgot-password
 │       ├── dashboard/
 │       ├── staff/                # staff list + staff-detail
 │       ├── leave/
-│       ├── payroll/
-│       ├── reports/
 │       ├── roles/
 │       ├── locations/
+│       ├── payroll-locks/
+│       ├── cash-advances/
 │       └── account/
 │
 ├── staff-app/src/app/
 │   ├── (same shell + app structure)
 │   └── features/
+│       ├── auth/                 # login, forgot-password
 │       ├── home/
 │       ├── my-leave/
 │       └── profile/
@@ -96,13 +98,14 @@ projects/
 └── shared-lib/src/lib/
     ├── models/                   # DTOs and interfaces
     ├── services/                 # HTTP services + LangService + ToastService + ConfirmService
-    ├── stores/                   # signal-based state (StaffStore, LocationStore, …)
-    ├── guards/                   # authGuard, permissionGuard
-    ├── auth/                     # AuthService + jwtInterceptor
-    ├── pipes/                    # HmPipe (24-hour time)
-    ├── directives/               # PickerOnlyDirective
+    ├── stores/                   # signal-based state (StaffStore, LocationStore)
+    ├── guards/                   # authGuard, roleGuard, permissionGuard, unsavedChangesGuard
+    ├── auth/                     # AuthService, jwt/error/maintenance interceptors, ForgotPasswordBase
+    ├── pipes/                    # HmPipe (24-hour time), LocalizedNamePipe
+    ├── directives/               # HasPermissionDirective, PickerOnlyDirective, TrimInputDirective
+    ├── utils/                    # date and password helpers
     └── components/               # ToastComponent, ConfirmDialogComponent, NotificationBellComponent,
-                                  # ThemeToggleComponent, ChangePasswordComponent
+                                  # ThemeToggleComponent
 ```
 
 Feature files follow the pattern: `{name}.component.ts`, `.html`, `.scss` (and `.routes.ts` for sub-routes).
@@ -119,7 +122,7 @@ Feature files follow the pattern: `{name}.component.ts`, `.html`, `.scss` (and `
 **`app.config.ts` key providers:**
 ```typescript
 provideRouter(routes, withComponentInputBinding())
-provideHttpClient(withInterceptors([maintenanceInterceptor, jwtInterceptor]))
+provideHttpClient(withInterceptors([maintenanceInterceptor, errorInterceptor, jwtInterceptor]))
 provideAppInitializer(async () => {
   // Hits /api/health before anything renders — bypasses SW cache (not in dataGroups).
   // On 503: maintenanceInterceptor redirects to /maintenance.html, bootstrap is blocked.
@@ -143,30 +146,30 @@ provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStra
 
 All routes in `app.routes.ts`. Pattern: lazy load + guards.
 
-**Admin routes (selected):**
+**Admin routes** (everything below `/auth` sits in the shell behind `authGuard` + `permissionGuard('portal.admin')`):
 ```
-/dashboard             authGuard + roleGuard('manager','admin')
-/staff                 same
-/staff/:id             same (StaffDetailComponent)
-/leave                 same
-/payroll               same
-/reports               same
-/roles, /locations     same
-/profile               redirectTo: '/account'
+/dashboard             any admin-portal user
+/staff, /staff/:id     permissionGuard('staff.view')
+/leave                 permissionGuard('leave.approve')
+/roles                 permissionGuard('roles.manage')
+/locations             permissionGuard('locations.manage')
+/payroll-locks         permissionGuard('payroll.lock')
+/cash-advances         permissionGuard('cashadvance.manage')
+/account               own profile, push notifications, language
 /auth/**               login, forgot-password (public)
 ```
 
-**Staff routes (selected):**
+**Staff routes:**
 ```
-/home                  authGuard
-/my-leave              authGuard
-/profile/**            authGuard (sub-routes: profile, change-password)
-/auth/**               public
+/home, /my-leave, /profile   authGuard (any signed-in active account)
+/auth/**                     login, forgot-password (public)
 ```
 
 **Guards:**
-- `authGuard` — checks `auth.isAuthenticated() && auth.hasValidToken()`
+- `authGuard` — passes when `auth.isAuthenticated()` (a user session is known locally). The access token is an httpOnly cookie JS cannot read, so the server is the real enforcer: an expired cookie 401s and `jwtInterceptor` refreshes or logs out.
 - `permissionGuard(key, fallback)` — checks the current user holds `key`; redirects to `fallback` otherwise
+- `roleGuard(...roles)` — role-tier check, redirects to `/unauthorized` (permissions are preferred for new routes)
+- `unsavedChangesGuard` — `canDeactivate` prompt for forms; skipped while `auth.loggingOut()`
 
 ---
 
@@ -182,7 +185,7 @@ this.http.put<T>(`/api/staff/${id}`, body)
 this.http.delete<void>(`/api/staff/${id}`)
 ```
 
-**Error handling:** 401s are intercepted (see jwtInterceptor). All other errors propagate to the subscriber's `error` callback. Components call `this.toast.error(err?.error?.error ?? 'Generic error message.')`.
+**Error handling:** 401s are intercepted (see jwtInterceptor). All other errors propagate to the subscriber's `error` callback. Components call `this.toast.error(err?.error?.error ?? 'Generic error message.')`; shared-lib also exports `apiErrorMessage(err)` for the same extraction.
 
 **No `environment.ts` files.** All config is either hardcoded relative URLs or fetched from the API at runtime.
 
@@ -193,32 +196,27 @@ this.http.delete<void>(`/api/staff/${id}`)
 **AuthService** (`shared-lib/src/lib/auth/auth.service.ts`):
 
 ```typescript
-// Key signals
-_user = signal<AuthUser | null>(...)     // loaded from localStorage on init
-isAuthenticated = computed(...)          // _user() !== null
-userRole = computed(...)                 // 'admin' | 'manager' | 'employee' | null
+// Signals
+user = signal<AuthUser | null>(...)      // non-sensitive profile, restored from localStorage['auth_user']
+isAuthenticated = computed(...)          // user() !== null
+userRole = computed(...)                 // 'admin' | 'manager' | 'employee' | null (from role names)
+loggingOut = signal(false)               // true while an explicit sign-out navigates away
 
-// Key methods
+// Methods
 login(req: LoginRequest): Observable<AuthResponse>
-logout(): void                           // clears localStorage, navigates to /auth/login
+logout(): void                           // POST /api/auth/logout, clears the profile, navigates to /auth/login
 refreshToken(): Observable<AuthResponse>
-changePassword(req): Observable
-forgotPassword(staffId: string): Observable<{ found: boolean }>
-hasRole(...roles: string[]): boolean
-hasValidToken(): boolean                 // checks JWT exp claim
-getAccessToken(): string | null
+forgotPassword(staffId: string): Observable<ForgotPasswordResponse>
+updateProfile(phoneNumber: string | null): Observable<void>
+hasRole(...roles: UserRole[]): boolean
 ```
 
-**Token storage:**
-- `localStorage['access_token']` — JWT
-- `localStorage['refresh_token']`
-- `localStorage['auth_user']` — JSON of `AuthUser`
+**Session storage:** tokens live in **httpOnly cookies** (`hrnexus_at`, `hrnexus_rt`) set by the server; JavaScript never sees them. Only the non-sensitive `AuthUser` JSON is kept in `localStorage['auth_user']`. Legacy `access_token` / `refresh_token` keys are purged on service init.
 
-**jwtInterceptor** (`shared-lib/src/lib/auth/jwt.interceptor.ts`):
-- Attaches `Authorization: Bearer {token}` to every request
-- On 401: queues concurrent requests, silently refreshes token, replays
-- On refresh failure: calls `auth.logout()`
-- Skips refresh logic for requests to `/api/auth/` to prevent loops
+**Interceptors** (registered in each `app.config.ts` as `[maintenanceInterceptor, errorInterceptor, jwtInterceptor]`):
+- `jwtInterceptor` — clones every request with `withCredentials: true` (no Bearer header). On a 401 from a non-`/api/auth/` URL it refreshes once (concurrent requests wait on the same refresh) and replays; on refresh failure `refreshToken()` has already logged out.
+- `errorInterceptor` — logs failures other than 401/503 and rethrows unchanged.
+- `maintenanceInterceptor` — redirects to `/maintenance.html` on HTTP 503.
 
 ---
 
@@ -229,34 +227,40 @@ getAccessToken(): string | null
 **Services:**
 | Service | Purpose |
 |---|---|
-| `AuthService` | Login, logout, token refresh, password change |
-| `StaffManagementService` | Employee CRUD (get, register, update, toggleActive, getRoles) |
-| `LeaveService` | Leave requests + balances |
+| `AuthService` | Login, logout, cookie-session refresh, forgot-password, profile update |
+| `PermissionService` | Current user's effective permissions (`load()`, `has(key)`) |
+| `PermissionAdminService` | Permission catalogue, role permissions, per-user overrides |
+| `StaffManagementService` | Employee CRUD (get, register, update, toggleActive, getRoles) + bulk actions |
+| `AdminService` | Dashboard stats (`getDashboard()`) |
+| `LeaveService` | Leave requests, balances, bulk actions |
+| `CashAdvanceService` | Cash advance records (list, create, settle, delete) |
+| `PayrollLockService` | Payroll month locks (list, lock, reopen) |
 | `NotificationService` | Notification list + unread count |
-| `SignalRService` | WebSocket connection to `/hubs/` |
-| `LangService` | Language toggle (see i18n section) |
+| `PushService` | Web Push public key + subscribe/unsubscribe |
+| `SignalRService` | WebSocket connection to `/hubs/shift` (the notifications hub; rename planned) |
+| `LangService` | Language cycle en → zh → vi (see i18n section) |
 | `ToastService` | `success/error/warning/info(msg)` |
 | `ConfirmService` | `confirm(opts) → Observable<boolean>` |
 | `ThemeService` | Dark/light toggle |
+| `AppUpdateService` | Service-worker update check (`init()` is called from the root `App`) |
+| `VersionService` | Build version info |
 
-**Guards:** `authGuard`, `permissionGuard`
+**Guards:** `authGuard`, `roleGuard`, `permissionGuard`, `unsavedChangesGuard`
 
 **Components:**
 - `ToastComponent` (`<nc-toast />`) — mount once in each app shell
 - `ConfirmDialogComponent` (`<nc-confirm-dialog />`) — mount once in each app shell
 - `NotificationBellComponent` — topbar bell with popover
 - `ThemeToggleComponent` — dark/light button
-- `ChangePasswordComponent` — reusable password change form
 
 **Base classes:**
-- `SetPasswordBase` — logic for forced-password-change pages (both apps extend this)
-- `ForgotPasswordBase` — logic for forgot-password pages
+- `ForgotPasswordBase` — logic for forgot-password pages (both apps extend this)
 
-**Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time)
+**Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time); `LocalizedNamePipe` — picks the zh/vi/en name of a role or location
 
-**Directives:** `PickerOnlyDirective` — disables keyboard on date inputs on mobile
+**Directives:** `HasPermissionDirective` — hides an element without a permission; `PickerOnlyDirective` — disables keyboard on date inputs on mobile; `TrimInputDirective`
 
-**Utilities:** `provideNoAutofill()`, date utils
+**Utilities:** `provideNoAutofill()`, date utils, password utils
 
 ---
 
@@ -358,7 +362,7 @@ Both components (`<nc-toast />` and `<nc-confirm-dialog />`) must be in each app
 
 ## Form pattern
 
-**Template-driven (`ngModel`) is the default — most forms are a plain object + template bindings.** The exceptions are the auth forms: both apps' `LoginComponent` and shared-lib's `ChangePasswordComponent` use **reactive forms** (`FormBuilder`/`FormGroup`/`Validators`) because they need synchronous, field-level validation state. New feature forms should follow the `ngModel` pattern below unless they have the same need.
+**Template-driven (`ngModel`) is the default — most forms are a plain object + template bindings.** The exceptions are the auth forms: both apps' `LoginComponent` use **reactive forms** (`FormBuilder`/`FormGroup`/`Validators`) because they need synchronous, field-level validation state. New feature forms should follow the `ngModel` pattern below unless they have the same need.
 
 ```typescript
 // Form state as a plain object
@@ -473,7 +477,7 @@ projects/staff-app/public/i18n/{en,zh,vi}.json
 }
 ```
 
-Always add keys to **both** `en.json` and `zh.json` when adding any new UI text.
+Add every new key to all three files of the app you are editing. (Removing multi-language support is planned as phase 7i, `docs/process/phase-07i-english-only.md`.)
 
 **In templates:** `{{ 'key.sub' | translate }}`
 
@@ -485,8 +489,8 @@ const msg = this.translate.instant('staff.saved');
 
 **LangService** (`shared-lib`):
 ```typescript
-readonly current = signal<'en' | 'zh'>('en');   // persisted to localStorage
-toggle(): void                                   // en ↔ zh
+readonly current = signal<'en' | 'zh' | 'vi'>('en');   // persisted to localStorage
+toggle(): void                                   // cycles en → zh → vi → en
 set(lang, syncToApi = true): void                // updates signal + localStorage + PATCH /api/auth/profile
 ```
 
@@ -585,7 +589,7 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 
 **Build stages (Dockerfile for `web`):**
 1. Node 22 builder: `npm ci` → build `shared-lib` → build `admin-app` → build `staff-app`
-2. nginx alpine: copies both `dist/` outputs, serves on ports 80 (admin) and 8081 (staff)
+2. nginx alpine: copies both `dist/` outputs, serves the admin app on container port 80 (published as 8080) and the staff app on 8081
 
 **nginx behaviour:**
 - `try_files $uri $uri/ /index.html` — SPA client-side routing
@@ -1103,19 +1107,17 @@ Set-Location backend
 dotnet test
 ```
 
-### Baseline — as of 2026-06-02 (0 gaps, all green)
+### Baseline — as of 2026-11-13 (0 gaps, all green)
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 27 | 310 | ✅ |
-| admin-app components | 14 | 454 | ✅ |
-| staff-app components | 8 | 219 | ✅ |
-| backend Application.Tests | — | 398 | ✅ |
-| backend Integration.Tests (Testcontainers) | — | 17 | ✅ |
+| shared-lib (services + stores + guards + auth) | 29 | 293 | ✅ |
+| admin-app components | 12 | 369 | ✅ |
+| staff-app components | 6 | 135 | ✅ |
+| backend Application.Tests | — | 277 | ✅ |
+| backend Integration.Tests (Testcontainers) | — | 18 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 5 | 87 | ✅ |
-
-**Wrapper-component rule**: `change-password-page.component.spec.ts` in both apps intentionally has 1 smoke test — the component is a pure template wrapper around shared-lib's `ChangePasswordComponent`; all logic lives in shared-lib and is tested there.
+| E2E (Playwright) | 13 | 58 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1228,13 +1230,13 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 310 tests
-npx ng test admin-app  --no-watch   # 454 tests
-npx ng test staff-app  --no-watch   # 219 tests
+npx ng test shared-lib --no-watch   # 293 tests
+npx ng test admin-app  --no-watch   # 369 tests
+npx ng test staff-app  --no-watch   # 135 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 425 tests (398 Application + 17 Integration + 10 Infrastructure)
+dotnet test                          # 305 tests (277 Application + 18 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```
@@ -1278,6 +1280,15 @@ npm run test:e2e:ui       # interactive Playwright UI
 | File | Covers |
 |---|---|
 | `tests/e2e/admin/auth.spec.ts` | Login, wrong password, authGuard redirect, logout |
-| `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation |
+| `tests/e2e/admin/dashboard.spec.ts` | Redirect after login, total-staff KPI card, live/connecting badge |
+| `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation, location field, bulk mode |
+| `tests/e2e/admin/roles.spec.ts` | Roles page renders, role table, Add role dialog |
 | `tests/e2e/admin/locations.spec.ts` | Locations page renders, Add button visible |
+| `tests/e2e/admin/leave.spec.ts` | Leave page, filters, Record Leave dialog, summary pills |
+| `tests/e2e/admin/permissions.spec.ts` | Portal gate, per-user grant/revoke override, 403 vs 200 on a protected endpoint |
+| `tests/e2e/admin/negative.spec.ts` | API guards reject cleanly: overlap, bad dates, hours cap, blocked deletes, duplicate Staff ID, 401s |
+| `tests/e2e/admin/workflow.spec.ts` | Hire staff, staff applies for leave, admin approves, read models reflect it |
 | `tests/e2e/staff/auth.spec.ts` | Login → /home, wrong password, authGuard, logout |
+| `tests/e2e/staff/home.spec.ts` | Greeting, sidebar navigation, leave balance cards |
+| `tests/e2e/staff/my-leave.spec.ts` | Balances, Apply/History tabs, application form validation |
+| `tests/e2e/staff/profile.spec.ts` | Profile card, personal details, push toggle, language selector, sign-out |

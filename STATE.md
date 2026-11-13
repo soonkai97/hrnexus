@@ -30,9 +30,9 @@ learned → Last session (resume pointer).
 
 ## General rules
 
-- When adding a business-rule cap (e.g. max shift days), model the **default** and the
-  **configurable ceiling** as two distinct constants, not one. Lets the ceiling move later
-  (30 → 100) without touching what new records default to.
+- When adding a configurable business-rule cap, model the **default** and the **configurable
+  ceiling** as two distinct constants, not one. Lets the ceiling move later without touching what
+  new records default to.
 - Additive migrations (`AddColumn ... NOT NULL DEFAULT x`) are safe to ship without a maintenance
   window. Reserve maintenance-window treatment for destructive/type-changing migrations (e.g. the
   earlier DOB `timestamptz → text` PII migration).
@@ -54,27 +54,29 @@ learned → Last session (resume pointer).
 
 - Config ceilings and defaults are different concerns from day one — don't conflate "what a new
   record starts at" with "what a user is allowed to raise it to." Splitting them avoids a rework
-  when the customer later asks to raise just the ceiling (as happened: 30 → 100 was a clean
-  one-constant change because the split already existed).
+  when the customer later asks to raise just the ceiling.
 - When a customer request could describe something illegal or against policy, get the real-world
   context directly rather than either refusing outright or complying literally — the honest ask
   ("what does the staff member actually do?") resolved this session's ambiguous case cleanly.
 
 ## Last session
 
-**Date:** 2026-11-13 (Phase 7 landed; repo hardening; planning)
+**Date:** 2026-11-13 (Phase 7 landed; repo hardening; docs refresh)
 
-**Done (merged to `master` through PRs):** Phase 7 removed clock-in/out (`DropWorkLogs` migration created, not deployed
-anywhere); IMS-style CI/CD, hooks and a protected `master` (PR-only, squash, required checks API, Web, Git workflow
-guard); dependency security upgrades (Dependabot alerts 144 to 1); `.gitignore` hardening; git history purged of two
-SQLite files, three demo seed files and an employer email; role agents under `.claude/agents/`.
+**Done (merged to `master` through PRs):** Phase 7 removed clock-in/out (#61; the `DropWorkLogs` migration exists
+but was never deployed anywhere); IMS-style CI/CD, hooks and a protected `master` (#57: PR-only, squash, required checks
+API, Web, Git workflow guard); `.gitignore` hardening (#56); dependency security upgrades (#67, Dependabot alerts 144
+to 1); the removed server's files and docs (#73); Dependabot ignore rules for majors that need their own phase (#78);
+phase plans 7i and 7j (#71); role agents under `.claude/agents/`; git history purged of two SQLite files, three demo
+seed files and an employer email.
+
+**Open:** PR #81 (Angular 22, PrimeNG 22 and tooling) is open with auto-merge off until someone checks both apps
+visually; this docs refresh PR.
 
 **State:** there is **no production deployment** (the server was removed on 13 Nov 2026) and no real data, so no
-backup or maintenance window is needed until a new deployment exists. Public docs no longer describe the old server.
+backup or maintenance window is needed until a new deployment exists. The PRD lives as a private Claude Doc
+(HRNexus PRD v1.0).
 
-**Planned (docs only):** `docs/process/phase-07j-remove-locations.md`, `phase-07i-english-only.md`,
-`architecture-alignment-ims.md` (7b to 7g), `phase-07h-feature-management.md`, then HRM phases 8 to 12. The PRD lives
-as a private Claude Doc (HRNexus PRD v1.0).
-
-**Resume pointer:** next the Locations removal (7j), then English only (7i); the first admin password and all keys must
-come from the environment before any deployment (the seed currently hardcodes a development password).
+**Resume pointer:** next the Locations removal (7j), then English only (7i), then the leave fixes, then the payroll
+rebuild (phase 8). The first admin password and all keys must come from the environment before any deployment (the
+seed currently hardcodes a development password).

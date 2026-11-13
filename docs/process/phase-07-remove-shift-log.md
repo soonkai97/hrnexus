@@ -1,6 +1,6 @@
 # Phase 7: Remove clock-in/out (shift log) feature
 
-> **Status:** `Draft`
+> **Status:** `Complete` (merged as #61 on 2026-11-13; the drop migration is not deployed, no production exists)
 > **Created:** 2026-11-13 | **Updated:** 2026-11-13
 > **Depends on:** None
 
@@ -85,13 +85,13 @@ Rough effort: about one focused day; steps 5 and 7 carry the risk.
 
 ## Validation Criteria
 
-- [ ] `grep -ri "worklog\|log-shift\|ShiftHours\|clock-in"` over `projects/`, `backend/src`, `tests/` returns nothing (except historical migrations)
-- [ ] `npx ng test shared-lib|admin-app|staff-app --no-watch` green; counts drop only by removed specs
-- [ ] `dotnet test` green (Application, Integration, Infrastructure)
-- [ ] `npx ng build` clean for both apps
-- [ ] Coverage scan (Rule 17) returns 0 spec gaps
-- [ ] `npm run test:e2e` green against rebuilt Docker
-- [ ] Migration applied on a copy of prod data with no errors
+- [x] `grep -ri "worklog\|log-shift\|ShiftHours\|clock-in"` over `projects/`, `backend/src`, `tests/` returns nothing (except historical migrations and one guard-test example commit message)
+- [x] `npx ng test shared-lib|admin-app|staff-app --no-watch` green; counts drop only by removed specs
+- [x] `dotnet test` green (Application, Integration, Infrastructure)
+- [x] `npx ng build` clean for both apps
+- [x] Coverage scan (Rule 17) returns 0 spec gaps
+- [ ] `npm run test:e2e` green against rebuilt Docker (not run: no Docker stack in CI or here)
+- [ ] Migration applied on a copy of prod data with no errors (not applicable: no production data exists)
 - [ ] Multi-perspective review completed (`REVIEW_CHECKLIST.md`)
 
 ---
@@ -121,4 +121,4 @@ _How did this phase's findings change Phase 8?_
 - [ ] All validation criteria met
 - [ ] Review completed (all 7 perspectives)
 - [ ] Phase 8 plan updated based on findings
-- [ ] CLAUDE.md updated (pay model + location guard sections)
+- [x] CLAUDE.md updated (pay model + location guard sections)

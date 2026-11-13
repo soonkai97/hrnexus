@@ -20,7 +20,8 @@
     "test:e2e:admin": "playwright test --project=admin",
     "test:e2e:staff": "playwright test --project=staff",
     "hooks:install": "node scripts/setup-git-hooks.mjs",
-    "guard:test": "node --test scripts/guard/lib.test.mjs"
+    "guard:test": "node --test scripts/guard/lib.test.mjs scripts/format-check.test.mjs",
+    "format:check": "node scripts/format-check.mjs"
   },
   "private": true,
   "packageManager": "npm@11.13.0",

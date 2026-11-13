@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Claims;
 using HRNexus.Application.Common.Interfaces;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace HRNexus.Infrastructure.Services;
 

@@ -28,8 +28,8 @@
              [placeholder]="'common.nameViPlaceholder' | translate" maxlength="100" styleClass="w-full" />
     </div>
     <div class="field">
-      <label>{{ 'roles.payTypeLabel' | translate }}</label>
-      <p-selectbutton [options]="payTypeOptions" [(ngModel)]="newRolePayType"
+      <span id="rl-pay-type-label" class="field-label">{{ 'roles.payTypeLabel' | translate }}</span>
+      <p-selectbutton [options]="payTypeOptions" [(ngModel)]="newRolePayType" ariaLabelledBy="rl-pay-type-label"
                       optionLabel="label" optionValue="value" [allowEmpty]="false" />
       <small class="field-hint">{{ (newRolePayType === 'fixed' ? 'roles.payFixedHint' : 'roles.payHourlyHint') | translate }}</small>
     </div>
@@ -68,8 +68,8 @@
              [placeholder]="'common.nameViPlaceholder' | translate" maxlength="100" styleClass="w-full" />
     </div>
     <div class="field">
-      <label>{{ 'roles.payTypeLabel' | translate }}</label>
-      <p-selectbutton [options]="payTypeOptions" [ngModel]="editingRatePayType()"
+      <span id="rl-edit-pay-type-label" class="field-label">{{ 'roles.payTypeLabel' | translate }}</span>
+      <p-selectbutton [options]="payTypeOptions" [ngModel]="editingRatePayType()" ariaLabelledBy="rl-edit-pay-type-label"
                       (ngModelChange)="editingRatePayType.set($event)"
                       optionLabel="label" optionValue="value" [allowEmpty]="false" />
       <small class="field-hint">{{ (editingRatePayType() === 'fixed' ? 'roles.payFixedHint' : 'roles.payHourlyHint') | translate }}</small>

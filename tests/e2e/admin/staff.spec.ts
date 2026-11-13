@@ -41,7 +41,7 @@ test.describe('Admin — staff list', () => {
 
   // ── Staff ↔ location assignment ─────────────────────────────────────────────
   // The Add Staff form must let an admin assign the work location(s) a staff member
-  // is allowed to clock in at, alongside roles.
+  // belongs to, alongside roles.
   test('Add Staff form exposes a work-location assignment field', async ({ page }) => {
     await page.getByRole('button', { name: /add staff/i }).first().click();
     // The Locations multiselect's label is bound to for="st-locations" — deterministic

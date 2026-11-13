@@ -1,8 +1,8 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using HRNexus.Application.Common.Interfaces;
+﻿using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Permissions.Commands;
 using HRNexus.Domain.Constants;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Application.Staff.Commands;
 

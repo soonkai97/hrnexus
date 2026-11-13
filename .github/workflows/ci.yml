@@ -52,6 +52,19 @@ jobs:
       - name: Build everything (tests included)
         run: dotnet build backend/HRNexus.sln -c Release --no-restore -p:NuGetAudit=false
 
+      # Test projects are not built with -warnaserror: referencing both the Api and Infrastructure outputs raises MSB3277
+      # assembly-version warnings that fail it. The production build above already runs with -warnaserror.
+
+      # Whitespace layout (aligned constants and similar, ~980 findings over 160 files) is not enforced yet: fixing it is a
+      # separate mechanical PR. Generated migrations are excluded from both checks.
+      - name: Format check (style and import order)
+        working-directory: backend
+        run: dotnet format style HRNexus.sln --verify-no-changes --severity warn --no-restore --exclude src/Infrastructure/Migrations/
+
+      - name: Format check (analyzers)
+        working-directory: backend
+        run: dotnet format analyzers HRNexus.sln --verify-no-changes --severity warn --no-restore --exclude src/Infrastructure/Migrations/
+
       - name: Unit tests (Application, EF InMemory)
         run: >
           dotnet test backend/tests/Application.Tests -c Release --no-build
@@ -93,8 +106,8 @@ jobs:
 
       - run: npm ci
 
-      - name: "Lint (ESLint: errors fail, warnings allowed)"
-        run: npm run lint
+      - name: "Lint (ESLint: zero warnings)"
+        run: npm run lint -- --max-warnings 0
 
       # shared-lib must be built first: the apps compile against dist/shared-lib.
       - name: Build shared-lib

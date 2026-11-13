@@ -50,6 +50,12 @@ Development patterns and conventions: [CLAUDE.md](CLAUDE.md). Current state and 
 | `/my-leave` | Submit leave, view history and balance |
 | `/profile` | Personal info, change password, push notifications, language |
 
+## Planned
+
+- **Locations removal (phase 7j):** the Locations page and staff location assignment go away, see [phase-07j](docs/process/phase-07j-remove-locations.md).
+- **English only (phase 7i):** the zh and vi translations and the language switcher are removed, see [phase-07i](docs/process/phase-07i-english-only.md).
+- Then the leave fixes and the payroll rebuild (phase 8), see [docs/process](docs/process).
+
 ## Run it locally
 
 Prerequisites: Docker, or Node 22 + .NET 10 SDK + PostgreSQL 17 for running without Docker.

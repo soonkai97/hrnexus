@@ -1,11 +1,11 @@
 ﻿using System.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Storage;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Common;
 using HRNexus.Domain.Entities;
 using HRNexus.Infrastructure.Persistence.Configurations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HRNexus.Infrastructure.Persistence;
 

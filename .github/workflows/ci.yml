@@ -93,7 +93,7 @@ jobs:
 
       - run: npm ci
 
-      - name: Lint (ESLint: errors fail, warnings allowed)
+      - name: "Lint (ESLint: errors fail, warnings allowed)"
         run: npm run lint
 
       # shared-lib must be built first: the apps compile against dist/shared-lib.

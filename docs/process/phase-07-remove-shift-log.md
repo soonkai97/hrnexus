@@ -34,6 +34,15 @@
 
 ---
 
+## Scope decisions (2026-11-13)
+
+- User rule: remove everything that exists only because of clock-in/out; keep anything with an independent purpose.
+- **Migration `DropWorkLogs` (approved):** drops the `WorkLogs` table (indexes and FK to Staff go with it) and `Roles.MaxShiftDays`. Created, not yet deployed. Deploy needs a fresh DB backup and a maintenance window.
+- **Kept for now (payroll concepts, redefined in Phase 8):** `Role.HourlyRate`/`PayType`, `RoleRates`, payroll locks (the lock guard currently has no callers), cash advances, `payroll.*` / `reports.view` permission keys.
+- **Follow-ups:** rename `ShiftHub` / `/hubs/shift` to a notification name (FE and BE together); remove stale shift wording from locale files; Locations removal is phase 7j; English-only is phase 7i.
+
+---
+
 ## Dependencies
 
 | Dependency | Type | Status |

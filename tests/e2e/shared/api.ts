@@ -6,17 +6,27 @@ import type { APIRequestContext } from '@playwright/test';
  * Role names are stored upper-case. These helpers resolve a role id by name so specs can keep
  * thinking in names.
  */
-interface RoleDto { id: string; name: string }
+interface RoleDto {
+  id: string;
+  name: string;
+}
 
-export async function roleIdByName(api: APIRequestContext, name: string): Promise<string | undefined> {
+export async function roleIdByName(
+  api: APIRequestContext,
+  name: string,
+): Promise<string | undefined> {
   const res = await api.get('/api/staff/roles');
   if (!res.ok()) throw new Error(`GET /api/staff/roles failed (${res.status()})`);
   const roles = (await res.json()) as RoleDto[];
-  return roles.find(r => r.name.toUpperCase() === name.toUpperCase())?.id;
+  return roles.find((r) => r.name.toUpperCase() === name.toUpperCase())?.id;
 }
 
 /** Returns the id of the named role, creating the role first when it does not exist. */
-export async function ensureRole(api: APIRequestContext, name: string, hourlyRate = 0): Promise<string> {
+export async function ensureRole(
+  api: APIRequestContext,
+  name: string,
+  hourlyRate = 0,
+): Promise<string> {
   const existing = await roleIdByName(api, name);
   if (existing) return existing;
 

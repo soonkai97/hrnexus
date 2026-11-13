@@ -3,7 +3,7 @@ WORKDIR /src
 COPY . .
 RUN dotnet publish src/Api/HRNexus.Api.csproj -c Release -o /publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 COPY --from=build /publish .

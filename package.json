@@ -34,7 +34,7 @@
     "@angular/service-worker": "^21.2.26",
     "@microsoft/signalr": "^10.0.11",
     "@ngx-translate/core": "^17.0.0",
-    "@ngx-translate/http-loader": "^17.0.0",
+    "@ngx-translate/http-loader": "^18.1.0",
     "@primeuix/themes": "^2.0.3",
     "bootstrap": "^5.3.9",
     "primeicons": "^7.0.0",

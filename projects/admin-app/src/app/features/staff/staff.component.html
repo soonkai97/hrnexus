@@ -54,20 +54,6 @@
             styleClass="w-full" />
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-locations">{{ 'staff.locations' | translate }} <span style="color:var(--p-text-muted-color);font-weight:400">{{ 'staff.locationsHint' | translate }}</span></label>
-          <p-multiselect
-            inputId="st-locations"
-            [(ngModel)]="newStaff.locations"
-            [options]="locationOptions()"
-            optionLabel="label"
-            optionValue="value"
-            [placeholder]="'staff.selectLocations' | translate"
-            [filter]="true"
-            display="chip"
-            [maxSelectedLabels]="50"
-            styleClass="w-full" />
-        </div>
-        <div class="col-12 col-md-6 field">
           <label for="st-phone-number">{{ 'staff.phoneNumber' | translate }}</label>
           <input id="st-phone-number" pInputText type="tel" [(ngModel)]="newStaff.phoneNumber" [placeholder]="'staff.phonePlaceholder' | translate" maxlength="20" />
         </div>
@@ -144,9 +130,6 @@
               [text]="true" severity="secondary" size="small" (onClick)="toggleBulkMode()" />
     @if (bulkSelecting()) {
       <span class="bulk-count">{{ 'staff.bulkSelected' | translate:{ n: selectedCount() } }}</span>
-      <p-button [label]="'staff.bulkAssignLocations' | translate" icon="pi pi-map-marker"
-                size="small" severity="secondary" [outlined]="true"
-                [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="openBulkLocations()" />
       <p-button [label]="'staff.bulkAssignRoles' | translate" icon="pi pi-id-card"
                 size="small" severity="secondary" [outlined]="true"
                 [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="openBulkRoles()" />
@@ -274,25 +257,6 @@
     <p-button [label]="savingReset() ? ('common.saving' | translate) : ('staff.saveReset' | translate)"
               severity="primary" (click)="saveResetPassword()"
               [disabled]="savingReset() || !isResetPwdValid" [loading]="savingReset()" />
-  </ng-template>
-</p-dialog>
-
-<!-- ── Bulk: Assign Locations Dialog ───────────────────────────────────────── -->
-<p-dialog [visible]="showBulkLocations()" (visibleChange)="!$event && showBulkLocations.set(false)"
-          [header]="'staff.bulkAssignLocations' | translate" [modal]="true"
-          [style]="{'width':'min(480px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
-  <p class="modal-desc">{{ 'staff.bulkAssignLocationsDesc' | translate:{ n: selectedCount() } }}</p>
-  <div class="field">
-    <label for="bulk-locations">{{ 'staff.locations' | translate }}</label>
-    <p-multiselect inputId="bulk-locations" [(ngModel)]="bulkLocations" [options]="locationOptions()"
-                   optionLabel="label" optionValue="value" [filter]="true" display="chip"
-                   [placeholder]="'staff.selectLocations' | translate" appendTo="body" styleClass="w-full" />
-  </div>
-  <ng-template pTemplate="footer">
-    <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="showBulkLocations.set(false)" />
-    <p-button [label]="bulkSaving() ? ('common.saving' | translate) : ('common.apply' | translate)"
-              severity="primary" (click)="saveBulkLocations()"
-              [disabled]="bulkSaving() || !bulkLocations.length" [loading]="bulkSaving()" />
   </ng-template>
 </p-dialog>
 

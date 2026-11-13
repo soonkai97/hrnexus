@@ -23,7 +23,7 @@ export function localizedNameFor(
 }
 
 /**
- * Displays venue-entered data (locations, jobs) in the current UI language so a
+ * Displays venue-entered data (jobs) in the current UI language so a
  * name typed in Chinese/Vietnamese shows up for those users while everyone else
  * sees the primary (English/romanized) name.
  *

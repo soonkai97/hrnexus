@@ -1,6 +1,6 @@
 # Phase 7j: Remove the Locations feature
 
-> **Status:** `Draft`
+> **Status:** `In progress` (code, tests, E2E, scripts and docs removed on `feat/remove-locations`; the `DropLocations` migration (step 7) waits for approval)
 > **Created:** 2026-11-13 | **Updated:** 2026-11-13
 > **Depends on:** Phase 7 (remove shift log) merged. Must land **before** Phase 7i (English only) so the Location columns never need translating.
 > **Environment note (13 Nov 2026):** no production deployment exists, so the backup, approval and maintenance-window steps below apply to the next deployment that holds data.

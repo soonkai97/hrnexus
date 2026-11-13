@@ -40,7 +40,6 @@ public static class AppConstants
         public const string PayrollManage      = "payroll.manage";      // run/export payroll
         public const string PayrollLock        = "payroll.lock";        // lock/reopen payroll periods
         public const string RolesManage        = "roles.manage";        // roles + rates + permissions
-        public const string LocationsManage    = "locations.manage";    // venue locations
         public const string CashAdvanceManage  = "cashadvance.manage";  // record/settle staff cash advances
 
         /// <summary>Every catalog key — used for validation and seeding system roles.</summary>
@@ -48,7 +47,7 @@ public static class AppConstants
         {
             PortalAdmin, StaffView, StaffManage, LeaveApprove, LeaveManage,
             ReportsView, PayrollView, PayrollManage, PayrollLock,
-            RolesManage, LocationsManage, CashAdvanceManage,
+            RolesManage, CashAdvanceManage,
         };
 
         /// <summary>Authorization policy-name prefix: [Authorize(Policy = "perm:staff.manage")].</summary>
@@ -127,10 +126,6 @@ public static class AppConstants
 
         // Notifications
         public const int NotificationSnippetLength = 80;
-
-        // Locations
-        public const int LocationNameMaxLength = 100;
-        public const long ImageMaxBytes        = 5_242_880; // 5 MB
 
         // Pagination
         public const int DefaultPageSize = 20;

@@ -48,7 +48,7 @@
 
 ### Out of scope (deferred)
 - Per-venue/tenant switches (installation = one company, as in IMS).
-- Switching `leave`, staff, roles, locations (core). See question 1.
+- Switching `leave`, staff, roles (core). See question 1.
 - Percentage rollouts, per-user flags, anonymous config endpoint.
 - Building the HRM modules themselves (Phases 8-12 register their codes).
 
@@ -68,7 +68,7 @@ Catalog is code (`HRNexus.Domain.ModuleCatalog`); codes are lower-case, stable, 
 | `recruitment` | postings, candidate pipeline | Phase 11 | OFF | open postings | none |
 | `performance` | review cycles, goals | Phase 12 | OFF | open cycles | none |
 
-Only the first two rows are in the catalog at the end of 7h; the rest are listed so the gate's shape is proven, and each phase adds its row and its test. Core (never gated): auth, staff, roles, locations, dashboard, notifications, account, leave (question 1), the modules endpoints themselves.
+Only the first two rows are in the catalog at the end of 7h; the rest are listed so the gate's shape is proven, and each phase adds its row and its test. Core (never gated): auth, staff, roles, dashboard, notifications, account, leave (question 1), the modules endpoints themselves.
 
 **Who may toggle:** new permission `modules.manage` (core, **dangerous**, SUPERADMIN only by default, granted by a migration like earlier permission additions). Reading `GET /api/modules` is open to any signed-in user because the FE needs it.
 

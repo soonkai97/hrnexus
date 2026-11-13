@@ -14,10 +14,9 @@ public class DeleteStaffCommandHandler(IAppDbContext db)
             ?? throw new KeyNotFoundException($"Staff {req.Id} not found.");
 
         // Delete is a soft-delete of the Staff row (Remove → IsDeleted=true), so DB cascade does NOT
-        // fire — every related record must be removed explicitly, or the person's jobs/locations/leave
+        // fire — every related record must be removed explicitly, or the person's jobs/leave
         // would be orphaned behind them.
         db.StaffRoles              .RemoveRange(db.StaffRoles              .Where(r => r.EmployeeId == req.Id));  // assigned jobs
-        db.StaffLocations          .RemoveRange(db.StaffLocations          .Where(l => l.EmployeeId == req.Id));  // assigned locations
         db.LeaveRequests           .RemoveRange(db.LeaveRequests           .Where(l => l.EmployeeId == req.Id));
         db.LeaveEntitlements       .RemoveRange(db.LeaveEntitlements       .Where(l => l.EmployeeId == req.Id));
         db.CashAdvances            .RemoveRange(db.CashAdvances            .Where(c => c.EmployeeId == req.Id));

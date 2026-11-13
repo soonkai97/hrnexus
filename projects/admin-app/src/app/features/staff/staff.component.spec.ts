@@ -29,7 +29,7 @@ import {
 function makeStaff(overrides: Partial<Staff> = {}): Staff {
   return {
     id: 's1', staffId: 'NC001', firstName: 'Jane', lastName: 'Doe',
-    fullName: 'Jane Doe', email: 'jane@test.com', roles: ['employee'], locationIds: [],
+    fullName: 'Jane Doe', email: 'jane@test.com', roles: ['employee'],
     isActive: true, phoneNumber: null, icNo: 'IC12345', passportNo: null,
     dateOfBirth: '1990-01-01', age: 36,
     ...overrides,
@@ -57,7 +57,6 @@ describe('StaffComponent', () => {
     setHidden:    ReturnType<typeof vi.fn>;
     deleteStaff:  ReturnType<typeof vi.fn>;
     resetPassword: ReturnType<typeof vi.fn>;
-    bulkAssignLocations: ReturnType<typeof vi.fn>;
     bulkAssignRoles:     ReturnType<typeof vi.fn>;
     bulkDeactivate:      ReturnType<typeof vi.fn>;
   };
@@ -78,7 +77,6 @@ describe('StaffComponent', () => {
       setHidden:     vi.fn().mockReturnValue(of(undefined)),
       deleteStaff:   vi.fn().mockReturnValue(of(undefined)),
       resetPassword: vi.fn().mockReturnValue(of(undefined)),
-      bulkAssignLocations: vi.fn().mockReturnValue(of({ count: 2 })),
       bulkAssignRoles:     vi.fn().mockReturnValue(of({ count: 2 })),
       bulkDeactivate:      vi.fn().mockReturnValue(of({ count: 2 })),
     };
@@ -315,7 +313,7 @@ describe('StaffComponent', () => {
       mockStaffStore.roles.mockReturnValue([makeRole('employee')]);
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: ['employee'], locations: [],
+        password: 'Password1!', roles: ['employee'],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
@@ -327,7 +325,7 @@ describe('StaffComponent', () => {
       mockStaffStore.roles.mockReturnValue([makeRole('employee')]);
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: [], locations: [],
+        password: 'Password1!', roles: [],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
@@ -339,7 +337,7 @@ describe('StaffComponent', () => {
       // roles() already returns [] by default
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: [], locations: [],
+        password: 'Password1!', roles: [],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
@@ -353,7 +351,7 @@ describe('StaffComponent', () => {
     function fillAndSubmit(): void {
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: ['employee'], locations: [],
+        password: 'Password1!', roles: ['employee'],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
@@ -401,7 +399,7 @@ describe('StaffComponent', () => {
     beforeEach(() => {
       component.newStaff = {
         staffId: 'NC001', firstName: 'Alice', lastName: '', email: null,
-        password: 'Password1!', roles: ['employee'], locations: [],
+        password: 'Password1!', roles: ['employee'],
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
     });
@@ -615,24 +613,10 @@ describe('StaffComponent', () => {
   describe('bulk actions', () => {
     beforeEach(() => component.selectedIds.set(new Set(['a', 'b'])));
 
-    it('saveBulkLocations() calls the store with selected ids + chosen locations', () => {
-      component.bulkLocations = ['loc1'];
-      component.saveBulkLocations();
-      expect(mockStaffStore.bulkAssignLocations).toHaveBeenCalledWith(['a', 'b'], ['loc1']);
-      expect(mockToastSvc.success).toHaveBeenCalled();
-      expect(component.selectedCount()).toBe(0);   // cleared after success
-    });
-
     it('saveBulkRoles() calls the store with selected ids + chosen role ids', () => {
       component.bulkRoles = ['role-bartender-id'];
       component.saveBulkRoles();
       expect(mockStaffStore.bulkAssignRoles).toHaveBeenCalledWith(['a', 'b'], ['role-bartender-id']);
-    });
-
-    it('saveBulkLocations() does nothing when no locations are chosen', () => {
-      component.bulkLocations = [];
-      component.saveBulkLocations();
-      expect(mockStaffStore.bulkAssignLocations).not.toHaveBeenCalled();
     });
 
     it('bulkDeactivateSelected() confirms then calls the store', () => {

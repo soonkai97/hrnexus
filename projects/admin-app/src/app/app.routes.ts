@@ -18,7 +18,6 @@ export const routes: Routes = [
       { path: 'staff',         canActivate: [permissionGuard('staff.view', '/dashboard')], loadChildren:  () => import('./features/staff/staff.routes').then(m => m.STAFF_ROUTES) },
 
       { path: 'roles',         canActivate: [permissionGuard('roles.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/roles/roles.component').then(m => m.RolesComponent) },
-      { path: 'locations',     canActivate: [permissionGuard('locations.manage', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/locations/locations.component').then(m => m.LocationsComponent) },
       { path: 'leave',         canActivate: [permissionGuard('leave.approve', '/dashboard')], canDeactivate: [unsavedChangesGuard], loadComponent: () => import('./features/leave/leave.component').then(m => m.LeaveComponent) },
 
       { path: 'payroll-locks',  canActivate: [permissionGuard('payroll.lock', '/dashboard')], loadComponent: () => import('./features/payroll-locks/payroll-locks.component').then(m => m.PayrollLocksComponent) },

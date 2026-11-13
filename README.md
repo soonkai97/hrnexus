@@ -34,10 +34,9 @@ Development patterns and conventions: [CLAUDE.md](CLAUDE.md). Current state and 
 | Route | Feature | Gate |
 |---|---|---|
 | `/dashboard` | Total-staff KPI with live SignalR connection status | `portal.admin` |
-| `/staff`, `/staff/:id` | Staff list, register, edit, deactivate, reset password, roles, locations, per-user permission overrides, bulk actions | `staff.view` |
+| `/staff`, `/staff/:id` | Staff list, register, edit, deactivate, reset password, roles, per-user permission overrides, bulk actions | `staff.view` |
 | `/leave` | Leave requests: approve, reject, create, edit, balances, bulk actions | `leave.approve` |
 | `/roles` | Role management and per-role default permissions | `roles.manage` |
-| `/locations` | Location management | `locations.manage` |
 | `/payroll-locks` | Payroll month locks (no enforcement yet; redefined in the payroll rebuild) | `payroll.lock` |
 | `/cash-advances` | Salary advance records | `cashadvance.manage` |
 | `/account` | Own profile, change password, push notifications | none |
@@ -52,7 +51,6 @@ Development patterns and conventions: [CLAUDE.md](CLAUDE.md). Current state and 
 
 ## Planned
 
-- **Locations removal (phase 7j):** the Locations page and staff location assignment go away, see [phase-07j](docs/process/phase-07j-remove-locations.md).
 - **English only (phase 7i):** the zh and vi translations and the language switcher are removed, see [phase-07i](docs/process/phase-07i-english-only.md).
 - Then the leave fixes and the payroll rebuild (phase 8), see [docs/process](docs/process).
 

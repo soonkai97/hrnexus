@@ -4,7 +4,7 @@ import { ensureRole } from '../shared/api';
 /**
  * FULL BUSINESS WORKFLOW — the end-to-end path, in one chained test.
  *
- *   hire a staff (role + location)  →  staff applies for leave
+ *   hire a staff (with a role)  →  staff applies for leave
  *   →  admin approves it  →  the approval shows in the read models.
  *
  * Strategy: **API-arrange + API-assert.** Each mutation is driven through the real
@@ -39,17 +39,12 @@ test.describe('Full workflow — hire → leave → approve', () => {
     let r = await admin.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password, portal: 'admin' } });
     expect(r.ok(), `admin login (${r.status()})`).toBeTruthy();
 
-    // ── 2. Pick a venue, create a role, hire the staff onto both ────────────────
-    r = await admin.get('/api/locations');
-    const locations = await r.json();
-    expect(locations.length, 'seed has at least one location').toBeGreaterThan(0);
-    const locationId: string = locations[0].id;
-
+    // ── 2. Create a role, hire the staff onto it ────────────────────────────────
     const roleId = await ensureRole(admin, roleName, 25);
 
     r = await admin.post('/api/staff', { data: {
       staffId, firstName: 'Flow', lastName: 'Test', email: null, password,
-      roles: [roleId], locations: [locationId],
+      roles: [roleId],
     } });
     expect(r.ok(), `hire staff (${r.status()})`).toBeTruthy();
     const employeeId: string = (await r.json()).id;

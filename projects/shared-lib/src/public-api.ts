@@ -17,7 +17,6 @@ export * from './lib/services/admin.service';
 export * from './lib/directives/has-permission.directive';
 export * from './lib/services/staff-management.service';
 export * from './lib/services/signalr.service';
-export * from './lib/stores/location.store';
 export * from './lib/stores/staff.store';
 export * from './lib/services/toast.service';
 export * from './lib/services/confirm.service';

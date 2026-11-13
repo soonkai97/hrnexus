@@ -5,7 +5,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffDetail, UpdateStaffRequest, StaffStore, LocationStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions, LangService, localizedNameFor } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions, LangService, localizedNameFor } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
@@ -31,7 +31,6 @@ type DetailTab = 'profile' | 'permissions';
 })
 export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
-  private readonly locationStore = inject(LocationStore);
   private readonly staffSvc    = inject(StaffManagementService);
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);
@@ -51,25 +50,18 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
 
   // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
   availableRoles = computed(() => this.staffStore.roles());
-  availableLocations = computed(() => this.locationStore.locations());
 
   /** Pick a record's display name in the current UI language (Chinese/Vietnamese when set). */
   private localized(name: string, nameZh: string | null | undefined, nameVi: string | null | undefined): string {
     return localizedNameFor(this.lang.current(), name, nameZh, nameVi);
-  }
-  /** Resolve a location ID to its (localized) display name — read-only assigned-location tags. */
-  locationName(id: string): string {
-    const loc = this.availableLocations().find(l => l.id === id);
-    return loc ? this.localized(loc.name, loc.nameZh, loc.nameVi) : id;
   }
   /** Resolve a role name to its (localized) display name — read-only assigned-role tags. */
   roleName(name: string): string {
     const role = this.availableRoles().find(r => r.name === name);
     return role ? this.localized(role.name, role.nameZh, role.nameVi) : name;
   }
-  // Pickers use the GUID id (the edit-staff DTO submits role IDS and location ids).
+  // Pickers use the GUID id (the edit-staff DTO submits role IDS).
   readonly roleOptions     = computed(() => this.availableRoles().map(r => ({ label: this.localized(r.name, r.nameZh, r.nameVi), value: r.id })));
-  readonly locationOptions = computed(() => this.availableLocations().map(l => ({ label: this.localized(l.name, l.nameZh, l.nameVi), value: l.id })));
 
   /** Map a role NAME (as stored on the staff record) to its GUID id via the loaded roles. */
   private roleIdForName(name: string): string {
@@ -77,10 +69,10 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   }
 
   editForm: UpdateStaffRequest = {
-    staffId: '', firstName: '', lastName: '', email: null, roles: [], locations: [],
+    staffId: '', firstName: '', lastName: '', email: null, roles: [],
     phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: null,
   };
-  private _initialEditForm: UpdateStaffRequest = { ...this.editForm, roles: [], locations: [] };
+  private _initialEditForm: UpdateStaffRequest = { ...this.editForm, roles: [] };
 
   private staffId = '';
 
@@ -131,7 +123,6 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   ngOnInit(): void {
     this.staffId = this.route.snapshot.paramMap.get('id') ?? '';
     this.staffStore.loadRoles();
-    this.locationStore.load();
     this.loadStaff();
     this.loadPermissions();
   }
@@ -151,11 +142,11 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
       email: s.email || null,
       // s.roles are NAMES (display) but the update DTO + role picker use IDS — map name → id.
       roles: s.roles.map(name => this.roleIdForName(name)).filter(id => id),
-      locations: [...(s.locationIds ?? [])], phoneNumber: s.phoneNumber,
+      phoneNumber: s.phoneNumber,
       icNo: s.icNo ?? null, passportNo: s.passportNo ?? null,
       dateOfBirth: s.dateOfBirth ?? null,
     };
-    this._initialEditForm = { ...this.editForm, roles: [...this.editForm.roles], locations: [...this.editForm.locations] };
+    this._initialEditForm = { ...this.editForm, roles: [...this.editForm.roles] };
     this.touched.set(new Set());
     this.editMode.set(true);
   }

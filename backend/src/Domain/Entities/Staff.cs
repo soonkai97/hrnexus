@@ -21,10 +21,6 @@ public class Staff : IHasAudit, ISoftDelete
     public List<string> Roles => RoleEntries.Where(r => r.Role != null).Select(r => r.Role.Name).ToList();
     /// <summary>Computed assigned role IDs derived from RoleEntries. Not stored directly.</summary>
     public List<Guid> RoleIds => RoleEntries.Select(r => r.RoleId).ToList();
-    /// <summary>Normalized location-assignment rows — loaded automatically via AutoInclude.</summary>
-    public List<StaffLocation> LocationEntries { get; private set; } = new();
-    /// <summary>Computed assigned location IDs derived from LocationEntries. Not stored directly.</summary>
-    public List<string> LocationIds => LocationEntries.Select(l => l.LocationId).ToList();
     public bool   IsActive         { get; private set; }
     /// <summary>When true, this account is hidden from the admin staff roster (e.g. the seeded
     /// HRADMIN / HRMANAGER system accounts). It stays fully functional — login, permissions, payroll
@@ -69,8 +65,7 @@ public class Staff : IHasAudit, ISoftDelete
 
     public static Staff Create(string staffId, string firstName, string? lastName, string? email, string passwordHash,
         List<Guid> roles, string? phoneNumber = null,
-        string? icNo = null, string? passportNo = null, DateTime? dateOfBirth = null,
-        List<string>? locations = null)
+        string? icNo = null, string? passportNo = null, DateTime? dateOfBirth = null)
     {
         var emp = new Staff
         {
@@ -90,7 +85,6 @@ public class Staff : IHasAudit, ISoftDelete
             CreatedAt = DateTime.UtcNow,
         };
         emp.SetRoles(roles);
-        emp.SetLocations(locations ?? new());
         return emp;
     }
 
@@ -165,7 +159,7 @@ public class Staff : IHasAudit, ISoftDelete
 
     public void UpdateDetails(string staffId, string firstName, string? lastName, string? email, List<Guid> roles,
         string? phoneNumber, string? icNo = null, string? passportNo = null,
-        DateTime? dateOfBirth = null, List<string>? locations = null)
+        DateTime? dateOfBirth = null)
     {
         StaffId     = staffId.Trim().ToUpperInvariant();
         FirstName   = firstName.Trim();
@@ -180,22 +174,6 @@ public class Staff : IHasAudit, ISoftDelete
             ? DateTime.SpecifyKind(dateOfBirth.Value.Date, DateTimeKind.Utc)
             : null;
         SetRoles(roles);
-        if (locations != null) SetLocations(locations);
-    }
-
-    /// <summary>True when the staff member is assigned to the given location (required to log a shift there).</summary>
-    public bool IsAssignedToLocation(string locationId) =>
-        LocationEntries.Any(l => l.LocationId == locationId);
-
-    /// <summary>Additively assigns the supplied location IDs ON TOP of the existing ones (union) —
-    /// used by bulk-assign, which adds venues without clearing a staff member's current assignments.
-    /// Duplicates are ignored so the change tracker never holds two rows with the same key.</summary>
-    public void AddLocations(IEnumerable<string> locationIds)
-    {
-        var existing = LocationEntries.Select(le => le.LocationId).ToHashSet();
-        foreach (var id in locationIds.Select(l => l.Trim()).Where(l => l.Length > 0).Distinct())
-            if (existing.Add(id))
-                LocationEntries.Add(new StaffLocation { EmployeeId = Id, LocationId = id });
     }
 
     /// <summary>Additively assigns the supplied role IDs ON TOP of the existing ones (union) —
@@ -207,17 +185,6 @@ public class Staff : IHasAudit, ISoftDelete
         foreach (var id in roleIds.Where(r => r != Guid.Empty).Distinct())
             if (existing.Add(id))
                 RoleEntries.Add(new StaffRole { EmployeeId = Id, RoleId = id });
-    }
-
-    /// <summary>Replaces all location assignments with the supplied IDs. Mutates the collection in place
-    /// (removes dropped, adds new) so the EF change tracker never holds two rows with the same key.</summary>
-    private void SetLocations(IEnumerable<string> locationIds)
-    {
-        var incoming = locationIds.Select(l => l.Trim()).Where(l => l.Length > 0).ToHashSet();
-        LocationEntries.RemoveAll(le => !incoming.Contains(le.LocationId));
-        var existing = LocationEntries.Select(le => le.LocationId).ToHashSet();
-        foreach (var id in incoming.Where(l => !existing.Contains(l)))
-            LocationEntries.Add(new StaffLocation { EmployeeId = Id, LocationId = id });
     }
 
     /// <summary>Replaces all role assignments with the supplied role IDs.

@@ -14,7 +14,6 @@ function makeStaff(id: string, overrides: Partial<Staff> = {}): Staff {
     fullName: 'First Last',
     email: `${id}@test.com`,
     roles: ['employee'],
-    locationIds: [],
     isActive: true,
     phoneNumber: null,
     icNo: null,
@@ -133,7 +132,7 @@ describe('StaffStore', () => {
 
     const req$ = store.update('1', {
       staffId: 'NC001', firstName: 'Updated', lastName: 'Name',
-      email: '1@test.com', roles: ['manager'], locations: [],
+      email: '1@test.com', roles: ['manager'],
       phoneNumber: null, icNo: null, passportNo: null, dateOfBirth: null,
     });
     const promise = firstValueFrom(req$);
@@ -217,7 +216,7 @@ describe('StaffStore', () => {
   it('register() POST /api/staff and returns the new staff id', async () => {
     const req$ = store.register({
       staffId: 'NC010', firstName: 'New', lastName: 'Staff', email: 'n@test.com',
-      password: 'pass', roles: ['employee'], locations: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
+      password: 'pass', roles: ['employee'], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
     });
     const promise = firstValueFrom(req$);
     const req = http.expectOne('/api/staff');

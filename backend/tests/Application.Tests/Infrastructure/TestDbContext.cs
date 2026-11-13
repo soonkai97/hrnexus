@@ -15,8 +15,6 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
 {
     public DbSet<E.Staff>            Staff             => Set<E.Staff>();
     public DbSet<E.StaffRole>        StaffRoles        => Set<E.StaffRole>();
-    public DbSet<E.StaffLocation>    StaffLocations    => Set<E.StaffLocation>();
-    public DbSet<E.Location>         Locations         => Set<E.Location>();
     public DbSet<E.Role>             Roles             => Set<E.Role>();
     public DbSet<E.RoleRate>         RoleRates         => Set<E.RoleRate>();
     public DbSet<E.RolePermission>          RolePermissions          => Set<E.RolePermission>();
@@ -61,11 +59,6 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
             .HasMany(s => s.RoleEntries).WithOne().HasForeignKey(r => r.EmployeeId);
         mb.Entity<E.Staff>()
             .Navigation(s => s.RoleEntries)
-            .AutoInclude();
-        mb.Entity<E.StaffLocation>()
-            .HasKey(l => new { l.EmployeeId, l.LocationId });
-        mb.Entity<E.Staff>()
-            .Navigation(s => s.LocationEntries)
             .AutoInclude();
 
         // Permission tables: composite PKs (no auto-discovered Id)

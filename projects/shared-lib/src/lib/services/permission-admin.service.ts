@@ -20,7 +20,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   { labelKey: 'permissions.groups.access',     keys: ['portal.admin'] },
   { labelKey: 'permissions.groups.operations', keys: ['staff.view', 'staff.manage', 'leave.approve', 'leave.manage', 'reports.view'] },
   { labelKey: 'permissions.groups.finance',    keys: ['payroll.view', 'payroll.manage'] },
-  { labelKey: 'permissions.groups.setup',      keys: ['roles.manage', 'locations.manage', 'payroll.lock'] },
+  { labelKey: 'permissions.groups.setup',      keys: ['roles.manage', 'payroll.lock'] },
 ];
 
 /**

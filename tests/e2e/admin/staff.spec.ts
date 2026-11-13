@@ -50,28 +50,18 @@ test.describe('Admin — staff list', () => {
     await expect(page).toHaveURL(/\/staff\//, { timeout: 5_000 });
   });
 
-  // ── Staff ↔ location assignment ─────────────────────────────────────────────
-  // The Add Staff form must let an admin assign the work location(s) a staff member
-  // belongs to, alongside roles.
-  test('Add Staff form exposes a work-location assignment field', async ({ page }) => {
-    await page.getByRole('button', { name: /add staff/i }).first().click();
-    // The Locations multiselect's label is bound to for="st-locations" — deterministic
-    // regardless of how many venues exist in the seed data.
-    await expect(page.locator('label[for="st-locations"]')).toBeVisible({ timeout: 5_000 });
-  });
-
   // ── Bulk actions ─────────────────────────────────────────────────────────────
   // Entering bulk mode reveals a selection column + an action bar; opening the
-  // "Assign locations" action shows its dialog. Non-destructive — no action is applied.
-  test('bulk mode reveals the action bar and the assign-locations dialog', async ({ page }) => {
+  // "Assign jobs" action shows its dialog. Non-destructive — no action is applied.
+  test('bulk mode reveals the action bar and the assign-jobs dialog', async ({ page }) => {
     await page.waitForSelector('tbody tr', { timeout: 8_000 });
     await page.getByRole('button', { name: /bulk select/i }).first().click();
     // Select-all header checkbox appears in bulk mode, then the action buttons enable.
     await page.locator('thead .p-checkbox, thead p-checkbox').first().click();
-    const assignLocations = page.getByRole('button', { name: /assign locations/i });
-    await expect(assignLocations).toBeVisible({ timeout: 5_000 });
-    await assignLocations.click();
-    await expect(page.locator('label[for="bulk-locations"]')).toBeVisible({ timeout: 5_000 });
+    const assignRoles = page.getByRole('button', { name: /assign jobs/i });
+    await expect(assignRoles).toBeVisible({ timeout: 5_000 });
+    await assignRoles.click();
+    await expect(page.locator('label[for="bulk-roles"]')).toBeVisible({ timeout: 5_000 });
   });
 
 });

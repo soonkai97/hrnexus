@@ -2,7 +2,7 @@
 
 > **Status:** `Draft`
 > **Created:** 2026-11-13 | **Updated:** 2026-11-13
-> **Depends on:** Phases 7, 7j, 7i, 7l merged (all done). Source of requirements: `HRNexus PRD v1.0`, section 5.4 (PAY-01 to PAY-10), section 6.2 (calculation order and run lifecycle), LEV-11, STF-05.
+> **Depends on:** Phases 7, 7j, 7i, 7l merged (all done). **8b onward also depends on Phase 7m (company policy)** (`phase-07m-company-policy.md`): the working week, hours per day and the unpaid-leave divisor are company settings, not constants. 8a does not. Source of requirements: `HRNexus PRD v1.0`, section 5.4 (PAY-01 to PAY-10), section 6.2 (calculation order and run lifecycle), LEV-11, STF-05.
 > **Environment note (13 Nov 2026):** no production deployment and no real data, so drop migrations and rate-table seeding need no backup yet. **Payroll go-live (not this phase's merge) is gated** by an accountant sign-off and a 3-month parallel run (PRD).
 
 This phase is too large for one pass (Rule 13). It is delivered as **six sub-phases (8a to 8f)**, each one PR, each independently green. A later sub-phase starts only after the earlier one merged.

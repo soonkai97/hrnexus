@@ -36,11 +36,11 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
         if (idTaken)
             throw new InvalidOperationException($"Staff ID '{normalizedId}' is already in use.");
 
-        // Lockout guard: if this role change strips the user's admin-portal access and they're the last
+        // Lockout guard: if this role change strips the user's role-management access and they're the last
         // active admin, reject — otherwise nobody could sign in to undo it. A grant/revoke override on
         // the user wins over role defaults (so changing roles can't remove access a grant pins on, and
         // can't restore access a revoke pins off).
-        var key       = AppConstants.Permissions.PortalAdmin;
+        var key       = AppConstants.Permissions.RolesManage;
         var newRoles  = req.Roles.Where(r => r != Guid.Empty).ToList();
         var ownOverride = await db.StaffPermissionOverrides
             .Where(o => o.EmployeeId == req.Id && o.PermissionKey == key)
@@ -50,15 +50,15 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
             : newRoles.Count > 0 && await db.RolePermissions.AnyAsync(
                   rp => newRoles.Contains(rp.RoleId) && rp.PermissionKey == key, ct);
 
-        if (!willHaveAdmin && await PortalAdminInvariant.UserHasAdminAsync(db, req.Id, ct))
+        if (!willHaveAdmin && await RolesManageInvariant.UserHasAdminAsync(db, req.Id, ct))
         {
             var adminRoles = await db.RolePermissions
                 .Where(rp => rp.PermissionKey == key)
                 .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
-            if (await PortalAdminInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.Id, ct) == 0)
+            if (await RolesManageInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.Id, ct) == 0)
                 throw new ArgumentException(
-                    "This change would remove admin-portal access from the last administrator. " +
-                    "Grant admin-portal access to another user or role first.");
+                    "This change would remove role-management access from the last administrator. " +
+                    "Grant role-management access to another user or role first.");
         }
 
         // Email is a full-update field: pass it straight to the entity, which distinguishes null

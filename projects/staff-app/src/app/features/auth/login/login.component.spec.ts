@@ -10,14 +10,14 @@ import { AuthService } from 'shared-lib';
 @Component({ template: '', standalone: true }) class StubComponent {}
 
 /**
- * LoginComponent (staff-app) — staff portal login page.
+ * LoginComponent (staff-app) — staff-app login page.
  *
  * WHY these tests matter:
  *  - submit() must reject invalid forms — calling the API with empty credentials
  *    wastes a round-trip and may expose form state.
- *  - The staff portal redirects to /home on success (not /dashboard) — a wrong
+ *  - The staff app redirects to /home on success (not /dashboard) — a wrong
  *    redirect would leave staff on a 404 page after login.
- *  - The error message distinguishes "admin portal" misuse from wrong credentials.
+ *  - Any active account (admin or employee) may sign in here; the request carries no portal field.
  */
 
 describe('LoginComponent (staff-app)', () => {
@@ -103,18 +103,16 @@ describe('LoginComponent (staff-app)', () => {
       component.form.patchValue({ staffId: 'NC001', password: 'pass123' });
     });
 
-    it('calls auth.login with portal=staff', () => {
+    it('calls auth.login with only the staff ID and password', () => {
       component.submit();
-      expect(mockAuth.login).toHaveBeenCalledWith(
-        expect.objectContaining({ portal: 'staff', staffId: 'NC001' }),
-      );
+      expect(mockAuth.login).toHaveBeenCalledWith({ staffId: 'NC001', password: 'pass123' });
     });
 
     it('uppercases the Staff ID before submitting (stored uppercase)', () => {
       component.form.patchValue({ staffId: ' nc001 ', password: 'pass123' });
       component.submit();
       expect(mockAuth.login).toHaveBeenCalledWith(
-        expect.objectContaining({ portal: 'staff', staffId: 'NC001' }),
+        expect.objectContaining({ staffId: 'NC001' }),
       );
     });
 
@@ -137,14 +135,6 @@ describe('LoginComponent (staff-app)', () => {
       mockAuth.login.mockReturnValue(throwError(() => ({ error: { error: 'Invalid.' } })));
       component.submit();
       expect(component.error()).toBe('Invalid Staff ID or password.');
-    });
-
-    it('sets "admin portal" message when error contains "Admin accounts"', () => {
-      mockAuth.login.mockReturnValue(
-        throwError(() => ({ error: { error: 'Admin accounts must use the admin portal.' } })),
-      );
-      component.submit();
-      expect(component.error()).toBe('Admin accounts must use the admin portal.');
     });
 
     it('clears loading after error', () => {

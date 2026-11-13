@@ -3,7 +3,6 @@ export type UserRole = 'employee' | 'manager' | 'admin';
 export interface LoginRequest {
   staffId: string;
   password: string;
-  portal?: 'staff' | 'admin';
 }
 
 /**

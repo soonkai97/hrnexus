@@ -68,11 +68,11 @@ public class BulkCommandTests
 
     // ── BulkDeactivate ───────────────────────────────────────────────────────────
 
-    /// <summary>Seeds a role that grants admin-portal access and N staff holding it.</summary>
+    /// <summary>Seeds a role that grants role-management access and N staff holding it.</summary>
     private static async Task<List<E.Staff>> SeedAdminsAsync(TestDbContext db, int count)
     {
         var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
-        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
         var admins = new List<E.Staff>();
         for (var i = 0; i < count; i++)
         {

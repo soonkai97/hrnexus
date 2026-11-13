@@ -29,7 +29,7 @@ public static class SeedData
             .ToDictionaryAsync(r => r.Name, r => r.Id);
 
         // Backfill role-default permissions: the two system roles get EVERY permission (incl.
-        // portal.admin) so behaviour is identical to the pre-permission, role-gated world.
+        // roles.manage) so behaviour is identical to the pre-permission, role-gated world.
         // EMPLOYEE intentionally gets none. Idempotent + auto-seeds any newly added catalog key.
         foreach (var roleName in systemRoles)
         {

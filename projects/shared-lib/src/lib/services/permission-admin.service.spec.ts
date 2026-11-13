@@ -69,13 +69,15 @@ describe('PermissionAdminService', () => {
  */
 describe('groupedPermissions', () => {
   it('keeps only visible keys, in group order, dropping empty groups', () => {
-    const groups = groupedPermissions(['portal.admin', 'staff.view', 'payroll.view']);
+    // Input order is deliberately scrambled: output must follow the group order, not input order.
+    const groups = groupedPermissions(['roles.manage', 'payroll.view', 'staff.view']);
     expect(groups.map(g => g.label)).toEqual([
-      'Access',
       'Operations',
       'Finance',
+      'Setup',
     ]);
-    expect(groups[1]!.keys).toEqual(['staff.view']); // setup group has no visible key → dropped
+    expect(groups[0]!.keys).toEqual(['staff.view']); // leave/reports keys not visible → not listed
+    expect(groups[2]!.keys).toEqual(['roles.manage']); // payroll.lock not visible → not listed
   });
 
   it('appends any unknown key to a trailing "other" group so nothing is hidden', () => {

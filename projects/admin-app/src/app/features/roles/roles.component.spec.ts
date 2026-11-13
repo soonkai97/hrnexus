@@ -50,7 +50,7 @@ describe('RolesComponent', () => {
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
     mockPermSvc    = {
-      catalog:            vi.fn().mockReturnValue(of(['portal.admin', 'staff.view'])),
+      catalog:            vi.fn().mockReturnValue(of(['roles.manage', 'staff.view'])),
       getRolePermissions: vi.fn().mockReturnValue(of(['staff.view'])),
       setRolePermissions: vi.fn().mockReturnValue(of(undefined)),
     };
@@ -272,7 +272,7 @@ describe('RolesComponent', () => {
 
     it('loads the catalog and pre-checks the role\'s current permissions', () => {
       component.openPermissions('BARTENDER');
-      expect(component.permCatalog()).toEqual(['portal.admin', 'staff.view']);
+      expect(component.permCatalog()).toEqual(['roles.manage', 'staff.view']);
       expect(component.permSelected()).toEqual(['staff.view']);
     });
 
@@ -297,9 +297,9 @@ describe('RolesComponent', () => {
     });
 
     it('removes a key when unchecked', () => {
-      component.permSelected.set(['staff.view', 'portal.admin']);
+      component.permSelected.set(['staff.view', 'roles.manage']);
       component.togglePermission('staff.view', false);
-      expect(component.permSelected()).toEqual(['portal.admin']);
+      expect(component.permSelected()).toEqual(['roles.manage']);
     });
   });
 

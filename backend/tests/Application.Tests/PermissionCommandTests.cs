@@ -35,20 +35,20 @@ public class PermissionCommandTests
     {
         await using var db = CreateDb();
         var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
-        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage)); // stale
+        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.PayrollView)); // stale
         await db.SaveChangesAsync();
         var spy = new SpyResolver();
 
         await new SetRolePermissionsHandler(db, spy).Handle(
             new SetRolePermissionsCommand("manager",
-                [AppConstants.Permissions.PortalAdmin, AppConstants.Permissions.StaffView]),
+                [AppConstants.Permissions.RolesManage, AppConstants.Permissions.StaffView]),
             CancellationToken.None);
 
         var keys = await db.RolePermissions.Where(rp => rp.RoleId == managerId)
             .Select(rp => rp.PermissionKey).ToListAsync();
         Assert.Equal(2, keys.Count);
-        Assert.Contains(AppConstants.Permissions.PortalAdmin, keys);
-        Assert.DoesNotContain(AppConstants.Permissions.RolesManage, keys); // replaced, not merged
+        Assert.Contains(AppConstants.Permissions.RolesManage, keys);
+        Assert.DoesNotContain(AppConstants.Permissions.PayrollView, keys); // replaced, not merged
         Assert.Equal(1, spy.InvalidateAllCount);
     }
 
@@ -70,7 +70,7 @@ public class PermissionCommandTests
         await using var db = CreateDb();
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             new SetRolePermissionsHandler(db, new SpyResolver()).Handle(
-                new SetRolePermissionsCommand("GHOST", [AppConstants.Permissions.PortalAdmin]),
+                new SetRolePermissionsCommand("GHOST", [AppConstants.Permissions.RolesManage]),
                 CancellationToken.None));
     }
 
@@ -88,14 +88,14 @@ public class PermissionCommandTests
         await new SetStaffOverridesHandler(db, spy).Handle(
             new SetStaffOverridesCommand(staff.Id,
             [
-                new StaffOverrideDto(AppConstants.Permissions.PortalAdmin, true),
+                new StaffOverrideDto(AppConstants.Permissions.RolesManage, true),
                 new StaffOverrideDto(AppConstants.Permissions.StaffManage, false),
             ]),
             CancellationToken.None);
 
         var rows = await db.StaffPermissionOverrides.Where(o => o.EmployeeId == staff.Id).ToListAsync();
         Assert.Equal(2, rows.Count);
-        Assert.Contains(rows, r => r.PermissionKey == AppConstants.Permissions.PortalAdmin && r.Granted);
+        Assert.Contains(rows, r => r.PermissionKey == AppConstants.Permissions.RolesManage && r.Granted);
         Assert.Contains(rows, r => r.PermissionKey == AppConstants.Permissions.StaffManage && !r.Granted);
         Assert.Contains(staff.Id, spy.Invalidated);
     }
@@ -121,7 +121,7 @@ public class PermissionCommandTests
     {
         await using var db = CreateDb();
         var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
-        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
         // A live admin who derives portal access solely from this role.
         db.Staff.Add(E.Staff.Create("S001", "Al", "Wong", "al@test.com", "hash", new List<Guid> { managerId }));
         await db.SaveChangesAsync();
@@ -130,11 +130,11 @@ public class PermissionCommandTests
             new SetRolePermissionsHandler(db, new SpyResolver()).Handle(
                 new SetRolePermissionsCommand("MANAGER", [AppConstants.Permissions.StaffView]),
                 CancellationToken.None));
-        Assert.Contains("admin-portal access", ex.Message);
+        Assert.Contains("role-management access", ex.Message);
 
-        // Nothing was persisted — the role still grants portal.admin.
+        // Nothing was persisted — the role still grants roles.manage.
         Assert.True(await db.RolePermissions.AnyAsync(rp =>
-            rp.RoleId == managerId && rp.PermissionKey == AppConstants.Permissions.PortalAdmin));
+            rp.RoleId == managerId && rp.PermissionKey == AppConstants.Permissions.RolesManage));
     }
 
     [Fact]
@@ -142,8 +142,8 @@ public class PermissionCommandTests
     {
         await using var db = CreateDb();
         var roles = await RoleSeed.EnsureRolesAsync(db, "MANAGER", "SUPERADMIN");
-        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.PortalAdmin));
-        db.RolePermissions.Add(E.RolePermission.Create(roles["SUPERADMIN"], AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.RolesManage));
+        db.RolePermissions.Add(E.RolePermission.Create(roles["SUPERADMIN"], AppConstants.Permissions.RolesManage));
         db.Staff.Add(E.Staff.Create("S002", "Su", "Boss", "su@test.com", "hash", new List<Guid> { roles["SUPERADMIN"] }));
         await db.SaveChangesAsync();
 
@@ -152,7 +152,7 @@ public class PermissionCommandTests
             CancellationToken.None);
 
         Assert.False(await db.RolePermissions.AnyAsync(rp =>
-            rp.RoleId == roles["MANAGER"] && rp.PermissionKey == AppConstants.Permissions.PortalAdmin));
+            rp.RoleId == roles["MANAGER"] && rp.PermissionKey == AppConstants.Permissions.RolesManage));
     }
 
     [Fact]
@@ -160,12 +160,12 @@ public class PermissionCommandTests
     {
         await using var db = CreateDb();
         var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
-        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.PortalAdmin));
-        // An individual EMPLOYEE granted admin-portal access directly keeps the system reachable.
+        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
+        // An individual EMPLOYEE granted role-management access directly keeps the system reachable.
         var emp = E.Staff.Create("S003", "Ed", "Lim", "ed@test.com", "hash", new List<Guid>());
         db.Staff.Add(emp);
         db.StaffPermissionOverrides.Add(
-            E.StaffPermissionOverride.Create(emp.Id, AppConstants.Permissions.PortalAdmin, true));
+            E.StaffPermissionOverride.Create(emp.Id, AppConstants.Permissions.RolesManage, true));
         await db.SaveChangesAsync();
 
         await new SetRolePermissionsHandler(db, new SpyResolver()).Handle(
@@ -173,7 +173,7 @@ public class PermissionCommandTests
             CancellationToken.None);
 
         Assert.False(await db.RolePermissions.AnyAsync(rp =>
-            rp.RoleId == managerId && rp.PermissionKey == AppConstants.Permissions.PortalAdmin));
+            rp.RoleId == managerId && rp.PermissionKey == AppConstants.Permissions.RolesManage));
     }
 
     [Fact]
@@ -181,7 +181,7 @@ public class PermissionCommandTests
     {
         await using var db = CreateDb();
         var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
-        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
         var al = E.Staff.Create("S001", "Al", "Wong", "al@test.com", "hash", new List<Guid> { managerId });
         db.Staff.Add(al);
         await db.SaveChangesAsync();
@@ -189,7 +189,7 @@ public class PermissionCommandTests
         var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
             new SetStaffOverridesHandler(db, new SpyResolver()).Handle(
                 new SetStaffOverridesCommand(al.Id,
-                    [new StaffOverrideDto(AppConstants.Permissions.PortalAdmin, false)]),
+                    [new StaffOverrideDto(AppConstants.Permissions.RolesManage, false)]),
                 CancellationToken.None));
         Assert.Contains("last administrator", ex.Message);
 
@@ -202,7 +202,7 @@ public class PermissionCommandTests
     {
         await using var db = CreateDb();
         var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
-        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.PortalAdmin));
+        db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
         var al = E.Staff.Create("S001", "Al", "Wong", "al@test.com", "hash", new List<Guid> { managerId });
         var bo = E.Staff.Create("S002", "Bo", "Tan", "bo@test.com", "hash", new List<Guid> { managerId });
         db.Staff.Add(al);
@@ -211,11 +211,11 @@ public class PermissionCommandTests
 
         await new SetStaffOverridesHandler(db, new SpyResolver()).Handle(
             new SetStaffOverridesCommand(al.Id,
-                [new StaffOverrideDto(AppConstants.Permissions.PortalAdmin, false)]),
+                [new StaffOverrideDto(AppConstants.Permissions.RolesManage, false)]),
             CancellationToken.None);
 
         Assert.True(await db.StaffPermissionOverrides.AnyAsync(o =>
-            o.EmployeeId == al.Id && o.PermissionKey == AppConstants.Permissions.PortalAdmin && !o.Granted));
+            o.EmployeeId == al.Id && o.PermissionKey == AppConstants.Permissions.RolesManage && !o.Granted));
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public class PermissionCommandTests
 
         await new SetStaffOverridesHandler(db, new SpyResolver()).Handle(
             new SetStaffOverridesCommand(emp.Id,
-                [new StaffOverrideDto(AppConstants.Permissions.PortalAdmin, false)]),
+                [new StaffOverrideDto(AppConstants.Permissions.RolesManage, false)]),
             CancellationToken.None);
 
         Assert.True(await db.StaffPermissionOverrides.AnyAsync(o => o.EmployeeId == emp.Id && !o.Granted));

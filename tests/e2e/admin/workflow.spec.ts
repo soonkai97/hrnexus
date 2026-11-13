@@ -13,7 +13,7 @@ import { ensureRole, futureWeekday } from '../shared/api';
  * a flaky end-to-end test is worse than none.
  *
  * Admin and staff API calls use SEPARATE request contexts (separate cookie jars) so the
- * shared-host auth cookie of one portal never clobbers the other.
+ * shared-host auth cookie of one identity never clobbers the other.
  */
 
 const ADMIN = { staffId: 'HRADMIN', password: 'Admin@1234' };
@@ -35,7 +35,7 @@ test.describe('Full workflow — hire → leave → approve', () => {
     const staff = await pwRequest.newContext({ baseURL: API });
 
     // ── 1. Admin signs in ───────────────────────────────────────────────────────
-    let r = await admin.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password, portal: 'admin' } });
+    let r = await admin.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password } });
     expect(r.ok(), `admin login (${r.status()})`).toBeTruthy();
 
     // ── 2. Create a role, hire the staff onto it ────────────────────────────────
@@ -50,7 +50,7 @@ test.describe('Full workflow — hire → leave → approve', () => {
     expect(employeeId).toBeTruthy();
 
     // ── 3. Staff signs in ───────────────────────────────────────────────────────
-    r = await staff.post('/api/auth/login', { data: { staffId, password, portal: 'staff' } });
+    r = await staff.post('/api/auth/login', { data: { staffId, password } });
     expect(r.ok(), `staff login (${r.status()})`).toBeTruthy();
 
     // ── 4. Staff applies for leave (unpaid → no balance/advance constraints) ────

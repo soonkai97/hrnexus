@@ -9,8 +9,8 @@ import { PermissionService, PermissionKey } from '../services/permission.service
  * resolve before the shell component initialises.
  *
  * Usage:
- *   canActivate: [authGuard, permissionGuard('portal.admin', '/auth/login')]
  *   canActivate: [permissionGuard('staff.view', '/dashboard')]
+ *   canActivate: [authGuard, permissionGuard('roles.manage', '/dashboard')]
  */
 export const permissionGuard = (key: PermissionKey, fallback = '/dashboard'): CanActivateFn => () => {
   const perms  = inject(PermissionService);

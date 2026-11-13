@@ -5,18 +5,18 @@ using Microsoft.EntityFrameworkCore;
 namespace HRNexus.Application.Permissions.Commands;
 
 /// <summary>
-/// Protects the invariant: there must always be at least one ACTIVE user who can sign into the admin
-/// portal (i.e. effectively holds <c>portal.admin</c>). A permission edit that would drop that count to
+/// Protects the invariant: there must always be at least one ACTIVE user who can manage jobs and
+/// permissions (i.e. effectively holds <c>roles.manage</c>). A permission edit that would drop that count to
 /// zero is rejected — otherwise nobody could log in to undo it, an irrecoverable lockout. The guard runs
 /// only when an edit actually REMOVES admin access, so it never blocks unrelated edits, and it computes
 /// the post-change state in memory (no transaction needed — works on the InMemory test provider too).
 /// </summary>
-internal static class PortalAdminInvariant
+internal static class RolesManageInvariant
 {
-    private const string Key = AppConstants.Permissions.PortalAdmin;
+    private const string Key = AppConstants.Permissions.RolesManage;
 
     /// <summary>
-    /// Counts ACTIVE staff who would still hold effective <c>portal.admin</c> given the set of role ids
+    /// Counts ACTIVE staff who would still hold effective <c>roles.manage</c> given the set of role ids
     /// that grant it (caller passes the POST-change set) plus the current per-user grant/revoke overrides
     /// (revoke wins). Optionally excludes one user whose own change is evaluated separately.
     /// </summary>
@@ -50,7 +50,7 @@ internal static class PortalAdminInvariant
         return await db.Staff.Where(s => candidates.Contains(s.Id) && s.IsActive).CountAsync(ct);
     }
 
-    /// <summary>Whether this user effectively holds <c>portal.admin</c> under the CURRENT committed state.</summary>
+    /// <summary>Whether this user effectively holds <c>roles.manage</c> under the CURRENT committed state.</summary>
     public static async Task<bool> UserHasAdminAsync(IAppDbContext db, Guid userId, CancellationToken ct)
     {
         var active = await db.Staff.Where(s => s.Id == userId).Select(s => s.IsActive).FirstOrDefaultAsync(ct);

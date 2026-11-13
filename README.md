@@ -98,6 +98,7 @@ dotnet test tests/Infrastructure.Tests/
 dotnet test tests/Integration.Tests/         # needs Docker (Testcontainers)
 
 npm run test:e2e                             # Playwright against the running Docker stack
+# PW_CHANNEL=msedge npm run test:e2e         # use the installed Edge/Chrome if Playwright's bundled Chromium cannot start
 ```
 
 ## Git workflow and CI/CD

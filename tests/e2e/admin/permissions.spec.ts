@@ -25,7 +25,7 @@ const login = (ctx: APIRequestContext, staffId: string, password: string) =>
   ctx.post('/api/auth/login', { data: { staffId, password, portal: 'admin' } });
 
 async function findEmployeeId(admin: APIRequestContext): Promise<string> {
-  const res = await admin.get('/api/staff?page=1&pageSize=100');
+  const res = await admin.get(`/api/staff?page=1&pageSize=20&includeHidden=true&search=${STAFF.staffId}`);
   expect(res.ok()).toBeTruthy();
   const body = await res.json() as { items?: { id: string; staffId: string }[]; data?: { id: string; staffId: string }[] };
   const items = body.items ?? body.data ?? (body as unknown as { id: string; staffId: string }[]);

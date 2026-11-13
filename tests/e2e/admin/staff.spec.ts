@@ -9,11 +9,22 @@ test.describe('Admin — staff list', () => {
     await page.waitForURL(/\/staff/);
   });
 
-  test('staff list page renders a table with at least the seeded admin row', async ({ page }) => {
+  test('staff list page renders a table with at least one row', async ({ page }) => {
     // Wait for the skeleton to clear and at least one row to appear
     await expect(page.locator('p-datatable, table')).toBeVisible({ timeout: 8_000 });
-    // HRADMIN is always seeded — at least one row must exist
-    await expect(page.getByText('HRADMIN')).toBeVisible({ timeout: 5_000 });
+    await page.waitForSelector('tbody tr', { timeout: 8_000 });
+    expect(await page.locator('tbody tr').count()).toBeGreaterThanOrEqual(1);
+  });
+
+  // HRADMIN (seed data) is hidden from the roster by default; the Show hidden toggle reveals it.
+  test('seed accounts are hidden by default and appear with Show hidden', async ({ page }) => {
+    await page.waitForSelector('tbody tr', { timeout: 8_000 });
+    const searchInput = page.locator('.search-wrap input').first();
+    await searchInput.click();
+    await searchInput.fill('HRADMIN');
+    await expect(page.getByText('HRADMIN')).toHaveCount(0, { timeout: 6_000 });
+    await page.getByRole('button', { name: /show hidden/i }).click();
+    await expect(page.getByText('HRADMIN').first()).toBeVisible({ timeout: 6_000 });
   });
 
   test('search filters the staff list', async ({ page }) => {
@@ -26,9 +37,9 @@ test.describe('Admin — staff list', () => {
     // so .fill() (which requires an editable element) deadlocks. Click first —
     // mousedown/focus strips the temporary readonly — then fill.
     await searchInput.click();
-    await searchInput.fill('HRADMIN');
+    await searchInput.fill('TESTSTAFF01');
     // Server-side search has a 300ms debounce; allow up to 6s for API to respond
-    await expect(page.getByText('HRADMIN')).toBeVisible({ timeout: 6_000 });
+    await expect(page.getByText('TESTSTAFF01').first()).toBeVisible({ timeout: 6_000 });
   });
 
   test('navigating to a staff detail page loads without error', async ({ page }) => {

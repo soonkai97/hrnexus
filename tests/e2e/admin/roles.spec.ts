@@ -19,13 +19,13 @@ test.describe('Admin — Roles', () => {
     await page.waitForURL(/\/roles/);
   });
 
-  test('shows the roles page heading', async ({ page }) => {
-    await expect(page.locator('h1')).toContainText(/role/i, { timeout: 8_000 });
+  test('shows the roles page heading (the UI calls roles "Jobs")', async ({ page }) => {
+    await expect(page.locator('h1')).toContainText(/job|role/i, { timeout: 8_000 });
   });
 
-  test('shows the Add New Role button', async ({ page }) => {
+  test('shows the Add New Job button', async ({ page }) => {
     await expect(
-      page.getByRole('button', { name: /add.*role|new.*role/i })
+      page.getByRole('button', { name: /add.*(job|role)|new.*(job|role)/i })
     ).toBeVisible({ timeout: 8_000 });
   });
 
@@ -37,7 +37,7 @@ test.describe('Admin — Roles', () => {
   });
 
   test('opens the add role dialog when button is clicked', async ({ page }) => {
-    const addBtn = page.getByRole('button', { name: /add.*role|new.*role/i });
+    const addBtn = page.getByRole('button', { name: /add.*(job|role)|new.*(job|role)/i });
     await expect(addBtn).toBeVisible({ timeout: 10_000 });
     await addBtn.click();
     // The create form is now a modal dialog — assert its name input is shown.

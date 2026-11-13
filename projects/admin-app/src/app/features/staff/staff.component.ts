@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +26,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Checkbox } from 'primeng/checkbox';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-staff',
   standalone: true,
   imports: [FormsModule, RouterLink, TranslatePipe, TrimInputDirective,

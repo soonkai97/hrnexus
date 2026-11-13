@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { AdminService } from './admin.service';
 
 /**
@@ -13,7 +13,7 @@ describe('AdminService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [AdminService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [AdminService, provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     service = TestBed.inject(AdminService);
     http    = TestBed.inject(HttpTestingController);

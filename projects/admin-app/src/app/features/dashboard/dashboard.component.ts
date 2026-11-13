@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { SignalRService, AdminService, DashboardStats, ToastService } from 'shared-lib';
 import { Tag } from 'primeng/tag';
@@ -6,6 +6,7 @@ import { Card } from 'primeng/card';
 import { Skeleton } from 'primeng/skeleton';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-dashboard',
   standalone: true,
   imports: [TranslatePipe, Tag, Card, Skeleton],

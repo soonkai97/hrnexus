@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { PermissionAdminService, groupedPermissions } from './permission-admin.service';
 
 /**
@@ -15,7 +15,7 @@ describe('PermissionAdminService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [PermissionAdminService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [PermissionAdminService, provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     service = TestBed.inject(PermissionAdminService);
     http    = TestBed.inject(HttpTestingController);

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -14,6 +14,7 @@ import {
 } from 'shared-lib';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-payroll-locks',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe, Card, Button, TableModule, Tag, InputText, Select, Skeleton],

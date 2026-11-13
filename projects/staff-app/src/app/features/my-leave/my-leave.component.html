@@ -67,7 +67,7 @@
             optionValue="value"
             styleClass="w-full" />
           @if (form.leaveType === 'emergency') {
-            <p-message severity="info" [text]="'leave.emergencyInfo' | translate" styleClass="mt-2" />
+            <p-message severity="info" styleClass="mt-2">{{ 'leave.emergencyInfo' | translate }}</p-message>
           }
           @if (form.leaveType === 'annual') {
             <small style="color:var(--p-text-muted-color)">{{ 'leave.annualAdvanceHint' | translate }}</small>
@@ -141,7 +141,7 @@
       </div>
 
       @if (formError()) {
-        <p-message severity="error" [text]="formError()" />
+        <p-message severity="error">{{ formError() }}</p-message>
       }
       <div class="form-actions d-flex gap-3 justify-content-end">
         <p-button

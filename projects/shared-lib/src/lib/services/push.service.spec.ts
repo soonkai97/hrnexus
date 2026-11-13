@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { PushService } from './push.service';
 
 /**
@@ -23,7 +23,7 @@ describe('PushService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [PushService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [PushService, provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     service = TestBed.inject(PushService);
     http    = TestBed.inject(HttpTestingController);

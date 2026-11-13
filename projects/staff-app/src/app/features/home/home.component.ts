@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -7,6 +7,7 @@ import { AuthService, LeaveService, LeaveBalance } from 'shared-lib';
 import { Card } from 'primeng/card';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-home',
   standalone: true,
   imports: [UpperCasePipe, TranslatePipe, Card],

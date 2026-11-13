@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inject, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, signal, computed, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { interval, merge } from 'rxjs';
 import { filter, startWith } from 'rxjs/operators';
@@ -17,6 +17,7 @@ const POLL_INTERVAL_MS   = 60_000;
 interface NavItem { path: string; labelKey: string; icon: string; }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-shell',
   standalone: true,
   imports: [

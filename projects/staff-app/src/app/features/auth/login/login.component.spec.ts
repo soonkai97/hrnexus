@@ -1,14 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { LoginComponent } from './login.component';
 import { AuthService, LangService } from 'shared-lib';
 
-@Component({ template: '', standalone: true }) class StubComponent {}
+@Component({
+  changeDetection: ChangeDetectionStrategy.Eager, template: '', standalone: true }) class StubComponent {}
 
 /**
  * LoginComponent (staff-app) — staff portal login page.
@@ -40,7 +41,7 @@ describe('LoginComponent (staff-app)', () => {
     await TestBed.configureTestingModule({
       imports: [LoginComponent],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideRouter([
           { path: 'home', component: StubComponent },
         ]),

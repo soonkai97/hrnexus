@@ -9,7 +9,7 @@
   </div>
 
   @if (error()) {
-    <p-message severity="error" [text]="error()" styleClass="mb-3 w-full" />
+    <p-message severity="error" styleClass="mb-3 w-full">{{ error() }}</p-message>
   }
 
   <!-- Add staff dialog -->
@@ -196,9 +196,9 @@
                           [attr.aria-label]="'staff.bulkSelectAll' | translate" />
             </th>
           }
-          <th scope="col" pSortableColumn="staffId">{{ 'staff.staffId' | translate }} <p-sortIcon field="staffId" /></th>
-          <th scope="col" pSortableColumn="firstName">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }} <p-sortIcon field="firstName" /></th>
-          <th scope="col" pSortableColumn="isActive">{{ 'staff.statusCol' | translate }} <p-sortIcon field="isActive" /></th>
+          <th scope="col" pSortableColumn="staffId">{{ 'staff.staffId' | translate }} <p-sort-icon field="staffId" /></th>
+          <th scope="col" pSortableColumn="firstName">{{ 'staff.firstName' | translate }} / {{ 'staff.lastName' | translate }} <p-sort-icon field="firstName" /></th>
+          <th scope="col" pSortableColumn="isActive">{{ 'staff.statusCol' | translate }} <p-sort-icon field="isActive" /></th>
           <th scope="col" class="td-actions"></th>
         </tr>
       </ng-template>

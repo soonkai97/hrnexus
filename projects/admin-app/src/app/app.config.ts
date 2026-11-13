@@ -1,6 +1,6 @@
 import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners, provideAppInitializer, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, HttpClient, withXhr } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideTranslateService } from '@ngx-translate/core';
@@ -35,7 +35,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withInterceptors([maintenanceInterceptor, errorInterceptor, jwtInterceptor])),
+    provideHttpClient(withInterceptors([maintenanceInterceptor, errorInterceptor, jwtInterceptor]), withXhr()),
     provideAppInitializer(async () => {
       // Check maintenance status before the app renders anything.
       // /api/health is NOT in any SW dataGroup so it always hits nginx directly,

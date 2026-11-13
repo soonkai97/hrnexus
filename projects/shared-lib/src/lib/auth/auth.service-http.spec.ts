@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -33,7 +33,7 @@ describe('AuthService — login()', () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([])],
     });
     service = TestBed.inject(AuthService);
     http    = TestBed.inject(HttpTestingController);
@@ -80,7 +80,7 @@ describe('AuthService — login()', () => {
     // Re-create the service to trigger the constructor cleanup.
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([])],
     });
     TestBed.inject(AuthService);
     expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull();
@@ -96,7 +96,7 @@ describe('AuthService — refreshToken()', () => {
     localStorage.clear();
     TestBed.configureTestingModule({
       // Include auth/login route so logout() navigation doesn't throw NG04002
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([{ path: 'auth/login', redirectTo: '' }])],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([{ path: 'auth/login', redirectTo: '' }])],
     });
     service = TestBed.inject(AuthService);
     http    = TestBed.inject(HttpTestingController);
@@ -142,7 +142,7 @@ describe('AuthService — logout()', () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([{ path: 'auth/login', redirectTo: '' }])],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([{ path: 'auth/login', redirectTo: '' }])],
     });
     service = TestBed.inject(AuthService);
     http    = TestBed.inject(HttpTestingController);
@@ -178,7 +178,7 @@ describe('AuthService — password flows', () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([])],
     });
     service = TestBed.inject(AuthService);
     http    = TestBed.inject(HttpTestingController);

@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, signal, computed, input, inject, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, DestroyRef, signal, computed, input, inject, ViewChild, ElementRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -11,6 +11,7 @@ import { SignalRService } from '../../services/signalr.service';
 import { AppNotification } from '../../models';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'nc-notification-bell',
   standalone: true,
   imports: [TranslatePipe, Button, BadgeModule, TooltipModule],

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LocationStore, Location, UpsertLocationDto, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, LocalizedNamePipe } from 'shared-lib';
@@ -11,6 +11,7 @@ import { Paginator } from 'primeng/paginator';
 import { PrimeTemplate } from 'primeng/api';   // provides the pTemplate="footer" directive
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-locations',
   standalone: true,
   imports: [FormsModule, TranslatePipe, TrimInputDirective, Button, InputText, Card, TooltipModule, Dialog, Paginator, PrimeTemplate, LocalizedNamePipe],

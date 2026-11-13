@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { merge } from 'rxjs';
 import { DatePipe } from '@angular/common';
@@ -22,6 +22,7 @@ type OverrideChoice = 'inherit' | 'grant' | 'revoke';
 type DetailTab = 'profile' | 'permissions';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-staff-detail',
   standalone: true,
   imports: [DatePipe, FormsModule, RouterLink, TranslatePipe, TrimInputDirective,

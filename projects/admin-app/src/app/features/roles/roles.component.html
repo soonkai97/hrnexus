@@ -102,9 +102,9 @@
       [paginator]="roles().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
       <ng-template pTemplate="header">
         <tr>
-          <th scope="col" pSortableColumn="name">{{ 'roles.roleNameCol' | translate }} <p-sortIcon field="name" /></th>
-          <th scope="col" pSortableColumn="hourlyRate">{{ 'roles.hourlyRateCol' | translate }} <p-sortIcon field="hourlyRate" /></th>
-          <th scope="col" pSortableColumn="isSystem">{{ 'roles.typeCol' | translate }} <p-sortIcon field="isSystem" /></th>
+          <th scope="col" pSortableColumn="name">{{ 'roles.roleNameCol' | translate }} <p-sort-icon field="name" /></th>
+          <th scope="col" pSortableColumn="hourlyRate">{{ 'roles.hourlyRateCol' | translate }} <p-sort-icon field="hourlyRate" /></th>
+          <th scope="col" pSortableColumn="isSystem">{{ 'roles.typeCol' | translate }} <p-sort-icon field="isSystem" /></th>
           <th scope="col" class="td-actions"></th>
         </tr>
       </ng-template>

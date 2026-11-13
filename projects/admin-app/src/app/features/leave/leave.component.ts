@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { Subject, EMPTY } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -33,6 +33,7 @@ const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show', 'emergency'] as cons
 const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-leave',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe, TrimInputDirective,

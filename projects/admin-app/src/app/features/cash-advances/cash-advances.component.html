@@ -7,7 +7,7 @@
   <p class="page-hint"><i class="pi pi-info-circle"></i> {{ 'cashAdvances.hint' | translate }}</p>
 
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-    <p-selectButton [options]="filterOptions" [ngModel]="filter()" (onChange)="setFilter($event.value)"
+    <p-select-button [options]="filterOptions" [ngModel]="filter()" (onChange)="setFilter($event.value)"
                     optionLabel="label" optionValue="value" [allowEmpty]="false" />
     @if (totalOutstanding() > 0) {
       <span class="outstanding-pill">{{ 'cashAdvances.totalOutstanding' | translate }}: <strong>RM {{ totalOutstanding() | number:'1.2-2' }}</strong></span>
@@ -63,11 +63,11 @@
         [paginator]="advances().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
         <ng-template pTemplate="header">
           <tr>
-            <th pSortableColumn="staffName">{{ 'cashAdvances.staff' | translate }} <p-sortIcon field="staffName" /></th>
-            <th pSortableColumn="amount">{{ 'cashAdvances.amount' | translate }} <p-sortIcon field="amount" /></th>
-            <th pSortableColumn="advanceDate">{{ 'cashAdvances.date' | translate }} <p-sortIcon field="advanceDate" /></th>
+            <th pSortableColumn="staffName">{{ 'cashAdvances.staff' | translate }} <p-sort-icon field="staffName" /></th>
+            <th pSortableColumn="amount">{{ 'cashAdvances.amount' | translate }} <p-sort-icon field="amount" /></th>
+            <th pSortableColumn="advanceDate">{{ 'cashAdvances.date' | translate }} <p-sort-icon field="advanceDate" /></th>
             <th>{{ 'cashAdvances.reason' | translate }}</th>
-            <th pSortableColumn="status">{{ 'cashAdvances.status' | translate }} <p-sortIcon field="status" /></th>
+            <th pSortableColumn="status">{{ 'cashAdvances.status' | translate }} <p-sort-icon field="status" /></th>
             <th class="td-actions"></th>
           </tr>
         </ng-template>

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -8,6 +8,7 @@ import { Card } from 'primeng/card';
 import { SelectButton } from 'primeng/selectbutton';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-account',
   standalone: true,
   imports: [RouterLink, FormsModule, TranslatePipe, Button, Card, SelectButton],

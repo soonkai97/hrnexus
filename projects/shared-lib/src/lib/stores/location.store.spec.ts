@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { LocationStore } from './location.store';
 import { Location } from '../models/location.model';
@@ -32,7 +32,7 @@ describe('LocationStore', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     store = TestBed.inject(LocationStore);
     http  = TestBed.inject(HttpTestingController);

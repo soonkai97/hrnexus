@@ -1,14 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { provideTranslateService } from '@ngx-translate/core';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AdminLoginComponent } from './login.component';
 import { AuthService, LangService, PermissionService } from 'shared-lib';
 
-@Component({ template: '', standalone: true }) class StubComponent {}
+@Component({
+  changeDetection: ChangeDetectionStrategy.Eager, template: '', standalone: true }) class StubComponent {}
 
 /**
  * AdminLoginComponent — admin portal login page.
@@ -44,7 +45,7 @@ describe('AdminLoginComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AdminLoginComponent],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideRouter([
           { path: 'dashboard', component: StubComponent },
         ]),

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PayrollLockService } from './payroll-lock.service';
 
@@ -10,7 +10,7 @@ describe('PayrollLockService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [PayrollLockService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [PayrollLockService, provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     service = TestBed.inject(PayrollLockService);
     http    = TestBed.inject(HttpTestingController);

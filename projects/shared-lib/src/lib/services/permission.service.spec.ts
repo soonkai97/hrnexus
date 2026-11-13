@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { PermissionService } from './permission.service';
 
 describe('PermissionService', () => {
@@ -9,7 +9,7 @@ describe('PermissionService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [PermissionService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [PermissionService, provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     service = TestBed.inject(PermissionService);
     http    = TestBed.inject(HttpTestingController);

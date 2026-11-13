@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { CashAdvanceService } from './cash-advance.service';
 
 describe('CashAdvanceService', () => {
@@ -9,7 +9,7 @@ describe('CashAdvanceService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [CashAdvanceService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [CashAdvanceService, provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     service = TestBed.inject(CashAdvanceService);
     http    = TestBed.inject(HttpTestingController);

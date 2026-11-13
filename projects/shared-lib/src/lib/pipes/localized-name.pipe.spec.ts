@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { LocalizedNamePipe } from './localized-name.pipe';
@@ -26,7 +26,7 @@ describe('LocalizedNamePipe', () => {
       providers: [
         LocalizedNamePipe,
         LangService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideTranslateService({ defaultLanguage: 'en' }),
       ],

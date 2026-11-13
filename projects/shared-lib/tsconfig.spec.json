@@ -9,5 +9,13 @@
     // tests: mocks have known fixed shapes, so `mockArray[0]` would only force noise `!` assertions.
     "noUncheckedIndexedAccess": false
   },
-  "include": ["src/**/*.d.ts", "src/**/*.spec.ts"]
+  "include": ["src/**/*.d.ts", "src/**/*.spec.ts"],
+  "angularCompilerOptions": {
+    "extendedDiagnostics": {
+      "checks": {
+        "nullishCoalescingNotNullable": "suppress",
+        "optionalChainNotNullable": "suppress"
+      }
+    }
+  }
 }

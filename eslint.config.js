@@ -26,6 +26,9 @@ module.exports = tseslint.config(
       // Off: conflicts with TS definite-assignment (a `let x = ''` default before branch assignment
       // is required so the variable is always assigned), which this rule flags as "useless".
       'no-useless-assignment': 'off',
+      // Angular 22 defaults to OnPush; `ng update` kept the existing components on Eager so behaviour is unchanged.
+      // Moving each component to OnPush is a gradual change, so the opt-out is allowed for now.
+      '@angular-eslint/prefer-on-push-component-change-detection': 'off',
     },
   },
   {

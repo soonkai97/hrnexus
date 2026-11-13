@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -20,6 +20,7 @@ import { PrimeTemplate } from 'primeng/api';
 type Filter = 'all' | 'outstanding' | 'settled';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-cash-advances',
   standalone: true,
   imports: [DecimalPipe, FormsModule, TranslatePipe, Button, InputNumber, InputText, Select,

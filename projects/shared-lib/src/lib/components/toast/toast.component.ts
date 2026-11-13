@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Toast } from 'primeng/toast';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'nc-toast',
   standalone: true,
   imports: [Toast],

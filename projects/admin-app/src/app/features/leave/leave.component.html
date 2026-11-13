@@ -213,7 +213,7 @@
             </div>
           }
         </div>
-        @if (formError()) { <p-message severity="error" [text]="formError()" styleClass="w-full" /> }
+        @if (formError()) { <p-message severity="error" styleClass="w-full">{{ formError() }}</p-message> }
         <ng-template pTemplate="footer">
           <p-button [label]="'common.cancel' | translate" [text]="true" severity="secondary" (click)="cancelForm()" />
           <p-button [label]="saving() ? ('common.saving' | translate) : ('common.save' | translate)"

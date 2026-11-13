@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -18,6 +18,7 @@ import { SelectButton } from 'primeng/selectbutton';
 import { MenuItem } from 'primeng/api';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-roles',
   standalone: true,
   imports: [DecimalPipe, FormsModule, TranslatePipe, TrimInputDirective, LocalizedNamePipe,

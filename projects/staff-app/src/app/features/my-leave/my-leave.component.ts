@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -18,6 +18,7 @@ const LEAVE_TYPES = ['annual', 'sick', 'unpaid', 'emergency'] as const;
 type StaffLeaveType = typeof LEAVE_TYPES[number];
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-my-leave',
   standalone: true,
   imports: [DatePipe, FormsModule, TranslatePipe, HmPipe, TrimInputDirective,

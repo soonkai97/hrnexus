@@ -1,11 +1,9 @@
 import { Component, OnInit, signal, computed, inject, ViewChild } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate,
-         PermissionAdminService, groupedPermissions, permissionLabel, permissionDescription, PayType } from 'shared-lib';
+         PermissionAdminService, groupedPermissions, permissionLabel, permissionDescription } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { InputNumber } from 'primeng/inputnumber';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Card } from 'primeng/card';
@@ -13,14 +11,13 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Dialog } from 'primeng/dialog';
 import { Checkbox } from 'primeng/checkbox';
 import { Menu } from 'primeng/menu';
-import { SelectButton } from 'primeng/selectbutton';
 import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TrimInputDirective,
-    Button, InputText, InputNumber, TableModule, Tag, Card, TooltipModule, Dialog, Checkbox, Menu, SelectButton],
+  imports: [FormsModule, TrimInputDirective,
+    Button, InputText, TableModule, Tag, Card, TooltipModule, Dialog, Checkbox, Menu],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })
@@ -38,26 +35,14 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   showForm       = signal(false);
   newRoleName    = '';
-  newRoleRate    = 0;
-  newRolePayType: PayType = 'hourly';
   saving         = signal(false);
   deletingRole   = signal<string | null>(null);
 
-  /** Pay-type toggle options for the SelectButton. */
-  readonly payTypeOptions: { label: string; value: PayType }[] = [
-    { label: 'Hourly', value: 'hourly' },
-    { label: 'Fixed per shift',  value: 'fixed'  },
-  ];
-
-  // Edit-role modal state — keyed by the role's GUID id (roles are id-identified since the GUID-PK
-  // migration, so the English name is now editable display data — except for system roles, whose name
-  // is the authorization key and stays locked).
-  editingRateId       = signal<string | null>(null);
-  editingRateName     = signal('');
-  editingRateValue    = signal(0);
-  editingRatePayType  = signal<PayType>('hourly');
-  editingRateIsSystem = signal(false);
-  savingRate          = signal(false);
+  // Rename-job modal state — keyed by the role's GUID id. Only custom jobs can be renamed: a system
+  // job's name is its authorization key, so it is never editable.
+  editingId   = signal<string | null>(null);
+  editingName = signal('');
+  savingEdit  = signal(false);
 
   // Role-permissions editor state
   permRole        = signal<string | null>(null);   // role whose permissions dialog is open
@@ -82,8 +67,6 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   openAdd(): void {
     this.newRoleName = '';
-    this.newRoleRate = 0;
-    this.newRolePayType = 'hourly';
     this.touched.set(new Set());
     this.showForm.set(true);
   }
@@ -94,11 +77,9 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     const name = this.newRoleName.trim().toUpperCase();
     if (!name) return;
     this.saving.set(true);
-    this.store.createRole(name, this.newRoleRate, this.newRolePayType).subscribe({
+    this.store.createRole(name).subscribe({
       next: () => {
         this.newRoleName = '';
-        this.newRoleRate = 0;
-        this.newRolePayType = 'hourly';
         this.saving.set(false);
         this.showForm.set(false);
         this.toast.success('Job created.');
@@ -107,40 +88,35 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  /** Open the edit-role modal, prefilled from the row. `isSystem` locks the English-name field. */
-  startEditRate(role: { id: string; name: string; hourlyRate: number; payType: PayType; isSystem: boolean }): void {
-    this.editingRateId.set(role.id);
-    this.editingRateName.set(role.name);
-    this.editingRateValue.set(role.hourlyRate);
-    this.editingRatePayType.set(role.payType);
-    this.editingRateIsSystem.set(role.isSystem);
+  /** Open the rename modal, prefilled from the row. System jobs cannot be edited. */
+  startEdit(role: { id: string; name: string; isSystem: boolean }): void {
+    if (role.isSystem) return;
+    this.editingId.set(role.id);
+    this.editingName.set(role.name);
   }
 
-  cancelEditRate(): void { this.editingRateId.set(null); }
+  cancelEdit(): void { this.editingId.set(null); }
 
-  saveRate(): void {
-    const id = this.editingRateId();
-    if (!id || this.savingRate()) return;
-    // System roles keep their English name (the auth key) — only send a name change for custom jobs.
-    const name = this.editingRateIsSystem() ? null : (this.editingRateName().trim().toUpperCase() || null);
-    if (!this.editingRateIsSystem() && !name) return; // English name is required for custom jobs
-    this.savingRate.set(true);
-    this.store.updateRoleRate(id, this.editingRateValue(), this.editingRatePayType(), name).subscribe({
+  saveEdit(): void {
+    const id = this.editingId();
+    const name = this.editingName().trim().toUpperCase();
+    if (!id || !name || this.savingEdit()) return;
+    this.savingEdit.set(true);
+    this.store.renameRole(id, name).subscribe({
       next: () => {
-        this.savingRate.set(false);
-        this.editingRateId.set(null);
+        this.savingEdit.set(false);
+        this.editingId.set(null);
         this.toast.success('Job updated.');
       },
       error: (e) => {
         this.toast.error(e?.error?.error ?? 'Failed to update job.');
-        this.savingRate.set(false);
+        this.savingEdit.set(false);
       },
     });
   }
 
   hasUnsavedChanges(): boolean {
-    return (this.showForm() && (!!this.newRoleName.trim() || this.newRoleRate > 0)) ||
-           this.editingRateId() !== null;
+    return (this.showForm() && !!this.newRoleName.trim()) || this.editingId() !== null;
   }
 
   deleteRole(id: string): void {
@@ -161,16 +137,16 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   // ── Role permissions editor ────────────────────────────────────────────────
 
-  /** Per-row actions via the ellipsis menu (Delete only for custom roles). */
-  openRoleMenu(role: { id: string; name: string; hourlyRate: number; isSystem: boolean; payType: PayType }, event: Event): void {
+  /** Per-row actions via the ellipsis menu (Edit and Delete only for custom roles). */
+  openRoleMenu(role: { id: string; name: string; isSystem: boolean }, event: Event): void {
     const items: MenuItem[] = [
-      { label: 'Edit', icon: 'pi pi-pencil',
-        command: () => this.startEditRate(role) },
       { label: 'Job permissions', icon: 'pi pi-shield',
         // Permissions API is keyed by role NAME on the backend — pass the name here, not the id.
         command: () => this.openPermissions(role.name) },
     ];
     if (!role.isSystem) {
+      items.unshift({ label: 'Edit', icon: 'pi pi-pencil',
+        command: () => this.startEdit(role) });
       items.push({ separator: true });
       items.push({ label: 'Delete', icon: 'pi pi-trash',
         styleClass: 'nc-danger-item', command: () => this.deleteRole(role.id) });

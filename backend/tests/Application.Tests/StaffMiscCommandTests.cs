@@ -101,12 +101,12 @@ public class StaffMiscCommandTests
         await using var db = CreateDb();
         var handler = new CreateRoleCommandHandler(db);
 
-        await handler.Handle(new CreateRoleCommand("waitress", HourlyRate: 15.5m),
+        await handler.Handle(new CreateRoleCommand("waitress"),
             CancellationToken.None);
 
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Name == "WAITRESS");
         Assert.NotNull(role);
-        Assert.Equal(15.5m, role.HourlyRate);
+        Assert.False(role.IsSystem);
     }
 
     // ── SetStaffHiddenCommand ─────────────────────────────────────────────────
@@ -207,7 +207,7 @@ public class StaffMiscCommandTests
     public async Task DeleteRole_AlsoRemovesItsRolePermissionRows()
     {
         // Deleting a role removes the role row AND its own default-permission rows, while never touching
-        // OTHER roles' rows. DeleteRoleCommand cleans up the deleted role's RolePermission/RoleRate rows
+        // OTHER roles' rows. DeleteRoleCommand cleans up the deleted role's RolePermission rows
         // EXPLICITLY (by RoleId) — belt-and-suspenders over the Postgres cascade FK — so this holds on the
         // EF InMemory provider too (which does not reproduce DB-level FK cascades).
         await using var db = CreateDb();
@@ -325,10 +325,10 @@ public class StaffMiscCommandTests
     }
 
     [Fact]
-    public async Task GetRoles_ReturnsMappedDto_WithHourlyRate()
+    public async Task GetRoles_ReturnsMappedDto()
     {
         await using var db = CreateDb();
-        db.Roles.Add(E.Role.Create("WAITRESS", isSystem: false, hourlyRate: 25m));
+        db.Roles.Add(E.Role.Create("WAITRESS", isSystem: false));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -337,6 +337,6 @@ public class StaffMiscCommandTests
 
         Assert.Single(result);
         Assert.Equal("WAITRESS", result[0].Name);
-        Assert.Equal(25m, result[0].HourlyRate);
+        Assert.False(result[0].IsSystem);
     }
 }

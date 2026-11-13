@@ -1,8 +1,8 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, StaffOverride, groupedPermissions, permissionLabel, permissionDescription } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, PermissionService, PayrollService, SalaryOverview, CitizenshipStatus, StaffOverride, groupedPermissions, permissionLabel, permissionDescription, todayLocalString } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
@@ -12,17 +12,23 @@ import { DatePicker } from 'primeng/datepicker';
 import { MultiSelect } from 'primeng/multiselect';
 import { SelectButton } from 'primeng/selectbutton';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
+import { TableModule } from 'primeng/table';
+import { Dialog } from 'primeng/dialog';
+import { InputNumber } from 'primeng/inputnumber';
+import { Select } from 'primeng/select';
+import { PrimeTemplate } from 'primeng/api';
 
 /** Tri-state choice for a per-user permission override. */
 type OverrideChoice = 'inherit' | 'grant' | 'revoke';
 /** Which detail tab is active. */
-type DetailTab = 'profile' | 'permissions';
+type DetailTab = 'profile' | 'permissions' | 'pay';
 
 @Component({
   selector: 'app-staff-detail',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink, TrimInputDirective,
-    Button, InputText, Tag, Card, Skeleton, DatePicker, MultiSelect, SelectButton, Tabs, TabList, Tab],
+  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TrimInputDirective,
+    Button, InputText, Tag, Card, Skeleton, DatePicker, MultiSelect, SelectButton, Tabs, TabList, Tab,
+    TableModule, Dialog, InputNumber, Select, PrimeTemplate],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
@@ -33,6 +39,8 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly route       = inject(ActivatedRoute);
   private readonly permSvc     = inject(PermissionAdminService);
+  private readonly perms       = inject(PermissionService);
+  private readonly payrollSvc  = inject(PayrollService);
 
   staff            = signal<StaffDetail | null>(null);
   loading          = signal(true);
@@ -105,6 +113,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     this.staffStore.loadRoles();
     this.loadStaff();
     this.loadPermissions();
+    this.loadPay();
   }
 
   loadStaff(): void {
@@ -190,6 +199,128 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
     this.staffStore.update(this.staffId, req).subscribe({
       next:  ()       => { this.loadStaff(); this.editMode.set(false); this.saving.set(false); this.toast.success('Profile updated.'); },
       error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? 'Update failed.'); this.saving.set(false); },
+    });
+  }
+
+  // ── Pay (payroll.view to see, payroll.manage to change) ─────────────────────
+
+  get canViewPay():   boolean { return this.perms.has('payroll.view'); }
+  get canManagePay(): boolean { return this.canViewPay && this.perms.has('payroll.manage'); }
+
+  pay        = signal<SalaryOverview | null>(null);
+  payLoading = signal(false);
+
+  readonly citizenshipOptions: { label: string; value: CitizenshipStatus }[] = [
+    { label: 'Citizen',            value: 'citizen' },
+    { label: 'Permanent resident', value: 'permanent-resident' },
+  ];
+  citizenshipLabel(v: CitizenshipStatus | null | undefined): string {
+    return this.citizenshipOptions.find(o => o.value === v)?.label ?? '—';
+  }
+
+  /** Account number shown as bullets plus its last 4 characters only (never the full number). */
+  maskAccount(account: string | null | undefined): string {
+    if (!account) return '—';
+    if (account.length <= 4) return '•'.repeat(account.length);
+    return '•••• ' + account.slice(-4);
+  }
+
+  /** A salary row whose effective date is still in the future. */
+  isScheduled(effectiveFrom: string): boolean {
+    return effectiveFrom > todayLocalString();
+  }
+
+  /** No-op without payroll.view, so no salary request is ever made for users who cannot see pay. */
+  loadPay(): void {
+    if (!this.canViewPay) return;
+    this.payLoading.set(true);
+    this.payrollSvc.getSalary(this.staffId).subscribe({
+      next:  d  => { this.pay.set(d); this.payLoading.set(false); },
+      error: () => { this.toast.error('Failed to load pay details.'); this.payLoading.set(false); },
+    });
+  }
+
+  // Add salary (append-only history)
+  showSalaryDialog = signal(false);
+  salarySaving     = signal(false);
+  salaryError      = signal('');
+  salaryForm       = this.blankSalaryForm();
+
+  private blankSalaryForm() {
+    return { basicSalary: null as number | null, effectiveFrom: '', bankName: '', bankAccount: '', bankHolder: '' };
+  }
+
+  get isSalaryFormValid(): boolean {
+    return (this.salaryForm.basicSalary ?? 0) > 0 && !!this.salaryForm.effectiveFrom;
+  }
+
+  openSalaryDialog(): void {
+    this.salaryForm = this.blankSalaryForm();
+    this.salaryError.set('');
+    this.showSalaryDialog.set(true);
+  }
+
+  closeSalaryDialog(): void { this.showSalaryDialog.set(false); }
+
+  addSalary(): void {
+    if (!this.canManagePay || !this.isSalaryFormValid) return;
+    const f = this.salaryForm;
+    this.salarySaving.set(true);
+    this.salaryError.set('');
+    this.payrollSvc.addSalary(this.staffId, {
+      basicSalary:   f.basicSalary!,
+      payFrequency:  'monthly',
+      effectiveFrom: f.effectiveFrom,
+      bankName:      f.bankName.trim()    || null,
+      bankAccount:   f.bankAccount.trim() || null,
+      bankHolder:    f.bankHolder.trim()  || null,
+    }).subscribe({
+      next: () => {
+        this.salarySaving.set(false);
+        this.showSalaryDialog.set(false);
+        this.toast.success('Salary added.');
+        this.loadPay();
+      },
+      error: (e: unknown) => { this.salaryError.set(apiErrorMessage(e) ?? 'Failed to add salary.'); this.salarySaving.set(false); },
+    });
+  }
+
+  // Employment details
+  empEditMode = signal(false);
+  empSaving   = signal(false);
+  empForm: { citizenshipStatus: CitizenshipStatus | null; startDate: string | null; endDate: string | null } =
+    { citizenshipStatus: null, startDate: null, endDate: null };
+
+  get isEmpFormValid(): boolean {
+    const f = this.empForm;
+    if (!f.citizenshipStatus || !f.startDate) return false;
+    return !f.endDate || f.endDate >= f.startDate;
+  }
+
+  startEmpEdit(): void {
+    const e = this.pay()?.employment;
+    this.empForm = { citizenshipStatus: e?.citizenshipStatus ?? null, startDate: e?.startDate ?? null, endDate: e?.endDate ?? null };
+    this.empEditMode.set(true);
+  }
+
+  cancelEmpEdit(): void { this.empEditMode.set(false); }
+
+  saveEmployment(): void {
+    if (!this.canManagePay || !this.isEmpFormValid) return;
+    const f = this.empForm;
+    this.empSaving.set(true);
+    this.payrollSvc.setEmployment(this.staffId, {
+      citizenshipStatus: f.citizenshipStatus!,
+      startDate:         f.startDate!,
+      endDate:           f.endDate || null,
+    }).subscribe({
+      next: () => {
+        this.empSaving.set(false);
+        this.empEditMode.set(false);
+        this.toast.success('Employment details saved.');
+        this.loadPay();
+      },
+      error: (e: unknown) => { this.toast.error(apiErrorMessage(e) ?? 'Failed to save employment details.'); this.empSaving.set(false); },
     });
   }
 

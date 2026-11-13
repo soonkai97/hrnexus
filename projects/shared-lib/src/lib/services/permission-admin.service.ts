@@ -49,7 +49,7 @@ export const PERMISSION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   'payroll.view': 'Open the Payroll report (hours × hourly rate per staff).',
   'payroll.manage': 'Export the payroll data to CSV.',
   'payroll.lock': 'Lock or reopen a month to freeze its shift logs.',
-  'roles.manage': 'Create jobs, set their hourly rate, and assign these permissions.',
+  'roles.manage': 'Create, rename and delete jobs, and assign these permissions.',
 };
 
 /** Falls back to the raw key so an unlisted permission is never shown blank. */

@@ -17,16 +17,6 @@
              (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" styleClass="w-full" />
       @if (fieldError('name'); as err) { <small class="field-err">{{ err }}</small> }
     </div>
-    <div class="field">
-      <span id="rl-pay-type-label" class="field-label">Pay type</span>
-      <p-selectbutton [options]="payTypeOptions" [(ngModel)]="newRolePayType" ariaLabelledBy="rl-pay-type-label"
-                      optionLabel="label" optionValue="value" [allowEmpty]="false" />
-      <small class="field-hint">{{ (newRolePayType === 'fixed' ? 'Pay = a flat amount per shift, regardless of hours.' : 'Pay = hours worked × rate.') }}</small>
-    </div>
-    <div class="field">
-      <label for="rl-role-rate">{{ (newRolePayType === 'fixed' ? 'Amount (RM/shift)' : 'Rate (RM/hr)') }}</label>
-      <p-inputnumber inputId="rl-role-rate" [(ngModel)]="newRoleRate" [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2" [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
-    </div>
     <ng-template pTemplate="footer">
       <p-button label="Cancel" [text]="true" severity="secondary" (click)="cancel()" />
       <p-button [label]="saving() ? 'Saving…' : 'Add'" severity="primary"
@@ -34,36 +24,20 @@
     </ng-template>
   </p-dialog>
 
-  <!-- Edit role dialog — all three display names + pay type + rate. English name is locked for
-       system roles (it's the authorization key). -->
-  <p-dialog [visible]="editingRateId() !== null" (visibleChange)="!$event && cancelEditRate()"
+  <!-- Rename job dialog — custom jobs only (a system job's name is its authorization key). -->
+  <p-dialog [visible]="editingId() !== null" (visibleChange)="!$event && cancelEdit()"
             header="Edit Job" [modal]="true"
             [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     <div class="field">
       <label for="rl-edit-name"><span class="req">*</span> Job Name</label>
-      <input id="rl-edit-name" pInputText type="text" [ngModel]="editingRateName()"
-             (ngModelChange)="editingRateName.set($event.toUpperCase())"
-             [disabled]="editingRateIsSystem()" maxlength="50" styleClass="w-full"
-             (keydown.enter)="saveRate()" />
-      @if (editingRateIsSystem()) { <small class="field-hint">System jobs keep their name — it's used for access control.</small> }
-    </div>
-    <div class="field">
-      <span id="rl-edit-pay-type-label" class="field-label">Pay type</span>
-      <p-selectbutton [options]="payTypeOptions" [ngModel]="editingRatePayType()" ariaLabelledBy="rl-edit-pay-type-label"
-                      (ngModelChange)="editingRatePayType.set($event)"
-                      optionLabel="label" optionValue="value" [allowEmpty]="false" />
-      <small class="field-hint">{{ (editingRatePayType() === 'fixed' ? 'Pay = a flat amount per shift, regardless of hours.' : 'Pay = hours worked × rate.') }}</small>
-    </div>
-    <div class="field">
-      <label for="rl-edit-rate">{{ (editingRatePayType() === 'fixed' ? 'Amount (RM/shift)' : 'Rate (RM/hr)') }}</label>
-      <p-inputnumber inputId="rl-edit-rate" [ngModel]="editingRateValue()" (ngModelChange)="editingRateValue.set(+$event)"
-                     [min]="0" [step]="0.50" placeholder="0.00" mode="decimal" [minFractionDigits]="2"
-                     [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
+      <input id="rl-edit-name" pInputText type="text" [ngModel]="editingName()"
+             (ngModelChange)="editingName.set($event.toUpperCase())"
+             maxlength="50" styleClass="w-full" (keydown.enter)="saveEdit()" />
     </div>
     <ng-template pTemplate="footer">
-      <p-button label="Cancel" [text]="true" severity="secondary" (click)="cancelEditRate()" />
-      <p-button [label]="savingRate() ? 'Saving…' : 'Save'" severity="primary"
-                (click)="saveRate()" [disabled]="savingRate() || (!editingRateIsSystem() && !editingRateName().trim())" [loading]="savingRate()" />
+      <p-button label="Cancel" [text]="true" severity="secondary" (click)="cancelEdit()" />
+      <p-button [label]="savingEdit() ? 'Saving…' : 'Save'" severity="primary"
+                (click)="saveEdit()" [disabled]="savingEdit() || !editingName().trim()" [loading]="savingEdit()" />
     </ng-template>
   </p-dialog>
 
@@ -83,7 +57,6 @@
       <ng-template pTemplate="header">
         <tr>
           <th scope="col" pSortableColumn="name">Job Name <p-sortIcon field="name" /></th>
-          <th scope="col" pSortableColumn="hourlyRate">Hourly Rate (RM) <p-sortIcon field="hourlyRate" /></th>
           <th scope="col" pSortableColumn="isSystem">Type <p-sortIcon field="isSystem" /></th>
           <th scope="col" class="td-actions"></th>
         </tr>
@@ -93,10 +66,6 @@
           <td>
             <span class="p-column-title">Job Name</span>
             <p-tag [value]="role.name" severity="info" />
-          </td>
-          <td>
-            <span class="p-column-title">Hourly Rate (RM)</span>
-            <span>RM {{ role.hourlyRate | number:'1.2-2' }}{{ (role.payType === 'fixed' ? ' /shift' : '/hr') }}</span>
           </td>
           <td>
             <span class="p-column-title">Type</span>

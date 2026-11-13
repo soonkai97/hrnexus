@@ -49,15 +49,9 @@ export interface StaffDetail extends Staff {
   createdAt: string;
 }
 
-/** How a job is paid. 'hourly' = hours × rate; 'fixed' = a flat amount per shift. */
-export type PayType = 'hourly' | 'fixed';
-
 export interface StaffRole {
-  /** GUID primary key — used as the value for role pickers and for rate / delete calls. */
+  /** GUID primary key — used as the value for role pickers and for rename / delete calls. */
   id: string;
   name: string;
   isSystem: boolean;
-  hourlyRate: number;
-  /** 'hourly' = the rate is per hour; 'fixed' = the rate is a flat fee for the whole shift. */
-  payType: PayType;
 }

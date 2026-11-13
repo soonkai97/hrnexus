@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Staff, RegisterStaffRequest, StaffDetail, UpdateStaffRequest, StaffRole, PayType, PagedResult } from '../models';
+import { Staff, RegisterStaffRequest, StaffDetail, UpdateStaffRequest, StaffRole, PagedResult } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class StaffManagementService {
@@ -41,12 +41,12 @@ export class StaffManagementService {
     return this.http.get<StaffRole[]>('/api/staff/roles');
   }
 
-  createRole(name: string, hourlyRate: number = 0, payType: PayType = 'hourly'): Observable<void> {
-    return this.http.post<void>('/api/staff/roles', { name, hourlyRate, payType });
+  createRole(name: string): Observable<void> {
+    return this.http.post<void>('/api/staff/roles', { name });
   }
 
-  updateRoleRate(id: string, hourlyRate: number, payType: PayType = 'hourly', name: string | null = null): Observable<void> {
-    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(id)}/rate`, { hourlyRate, payType, name });
+  renameRole(id: string, name: string): Observable<void> {
+    return this.http.patch<void>(`/api/staff/roles/${encodeURIComponent(id)}`, { name });
   }
 
   deleteRole(id: string): Observable<void> {

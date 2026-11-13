@@ -31,6 +31,7 @@
       <p-tablist>
         <p-tab value="profile">Profile</p-tab>
         <p-tab value="permissions">Permissions</p-tab>
+        @if (canViewPay) { <p-tab value="pay">Pay</p-tab> }
       </p-tablist>
     </p-tabs>
 
@@ -138,6 +139,163 @@
         </div>
       }
     </p-card>
+    }
+
+    <!-- ── Pay (payroll.view; changes need payroll.manage) ───────────── -->
+    @if (activeTab() === 'pay' && canViewPay) {
+      @if (payLoading() && !pay()) {
+        <p-card styleClass="nc-card" class="mb-4">
+          <div class="detail-info-grid">
+            @for (i of [1,2,3,4,5,6]; track i) {
+              <div class="d-flex flex-column gap-1">
+                <p-skeleton width="55%" height="0.62rem" borderRadius="4px" />
+                <p-skeleton width="80%" height="0.78rem" borderRadius="4px" />
+              </div>
+            }
+          </div>
+        </p-card>
+      } @else if (pay(); as p) {
+        <!-- Current salary -->
+        <p-card styleClass="nc-card" class="mb-4">
+          <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+            <h3 class="m-0">Current salary</h3>
+            @if (canManagePay) {
+              <p-button icon="pi pi-plus" label="Add salary" severity="primary" (onClick)="openSalaryDialog()" />
+            }
+          </div>
+          @if (p.current; as c) {
+            <div class="detail-info-grid">
+              <div><span class="pay-label">Basic salary</span><div class="pay-amount">RM {{ c.basicSalary | number:'1.2-2' }}</div></div>
+              <div><span class="pay-label">Effective from</span><div>{{ c.effectiveFrom }}</div></div>
+              <div><span class="pay-label">Pay frequency</span><div>Monthly</div></div>
+              <div><span class="pay-label">Bank</span><div>{{ c.bankName ?? '—' }}</div></div>
+              <div><span class="pay-label">Account number</span><div class="mono">{{ maskAccount(c.bankAccount) }}</div></div>
+              <div><span class="pay-label">Account holder</span><div>{{ c.bankHolder ?? '—' }}</div></div>
+            </div>
+          } @else {
+            <p class="pay-empty">No salary on record yet.</p>
+          }
+        </p-card>
+
+        <!-- Salary history -->
+        <p-card styleClass="nc-card table-card" class="mb-4">
+          <h3 class="m-0 mb-3">Salary history</h3>
+          @if (p.history.length === 0) {
+            <p class="pay-empty">No salary history.</p>
+          } @else {
+            <p-table [value]="p.history" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Effective from</th>
+                  <th>Basic salary</th>
+                  <th>Frequency</th>
+                  <th>Bank</th>
+                  <th>Account</th>
+                  <th></th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-h>
+                <tr>
+                  <td><span class="p-column-title">Effective from</span>{{ h.effectiveFrom }}</td>
+                  <td class="td-bold"><span class="p-column-title">Basic salary</span>RM {{ h.basicSalary | number:'1.2-2' }}</td>
+                  <td><span class="p-column-title">Frequency</span>Monthly</td>
+                  <td><span class="p-column-title">Bank</span>{{ h.bankName ?? '—' }}</td>
+                  <td class="mono"><span class="p-column-title">Account</span>{{ maskAccount(h.bankAccount) }}</td>
+                  <td>
+                    @if (isScheduled(h.effectiveFrom)) { <p-tag value="Scheduled" severity="info" /> }
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+        </p-card>
+
+        <!-- Employment details -->
+        <p-card styleClass="nc-card" class="mb-4">
+          <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+            <h3 class="m-0">Employment details</h3>
+            @if (canManagePay && !empEditMode()) {
+              <p-button icon="pi pi-pencil" label="Edit" severity="primary" (onClick)="startEmpEdit()" />
+            }
+          </div>
+          @if (!empEditMode()) {
+            <div class="detail-info-grid">
+              <div><span class="pay-label">Citizenship</span><div>{{ citizenshipLabel(p.employment.citizenshipStatus) }}</div></div>
+              <div><span class="pay-label">Start date</span><div>{{ p.employment.startDate ?? '—' }}</div></div>
+              <div><span class="pay-label">End date</span><div>{{ p.employment.endDate ?? '—' }}</div></div>
+            </div>
+          } @else {
+            <div class="row g-3">
+              <div class="col-12 col-md-4 field">
+                <label for="emp-citizenship"><span class="req">*</span> Citizenship</label>
+                <p-select inputId="emp-citizenship" [(ngModel)]="empForm.citizenshipStatus" [options]="citizenshipOptions"
+                          optionLabel="label" optionValue="value" placeholder="Select…" appendTo="body" styleClass="w-full" />
+              </div>
+              <div class="col-12 col-md-4 field">
+                <label for="emp-start"><span class="req">*</span> Start date</label>
+                <p-datepicker inputId="emp-start" [(ngModel)]="empForm.startDate" dateFormat="yy-mm-dd" dataType="string"
+                              [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+              </div>
+              <div class="col-12 col-md-4 field">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label for="emp-end">End date</label>
+                  @if (empForm.endDate) {
+                    <button type="button" class="dob-clear-link" (click)="empForm.endDate = null"><i class="pi pi-times"></i> Clear</button>
+                  }
+                </div>
+                <p-datepicker inputId="emp-end" [(ngModel)]="empForm.endDate" dateFormat="yy-mm-dd" dataType="string"
+                              [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+                @if (empForm.endDate && empForm.startDate && empForm.endDate < empForm.startDate) {
+                  <small class="field-err">End date cannot be before the start date.</small>
+                }
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+              <p-button label="Save" severity="primary" (onClick)="saveEmployment()"
+                        [disabled]="empSaving() || !isEmpFormValid" [loading]="empSaving()" />
+              <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="cancelEmpEdit()" />
+            </div>
+          }
+        </p-card>
+      }
+
+      <!-- Add salary dialog -->
+      @if (canManagePay) {
+        <p-dialog [visible]="showSalaryDialog()" (visibleChange)="!$event && closeSalaryDialog()"
+                  header="Add salary" [modal]="true"
+                  [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
+          <p class="pay-empty mb-3">New salaries are added to the history and never edit an earlier row. A future effective date is scheduled.</p>
+          <div class="field">
+            <label for="sal-amount"><span class="req">*</span> Basic salary (monthly)</label>
+            <p-inputnumber inputId="sal-amount" [(ngModel)]="salaryForm.basicSalary" mode="currency" currency="MYR" locale="en-MY"
+                           [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2"
+                           [pt]="$any({ input: { inputmode: 'decimal' } })" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="sal-date"><span class="req">*</span> Effective from</label>
+            <p-datepicker inputId="sal-date" [(ngModel)]="salaryForm.effectiveFrom" dateFormat="yy-mm-dd" dataType="string"
+                          [showIcon]="true" [showOnFocus]="false" [readonlyInput]="true" styleClass="w-full" appendTo="body" />
+          </div>
+          <div class="field">
+            <label for="sal-bank">Bank name</label>
+            <input id="sal-bank" pInputText type="text" [(ngModel)]="salaryForm.bankName" maxlength="100" />
+          </div>
+          <div class="field">
+            <label for="sal-account">Account number</label>
+            <input id="sal-account" pInputText type="text" inputmode="numeric" autocomplete="off" [(ngModel)]="salaryForm.bankAccount" maxlength="34" />
+          </div>
+          <div class="field">
+            <label for="sal-holder">Account holder</label>
+            <input id="sal-holder" pInputText type="text" [(ngModel)]="salaryForm.bankHolder" maxlength="100" />
+          </div>
+          @if (salaryError()) { <small class="field-err" role="alert">{{ salaryError() }}</small> }
+          <ng-template pTemplate="footer">
+            <p-button label="Cancel" [text]="true" severity="secondary" (click)="closeSalaryDialog()" />
+            <p-button label="Add salary" severity="primary" (click)="addSalary()"
+                      [disabled]="!isSalaryFormValid || salarySaving()" [loading]="salarySaving()" />
+          </ng-template>
+        </p-dialog>
+      }
     }
 
     <!-- ── Permission overrides ──────────────────────────────────────── -->

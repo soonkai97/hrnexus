@@ -31,23 +31,51 @@ public class PayrollEndpointsTests(PostgresFixture fx) : IAsyncLifetime
         return client;
     }
 
+    private static async Task<JsonElement?> FindRoleAsync(HttpClient client, string name)
+    {
+        var resp = await client.GetAsync("/api/staff/roles");
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+        foreach (var r in doc.RootElement.EnumerateArray())
+            if (string.Equals(r.GetProperty("name").GetString(), name, StringComparison.OrdinalIgnoreCase)) return r.Clone();
+        return null;
+    }
+
     [Fact]
-    public async Task CreateRole_WithFixedPayType_PersistsAndReadsBack()
+    public async Task CreateRole_PersistsAndReadsBack_WithoutAnyPayFields()
     {
         var client = await AdminClientAsync("10.0.9.5");
-        var name = $"PKG{Guid.NewGuid():N}"[..12];
+        var name = $"JOB{Guid.NewGuid():N}"[..12];
 
-        var create = await client.PostAsJsonAsync("/api/staff/roles",
-            new { name, hourlyRate = 500m, payType = "fixed" });
+        var create = await client.PostAsJsonAsync("/api/staff/roles", new { name });
         Assert.Equal(HttpStatusCode.NoContent, create.StatusCode);
 
-        var rolesResp = await client.GetAsync("/api/staff/roles");
-        Assert.Equal(HttpStatusCode.OK, rolesResp.StatusCode);
+        var role = await FindRoleAsync(client, name);
+        Assert.NotNull(role);
+        Assert.False(role!.Value.TryGetProperty("hourlyRate", out _), "hourly pay is gone from the product");
+        Assert.False(role.Value.TryGetProperty("payType", out _));
+    }
 
-        using var doc = JsonDocument.Parse(await rolesResp.Content.ReadAsStringAsync());
-        var role = doc.RootElement.EnumerateArray()
-            .FirstOrDefault(r => string.Equals(r.GetProperty("name").GetString(), name, StringComparison.OrdinalIgnoreCase));
-        Assert.Equal(JsonValueKind.Object, role.ValueKind);   // found
-        Assert.Equal("fixed", role.GetProperty("payType").GetString());
+    [Fact]
+    public async Task RenameRole_ChangesTheName_AndRefusesSystemRolesAndDuplicates()
+    {
+        var client = await AdminClientAsync("10.0.9.6");
+        var name  = $"OLD{Guid.NewGuid():N}"[..12];
+        var other = $"OTH{Guid.NewGuid():N}"[..12];
+        await client.PostAsJsonAsync("/api/staff/roles", new { name });
+        await client.PostAsJsonAsync("/api/staff/roles", new { name = other });
+        var id = (await FindRoleAsync(client, name))!.Value.GetProperty("id").GetGuid();
+
+        var renamed = $"NEW{Guid.NewGuid():N}"[..12];
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PatchAsJsonAsync($"/api/staff/roles/{id}", new { name = renamed })).StatusCode);
+        Assert.NotNull(await FindRoleAsync(client, renamed));
+
+        Assert.Equal(HttpStatusCode.Conflict, (await client.PatchAsJsonAsync($"/api/staff/roles/{id}", new { name = other })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PatchAsJsonAsync($"/api/staff/roles/{id}", new { name = " " })).StatusCode);
+
+        var system = (await FindRoleAsync(client, "SUPERADMIN"))!.Value;
+        Assert.True(system.GetProperty("isSystem").GetBoolean());
+        Assert.Equal(HttpStatusCode.BadRequest,
+            (await client.PatchAsJsonAsync($"/api/staff/roles/{system.GetProperty("id").GetGuid()}", new { name = "HACKED" })).StatusCode);
     }
 }

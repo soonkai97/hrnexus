@@ -326,9 +326,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("HourlyRate")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<bool>("IsSystem")
                         .HasColumnType("boolean");
 
@@ -336,11 +333,6 @@ namespace HRNexus.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<string>("PayType")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
 
                     b.HasKey("Id");
 
@@ -364,32 +356,50 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("RolePermissions", (string)null);
                 });
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.RoleRate", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.SalaryProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("BankAccount")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankHolder")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("BasicSalary")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<DateOnly>("EffectiveOn")
+                    b.Property<DateOnly>("EffectiveFrom")
                         .HasColumnType("date");
 
-                    b.Property<decimal>("Rate")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<Guid>("RoleId")
+                    b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("PayFrequency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoleId", "EffectiveOn");
+                    b.HasIndex("EmployeeId", "EffectiveFrom")
+                        .IsUnique();
 
-                    b.ToTable("RoleRates");
+                    b.ToTable("SalaryProfiles");
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>
@@ -400,6 +410,9 @@ namespace HRNexus.Infrastructure.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
+
+                    b.Property<string>("CitizenshipStatus")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -422,6 +435,12 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<DateOnly?>("EmploymentEndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("EmploymentStartDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -571,12 +590,12 @@ namespace HRNexus.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.RoleRate", b =>
+            modelBuilder.Entity("HRNexus.Domain.Entities.SalaryProfile", b =>
                 {
-                    b.HasOne("HRNexus.Domain.Entities.Role", null)
+                    b.HasOne("HRNexus.Domain.Entities.Staff", null)
                         .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

@@ -16,7 +16,7 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.Staff>            Staff             => Set<E.Staff>();
     public DbSet<E.StaffRole>        StaffRoles        => Set<E.StaffRole>();
     public DbSet<E.Role>             Roles             => Set<E.Role>();
-    public DbSet<E.RoleRate>         RoleRates         => Set<E.RoleRate>();
+    public DbSet<E.SalaryProfile>    SalaryProfiles    => Set<E.SalaryProfile>();
     public DbSet<E.RolePermission>          RolePermissions          => Set<E.RolePermission>();
     public DbSet<E.StaffPermissionOverride> StaffPermissionOverrides => Set<E.StaffPermissionOverride>();
     public DbSet<E.LeaveRequest>     LeaveRequests     => Set<E.LeaveRequest>();

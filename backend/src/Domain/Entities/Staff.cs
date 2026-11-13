@@ -43,6 +43,11 @@ public class Staff : IHasAudit, ISoftDelete
         ? (int)((DateTime.UtcNow - DateOfBirth.Value).TotalDays / 365.25)
         : null;
 
+    /// <summary>Statutory class for EPF/SOCSO: 'citizen' or 'permanent-resident' (the only classes in scope).</summary>
+    public string?   CitizenshipStatus   { get; private set; }
+    public DateOnly? EmploymentStartDate { get; private set; }
+    public DateOnly? EmploymentEndDate   { get; private set; }
+
     public string? RefreshToken    { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
 
@@ -149,6 +154,13 @@ public class Staff : IHasAudit, ISoftDelete
     /// <summary>Show/hide this account in the admin staff roster. Purely presentational — does not
     /// touch IsActive, permissions, or the session.</summary>
     public void SetHidden(bool hidden) => IsHidden = hidden;
+
+    public void SetEmployment(string citizenshipStatus, DateOnly startDate, DateOnly? endDate)
+    {
+        CitizenshipStatus   = citizenshipStatus;
+        EmploymentStartDate = startDate;
+        EmploymentEndDate   = endDate;
+    }
 
     public void UpdateProfile(string? phoneNumber) => PhoneNumber = phoneNumber;
     public void SetPasswordHash(string hash) => PasswordHash = hash;

@@ -41,7 +41,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
     let r = await admin.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password, portal: 'admin' } });
     expect(r.ok(), 'admin login').toBeTruthy();
 
-    roleId = await ensureRole(admin, roleName, 20);
+    roleId = await ensureRole(admin, roleName);
     r = await admin.post('/api/staff', { data: {
       staffId, firstName: 'Neg', lastName: 'Case', email: null, password,
       roles: [roleId],
@@ -94,6 +94,26 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
     expect(pending.ok(), 'own leave recorded as pending is allowed').toBeTruthy();
     const { id } = await pending.json();
     await admin.delete(`/api/admin/leave/${id}`);
+  });
+
+  // ── Phase 8a: salary is invisible without a payroll permission and history is append-only ──
+  test('salary is hidden from staff without payroll permission and history is append-only', async () => {
+    const me = await (await staff.get('/api/auth/me')).json();
+
+    const forbidden = await staff.get(`/api/staff/${me.id}/salary`);
+    expect(forbidden.status(), 'a plain staff member cannot read salary').toBe(403);
+    const forbiddenWrite = await staff.post(`/api/staff/${me.id}/salary`, {
+      data: { basicSalary: 9999, payFrequency: 'monthly', effectiveFrom: '2026-01-01' },
+    });
+    expect(forbiddenWrite.status(), 'a plain staff member cannot set salary').toBe(403);
+
+    const body = { basicSalary: 3500, payFrequency: 'monthly', effectiveFrom: '2026-01-01', bankName: 'Maybank', bankAccount: '1234567890', bankHolder: 'Neg Case' };
+    expect((await admin.post(`/api/staff/${me.id}/salary`, { data: body })).status()).toBe(201);
+    expect((await admin.post(`/api/staff/${me.id}/salary`, { data: { ...body, basicSalary: 4000 } })).status(), 'same date again').toBe(409);
+
+    const seen = await (await admin.get(`/api/staff/${me.id}/salary`)).json();
+    expect(seen.history).toHaveLength(1);
+    expect(seen.history[0].basicSalary).toBe(3500);
   });
 
   // ── Leave field validation ──────────────────────────────────────────────────

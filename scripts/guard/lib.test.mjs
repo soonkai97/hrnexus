@@ -69,6 +69,8 @@ test('secret scan flags real-looking secrets and skips placeholders and allow-li
   assert.notDeepEqual(findSecrets('backend/src/X.cs', 'var k = "-----BEGIN RSA PRIVATE KEY-----";'), []);
   assert.notDeepEqual(findSecrets('backend/src/X.cs', 'Host=db;Password=SuperSecret99;'), []);
   assert.deepEqual(findSecrets('backend/src/X.cs', 'Password=${POSTGRES_PASSWORD}'), []);
+  assert.deepEqual(findSecrets('scripts/x.ps1', '@{ staffId = $staffId; password = $password; portal = $portal }'), []);
+  assert.notDeepEqual(findSecrets('scripts/x.ps1', "$conn = 'Host=db;Password=SuperSecret99;'"), []);
   assert.deepEqual(findSecrets('docker-compose.yml', 'JWT_SECRET: "${JWT_SECRET:-dev}"'), []);
   assert.deepEqual(findSecrets('backend/tests/X.cs', 'Password=SuperSecret99;'), []);
   assert.deepEqual(findSecrets('backend/src/X.cs', 'Password=SuperSecret99; // guard:allow-secret test value'), []);

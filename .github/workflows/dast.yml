@@ -1,0 +1,100 @@
+name: DAST
+
+# Dynamic security scan of OUR OWN app: the docker compose stack is started inside this runner and attacked with the
+# OWASP ZAP baseline scan (spider + passive rules) against both portals. Never runs on pull requests (slow and noisy), and it
+# is NOT a required check. Manual: Actions -> DAST -> Run workflow. Weekly: Tuesday 02:41 UTC.
+# Accepted findings live in .github/zap/rules.tsv (one line per rule with a reason).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 2 * * 2"
+
+concurrency:
+  group: dast
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # ZAP 2.17.0 (multi-arch index digest, same pin as the IMS repo). Bump together with the version comment.
+  ZAP_IMAGE: "ghcr.io/zaproxy/zaproxy:2.17.0@sha256:7aaa659b0d43078febd82e29bad112285c370727e86ab8340444220e17d9f0d2"
+
+jobs:
+  zap-baseline:
+    name: ZAP baseline scan (admin and staff portals)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Start the docker compose stack
+        run: docker compose up -d --build --wait
+        timeout-minutes: 25
+
+      - name: Prepare the ZAP working folder
+        run: |
+          mkdir -p zap-wrk
+          cp .github/zap/rules.tsv zap-wrk/rules.tsv
+          # The ZAP container runs as an unprivileged user and must write its reports here.
+          chmod -R a+rwX zap-wrk
+
+      - name: ZAP baseline (admin portal, :8080)
+        run: |
+          set +e
+          docker run --rm --network host -v "$PWD/zap-wrk:/zap/wrk:rw" "$ZAP_IMAGE" \
+            zap-baseline.py -t http://localhost:8080 -c rules.tsv -I -T 20 \
+            -r admin.html -J admin.json
+          code=$?
+          echo "zap-baseline (admin) exit code: $code"
+          # 0 = clean, 1 = a rule set to FAIL (none), 2 = warnings (ignored here, -I). Anything else means ZAP itself failed.
+          if [ "$code" -ge 3 ]; then exit 1; fi
+          test -s zap-wrk/admin.json
+
+      - name: ZAP baseline (staff portal, :8081)
+        run: |
+          set +e
+          docker run --rm --network host -v "$PWD/zap-wrk:/zap/wrk:rw" "$ZAP_IMAGE" \
+            zap-baseline.py -t http://localhost:8081 -c rules.tsv -I -T 20 \
+            -r staff.html -J staff.json
+          code=$?
+          echo "zap-baseline (staff) exit code: $code"
+          if [ "$code" -ge 3 ]; then exit 1; fi
+          test -s zap-wrk/staff.json
+
+      - name: Fail on high-risk alerts
+        run: |
+          # Accepted findings are the rules set to IGNORE in .github/zap/rules.tsv; they never fail the run.
+          accepted=$(awk -F'\t' '$1 !~ /^#/ && $2 == "IGNORE" { print $1 }' .github/zap/rules.tsv | jq -R . | jq -s .)
+          for portal in admin staff; do
+            echo "---- $portal ----"
+            jq -r --argjson accepted "$accepted" '
+              [.site[]?.alerts[]? | select(.riskcode == "3") | select(.pluginid as $id | $accepted | index($id) | not)]
+              | .[] | "HIGH  \(.pluginid)  \(.name)  (\(.instances | length) instance(s))"' "zap-wrk/$portal.json" | tee -a high.txt
+            jq -r '[.site[]?.alerts[]?] | group_by(.riskdesc) | .[] | "\(.[0].riskdesc): \(length)"' "zap-wrk/$portal.json"
+          done
+          if [ -s high.txt ]; then echo "High-risk alerts found. See the report artifact."; exit 1; fi
+
+      - name: Docker logs
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+
+      - name: Upload the reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: zap-baseline
+          path: |
+            zap-wrk/admin.html
+            zap-wrk/admin.json
+            zap-wrk/staff.html
+            zap-wrk/staff.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v

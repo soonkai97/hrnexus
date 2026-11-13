@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directories: ["/backend/src/*", "/backend/tests/*"]
+    schedule: { interval: weekly }
+    commit-message: { prefix: "build(deps)" }
+    groups:
+      # One pull request per week for all .NET packages instead of one per package per project.
+      dotnet: { patterns: ["*"] }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    commit-message: { prefix: "build(deps)" }
+    groups:
+      angular: { patterns: ["@angular/*", "@angular-devkit/*", "@angular-eslint/*"] }
+      primeng: { patterns: ["primeng", "@primeng/*", "primeicons"] }
+      testing: { patterns: ["vitest*", "@vitest/*", "@playwright/*", "playwright*", "jsdom"] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+    commit-message: { prefix: "build(deps)" }
+  - package-ecosystem: docker
+    directories: ["/backend", "/nginx"]
+    schedule: { interval: monthly }
+    commit-message: { prefix: "build(deps)" }

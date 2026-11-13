@@ -1,0 +1,19 @@
+# Human owner for everything. Agent roles are not GitHub users; their reviews are posted by the orchestrator on request
+# (see docs/team/PR-REVIEW.md). Replace or extend with teammates as the team grows.
+*                                       @soonkai97
+
+# Sensitive paths (listed explicitly so they stay visible when the owners change)
+/.github/                               @soonkai97
+/.githooks/                             @soonkai97
+/scripts/                               @soonkai97
+/deploy.sh                              @soonkai97
+/deploy.ps1                             @soonkai97
+/docker-compose*.yml                    @soonkai97
+/nginx/                                 @soonkai97
+/backend/Dockerfile                     @soonkai97
+/backend/src/Infrastructure/Migrations/ @soonkai97
+/backend/src/Infrastructure/Persistence/ @soonkai97
+/backend/src/Infrastructure/Auth/       @soonkai97
+/backend/src/Api/                       @soonkai97
+/docs/                                  @soonkai97
+/CLAUDE.md                              @soonkai97

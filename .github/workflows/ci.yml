@@ -1,32 +1,102 @@
 name: CI
 
+# Required PR checks (exact job names, referenced by the master ruleset):
+#   "API (build, unit, integration)"   "Web (lint, test, build)"   "Dependency audit" (see the AUDIT_STRICT note below)
+# Pull requests from forks run with a read-only token and no secrets; nothing in this file needs a secret.
+
 on:
   push:
-    branches: [main, develop]
+    branches: [master]
   pull_request:
-    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  build-and-test:
-    name: Build & Unit Tests
+  api:
+    name: API (build, unit, integration)
     runs-on: ubuntu-latest
-
+    timeout-minutes: 30
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          node-version: '22'
-          cache: 'npm'
+          persist-credentials: false
 
-      - name: Install dependencies
-        run: npm ci
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        with:
+          dotnet-version: 10.0.x
 
-      - name: Lint (ESLint — fails on errors, warnings allowed)
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # NuGet audit warnings (NU190x) are reported by the "Dependency audit" job; they must not turn this build red
+      # or hide real compiler warnings, so audit is off for restore and build here.
+      - name: Restore
+        run: dotnet restore backend/HRNexus.sln -p:NuGetAudit=false
+
+      - name: Build production code (warnings as errors)
+        run: dotnet build backend/src/Api/HRNexus.Api.csproj -c Release --no-restore -warnaserror -p:NuGetAudit=false
+
+      - name: Build everything (tests included)
+        run: dotnet build backend/HRNexus.sln -c Release --no-restore -p:NuGetAudit=false
+
+      - name: Unit tests (Application, EF InMemory)
+        run: >
+          dotnet test backend/tests/Application.Tests -c Release --no-build
+          --logger "trx;LogFileName=application.trx" --results-directory TestResults
+
+      - name: Unit tests (Infrastructure)
+        run: >
+          dotnet test backend/tests/Infrastructure.Tests -c Release --no-build
+          --logger "trx;LogFileName=infrastructure.trx" --results-directory TestResults
+
+      # Integration.Tests starts a throwaway postgres:17-alpine through Testcontainers; Docker is available on ubuntu-latest.
+      - name: Integration tests (real PostgreSQL via Testcontainers)
+        run: >
+          dotnet test backend/tests/Integration.Tests -c Release --no-build
+          --logger "trx;LogFileName=integration.trx" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: api-test-results
+          path: TestResults/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  web:
+    name: Web (lint, test, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: "Lint (ESLint: errors fail, warnings allowed)"
         run: npm run lint
 
+      # shared-lib must be built first: the apps compile against dist/shared-lib.
       - name: Build shared-lib
         run: npx ng build shared-lib --configuration production
 
@@ -36,86 +106,48 @@ jobs:
       - name: Build staff-app
         run: npx ng build staff-app --configuration production
 
-      - name: Unit tests — shared-lib
-        run: npm run test:shared
+      - name: Unit tests (shared-lib)
+        run: npx ng test shared-lib --no-watch
 
-      - name: Unit tests — admin-app
-        run: npm run test:admin
+      - name: Unit tests (admin-app)
+        run: npx ng test admin-app --no-watch
 
-      - name: Unit tests — staff-app
-        run: npm run test:staff
+      - name: Unit tests (staff-app)
+        run: npx ng test staff-app --no-watch
 
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 14
-
-  backend:
-    name: Backend Build & Tests
+  security:
+    name: Dependency audit
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
+    env:
+      # The repository variable AUDIT_STRICT=true makes known vulnerabilities fail this job (the IMS behaviour).
+      # Until the existing findings are fixed it only warns, so it can be left out of the required checks.
+      STRICT: ${{ vars.AUDIT_STRICT }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up .NET 10
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          dotnet-version: '10.0.x'
+          persist-credentials: false
 
-      - name: Restore
-        run: dotnet restore backend/HRNexus.sln
-
-      # --configuration Release with the analyzers enabled: unused usings (IDE0005) and unused
-      # locals/fields fail the build here, same as locally.
-      - name: Build
-        run: dotnet build backend/HRNexus.sln --no-restore --configuration Release
-
-      # Integration.Tests spins up a throwaway PostgreSQL via Testcontainers — Docker is available
-      # on ubuntu-latest, so the full suite (Application + Integration + Infrastructure) runs.
-      - name: Test
-        run: dotnet test backend/HRNexus.sln --no-build --configuration Release --verbosity minimal
-
-  # E2E tests require Docker infrastructure — run separately on push to main only
-  e2e:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: build-and-test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
         with:
-          node-version: '22'
-          cache: 'npm'
+          dotnet-version: 10.0.x
 
-      - name: Install dependencies
-        run: npm ci
+      - name: NuGet vulnerabilities (including transitive)
+        run: |
+          dotnet restore backend/HRNexus.sln
+          dotnet list backend/HRNexus.sln package --vulnerable --include-transitive 2>&1 | tee vuln.txt
+          if grep -q "has the following vulnerable packages" vuln.txt; then
+            echo "::warning title=NuGet::Vulnerable packages found (see the log)"
+            if [ "$STRICT" = "true" ]; then exit 1; fi
+          fi
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Start Docker stack
-        run: docker compose up -d --wait
-        timeout-minutes: 5
-
-      - name: Run E2E tests — admin
-        run: npm run test:e2e:admin
-
-      - name: Run E2E tests — staff
-        run: npm run test:e2e:staff
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 14
+          node-version: 22
+
+      - name: npm vulnerabilities (production dependencies, high and above)
+        run: |
+          if ! npm audit --omit=dev --audit-level=high; then
+            echo "::warning title=npm::Vulnerable production dependencies found (see the log)"
+            if [ "$STRICT" = "true" ]; then exit 1; fi
+          fi

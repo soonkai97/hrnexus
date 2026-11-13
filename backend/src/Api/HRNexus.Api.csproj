@@ -19,7 +19,7 @@
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="9.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.17" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" PrivateAssets="all" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.25" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15" PrivateAssets="all" />
   </ItemGroup>
 </Project>

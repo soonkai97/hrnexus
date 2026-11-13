@@ -54,7 +54,7 @@ services:
       Seq__ApiKey: "${SEQ_API_KEY:-}"
       OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
     volumes:
-      - uploads:/app/wwwroot/uploads       # location images
+      - uploads:/app/wwwroot/uploads       # uploaded files
       - logs:/app/logs                     # Serilog files
     depends_on:
       postgres:

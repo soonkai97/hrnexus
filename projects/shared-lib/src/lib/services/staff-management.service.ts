@@ -3,8 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Staff, RegisterStaffRequest, StaffDetail, UpdateStaffRequest, StaffRole, PayType, PagedResult } from '../models';
 
-export interface VenueLocation { id: string; name: string; }
-
 @Injectable({ providedIn: 'root' })
 export class StaffManagementService {
   private readonly http = inject(HttpClient);
@@ -64,11 +62,6 @@ export class StaffManagementService {
   }
 
   // ── Bulk actions (act on a selected set of staff at once) ───────────────────
-  /** Additively assign one or more work locations to all selected staff. */
-  bulkAssignLocations(staffIds: string[], locationIds: string[]): Observable<{ count: number }> {
-    return this.http.post<{ count: number }>('/api/staff/bulk/locations', { staffIds, locationIds });
-  }
-
   /** Additively assign one or more roles (by GUID id) to all selected staff. */
   bulkAssignRoles(staffIds: string[], roles: string[]): Observable<{ count: number }> {
     return this.http.post<{ count: number }>('/api/staff/bulk/roles', { staffIds, roles });
@@ -77,10 +70,6 @@ export class StaffManagementService {
   /** Deactivate all selected staff (backend refuses if it would remove the last active admin). */
   bulkDeactivate(staffIds: string[]): Observable<{ count: number }> {
     return this.http.post<{ count: number }>('/api/staff/bulk/deactivate', { staffIds });
-  }
-
-  getLocations(): Observable<VenueLocation[]> {
-    return this.http.get<VenueLocation[]>('/api/locations');
   }
 
   /** Employee: get own full profile */

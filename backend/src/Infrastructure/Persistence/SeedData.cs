@@ -8,8 +8,8 @@ public static class SeedData
 {
     public static void Seed(ModelBuilder mb)
     {
-        // Locations are seeded at runtime via SeedDemoUsersAsync to avoid
-        // EF Core HasData migration pain when the entity changes.
+        // Reference data is seeded at runtime via SeedDemoUsersAsync to avoid
+        // EF Core HasData migration pain when an entity changes.
     }
 
     public static async Task SeedDemoUsersAsync(AppDbContext db,

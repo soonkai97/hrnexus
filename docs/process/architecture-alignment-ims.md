@@ -17,7 +17,7 @@ SQL Server specifics are excluded (section 2), each with a reason. Sizes: S ≤ 
 | CQRS entry | Own `IDispatcher`, `ICommand/IQuery/IRequestHandler`, behaviours Logging → Validation → handler; handlers never call each other | MediatR 12.4.1 (`IMediator.Send`), `LoggingBehavior` + `ValidationBehavior` (same pipeline shape), 28 request types, controllers inject `IMediator` | M mechanical (L total, per feature); also removes MediatR dependency |
 | Vertical slices | `Features/<F>/UseCases/<UseCase>/{Command,Handler,Validator}`, `Specifications`, `Contracts`, `Services`; one public type per file | `Application/<Area>/Commands|Queries/*.cs`, several types per file, DTOs inline in commands | L (per feature, when touched) |
 | Persistence | `IRepository<T>`/`IReadRepository<T>` + Ardalis specifications, `IUnitOfWork.ExecuteAsync` (transaction + retry + audit) | Handlers use `IAppDbContext` directly; no repositories, no specifications | L (per feature) |
-| Domain behaviour | Private setters, factories, state methods, pure policies unit-tested without DB | Already the style (`Staff.Create`, `SetLocations`, `Deactivate`) | S (extract policies as modules grow) |
+| Domain behaviour | Private setters, factories, state methods, pure policies unit-tested without DB | Already the style (`Staff.Create`, `SetRoles`, `Deactivate`) | S (extract policies as modules grow) |
 | Validation | FluentValidation in pipeline, validator per use case + shared request validators | FluentValidation 11, 11 validators, opt-in; most guards are inline (`ArgumentException`) | M (move inline guards to validators per feature) |
 | Errors | `ApiExceptionHandler` → RFC 7807 ProblemDetails + stable `ProblemCodes` + `errors` map; FE maps by `code` | `ExceptionMiddleware` maps exception type → `{ error: "text" }`; no codes | M (breaking for FE + E2E: do in one phase) |
 | Ids on the wire | Random `PublicId` GUID + int clustered key; opaque ids; out-of-scope = 404 | **Every entity already has a random `Guid` Id** (`Guid.NewGuid()`), exposed as-is | S for intent (see Q1); the int+PublicId hybrid is XL and not needed on PostgreSQL |
@@ -39,7 +39,7 @@ SQL Server specifics are excluded (section 2), each with a reason. Sizes: S ≤ 
 |---|---|---|---|
 | Workspace | Nx monorepo, one app, everything in `libs/` via `@ims/*` aliases | Angular CLI workspace, 3 projects (`admin-app`, `staff-app`, `shared-lib`), imports `'shared-lib'` | L |
 | Tiers + boundaries | shared / core / features (stores, no pages) / containers (routed pages), `@nx/enforce-module-boundaries` fails lint | admin/staff `features/<page>` hold pages + data access; shared-lib is a flat bag (services, stores, models) | XL (incremental; new code first) |
-| State | Signal stores + `QueryLoader` / `ApiCommand` (uniform loading/error/empty), `createPageState`, no NgRx | Signal stores (`StaffStore`, `LocationStore`) for 2 domains; other domains call services/HttpClient with ad-hoc `loading` signals | M-L |
+| State | Signal stores + `QueryLoader` / `ApiCommand` (uniform loading/error/empty), `createPageState`, no NgRx | Signal stores (`StaffStore`) for 1 domain; other domains call services/HttpClient with ad-hoc `loading` signals | M-L |
 | API client | NSwag-generated client committed from OpenAPI, `withIfMatch` | Hand-written services, hand-written models | L (needs 7e first) |
 | UI kit / theme | No component library; `app-*` kit in `shared/ui`, role-named tokens, WCAG contrast check script | PrimeNG 21 + Aura + custom neon SCSS tokens | XL if PrimeNG is replaced; M if wrapped (Q2) |
 | i18n | Runtime switch, typed message keys, catalog-completeness test | ngx-translate, 3 locale files per app, no completeness test | S-M (add completeness test) |
@@ -67,7 +67,7 @@ SQL Server specifics are excluded (section 2), each with a reason. Sizes: S ≤ 
 | Per-(warehouse, product) locks and the global lock order | Stock concurrency. Adopt the *discipline* (one documented lock order, `ITransactionLocker`) for payroll runs |
 | `[VisibleWith]` cost/valuation shaping, `IReportWriter` | Cost visibility is stock-specific. Adopt the same mechanism later for **salary/PII visibility** (new tag, same `ResponseShaper`) |
 | Append-only ledger + DB triggers | Adopt for the audit log only |
-| `warehouse scope` claims (`allwh`, `wh`) | Adapt to **location scope** (`StaffLocation`), not copy |
+| `warehouse scope` claims (`allwh`, `wh`) | Not needed: staff are not scoped to a site (the Locations feature was removed in Phase 7j) |
 | SQL Server specifics: `rowversion`, `READ_COMMITTED_SNAPSHOT`, `sp_getapplock`, clustered-key rationale for int+PublicId | HRNexus is PostgreSQL 17: use `xmin` token, `pg_advisory_xact_lock`, heap tables. Intent kept (opaque ids, no counting leaks) |
 | Excel import/export stack (ClosedXML) | Adopt only when HR needs it (payroll export in Phase 8) |
 

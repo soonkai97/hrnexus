@@ -113,10 +113,6 @@ export class StaffStore {
   }
 
   // ── Bulk actions ────────────────────────────────────────────────────────────
-  bulkAssignLocations(staffIds: string[], locationIds: string[]) {
-    return this.svc.bulkAssignLocations(staffIds, locationIds);
-  }
-
   bulkAssignRoles(staffIds: string[], roles: string[]) {
     return this.svc.bulkAssignRoles(staffIds, roles);
   }

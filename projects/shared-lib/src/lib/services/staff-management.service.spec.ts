@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { StaffManagementService } from './staff-management.service';
 
 /**
- * StaffManagementService — HTTP transport for employee CRUD, roles, and locations.
+ * StaffManagementService — HTTP transport for employee CRUD and roles.
  * WHY: ensures each method hits the correct URL and sends the right params/body
  * so that admin operations always reach their intended backend endpoints.
  */
@@ -229,17 +229,6 @@ describe('StaffManagementService', () => {
     });
   });
 
-  // ── getLocations() ────────────────────────────────────────────────────────
-
-  describe('getLocations()', () => {
-    it('calls GET /api/locations', () => {
-      service.getLocations().subscribe();
-      const req = http.expectOne('/api/locations');
-      expect(req.request.method).toBe('GET');
-      req.flush([]);
-    });
-  });
-
   // ── getMyProfile() ────────────────────────────────────────────────────────
 
   describe('getMyProfile()', () => {
@@ -252,16 +241,6 @@ describe('StaffManagementService', () => {
   });
 
   // ── bulk actions ──────────────────────────────────────────────────────────
-
-  describe('bulkAssignLocations()', () => {
-    it('POSTs /api/staff/bulk/locations with staffIds and locationIds', () => {
-      service.bulkAssignLocations(['a', 'b'], ['loc1']).subscribe();
-      const req = http.expectOne('/api/staff/bulk/locations');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ staffIds: ['a', 'b'], locationIds: ['loc1'] });
-      req.flush({ count: 2 });
-    });
-  });
 
   describe('bulkAssignRoles()', () => {
     it('POSTs /api/staff/bulk/roles with staffIds and roles', () => {

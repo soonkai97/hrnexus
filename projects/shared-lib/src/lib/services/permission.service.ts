@@ -14,7 +14,6 @@ export type PermissionKey =
   | 'reports.view'
   | 'payroll.view' | 'payroll.manage' | 'payroll.lock'
   | 'roles.manage'
-  | 'locations.manage'
   | 'cashadvance.manage';
 
 /**

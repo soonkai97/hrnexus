@@ -17,7 +17,7 @@ namespace HRNexus.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -204,42 +204,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.HasIndex("StartDate");
 
                     b.ToTable("LeaveRequests");
-                });
-
-            modelBuilder.Entity("HRNexus.Domain.Entities.Location", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("ImagePath")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("NameVi")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("NameZh")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Locations_Name_Active")
-                        .HasFilter("\"IsDeleted\" = false");
-
-                    b.ToTable("Locations");
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.Notification", b =>
@@ -534,20 +498,6 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("Staff", (string)null);
                 });
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.StaffLocation", b =>
-                {
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("LocationId")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("EmployeeId", "LocationId");
-
-                    b.ToTable("StaffLocations", (string)null);
-                });
-
             modelBuilder.Entity("HRNexus.Domain.Entities.StaffPermissionOverride", b =>
                 {
                     b.Property<Guid>("EmployeeId")
@@ -642,15 +592,6 @@ namespace HRNexus.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("HRNexus.Domain.Entities.StaffLocation", b =>
-                {
-                    b.HasOne("HRNexus.Domain.Entities.Staff", null)
-                        .WithMany("LocationEntries")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("HRNexus.Domain.Entities.StaffRole", b =>
                 {
                     b.HasOne("HRNexus.Domain.Entities.Staff", null)
@@ -670,8 +611,6 @@ namespace HRNexus.Infrastructure.Migrations
 
             modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>
                 {
-                    b.Navigation("LocationEntries");
-
                     b.Navigation("RoleEntries");
                 });
 #pragma warning restore 612, 618

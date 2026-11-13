@@ -4,7 +4,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { StaffStore, LocationStore, RegisterStaffRequest,
+import { StaffStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
          passwordChecks, isStrongPassword, LangService, localizedNameFor } from 'shared-lib';
 import { Button } from 'primeng/button';
@@ -36,7 +36,6 @@ import { Checkbox } from 'primeng/checkbox';
 })
 export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate {
   private readonly staffStore  = inject(StaffStore);
-  private readonly locationStore = inject(LocationStore);
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly translate   = inject(TranslateService);
@@ -66,7 +65,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   showHidden       = signal(false);
 
   newStaff: RegisterStaffRequest = {
-    staffId: '', firstName: '', lastName: '', email: null, password: '', roles: [], locations: [],
+    staffId: '', firstName: '', lastName: '', email: null, password: '', roles: [],
     phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
   };
 
@@ -113,23 +112,17 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
   availableRoles = computed(() => this.roles());
-  availableLocations = computed(() => this.locationStore.locations());
 
   // Picker options whose label follows the UI language (Chinese name when set + lang is zh).
-  // Role value is the GUID id (register/update expect role IDS); location value stays the location id.
+  // Role value is the GUID id (register/update expect role IDS).
   readonly roleOptions = computed(() => {
     const lang = this.lang.current();
     return this.availableRoles().map(r => ({ label: localizedNameFor(lang, r.name, r.nameZh, r.nameVi), value: r.id }));
-  });
-  readonly locationOptions = computed(() => {
-    const lang = this.lang.current();
-    return this.availableLocations().map(l => ({ label: localizedNameFor(lang, l.name, l.nameZh, l.nameVi), value: l.id }));
   });
 
   ngOnInit(): void {
     this.staffStore.loadStaff('', 1, this.pageSize, this.showHidden());
     this.staffStore.loadRoles();
-    this.locationStore.load();
     this.searchSub = this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -219,7 +212,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.touched.set(new Set());
     this.showNewStaffPwd.set(false);
     this.newStaff = { staffId: '', firstName: '', lastName: '', email: null, password: '',
-      roles: [], locations: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
+      roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
   }
 
   saveStaff(): void {
@@ -245,7 +238,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.staffStore.register(req).subscribe({
       next: () => {
         this.newStaff = { staffId: '', firstName: '', lastName: '', email: null, password: '',
-          roles: [], locations: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
+          roles: [], phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null };
         this.showNewStaffPwd.set(false);
         this.saving.set(false);
         this.showForm.set(false);
@@ -338,9 +331,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
   bulkSelecting    = signal(false);
   selectedIds      = signal<Set<string>>(new Set());
   bulkSaving       = signal(false);
-  showBulkLocations = signal(false);
   showBulkRoles     = signal(false);
-  bulkLocations: string[] = [];
   bulkRoles:     string[] = [];
 
   selectedCount = computed(() => this.selectedIds().size);
@@ -369,31 +360,12 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     this.selectedIds.set(next);
   }
 
-  openBulkLocations(): void { this.bulkLocations = []; this.showBulkLocations.set(true); }
-  openBulkRoles():     void { this.bulkRoles = [];     this.showBulkRoles.set(true); }
+  openBulkRoles(): void { this.bulkRoles = []; this.showBulkRoles.set(true); }
 
   private afterBulk(): void {
     this.selectedIds.set(new Set());
     this.bulkSelecting.set(false);
     this.loadPage(this.currentPage());
-  }
-
-  saveBulkLocations(): void {
-    const ids = [...this.selectedIds()];
-    if (!ids.length || !this.bulkLocations.length) return;
-    this.bulkSaving.set(true);
-    this.staffStore.bulkAssignLocations(ids, this.bulkLocations).subscribe({
-      next: (r) => {
-        this.bulkSaving.set(false);
-        this.showBulkLocations.set(false);
-        this.toast.success(this.translate.instant('staff.bulkLocationsToast', { n: r.count }));
-        this.afterBulk();
-      },
-      error: (e) => {
-        this.bulkSaving.set(false);
-        this.toast.error(e?.error?.error ?? this.translate.instant('staff.bulkFailed'));
-      },
-    });
   }
 
   saveBulkRoles(): void {

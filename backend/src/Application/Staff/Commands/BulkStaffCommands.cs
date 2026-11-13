@@ -9,37 +9,10 @@ namespace HRNexus.Application.Staff.Commands;
 // Bulk staff actions — each operates on a selected set of staff at once. They mirror the
 // BulkUpdateLeaveStatusCommand shape: validate a ≤100 batch, load all rows, mutate, save once,
 // audit each affected row in the same transaction. Assignment is ADDITIVE (union) — bulk-assign
-// adds venues/roles on top of each staff member's existing ones rather than replacing them.
+// adds roles on top of each staff member's existing ones rather than replacing them.
 
-public record BulkAssignLocationsCommand(List<Guid> StaffIds, List<string> LocationIds) : IRequest<int>;
 public record BulkAssignRolesCommand(List<Guid> StaffIds, List<Guid> Roles) : IRequest<int>;
 public record BulkDeactivateStaffCommand(List<Guid> StaffIds) : IRequest<int>;
-
-public class BulkAssignLocationsCommandHandler(IAppDbContext db, IAuditService audit)
-    : IRequestHandler<BulkAssignLocationsCommand, int>
-{
-    public async Task<int> Handle(BulkAssignLocationsCommand req, CancellationToken ct)
-    {
-        if (req.StaffIds.Count == 0 || req.LocationIds.Count == 0) return 0;
-        if (req.StaffIds.Count > 100)
-            throw new ArgumentException("Cannot bulk-update more than 100 staff at once.");
-
-        var locationIds = req.LocationIds.Select(l => l.Trim()).Where(l => l.Length > 0).Distinct().ToList();
-        var validCount = await db.Locations.CountAsync(l => locationIds.Contains(l.Id), ct);
-        if (validCount != locationIds.Count)
-            throw new ArgumentException("One or more selected locations no longer exist.");
-
-        var staff = await db.Staff.Where(s => req.StaffIds.Contains(s.Id)).ToListAsync(ct);
-        foreach (var emp in staff)
-        {
-            emp.AddLocations(locationIds);
-            await audit.LogAsync("Staff", emp.Id.ToString(), "BulkAssignLocations",
-                null, "Admin", $"+{locationIds.Count} location(s)", ct);
-        }
-        await db.SaveChangesAsync(ct);
-        return staff.Count;
-    }
-}
 
 public class BulkAssignRolesCommandHandler(IAppDbContext db, IAuditService audit)
     : IRequestHandler<BulkAssignRolesCommand, int>

@@ -17,8 +17,7 @@ public record UpdateStaffCommand(
     string?       PhoneNumber,
     string?       IcNo          = null,
     string?       PassportNo    = null,
-    DateTime?     DateOfBirth   = null,
-    List<string>? Locations     = null) : IRequest;
+    DateTime?     DateOfBirth   = null) : IRequest;
 
 public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : IRequestHandler<UpdateStaffCommand>
 {
@@ -67,7 +66,7 @@ public class UpdateStaffCommandHandler(IAppDbContext db, IAuditService audit) : 
         // This lets the admin edit form clear an email, consistent with the other optional fields.
         emp.UpdateDetails(normalizedId, req.FirstName, req.LastName, req.Email, req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),
-            req.IcNo, req.PassportNo, req.DateOfBirth, req.Locations);
+            req.IcNo, req.PassportNo, req.DateOfBirth);
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException)
         {

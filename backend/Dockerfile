@@ -7,7 +7,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 COPY --from=build /publish .
-RUN mkdir -p wwwroot/uploads/locations logs
+RUN mkdir -p wwwroot/uploads logs
 
 # Build stamp — surfaced on GET /api/health (Build:Version config key).
 ARG BUILD_VERSION=dev

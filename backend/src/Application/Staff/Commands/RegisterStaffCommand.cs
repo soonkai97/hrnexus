@@ -15,8 +15,7 @@ public record RegisterStaffCommand(
     string?       PhoneNumber   = null,
     string?       IcNo          = null,
     string?       PassportNo    = null,
-    DateTime?     DateOfBirth   = null,
-    List<string>? Locations     = null) : IRequest<Guid>;
+    DateTime?     DateOfBirth   = null) : IRequest<Guid>;
 
 public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hasher, IAuditService audit)
     : IRequestHandler<RegisterStaffCommand, Guid>
@@ -42,7 +41,7 @@ public class RegisterStaffCommandHandler(IAppDbContext db, IPasswordHasher hashe
         var employee = HRNexus.Domain.Entities.Staff.Create(normalizedId, req.FirstName, req.LastName, req.Email,
             hasher.Hash(req.Password), req.Roles,
             PhoneNormalizer.Normalize(req.PhoneNumber),
-            req.IcNo, req.PassportNo, req.DateOfBirth, req.Locations);
+            req.IcNo, req.PassportNo, req.DateOfBirth);
 
         db.Staff.Add(employee);
         try

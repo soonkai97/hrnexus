@@ -27,7 +27,6 @@ const expectRejected = (status: number, what: string) => {
 test.describe.serial('Negative paths — guards reject cleanly (full stack)', () => {
   let admin: APIRequestContext;
   let staff: APIRequestContext;
-  let assignedLoc = '';
   let roleName    = '';
   let roleId      = '';
   let staffId     = '';
@@ -42,14 +41,10 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
     let r = await admin.post('/api/auth/login', { data: { staffId: ADMIN.staffId, password: ADMIN.password, portal: 'admin' } });
     expect(r.ok(), 'admin login').toBeTruthy();
 
-    // A venue the staff is assigned to.
-    r = await admin.post('/api/locations', { data: { name: `NEGA${uid}` } });
-    assignedLoc = (await r.json()).id;
-
     roleId = await ensureRole(admin, roleName, 20);
     r = await admin.post('/api/staff', { data: {
       staffId, firstName: 'Neg', lastName: 'Case', email: null, password,
-      roles: [roleId], locations: [assignedLoc],
+      roles: [roleId],
     } });
     expect(r.ok(), 'hire staff').toBeTruthy();
 
@@ -90,11 +85,6 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
   });
 
   // ── Delete-in-use guards (must block, must NOT delete) ──────────────────────
-  test('deleting a location with staff still assigned is blocked', async () => {
-    const r = await admin.delete(`/api/locations/${assignedLoc}`);
-    expectRejected(r.status(), 'delete location with staff assigned');
-  });
-
   test('deleting a role still assigned to staff is blocked', async () => {
     const r = await admin.delete(`/api/staff/roles/${roleId}`);
     expectRejected(r.status(), 'delete role assigned to staff');
@@ -103,7 +93,7 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
   // ── Uniqueness guard ────────────────────────────────────────────────────────
   test('registering a duplicate Staff ID is rejected', async () => {
     const r = await admin.post('/api/staff', { data: {
-      staffId, firstName: 'Dup', lastName: 'Licate', email: null, password: 'Test@1234', roles: [roleId], locations: [assignedLoc],
+      staffId, firstName: 'Dup', lastName: 'Licate', email: null, password: 'Test@1234', roles: [roleId],
     } });
     expectRejected(r.status(), 'duplicate Staff ID');
   });

@@ -6,7 +6,7 @@ import { LocalizedNamePipe } from './localized-name.pipe';
 import { LangService } from '../services/lang.service';
 
 /**
- * LocalizedNamePipe — shows venue-entered names (locations, jobs) in the UI language.
+ * LocalizedNamePipe — shows venue-entered names (jobs) in the UI language.
  *
  * WHY these tests matter:
  *  - A name typed in Chinese must appear for Chinese users, while English/romanized

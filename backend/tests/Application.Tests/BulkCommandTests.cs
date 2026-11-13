@@ -10,7 +10,7 @@ using E = HRNexus.Domain.Entities;
 namespace HRNexus.Application.Tests;
 
 /// <summary>
-/// Handler-level tests for the bulk admin commands: assign locations/roles (additive),
+/// Handler-level tests for the bulk admin commands: assign roles (additive),
 /// deactivate (with the whole-selection last-admin guard), and mark-leave-no-show.
 /// </summary>
 public class BulkCommandTests
@@ -25,76 +25,9 @@ public class BulkCommandTests
         new(new DbContextOptionsBuilder<TestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
-    private static E.Staff MakeStaff(string staffId, IEnumerable<Guid>? roles = null,
-        IEnumerable<string>? locations = null) =>
+    private static E.Staff MakeStaff(string staffId, IEnumerable<Guid>? roles = null) =>
         E.Staff.Create(staffId, "Test", "User", $"{staffId}@t.com", "hash",
-            (roles ?? Enumerable.Empty<Guid>()).ToList(),
-            locations: locations?.ToList());
-
-    // ── BulkAssignLocations ──────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task BulkAssignLocations_AddsLocationsToEverySelectedStaff()
-    {
-        await using var db = CreateDb();
-        var loc1 = E.Location.Create("Main Bar");
-        var loc2 = E.Location.Create("Rooftop");
-        db.Locations.AddRange(loc1, loc2);
-        var a = MakeStaff("A");
-        var b = MakeStaff("B");
-        db.Staff.AddRange(a, b);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        var n = await new BulkAssignLocationsCommandHandler(db, new NullAudit()).Handle(
-            new BulkAssignLocationsCommand([a.Id, b.Id], [loc1.Id, loc2.Id]), CancellationToken.None);
-
-        Assert.Equal(2, n);
-        Assert.Equal(2, await db.StaffLocations.CountAsync(sl => sl.EmployeeId == a.Id));
-        Assert.Equal(2, await db.StaffLocations.CountAsync(sl => sl.EmployeeId == b.Id));
-    }
-
-    [Fact]
-    public async Task BulkAssignLocations_IsAdditive_DoesNotDuplicateExisting()
-    {
-        await using var db = CreateDb();
-        var loc1 = E.Location.Create("Main Bar");
-        var loc2 = E.Location.Create("Rooftop");
-        db.Locations.AddRange(loc1, loc2);
-        var a = MakeStaff("A", locations: new[] { loc1.Id });   // already has loc1
-        db.Staff.Add(a);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        await new BulkAssignLocationsCommandHandler(db, new NullAudit()).Handle(
-            new BulkAssignLocationsCommand([a.Id], [loc1.Id, loc2.Id]), CancellationToken.None);
-
-        // loc1 not duplicated; loc2 added → exactly 2 rows.
-        Assert.Equal(2, await db.StaffLocations.CountAsync(sl => sl.EmployeeId == a.Id));
-    }
-
-    [Fact]
-    public async Task BulkAssignLocations_ThrowsArgument_WhenLocationDoesNotExist()
-    {
-        await using var db = CreateDb();
-        var a = MakeStaff("A");
-        db.Staff.Add(a);
-        await db.SaveChangesAsync();
-        db.ChangeTracker.Clear();
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            new BulkAssignLocationsCommandHandler(db, new NullAudit()).Handle(
-                new BulkAssignLocationsCommand([a.Id], ["phantom-location"]), CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task BulkAssignLocations_ReturnsZero_WhenNoStaffSelected()
-    {
-        await using var db = CreateDb();
-        var n = await new BulkAssignLocationsCommandHandler(db, new NullAudit()).Handle(
-            new BulkAssignLocationsCommand([], ["x"]), CancellationToken.None);
-        Assert.Equal(0, n);
-    }
+            (roles ?? Enumerable.Empty<Guid>()).ToList());
 
     // ── BulkAssignRoles ──────────────────────────────────────────────────────────
 

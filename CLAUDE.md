@@ -82,7 +82,6 @@ projects/
 │       ├── staff/                # staff list + staff-detail
 │       ├── leave/
 │       ├── roles/
-│       ├── locations/
 │       ├── payroll-locks/
 │       ├── cash-advances/
 │       └── account/
@@ -98,7 +97,7 @@ projects/
 └── shared-lib/src/lib/
     ├── models/                   # DTOs and interfaces
     ├── services/                 # HTTP services + LangService + ToastService + ConfirmService
-    ├── stores/                   # signal-based state (StaffStore, LocationStore)
+    ├── stores/                   # signal-based state (StaffStore)
     ├── guards/                   # authGuard, roleGuard, permissionGuard, unsavedChangesGuard
     ├── auth/                     # AuthService, jwt/error/maintenance interceptors, ForgotPasswordBase
     ├── pipes/                    # HmPipe (24-hour time), LocalizedNamePipe
@@ -152,7 +151,6 @@ All routes in `app.routes.ts`. Pattern: lazy load + guards.
 /staff, /staff/:id     permissionGuard('staff.view')
 /leave                 permissionGuard('leave.approve')
 /roles                 permissionGuard('roles.manage')
-/locations             permissionGuard('locations.manage')
 /payroll-locks         permissionGuard('payroll.lock')
 /cash-advances         permissionGuard('cashadvance.manage')
 /account               own profile, push notifications, language
@@ -222,7 +220,7 @@ hasRole(...roles: UserRole[]): boolean
 
 ## Shared-lib exports
 
-**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `Location`, `PagedResult<T>`
+**Models** (key ones): `Staff`, `StaffRole`, `RegisterStaffRequest`, `UpdateStaffRequest`, `AuthUser`, `AuthResponse`, `LoginRequest`, `LeaveRequest`, `LeaveBalance`, `NotificationDto`, `PagedResult<T>`
 
 **Services:**
 | Service | Purpose |
@@ -256,7 +254,7 @@ hasRole(...roles: UserRole[]): boolean
 **Base classes:**
 - `ForgotPasswordBase` — logic for forgot-password pages (both apps extend this)
 
-**Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time); `LocalizedNamePipe` — picks the zh/vi/en name of a role or location
+**Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time); `LocalizedNamePipe` — picks the zh/vi/en name of a role
 
 **Directives:** `HasPermissionDirective` — hides an element without a permission; `PickerOnlyDirective` — disables keyboard on date inputs on mobile; `TrimInputDirective`
 
@@ -293,7 +291,7 @@ export class StaffStore {
 }
 ```
 
-Available stores: `StaffStore`, `LocationStore` (confirmed). Other domains use service classes directly.
+Available stores: `StaffStore` (confirmed). Other domains use service classes directly.
 
 **Usage in components:**
 ```typescript
@@ -740,32 +738,6 @@ pay without a new phase document.
 
 ---
 
-## Staff ↔ location assignment
-
-Staff are assigned the **work location(s)** they belong to — a **many-to-many** relationship
-**independent of roles**. Since clock-in/out was removed (Phase 7) locations are a staff attribute
-(display, filtering, future rosters); nothing enforces them at write time.
-
-**Data model** mirrors the `StaffRole` join-entity pattern:
-- `StaffLocation` entity — composite key `(EmployeeId, LocationId)`, table `StaffLocations`, additive
-  migration `AddStaffLocations` (creates the table; no destructive change).
-- `Staff.LocationEntries` (`List<StaffLocation>`, `private set`, `AutoInclude()`) + computed
-  `Staff.LocationIds`. `Staff.Create(...)` / `UpdateDetails(...)` take an optional `List<string>?
-  locations`; `SetLocations(...)` mutates the collection in place (trim, remove dropped, add new with
-  `EmployeeId = Id`). `StaffConfiguration` ignores `LocationIds` and `Navigation(...).AutoInclude()`.
-
-**Admin UI:** Staff add (`staff.component`) + detail (`staff-detail.component`) inject `LocationStore`,
-expose `availableLocations`, and bind a `p-multiselect` (`optionValue="id"`). `RegisterStaffCommand` /
-`UpdateStaffCommand` (+ `UpdateStaffBody`) carry `List<string>? Locations`; `StaffDetailDto` returns
-`LocationIds`.
-
-> **InMemory test gotcha:** to seed an assignment, mutate the **navigation collection**
-> (`staff.LocationEntries.Add(new E.StaffLocation { LocationId = loc.Id })`), **not**
-> `db.StaffLocations.Add(new { EmployeeId = ... })` — under the InMemory provider a manually-set shadow
-> FK does **not** link the row to the parent, so queries won't see it.
-
----
-
 ## Bulk admin actions
 
 Bulk operations act on a selected set of records in one request. **Canonical backend pattern**
@@ -779,10 +751,9 @@ same transaction); catch `DbUpdateConcurrencyException` → clean "refresh and t
 > actor differs from the caller (e.g. a background job, or attributing to a specific staff member).
 
 Current bulk commands:
-- **Staff** (`Application/Staff/Commands/BulkStaffCommands.cs`, `StaffController` `POST bulk/locations`,
-  `bulk/roles`, `bulk/deactivate`, gated `staff.manage`): `BulkAssignLocationsCommand` /
-  `BulkAssignRolesCommand` are **additive** — they call the **`Staff.AddLocations`/`AddRoles`** union
-  helpers (NOT `SetLocations`/`SetRoles`, which replace). `BulkDeactivateStaffCommand` applies a
+- **Staff** (`Application/Staff/Commands/BulkStaffCommands.cs`, `StaffController` `POST bulk/roles`,
+  `bulk/deactivate`, gated `staff.manage`): `BulkAssignRolesCommand` is **additive** — it calls the
+  **`Staff.AddRoles`** union helper (NOT `SetRoles`, which replaces). `BulkDeactivateStaffCommand` applies a
   **whole-selection** last-admin guard (counts active admins, refuses if the batch is all of them) —
   the per-row `DeactivateStaffCommand` guard can't catch that because un-saved in-memory changes still
   read as committed-active. Roles are validated against the `Roles` table (the admin dropdown source).
@@ -798,8 +769,7 @@ checkbox column + action bar); the staff list mirrors it. Service methods live o
 ### Bulk create (import)
 
 Separate from the mutate actions — each setup page can create many records at once (≤100):
-- `BulkCreateLocationsCommand` (`Application/Locations/Commands`, `POST locations/bulk`) and
-  `BulkCreateRolesCommand` (`Application/Staff/Commands`, `POST staff/roles/bulk`): normalise + dedupe
+- `BulkCreateRolesCommand` (`Application/Staff/Commands`, `POST staff/roles/bulk`): normalise + dedupe
   names, skip existing, return `BulkCreateResult { Created, Skipped }`.
 - `BulkRegisterStaffCommand` (`POST staff/bulk-import`): **partial success** — validates each row
   (required fields, intra-batch + DB duplicate Staff ID/email, and a **required admin-set password**
@@ -809,15 +779,14 @@ Separate from the mutate actions — each setup page can create many records at 
   `UpsertLeaveCommand` via `ISender` (full overlap/balance/notify validation), partial success →
   `BulkLeaveResult { Created, Failed, Errors[] }`. Requires positive `hours` (same rule as single create).
 
-FE dialogs: all four are **editable row grids** (Locations: name-per-row `bulkRows:{name}[]`; Roles:
-Name+Rate `bulkRows:{name,rate}[]` → mapped to `{name,hourlyRate}`); Staff "Import" is an **editable row grid**
+FE dialogs: Roles is an **editable row grid** (Name+Rate `bulkRows:{name,rate}[]` → mapped to
+`{name,hourlyRate}`); Staff "Import" is an **editable row grid**
 (`importRows` model → `importRowsToSubmit` maps/trims/drops-blank → `bulkImportStaff`; per-row inputs
 + an admin-set **password** column + a roles `p-multiselect`, Add/remove row) showing a per-row results table;
 Leave "Bulk Record" is a staff-multiselect + type + start/end date + start/end time form (mandatory,
 mirroring the single Record-Leave form; hours are derived from the times — no manual hours field).
 Note: staff import collects
-**roles** (from the roles dropdown) but **not** locations (location is ID-keyed — assign via the
-bulk-assign-locations action after import). Grid inputs start readonly (anti-autofill) — E2E must
+**roles** (from the roles dropdown). Grid inputs start readonly (anti-autofill) — E2E must
 click-then-fill.
 
 ---
@@ -1111,13 +1080,13 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 29 | 293 | ✅ |
-| admin-app components | 12 | 369 | ✅ |
+| shared-lib (services + stores + guards + auth) | 28 | 266 | ✅ |
+| admin-app components | 11 | 346 | ✅ |
 | staff-app components | 6 | 135 | ✅ |
-| backend Application.Tests | — | 277 | ✅ |
+| backend Application.Tests | — | 273 | ✅ |
 | backend Integration.Tests (Testcontainers) | — | 18 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 13 | 58 | ✅ |
+| E2E (Playwright) | 12 | 54 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1154,7 +1123,7 @@ const component = TestBed.createComponent(ComponentUnderTest).componentInstance;
 
 **Key patterns:**
 - Mock services with `vi.fn().mockReturnValue(of(value))` for success; `throwError(() => err)` for failure
-- Store signals (`StaffStore.staff`, `LocationStore.locations`, etc.) are plain functions — mock as `vi.fn().mockReturnValue([])`
+- Store signals (`StaffStore.staff`, `StaffStore.roles`, etc.) are plain functions — mock as `vi.fn().mockReturnValue([])`
 - Angular `computed()` with non-signal dependencies (mocks) evaluates once and caches — tests needing different values use fresh component instances via `TestBed.createComponent()`
 - For debounce tests: `vi.useFakeTimers()` + `vi.advanceTimersByTime(ms)`; always `vi.useRealTimers()` in `afterEach`
 - For time-of-day computed (`new Date().getHours()`): `vi.useFakeTimers()` + `vi.setSystemTime(new Date(...))` before creating the component
@@ -1230,13 +1199,13 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 293 tests
-npx ng test admin-app  --no-watch   # 369 tests
+npx ng test shared-lib --no-watch   # 266 tests
+npx ng test admin-app  --no-watch   # 346 tests
 npx ng test staff-app  --no-watch   # 135 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 305 tests (277 Application + 18 Integration + 10 Infrastructure)
+dotnet test                          # 301 tests (273 Application + 18 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```
@@ -1282,9 +1251,8 @@ PW_CHANNEL=msedge npm run test:e2e   # use the installed Edge/Chrome when Playwr
 |---|---|
 | `tests/e2e/admin/auth.spec.ts` | Login, wrong password, authGuard redirect, logout |
 | `tests/e2e/admin/dashboard.spec.ts` | Redirect after login, total-staff KPI card, live/connecting badge |
-| `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation, location field, bulk mode |
+| `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation, bulk mode |
 | `tests/e2e/admin/roles.spec.ts` | Roles page renders, role table, Add role dialog |
-| `tests/e2e/admin/locations.spec.ts` | Locations page renders, Add button visible |
 | `tests/e2e/admin/leave.spec.ts` | Leave page, filters, Record Leave dialog, summary pills |
 | `tests/e2e/admin/permissions.spec.ts` | Portal gate, per-user grant/revoke override, 403 vs 200 on a protected endpoint |
 | `tests/e2e/admin/negative.spec.ts` | API guards reject cleanly: overlap, bad dates, hours cap, blocked deletes, duplicate Staff ID, 401s |

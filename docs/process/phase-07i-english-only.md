@@ -17,7 +17,7 @@
 
 ---
 
-## Measured footprint (at Phase 7 commit `9f8aa3c`; Phase 7j will shrink the Location parts)
+## Measured footprint (at Phase 7 commit `9f8aa3c`; Phase 7j has already removed the Location parts)
 
 | Area | Count |
 |---|---|
@@ -30,8 +30,8 @@
 | **Dynamic keys** (need hand work) | 10 template expressions (`'x.' + y \| translate`), 2 `instant()` calls with computed keys, ~24 `labelKey`/`*Key` fields (nav items, menus, status maps) |
 | Locale files | admin `en/zh/vi` = **532** keys each; staff `en/zh/vi` = **159** keys each (Phase 7 already cut 737 → 532 and 218 → 159) |
 | `LangService` | used in 21 files (shell x2, login x2, forgot-password x2 + base, account, profile, staff, staff-detail, specs); persists `localStorage` lang key; globe toggle in both shells, both login pages, both forgot-password pages, account + profile language cards |
-| `LocalizedNamePipe` / `localizedNameFor` | 2 template uses, used in `locations`, `roles`, `staff`, `staff-detail` components; exported from `shared-lib` `public-api.ts` (lines for `lang.service`, `localized-name.pipe`) |
-| Backend `*Zh/*Vi` | 8 files, 33 matches in `src`: `Role.cs`, `Location.cs`, `RoleConfiguration`, `LocationConfiguration`, `CreateRoleCommand`, `GetRolesQuery`, `StaffController`, `LocationsController`; 0 in `tests` |
+| `LocalizedNamePipe` / `localizedNameFor` | 2 template uses, used in `roles`, `staff`, `staff-detail` components; exported from `shared-lib` `public-api.ts` (lines for `lang.service`, `localized-name.pipe`) |
+| Backend `*Zh/*Vi` | 5 files, 17 matches in `src` (after Phase 7j): `Role.cs`, `RoleConfiguration`, `CreateRoleCommand`, `GetRolesQuery`, `StaffController`; 0 in `tests` |
 | Backend language preference | `Staff.PreferredLanguage` + `SetLanguage`, `UpdateLanguageCommand` (whitelist `["en","zh","vi"]`), `AuthController` `GetLanguage`/`UpdateLanguage`/`UpdateLanguageBody` |
 | Migrations that created the fields (history only) | `AddPreferredLanguage`, `AddBilingualNames`, `AddVietnameseNames` |
 | Server-side localization | none: no `IStringLocalizer`, no `Accept-Language`, no localization helpers. Push/notification text is built in English on the server; the FE bell maps notification types through keys |

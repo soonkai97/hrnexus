@@ -7,7 +7,6 @@ export interface Staff {
   email: string | null;
   /** Assigned role NAMES (display) — the staff-detail response returns names for the roles chips. */
   roles: string[];
-  locationIds: string[];
   isActive: boolean;
   phoneNumber: string | null;
   icNo: string | null;
@@ -27,7 +26,6 @@ export interface RegisterStaffRequest {
   password: string;
   /** Assigned role IDS (GUIDs) — roles are identified by id since the GUID-PK migration. */
   roles: string[];
-  locations: string[];
   phoneNumber: string;
   icNo: string | null;
   passportNo: string | null;
@@ -41,7 +39,6 @@ export interface UpdateStaffRequest {
   email: string | null;
   /** Assigned role IDS (GUIDs) — roles are identified by id since the GUID-PK migration. */
   roles: string[];
-  locations: string[];
   phoneNumber: string | null;
   icNo: string | null;
   passportNo: string | null;

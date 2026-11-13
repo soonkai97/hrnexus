@@ -33,16 +33,9 @@ $adminToken = ($admin.Body | ConvertFrom-Json).accessToken
 Write-Host '  admin token acquired (200)'
 
 Write-Host ''
-Write-Host '=== 2. Seeding job role + locations (idempotent) ===' -ForegroundColor Cyan
+Write-Host '=== 2. Seeding job role (idempotent) ===' -ForegroundColor Cyan
 $role = Send-Json 'POST' '/staff/roles' @{ name = 'Bartender'; hourlyRate = 20 } $adminToken
 Write-Host "  role 'Bartender' -> $($role.Status) (204 created / 409 already exists)"
-foreach ($locName in @('Main Bar', 'VIP Lounge')) {
-    $loc = Send-Json 'POST' '/locations' @{ name = $locName } $adminToken
-    Write-Host "  location '$locName' -> $($loc.Status)"
-}
-$locations = (Send-Json 'GET' '/locations' $null $adminToken).Body | ConvertFrom-Json
-$locationId = ($locations | Select-Object -First 1).id
-Write-Host "  using locationId = $locationId"
 
 Write-Host ''
 Write-Host '=== 3. Seeding sample staff (idempotent) ===' -ForegroundColor Cyan

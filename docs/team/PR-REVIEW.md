@@ -77,11 +77,11 @@ Then append one entry to `docs/team/HANDOFFS.md` (see `PROTOCOL.md`).
 
 **unit-test-engineer** - Every new domain rule or branch has a deterministic test; tests encode intent (Rule 9), not implementation; no sleeps, real clocks or randomness; a failing-case test per guard; the CLAUDE.md test patterns are followed (InMemory seeding via navigation collections, stub routes, no `detectChanges()`).
 
-**integration-test-engineer** - New endpoints have status-code, permission, location-scope and validation tests on real PostgreSQL (Testcontainers); concurrency-sensitive paths have a parallel test.
+**integration-test-engineer** - New endpoints have status-code, permission and validation tests on real PostgreSQL (Testcontainers); concurrency-sensitive paths have a parallel test.
 
 **behavior-test-engineer** - Phase validation criteria are covered by named scenarios; the golden path plus one edge case per feature and the auth flow are covered (Rule 16); the two portals use different hostnames.
 
-**data-flow-analyst** - Trace each new or changed field UI to API to entity to report/export; flag places where values can diverge, double count, leak across location scope, or expose PII in logs, audit or exports.
+**data-flow-analyst** - Trace each new or changed field UI to API to entity to report/export; flag places where values can diverge, double count, or expose PII in logs, audit or exports.
 
 **business-analyst** - The change satisfies the phase doc and its acceptance criteria, edge cases handled, no silent scope change, HR terms used consistently.
 
@@ -97,7 +97,7 @@ Then append one entry to `docs/team/HANDOFFS.md` (see `PROTOCOL.md`).
 
 **fe-framework** - `npx ng build` and unit tests pass for the touched projects; no direct edits to backend; shared code lives in shared-lib; spec file exists for every new component/service/store/guard (Rule 17 scan returns 0 gaps).
 
-**security-engineer** - Every new endpoint has an authorization policy and a location-scope check; ids from the client are never trusted (BOLA); request DTOs cannot over-post (roles, IsActive); inputs are length- and range-bounded; no secrets, keys or connection strings in code or config; PII stays encrypted at rest and out of logs; errors expose no internals; file uploads validate type by content, size, name and path; no new dependency with known vulnerabilities; nginx security headers/CSP not weakened or duplicated at the API; auth cookies stay httpOnly/SameSite=Strict; rate limiter and lockout intact.
+**security-engineer** - Every new endpoint has an authorization policy; ids from the client are never trusted (BOLA); request DTOs cannot over-post (roles, IsActive); inputs are length- and range-bounded; no secrets, keys or connection strings in code or config; PII stays encrypted at rest and out of logs; errors expose no internals; file uploads validate type by content, size, name and path; no new dependency with known vulnerabilities; nginx security headers/CSP not weakened or duplicated at the API; auth cookies stay httpOnly/SameSite=Strict; rate limiter and lockout intact.
 
 **qa-novice-staff / qa-power-manager / qa-edge-accessibility** - Run the PR's UI (built branch or rebuilt Docker stack) as that persona and report defects with steps, expected and actual. The accessibility persona checks keyboard, labels, contrast, 360px and 1440px, wrong-role access.
 

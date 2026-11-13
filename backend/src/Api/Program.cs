@@ -193,7 +193,7 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
 var app = builder.Build();
 
 // Ensure wwwroot/uploads exists for file storage
-Directory.CreateDirectory(Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads", "locations"));
+Directory.CreateDirectory(Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads"));
 
 // Ensure DB schema exists and seed demo data on startup
 await using (var scope = app.Services.CreateAsyncScope())

@@ -16,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<StaffRole>        StaffRoles        => Set<StaffRole>();
     public DbSet<Role>             Roles             => Set<Role>();
     public DbSet<SalaryProfile>    SalaryProfiles    => Set<SalaryProfile>();
+    public DbSet<CompanyPolicy>    CompanyPolicies   => Set<CompanyPolicy>();
     public DbSet<RolePermission>          RolePermissions          => Set<RolePermission>();
     public DbSet<StaffPermissionOverride> StaffPermissionOverrides => Set<StaffPermissionOverride>();
     public DbSet<LeaveRequest>     LeaveRequests     => Set<LeaveRequest>();
@@ -54,6 +55,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new StaffRoleConfiguration());
         mb.ApplyConfiguration(new RoleConfiguration());
         mb.ApplyConfiguration(new SalaryProfileConfiguration(encryptor));
+        mb.ApplyConfiguration(new CompanyPolicyConfiguration());
         mb.ApplyConfiguration(new RolePermissionConfiguration());
         mb.ApplyConfiguration(new StaffPermissionOverrideConfiguration());
         mb.ApplyConfiguration(new LeaveRequestConfiguration());

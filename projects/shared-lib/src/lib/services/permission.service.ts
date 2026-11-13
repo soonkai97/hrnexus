@@ -10,7 +10,7 @@ import { tap, map, catchError } from 'rxjs/operators';
 export type PermissionKey =
   | 'portal.admin'
   | 'staff.view'   | 'staff.manage'
-  | 'leave.approve' | 'leave.manage'
+  | 'leave.approve' | 'leave.manage' | 'policy.manage'
   | 'reports.view'
   | 'payroll.view' | 'payroll.manage' | 'payroll.lock'
   | 'roles.manage'

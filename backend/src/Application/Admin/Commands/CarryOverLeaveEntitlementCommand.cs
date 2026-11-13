@@ -1,5 +1,7 @@
 ﻿using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Leave;
+using HRNexus.Application.Policy;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,15 +10,13 @@ namespace HRNexus.Application.Admin.Commands;
 
 /// <summary>
 /// Carries over unused annual leave hours from one year to the next for all active staff.
-/// The carry-over amount per person is capped at <see cref="MaxCarryOver"/> hours.
+/// The rule comes from the company policy: none (unused leave lapses), capped (up to the policy cap) or
+/// unlimited (cumulative: everything left carries forward).
 /// What is left of the closing year's whole annual pool (base plus its own carry-over) is carried.
 /// Carry-over hours are stored in CarryOverHours and add to the destination year's usable pool;
 /// the base entitlement is never changed. Returns the number of employees who had carry-over added.
 /// </summary>
-public record CarryOverLeaveEntitlementCommand(
-    int     FromYear,
-    int     ToYear,
-    decimal MaxCarryOver = 14m) : IRequest<int>;
+public record CarryOverLeaveEntitlementCommand(int FromYear, int ToYear) : IRequest<int>;
 
 public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
     : IRequestHandler<CarryOverLeaveEntitlementCommand, int>
@@ -25,10 +25,10 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
     {
         if (req.FromYear >= req.ToYear)
             throw new ArgumentException("FromYear must be before ToYear.");
-        if (req.MaxCarryOver < 0)
-            throw new ArgumentException("MaxCarryOver cannot be negative.");
-        if (req.MaxCarryOver > 720)
-            throw new ArgumentException("MaxCarryOver cannot exceed 720 hours.");
+
+        var policy = await CompanyPolicyReader.GetAsync(db, ct);
+        if (policy.CarryOverMode == AppConstants.Policy.CarryOverNone) return 0;   // unused leave lapses
+        var cap = policy.CarryOverMode == AppConstants.Policy.CarryOverUnlimited ? decimal.MaxValue : policy.CarryOverMaxHours;
 
         var activeStaffIds = await db.Staff
             .Where(s => s.IsActive)
@@ -62,7 +62,7 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
             var usedByEmployee = fromYearLeaves
                 .GroupBy(l => l.EmployeeId)
                 .Select(g => new { EmployeeId = g.Key,
-                    Used = g.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, req.FromYear)) })
+                    Used = g.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, req.FromYear, policy.Schedule)) })
                 .ToList();
 
             var usedMap = usedByEmployee.ToDictionary(u => u.EmployeeId, u => u.Used);
@@ -78,7 +78,7 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
                 var annualEnt = fromMap.TryGetValue(empId, out var fe) ? fe.TotalAnnualHours : 0m;
                 var used      = usedMap.TryGetValue(empId, out var u) ? u : 0m;
                 var remaining = Math.Max(0m, annualEnt - used);
-                var carryOver = Math.Min(remaining, req.MaxCarryOver);
+                var carryOver = Math.Min(remaining, cap);
 
                 if (carryOver <= 0m) continue;
 

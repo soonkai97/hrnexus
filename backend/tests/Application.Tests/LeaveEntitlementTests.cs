@@ -160,7 +160,7 @@ public class LeaveEntitlementTests
         db.ChangeTracker.Clear();
 
         await new CarryOverLeaveEntitlementCommandHandler(db)
-            .Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+            .Handle(new CarryOverLeaveEntitlementCommand(2025, 2026), CancellationToken.None);
 
         db.ChangeTracker.Clear();
         var to = await db.LeaveEntitlements.FirstAsync(e => e.Year == 2026);

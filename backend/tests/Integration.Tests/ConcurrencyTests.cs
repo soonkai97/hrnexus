@@ -173,7 +173,7 @@ public class ConcurrencyTests(PostgresFixture fx)
             .Where(l => l.EmployeeId == empId && l.Status == AppConstants.Leave.Approved)
             .Select(l => new { l.StartDate, l.EndDate, l.Hours })
             .ToListAsync();
-        var used2026 = leaves.Sum(l => HRNexus.Application.Leave.LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, 2026));
+        var used2026 = leaves.Sum(l => HRNexus.Application.Leave.LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, 2026, HRNexus.Domain.Policy.WorkSchedule.Default));
         Assert.True(used2026 <= 28m, $"Overdraw! {used2026}h of 2026 used, entitlement is 28h.");
     }
 }

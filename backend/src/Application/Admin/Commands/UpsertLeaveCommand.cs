@@ -1,7 +1,9 @@
 ﻿using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Leave;
+using HRNexus.Application.Policy;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
+using HRNexus.Domain.Policy;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -27,11 +29,10 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     IPushNotificationService pushSvc, IAuditService audit, IDateTimeProvider dt)
     : IRequestHandler<UpsertLeaveCommand, Guid>
 {
-    private const int MaxLeaveDays = 30;
-
     public async Task<Guid> Handle(UpsertLeaveCommand req, CancellationToken ct)
     {
-        ValidateRequest(req);
+        var policy = await CompanyPolicyReader.GetAsync(db, ct);
+        ValidateRequest(req, policy);
 
         // Stable Id for the create path so a retried attempt can recognise its own committed row.
         // EnableRetryOnFailure re-runs the whole delegate on a transient; without this, an attempt
@@ -90,11 +91,11 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                     || existing.StartDate.Date != req.StartDate.Date || existing.EndDate.Date != req.EndDate.Date
                     || existing.StartTime != req.StartTime || existing.EndTime != req.EndTime;
                 var hours = datesOrTimesChanged || existing?.Hours is null
-                    ? LeaveHoursCalculator.Calculate(req.StartDate, req.EndDate, req.StartTime, req.EndTime)
+                    ? LeaveHoursCalculator.Calculate(req.StartDate, req.EndDate, req.StartTime, req.EndTime, policy.Schedule)
                     : existing.Hours.Value;
 
                 if (!isRejectedOrCancelled && (isAnnualOrEmergency || isSick))
-                    await EnsureSufficientBalanceAsync(req, hours, isAnnualOrEmergency, ct);
+                    await EnsureSufficientBalanceAsync(req, hours, isAnnualOrEmergency, policy.Schedule, ct);
 
                 await EnsureNoOverlapAsync(req, ct);
 
@@ -193,7 +194,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     }
 
     /// <summary>Stateless input validation — runs once, outside the retryable transaction scope.</summary>
-    private void ValidateRequest(UpsertLeaveCommand req)
+    private void ValidateRequest(UpsertLeaveCommand req, CompanyPolicy policy)
     {
         if (!req.Id.HasValue)
             EnsureNotOwnDecision(req.ActingUserId, req.EmployeeId, req.Status);
@@ -213,15 +214,15 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         if (!req.SkipAdvanceNotice
             && !req.Id.HasValue
             && req.LeaveType.Equals(AppConstants.Leave.Annual, StringComparison.OrdinalIgnoreCase)
-            && req.StartDate.Date < dt.LocalNow.Date.AddDays(AppConstants.Leave.AnnualLeaveAdvanceDays))
+            && req.StartDate.Date < dt.LocalNow.Date.AddDays(policy.AnnualLeaveAdvanceDays))
         {
             throw new ArgumentException(
-                $"Annual leave must be applied at least {AppConstants.Leave.AnnualLeaveAdvanceDays} days in advance. " +
+                $"Annual leave must be applied at least {policy.AnnualLeaveAdvanceDays} days in advance. " +
                 "For urgent or same-day requests, please select Emergency Leave instead.");
         }
 
-        if ((req.EndDate.Date - req.StartDate.Date).Days + 1 > MaxLeaveDays)
-            throw new ArgumentException($"Leave duration cannot exceed {MaxLeaveDays} days in a single request.");
+        if ((req.EndDate.Date - req.StartDate.Date).Days + 1 > policy.MaxLeaveDays)
+            throw new ArgumentException($"Leave duration cannot exceed {policy.MaxLeaveDays} days in a single request.");
 
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
@@ -263,13 +264,13 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     /// balance. A request that crosses 31 Dec / 1 Jan is checked per year, by the working days that
     /// fall in each year. Runs inside the Serializable transaction so the read can't race a
     /// concurrent insert.</summary>
-    private async Task EnsureSufficientBalanceAsync(UpsertLeaveCommand req, decimal hours, bool isAnnualOrEmergency, CancellationToken ct)
+    private async Task EnsureSufficientBalanceAsync(UpsertLeaveCommand req, decimal hours, bool isAnnualOrEmergency, WorkSchedule schedule, CancellationToken ct)
     {
         var poolName = isAnnualOrEmergency ? "annual" : "sick";
 
         for (var year = req.StartDate.Year; year <= req.EndDate.Year; year++)
         {
-            var requested = LeaveHoursCalculator.HoursInYear(req.StartDate, req.EndDate, hours, year);
+            var requested = LeaveHoursCalculator.HoursInYear(req.StartDate, req.EndDate, hours, year, schedule);
             if (requested <= 0) continue;
 
             var entitlement = await db.LeaveEntitlements
@@ -296,7 +297,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                          && l.Id != (req.Id ?? Guid.Empty))
                 .Select(l => new { l.StartDate, l.EndDate, l.Hours })
                 .ToListAsync(ct);
-            var usedHours = others.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year));
+            var usedHours = others.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year, schedule));
 
             if (usedHours + requested > entitlementHours)
             {

@@ -111,6 +111,55 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("CashAdvances");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.CompanyPolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("AnnualLeaveAdvanceDays")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("CarryOverMaxHours")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)");
+
+                    b.Property<string>("CarryOverMode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int>("MaxLeaveDays")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UnpaidLeaveDivisor")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("numeric(4,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("WorkdayHours")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("numeric(4,2)");
+
+                    b.Property<int>("WorkingDaysMask")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CompanyPolicies", t =>
+                        {
+                            t.HasCheckConstraint("CK_CompanyPolicy_SingleRow", "\"Id\" = 1");
+                        });
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.LeaveEntitlement", b =>
                 {
                     b.Property<Guid>("Id")

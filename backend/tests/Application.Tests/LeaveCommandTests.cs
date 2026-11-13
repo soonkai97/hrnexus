@@ -1025,17 +1025,6 @@ public class LeaveCommandTests
     }
 
     [Fact]
-    public async Task CarryOverLeaveEntitlement_ThrowsArgument_WhenMaxCarryOverNegative()
-    {
-        await using var db = CreateDb();
-        var handler = new CarryOverLeaveEntitlementCommandHandler(db);
-
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, -1m),
-                CancellationToken.None));
-    }
-
-    [Fact]
     public async Task CarryOverLeaveEntitlement_CarriesOverUnusedLeave()
     {
         // Staff has 40h annual for 2025, used 32h (Mon-Thu) → 8h remaining → carry-over up to 14h = 8h
@@ -1061,7 +1050,7 @@ public class LeaveCommandTests
 
         var handler = new CarryOverLeaveEntitlementCommandHandler(db);
         var count = await handler.Handle(
-            new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+            new CarryOverLeaveEntitlementCommand(2025, 2026), CancellationToken.None);
 
         Assert.Equal(1, count);
         var updated2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
@@ -1090,9 +1079,9 @@ public class LeaveCommandTests
         db.ChangeTracker.Clear();
 
         var handler = new CarryOverLeaveEntitlementCommandHandler(db);
-        var first = await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+        var first = await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026), CancellationToken.None);
         db.ChangeTracker.Clear();
-        var second = await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+        var second = await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026), CancellationToken.None);
 
         Assert.Equal(1, first);
         Assert.Equal(0, second);   // second run skips the already-carried employee
@@ -1115,7 +1104,7 @@ public class LeaveCommandTests
         db.ChangeTracker.Clear();
 
         var handler = new CarryOverLeaveEntitlementCommandHandler(db);
-        await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+        await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026), CancellationToken.None);
 
         var updated2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
         Assert.Equal(94m, updated2026.TotalAnnualHours);   // 80 + 14 (capped)
@@ -1135,7 +1124,7 @@ public class LeaveCommandTests
 
         var handler = new CarryOverLeaveEntitlementCommandHandler(db);
         var count = await handler.Handle(
-            new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+            new CarryOverLeaveEntitlementCommand(2025, 2026), CancellationToken.None);
 
         Assert.Equal(1, count);
         var new2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
@@ -1168,7 +1157,7 @@ public class LeaveCommandTests
 
         var handler = new CarryOverLeaveEntitlementCommandHandler(db);
         var count = await handler.Handle(
-            new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+            new CarryOverLeaveEntitlementCommand(2025, 2026), CancellationToken.None);
 
         Assert.Equal(0, count);
         Assert.Equal(0, await db.LeaveEntitlements.CountAsync(e => e.Year == 2026));
@@ -1269,7 +1258,7 @@ public class LeaveCommandTests
         db.ChangeTracker.Clear();
 
         var handler = new CarryOverLeaveEntitlementCommandHandler(db);
-        await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026, 14m), CancellationToken.None);
+        await handler.Handle(new CarryOverLeaveEntitlementCommand(2025, 2026), CancellationToken.None);
 
         var updated2026 = await db.LeaveEntitlements.FirstAsync(e => e.EmployeeId == staff.Id && e.Year == 2026);
         Assert.Equal(8m, updated2026.CarryOverHours);  // tracked separately from AnnualHours delta

@@ -1,5 +1,6 @@
 ﻿using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Leave;
+using HRNexus.Application.Policy;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,7 @@ public class GetLeaveBalanceQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var startOfYear = new DateTime(year, 1, 1,   0, 0, 0, DateTimeKind.Utc);
         var endOfYear   = new DateTime(year, 12, 31, 0, 0, 0, DateTimeKind.Utc);
 
+        var policy = await CompanyPolicyReader.GetAsync(db, ct);
         var countedLeaves = await db.LeaveRequests
             .Where(l => l.EmployeeId == req.EmployeeId
                      && l.Status != "rejected"
@@ -46,7 +48,7 @@ public class GetLeaveBalanceQueryHandler(IAppDbContext db, IDateTimeProvider dt)
             .ToListAsync(ct);
         // A leave across New Year is charged to each year by the working days that fall in it.
         var inYear = countedLeaves
-            .Select(l => new { l.LeaveType, Hours = LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year) })
+            .Select(l => new { l.LeaveType, Hours = LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year, policy.Schedule) })
             .ToList();
 
         // Annual + emergency both count against the annual pool

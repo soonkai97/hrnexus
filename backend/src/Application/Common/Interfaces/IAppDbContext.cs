@@ -31,6 +31,7 @@ public interface IAppDbContext
     DbSet<HRNexus.Domain.Entities.StaffRole> StaffRoles { get; }
     DbSet<Role>             Roles             { get; }
     DbSet<SalaryProfile>    SalaryProfiles    { get; }
+    DbSet<CompanyPolicy>    CompanyPolicies   { get; }
     DbSet<RolePermission>          RolePermissions          { get; }
     DbSet<StaffPermissionOverride> StaffPermissionOverrides { get; }
     DbSet<LeaveRequest>     LeaveRequests     { get; }

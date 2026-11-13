@@ -3,7 +3,7 @@
 // so a hostile PR title or branch name cannot inject anything into a shell.
 //   PR_TITLE, PR_BRANCH, BASE_SHA, HEAD_SHA, PR_LABELS
 import { execFileSync } from 'node:child_process';
-import { checkCommitMessage, checkBranchName, forbiddenPath, findSecrets, report, MAX_PR_CHANGED_LINES, LARGE_CHANGE_LABEL, AI_COAUTHOR, rejectAiCoauthor } from './lib.mjs';
+import { checkCommitMessage, checkBranchName, forbiddenPath, findSecrets, report, MAX_PR_CHANGED_LINES, LARGE_CHANGE_LABEL, GENERATED_PATHSPECS, AI_COAUTHOR, rejectAiCoauthor } from './lib.mjs';
 
 const { PR_TITLE = '', PR_BRANCH = '', BASE_SHA, HEAD_SHA, PR_LABELS = '' } = process.env;
 const run = (...args) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
@@ -28,8 +28,7 @@ if (BASE_SHA && HEAD_SHA) {
     if (!text.includes('\u0000')) problems.push(...findSecrets(f, text));
   }
   // Lock files and EF Core designer/snapshot files are generated, not reviewed line by line, so they do not count towards the size limit.
-  const GENERATED = [':(exclude)package-lock.json', ':(exclude)**/package-lock.json', ':(exclude)**/Migrations/*.Designer.cs', ':(exclude)**/Migrations/*ModelSnapshot.cs'];
-  const changed = run('diff', '--shortstat', range, '--', '.', ...GENERATED).match(/(\d+) insertions?|(\d+) deletions?/g)?.reduce((n, m) => n + Number.parseInt(m, 10), 0) ?? 0;
+  const changed = run('diff', '--shortstat', range, '--', '.', ...GENERATED_PATHSPECS).match(/(\d+) insertions?|(\d+) deletions?/g)?.reduce((n, m) => n + Number.parseInt(m, 10), 0) ?? 0;
   const sizeApproved = PR_LABELS.split(',').includes(LARGE_CHANGE_LABEL);
   if (changed > MAX_PR_CHANGED_LINES && !sizeApproved) problems.push(`This PR changes ${changed} lines (limit ${MAX_PR_CHANGED_LINES}). Split it into smaller pull requests, or have the owner add the "${LARGE_CHANGE_LABEL}" label when a large change cannot be split (for example removing a whole feature).`);
   if (rejectAiCoauthor() && AI_COAUTHOR.test(PR_TITLE)) problems.push('PR title carries an AI co-author trailer.');

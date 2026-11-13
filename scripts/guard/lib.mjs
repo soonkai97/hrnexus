@@ -14,6 +14,9 @@ export const MAX_FILE_BYTES = 2 * 1024 * 1024;
 export const MAX_PR_CHANGED_LINES = 1500;
 export const LARGE_CHANGE_LABEL = 'large-change';
 
+/** Generated files (lock files, EF Core designer and snapshot files) do not count towards the PR size limit. */
+export const GENERATED_PATHSPECS = [':(exclude)package-lock.json', ':(exclude)**/package-lock.json', ':(exclude)**/Migrations/*.Designer.cs', ':(exclude)**/Migrations/*ModelSnapshot.cs'];
+
 /** Messages git generates itself are not rewritten by people. */
 export const isGeneratedMessage = (subject) => /^(Merge |Revert "|fixup! |squash! |amend! )/.test(subject);
 

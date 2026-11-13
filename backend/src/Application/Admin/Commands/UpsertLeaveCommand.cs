@@ -19,7 +19,8 @@ public record UpsertLeaveCommand(
     string?  Notes,
     string   Status,
     string?  RejectionReason = null,
-    bool     SkipAdvanceNotice = false) : IRequest<Guid>;
+    bool     SkipAdvanceNotice = false,
+    Guid?    ActingUserId = null) : IRequest<Guid>;
 
 public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifHub,
     IPushNotificationService pushSvc, IAuditService audit, IDateTimeProvider dt)
@@ -75,6 +76,8 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 {
                     var existing = await db.LeaveRequests.FindAsync([req.Id.Value], ct)
                         ?? throw new KeyNotFoundException($"Leave request {req.Id} not found.");
+
+                    EnsureNotOwnDecision(req.ActingUserId, existing.EmployeeId, req.Status);
 
                     var prevStatus = existing.Status;
                     existing.Update(req.LeaveType, req.StartDate, req.EndDate,
@@ -171,6 +174,9 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     /// <summary>Stateless input validation — runs once, outside the retryable transaction scope.</summary>
     private void ValidateRequest(UpsertLeaveCommand req)
     {
+        if (!req.Id.HasValue)
+            EnsureNotOwnDecision(req.ActingUserId, req.EmployeeId, req.Status);
+
         string[] validTypes =
         [
             AppConstants.Leave.Sick, AppConstants.Leave.Annual,
@@ -201,6 +207,20 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
+    }
+
+    /// <summary>
+    /// Nobody may approve or reject their own leave. <paramref name="actingUserId"/> is the signed-in
+    /// approver (null for self-service and background jobs). A person with leave.approve can still
+    /// record their own leave as pending; another approver then decides it.
+    /// </summary>
+    internal static void EnsureNotOwnDecision(Guid? actingUserId, Guid leaveOwnerId, string status)
+    {
+        var isDecision = status.Equals(AppConstants.Leave.Approved, StringComparison.OrdinalIgnoreCase)
+                      || status.Equals(AppConstants.Leave.Rejected, StringComparison.OrdinalIgnoreCase);
+        if (isDecision && actingUserId == leaveOwnerId)
+            throw new InvalidOperationException(
+                "You cannot approve or reject your own leave request. Ask another approver.");
     }
 
     /// <summary>Throws if the request would exceed the employee's annual (incl. emergency) or sick
@@ -242,7 +262,8 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         }
     }
 
-    /// <summary>Throws if another non-rejected leave for this employee overlaps the date range.</summary>
+    /// <summary>Throws if another pending or approved leave for this employee overlaps the date range
+    /// (rejected and cancelled leave never blocks a new request).</summary>
     private async Task EnsureNoOverlapAsync(UpsertLeaveCommand req, CancellationToken ct)
     {
         var start = DateTime.SpecifyKind(req.StartDate.Date, DateTimeKind.Utc);
@@ -252,6 +273,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             .AnyAsync(l => l.EmployeeId == req.EmployeeId
                         && l.Id != (req.Id ?? Guid.Empty)
                         && l.Status != AppConstants.Leave.Rejected
+                        && l.Status != AppConstants.Leave.Cancelled
                         && l.StartDate <= end
                         && l.EndDate   >= start, ct);
 

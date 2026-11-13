@@ -65,6 +65,33 @@ test.describe.serial('Negative paths — guards reject cleanly (full stack)', ()
     expectRejected(clash.status(), 'overlapping leave');
   });
 
+  // ── Phase 7l: cancelled leave frees its dates; nobody approves their own leave ──
+  test('cancelling a leave frees its dates for a new request', async () => {
+    const day = isoDate(new Date(Date.now() + 45 * 86_400_000));
+    const body = { leaveType: 'unpaid', startDate: day, endDate: day, startTime: '09:00', endTime: '17:00', hours: 8, notes: 'neg' };
+    const first = await staff.post('/api/leave', { data: body });
+    expect(first.ok(), 'first leave should be accepted').toBeTruthy();
+    const { id } = await first.json();
+
+    const cancel = await staff.delete(`/api/leave/${id}`);
+    expect(cancel.status(), 'cancel the leave').toBe(204);
+
+    const again = await staff.post('/api/leave', { data: body });
+    expect(again.ok(), 'the same dates can be requested again after cancelling').toBeTruthy();
+  });
+
+  test('an approver cannot record their own leave as already approved', async () => {
+    const me = await (await admin.get('/api/auth/me')).json();
+    const day = isoDate(new Date(Date.now() + 50 * 86_400_000));
+    const body = { employeeId: me.id, leaveType: 'unpaid', startDate: day, endDate: day, startTime: '09:00', endTime: '17:00', hours: 8, notes: 'neg' };
+
+    const approved = await admin.post('/api/admin/leave', { data: { ...body, status: 'approved' } });
+    expect(approved.status(), 'own leave recorded as approved').toBe(409);
+
+    const pending = await admin.post('/api/admin/leave', { data: { ...body, status: 'pending' } });
+    expect(pending.ok(), 'own leave recorded as pending is allowed').toBeTruthy();
+  });
+
   // ── Leave field validation ──────────────────────────────────────────────────
   test('leave with start after end is rejected', async () => {
     const start = isoDate(new Date(Date.now() + 60 * 86_400_000));

@@ -92,7 +92,7 @@ public class LeaveCommandTests
     {
         await using var db = CreateDb();
         var dt = new StubDateTimeProvider();
-        var handler = new CancelLeaveCommandHandler(db, dt);
+        var handler = new CancelLeaveCommandHandler(db, dt, new NullNotificationHub());
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             handler.Handle(new CancelLeaveCommand(Guid.NewGuid(), Guid.NewGuid()),
@@ -111,7 +111,7 @@ public class LeaveCommandTests
         db.ChangeTracker.Clear();
 
         var dt = new StubDateTimeProvider();
-        var handler = new CancelLeaveCommandHandler(db, dt);
+        var handler = new CancelLeaveCommandHandler(db, dt, new NullNotificationHub());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None));
@@ -131,7 +131,7 @@ public class LeaveCommandTests
 
         // "Now" is today, leave ended yesterday
         var dt = new StubDateTimeProvider();
-        var handler = new CancelLeaveCommandHandler(db, dt);
+        var handler = new CancelLeaveCommandHandler(db, dt, new NullNotificationHub());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None));
@@ -150,7 +150,7 @@ public class LeaveCommandTests
         db.ChangeTracker.Clear();
 
         var dt = new StubDateTimeProvider();
-        var handler = new CancelLeaveCommandHandler(db, dt);
+        var handler = new CancelLeaveCommandHandler(db, dt, new NullNotificationHub());
         await handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None);
 
         var updated = await db.LeaveRequests.FirstAsync(l => l.Id == leave.Id);
@@ -173,7 +173,7 @@ public class LeaveCommandTests
         db.ChangeTracker.Clear();
 
         var dt = new StubDateTimeProvider();
-        var handler = new CancelLeaveCommandHandler(db, dt);
+        var handler = new CancelLeaveCommandHandler(db, dt, new NullNotificationHub());
         await handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None);
 
         var updated = await db.LeaveRequests.FirstAsync(l => l.Id == leave.Id);
@@ -1196,10 +1196,11 @@ public class LeaveCommandTests
     }
 
     [Fact]
-    public async Task UpsertLeave_Update_ClearsRejectionReason_WhenStatusIsNotRejected()
+    public async Task UpsertLeave_Update_RefusesToReapproveARejectedLeave_AndKeepsTheReason()
     {
-        // Manager re-approves a previously rejected leave.
-        // The rejection reason must be cleared so it is no longer shown to staff.
+        // Phase 7l (D6): rejected is final. Re-approving it would skip the balance and overlap
+        // rules a fresh request goes through, so the staff member must apply again. The stored
+        // rejection reason stays so the history still explains the decision.
         await using var db = CreateDb();
         var staff = await MakeStaff(db);
         var today = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -1220,11 +1221,12 @@ public class LeaveCommandTests
             leave.Id, staff.Id, "annual", today, today,
             null, null, 8m, null, "approved", null);
 
-        await handler.Handle(cmd, CancellationToken.None);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => handler.Handle(cmd, CancellationToken.None));
 
+        db.ChangeTracker.Clear();
         var updated = await db.LeaveRequests.FindAsync(leave.Id);
-        Assert.Equal("approved", updated!.Status);
-        Assert.Null(updated.RejectionReason);  // must be cleared, not retained
+        Assert.Equal("rejected", updated!.Status);
+        Assert.Equal("Old reason", updated.RejectionReason);
     }
 
     // ── Item 5: CarryOverHours field tracked by AddCarryOver() ───────────────

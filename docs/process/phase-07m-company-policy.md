@@ -1,6 +1,6 @@
 # Phase 7m: Company policy (working week and leave rules become settings)
 
-> **Status:** `7m-a merged (#105); 7m-b planned below`
+> **Status:** `7m-a merged (#105); 7m-b implemented (company policy page and schedule-aware leave); review and sign-off pending`
 > **Created:** 2026-11-13 | **Updated:** 2026-11-14
 > **Depends on:** Phase 7l merged (done). **7m-b (the frontend half) is built on the single web app of Phase 7n**, so it starts after 7n. **7m-a (backend) blocks Phase 8b** (the payroll calculator needs the working week and the unpaid-leave divisor from this policy).
 > **Why now:** the product must cater to different kinds of company (user, 13 Nov 2026): some work Monday to Friday and some Monday to Saturday; some leave is cumulative (unused days carry forward) and some is not. Phase 7l hard-coded one company's answers. This phase turns them into settings; **Mon-Fri, 8h, 3 days notice stay as the defaults**, so nothing changes for an installation that never opens the page.

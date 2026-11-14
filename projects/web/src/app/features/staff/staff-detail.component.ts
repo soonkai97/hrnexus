@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, PermissionService, PayrollService, SalaryOverview, CitizenshipStatus, StaffOverride, groupedPermissions, permissionLabel, permissionDescription, todayLocalString } from 'shared-lib';
+import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, PermissionService, PayrollService, SalaryOverview, CitizenshipStatus, StaffOverride, groupedPermissions, permissionLabel, permissionDescription, todayLocalString, ViewModeService, ViewToggleComponent } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
@@ -28,13 +28,16 @@ type DetailTab = 'profile' | 'permissions' | 'pay';
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TrimInputDirective,
     Button, InputText, Tag, Card, Skeleton, DatePicker, MultiSelect, SelectButton, Tabs, TabList, Tab,
-    TableModule, Dialog, InputNumber, Select, PrimeTemplate],
+    TableModule, Dialog, InputNumber, Select, PrimeTemplate, ViewToggleComponent],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
 export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
   private readonly staffSvc    = inject(StaffManagementService);
+  private readonly views       = inject(ViewModeService);
+  /** Salary history as cards (default) or the table, remembered on this device. */
+  readonly salaryView = this.views.mode('salary-history');
   private readonly toast       = inject(ToastService);
   private readonly confirmSvc  = inject(ConfirmService);
   private readonly route       = inject(ActivatedRoute);

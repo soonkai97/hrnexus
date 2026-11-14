@@ -8,7 +8,7 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, ThemeToggleComponent, NotificationBellComponent, PermissionService, PermissionKey, CompanyPolicyService, SignalRService, LeaveService, ToastService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, PermissionService, PermissionKey, CompanyPolicyService, SignalRService, LeaveService, ToastService } from 'shared-lib';
 
 const LEAVE_SNAPSHOT_KEY = 'nc_leave_status_snapshot';
 const POLL_INTERVAL_MS   = 60_000;
@@ -25,7 +25,7 @@ interface NavItem {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, ThemeToggleComponent, Button, BadgeModule, TooltipModule, Menu],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, Button, BadgeModule, TooltipModule, Menu],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })

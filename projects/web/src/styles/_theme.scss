@@ -1,6 +1,5 @@
 // ── HRNexus Admin Design Tokens ─────────────────────────────────────────────
-// Theme-sensitive variables are backed by CSS custom properties so that the
-// [data-theme="light"] override in styles.scss propagates into every
+// Colour variables are backed by CSS custom properties (defined in styles.scss) so that they reach every
 // component's encapsulated SCSS automatically (CSS vars pierce view encapsulation).
 
 $bg-void:    var(--nc-bg-void);
@@ -27,7 +26,7 @@ $text-muted:     var(--nc-text-muted);
 $border-subtle: var(--nc-border-subtle);
 $border-glow:   var(--nc-border-glow);
 
-// Glows — accent only, same in both themes
+// Glows — accent only
 // Softened to subtle elevation shadows (flatter, corporate look)
 $glow-purple: 0 4px 16px rgba(37,99,235,0.18);
 $glow-sm:     0 1px 6px rgba(37,99,235,0.12);

@@ -67,7 +67,6 @@
       <div class="topbar-right">
         @if (user()) {
           <nc-notification-bell />
-          <nc-theme-toggle />
           <button class="topbar-avatar" (click)="avatarMenu.toggle($event)" [attr.title]="user()!.fullName">
             {{ initials() }}
           </button>

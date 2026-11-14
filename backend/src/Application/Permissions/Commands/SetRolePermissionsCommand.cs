@@ -20,11 +20,11 @@ public class SetRolePermissionsHandler(IAppDbContext db, IPermissionResolver res
             throw new KeyNotFoundException($"Role '{req.RoleName}' not found.");
         var roleId = role.Id;
 
-        // The first administrator job (IsSystem) always holds every permission: the seed re-grants it each
+        // The first administrator role (IsSystem) always holds every permission: the seed re-grants it each
         // start, so an edit here would only be undone silently. Refuse it instead.
         if (role.IsSystem)
             throw new ArgumentException(
-                "This is the first administrator job: it always holds every permission, so its permissions can't be edited.");
+                "This is the first administrator role: it always holds every permission, so its permissions can't be edited.");
 
         var keys = req.PermissionKeys.Distinct().ToList();
         var unknown = keys.Where(k => !AppConstants.Permissions.All.Contains(k)).ToList();
@@ -46,7 +46,7 @@ public class SetRolePermissionsHandler(IAppDbContext db, IPermissionResolver res
             if (await RolesManageInvariant.CountActiveAdminsAsync(db, adminRolesAfter, exclude: null, ct) == 0)
                 throw new ArgumentException(
                     "This change would leave no active user with role-management access. " +
-                    "Grant 'Manage jobs & permissions' to another role or user first.");
+                    "Grant 'Manage roles & permissions' to another role or user first.");
         }
 
         db.RolePermissions.RemoveRange(existing);

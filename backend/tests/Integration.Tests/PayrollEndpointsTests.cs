@@ -73,7 +73,7 @@ public class PayrollEndpointsTests(PostgresFixture fx) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Conflict, (await client.PatchAsJsonAsync($"/api/staff/roles/{id}", new { name = other })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PatchAsJsonAsync($"/api/staff/roles/{id}", new { name = " " })).StatusCode);
 
-        // The first administrator job may be renamed (nothing looks it up by name), and renamed back.
+        // The first administrator role may be renamed (nothing looks it up by name), and renamed back.
         var system = (await FindRoleAsync(client, "ADMINISTRATOR"))!.Value;
         Assert.True(system.GetProperty("isSystem").GetBoolean());
         var systemId = system.GetProperty("id").GetGuid();

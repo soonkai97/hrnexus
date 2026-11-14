@@ -2,11 +2,11 @@ import { test, expect, request as pwRequest, type APIRequestContext } from '@pla
 import { ensureRole, futureWeekday } from '../shared/api';
 
 /**
- * Phase 7o: access is decided by permissions, never by what a job is called.
+ * Phase 7o: access is decided by permissions, never by what a role is called.
  *
- * WHY this matters: a pending-leave notice used to go to people whose job was NAMED manager or administrator,
- * so a custom job holding `leave.approve` never heard about leave waiting for it. And the first administrator
- * job, which used to be protected by its name, must stay protected by what it IS (flagged, always holds every
+ * WHY this matters: a pending-leave notice used to go to people whose role was NAMED manager or administrator,
+ * so a custom role holding `leave.approve` never heard about leave waiting for it. And the first administrator
+ * role, which used to be protected by its name, must stay protected by what it IS (flagged, always holds every
  * permission, cannot be deleted) even though it can now be renamed.
  */
 
@@ -32,7 +32,7 @@ async function signIn(staffId: string, password: string): Promise<APIRequestCont
   return ctx;
 }
 
-test.describe.serial('Access follows permissions, not job names', () => {
+test.describe.serial('Access follows permissions, not role names', () => {
   let admin: APIRequestContext;
   const uid = Date.now().toString().slice(-7);
   const approverRole = `APPROVER${uid}`;
@@ -65,13 +65,13 @@ test.describe.serial('Access follows permissions, not job names', () => {
     await admin.dispose();
   });
 
-  test('a custom job holding leave.approve is told when leave is applied for; a job without it is not', async () => {
+  test('a custom role holding leave.approve is told when leave is applied for; a role without it is not', async () => {
     const approverRoleId = await ensureRole(admin, approverRole);
     const plainRoleId = await ensureRole(admin, plainRole);
     const grant = await admin.put(`/api/permissions/roles/${approverRole}`, {
       data: { permissions: ['leave.approve'] },
     });
-    expect(grant.status(), 'grant leave.approve to the custom job').toBe(204);
+    expect(grant.status(), 'grant leave.approve to the custom role').toBe(204);
 
     await hire(`AP${uid}`, approverRoleId);
     await hire(`DC${uid}`, plainRoleId); // a decoy with no permission at all
@@ -104,7 +104,7 @@ test.describe.serial('Access follows permissions, not job names', () => {
     const decoyNotices = (await (await decoy.get('/api/notifications')).json()) as Notice[];
     expect(
       decoyNotices.some((n) => n.relatedId === leaveId),
-      'a job without leave.approve is not told',
+      'a role without leave.approve is not told',
     ).toBeFalsy();
 
     const own = (await (await applicant.get('/api/notifications')).json()) as Notice[];
@@ -117,10 +117,10 @@ test.describe.serial('Access follows permissions, not job names', () => {
     await Promise.all([applicant.dispose(), approver.dispose(), decoy.dispose()]);
   });
 
-  test('the first administrator job can be renamed but not deleted or stripped of permissions', async () => {
+  test('the first administrator role can be renamed but not deleted or stripped of permissions', async () => {
     const roles = (await (await admin.get('/api/staff/roles')).json()) as RoleRow[];
     const first = roles.find((r) => r.isSystem);
-    expect(first, 'a fresh or migrated install has the first administrator job').toBeTruthy();
+    expect(first, 'a fresh or migrated install has the first administrator role').toBeTruthy();
     const { id, name } = first!;
 
     const edit = await admin.put(`/api/permissions/roles/${encodeURIComponent(name)}`, {

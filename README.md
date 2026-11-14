@@ -114,10 +114,10 @@ deploy are in [docs/process/git-workflow.md](docs/process/git-workflow.md).
 | Account | Sees | Notes |
 |---|---|---|
 | Any signed-in account | Self-service pages (home, my leave, profile) | Own data only |
-| An account whose jobs or overrides grant management permissions | Plus the matching management pages | Each page needs its own permission |
-| The first administrator job (`ADMINISTRATOR` on a new install) | Everything | Holds every permission; cannot be deleted or edited, can be renamed |
+| An account whose roles or overrides grant management permissions | Plus the matching management pages | Each page needs its own permission |
+| The first administrator role (`ADMINISTRATOR` on a new install) | Everything | Holds every permission; cannot be deleted or edited, can be renamed |
 
-No job is special because of its name. Access is controlled by a permission framework, not by roles directly. Any active account can sign in at the same
+No role is special because of its name. Access is controlled by a permission framework, not by what a role is called. Any active account can sign in at the same
 URL; each role carries default permissions and each user can have per-user overrides (grant or revoke), and those
 decide which management pages and actions a person gets. Permissions are resolved server-side per request
 (cached, invalidated on change), so a revocation takes effect immediately.

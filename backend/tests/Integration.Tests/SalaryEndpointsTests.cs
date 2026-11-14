@@ -33,7 +33,7 @@ public class SalaryEndpointsTests(PostgresFixture fx) : IAsyncLifetime
     /// <summary>Hires a plain employee (no payroll permission) and returns their id.</summary>
     private static async Task<(Guid Id, string StaffId)> HireEmployeeAsync(HttpClient admin)
     {
-        // A fresh custom job: it carries no permissions, so the person has no payroll access.
+        // A fresh custom role: it carries no permissions, so the person has no payroll access.
         var jobName = $"SALJOB{Guid.NewGuid():N}"[..12].ToUpperInvariant();
         Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsJsonAsync("/api/staff/roles", new { name = jobName })).StatusCode);
         var roles = JsonDocument.Parse(await admin.GetStringAsync("/api/staff/roles")).RootElement;

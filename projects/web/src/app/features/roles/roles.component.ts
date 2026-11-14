@@ -38,15 +38,15 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   saving         = signal(false);
   deletingRole   = signal<string | null>(null);
 
-  // Rename-job modal state — keyed by the role's GUID id. Only custom jobs can be renamed: a system
-  // job's name is its authorization key, so it is never editable.
+  // Rename-role modal state — keyed by the role's GUID id. Only custom roles can be renamed: a system
+  // role's name is its authorization key, so it is never editable.
   editingId   = signal<string | null>(null);
   editingName = signal('');
   savingEdit  = signal(false);
 
   // Role-permissions editor state
   permRole        = signal<string | null>(null);   // role whose permissions dialog is open
-  /** The first administrator job always holds every permission, so its dialog is read-only. */
+  /** The first administrator role always holds every permission, so its dialog is read-only. */
   permReadOnly    = signal(false);
   permCatalog     = signal<string[]>([]);          // all assignable permission keys
   permSelected    = signal<string[]>([]);          // currently checked keys
@@ -62,7 +62,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   markTouched(field: string): void { this.touched.update(s => new Set(s).add(field)); }
   fieldError(field: 'name'): string {
     if (!this.touched().has(field)) return '';
-    return this.newRoleName?.trim() ? '' : 'Job name is required.';
+    return this.newRoleName?.trim() ? '' : 'Role name is required.';
   }
 
   ngOnInit(): void { this.store.loadRoles(); }
@@ -84,13 +84,13 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
         this.newRoleName = '';
         this.saving.set(false);
         this.showForm.set(false);
-        this.toast.success('Job created.');
+        this.toast.success('Role created.');
       },
-      error: (e) => { this.toast.error(e?.error?.error ?? 'Failed to create job.'); this.saving.set(false); },
+      error: (e) => { this.toast.error(e?.error?.error ?? 'Failed to create role.'); this.saving.set(false); },
     });
   }
 
-  /** Open the rename modal, prefilled from the row. Every job can be renamed: nothing looks a job up by its name. */
+  /** Open the rename modal, prefilled from the row. Every role can be renamed: nothing looks a role up by its name. */
   startEdit(role: { id: string; name: string; isSystem: boolean }): void {
     this.editingId.set(role.id);
     this.editingName.set(role.name);
@@ -107,10 +107,10 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
       next: () => {
         this.savingEdit.set(false);
         this.editingId.set(null);
-        this.toast.success('Job updated.');
+        this.toast.success('Role updated.');
       },
       error: (e) => {
-        this.toast.error(e?.error?.error ?? 'Failed to update job.');
+        this.toast.error(e?.error?.error ?? 'Failed to update role.');
         this.savingEdit.set(false);
       },
     });
@@ -122,28 +122,28 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   deleteRole(id: string): void {
     this.confirmSvc.confirm({
-      title: 'Delete Job',
-      message: 'Deleting this job will remove it from all staff members. Are you sure?',
+      title: 'Delete Role',
+      message: 'Deleting this role will remove it from all staff members. Are you sure?',
       confirmLabel: 'Delete',
       danger: true,
     }).subscribe(confirmed => {
       if (!confirmed) return;
       this.deletingRole.set(id);
       this.store.deleteRole(id).subscribe({
-        next: () => { this.deletingRole.set(null); this.toast.success('Job deleted.'); },
-        error: (e) => { this.deletingRole.set(null); this.toast.error(e?.error?.error ?? 'Failed to delete job.'); },
+        next: () => { this.deletingRole.set(null); this.toast.success('Role deleted.'); },
+        error: (e) => { this.deletingRole.set(null); this.toast.error(e?.error?.error ?? 'Failed to delete role.'); },
       });
     });
   }
 
   // ── Role permissions editor ────────────────────────────────────────────────
 
-  /** Per-row actions via the ellipsis menu (every job can be renamed; only custom jobs can be deleted). */
+  /** Per-row actions via the ellipsis menu (every role can be renamed; only custom roles can be deleted). */
   openRoleMenu(role: { id: string; name: string; isSystem: boolean }, event: Event): void {
     const items: MenuItem[] = [
       { label: 'Edit', icon: 'pi pi-pencil',
         command: () => this.startEdit(role) },
-      { label: 'Job permissions', icon: 'pi pi-shield',
+      { label: 'Role permissions', icon: 'pi pi-shield',
         // Permissions API is keyed by role NAME on the backend — pass the name here, not the id.
         command: () => this.openPermissions(role.name, role.isSystem) },
     ];

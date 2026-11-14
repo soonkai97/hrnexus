@@ -634,7 +634,7 @@ describe('StaffDetailComponent', () => {
   // ── availableRoles computed ───────────────────────────────────────────────────
 
   describe('availableRoles computed', () => {
-    it('exposes every defined job as selectable, including the first administrator job', () => {
+    it('exposes every defined role as selectable, including the first administrator role', () => {
       mockStaffStore.roles.mockReturnValue([
         { name: 'ADMINISTRATOR', isSystem: true },
         { name: 'FRONT DESK', isSystem: false },

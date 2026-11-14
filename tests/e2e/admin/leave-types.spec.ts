@@ -66,8 +66,15 @@ test.describe.serial('Leave types', () => {
   });
 
   test.afterAll(async () => {
-    // The catalogue is global: put back the types that were there (without any the tests added).
-    await saveTypes(adminApi, original.types);
+    // The catalogue is global: put back the types that were there. A type a test added is removed; one that
+    // somehow got leave cannot be (history is protected), so it is left switched off instead.
+    const now = await getAll(adminApi);
+    const originalKeys = new Set(original.types.map((t) => t.key));
+    const extra = now.types.filter((t) => !originalKeys.has(t.key));
+    const keepOff = extra
+      .filter((t) => t['hasLeave'] === true)
+      .map((t) => ({ ...t, active: false }));
+    await saveTypes(adminApi, [...original.types, ...keepOff]);
     await adminApi.dispose();
     await employeeApi.dispose();
   });
@@ -111,23 +118,26 @@ test.describe.serial('Leave types', () => {
     expect(ok.ok(), `98 calendar days (${ok.status()}): ${await ok.text()}`).toBeTruthy();
     const { id } = (await ok.json()) as { id: string };
 
-    const mine = (await (await employeeApi.get('/api/leave/mine')).json()) as {
-      id: string;
-      hours: number;
-      status: string;
-    }[];
-    const leave = mine.find((l) => l.id === id)!;
-    expect(leave.hours, '98 days x 8 hours, weekends included').toBe(784);
-    expect(leave.status, 'a manager decides a long absence').toBe('pending');
-
-    // Withdraw it so a repeated run never overlaps.
-    expect((await employeeApi.delete(`/api/leave/${id}`)).ok()).toBeTruthy();
+    try {
+      const mine = (await (await employeeApi.get('/api/leave/mine')).json()) as {
+        id: string;
+        hours: number;
+        status: string;
+      }[];
+      const leave = mine.find((l) => l.id === id)!;
+      expect(leave.hours, '98 days x 8 hours, weekends included').toBe(784);
+      expect(leave.status, 'a manager decides a long absence').toBe('pending');
+    } finally {
+      // Withdraw it even if an assertion failed, so a repeated run never overlaps.
+      await employeeApi.delete(`/api/leave/${id}`);
+    }
   });
 
   test('the administrator adds a type on the policy page and staff are offered it; switching it off stops new requests', async ({
     page,
   }) => {
     const key = `study${Math.floor(Math.random() * 90_000) + 10_000}`.slice(0, 12);
+    const label = `Exam ${key}`;
 
     await loginAdmin(page);
     await page.goto('/policy');
@@ -139,28 +149,42 @@ test.describe.serial('Leave types', () => {
     await page.getByRole('button', { name: 'Add type' }).click();
     // Inputs start readonly (anti-autofill): a click makes them editable before typing.
     await page.locator('#lt-label').click();
-    await page.locator('#lt-label').fill('Exam leave');
+    await page.locator('#lt-label').fill(label);
     await page.locator('#lt-key').click();
     await page.locator('#lt-key').fill(key);
     await page.getByRole('button', { name: 'Done' }).click();
-    await expect(page.locator('.type-row', { hasText: 'Exam leave' })).toBeVisible();
+    await expect(page.locator('.type-row', { hasText: label })).toBeVisible();
     await save.click();
     await expect(save).toBeDisabled();
 
-    // The catalogue is the only source of what staff are offered.
-    expect(
-      ((await (await employeeApi.get('/api/leave-types')).json()) as CatalogueDto).types.map(
-        (t) => t.key,
-      ),
-    ).toContain(key);
+    // The catalogue is the only source of what staff are offered (poll: the save is still in flight).
+    await expect
+      .poll(
+        async () =>
+          ((await (await employeeApi.get('/api/leave-types')).json()) as CatalogueDto).types.map(
+            (t) => t.key,
+          ),
+        { timeout: 10_000 },
+      )
+      .toContain(key);
 
     // Switch it off on the page: it stops taking new requests (and no leave row is created).
     await page
-      .locator('.type-row', { hasText: 'Exam leave' })
+      .locator('.type-row', { hasText: label })
       .getByRole('button', { name: 'Turn off' })
       .click();
     await save.click();
-    await expect(page.locator('.type-row.inactive', { hasText: 'Exam leave' })).toBeVisible();
+    await expect(page.locator('.type-row.inactive', { hasText: label })).toBeVisible();
+    await expect
+      .poll(
+        async () =>
+          (
+            (await getAll(adminApi)).types.find((t) => t.key === key) as
+              { active?: boolean } | undefined
+          )?.active,
+        { timeout: 10_000 },
+      )
+      .toBe(false);
     const day = futureMonday(200 + Math.floor(Math.random() * 100));
     const off = await employeeApi.post('/api/leave', {
       data: { leaveType: key, startDate: day, endDate: day },

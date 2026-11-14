@@ -39,3 +39,6 @@ export * from './lib/utils/leave-hours';
 export * from './lib/services/app-update.service';
 export * from './lib/services/version.service';
 export * from './lib/services/leave-type.service';
+export * from './lib/services/view-mode.service';
+export * from './lib/components/view-toggle/view-toggle.component';
+export * from './lib/utils/initials';

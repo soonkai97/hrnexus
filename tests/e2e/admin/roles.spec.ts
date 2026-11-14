@@ -29,11 +29,14 @@ test.describe('Admin — Roles', () => {
     ).toBeVisible({ timeout: 8_000 });
   });
 
-  test('shows roles table with at least one role', async ({ page }) => {
+  test('shows the roles as cards with at least one role, and as a table when chosen', async ({ page }) => {
     // System roles (admin, manager, employee) are always present
+    await page.waitForSelector('.nc-card', { timeout: 10_000 });
+    expect(await page.locator('.nc-card').count()).toBeGreaterThanOrEqual(1);
+
+    await page.getByRole('button', { name: 'Table view' }).click();
     await page.waitForSelector('.p-datatable-tbody tr', { timeout: 10_000 });
-    const count = await page.locator('.p-datatable-tbody tr').count();
-    expect(count).toBeGreaterThanOrEqual(1);
+    expect(await page.locator('.p-datatable-tbody tr').count()).toBeGreaterThanOrEqual(1);
   });
 
   test('opens the add role dialog when button is clicked', async ({ page }) => {

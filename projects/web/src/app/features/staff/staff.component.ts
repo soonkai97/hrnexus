@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { StaffStore, RegisterStaffRequest,
          Staff, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate,
-         passwordChecks, isStrongPassword } from 'shared-lib';
+         passwordChecks, isStrongPassword, ViewModeService, ViewToggleComponent, initials } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
@@ -23,13 +23,14 @@ import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { Skeleton } from 'primeng/skeleton';
 import { Checkbox } from 'primeng/checkbox';
+import { Select } from 'primeng/select';
 
 @Component({
   selector: 'app-staff',
   standalone: true,
   imports: [FormsModule, RouterLink, TrimInputDirective,
     Button, InputText, IconField, InputIcon, Password, TableModule, Tag, Card, Dialog, Message, DatePicker,
-    MultiSelect, Menu, Paginator, Skeleton, Checkbox],
+    MultiSelect, Menu, Paginator, Skeleton, Checkbox, Select, ViewToggleComponent],
   templateUrl: './staff.component.html',
   styleUrl: './staff.component.scss',
 })
@@ -40,7 +41,27 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
   @ViewChild('staffMenu') staffMenu!: Menu;
 
+  private readonly views   = inject(ViewModeService);
+  /** Cards (default) or Table, remembered on this device. */
+  readonly viewMode = this.views.mode('staff');
+  readonly initials = initials;
+  readonly cardSortOptions: { label: string; value: 'name' | 'staffId' | 'status' }[] = [
+    { label: 'Name', value: 'name' },
+    { label: 'Staff ID', value: 'staffId' },
+    { label: 'Status', value: 'status' },
+  ];
+  cardSort = signal<'name' | 'staffId' | 'status'>('name');
+
   readonly staff      = this.staffStore.staff;
+  /** The same rows as the table, in the order chosen for the card view (the table sorts by its column headers). */
+  readonly cardStaff  = computed(() => {
+    const rows = [...this.staff()];
+    const by = this.cardSort();
+    return rows.sort((a, b) =>
+      by === 'staffId' ? a.staffId.localeCompare(b.staffId)
+      : by === 'status' ? Number(b.isActive) - Number(a.isActive) || a.fullName.localeCompare(b.fullName)
+      : a.firstName.localeCompare(b.firstName) || a.lastName.localeCompare(b.lastName));
+  });
   readonly roles      = this.staffStore.roles;
   readonly loading    = this.staffStore.loading;
   readonly totalCount = this.staffStore.totalCount;

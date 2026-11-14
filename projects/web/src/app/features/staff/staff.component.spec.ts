@@ -658,4 +658,53 @@ describe('StaffComponent', () => {
       expect(c2.totalPages()).toBe(3);
     });
   });
+
+  // ── Phase 7r: card view ─────────────────────────────────────────────────────
+  // The card view shows the SAME people as the table; only the layout and the sort control differ.
+
+  describe('card view', () => {
+    function withStaff(rows: Staff[]): StaffComponent {
+      mockStaffStore.staff.mockReturnValue(rows);
+      return TestBed.createComponent(StaffComponent).componentInstance;
+    }
+
+    const rows = [
+      makeStaff({ id: '1', staffId: 'B02', firstName: 'Mei', lastName: 'Tran', fullName: 'Mei Tran', isActive: false }),
+      makeStaff({ id: '2', staffId: 'A01', firstName: 'Sam', lastName: 'Ho', fullName: 'Sam Ho', isActive: true }),
+      makeStaff({ id: '3', staffId: 'C03', firstName: 'Anh', lastName: 'Nguyen', fullName: 'Anh Nguyen', isActive: true }),
+    ];
+
+    it('starts on cards, so a first visit shows the card grid', () => {
+      expect(component.viewMode()).toBe('cards');
+    });
+
+    it('shows every person of the table, by name until another order is chosen', () => {
+      const c = withStaff(rows);
+      expect(c.cardStaff().map(s => s.fullName)).toEqual(['Anh Nguyen', 'Mei Tran', 'Sam Ho']);
+    });
+
+    it('can order the cards by staff ID', () => {
+      const c = withStaff(rows);
+      c.cardSort.set('staffId');
+      expect(c.cardStaff().map(s => s.staffId)).toEqual(['A01', 'B02', 'C03']);
+    });
+
+    it('can put active people first, then by name', () => {
+      const c = withStaff(rows);
+      c.cardSort.set('status');
+      expect(c.cardStaff().map(s => s.fullName)).toEqual(['Anh Nguyen', 'Sam Ho', 'Mei Tran']);
+    });
+
+    it('never reorders the store\'s own list (the table keeps its column sort)', () => {
+      const c = withStaff(rows);
+      c.cardSort.set('staffId');
+      void c.cardStaff();
+      expect(rows.map(s => s.id)).toEqual(['1', '2', '3']);
+    });
+
+    it('builds the avatar from the name', () => {
+      expect(component.initials('Anh Nguyen')).toBe('AN');
+    });
+  });
+
 });

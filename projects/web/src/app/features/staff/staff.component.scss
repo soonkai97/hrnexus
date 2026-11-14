@@ -1,5 +1,9 @@
 @use 'styles/theme' as *;
 
+// Card view: the name column takes what the avatar leaves, and the status tags sit together.
+.staff-card-id { min-width: 0; display: flex; flex-direction: column; }
+.staff-card-status { display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+
 // ── Bulk-import row grid ──────────────────────────────────────────────────────
 .import-grid {
   display: flex;

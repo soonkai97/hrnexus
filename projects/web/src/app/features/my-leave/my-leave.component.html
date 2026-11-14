@@ -222,7 +222,7 @@
               <div class="staff-cal-cell"
                    tabindex="0"
                    role="button"
-                   [class.staff-cal-weekend]="day.isWeekend"
+                   [class.staff-cal-nonworking]="day.isNonWorking"
                    [class.staff-cal-today]="day.iso === todayIso"
                    [class.staff-cal-selected]="day.iso === selectedCalDay()"
                    [class.staff-cal-has-leave]="day.leaves.length > 0"

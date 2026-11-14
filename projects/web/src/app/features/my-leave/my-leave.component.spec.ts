@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { MyLeaveComponent } from './my-leave.component';
-import { LeaveService, ToastService, ConfirmService, LeaveRecord } from 'shared-lib';
+import { LeaveService, ToastService, ConfirmService, LeaveRecord, CompanyPolicyService, DEFAULT_SCHEDULE, WorkSchedule } from 'shared-lib';
 
 /**
  * MyLeaveComponent — staff leave management page.
@@ -63,8 +64,10 @@ describe('MyLeaveComponent', () => {
   };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
+  let schedule: ReturnType<typeof signal<WorkSchedule>>;
 
   beforeEach(async () => {
+    schedule = signal<WorkSchedule>(DEFAULT_SCHEDULE);
     mockLeaveSvc = {
       getMine:      vi.fn().mockReturnValue(of([])),
       getMyBalance: vi.fn().mockReturnValue(of({
@@ -86,6 +89,7 @@ describe('MyLeaveComponent', () => {
         { provide: LeaveService,   useValue: mockLeaveSvc },
         { provide: ToastService,   useValue: mockToastSvc },
         { provide: ConfirmService, useValue: mockConfirmSvc },
+        { provide: CompanyPolicyService, useValue: { schedule } },
         MessageService,
         ConfirmationService,
       ],
@@ -175,7 +179,7 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = new Date(2026, 5, 1, 18, 0);
       component.form.endTime    = new Date(2026, 5, 1, 10, 0); // earlier on same date
       component.submit();
-      expect(component.formError()).toBe('Choose at least one working day (Mon-Fri) and valid times.');
+      expect(component.formError()).toBe('Choose at least one working day and valid times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
@@ -185,7 +189,7 @@ describe('MyLeaveComponent', () => {
       component.form.startTime  = new Date(2026, 5, 6, 9, 0);
       component.form.endTime    = new Date(2026, 5, 6, 17, 0);
       component.submit();
-      expect(component.formError()).toBe('Choose at least one working day (Mon-Fri) and valid times.');
+      expect(component.formError()).toBe('Choose at least one working day and valid times.');
       expect(mockLeaveSvc.apply).not.toHaveBeenCalled();
     });
 
@@ -232,6 +236,26 @@ describe('MyLeaveComponent', () => {
           notes:     'Family trip',
         }),
       );
+    });
+
+    it('a Mon-Sat company can apply for a Saturday and is charged a full working day', () => {
+      schedule.set({ days: [1, 2, 3, 4, 5, 6], hours: 8 });
+      component.form.startDate = '2026-06-06'; // Saturday
+      component.form.endDate   = '2026-06-06';
+      component.form.startTime = new Date(2026, 5, 6, 9, 0);
+      component.form.endTime   = new Date(2026, 5, 6, 17, 0);
+      component.submit();
+      expect(component.formError()).toBe('');
+      expect(mockLeaveSvc.apply).toHaveBeenCalledWith(expect.objectContaining({ startDate: '2026-06-06', hours: 8 }));
+    });
+
+    it('a six-hour working day caps a full-day request at six hours', () => {
+      schedule.set({ days: [1, 2, 3, 4, 5], hours: 6 });
+      component.form.startDate = '2026-06-01';
+      component.form.endDate   = '2026-06-01';
+      component.form.startTime = new Date(2026, 5, 1, 9, 0);
+      component.form.endTime   = new Date(2026, 5, 1, 17, 0);
+      expect(component.calcHours).toBe(6);
     });
 
     it('sends working-day hours (Mon-Wed = 24h), not the 56h clock difference', () => {
@@ -576,21 +600,30 @@ describe('MyLeaveComponent', () => {
       expect(component.calDays().length).toBe(30);
     });
 
-    it('each entry has the correct iso, day, and isWeekend properties', () => {
+    it('each entry has the correct iso, day, and isNonWorking properties', () => {
       component.calYear.set(2026);
       component.calMonth.set(0); // January 2026 — day 1 is a Thursday
       const days = component.calDays();
       expect(days[0].iso).toBe('2026-01-01');
       expect(days[0].day).toBe(1);
-      expect(days[0].isWeekend).toBe(false); // Thursday
+      expect(days[0].isNonWorking).toBe(false); // Thursday
     });
 
-    it('marks Saturday and Sunday as isWeekend = true', () => {
+    it('marks the days outside a Monday-to-Friday week (Saturday, Sunday) as non-working', () => {
       component.calYear.set(2026);
       component.calMonth.set(0); // January 2026: 3rd is Saturday, 4th is Sunday
       const days = component.calDays();
-      expect(days[2].isWeekend).toBe(true);  // Jan 3 — Saturday
-      expect(days[3].isWeekend).toBe(true);  // Jan 4 — Sunday
+      expect(days[2].isNonWorking).toBe(true);  // Jan 3 — Saturday
+      expect(days[3].isNonWorking).toBe(true);  // Jan 4 — Sunday
+    });
+
+    it('follows the company working week: a Mon-Sat company works Saturdays, only Sunday is non-working', () => {
+      schedule.set({ days: [1, 2, 3, 4, 5, 6], hours: 8 });
+      component.calYear.set(2026);
+      component.calMonth.set(0);
+      const days = component.calDays();
+      expect(days[2].isNonWorking).toBe(false); // Jan 3 — Saturday
+      expect(days[3].isNonWorking).toBe(true);  // Jan 4 — Sunday
     });
 
     it('populates leaves for a day when records span that date', () => {

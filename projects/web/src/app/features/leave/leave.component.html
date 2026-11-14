@@ -299,7 +299,7 @@
             @for (day of calDays(); track day.iso) {
               <div class="cal-cell"
                    tabindex="0" role="button"
-                   [class.cal-weekend]="day.isWeekend"
+                   [class.cal-nonworking]="day.isNonWorking"
                    [class.cal-today]="day.iso === todayIso"
                    [class.cal-selected]="day.iso === selectedCalDay()"
                    (click)="selectCalDay(day.iso)"

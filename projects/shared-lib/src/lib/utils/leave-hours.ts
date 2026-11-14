@@ -1,13 +1,22 @@
 /**
- * Leave hours are counted in WORKING DAYS (Mon-Fri, 8h each), not clock time.
+ * Leave hours are counted in WORKING DAYS of the company's schedule, not clock time.
  * One rule shared with the backend (LeaveHoursCalculator); both are tested against
  * tests/fixtures/leave-hours.json. The server is authoritative; this powers the live form preview.
  *
- * - Single weekday: no times = 8h; both times = (end - start) hours, must be > 0, capped at 8h.
- * - Multi-day: working days in the inclusive range x 8h; times are ignored.
- * - Invalid (end before start, exactly one time, no Mon-Fri day, non-positive span) = null.
+ * The schedule is the company policy (working weekdays and hours per day); the default is Mon-Fri, 8h.
+ * - Single working day: no times = a full day; both times = (end - start) hours, must be > 0, capped at a full day.
+ * - Multi-day: working days in the inclusive range x hours per day; times are ignored.
+ * - Invalid (end before start, exactly one time, no working day in the range, non-positive span) = null.
  */
-export const WORKDAY_HOURS = 8;
+export interface WorkSchedule {
+  /** ISO weekday numbers: 1 = Monday ... 7 = Sunday. */
+  days: readonly number[];
+  /** Hours in one working day. */
+  hours: number;
+}
+
+/** The schedule in force until the company saves its own: Monday to Friday, 8 hours. */
+export const DEFAULT_SCHEDULE: WorkSchedule = { days: [1, 2, 3, 4, 5], hours: 8 };
 
 const DAY_MS = 86_400_000;
 
@@ -33,16 +42,21 @@ function toMinutes(t: string): number | null {
   return h > 23 || min > 59 ? null : h * 60 + min;
 }
 
-function isWeekday(utcDay: number): boolean {
-  const dow = new Date(utcDay).getUTCDay();
-  return dow !== 0 && dow !== 6;
+/** ISO weekday of a UTC day: 1 = Monday ... 7 = Sunday. */
+function isoDay(utcDay: number): number {
+  return new Date(utcDay).getUTCDay() || 7;
 }
 
-/** Mon-Fri days in [startDay, endDay], optionally restricted to one calendar year. */
-function workingDays(startDay: number, endDay: number, year?: number): number {
+/** Working days of the schedule in [startDay, endDay], optionally restricted to one calendar year. */
+function workingDays(
+  startDay: number,
+  endDay: number,
+  schedule: WorkSchedule,
+  year?: number,
+): number {
   let count = 0;
   for (let d = startDay; d <= endDay; d += DAY_MS) {
-    if (!isWeekday(d)) continue;
+    if (!schedule.days.includes(isoDay(d))) continue;
     if (year !== undefined && new Date(d).getUTCFullYear() !== year) continue;
     count++;
   }
@@ -55,6 +69,7 @@ export function leaveHours(
   end: string | Date | null | undefined,
   startTime?: string | null,
   endTime?: string | null,
+  schedule: WorkSchedule = DEFAULT_SCHEDULE,
 ): number | null {
   if (start == null || end == null) return null;
   const s = toUtcDay(start);
@@ -65,22 +80,22 @@ export function leaveHours(
   const hasEnd = !!endTime;
   if (hasStart !== hasEnd) return null;
 
-  if (workingDays(s, e) === 0) return null;
+  if (workingDays(s, e, schedule) === 0) return null;
 
   if (s === e) {
-    if (!hasStart) return WORKDAY_HOURS;
+    if (!hasStart) return schedule.hours;
     const st = toMinutes(startTime!);
     const et = toMinutes(endTime!);
     if (st === null || et === null || et <= st) return null;
-    return Math.min((et - st) / 60, WORKDAY_HOURS);
+    return Math.min((et - st) / 60, schedule.hours);
   }
 
-  return workingDays(s, e) * WORKDAY_HOURS;
+  return workingDays(s, e, schedule) * schedule.hours;
 }
 
 /**
  * The part of a leave request that falls in a calendar year (for per-year balances).
- * Single day: all its hours if it is in that year, else 0. Multi-day: that year's working days x 8h.
+ * Single day: all its hours if it is in that year, else 0. Multi-day: that year's working days x hours per day.
  * Returns null when the request itself is invalid.
  */
 export function leaveHoursInYear(
@@ -89,11 +104,12 @@ export function leaveHoursInYear(
   startTime: string | null | undefined,
   endTime: string | null | undefined,
   year: number,
+  schedule: WorkSchedule = DEFAULT_SCHEDULE,
 ): number | null {
-  const total = leaveHours(start, end, startTime, endTime);
+  const total = leaveHours(start, end, startTime, endTime, schedule);
   if (total === null) return null;
   const s = toUtcDay(start!)!;
   const e = toUtcDay(end!)!;
   if (s === e) return new Date(s).getUTCFullYear() === year ? total : 0;
-  return workingDays(s, e, year) * WORKDAY_HOURS;
+  return workingDays(s, e, schedule, year) * schedule.hours;
 }

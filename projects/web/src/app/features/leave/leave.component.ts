@@ -9,7 +9,7 @@ import {
   LeaveSummary, LeavePatternWarning,
   AuthService, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
   TrimInputDirective, CanComponentDeactivate,
-  apiErrorMessage, nowRoundedToHalfHour, leaveHours,
+  apiErrorMessage, nowRoundedToHalfHour, leaveHours, CompanyPolicyService,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
@@ -44,6 +44,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   readonly staffStore  = inject(StaffStore);
   private readonly auth       = inject(AuthService);
   private readonly leaveSvc   = inject(LeaveService);
+  private readonly policySvc  = inject(CompanyPolicyService);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
   private readonly destroyRef = inject(DestroyRef);
@@ -376,6 +377,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     new Date(this.calYear(), this.calMonth(), 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }));
 
   calDays = computed(() => {
+    const schedule = this.policySvc.schedule();
     const year  = this.calYear();
     const month = this.calMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -389,7 +391,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
         const to   = r.endDate.slice(0, 10);
         return iso >= from && iso <= to;
       });
-      return { day, iso, isWeekend: date.getUTCDay() === 0 || date.getUTCDay() === 6, leaves };
+      return { day, iso, isNonWorking: !schedule.days.includes(date.getUTCDay() || 7), leaves };
     });
   });
 
@@ -496,13 +498,13 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     return (parts[0] ?? '') + (initial ? ` ${initial}.` : '');
   }
 
-  /** Working-day hours (Mon-Fri, 8h) for the chosen dates/times, or null when invalid. Same rule as the server. */
+  /** Working-day hours (the company's working week) for the chosen dates/times, or null when invalid. Same rule as the server. */
   private get previewHours(): number | null {
     const { startDate, endDate } = this.form;
     const st = this.startTimeDate;
     const et = this.endTimeDate;
     if (!startDate || !st || !endDate || !et) return null;
-    return leaveHours(startDate, endDate, this.toTimeStr(st), this.toTimeStr(et));
+    return leaveHours(startDate, endDate, this.toTimeStr(st), this.toTimeStr(et), this.policySvc.schedule());
   }
 
   /** Live preview of the leave hours. Returns 0 if any field is missing or the request is invalid. */
@@ -827,7 +829,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
       this.formError.set('Please fill in all required fields.'); return;
     }
     const h = this.previewHours;
-    if (h === null) { this.formError.set('Choose at least one working day (Mon-Fri) and valid times.'); return; }
+    if (h === null) { this.formError.set('Choose at least one working day and valid times.'); return; }
     this.form.hours = h;
 
     this.saving.set(true);

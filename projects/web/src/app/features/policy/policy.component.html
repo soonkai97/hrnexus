@@ -1,0 +1,161 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Company Policy</h1>
+    <p class="page-subtitle">
+      The working week and leave rules for the whole company. Leave that is already recorded keeps
+      its hours; a change applies to leave recorded from now on.
+    </p>
+  </div>
+
+  <p-card styleClass="form-card">
+    @if (loading()) {
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-row">
+          <p-skeleton width="25%" height="0.7rem" /><p-skeleton width="40%" height="0.7rem" />
+        </div>
+      }
+    } @else {
+      <section class="section">
+        <h2 class="section-title">Working week</h2>
+        <div class="field">
+          <span class="label" id="policy-days-label"><span class="req">*</span> Working days</span>
+          <div class="day-toggles" role="group" aria-labelledby="policy-days-label">
+            @for (d of weekdays; track d.iso) {
+              <button
+                type="button"
+                class="day-toggle"
+                [class.on]="isDayOn(d.iso)"
+                [attr.aria-pressed]="isDayOn(d.iso)"
+                (click)="toggleDay(d.iso)"
+              >
+                {{ d.label }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="field narrow">
+          <label for="policy-hours"><span class="req">*</span> Hours per working day</label>
+          <input
+            id="policy-hours"
+            type="number"
+            min="1"
+            max="24"
+            step="0.5"
+            pInputText
+            [(ngModel)]="form.workdayHours"
+          />
+        </div>
+        <div class="example" aria-live="polite">
+          <i class="pi pi-info-circle"></i>
+          <div>
+            @for (line of examples(); track line) {
+              <div>{{ line }}</div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Leave rules</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="policy-notice"><span class="req">*</span> Annual leave notice (days)</label>
+            <input
+              id="policy-notice"
+              type="number"
+              min="0"
+              max="60"
+              pInputText
+              [(ngModel)]="form.annualLeaveAdvanceDays"
+            />
+          </div>
+          <div class="field">
+            <label for="policy-max"><span class="req">*</span> Longest single request (days)</label>
+            <input
+              id="policy-max"
+              type="number"
+              min="1"
+              max="366"
+              pInputText
+              [(ngModel)]="form.maxLeaveDays"
+            />
+          </div>
+          <div class="field">
+            <label for="policy-carry"
+              ><span class="req">*</span> Unused annual leave at year end</label
+            >
+            <p-select
+              inputId="policy-carry"
+              [options]="carryOverOptions"
+              optionLabel="label"
+              optionValue="value"
+              [(ngModel)]="form.carryOverMode"
+              appendTo="body"
+            />
+          </div>
+          @if (showCarryOverCap()) {
+            <div class="field">
+              <label for="policy-cap"><span class="req">*</span> Carry-over cap (hours)</label>
+              <input
+                id="policy-cap"
+                type="number"
+                min="0"
+                max="720"
+                pInputText
+                [(ngModel)]="form.carryOverMaxHours"
+              />
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Payroll</h2>
+        <div class="field narrow">
+          <label for="policy-divisor"><span class="req">*</span> Unpaid-leave divisor</label>
+          <input
+            id="policy-divisor"
+            type="number"
+            min="20"
+            max="31"
+            step="0.5"
+            pInputText
+            [(ngModel)]="form.unpaidLeaveDivisor"
+          />
+          <span class="hint">One unpaid day deducts monthly basic pay divided by this number.</span>
+        </div>
+      </section>
+
+      @if (error()) {
+        <p-message severity="error" [text]="error()" styleClass="form-error" />
+      }
+
+      <div class="form-actions">
+        @if (conflict()) {
+          <p-button
+            label="Reload current policy"
+            icon="pi pi-refresh"
+            severity="secondary"
+            (onClick)="reload()"
+          />
+        } @else {
+          <p-button
+            label="Discard changes"
+            [text]="true"
+            severity="secondary"
+            [disabled]="!hasUnsavedChanges() || saving()"
+            (onClick)="reload()"
+          />
+        }
+        <p-button
+          label="Save policy"
+          severity="primary"
+          icon="pi pi-check"
+          [disabled]="!hasUnsavedChanges() || saving() || !!validationError()"
+          [loading]="saving()"
+          (onClick)="save()"
+        />
+      </div>
+    }
+  </p-card>
+</div>

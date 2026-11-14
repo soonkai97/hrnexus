@@ -66,6 +66,7 @@ projects/
 │       ├── staff/                # staff list + staff-detail
 │       ├── leave/
 │       ├── roles/
+│       ├── policy/               # company policy (working week, leave rules)
 │       ├── payroll-locks/
 │       └── cash-advances/
 │
@@ -129,6 +130,7 @@ management pages add a `permissionGuard`. The landing redirect is `/home` for ev
 /staff, /staff/:id     permissionGuard('staff.view')
 /leave                 permissionGuard('leave.approve')
 /roles                 permissionGuard('roles.manage')
+/policy                permissionGuard('policy.manage')
 /payroll-locks         permissionGuard('payroll.lock')
 /cash-advances         permissionGuard('cashadvance.manage')
 /auth/**               login, forgot-password (public)
@@ -702,6 +704,11 @@ rules the product shipped with: Mon-Fri, 8h, 3 days' notice, 30-day cap, capped 
   divisor. `LeaveHoursCalculator` is pure and takes the `WorkSchedule` as an argument.
 - **API:** `GET /api/company-policy` for any signed-in user (every client previews hours with the working week);
   `PUT` needs `policy.manage`, validates every field, and refuses a stale `version` (409).
+- **Frontend:** `CompanyPolicyService` (shared-lib) holds the policy (defaults until loaded; the shell loads it once per
+  session) and exposes `schedule`. `leaveHours()` / `leaveHoursInYear()` take that `WorkSchedule` (`{ days: ISO[], hours }`,
+  default Mon-Fri 8h), and the two leave pages and their calendars follow it. The **Company Policy** page (`/policy`,
+  `policy.manage`, Setup group) edits it with a live example; a 409 asks the administrator to reload instead of overwriting.
+  The E2E policy spec changes the global policy, so it restores what it found.
 - **Policy changes are not retroactive:** stored leave `Hours` stay authoritative. Only the year split of an old
   multi-day leave that crosses New Year reads the current schedule.
 - **Carry-over** (`CarryOverLeaveEntitlementCommand(FromYear, ToYear)`) follows the policy; it takes no cap argument.
@@ -1059,12 +1066,12 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 28 | 278 | ✅ |
-| web components | 13 | 458 | ✅ |
+| shared-lib (services + stores + guards + auth) | 29 | 296 | ✅ |
+| web components | 14 | 485 | ✅ |
 | backend Application.Tests | — | 362 | ✅ |
 | backend Integration.Tests (Testcontainers) | — | 23 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 12 | 57 | ✅ |
+| E2E (Playwright) | 13 | 63 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1173,8 +1180,8 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 278 tests
-npx ng test web        --no-watch   # 458 tests
+npx ng test shared-lib --no-watch   # 296 tests
+npx ng test web        --no-watch   # 485 tests
 
 # Backend
 Set-Location backend
@@ -1227,6 +1234,7 @@ PW_CHANNEL=msedge npm run test:e2e   # use the installed Edge/Chrome when Playwr
 | `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation, bulk mode |
 | `tests/e2e/admin/roles.spec.ts` | Roles page renders, role table, Add role dialog |
 | `tests/e2e/admin/leave.spec.ts` | Leave page, filters, Record Leave dialog, summary pills |
+| `tests/e2e/admin/policy.spec.ts` | Company policy: employee reads but cannot save, invalid and stale saves refused, Mon-Sat switch on the page makes Saturday leave valid (then restored) |
 | `tests/e2e/admin/permissions.spec.ts` | Permission-gated pages, per-user grant/revoke override, 403 vs 200 on a protected endpoint |
 | `tests/e2e/admin/negative.spec.ts` | API guards reject cleanly: overlap, bad dates, hours cap, blocked deletes, duplicate Staff ID, 401s |
 | `tests/e2e/admin/workflow.spec.ts` | Hire staff, staff applies for leave, admin approves, read models reflect it |

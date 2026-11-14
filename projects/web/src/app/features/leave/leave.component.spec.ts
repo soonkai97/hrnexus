@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { LeaveComponent } from './leave.component';
-import { AuthService, LeaveService, StaffStore, ToastService, ConfirmService, LeaveRecord } from 'shared-lib';
+import { AuthService, LeaveService, StaffStore, ToastService, ConfirmService, LeaveRecord, CompanyPolicyService, DEFAULT_SCHEDULE, WorkSchedule } from 'shared-lib';
 
 /**
  * LeaveComponent — admin leave records management.
@@ -66,6 +67,7 @@ describe('LeaveComponent', () => {
     loadStaff: ReturnType<typeof vi.fn>;
   };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn>; warning: ReturnType<typeof vi.fn> };
+  let schedule: ReturnType<typeof signal<WorkSchedule>>;
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -90,6 +92,7 @@ describe('LeaveComponent', () => {
       loadStaff:  vi.fn(),
     };
     mockToastSvc   = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
+    schedule       = signal<WorkSchedule>(DEFAULT_SCHEDULE);
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
 
     await TestBed.configureTestingModule({
@@ -102,6 +105,7 @@ describe('LeaveComponent', () => {
         { provide: StaffStore,         useValue: mockStaffStore },
         { provide: ToastService,       useValue: mockToastSvc },
         { provide: ConfirmService,     useValue: mockConfirmSvc },
+        { provide: CompanyPolicyService, useValue: { schedule } },
         MessageService,
         ConfirmationService,
       ],
@@ -203,7 +207,7 @@ describe('LeaveComponent', () => {
       component.startTimeDate   = new Date(2026, 5, 1, 18, 0); // 6:00 PM
       component.endTimeDate     = new Date(2026, 5, 1, 10, 0); // 10:00 AM — before start
       component.save();
-      expect(component.formError()).toBe('Choose at least one working day (Mon-Fri) and valid times.');
+      expect(component.formError()).toBe('Choose at least one working day and valid times.');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
     });
 
@@ -214,7 +218,7 @@ describe('LeaveComponent', () => {
       component.startTimeDate   = new Date(2026, 5, 6, 9, 0);
       component.endTimeDate     = new Date(2026, 5, 6, 17, 0);
       component.save();
-      expect(component.formError()).toBe('Choose at least one working day (Mon-Fri) and valid times.');
+      expect(component.formError()).toBe('Choose at least one working day and valid times.');
       expect(mockLeaveSvc.create).not.toHaveBeenCalled();
     });
   });
@@ -244,6 +248,19 @@ describe('LeaveComponent', () => {
       component.startTimeDate  = new Date(2026, 5, 1, 9, 0);
       component.endTimeDate    = new Date(2026, 5, 1, 13, 0);
       expect(component.calcHours).toBe(4);
+    });
+
+    it('a Mon-Sat company can record a Saturday: the preview and the saved hours are a full day', () => {
+      schedule.set({ days: [1, 2, 3, 4, 5, 6], hours: 8 });
+      component.form.employeeId = 'e1';
+      component.form.startDate  = '2026-06-06'; // Saturday
+      component.form.endDate    = '2026-06-06';
+      component.startTimeDate   = new Date(2026, 5, 6, 9, 0);
+      component.endTimeDate     = new Date(2026, 5, 6, 17, 0);
+      component.editing.set(null);
+      component.save();
+      expect(component.formError()).toBe('');
+      expect(mockLeaveSvc.create).toHaveBeenCalledWith(expect.objectContaining({ hours: 8 }));
     });
 
     it('sends the computed working-day hours as form.hours on save', () => {

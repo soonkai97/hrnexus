@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { WORKDAY_HOURS, leaveHours, leaveHoursInYear } from './leave-hours';
+import { DEFAULT_SCHEDULE, WorkSchedule, leaveHours, leaveHoursInYear } from './leave-hours';
 
 /**
  * The same vectors drive the backend LeaveHoursCalculatorTests, so the live form preview
@@ -15,6 +15,12 @@ interface CalcVector {
   hours?: number;
   error?: boolean;
 }
+interface ScheduledVector extends CalcVector {
+  schedule: WorkSchedule;
+}
+interface ScheduledYearVector extends YearVector {
+  schedule: WorkSchedule;
+}
 interface YearVector {
   name: string;
   start: string;
@@ -28,13 +34,11 @@ interface YearVector {
 const fixtures = JSON.parse(readFileSync(resolve('tests/fixtures/leave-hours.json'), 'utf8')) as {
   calculate: CalcVector[];
   hoursInYear: YearVector[];
+  scheduled: ScheduledVector[];
+  scheduledInYear: ScheduledYearVector[];
 };
 
 describe('leave-hours', () => {
-  it('a workday is 8 hours', () => {
-    expect(WORKDAY_HOURS).toBe(8);
-  });
-
   describe('leaveHours (shared vectors)', () => {
     it('loads the shared vectors', () => {
       expect(fixtures.calculate.length).toBeGreaterThan(0);
@@ -61,6 +65,54 @@ describe('leave-hours', () => {
         ).toBe(v.hours);
       });
     }
+  });
+
+  describe('company schedule (shared vectors)', () => {
+    it('the default schedule is Monday to Friday, 8 hours', () => {
+      expect(DEFAULT_SCHEDULE).toEqual({ days: [1, 2, 3, 4, 5], hours: 8 });
+    });
+
+    it('loads the shared vectors', () => {
+      expect(fixtures.scheduled.length).toBeGreaterThan(0);
+      expect(fixtures.scheduledInYear.length).toBeGreaterThan(0);
+    });
+
+    for (const v of fixtures.scheduled) {
+      it(v.name, () => {
+        const result = leaveHours(
+          v.start,
+          v.end,
+          v.startTime ?? null,
+          v.endTime ?? null,
+          v.schedule,
+        );
+        if (v.error) expect(result).toBeNull();
+        else expect(result).toBe(v.hours);
+      });
+    }
+
+    for (const v of fixtures.scheduledInYear) {
+      it(v.name, () => {
+        expect(
+          leaveHoursInYear(
+            v.start,
+            v.end,
+            v.startTime ?? null,
+            v.endTime ?? null,
+            v.year,
+            v.schedule,
+          ),
+        ).toBe(v.hours);
+      });
+    }
+
+    it('without a schedule argument the Monday to Friday default applies', () => {
+      // A Saturday is refused by default; the same day is a full day for a Mon-Sat company.
+      expect(leaveHours('2026-06-06', '2026-06-06')).toBeNull();
+      expect(
+        leaveHours('2026-06-06', '2026-06-06', null, null, { days: [1, 2, 3, 4, 5, 6], hours: 8 }),
+      ).toBe(8);
+    });
   });
 
   describe('Date inputs', () => {

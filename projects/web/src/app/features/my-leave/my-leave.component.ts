@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, nowRoundedToHalfHour, leaveHours, HmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
+import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, nowRoundedToHalfHour, leaveHours, HmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, CompanyPolicyService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -26,6 +26,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 })
 export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   private readonly leaveSvc  = inject(LeaveService);
+  private readonly policySvc = inject(CompanyPolicyService);
   private readonly toast     = inject(ToastService);
   private readonly confirm   = inject(ConfirmService);
 
@@ -156,6 +157,7 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     new Date(this.calYear(), this.calMonth(), 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }));
 
   calDays = computed(() => {
+    const schedule = this.policySvc.schedule();
     const year  = this.calYear();
     const month = this.calMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -169,7 +171,7 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
         const to   = r.endDate.slice(0, 10);
         return iso >= from && iso <= to;
       });
-      return { day, iso, isWeekend: date.getUTCDay() === 0 || date.getUTCDay() === 6, leaves };
+      return { day, iso, isNonWorking: !schedule.days.includes(date.getUTCDay() || 7), leaves };
     });
   });
 
@@ -209,11 +211,11 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
-  /** Working-day hours (Mon-Fri, 8h) for the chosen dates/times, or null when invalid. Same rule as the server. */
+  /** Working-day hours (the company's working week) for the chosen dates/times, or null when invalid. Same rule as the server. */
   private get previewHours(): number | null {
     const { startDate, endDate, startTime, endTime } = this.form;
     if (!startDate || !startTime || !endDate || !endTime) return null;
-    return leaveHours(startDate, endDate, this.toTimeStr(startTime), this.toTimeStr(endTime));
+    return leaveHours(startDate, endDate, this.toTimeStr(startTime), this.toTimeStr(endTime), this.policySvc.schedule());
   }
 
   /** Live preview of the leave hours. Returns 0 if any field is missing or the request is invalid. */
@@ -248,7 +250,7 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
 
     const hours = this.previewHours;
     if (hours === null) {
-      this.formError.set('Choose at least one working day (Mon-Fri) and valid times.'); return;
+      this.formError.set('Choose at least one working day and valid times.'); return;
     }
 
     const maxFuture = new Date();

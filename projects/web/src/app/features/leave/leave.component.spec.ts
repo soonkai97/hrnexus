@@ -1250,4 +1250,35 @@ describe('LeaveComponent', () => {
       expect(mockLeaveSvc.getAll.mock.calls.length).toBeGreaterThan(loadCallsBefore);
     });
   });
+
+  // ── Phase 7r: the summary as cards ──────────────────────────────────────────
+
+  describe('leave summary cards', () => {
+    const line = (key: string, label: string, used: number) => ({
+      key, label, colour: 'info', pool: 'none', active: true, used, entitlement: null, poolUsed: null, remaining: null,
+    });
+    const summary = (types?: unknown[]) => ({
+      employeeId: 'e1', staffId: 'S1', fullName: 'A B', year: 2026,
+      annualUsed: 0, sickUsed: 0, emergencyUsed: 0, unpaidUsed: 0, noShowUsed: 0, totalUsed: 0, types,
+    }) as never;
+
+    it('starts on cards', () => {
+      expect(component.summaryView()).toBe('cards');
+    });
+
+    it('shows one chip for each leave type the person used, and none for unused types', () => {
+      const chips = component.summaryChips(
+        summary([line('annual', 'Annual', 8), line('sick', 'Sick', 0), line('maternity', 'Maternity', 784)]));
+
+      expect(chips).toEqual([
+        { key: 'annual', label: 'Annual', used: 8 },
+        { key: 'maternity', label: 'Maternity', used: 784 },
+      ]);
+    });
+
+    it('shows no chips for a response from before per-type lines existed', () => {
+      expect(component.summaryChips(summary())).toEqual([]);
+    });
+  });
+
 });

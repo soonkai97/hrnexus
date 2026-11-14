@@ -88,23 +88,26 @@
 }
 .overdue-chevron { font-size: 0.7rem; color: $text-muted; margin-left: auto; }
 
+// Overdue leave as a grid of cards (Phase 7r): equal-width cards, the info on top and the actions underneath.
 .overdue-list {
   border-top: 1px solid rgba(251,191,36,0.2);
-  display: flex; flex-direction: column;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.6rem; padding: 0.75rem;
 }
 
 .overdue-row {
-  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
-  padding: 0.65rem 1rem;
-  border-bottom: 1px solid rgba(251,191,36,0.12);
-  &:last-child { border-bottom: none; }
+  display: flex; flex-direction: column; align-items: stretch; gap: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  background: $bg-surface;
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: $radius-md;
 }
 .overdue-row-info {
   display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 0; flex-wrap: wrap;
 }
 .overdue-staff  { font-size: 0.875rem; font-weight: 600; color: $text-primary; }
 .overdue-dates  { font-size: 0.78rem; color: $text-muted; }
-.overdue-row-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; }
+.overdue-row-actions { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
 
 .overdue-action-btn { padding: 0.25rem 0.6rem; font-size: 0.78rem; font-weight: 600; border-radius: $radius-sm; cursor: pointer; }
 
@@ -213,15 +216,18 @@
 .bulk-ent-fields .field { display: flex; flex-direction: column; gap: 0.3rem; }
 .bulk-ent-fields label { font-size: 0.75rem; font-weight: 600; color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em; }
 
-.staff-balance-list { display: flex; flex-direction: column; gap: 0; }
+// Balances as a grid of cards (Phase 7r): the person on top, their chips underneath.
+.staff-balance-list {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem;
+}
 
 .staff-bal-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0.75rem 0; gap: 0.75rem;
-  border-bottom: 1px solid $border-subtle; cursor: pointer;
-  transition: background $transition-fast;
-  &:last-child { border-bottom: none; }
-  &:hover { background: rgba(37, 99, 235,0.04); margin: 0 -1.25rem; padding: 0.75rem 1.25rem; }
+  display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+  padding: 0.85rem 0.9rem; gap: 0.6rem;
+  background: $bg-surface;
+  border: 1px solid $border-subtle; border-radius: $radius-md; cursor: pointer;
+  transition: border-color $transition-fast;
+  &:hover { border-color: $border-glow; }
 }
 .staff-bal-name     { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
 .staff-bal-fullname { font-size: 0.875rem; font-weight: 600; color: $text-primary; }
@@ -330,7 +336,11 @@
 .cal-approve-btn    { padding: 0.2rem 0.45rem; font-size: 0.78rem; font-weight: 700; border-radius: 4px; cursor: pointer; }
 
 // ── Leave cards (replaces table) ──────────────────────────────────────────────
-.leave-list  { display: flex; flex-direction: column; gap: 0.75rem; }
+// Leave records as a grid of equal-height cards (Phase 7r).
+.leave-list  { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 0.75rem; }
+:host :deep(.leave-list > p-card) { display: block; }
+:host :deep(.leave-list .p-card) { height: 100%; }
+.ls-card-id { min-width: 0; display: flex; flex-direction: column; }
 .leave-card  {
   padding: 1rem 1.25rem;
   &.leave-card-overdue {

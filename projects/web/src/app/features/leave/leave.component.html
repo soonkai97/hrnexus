@@ -676,6 +676,7 @@
         <p-button icon="pi pi-refresh" [text]="true" severity="secondary" size="small"
           [loading]="leaveSummaryLoading()" (click)="loadLeaveSummary()" />
         <span class="summary-year-label">{{ balanceYear() }}</span>
+        <nc-view-toggle viewKey="leave-summary" class="ms-auto" />
       </div>
       @if (leaveSummaryLoading()) {
         <div class="d-flex flex-column gap-2">
@@ -692,6 +693,33 @@
         </div>
       } @else if (leaveSummary().length === 0) {
         <p class="ls-empty">No leave usage recorded for this year.</p>
+      } @else if (summaryView() === 'cards') {
+        <ul class="nc-card-grid">
+          @for (s of pagedLeaveSummary(); track s.employeeId) {
+            <li class="nc-card" tabindex="0" role="button" style="cursor:pointer"
+                (click)="filterEmployeeId = s.employeeId; tab.set('records'); load()"
+                (keydown.enter)="filterEmployeeId = s.employeeId; tab.set('records'); load()">
+              <div class="nc-card-head">
+                <span class="nc-avatar" aria-hidden="true">{{ initials(s.fullName) }}</span>
+                <div class="ls-card-id">
+                  <span class="nc-card-title">{{ s.fullName }}</span>
+                  <div class="nc-card-sub mono">{{ s.staffId }}</div>
+                </div>
+              </div>
+              <div class="nc-card-chips">
+                @for (t of summaryChips(s); track t.key) {
+                  <span class="nc-chip">{{ t.label }} {{ t.used }}h</span>
+                } @empty {
+                  <span class="nc-card-sub">No leave this year</span>
+                }
+              </div>
+              <div class="nc-card-foot">
+                <span class="nc-card-sub">Total used</span>
+                <strong>{{ s.totalUsed }}h</strong>
+              </div>
+            </li>
+          }
+        </ul>
       } @else {
         <div class="leave-summary-table">
           <div class="ls-header">

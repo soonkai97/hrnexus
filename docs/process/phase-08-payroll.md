@@ -13,7 +13,7 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 
 1. Pay is **monthly salary**, stored per person as an effective-dated history. Hourly pay is gone from the product (PRD non-goal).
 2. A **payroll run** per month (draft, reviewed, approved, locked) calculates every payslip line by line in the PRD's fixed order, with exact decimals, and a locked run never changes.
-3. EPF, SOCSO, EIS and PCB are computed from **rate tables stored as data with an effective date**, never hard-coded.
+3. EPF, SOCSO and EIS are computed from **rate tables stored as data with an effective date**, never hard-coded. **PCB (monthly tax) is entered by hand per person per month in v1** (owner decision, 14 Nov 2026); calculating it is deferred.
 4. Staff read **only their own payslip** (PDF) in the staff app; salary is masked everywhere without a payroll permission.
 5. Payroll locks and cash advances are folded into the run; unpaid leave and no-show flow in from the leave module.
 6. Every figure on a payslip can be explained, and the rules exist as tests before the code (PRD risk control: "Payroll bug underpays staff").
@@ -46,6 +46,7 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 9. **Overtime and other pay are hand-entered with a reason** (PAY-04); no automatic overtime in v1. A per-person overtime-rule field is deferred until the owner answers PRD question 3.
 10. **No electronic filing.** v1 produces the bank file and statutory reports; a person submits them (PRD non-goal).
 11. **Leavers and joiners** are prorated by calendar days; a deactivated person stays in that month's run until final pay is locked.
+12. **Owner decisions of 14 Nov 2026 (8b):** the company has **10 or more Malaysian employees**, so the HRD Corp levy at 1% is on (still unverified, like every rate); **PCB is entered by hand** per person per month; a salary below the minimum wage is a **warning, not a block**; the first bank payment file is a **generic CSV**.
 
 ---
 
@@ -62,13 +63,13 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 ### 8b: Statutory rate tables and the calculator (about 1.5 days)
 
 - `StatutoryRateTable` entity and seed (EPF 11% employee, 13% employer up to RM5,000 of wages and 12% above; SOCSO category 1 0.5% / 1.75%; EIS 0.2% / 0.2%; SOCSO and EIS ceiling RM6,000 from 1 Oct 2024; HRD Corp 1% employer, informational). All `Verified = false`.
-- Pure `PayrollCalculator` (no database): inputs are the person's month facts, outputs are payslip lines. PCB is a **pluggable table lookup** (LHDN schedule imported as data) because the PRD names no formula; until a schedule is loaded PCB is 0 with a visible warning and the run cannot be approved.
+- Pure `PayrollCalculator` (no database): inputs are the person's month facts, outputs are payslip lines. **PCB is a hand-entered amount per person per month** (owner decision, 14 Nov 2026), applied as given; a system-calculated PCB is deferred.
 - Tests first from hand-worked examples (EPF at and across RM5,000, SOCSO at the RM6,000 ceiling, proration for a mid-month joiner and leaver, unpaid-leave cap, deduction cap and carry-over) written with the accountant's sign-off in mind.
 
 ### 8c: Payroll run and inputs (about 2 days)
 
 - `PayrollRun` (month, state, version token, preparer, approver, single-person flag, export status) and `PayrollRunLine` (one per person, with typed lines: basic, allowance, overtime, unpaid-leave deduction, EPF/SOCSO/EIS/PCB employee and employer, cash-advance repayment, adjustment).
-- Allowances and deductions (PAY-02) as `PayItem` rows (fixed or one-off, per person), including cash-advance repayment schedule; manual overtime/other pay entered with a reason.
+- Allowances and deductions (PAY-02) as `PayItem` rows (fixed or one-off, per person), including cash-advance repayment schedule; manual overtime/other pay and the hand-entered PCB, each with a reason.
 - Leave inputs (LEV-11): approved `unpaid` and `no-show` leave in the month, converted from hours to days; a change touching a locked month creates an **adjustment line** in the next open run.
 - Lifecycle commands with guards and audit rows; "no negative net pay" check on submit; people without a bank account carry a payment method on the run.
 - Tests: every row of the lifecycle table (allowed and refused), stale version token, preparer cannot approve, Serializable arbitration for two people editing one run.
@@ -118,14 +119,14 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 
 ### Seed rows (all `Verified = false`, source "PRD 6.2 (13 Nov 2026)")
 
-| Scheme               | Classes                                    | Kind       | Employee | Employer                                                                | Ceiling | Rounding (ASSUMED)             |
-| -------------------- | ------------------------------------------ | ---------- | -------- | ----------------------------------------------------------------------- | ------- | ------------------------------ |
-| `epf`                | citizen, permanent-resident (one row each) | percentage | 11%      | 13% if the wage base is up to RM5,000, else 12%, on the whole wage base | none    | up to next ringgit             |
-| `socso` (category 1) | both                                       | percentage | 0.5%     | 1.75%                                                                   | RM6,000 | nearest 5 sen                  |
-| `eis`                | both                                       | percentage | 0.2%     | 0.2%                                                                    | RM6,000 | nearest 5 sen                  |
-| `hrd-compulsory`     | both                                       | percentage | none     | 1%                                                                      | none    | nearest cent; `Active = false` |
-| `hrd-optional`       | both                                       | percentage | none     | 0.5%                                                                    | none    | nearest cent; `Active = false` |
-| `minimum-wage`       | both                                       | amount     | n/a      | RM1,700 from 2025-02-01                                                 | n/a     | n/a                            |
+| Scheme               | Classes                                    | Kind       | Employee | Employer                                                                | Ceiling | Rounding (ASSUMED)                                                                 |
+| -------------------- | ------------------------------------------ | ---------- | -------- | ----------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `epf`                | citizen, permanent-resident (one row each) | percentage | 11%      | 13% if the wage base is up to RM5,000, else 12%, on the whole wage base | none    | up to next ringgit                                                                 |
+| `socso` (category 1) | both                                       | percentage | 0.5%     | 1.75%                                                                   | RM6,000 | nearest 5 sen                                                                      |
+| `eis`                | both                                       | percentage | 0.2%     | 0.2%                                                                    | RM6,000 | nearest 5 sen                                                                      |
+| `hrd-compulsory`     | both                                       | percentage | none     | 1%                                                                      | none    | nearest cent; `Active = true` (owner: 10 or more Malaysian employees, 14 Nov 2026) |
+| `hrd-optional`       | both                                       | percentage | none     | 0.5%                                                                    | none    | nearest cent; `Active = false`                                                     |
+| `minimum-wage`       | both                                       | amount     | n/a      | RM1,700 from 2025-02-01                                                 | n/a     | n/a                                                                                |
 
 At most one `hrd-*` row may be active. The rounding column is **my assumption, not the PRD's**. The over-60 rates are not seeded, so a person over 60 gets the blocking warning until the accountant supplies them.
 
@@ -136,9 +137,9 @@ At most one `hrd-*` row may be active. The rounding column is **my assumption, n
 - the month and its days; the person's **age at month end** (computed by the caller from the date of birth; the calculator never uses `Staff.Age`, which uses the clock and a 365.25-day year) and citizenship class;
 - **salary segments**: `(from, to, basic)` built by the caller from the effective-dated profiles clipped to the employment start and end dates inside the month; days of employment not covered by any profile are returned as a blocking warning;
 - **unpaid leave**: a list of `(date, days)` with days as an exact decimal fraction (for example 4 hours with an 8-hour day is 0.5; 3 hours is 0.375), already converted by 8c from the hours leave stores, using the policy's hours per day; and the divisor (company policy, default 26);
-- **earnings** (allowances, overtime, other earnings), each with a reason and three flags saying whether it counts in the **EPF**, **SOCSO and EIS**, and **PCB** wage base (basic and the unpaid-leave deduction always count; the defaults per pay-item type are data from 8c, UNCONFIRMED: EPF is believed to exclude some items that SOCSO includes);
+- **earnings** (allowances, overtime, other earnings), each with a reason and two flags saying whether it counts in the **EPF** and in the **SOCSO and EIS** wage base (basic and the unpaid-leave deduction always count; the defaults per pay-item type are data from 8c, UNCONFIRMED: EPF is believed to exclude some items that SOCSO includes);
 - **other deductions** (each with a priority), the **deduction cap rate** (a parameter; stored in company policy by 8c; default 50% of gross, BELIEVED, applies to other deductions only as PRD 6.2 says, not to the statutory employee contributions);
-- the resolved **rate tables** and a **PCB result**.
+- the resolved **rate tables** and the person's hand-entered **PCB** amount (with a reason; 0 when none is entered).
 
 **Order, exactly as PRD 6.2** (each step uses only earlier output, so every line can be explained):
 
@@ -146,11 +147,11 @@ At most one `hrd-*` row may be active. The rounding column is **my assumption, n
 2. **Unpaid-leave deduction**: for each unpaid day, the basic **of the segment that day falls in** / divisor x days; the total is **never more than the prorated basic**. Rounded to the cent.
 3. **Gross** = prorated basic + allowances + overtime + other earnings - unpaid-leave deduction (PRD formula).
 4. **Statutory** per scheme, on that scheme's wage base (the sum of the earning lines whose flag is set, plus prorated basic, minus the unpaid-leave deduction), the ceiling applied first, then the rate or the band, then the scheme's rounding; employee and employer amounts are rounded separately. EPF's employer rate follows `EmployerRateMode`. The levy is added only if an `hrd-*` row is active.
-5. **PCB** from a pluggable `IPcbSchedule`, given the PCB wage base **and the employee EPF** (EPF is believed to be a tax relief) and year-to-date figures. 8b ships the interface and a `NullPcbSchedule` that returns "missing": PCB is 0 and a **blocking warning** "PCB schedule not loaded" is raised. PCB also needs a per-person tax profile the data model does not have (question 4).
+5. **PCB** is the hand-entered amount, applied as given and never above what remains of net pay. There is no schedule, no formula and no tax profile in v1. If none is entered it is 0 with an **informational** note "no PCB entered" (a person below the tax threshold legitimately has none).
 6. **Other deductions** last, in priority order, each limited so that their total never exceeds the cap share of gross and **net pay never goes below zero**; whatever cannot be applied is returned as **unapplied** (8c carries it to the next run).
 7. **Net** = gross - employee EPF, SOCSO, EIS - PCB - applied other deductions. **Employer cost** = gross + employer EPF, SOCSO, EIS + HRD levy (PRD formula).
 
-**Output:** typed lines (`basic`, `allowance`, `overtime`, `other-earning`, `unpaid-leave`, `epf-employee`, `epf-employer`, ..., `pcb`, `deduction`), gross, net, employer cost, the unapplied deductions, and **everything needed to reproduce the figures months later** (the divisor, the **ids of the rate rows used**, the salary profile ids and segments, the age class, and a calculator version constant; 8c adds the policy version). Plus **warnings**, each `blocking` or `informational`: PCB missing, an unverified table used, no rate row for a needed scheme or age, a rate change inside the month, no citizenship class, employment days with no salary, a band gap, a leaver whose end date is before the month, salary below the minimum-wage row (informational: question 6), unapplied deductions.
+**Output:** typed lines (`basic`, `allowance`, `overtime`, `other-earning`, `unpaid-leave`, `epf-employee`, `epf-employer`, ..., `pcb`, `deduction`), gross, net, employer cost, the unapplied deductions, and **everything needed to reproduce the figures months later** (the divisor, the **ids of the rate rows used**, the salary profile ids and segments, the age class, and a calculator version constant; 8c adds the policy version). Plus **warnings**, each `blocking` or `informational`: no PCB entered (informational), an unverified table used, no rate row for a needed scheme or age, a rate change inside the month, no citizenship class, employment days with no salary, a band gap, a leaver whose end date is before the month, salary below the minimum-wage row (informational: question 6), unapplied deductions.
 
 **Rules that are not negotiable:** no floating point anywhere; rounding happens only where a table says so; the calculator never reads the clock or the database; the same input always gives the same output.
 
@@ -170,20 +171,20 @@ At most one `hrd-*` row may be active. The rounding column is **my assumption, n
 
 1. `[TDD]` **Money and rounding helper** (`MoneyRounding`): the four rules, midpoint away from zero, exactness, invariant culture. (~1 hour)
 2. `[TDD]` **Rate tables:** entities, migration, insert-if-missing seed, immutability of rates and bands, effective-date lookup (boundary on the first day; a row starting inside the month; age rows; no overlap), missing-row and band-gap warnings, uniqueness. Integration test on real Postgres for the migration, the unique index and the seed. (~4 hours)
-3. `[TDD]` **Calculator, step by step** from the hand-worked vectors, in PRD order: segments (full month, joiner, leaver, joined and left, mid-month raise, leap-year February, 28/30/31-day months, uncovered days), unpaid-leave deduction (normal, fractional days, capped at prorated basic, divisor from policy, basic of the segment the day falls in), gross, EPF (employer rate at RM5,000.00 and RM5,000.01 on the whole wage base; rounding up; base flags excluding an item), SOCSO and EIS (below, at and across the RM6,000 ceiling), HRD levy off, compulsory and optional, band-table lookup (inclusive and exclusive edges, gap, above the top band, ceiling then band), PCB missing, other deductions (cap, priority, unapplied, net never negative). (~6 hours)
+3. `[TDD]` **Calculator, step by step** from the hand-worked vectors, in PRD order: segments (full month, joiner, leaver, joined and left, mid-month raise, leap-year February, 28/30/31-day months, uncovered days), unpaid-leave deduction (normal, fractional days, capped at prorated basic, divisor from policy, basic of the segment the day falls in), gross, EPF (employer rate at RM5,000.00 and RM5,000.01 on the whole wage base; rounding up; base flags excluding an item), SOCSO and EIS (below, at and across the RM6,000 ceiling), HRD levy active (1%, owner: 10 or more employees), off, and the optional 0.5% row, band-table lookup (inclusive and exclusive edges, gap, above the top band, ceiling then band), PCB entered and not entered, other deductions (cap, priority, unapplied, net never negative). (~6 hours)
 4. `[TDD]` **Invariants** over generated inputs: net and employer cost equal their formulas exactly; no earning or statutory line is negative (adjustment lines of 8c may be); a ceiling never increases a contribution; the output is identical across repeated calls and across cultures; money survives a JSON round trip. These guard structure; the hand-worked vectors are the oracle for the figures. (~1.5 hours)
 5. **Verification guard, permission, API, page** (403 without the permission, the preparer cannot verify, audit without amounts, atomic save), the `CreatedBy` fix, and the read-only page and its spec. (~4 hours)
 6. **Review pack renderer** and the first pack; CLAUDE.md "Payroll rules"; this plan's status. (~1.5 hours)
 
-**Done when:** every vector passes, the invariants hold, the migration and seed run on a fresh and on an existing database, an unverified table is reported by the guard, verify needs `payroll.rates.verify`, the rates page works for `payroll.view`, and the review pack is in `docs/process/`. **Not done by 8b:** approving a real run, loading official band tables or the PCB schedule, anything per person (8c).
+**Done when:** every vector passes, the invariants hold, the migration and seed run on a fresh and on an existing database, an unverified table is reported by the guard, verify needs `payroll.rates.verify`, the rates page works for `payroll.view`, and the review pack is in `docs/process/`. **Not done by 8b:** approving a real run, loading official band tables or calculating PCB, anything per person (8c).
 
 **Risks specific to 8b**
 
 | Risk                                                                     | Mitigation                                                                                                                                                                       |
 | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A seeded rate or rounding assumption is wrong and looks authoritative    | `Verified = false` everywhere, "ASSUMED" in the seed notes, the percentage seeds called placeholders, approval blocked, the review pack, the 3-month parallel run before go-live |
-| The wage base differs by scheme and item                                 | Three flags per earning line (EPF, SOCSO and EIS, PCB), covered by a test per rule; the accountant's answer changes data, not code                                               |
-| PCB cannot be computed without a tax profile and the employee EPF        | 8b stops at the interface (which already takes the EPF) and a blocking warning; question 4 decides the profile and source before 8c needs it                                     |
+| The wage base differs by scheme and item                                 | Two flags per earning line (EPF; SOCSO and EIS), covered by a test per rule; the accountant's answer changes data, not code                                                      |
+| Hand-entered PCB is wrong or forgotten                                   | The amount is a visible input with a reason and an informational "no PCB entered" note; the accountant supplies it; calculating PCB (tax profile, schedule) is a later phase     |
 | Money drifts through a rounding step applied twice or at the wrong point | Rounding only inside the step that declares it; invariants test exact equality; hand-worked vectors are the oracle; no float types in the calculator                             |
 | A verified row is edited and the verification goes stale                 | Rates, ceiling and bands are immutable; a correction is a new unverified row                                                                                                     |
 | The preparer verifies the rates that gate their own approval             | Separate `payroll.rates.verify` permission                                                                                                                                       |
@@ -191,15 +192,15 @@ At most one `hrd-*` row may be active. The rounding column is **my assumption, n
 
 **Model split:** implementation on sonnet; an opus review of the finished PR because it fixes the money contract and the data shape that 8c to 8f build on.
 
-### Questions only the owner or the accountant can answer (the defaults are what the code starts with)
+### Questions for the accountant (the defaults are what the code starts with)
 
-1. **EPF, SOCSO, EIS:** the official band amounts (EPF Third Schedule, PERKESO tables) or a percentage with rounding (assumed placeholder)? The wage bands? The rounding rule? Over-60 rates and age-based exemptions (PRD 6.6)?
+**Answered by the owner on 14 Nov 2026:** HRD Corp levy on at 1% (10 or more employees); PCB entered by hand; salary below the minimum wage warns but does not block; the first bank file is a generic CSV.
+
+1. **EPF, SOCSO, EIS:** the official band amounts (EPF Third Schedule, PERKESO tables) or a percentage with rounding (the assumed placeholder)? The wage bands? The rounding rule? Over-60 rates and age-based exemptions (PRD 6.6)?
 2. **EPF employer rate:** 13% or 12% decided by the wage base against RM5,000 and applied to the **whole** wage (assumed), or marginal?
-3. **Wage base:** which earnings count in the EPF, in the SOCSO and EIS, and in the PCB base (assumed: all of them, so the base is gross after the unpaid-leave deduction)?
-4. **PCB:** which source (the LHDN schedule or the official computerised formula), which inputs (the employee EPF and year-to-date figures are assumed to be needed), and where do the per-person tax details live (marital status, children, spouse working, other relief)? Until answered, PCB is 0 with a blocking warning.
-5. **Section 24:** is the cap 50% of wages (believed), of which base, and may fines be deducted at all?
-6. **Minimum wage:** a salary below the `minimum-wage` row is an informational warning, not a block (assumed). Should it block? (A rise to RM2,000 from June 2027 is only a press report: add it as a row when confirmed.)
-7. **HRD Corp:** the headcount (PRD Q2) decides whether the levy is on and at 1% or 0.5%.
+3. **Wage base:** which earnings count in the EPF and which in the SOCSO and EIS (assumed: all of them, so the base is gross after the unpaid-leave deduction)?
+4. **Section 24:** is the cap on other deductions 50% of wages (believed), of which base, and may fines be deducted at all?
+5. **Minimum wage later:** a rise to RM2,000 from June 2027 is only a press report; add it as a `minimum-wage` row when confirmed.
 
 ---
 
@@ -218,7 +219,7 @@ At most one `hrd-*` row may be active. The rounding column is **my assumption, n
 | ----------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------ |
 | Phase 7l leave rules (Mon-Fri, 8h, hours stored)                                    | Code     | Done                                                         |
 | Accountant or payroll specialist to verify rates, rounding, divisor, section 24 cap | External | **Pending** (blocks approval of any real run, not the build) |
-| LHDN PCB schedule as data                                                           | External | **Pending**                                                  |
+| LHDN PCB schedule as data (only when PCB calculation is built)                      | External | Deferred                                                     |
 | Company bank payment file layout                                                    | External | **Pending** (PRD Q3)                                         |
 | Overtime policy                                                                     | Decision | **Pending** (PRD Q3)                                         |
 | Headcount range (HRD Corp applicability)                                            | Decision | Pending (PRD Q2)                                             |
@@ -233,7 +234,7 @@ At most one `hrd-*` row may be active. The rounding column is **my assumption, n
 | Salary data leaks (API, logs, exports, audit rows)                          | Med        | High   | Encrypted at rest; masked by permission; no salary in logs/audit `changes`; BOLA tests on every payslip route; exports require `payroll.export`      |
 | Two people edit one run                                                     | Med        | Med    | Version token on the run, stale save refused, Serializable on lifecycle transitions                                                                  |
 | Locked run is mutated by a later change (leave edited after lock)           | Med        | High   | Locked runs immutable; changes become adjustment lines in the next open run (tested)                                                                 |
-| Scope balloons (PCB, EA form, overtime)                                     | High       | Med    | PCB pluggable, EA form and automatic overtime explicitly deferred                                                                                    |
+| Scope balloons (EA form, overtime, PCB calculation)                         | High       | Med    | PCB is hand-entered in v1; EA form and automatic overtime explicitly deferred                                                                        |
 | Removing `Role.HourlyRate` breaks the roles page and E2E                    | Med        | Low    | Done first in 8a with its own tests                                                                                                                  |
 | Floating-point creeps in (PDF, JSON, JS)                                    | Low        | High   | Decimal in C#; money is a JSON number with at most 2 decimals (as in 8a) and the frontend only displays it, never computes with it; round-trip tests |
 

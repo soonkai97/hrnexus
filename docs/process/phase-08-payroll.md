@@ -1,7 +1,7 @@
 # Phase 8: Payroll rebuild (monthly salary, statutory deductions, payslips)
 
-> **Status:** `Draft`
-> **Created:** 2026-11-13 | **Updated:** 2026-11-13
+> **Status:** `8a merged (#103); 8b detailed plan below; 8c to 8f still summaries`
+> **Created:** 2026-11-13 | **Updated:** 2026-11-14
 > **Depends on:** Phases 7, 7j, 7i, 7l merged (all done). **All payroll screens (including the staff payslip page) are built in the single web app of Phase 7n**, not in separate admin and staff apps. **8b onward also depends on Phase 7m (company policy)** (`phase-07m-company-policy.md`): the working week, hours per day and the unpaid-leave divisor are company settings, not constants. 8a does not. Source of requirements: `HRNexus PRD v1.0`, section 5.4 (PAY-01 to PAY-10), section 6.2 (calculation order and run lifecycle), LEV-11, STF-05.
 > **Environment note (13 Nov 2026):** no production deployment and no real data, so drop migrations and rate-table seeding need no backup yet. **Payroll go-live (not this phase's merge) is gated** by an accountant sign-off and a 3-month parallel run (PRD).
 
@@ -35,8 +35,8 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 
 ## Decisions made in this plan (change them here if wrong)
 
-1. **Monthly salary only.** Per-person `SalaryProfile` (effective-dated rows; the latest row with `EffectiveFrom <= month start` applies). Pay frequency stored (default monthly) but only monthly runs exist in v1.
-2. **Money is `decimal` (MYR) end to end**, rounded per scheme (EPF rounds up to the next ringgit on the employee and employer share is calculated on the wage band; exact rules live with each rate table). No floating point anywhere, including the PDF.
+1. **Monthly salary only.** Per-person `SalaryProfile` (effective-dated rows). A month is built from **salary segments**: each profile applies from its `EffectiveFrom` day (not from the first of the month), so a raise on the 15th changes pay from the 15th and a joiner whose first profile starts after the employment start has the uncovered days flagged. Pay frequency is stored (default monthly) but only monthly runs exist in v1.
+2. **Money is `decimal` (MYR) end to end**, with the rounding rule of each scheme declared **in its rate table** (never in code, and not asserted here: the PRD only says "the rounding rule of each scheme", so each rule is confirmed by the accountant). No floating point anywhere in the calculator. The API returns money as JSON numbers (amounts with at most 2 decimals, rates with at most 4), as 8a already does; the frontend only displays and sends money and never does arithmetic on it.
 3. **Rate tables are data.** `StatutoryRateTable` rows (scheme, effective-from, wage base rule, ceiling, employee rate, employer rate, band table where the scheme uses one). Seeded from the PRD figures but every row carries `Verified = false` until the accountant confirms; a payroll cannot be **approved** while any table it used is unverified (guard in 8b/8c).
 4. **Calculation order is fixed** (PRD 6.2): prorated basic, unpaid-leave deduction, statutory, other deductions, rounding. Each step takes only earlier output so a payslip explains itself.
 5. **Unpaid-leave deduction** = monthly basic / **divisor** x unpaid working days, capped at the prorated basic. Divisor is a company policy value, default **26** (UNCONFIRMED; printed on the payslip).
@@ -94,6 +94,115 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 
 ---
 
+## 8b detailed plan: rate tables and the calculator
+
+> Reviewed by the opus reviewer on 14 Nov 2026 against the PRD and the 8a code; the confirmed findings are folded in below.
+
+**What the PRD gives and does not give (checked on 14 Nov 2026).** PRD 6.2 gives the calculation order, the formulas, and one rate row per scheme: EPF 11% employee, 13% employer up to RM5,000 of wages and 12% above (citizens and permanent residents only); SOCSO category 1 0.5% / 1.75% and EIS 0.2% / 0.2%, both with a RM6,000 wage ceiling since 1 Oct 2024; HRD Corp 1% employer (compulsory with 10 or more Malaysian employees, optional 0.5% for 5 to 9); PCB "per LHDN schedule"; minimum wage RM1,700 from 1 Feb 2025. **It does not give** the EPF wage bands or rounding rule, any SOCSO or EIS band table or rounding, any PCB formula or schedule, which earnings belong in each scheme's wage base, payslip fields, or any worked example. So a calculator "right to the cent" cannot be proven from the PRD alone, and this plan does not pretend it can.
+
+**The design that follows: separate the calculator from the tables.**
+
+- The **calculator** is pure code that applies whatever rate tables it is handed, in the PRD's fixed order, with exact decimals. Its correctness (proration, segments, caps, order, rounding applied as declared, invariants) is provable now with tests.
+- The **rate tables** are data. Whether a row matches the law is a different question only an accountant can answer, so every seeded row carries `Verified = false` and an unverified table blocks **approval** of a run (the guard is built here, used by 8c).
+- A test therefore says "the calculator implements the rule declared in the table", never "this is the law".
+- **The percentage seeds are placeholders, not a usable default.** The real EPF (Third Schedule), SOCSO and EIS schedules are believed to be **band tables** (EPF in steps of about RM20 up to RM5,000, contribution taken at the band's upper limit; SOCSO and EIS a fixed amount per wage band). A percentage of the exact wage will be wrong by some sen for most wages. The first question to the accountant is "band amounts or percentage?" (question 1 below); the band-table mechanism is built in 8b so the answer is a data load.
+
+### Data model (migration `StatutoryRates`)
+
+- **`StatutoryRateTable`**: `Id`, `Scheme` (`epf`, `socso`, `eis`, `hrd-compulsory`, `hrd-optional`, `minimum-wage`), `CitizenshipClass` (`citizen` or `permanent-resident`; **there is no "all" class**: a scheme with one rate for both has one row per class, so lookup is never ambiguous), `AgeFrom` (default 0) and `AgeTo` (nullable) on the person's age at month end (the over-60 rates are unconfirmed, PRD 6.2/6.6; until a row covers a person's age the calculator raises a blocking warning), `EffectiveFrom`, `Kind` (`percentage` or `band-table`), `WageCeiling` (nullable), `EmployeeRate`, `EmployerRate`, `EmployerRateMode` (`flat`, or `whole-wage-by-threshold` for EPF: the employer rate is chosen by whether the wage base is above `EmployerRateThreshold`, **then applied to the whole wage base** (assumed, not marginal)), `EmployerRateThreshold`, `EmployerRateAbove`, `Rounding` (`none`, `nearest-cent`, `nearest-5-sen`, `up-to-next-ringgit`; midpoint away from zero), `Amount` (for `minimum-wage`), `Active`, `Verified`, `VerifiedBy`, `VerifiedAt`, `Source`, `Note`. Unique on (`Scheme`, `CitizenshipClass`, `AgeFrom`, `EffectiveFrom`).
+- **`StatutoryRateBand`** (child, `band-table` only): `WageFrom`, `WageTo` (inclusive from, exclusive to; a wage above the top band uses the top band, and a gap is a blocking warning), `EmployeeAmount`, `EmployerAmount`. When `WageCeiling` is set it is applied to the wage first, then the band is looked up.
+- **Rows are immutable except `Active`, `Verified`, `VerifiedBy`, `VerifiedAt` and `Note`.** Rates, rounding, ceiling and **bands never change after insert**: a new rate (or a corrected band table) is a **new row** with a later `EffectiveFrom`, which starts unverified. So a verified row can never silently change, and any past month can be recalculated exactly.
+- **How rows get in (8b):** the seed (insert-if-missing at startup, never `HasData`, so a runtime `Verified` flip cannot drift from the model snapshot) and a developer migration or script when the accountant supplies official tables. An admin screen for adding rows is deferred to 8f; 8b's page is read-only apart from "verify" and "active".
+- **Lookup:** for a scheme, class and age, the row with the latest `EffectiveFrom` on or before the **first day of the month**. If a **newer row starts inside the month**, the calculator raises a blocking warning ("rate change inside the month, not supported") instead of guessing a split. A missing row for a scheme the person needs is a blocking warning, never a silent zero.
+- Money is `decimal`: `numeric(18,4)` for rates, `numeric(12,2)` for amounts.
+
+### Seed rows (all `Verified = false`, source "PRD 6.2 (13 Nov 2026)")
+
+| Scheme               | Classes                                    | Kind       | Employee | Employer                                                                | Ceiling | Rounding (ASSUMED)             |
+| -------------------- | ------------------------------------------ | ---------- | -------- | ----------------------------------------------------------------------- | ------- | ------------------------------ |
+| `epf`                | citizen, permanent-resident (one row each) | percentage | 11%      | 13% if the wage base is up to RM5,000, else 12%, on the whole wage base | none    | up to next ringgit             |
+| `socso` (category 1) | both                                       | percentage | 0.5%     | 1.75%                                                                   | RM6,000 | nearest 5 sen                  |
+| `eis`                | both                                       | percentage | 0.2%     | 0.2%                                                                    | RM6,000 | nearest 5 sen                  |
+| `hrd-compulsory`     | both                                       | percentage | none     | 1%                                                                      | none    | nearest cent; `Active = false` |
+| `hrd-optional`       | both                                       | percentage | none     | 0.5%                                                                    | none    | nearest cent; `Active = false` |
+| `minimum-wage`       | both                                       | amount     | n/a      | RM1,700 from 2025-02-01                                                 | n/a     | n/a                            |
+
+At most one `hrd-*` row may be active. The rounding column is **my assumption, not the PRD's**. The over-60 rates are not seeded, so a person over 60 gets the blocking warning until the accountant supplies them.
+
+### The calculator (pure, no database; `PayrollCalculator` in Application)
+
+**Input** (one person, one month):
+
+- the month and its days; the person's **age at month end** (computed by the caller from the date of birth; the calculator never uses `Staff.Age`, which uses the clock and a 365.25-day year) and citizenship class;
+- **salary segments**: `(from, to, basic)` built by the caller from the effective-dated profiles clipped to the employment start and end dates inside the month; days of employment not covered by any profile are returned as a blocking warning;
+- **unpaid leave**: a list of `(date, days)` with days as an exact decimal fraction (for example 4 hours with an 8-hour day is 0.5; 3 hours is 0.375), already converted by 8c from the hours leave stores, using the policy's hours per day; and the divisor (company policy, default 26);
+- **earnings** (allowances, overtime, other earnings), each with a reason and three flags saying whether it counts in the **EPF**, **SOCSO and EIS**, and **PCB** wage base (basic and the unpaid-leave deduction always count; the defaults per pay-item type are data from 8c, UNCONFIRMED: EPF is believed to exclude some items that SOCSO includes);
+- **other deductions** (each with a priority), the **deduction cap rate** (a parameter; stored in company policy by 8c; default 50% of gross, BELIEVED, applies to other deductions only as PRD 6.2 says, not to the statutory employee contributions);
+- the resolved **rate tables** and a **PCB result**.
+
+**Order, exactly as PRD 6.2** (each step uses only earlier output, so every line can be explained):
+
+1. **Prorated basic**, per salary segment: basic x calendar days in the segment / days in the month; a full month with one segment is not prorated. Joiner, leaver, joined-and-left and a mid-month raise are all just segments. Rounded to the cent at the end of the step.
+2. **Unpaid-leave deduction**: for each unpaid day, the basic **of the segment that day falls in** / divisor x days; the total is **never more than the prorated basic**. Rounded to the cent.
+3. **Gross** = prorated basic + allowances + overtime + other earnings - unpaid-leave deduction (PRD formula).
+4. **Statutory** per scheme, on that scheme's wage base (the sum of the earning lines whose flag is set, plus prorated basic, minus the unpaid-leave deduction), the ceiling applied first, then the rate or the band, then the scheme's rounding; employee and employer amounts are rounded separately. EPF's employer rate follows `EmployerRateMode`. The levy is added only if an `hrd-*` row is active.
+5. **PCB** from a pluggable `IPcbSchedule`, given the PCB wage base **and the employee EPF** (EPF is believed to be a tax relief) and year-to-date figures. 8b ships the interface and a `NullPcbSchedule` that returns "missing": PCB is 0 and a **blocking warning** "PCB schedule not loaded" is raised. PCB also needs a per-person tax profile the data model does not have (question 4).
+6. **Other deductions** last, in priority order, each limited so that their total never exceeds the cap share of gross and **net pay never goes below zero**; whatever cannot be applied is returned as **unapplied** (8c carries it to the next run).
+7. **Net** = gross - employee EPF, SOCSO, EIS - PCB - applied other deductions. **Employer cost** = gross + employer EPF, SOCSO, EIS + HRD levy (PRD formula).
+
+**Output:** typed lines (`basic`, `allowance`, `overtime`, `other-earning`, `unpaid-leave`, `epf-employee`, `epf-employer`, ..., `pcb`, `deduction`), gross, net, employer cost, the unapplied deductions, and **everything needed to reproduce the figures months later** (the divisor, the **ids of the rate rows used**, the salary profile ids and segments, the age class, and a calculator version constant; 8c adds the policy version). Plus **warnings**, each `blocking` or `informational`: PCB missing, an unverified table used, no rate row for a needed scheme or age, a rate change inside the month, no citizenship class, employment days with no salary, a band gap, a leaver whose end date is before the month, salary below the minimum-wage row (informational: question 6), unapplied deductions.
+
+**Rules that are not negotiable:** no floating point anywhere; rounding happens only where a table says so; the calculator never reads the clock or the database; the same input always gives the same output.
+
+### Verification guard, permission and API (built and tested here, used by 8c)
+
+- `StatutoryRates.UnverifiedAsync(month, persons)` returns the tables a calculation would use that are not verified; 8c refuses **approve** while it is non-empty.
+- **Separation of duties:** marking rates verified needs a **new permission `payroll.rates.verify`** (catalog key, label, description and the frontend `PermissionKey` union; the first administrator role gets it automatically). The preparer's `payroll.manage` is not enough, so the person who prepares payroll cannot also verify the rates that gate its approval.
+- `GET /api/payroll/rates` (`payroll.view`) lists tables with bands; `POST /api/payroll/rates/{id}/verify` and `.../active` (`payroll.rates.verify`; a note is required). The verify handler changes the entity and then calls `LogAsync` **once** so both commit in one save (the audit service saves by itself); `VerifiedBy` comes from the current user, never from the request. The audit row carries no amounts.
+- A small read-only **Statutory rates** page (under payroll, `payroll.view`) shows tables, bands and a Verified badge, with "Mark verified" for `payroll.rates.verify` holders.
+- **8a fix folded in:** `AddSalaryProfileCommand` never passes `createdBy`, so `SalaryProfile.CreatedBy` is always null; 8c's "preparer is not the approver" needs it. Fix and test it here.
+
+### Accountant review pack (a deliverable)
+
+`tests/fixtures/payroll-calculator.json` holds named worked examples (inputs, rate rows, expected lines). **The expected numbers are worked out by hand, with the formula shown beside each figure in the pack, and are not generated by running the calculator**, so the calculator is checked against an independent calculation. A small script (culture-invariant formatting) renders the fixture to `docs/process/payroll-worked-examples.md` so the accountant can read each example as a table and sign it off or correct it. Corrections change the fixture and the table data; the tests then prove the calculator still follows them.
+
+### Steps (tests first; about 2.5 days)
+
+1. `[TDD]` **Money and rounding helper** (`MoneyRounding`): the four rules, midpoint away from zero, exactness, invariant culture. (~1 hour)
+2. `[TDD]` **Rate tables:** entities, migration, insert-if-missing seed, immutability of rates and bands, effective-date lookup (boundary on the first day; a row starting inside the month; age rows; no overlap), missing-row and band-gap warnings, uniqueness. Integration test on real Postgres for the migration, the unique index and the seed. (~4 hours)
+3. `[TDD]` **Calculator, step by step** from the hand-worked vectors, in PRD order: segments (full month, joiner, leaver, joined and left, mid-month raise, leap-year February, 28/30/31-day months, uncovered days), unpaid-leave deduction (normal, fractional days, capped at prorated basic, divisor from policy, basic of the segment the day falls in), gross, EPF (employer rate at RM5,000.00 and RM5,000.01 on the whole wage base; rounding up; base flags excluding an item), SOCSO and EIS (below, at and across the RM6,000 ceiling), HRD levy off, compulsory and optional, band-table lookup (inclusive and exclusive edges, gap, above the top band, ceiling then band), PCB missing, other deductions (cap, priority, unapplied, net never negative). (~6 hours)
+4. `[TDD]` **Invariants** over generated inputs: net and employer cost equal their formulas exactly; no earning or statutory line is negative (adjustment lines of 8c may be); a ceiling never increases a contribution; the output is identical across repeated calls and across cultures; money survives a JSON round trip. These guard structure; the hand-worked vectors are the oracle for the figures. (~1.5 hours)
+5. **Verification guard, permission, API, page** (403 without the permission, the preparer cannot verify, audit without amounts, atomic save), the `CreatedBy` fix, and the read-only page and its spec. (~4 hours)
+6. **Review pack renderer** and the first pack; CLAUDE.md "Payroll rules"; this plan's status. (~1.5 hours)
+
+**Done when:** every vector passes, the invariants hold, the migration and seed run on a fresh and on an existing database, an unverified table is reported by the guard, verify needs `payroll.rates.verify`, the rates page works for `payroll.view`, and the review pack is in `docs/process/`. **Not done by 8b:** approving a real run, loading official band tables or the PCB schedule, anything per person (8c).
+
+**Risks specific to 8b**
+
+| Risk                                                                     | Mitigation                                                                                                                                                                       |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A seeded rate or rounding assumption is wrong and looks authoritative    | `Verified = false` everywhere, "ASSUMED" in the seed notes, the percentage seeds called placeholders, approval blocked, the review pack, the 3-month parallel run before go-live |
+| The wage base differs by scheme and item                                 | Three flags per earning line (EPF, SOCSO and EIS, PCB), covered by a test per rule; the accountant's answer changes data, not code                                               |
+| PCB cannot be computed without a tax profile and the employee EPF        | 8b stops at the interface (which already takes the EPF) and a blocking warning; question 4 decides the profile and source before 8c needs it                                     |
+| Money drifts through a rounding step applied twice or at the wrong point | Rounding only inside the step that declares it; invariants test exact equality; hand-worked vectors are the oracle; no float types in the calculator                             |
+| A verified row is edited and the verification goes stale                 | Rates, ceiling and bands are immutable; a correction is a new unverified row                                                                                                     |
+| The preparer verifies the rates that gate their own approval             | Separate `payroll.rates.verify` permission                                                                                                                                       |
+| A month cannot be reproduced later                                       | Output records rate row ids, profile ids, segments, age class and a calculator version                                                                                           |
+
+**Model split:** implementation on sonnet; an opus review of the finished PR because it fixes the money contract and the data shape that 8c to 8f build on.
+
+### Questions only the owner or the accountant can answer (the defaults are what the code starts with)
+
+1. **EPF, SOCSO, EIS:** the official band amounts (EPF Third Schedule, PERKESO tables) or a percentage with rounding (assumed placeholder)? The wage bands? The rounding rule? Over-60 rates and age-based exemptions (PRD 6.6)?
+2. **EPF employer rate:** 13% or 12% decided by the wage base against RM5,000 and applied to the **whole** wage (assumed), or marginal?
+3. **Wage base:** which earnings count in the EPF, in the SOCSO and EIS, and in the PCB base (assumed: all of them, so the base is gross after the unpaid-leave deduction)?
+4. **PCB:** which source (the LHDN schedule or the official computerised formula), which inputs (the employee EPF and year-to-date figures are assumed to be needed), and where do the per-person tax details live (marital status, children, spouse working, other relief)? Until answered, PCB is 0 with a blocking warning.
+5. **Section 24:** is the cap 50% of wages (believed), of which base, and may fines be deducted at all?
+6. **Minimum wage:** a salary below the `minimum-wage` row is an informational warning, not a block (assumed). Should it block? (A rise to RM2,000 from June 2027 is only a press report: add it as a row when confirmed.)
+7. **HRD Corp:** the headcount (PRD Q2) decides whether the levy is on and at 1% or 0.5%.
+
+---
+
 ## Scope
 
 ### Out of scope (deferred)
@@ -118,15 +227,15 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 
 ## Risks
 
-| Risk                                                                        | Likelihood | Impact | Mitigation                                                                                                                                      |
-| --------------------------------------------------------------------------- | ---------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| A statutory rate or rounding rule is wrong and staff are under or over paid | Med        | High   | Rates are data with `Verified` flags; approval blocked on unverified tables; rules as tests first; 3-month parallel run before go-live          |
-| Salary data leaks (API, logs, exports, audit rows)                          | Med        | High   | Encrypted at rest; masked by permission; no salary in logs/audit `changes`; BOLA tests on every payslip route; exports require `payroll.export` |
-| Two people edit one run                                                     | Med        | Med    | Version token on the run, stale save refused, Serializable on lifecycle transitions                                                             |
-| Locked run is mutated by a later change (leave edited after lock)           | Med        | High   | Locked runs immutable; changes become adjustment lines in the next open run (tested)                                                            |
-| Scope balloons (PCB, EA form, overtime)                                     | High       | Med    | PCB pluggable, EA form and automatic overtime explicitly deferred                                                                               |
-| Removing `Role.HourlyRate` breaks the roles page and E2E                    | Med        | Low    | Done first in 8a with its own tests                                                                                                             |
-| Floating-point creeps in (PDF, JSON, JS)                                    | Low        | High   | Decimal in C#; money serialised as strings or integer cents in the API; frontend never does arithmetic on money                                 |
+| Risk                                                                        | Likelihood | Impact | Mitigation                                                                                                                                           |
+| --------------------------------------------------------------------------- | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A statutory rate or rounding rule is wrong and staff are under or over paid | Med        | High   | Rates are data with `Verified` flags; approval blocked on unverified tables; rules as tests first; 3-month parallel run before go-live               |
+| Salary data leaks (API, logs, exports, audit rows)                          | Med        | High   | Encrypted at rest; masked by permission; no salary in logs/audit `changes`; BOLA tests on every payslip route; exports require `payroll.export`      |
+| Two people edit one run                                                     | Med        | Med    | Version token on the run, stale save refused, Serializable on lifecycle transitions                                                                  |
+| Locked run is mutated by a later change (leave edited after lock)           | Med        | High   | Locked runs immutable; changes become adjustment lines in the next open run (tested)                                                                 |
+| Scope balloons (PCB, EA form, overtime)                                     | High       | Med    | PCB pluggable, EA form and automatic overtime explicitly deferred                                                                                    |
+| Removing `Role.HourlyRate` breaks the roles page and E2E                    | Med        | Low    | Done first in 8a with its own tests                                                                                                                  |
+| Floating-point creeps in (PDF, JSON, JS)                                    | Low        | High   | Decimal in C#; money is a JSON number with at most 2 decimals (as in 8a) and the frontend only displays it, never computes with it; round-trip tests |
 
 ---
 

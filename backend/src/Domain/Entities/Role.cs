@@ -4,7 +4,7 @@ public class Role
 {
     public Guid     Id         { get; private set; }
     public string   Name       { get; private set; } = default!;
-    /// <summary>The first administrator job: it cannot be deleted, always holds every permission, and its
+    /// <summary>The first administrator role: it cannot be deleted, always holds every permission, and its
     /// permissions cannot be edited. Flagged, never identified by name.</summary>
     public bool     IsSystem   { get; private set; }
     public DateTime CreatedAt  { get; private set; }
@@ -19,10 +19,10 @@ public class Role
         CreatedAt  = DateTime.UtcNow,
     };
 
-    /// <summary>Renames the job. Stored UPPERCASE. Safe for every job, including the first administrator job:
-    /// access is decided by permissions, never by a job's name.</summary>
+    /// <summary>Renames the role. Stored UPPERCASE. Safe for every role, including the first administrator role:
+    /// access is decided by permissions, never by a role's name.</summary>
     public void SetName(string name) => Name = name.Trim().ToUpperInvariant();
 
-    /// <summary>Flags this job as the first administrator job (seed only).</summary>
+    /// <summary>Flags this role as the first administrator role (seed only).</summary>
     public void MarkSystem() => IsSystem = true;
 }

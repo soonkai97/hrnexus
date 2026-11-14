@@ -8,9 +8,9 @@ learned → Last session (resume pointer).
 ## Verified facts
 
 - `HRADMIN` is real seed data (`SeedData.cs`) — the first-run administrator login, created only in an
-  empty database, holding the first administrator job (the job flagged `IsSystem`; `ADMINISTRATOR` on a
+  empty database, holding the first administrator role (the role flagged `IsSystem`; `ADMINISTRATOR` on a
   new install). `HRMANAGER` is **not** seeded anywhere in code; it's a real account created later. Both
-  are hidden from the roster via `Staff.IsHidden`. No job is special because of its name (Phase 7o).
+  are hidden from the roster via `Staff.IsHidden`. No role is special because of its name (Phase 7o).
 - **Clock-in/out (WorkLog), per-job `MaxShiftDays` and shift-derived pay were removed in Phase 7**
   (`docs/process/phase-07-remove-shift-log.md`). Earlier facts about shift overlap, the 30/100-day caps
   and `WorkLog.RoleName` snapshots are obsolete. `Role.HourlyRate`/`PayType` remain until Phase 8.
@@ -43,7 +43,7 @@ learned → Last session (resume pointer).
   actually refers to in real-world terms before implementing/translating it — don't assume the
   worst case, but don't build it on a literal translation either. (Case: "1炮1小时" turned out to
   be a fake-gun shooting-game attraction, not what the characters could otherwise imply.)
-- Roles/Jobs are runtime **data**, not schema — adding one doesn't need a migration, PR, or
+- Roles are runtime **data**, not schema — adding one doesn't need a migration, PR, or
   deploy. It's a POST from the web app's roles page (or `CreateRoleCommand` directly).
 
 ## Open failures

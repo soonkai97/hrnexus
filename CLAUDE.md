@@ -76,7 +76,7 @@ projects/
     ├── guards/                   # authGuard, roleGuard, permissionGuard, unsavedChangesGuard
     ├── auth/                     # AuthService, jwt/error/maintenance interceptors, ForgotPasswordBase
     ├── pipes/                    # HmPipe (24-hour time)
-    ├── directives/               # HasPermissionDirective, PickerOnlyDirective, TrimInputDirective
+    ├── directives/               # TrimInputDirective
     ├── utils/                    # date and password helpers
     └── components/               # ToastComponent, ConfirmDialogComponent, NotificationBellComponent,
                                   # ThemeToggleComponent
@@ -228,7 +228,7 @@ hasRole(...roles: UserRole[]): boolean
 - `ForgotPasswordBase` — logic for forgot-password pages (the web app's forgot-password page extends this)
 
 **Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time)
-**Directives:** `HasPermissionDirective` — hides an element without a permission; `PickerOnlyDirective` — disables keyboard on date inputs on mobile; `TrimInputDirective`
+**Directives:** `TrimInputDirective`
 
 **Utilities:** `provideNoAutofill()`, date utils, password utils
 
@@ -532,7 +532,6 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 - `try_files $uri $uri/ /index.html` — SPA client-side routing
 - `/api/` → proxied to `http://api:8080`
 - `/hubs/` → proxied with WebSocket upgrade headers (SignalR)
-- `/uploads/` → proxied to API (media files)
 - `index.html` — `no-cache` headers so new deploys take effect immediately
 - Static file extensions (`.js`, `.css`, `.json`, `.webmanifest`, fonts, images) — **always served even during maintenance** so the SW can download updated bundles
 

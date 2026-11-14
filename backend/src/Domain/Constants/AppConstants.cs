@@ -12,14 +12,10 @@ public static class AppConstants
     {
         public const string Admin    = "SUPERADMIN";
         public const string Manager  = "MANAGER";
-        public const string Employee = "EMPLOYEE";
 
         /// <summary>JWT claim value for the highest-privilege tier.</summary>
         public const string AdminClaim   = "SuperAdmin";
         public const string ManagerClaim = "Manager";
-
-        /// <summary>Comma-separated claim string for use in [Authorize(Roles = ...)] attributes.</summary>
-        public const string ManagerOrAdminClaim = ManagerClaim + "," + AdminClaim;
     }
 
     // ── Permissions ──────────────────────────────────────────────────────────────
@@ -135,19 +131,9 @@ public static class AppConstants
     // ── Validation limits ──────────────────────────────────────────────────────
     public static class Limits
     {
-        // Staff / authentication
-        public const int PasswordMinLength     = 8;
-        public const int StaffIdMaxLength      = 20;
-        public const int NameMaxLength         = 100;
-        public const int EmailMaxLength        = 254;
-        public const int PhoneMaxLength        = 20;
-        public const int PushSubscriptionsCap  = 5;
-
-        // Notifications
-        public const int NotificationSnippetLength = 80;
+        public const int PushSubscriptionsCap = 5;
 
         // Pagination
-        public const int DefaultPageSize = 20;
-        public const int MaxPageSize     = 100;
+        public const int MaxPageSize = 100;
     }
 }

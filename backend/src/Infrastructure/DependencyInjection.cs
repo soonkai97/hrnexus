@@ -5,7 +5,6 @@ using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Constants;
 using HRNexus.Infrastructure.Auth;
-using HRNexus.Infrastructure.Files;
 using HRNexus.Infrastructure.Hubs;
 using HRNexus.Infrastructure.Jobs;
 using HRNexus.Infrastructure.Persistence;
@@ -35,7 +34,6 @@ public static class DependencyInjection
 
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddMemoryCache(); // shared in-process cache for feature flags + other short-lived lookups
-        services.AddScoped<IFileStorage, LocalFileStorage>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();
 

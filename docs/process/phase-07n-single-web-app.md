@@ -1,6 +1,6 @@
 # Phase 7n: One web app, controlled by role and access right
 
-> **Status:** `In progress` (7n-a merged in #108; 7n-b and the infrastructure part of 7n-c ship together; the cleanup list is still open)
+> **Status:** `Implemented` (7n-a #108, 7n-b #110, 7n-c cleanup in the PR after it); review and sign-off pending
 > **Created:** 2026-11-14 | **Updated:** 2026-11-14
 > **Depends on:** Phases 7l and 7m-a merged. **Comes before** 7m-b (policy page) and every Phase 8 screen: all new frontend work targets the single app.
 > **Why:** the HRM does not need two web apps (owner, 13 Nov 2026: "focus on one and control by role and access right"). Two apps duplicate the shell, login, PWA and tests, forced the two-hostname cookie workaround, and do not fit a product that serves companies with different roles. The permission system (roles, per-user overrides, guards) already decides what each person may do, so one app can show each person only what they are allowed to see.
@@ -126,6 +126,10 @@
 - The notification bell no longer filters by portal; it shows every notification the server sent to the person.
 - The Prettier ratchet judges a renamed file by the file it came from, so moving `admin-app` to `web` did not force reformatting about 100 files.
 - Playwright runs one `web` project on Desktop Chrome. A phone-width project can be added later if phone-only layout bugs appear.
+
+- Cleanup decisions: `nginx/nginx.local.conf` was referenced by nothing and is deleted; the uploads plumbing (`IFileStorage`, `LocalFileStorage`, static files, the `uploads` volume, nginx and dev-proxy `/uploads`) is deleted, and the nginx body limit drops from 10 MB to 1 MB until Phase 9 adds a real upload endpoint; completed phase documents are kept as history; the `/hubs/shift` rename is left as a separate small change.
+- Finding: `PayrollLockGuard` has no caller, so locking a month freezes nothing today. The copy no longer claims otherwise; Phase 8 (payroll runs) wires the guard in.
+- The ADR is `docs/architecture/adr-single-web-app.md`.
 
 ## Review Notes
 

@@ -39,7 +39,7 @@
     },
     {
       "name": "api-notifications",
-      "urls": ["/api/notifications/**", "/api/announcements/**"],
+      "urls": ["/api/notifications/**"],
       "cacheConfig": {
         "maxSize": 10,
         "maxAge": "5m",

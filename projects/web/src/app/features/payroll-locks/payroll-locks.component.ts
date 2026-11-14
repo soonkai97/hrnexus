@@ -71,7 +71,7 @@ export class PayrollLocksComponent implements OnInit {
 
   reopen(lock: PayrollLockDto): void {
     this.confirmSvc.confirm({
-      message: `Reopen ${this.period(lock)}? Its shift logs will become editable again.`,
+      message: `Reopen ${this.period(lock)}? It will no longer be marked as paid out.`,
       danger: true,
     }).subscribe((ok) => {
       if (!ok) return;

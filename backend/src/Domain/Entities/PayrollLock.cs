@@ -2,8 +2,8 @@ namespace HRNexus.Domain.Entities;
 
 /// <summary>
 /// Marks one payroll period (a single calendar month) as locked. While a lock row exists for a
-/// (Year, Month), shift logs and staff-ledger records dated in that month can no longer be created,
-/// edited, or deleted — the period is frozen after payout. Reopening simply deletes the row.
+/// (Year, Month), the period counts as paid out and payroll records dated in that month are to be frozen
+/// (enforced by <c>PayrollLockGuard</c> once payroll runs exist). Reopening simply deletes the row.
 /// </summary>
 public sealed class PayrollLock
 {

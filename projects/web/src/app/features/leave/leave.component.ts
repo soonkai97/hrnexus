@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import {
   LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance,
   LeaveSummary, LeavePatternWarning, LeaveTypeBalance, LeaveColour,
+  ViewModeService, ViewToggleComponent, initials,
   AuthService, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
   TrimInputDirective, CanComponentDeactivate,
   apiErrorMessage, nowRoundedToHalfHour, leaveHours, CompanyPolicyService, LeaveTypeService,
@@ -35,7 +36,7 @@ const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
   standalone: true,
   imports: [DatePipe, FormsModule, TrimInputDirective,
     Button, Tag, ProgressBar, InputText, InputNumber, Card, TooltipModule,
-    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, Dialog, PrimeTemplate],
+    Message, Select, Skeleton, DatePicker, Tabs, TabList, Tab, Paginator, Checkbox, Dialog, PrimeTemplate, ViewToggleComponent],
   templateUrl: './leave.component.html',
   styleUrl: './leave.component.scss',
 })
@@ -45,6 +46,15 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   private readonly leaveSvc   = inject(LeaveService);
   private readonly policySvc  = inject(CompanyPolicyService);
   protected readonly typeSvc  = inject(LeaveTypeService);
+  private readonly views      = inject(ViewModeService);
+  /** The leave summary as cards (default) or the table, remembered on this device. */
+  readonly summaryView = this.views.mode('leave-summary');
+  readonly initials = initials;
+
+  /** What a person used this year, one chip per leave type they used (the card view of the summary). */
+  summaryChips(s: LeaveSummary): { key: string; label: string; used: number }[] {
+    return (s.types ?? []).filter(t => t.used > 0).map(t => ({ key: t.key, label: t.label, used: t.used }));
+  }
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
   private readonly destroyRef = inject(DestroyRef);

@@ -249,10 +249,17 @@
   }
 }
 
+// History as a grid of equal-height cards (Phase 7r).
 .leave-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 0.75rem;
+}
+:host :deep(.leave-list > p-card) {
+  display: block;
+}
+:host :deep(.leave-list .p-card) {
+  height: 100%;
 }
 .leave-card {
   padding: 1rem 1.25rem;

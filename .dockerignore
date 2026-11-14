@@ -3,7 +3,6 @@ dist/
 .git/
 backend/src/Api/hrnexus.db
 backend/src/Api/logs/
-backend/src/Api/wwwroot/uploads/
 **/.angular/
 **/bin/
 **/obj/

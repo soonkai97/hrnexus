@@ -44,10 +44,10 @@ export const PERMISSION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   'leave.approve': 'Approve or reject leave requests, and record leave for staff.',
   'leave.manage': "Set each staff member's yearly leave entitlement (annual / sick hours).",
   'policy.manage': 'Set the working week, hours per day, leave limits and the carry-over rule for the whole company.',
-  'reports.view': 'Open the Reports page and download attendance CSV exports.',
-  'payroll.view': 'Open the Payroll report (hours × hourly rate per staff).',
-  'payroll.manage': 'Export the payroll data to CSV.',
-  'payroll.lock': 'Lock or reopen a month to freeze its shift logs.',
+  'reports.view': 'Open the dashboard with the workforce and leave overview.',
+  'payroll.view': "See a staff member's salary and pay history.",
+  'payroll.manage': "Record a raise and set a staff member's employment details.",
+  'payroll.lock': 'Lock or reopen a payroll month.',
   'roles.manage': 'Create, rename and delete jobs, and assign these permissions.',
 };
 

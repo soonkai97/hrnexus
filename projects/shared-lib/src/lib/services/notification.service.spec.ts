@@ -19,7 +19,7 @@ describe('NotificationService', () => {
   let http: HttpTestingController;
 
   function makeNotification(overrides: Partial<AppNotification> = {}): AppNotification {
-    return { id: 'n1', title: 'Test', message: 'msg', type: 'announcement',
+    return { id: 'n1', title: 'Test', message: 'msg', type: 'leave_approved',
       isRead: false, relatedId: null, createdAt: '2026-01-01 12:00', ...overrides };
   }
 

@@ -1,10 +1,5 @@
 export type NotificationType =
-  | 'leave_approved'
-  | 'leave_rejected'
-  | 'leave_pending'
-  | 'password_reset'
-  | 'message'
-  | 'announcement';
+  'leave_approved' | 'leave_rejected' | 'leave_pending' | 'password_reset';
 
 export interface AppNotification {
   id: string;

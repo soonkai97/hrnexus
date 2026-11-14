@@ -192,9 +192,6 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
 // ── App pipeline ──────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// Ensure wwwroot/uploads exists for file storage
-Directory.CreateDirectory(Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads"));
-
 // Ensure DB schema exists and seed demo data on startup
 await using (var scope = app.Services.CreateAsyncScope())
 {
@@ -240,7 +237,6 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 // CorrelationId/StaffId enrichers — request-level observability in both the file and Seq.
 app.UseSerilogRequestLogging();
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseStaticFiles();
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();

@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 namespace HRNexus.Application.Common;
 
 /// <summary>
-/// Shared guard for the month-lock feature. Commands that create/edit/delete a dated record
-/// (shift logs, ledger entries/expenses/loans) call this before mutating, so any change to a
-/// locked payroll period is rejected with a clean, user-facing message.
+/// Shared guard for the month-lock feature: a command that changes a dated payroll record calls this
+/// before mutating, so a change to a locked period is rejected with a clean, user-facing message.
+/// Nothing calls it yet; the payroll runs of Phase 8 are its first caller.
 /// </summary>
 public static class PayrollLockGuard
 {

@@ -74,7 +74,6 @@ id_ed25519*
 *.sqlite
 *.sqlite3
 /backups/
-/uploads/
 
 # E2E auth state and browser captures (hold cookies and tokens)
 tests/e2e/.auth/

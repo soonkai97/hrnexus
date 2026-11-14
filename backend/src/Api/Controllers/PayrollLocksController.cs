@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HRNexus.Api.Controllers;
 
 /// <summary>
-/// Manage payroll-period locks. Locking a month freezes its shift logs.
+/// Manage payroll-period locks: mark a month as paid out, or reopen it.
 /// Manager + admin may lock and reopen.
 /// </summary>
 [ApiController]

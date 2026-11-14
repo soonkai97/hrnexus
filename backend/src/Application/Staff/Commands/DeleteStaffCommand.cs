@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Permissions.Commands;
 using MediatR;
 
 namespace HRNexus.Application.Staff.Commands;
@@ -12,6 +13,10 @@ public class DeleteStaffCommandHandler(IAppDbContext db)
     {
         var staff = await db.Staff.FindAsync([req.Id], ct)
             ?? throw new KeyNotFoundException($"Staff {req.Id} not found.");
+
+        // Lockout guard: deleting is as final as deactivating. The last active person who can manage jobs
+        // and permissions cannot be deleted (protection is by permission, whatever the role is called).
+        await RolesManageInvariant.EnsureNotTheLastAsync(db, req.Id, "deleting", ct);
 
         // Delete is a soft-delete of the Staff row (Remove → IsDeleted=true), so DB cascade does NOT
         // fire — every related record must be removed explicitly, or the person's jobs/leave

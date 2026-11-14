@@ -19,7 +19,6 @@ public class TokenService(IConfiguration config) : ITokenService
         {
             new Claim(JwtRegisteredClaimNames.Sub,   employee.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, employee.Email ?? ""),
-            new Claim(ClaimTypes.Role,               employee.PermissionLevel),
             new Claim("fullName",                    employee.FullName),
             new Claim("staffId",                     employee.StaffId),
         };

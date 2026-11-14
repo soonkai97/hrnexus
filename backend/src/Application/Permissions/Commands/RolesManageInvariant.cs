@@ -50,6 +50,24 @@ internal static class RolesManageInvariant
         return await db.Staff.Where(s => candidates.Contains(s.Id) && s.IsActive).CountAsync(ct);
     }
 
+    /// <summary>
+    /// Lock-out guard for taking a person out of service (deactivate or delete): if they are the last active
+    /// user with role-management access, refuse. Protection is by PERMISSION, so it holds for whichever role
+    /// grants <c>roles.manage</c>, including the seeded first administrator.
+    /// </summary>
+    public static async Task EnsureNotTheLastAsync(IAppDbContext db, Guid userId, string action, CancellationToken ct)
+    {
+        if (!await UserHasAdminAsync(db, userId, ct)) return;
+
+        var adminRoles = await db.RolePermissions
+            .Where(rp => rp.PermissionKey == Key)
+            .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
+        if (await CountActiveAdminsAsync(db, adminRoles, exclude: userId, ct) == 0)
+            throw new ArgumentException(
+                $"This is the last active user with role-management access — {action} them would " +
+                "lock everyone out. Grant role-management access to another user or role first.");
+    }
+
     /// <summary>Whether this user effectively holds <c>roles.manage</c> under the CURRENT committed state.</summary>
     public static async Task<bool> UserHasAdminAsync(IAppDbContext db, Guid userId, CancellationToken ct)
     {

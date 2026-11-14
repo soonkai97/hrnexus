@@ -15,9 +15,16 @@ public class SetRolePermissionsHandler(IAppDbContext db, IPermissionResolver res
     public async Task Handle(SetRolePermissionsCommand req, CancellationToken ct)
     {
         var name = req.RoleName.Trim().ToUpperInvariant();
-        var roleId = await db.Roles.Where(r => r.Name == name).Select(r => r.Id).FirstOrDefaultAsync(ct);
-        if (roleId == Guid.Empty)
+        var role = await db.Roles.Where(r => r.Name == name).Select(r => new { r.Id, r.IsSystem }).FirstOrDefaultAsync(ct);
+        if (role is null)
             throw new KeyNotFoundException($"Role '{req.RoleName}' not found.");
+        var roleId = role.Id;
+
+        // The first administrator job (IsSystem) always holds every permission: the seed re-grants it each
+        // start, so an edit here would only be undone silently. Refuse it instead.
+        if (role.IsSystem)
+            throw new ArgumentException(
+                "This is the first administrator job: it always holds every permission, so its permissions can't be edited.");
 
         var keys = req.PermissionKeys.Distinct().ToList();
         var unknown = keys.Where(k => !AppConstants.Permissions.All.Contains(k)).ToList();

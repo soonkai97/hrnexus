@@ -7,17 +7,6 @@
 /// </summary>
 public static class AppConstants
 {
-    // ── Roles ──────────────────────────────────────────────────────────────────
-    public static class Roles
-    {
-        public const string Admin    = "SUPERADMIN";
-        public const string Manager  = "MANAGER";
-
-        /// <summary>JWT claim value for the highest-privilege tier.</summary>
-        public const string AdminClaim   = "SuperAdmin";
-        public const string ManagerClaim = "Manager";
-    }
-
     // ── Permissions ──────────────────────────────────────────────────────────────
     /// <summary>
     /// Permission catalog — the named capabilities that gate each management

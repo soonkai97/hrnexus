@@ -141,45 +141,14 @@ public class GetStaffListQueryTests
     {
         await using var db = CreateDb();
         await AddStaffAsync(db, "S001", "Alice", "Wong", "bartender");
-        await AddStaffAsync(db, "S002", "Bob", "Tan", "manager");
+        await AddStaffAsync(db, "S002", "Bob", "Tan", "front desk");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
-            new GetStaffListQuery(Search: "manager"), CancellationToken.None);
+            new GetStaffListQuery(Search: "front desk"), CancellationToken.None);
 
         Assert.Equal(1, result.Total);
         Assert.Equal("Bob", result.Items[0].FirstName);
-    }
-
-    // ── ExcludeAdmins ────────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task Handle_ExcludeAdmins_OmitsAdminRole()
-    {
-        await using var db = CreateDb();
-        await AddStaffAsync(db, "S001", "Admin", "User", "superadmin");
-        await AddStaffAsync(db, "S002", "Regular", "Staff", "bartender");
-        await db.SaveChangesAsync();
-
-        var result = await CreateHandler(db).Handle(
-            new GetStaffListQuery(ExcludeAdmins: true), CancellationToken.None);
-
-        Assert.Equal(1, result.Total);
-        Assert.Equal("Regular", result.Items[0].FirstName);
-    }
-
-    [Fact]
-    public async Task Handle_ExcludeAdminsFalse_IncludesAll()
-    {
-        await using var db = CreateDb();
-        await AddStaffAsync(db, "S001", "Admin", "User", "superadmin");
-        await AddStaffAsync(db, "S002", "Regular", "Staff", "bartender");
-        await db.SaveChangesAsync();
-
-        var result = await CreateHandler(db).Handle(
-            new GetStaffListQuery(ExcludeAdmins: false), CancellationToken.None);
-
-        Assert.Equal(2, result.Total);
     }
 
     // ── Hidden filtering ───────────────────────────────────────────────────────
@@ -189,7 +158,7 @@ public class GetStaffListQueryTests
     {
         await using var db = CreateDb();
         await AddStaffAsync(db, "S001", "Regular", "Staff", "bartender");
-        var hidden = await AddStaffAsync(db, "HRADMIN", "HR", "Admin", "superadmin");
+        var hidden = await AddStaffAsync(db, "HRADMIN", "HR", "Admin", "owner");
         hidden.SetHidden(true);
         await db.SaveChangesAsync();
 
@@ -205,7 +174,7 @@ public class GetStaffListQueryTests
     {
         await using var db = CreateDb();
         await AddStaffAsync(db, "S001", "Regular", "Staff", "bartender");
-        var hidden = await AddStaffAsync(db, "HRADMIN", "HR", "Admin", "superadmin");
+        var hidden = await AddStaffAsync(db, "HRADMIN", "HR", "Admin", "owner");
         hidden.SetHidden(true);
         await db.SaveChangesAsync();
 
@@ -222,7 +191,7 @@ public class GetStaffListQueryTests
     public async Task Handle_RolesInDto_AreLowercase()
     {
         await using var db = CreateDb();
-        await AddStaffAsync(db, "S001", "Alice", "Wong", "Bartender", "Manager");
+        await AddStaffAsync(db, "S001", "Alice", "Wong", "Bartender", "Front Desk");
         await db.SaveChangesAsync();
 
         var result = await CreateHandler(db).Handle(
@@ -231,7 +200,7 @@ public class GetStaffListQueryTests
         // Roles are returned as stored (UPPERCASE) so they match multiselect option values
         var dto = result.Items[0];
         Assert.Contains("BARTENDER", dto.Roles);
-        Assert.Contains("MANAGER", dto.Roles);
+        Assert.Contains("FRONT DESK", dto.Roles);
     }
 
     [Fact]

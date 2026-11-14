@@ -36,6 +36,9 @@ public sealed class PostgresFixture : IAsyncLifetime
         // Apply the real migration history to the fresh container.
         await using var db = NewDb();
         await db.Database.MigrateAsync();
+        // The documented first-run account is created only in an EMPTY database, and other tests add staff
+        // before the API starts, so seed here (while it is empty) the way a first start would.
+        await SeedData.SeedDemoUsersAsync(db, new PasswordHasher());
     }
 
     public Task DisposeAsync() => _container.DisposeAsync().AsTask();
@@ -50,6 +53,15 @@ public sealed class PostgresFixture : IAsyncLifetime
             .UseNpgsql(ConnectionString, npgsql => npgsql.EnableRetryOnFailure(
                 maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null))
             .Options;
+        return new AppDbContext(opts, new TestCurrentUser(), Encryptor);
+    }
+
+    /// <summary>A context on a DIFFERENT, throwaway database in the same container (created on first
+    /// migrate), for tests that need an empty or specially prepared database.</summary>
+    public AppDbContext NewDbOn(string database)
+    {
+        var cs = ConnectionString.Replace("Database=hrnexus_test", $"Database={database}");
+        var opts = new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(cs).Options;
         return new AppDbContext(opts, new TestCurrentUser(), Encryptor);
     }
 

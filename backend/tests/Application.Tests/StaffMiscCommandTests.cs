@@ -157,7 +157,7 @@ public class StaffMiscCommandTests
     public async Task DeleteRole_ThrowsInvalidOperation_WhenSystemRole()
     {
         await using var db = CreateDb();
-        var role = E.Role.Create("SUPERADMIN", isSystem: true);
+        var role = E.Role.Create("OWNER", isSystem: true);
         db.Roles.Add(role);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -211,10 +211,10 @@ public class StaffMiscCommandTests
         // EXPLICITLY (by RoleId) — belt-and-suspenders over the Postgres cascade FK — so this holds on the
         // EF InMemory provider too (which does not reproduce DB-level FK cascades).
         await using var db = CreateDb();
-        var roles = await RoleSeed.EnsureRolesAsync(db, "BARTENDER", "MANAGER");
+        var roles = await RoleSeed.EnsureRolesAsync(db, "BARTENDER", "FRONT DESK");
         db.RolePermissions.Add(E.RolePermission.Create(roles["BARTENDER"], "staff.view"));
         db.RolePermissions.Add(E.RolePermission.Create(roles["BARTENDER"], "reports.view"));
-        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], "staff.manage"));   // other role — must survive
+        db.RolePermissions.Add(E.RolePermission.Create(roles["FRONT DESK"], "staff.manage"));   // other role — must survive
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 
@@ -223,7 +223,7 @@ public class StaffMiscCommandTests
 
         Assert.False(await db.Roles.AnyAsync(r => r.Id == roles["BARTENDER"]));                 // role itself removed
         Assert.False(await db.RolePermissions.AnyAsync(rp => rp.RoleId == roles["BARTENDER"])); // its perms cleaned up
-        Assert.True(await db.RolePermissions.AnyAsync(rp => rp.RoleId == roles["MANAGER"]));    // other role untouched
+        Assert.True(await db.RolePermissions.AnyAsync(rp => rp.RoleId == roles["FRONT DESK"]));    // other role untouched
     }
 
     // ── UpdateProfileCommand ──────────────────────────────────────────────────
@@ -272,7 +272,7 @@ public class StaffMiscCommandTests
     public async Task GetStaffById_ReturnsMappedDto()
     {
         await using var db = CreateDb();
-        var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
+        var managerId = await RoleSeed.EnsureRoleAsync(db, "FRONT DESK");
         var staff = E.Staff.Create("S002", "Bob", "Lee", "bob@test.com", "hash",
             new List<Guid> { managerId },
             phoneNumber: "+601",
@@ -288,7 +288,7 @@ public class StaffMiscCommandTests
         Assert.Equal(staff.Id, dto.Id);
         Assert.Equal("S002", dto.StaffId);
         Assert.Equal("Bob Lee", dto.FullName);
-        Assert.Contains("MANAGER", dto.Roles);
+        Assert.Contains("FRONT DESK", dto.Roles);
         Assert.Equal("900101-01-1234", dto.IcNo);
     }
 
@@ -311,8 +311,8 @@ public class StaffMiscCommandTests
         // Query: OrderBy(r => r.IsSystem ? 1 : 0) — non-system=0 (first), system=1 (last)
         await using var db = CreateDb();
         db.Roles.Add(E.Role.Create("BARTENDER", isSystem: false));
-        db.Roles.Add(E.Role.Create("SUPERADMIN", isSystem: true));
-        db.Roles.Add(E.Role.Create("MANAGER", isSystem: true));
+        db.Roles.Add(E.Role.Create("OWNER", isSystem: true));
+        db.Roles.Add(E.Role.Create("FRONT DESK", isSystem: true));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 

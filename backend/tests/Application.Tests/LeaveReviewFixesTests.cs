@@ -114,7 +114,7 @@ public class LeaveReviewFixesTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var admin = await AddStaff(db, "M1", "MANAGER");
+        var admin = await AddStaff(db, "M1", "FRONT DESK");
         var leave = await AddLeave(db, staff.Id, "annual", AppConstants.Leave.Approved, D(2026, 6, 1), D(2026, 6, 1), 8m);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -126,7 +126,7 @@ public class LeaveReviewFixesTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var admin = await AddStaff(db, "M1", "MANAGER");
+        var admin = await AddStaff(db, "M1", "FRONT DESK");
         var leave = await AddLeave(db, staff.Id, "unpaid", AppConstants.Leave.Approved, D(2026, 6, 1), D(2026, 6, 1), 8m);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -138,7 +138,7 @@ public class LeaveReviewFixesTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var admin = await AddStaff(db, "M1", "MANAGER");
+        var admin = await AddStaff(db, "M1", "FRONT DESK");
         var toReject = await AddLeave(db, staff.Id, "unpaid", AppConstants.Leave.Pending, D(2026, 6, 1), D(2026, 6, 1), 8m);
         var toNoShow = await AddLeave(db, staff.Id, "unpaid", AppConstants.Leave.Pending, D(2026, 6, 2), D(2026, 6, 2), 8m);
 
@@ -159,7 +159,7 @@ public class LeaveReviewFixesTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var admin = await AddStaff(db, "M1", "MANAGER");
+        var admin = await AddStaff(db, "M1", "FRONT DESK");
         // Saturday and Sunday: recorded before the working-day rule existed.
         var leave = await AddLeave(db, staff.Id, "unpaid", AppConstants.Leave.Pending, D(2026, 12, 12), D(2026, 12, 13), 16m);
 
@@ -178,7 +178,7 @@ public class LeaveReviewFixesTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "FRONT DESK");
         var theirs = await AddLeave(db, staff.Id, "annual", AppConstants.Leave.Approved, D(2026, 12, 7), D(2026, 12, 7), 8m);
         var mine = await AddLeave(db, manager.Id, "annual", AppConstants.Leave.Approved, D(2026, 12, 8), D(2026, 12, 8), 8m);
 

@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Permissions;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using MediatR;
@@ -70,17 +71,16 @@ public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt, I
 
     private async Task<List<Notification>> AddManagerNotificationsAsync(LeaveRequest leave, string who, Guid withdrawnBy, CancellationToken ct)
     {
-        var managers = await db.Staff
-            .Where(s => s.IsActive && s.Id != withdrawnBy &&
-                (s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager) ||
-                 s.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin)))
-            .ToListAsync(ct);
-        if (managers.Count == 0) return [];
+        // Everyone who can approve leave, except the person withdrawing and the leave's owner.
+        var approvers = (await PermissionHolders.GetIdsAsync(db, AppConstants.Permissions.LeaveApprove, ct))
+            .Where(id => id != withdrawnBy && id != leave.EmployeeId)
+            .ToList();
+        if (approvers.Count == 0) return [];
 
         var message = $"{who} withdrew approved {leave.LeaveType} leave " +
                       $"({leave.StartDate:dd/MM} – {leave.EndDate:dd/MM}).";
-        var notes = managers
-            .Select(m => Notification.Create(m.Id, "Leave Withdrawn", message,
+        var notes = approvers
+            .Select(id => Notification.Create(id, "Leave Withdrawn", message,
                 AppConstants.NotificationType.LeavePending, leave.Id.ToString()))
             .ToList();
         db.Notifications.AddRange(notes);   // saved by the caller, together with the cancellation

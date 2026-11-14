@@ -105,8 +105,8 @@ public class AuthCommandTests
     }
 
     [Theory]
-    [InlineData("SUPERADMIN")]
-    [InlineData("MANAGER")]
+    [InlineData("OWNER")]
+    [InlineData("FRONT DESK")]
     [InlineData("BARTENDER")]
     public async Task Login_Succeeds_ForAnyActiveAccount_WhateverItsRole(string role)
     {
@@ -247,6 +247,44 @@ public class AuthCommandTests
         var result = await handler.Handle(new ForgotPasswordCommand("S001"), CancellationToken.None);
 
         Assert.True(result.Found);
+    }
+
+    // Phase 7o: a reset request goes to the people who can reset passwords (staff.manage), by permission.
+
+    [Fact]
+    public async Task ForgotPassword_NotifiesEveryHolderOfStaffManage_AndNotARoleWithoutIt()
+    {
+        await using var db = CreateDb();
+        var requester = await MakeStaff(db, "S001");
+        var resetter = await MakeStaff(db, "R001", roleNames: "HR CLERK");
+        var named = await MakeStaff(db, "N001", roleNames: "OWNER");   // no staff.manage
+        db.Staff.AddRange(requester, resetter, named);
+        await RoleSeed.GrantAsync(db, "HR CLERK", AppConstants.Permissions.StaffManage);
+        db.ChangeTracker.Clear();
+
+        await new ForgotPasswordCommandHandler(db, new NullNotificationHub())
+            .Handle(new ForgotPasswordCommand("S001"), CancellationToken.None);
+
+        var note = Assert.Single(await db.Notifications.Where(n => n.EmployeeId == resetter.Id).ToListAsync());
+        Assert.Equal("password_reset", note.Type);
+        Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == named.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task ForgotPassword_DoesNotNotifyTheRequesterEvenIfTheyHoldStaffManage()
+    {
+        await using var db = CreateDb();
+        var requester = await MakeStaff(db, "S001", roleNames: "HR CLERK");
+        var other = await MakeStaff(db, "R001", roleNames: "HR CLERK");
+        db.Staff.AddRange(requester, other);
+        await RoleSeed.GrantAsync(db, "HR CLERK", AppConstants.Permissions.StaffManage);
+        db.ChangeTracker.Clear();
+
+        await new ForgotPasswordCommandHandler(db, new NullNotificationHub())
+            .Handle(new ForgotPasswordCommand("S001"), CancellationToken.None);
+
+        Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == requester.Id).ToListAsync());
+        Assert.Single(await db.Notifications.Where(n => n.EmployeeId == other.Id).ToListAsync());
     }
 
     // ── RefreshTokenCommand ───────────────────────────────────────────────────

@@ -1,5 +1,4 @@
 ﻿using HRNexus.Domain.Common;
-using HRNexus.Domain.Constants;
 
 namespace HRNexus.Domain.Entities;
 
@@ -88,17 +87,6 @@ public class Staff : IHasAudit, ISoftDelete
         };
         emp.SetRoles(roles);
         return emp;
-    }
-
-    // Maps roles to JWT permission level — highest privilege wins
-    public string PermissionLevel
-    {
-        get
-        {
-            if (Roles.Any(r => r.Equals(AppConstants.Roles.Admin,   StringComparison.OrdinalIgnoreCase))) return AppConstants.Roles.AdminClaim;
-            if (Roles.Any(r => r.Equals(AppConstants.Roles.Manager, StringComparison.OrdinalIgnoreCase))) return AppConstants.Roles.ManagerClaim;
-            return "Employee";
-        }
     }
 
     public void SetRefreshToken(string token, DateTime expiry)

@@ -647,4 +647,11 @@ describe('StaffDetailComponent', () => {
       expect(names).toContain('EMPLOYEE');
     });
   });
+
+  // ── Phase 7r: card view ─────────────────────────────────────────────────────
+
+  it('shows the salary history as cards until the table is chosen', () => {
+    expect(component.salaryView()).toBe('cards');
+  });
+
 });

@@ -106,7 +106,9 @@ test.describe('Admin — staff list', () => {
       .first()
       .click();
     // Select-all header checkbox appears in bulk mode, then the action buttons enable.
-    await page.locator('thead .p-checkbox, thead p-checkbox').first().click();
+    const selectAll = page.locator('thead .p-checkbox, thead p-checkbox').first();
+    await expect(selectAll).toBeVisible({ timeout: 5_000 });
+    await selectAll.click();
     const assignRoles = page.getByRole('button', { name: /assign roles/i });
     await expect(assignRoles).toBeEnabled({ timeout: 5_000 });
   });

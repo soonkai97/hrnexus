@@ -1,6 +1,6 @@
 # Phase 7r: Card view for every list screen
 
-> **Status:** `Draft`
+> **Status:** `Implemented` (7r-a to 7r-d; Leave records, the overdue panel and My Leave history were already card lists and became grids, so they have no separate Table view)
 > **Created:** 2026-11-14 | **Updated:** 2026-11-14
 > **Depends on:** Phase 7n (single web app), 7q (the Leave types card grid is the pattern)
 > **Why:** the owner asked (14 Nov 2026) for "all pages in grid view or card view". Today the list screens are tables (Staff, Roles, Cash Advances, Payroll Locks, Payroll Rates), hand-built rows (Leave Requests, balances, summary) or both, and each looks a little different. Screenshots of the running app show sparse tables (Staff and Roles have three columns across 1,000 px) and a mobile "stack" hack that only exists below 640 px. Cards use the width better, read the same on phone and desktop, and one shared look removes the per-page differences.

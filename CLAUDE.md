@@ -730,6 +730,25 @@ rules the product shipped with: Mon-Fri, 8h, 3 days' notice, 30-day cap, capped 
 - **Carry-over** (`CarryOverLeaveEntitlementCommand(FromYear, ToYear)`) follows the policy; it takes no cap argument.
 - Tests that book a single day must use a day that is a working day under the schedule they set up.
 
+## Card view for list screens (Phase 7r)
+
+Every list screen shows its records as **cards in a responsive grid** by default, with a **Table** view one click away
+(`docs/process/phase-07r-card-view.md`). The look and the code are shared; a screen only decides what goes in its cards.
+
+- **Toggle:** `<nc-view-toggle viewKey="staff" />` (shared-lib) in the page toolbar; the screen reads the same key with
+  `ViewModeService.mode('staff')()` (`'cards' | 'table'`, cards by default). The choice is remembered per screen in
+  `localStorage['view-mode:<key>']`, wrapped in try/catch so blocked storage still works for the visit.
+- **Styles** (global, `styles.scss`): `.nc-card-grid` (equal-width cards, `repeat(auto-fill, minmax(250px, 1fr))`), `.nc-card`
+  with `.nc-card-head`, `.nc-card-title`, `.nc-card-sub`, `.nc-card-meta` (a `dl`), `.nc-card-chips` / `.nc-chip`,
+  `.nc-card-foot` (actions, pinned to the bottom), `.nc-avatar` (use `initials(name)`), `.nc-view-bar`. A card is never sized by its
+  content; that is what made the first Leave types rows misalign.
+- **Data:** cards render the same array the table renders (for client-paged lists a `p-paginator` over a sorted slice; for
+  server-paged lists the store's current page), so search, filters, paging and every action work in both views. Bulk select
+  shows a checkbox on the card (`.is-selected`).
+- **Where:** Staff, Roles, Cash Advances, Payroll Locks, Payroll Rates, Leave balances and summary, Salary history are
+  cards + table; Leave records, the overdue panel and My Leave history were already cards and are now grids.
+- **Check it by looking:** screenshot the running app at 1280 and 390 px (see the memory note on checking the UI visually).
+
 ## Leave types (Phase 7q)
 
 Which kinds of leave exist, and how each behaves, is **company data** (`docs/process/phase-07q-leave-types.md`,
@@ -1134,12 +1153,12 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 30 | 296 | ✅ |
-| web components | 16 | 555 | ✅ |
+| shared-lib (services + stores + guards + auth) | 33 | 310 | ✅ |
+| web components | 16 | 573 | ✅ |
 | backend Application.Tests | — | 604 | ✅ |
 | backend Integration.Tests (Testcontainers) | — | 53 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 16 | 71 | ✅ |
+| E2E (Playwright) | 16 | 72 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1248,8 +1267,8 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 296 tests
-npx ng test web        --no-watch   # 555 tests
+npx ng test shared-lib --no-watch   # 310 tests
+npx ng test web        --no-watch   # 573 tests
 
 # Backend
 Set-Location backend

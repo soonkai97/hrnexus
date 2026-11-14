@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Leave;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +33,7 @@ public class GetLeavePatternWarningsQueryHandler(IAppDbContext db, IDateTimeProv
         // Sick leave requests approved or pending in the rolling window
         var sickLeaves = await db.LeaveRequests
             .Include(l => l.Employee)
-            .Where(l => l.LeaveType == "sick"
+            .Where(l => l.LeaveType == LeaveTypeDefaults.SickKey
                      && l.StartDate >= windowStartUtc
                      && l.Status != "rejected"
                      && l.Status != "cancelled"

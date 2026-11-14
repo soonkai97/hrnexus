@@ -255,6 +255,82 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("LeaveRequests");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.LeaveTypeDefinition", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AdminOnly")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("AdvanceNoticeDays")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("AdvanceNoticeFromPolicy")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("AllowanceDays")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<bool>("AutoApprove")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("CatalogVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Colour")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<bool>("CountsCalendarDays")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("DeductsPay")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<decimal?>("MaxDaysPerRequest")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<string>("Pool")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<bool>("Sensitive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Key");
+
+                    b.HasIndex("SortOrder");
+
+                    b.ToTable("LeaveTypes");
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")

@@ -70,7 +70,7 @@
           [label]="p.label"
           size="small"
           [outlined]="filterLeaveType !== p.value"
-          [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'contrast' : 'primary'"
+          [severity]="p.value ? leaveTypeSeverity(p.value) : 'primary'"
           (click)="setTypeFilter(p.value)" />
       }
     </div>
@@ -158,6 +158,11 @@
                 <span class="form-balance-pill form-balance-sick" [class.form-balance-low]="fb.sickRemaining <= 8">
                   <i class="pi pi-heart"></i> {{ fb.sickRemaining }}h sick left
                 </span>
+                @if (formTypeBalance; as tb) {
+                  <span class="form-balance-pill" [class.form-balance-low]="(tb.remaining ?? 0) <= 8">
+                    <i class="pi pi-plus-circle"></i> {{ tb.remaining }}h {{ tb.label.toLowerCase() }} left
+                  </span>
+                }
               </div>
             }
           </div>
@@ -309,7 +314,7 @@
                 @if (day.leaves.length > 0) {
                   <div class="cal-leaves">
                     @for (r of day.leaves.slice(0, 2); track r.id) {
-                      <div class="cal-leave-chip" tabindex="0" role="button" [class]="'cal-leave-' + r.leaveType"
+                      <div class="cal-leave-chip" tabindex="0" role="button" [class]="'cal-leave-' + leaveTypeSeverity(r.leaveType)"
                            [class.cal-leave-overdue]="r.status === 'pending' && r.endDate < todayIso"
                            [title]="r.staffName + ' — ' + leaveTypeLabel(r.leaveType) + ' (' + statusLabel(r.status) + ')' + (r.status === 'pending' && r.endDate < todayIso ? ' — Overdue' : '')"
                            (click)="openCalLeave(r, $event)"
@@ -325,7 +330,7 @@
           </div>
           <div class="cal-legend">
             @for (t of leaveTypes; track t) {
-              <span class="cal-legend-item"><span class="cal-legend-dot" [class]="'cal-leave-' + t"></span>{{ leaveTypeLabel(t) }}</span>
+              <span class="cal-legend-item"><span class="cal-legend-dot" [class]="'cal-leave-' + leaveTypeSeverity(t)"></span>{{ leaveTypeLabel(t) }}</span>
             }
           </div>
 
@@ -647,6 +652,12 @@
                 @if (b.unpaidUsed > 0) {
                   <span class="bal-chip bal-chip-unpaid"><i class="pi pi-exclamation-triangle"></i> {{ b.unpaidUsed }}h unpaid</span>
                 }
+                <!-- Types added by the company: an own allowance (hospitalisation) or other leave taken -->
+                @for (e of extraBalances(b); track e.key) {
+                  <span class="bal-chip" [class.bal-chip-warn]="e.remaining !== null && e.remaining <= 24">
+                    {{ e.label }}: {{ e.remaining !== null ? e.remaining + 'h left' : e.used + 'h used' }}
+                  </span>
+                }
               </div>
             </div>
           }
@@ -690,6 +701,7 @@
             <span class="ls-data-col">Emergency</span>
             <span class="ls-data-col">Unpaid</span>
             <span class="ls-data-col">No-Show</span>
+            <span class="ls-data-col">Other</span>
             <span class="ls-data-col ls-total-col">Total</span>
           </div>
           @for (s of pagedLeaveSummary(); track s.employeeId) {
@@ -703,6 +715,7 @@
               <span class="ls-data-col ls-emergency-val">{{ s.emergencyUsed > 0 ? s.emergencyUsed + 'h' : '—' }}</span>
               <span class="ls-data-col">{{ s.unpaidUsed > 0 ? s.unpaidUsed + 'h' : '—' }}</span>
               <span class="ls-data-col ls-noshow-val">{{ s.noShowUsed > 0 ? s.noShowUsed + 'h' : '—' }}</span>
+              <span class="ls-data-col" [pTooltip]="otherTooltip(s)" tooltipPosition="top">{{ otherUsed(s) > 0 ? otherUsed(s) + 'h' : '—' }}</span>
               <span class="ls-data-col ls-total-col">{{ s.totalUsed }}h</span>
             </div>
           }

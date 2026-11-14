@@ -8,7 +8,7 @@ import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
-import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, PermissionService, PermissionKey, CompanyPolicyService, SignalRService, LeaveService, ToastService } from 'shared-lib';
+import { AuthService, ToastComponent, ConfirmDialogComponent, NotificationBellComponent, PermissionService, PermissionKey, CompanyPolicyService, LeaveTypeService, SignalRService, LeaveService, ToastService } from 'shared-lib';
 
 const LEAVE_SNAPSHOT_KEY = 'nc_leave_status_snapshot';
 const POLL_INTERVAL_MS   = 60_000;
@@ -81,6 +81,7 @@ export class ShellComponent implements AfterViewInit {
   private readonly toast     = inject(ToastService);
   readonly permissions       = inject(PermissionService);
   private readonly policy     = inject(CompanyPolicyService);
+  private readonly leaveTypes = inject(LeaveTypeService);
 
   collapsed = signal(typeof window !== 'undefined' && window.innerWidth < 769);
 
@@ -90,6 +91,7 @@ export class ShellComponent implements AfterViewInit {
   constructor() {
     this.permissions.load().subscribe();   // so in-app guards + the permission-filtered menu resolve
     this.policy.load().subscribe();        // the working week, so every leave preview matches the server
+    this.leaveTypes.load().subscribe();    // the leave types, so every leave form and tag is built from the company's catalogue
     this.signalR.startConnection();
 
     // Background poll: tell the person when a pending leave request was decided.

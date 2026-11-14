@@ -1,0 +1,287 @@
+<p-card styleClass="form-card types-card">
+  <div class="types-head">
+    <div>
+      <h2 class="section-title">Leave types</h2>
+      <p class="types-sub">
+        The kinds of leave the company has and how each behaves. Types that already have leave can
+        be renamed or turned off, but not removed.
+      </p>
+    </div>
+    <p-button
+      label="Add type"
+      icon="pi pi-plus"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="loading()"
+      (onClick)="startAdd()"
+    />
+  </div>
+
+  @if (loading()) {
+    @for (i of [1, 2, 3, 4]; track i) {
+      <div class="skeleton-row">
+        <p-skeleton width="25%" height="0.7rem" /><p-skeleton width="40%" height="0.7rem" />
+      </div>
+    }
+  } @else {
+    <ul class="type-list">
+      @for (t of rows(); track t.key) {
+        <li class="type-row" [class.inactive]="!t.active">
+          <div class="type-main">
+            <p-tag [value]="t.label" [severity]="t.colour" />
+            <span class="type-key">{{ t.key }}</span>
+            @if (!t.active) {
+              <span class="type-off">Off</span>
+            }
+            @if (t.isSystem) {
+              <span
+                class="type-system"
+                title="Fixed behaviour: it can be renamed but not turned off"
+                >System</span
+              >
+            }
+          </div>
+          <div class="type-facts">
+            <span>{{ balanceText(t) }}</span>
+            <span>{{ limitText(t) }}</span>
+            @for (f of flags(t); track f) {
+              <span class="type-flag">{{ f }}</span>
+            }
+          </div>
+          <div class="type-actions">
+            <p-button
+              [label]="t.active ? 'Turn off' : 'Turn on'"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              [disabled]="!canToggle(t)"
+              (onClick)="toggleActive(t)"
+            />
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              [attr.aria-label]="'Edit ' + t.label"
+              (onClick)="startEdit(t)"
+            />
+            @if (canRemove(t)) {
+              <p-button
+                icon="pi pi-trash"
+                [text]="true"
+                severity="danger"
+                size="small"
+                [attr.aria-label]="'Remove ' + t.label"
+                (onClick)="remove(t)"
+              />
+            }
+          </div>
+        </li>
+      }
+    </ul>
+
+    @if (error()) {
+      <p-message severity="error" [text]="error()" styleClass="form-error" />
+    }
+
+    <div class="form-actions">
+      @if (conflict()) {
+        <p-button
+          label="Reload current types"
+          icon="pi pi-refresh"
+          severity="secondary"
+          (onClick)="load()"
+        />
+      } @else {
+        <p-button
+          label="Discard changes"
+          [text]="true"
+          severity="secondary"
+          [disabled]="!hasUnsavedChanges() || saving()"
+          (onClick)="load()"
+        />
+      }
+      <p-button
+        label="Save leave types"
+        severity="primary"
+        icon="pi pi-check"
+        [disabled]="!hasUnsavedChanges() || saving() || !!catalogueError()"
+        [loading]="saving()"
+        (onClick)="save()"
+      />
+    </div>
+  }
+</p-card>
+
+<p-dialog
+  [header]="draft.editingKey === null ? 'Add leave type' : 'Edit ' + draft.label"
+  [visible]="dialogOpen()"
+  (visibleChange)="dialogOpen.set($event)"
+  [modal]="true"
+  [style]="{ width: 'min(36rem, 96vw)' }"
+>
+  <div class="dialog-grid">
+    <div class="field">
+      <label for="lt-label"><span class="req">*</span> Name</label>
+      <input id="lt-label" type="text" pInputText maxlength="40" [(ngModel)]="draft.label" />
+    </div>
+    <div class="field">
+      <label for="lt-key"><span class="req">*</span> Key</label>
+      <input
+        id="lt-key"
+        type="text"
+        pInputText
+        maxlength="20"
+        [disabled]="draft.editingKey !== null"
+        [(ngModel)]="draft.key"
+      />
+      <span class="hint">Stored on every request; it cannot change later.</span>
+    </div>
+    <div class="field">
+      <label for="lt-colour">Colour</label>
+      <p-select
+        inputId="lt-colour"
+        [options]="colourOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="draft.colour"
+        appendTo="body"
+      />
+    </div>
+    <div class="field">
+      <label for="lt-order">Order in lists</label>
+      <input
+        id="lt-order"
+        type="number"
+        min="0"
+        max="1000"
+        pInputText
+        [(ngModel)]="draft.sortOrder"
+      />
+    </div>
+    <div class="field wide">
+      <label for="lt-pool">Hours are charged to</label>
+      <p-select
+        inputId="lt-pool"
+        [options]="poolOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="draft.pool"
+        [disabled]="poolLocked()"
+        appendTo="body"
+      />
+      @if (poolLocked()) {
+        <span class="hint">Fixed: this type already has leave, or it is a system type.</span>
+      }
+    </div>
+    @if (draft.pool === 'own') {
+      <div class="field">
+        <label for="lt-allow"><span class="req">*</span> Yearly allowance (days)</label>
+        <input
+          id="lt-allow"
+          type="number"
+          min="0.5"
+          max="366"
+          step="0.5"
+          pInputText
+          [(ngModel)]="draft.allowanceDays"
+        />
+      </div>
+    }
+    <div class="field">
+      <label for="lt-max">Longest single request (calendar days)</label>
+      <input
+        id="lt-max"
+        type="number"
+        min="1"
+        max="366"
+        step="0.5"
+        pInputText
+        [(ngModel)]="draft.maxDaysPerRequest"
+      />
+      <span class="hint">Leave empty to use the company limit.</span>
+    </div>
+    <div class="field">
+      <label for="lt-notice">Advance notice</label>
+      <p-select
+        inputId="lt-notice"
+        [options]="noticeOptions"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="draft.noticeMode"
+        appendTo="body"
+      />
+    </div>
+    @if (draft.noticeMode === 'days') {
+      <div class="field">
+        <label for="lt-notice-days"><span class="req">*</span> Notice (days)</label>
+        <input
+          id="lt-notice-days"
+          type="number"
+          min="0"
+          max="60"
+          pInputText
+          [(ngModel)]="draft.noticeDays"
+        />
+      </div>
+    }
+  </div>
+
+  <div class="checks">
+    <label class="check" for="lt-auto">
+      <p-checkbox
+        inputId="lt-auto"
+        [binary]="true"
+        [(ngModel)]="draft.autoApprove"
+        [disabled]="behaviourLocked()"
+      />
+      Approves itself when applied for (only for types with a balance)
+    </label>
+    <label class="check" for="lt-calendar">
+      <p-checkbox
+        inputId="lt-calendar"
+        [binary]="true"
+        [(ngModel)]="draft.countsCalendarDays"
+        [disabled]="poolLocked()"
+      />
+      Counts every calendar day, weekends included
+    </label>
+    <label class="check" for="lt-pay">
+      <p-checkbox
+        inputId="lt-pay"
+        [binary]="true"
+        [(ngModel)]="draft.deductsPay"
+        [disabled]="behaviourLocked()"
+      />
+      Payroll deducts pay for this leave
+    </label>
+    <label class="check" for="lt-admin">
+      <p-checkbox
+        inputId="lt-admin"
+        [binary]="true"
+        [(ngModel)]="draft.adminOnly"
+        [disabled]="behaviourLocked()"
+      />
+      Only an administrator can record it
+    </label>
+    <label class="check" for="lt-private">
+      <p-checkbox inputId="lt-private" [binary]="true" [(ngModel)]="draft.sensitive" />
+      Private: notifications never name this type
+    </label>
+    @if (!draft.isSystem) {
+      <label class="check" for="lt-active">
+        <p-checkbox inputId="lt-active" [binary]="true" [(ngModel)]="draft.active" />
+        Staff can apply for it
+      </label>
+    }
+  </div>
+
+  @if (dialogError()) {
+    <p-message severity="error" [text]="dialogError()" styleClass="form-error" />
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="cancelDialog()" />
+    <p-button label="Done" severity="primary" icon="pi pi-check" (onClick)="applyDraft()" />
+  </ng-template>
+</p-dialog>

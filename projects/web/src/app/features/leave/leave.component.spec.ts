@@ -418,6 +418,79 @@ describe('LeaveComponent', () => {
     });
   });
 
+  // ── Phase 7q: the page follows the company's leave types ───────────────────────
+
+  describe('leave types from the catalogue', () => {
+    const line = (changes: Record<string, unknown>) => ({
+      key: 'x', label: 'X', colour: 'info', pool: 'none', active: true, used: 0, entitlement: null, poolUsed: null, remaining: null,
+      ...changes,
+    });
+
+    it('an administrator can record every active type, including admin-only ones', () => {
+      const keys = component.leaveTypeOptions.map(o => o.value);
+      expect(keys).toContain('no-show');
+      expect(keys).toContain('maternity');
+    });
+
+    it('the filter chips list the catalogue types after "All"', () => {
+      const values = component.presetTypes.map(p => p.value);
+      expect(values[0]).toBe('');
+      expect(values).toContain('compassionate');
+    });
+
+    it('a leave type is shown by its name and keeps its stored key when the catalogue does not know it', () => {
+      expect(component.leaveTypeLabel('maternity')).toBe('Maternity');
+      expect(component.leaveTypeLabel('retired-type')).toBe('retired-type');
+    });
+
+    it('an own allowance is a form hint only when the chosen type has one', () => {
+      component.formBalance.set({
+        year: 2026, annualEntitlement: 80, annualUsed: 0, annualRemaining: 80, emergencyUsed: 0, carryOverHours: 0,
+        sickEntitlement: 14, sickUsed: 0, sickRemaining: 14, unpaidUsed: 0,
+        types: [line({ key: 'hospitalisation', label: 'Hospitalisation', pool: 'own', used: 16, entitlement: 480, poolUsed: 16, remaining: 464 })] as never,
+      });
+
+      component.form.leaveType = 'hospitalisation';
+      expect(component.formTypeBalance?.remaining).toBe(464);
+      component.form.leaveType = 'sick';
+      expect(component.formTypeBalance).toBeUndefined();
+    });
+
+    it('balances list own allowances and other leave taken, but not pay-deducting leave or unused types', () => {
+      const extra = component.extraBalances({
+        types: [
+          line({ key: 'hospitalisation', pool: 'own', used: 8, entitlement: 480, poolUsed: 8, remaining: 472 }),
+          line({ key: 'maternity', used: 784 }),
+          line({ key: 'paternity', used: 0 }),
+          line({ key: 'unpaid', used: 8 }),
+        ] as never,
+      });
+      expect(extra.map(e => e.key)).toEqual(['hospitalisation', 'maternity']);
+    });
+
+    it('the summary shows leave the fixed columns do not cover as Other, and names it in the tooltip', () => {
+      const s = {
+        employeeId: 'e1', staffId: 'S1', fullName: 'A B', year: 2026,
+        annualUsed: 8, sickUsed: 0, emergencyUsed: 0, unpaidUsed: 0, noShowUsed: 0, totalUsed: 792,
+        types: [line({ key: 'annual', used: 8 }), line({ key: 'maternity', label: 'Maternity', used: 784 })] as never,
+      };
+      expect(component.otherUsed(s)).toBe(784);
+      expect(component.otherTooltip(s)).toBe('Maternity 784h');
+    });
+
+    it('the hours preview counts every calendar day for a calendar-day type', () => {
+      component.form.startDate = '2026-06-06';
+      component.form.endDate = '2026-06-07';
+      component.startTimeDate = new Date(2026, 5, 6, 9, 0);
+      component.endTimeDate = new Date(2026, 5, 7, 17, 0);
+
+      component.form.leaveType = 'maternity';
+      expect(component.calcHours).toBe(16);
+      component.form.leaveType = 'sick';
+      expect(component.calcHours).toBe(0);   // a weekend has no working day
+    });
+  });
+
   // ── leaveTypeSeverity() ───────────────────────────────────────────────────────
 
   describe('leaveTypeSeverity()', () => {

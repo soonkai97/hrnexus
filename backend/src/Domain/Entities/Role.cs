@@ -4,7 +4,9 @@ public class Role
 {
     public Guid     Id         { get; private set; }
     public string   Name       { get; private set; } = default!;
-    public bool     IsSystem   { get; private set; }  // system roles cannot be deleted
+    /// <summary>The first administrator job: it cannot be deleted, always holds every permission, and its
+    /// permissions cannot be edited. Flagged, never identified by name.</summary>
+    public bool     IsSystem   { get; private set; }
     public DateTime CreatedAt  { get; private set; }
 
     private Role() { }
@@ -17,7 +19,10 @@ public class Role
         CreatedAt  = DateTime.UtcNow,
     };
 
-    /// <summary>Renames the job's primary (English) display name. Stored UPPERCASE to match the
-    /// snapshot/auth-matching convention. Never call this for a system role — its Name is the auth key.</summary>
+    /// <summary>Renames the job. Stored UPPERCASE. Safe for every job, including the first administrator job:
+    /// access is decided by permissions, never by a job's name.</summary>
     public void SetName(string name) => Name = name.Trim().ToUpperInvariant();
+
+    /// <summary>Flags this job as the first administrator job (seed only).</summary>
+    public void MarkSystem() => IsSystem = true;
 }

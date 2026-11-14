@@ -117,7 +117,7 @@ public class LeaveFixesTests
     public async Task Update_Throws_WhenApproverDecidesTheirOwnLeave(string decision)
     {
         await using var db = CreateDb();
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "FRONT DESK");
         var leave = await AddLeave(db, manager.Id, AppConstants.Leave.Pending, Day(10), Day(10));
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -132,7 +132,7 @@ public class LeaveFixesTests
     public async Task Create_Throws_WhenApproverRecordsTheirOwnLeaveAlreadyApproved()
     {
         await using var db = CreateDb();
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "FRONT DESK");
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             UpsertHandler(db).Handle(Cmd(null, manager.Id, "approved", Day(10), Day(10), actingUserId: manager.Id), CancellationToken.None));
@@ -142,7 +142,7 @@ public class LeaveFixesTests
     public async Task Create_Succeeds_WhenApproverRecordsTheirOwnLeaveAsPending()
     {
         await using var db = CreateDb();
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "FRONT DESK");
 
         var id = await UpsertHandler(db).Handle(Cmd(null, manager.Id, "pending", Day(10), Day(10), actingUserId: manager.Id), CancellationToken.None);
 
@@ -154,7 +154,7 @@ public class LeaveFixesTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "FRONT DESK");
         var leave = await AddLeave(db, staff.Id, AppConstants.Leave.Pending, Day(10), Day(10));
 
         await UpsertHandler(db).Handle(Cmd(leave.Id, staff.Id, "approved", Day(10), Day(10), actingUserId: manager.Id), CancellationToken.None);
@@ -168,7 +168,7 @@ public class LeaveFixesTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "FRONT DESK");
         var theirs = await AddLeave(db, staff.Id, AppConstants.Leave.Pending, Day(10), Day(10));
         var mine = await AddLeave(db, manager.Id, AppConstants.Leave.Pending, Day(12), Day(12));
         var handler = new BulkUpdateLeaveStatusCommandHandler(db, new NullHub(), new NullPush(), new NullAudit());
@@ -227,7 +227,7 @@ public class LeaveFixesTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "FRONT DESK");
         var leave = await AddLeave(db, staff.Id, AppConstants.Leave.Cancelled, Day(10), Day(10));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -245,11 +245,12 @@ public class LeaveFixesTests
     // ── D7: withdrawing approved leave notifies managers ──────────────────────
 
     [Fact]
-    public async Task CancelApprovedLeave_NotifiesEveryActiveManager()
+    public async Task CancelApprovedLeave_NotifiesEveryActiveLeaveApprover()
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "ROTA LEAD");
+        await RoleSeed.GrantAsync(db, "ROTA LEAD", AppConstants.Permissions.LeaveApprove);
         var leave = await AddLeave(db, staff.Id, AppConstants.Leave.Approved, Day(10), Day(11));
         var handler = new CancelLeaveCommandHandler(db, new Clock(), new NullHub());
 
@@ -262,16 +263,107 @@ public class LeaveFixesTests
     }
 
     [Fact]
-    public async Task CancelPendingLeave_DoesNotNotifyManagers()
+    public async Task CancelPendingLeave_DoesNotNotifyApprovers()
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db, "A1");
-        var manager = await AddStaff(db, "M1", "MANAGER");
+        var manager = await AddStaff(db, "M1", "ROTA LEAD");
+        await RoleSeed.GrantAsync(db, "ROTA LEAD", AppConstants.Permissions.LeaveApprove);
         var leave = await AddLeave(db, staff.Id, AppConstants.Leave.Pending, Day(10), Day(11));
         var handler = new CancelLeaveCommandHandler(db, new Clock(), new NullHub());
 
         await handler.Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None);
 
         Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == manager.Id).ToListAsync());
+    }
+
+    // ── Phase 7o: leave notices go to the people who can ACT on them (leave.approve), not to a role NAME ──
+
+    [Fact]
+    public async Task WithdrawingApprovedLeave_DoesNotNotifyARoleWithoutLeaveApprove()
+    {
+        await using var db = CreateDb();
+        var staff = await AddStaff(db, "A1");
+        var named = await AddStaff(db, "M1", "FRONT DESK");          // no leave.approve
+        var leave = await AddLeave(db, staff.Id, AppConstants.Leave.Approved, Day(10), Day(11));
+
+        await new CancelLeaveCommandHandler(db, new Clock(), new NullHub())
+            .Handle(new CancelLeaveCommand(leave.Id, staff.Id), CancellationToken.None);
+
+        Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == named.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task WithdrawingApprovedLeave_DoesNotNotifyTheWithdrawerEvenIfTheyCanApproveLeave()
+    {
+        await using var db = CreateDb();
+        var approver = await AddStaff(db, "M1", "ROTA LEAD");
+        await RoleSeed.GrantAsync(db, "ROTA LEAD", AppConstants.Permissions.LeaveApprove);
+        var leave = await AddLeave(db, approver.Id, AppConstants.Leave.Approved, Day(10), Day(11));
+
+        await new CancelLeaveCommandHandler(db, new Clock(), new NullHub())
+            .Handle(new CancelLeaveCommand(leave.Id, approver.Id), CancellationToken.None);
+
+        Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == approver.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task PendingLeave_NotifiesEveryLeaveApprover_AndNotARoleWithoutThePermission()
+    {
+        await using var db = CreateDb();
+        var staff = await AddStaff(db, "A1");
+        var approver = await AddStaff(db, "M1", "ROTA LEAD");
+        await RoleSeed.GrantAsync(db, "ROTA LEAD", AppConstants.Permissions.LeaveApprove);
+        var named = await AddStaff(db, "M2", "FRONT DESK");           // no leave.approve
+
+        await UpsertHandler(db).Handle(Cmd(null, staff.Id, "pending", Day(10), Day(11)), CancellationToken.None);
+
+        var note = Assert.Single(await db.Notifications.Where(n => n.EmployeeId == approver.Id).ToListAsync());
+        Assert.Equal(AppConstants.NotificationType.LeavePending, note.Type);
+        Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == named.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task PendingLeave_DoesNotNotifyTheApplicantWhoCanApproveLeave()
+    {
+        await using var db = CreateDb();
+        var applicant = await AddStaff(db, "A1", "ROTA LEAD");
+        await RoleSeed.GrantAsync(db, "ROTA LEAD", AppConstants.Permissions.LeaveApprove);
+        var other = await AddStaff(db, "M2", "ROTA LEAD");
+
+        await UpsertHandler(db).Handle(Cmd(null, applicant.Id, "pending", Day(10), Day(11)), CancellationToken.None);
+
+        Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == applicant.Id).ToListAsync());
+        Assert.Single(await db.Notifications.Where(n => n.EmployeeId == other.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task PendingLeaveRecordedByAnApprover_DoesNotNotifyThatApprover()
+    {
+        await using var db = CreateDb();
+        var staff = await AddStaff(db, "A1");
+        var recorder = await AddStaff(db, "M1", "ROTA LEAD");
+        await RoleSeed.GrantAsync(db, "ROTA LEAD", AppConstants.Permissions.LeaveApprove);
+        var other = await AddStaff(db, "M2", "ROTA LEAD");
+
+        await UpsertHandler(db).Handle(Cmd(null, staff.Id, "pending", Day(10), Day(11), actingUserId: recorder.Id), CancellationToken.None);
+
+        Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == recorder.Id).ToListAsync());
+        Assert.Single(await db.Notifications.Where(n => n.EmployeeId == other.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task APerUserRevokeOfLeaveApprove_StopsTheNotice()
+    {
+        await using var db = CreateDb();
+        var staff = await AddStaff(db, "A1");
+        var revoked = await AddStaff(db, "M1", "ROTA LEAD");
+        await RoleSeed.GrantAsync(db, "ROTA LEAD", AppConstants.Permissions.LeaveApprove);
+        db.StaffPermissionOverrides.Add(E.StaffPermissionOverride.Create(revoked.Id, AppConstants.Permissions.LeaveApprove, granted: false));
+        await db.SaveChangesAsync();
+
+        await UpsertHandler(db).Handle(Cmd(null, staff.Id, "pending", Day(10), Day(11)), CancellationToken.None);
+
+        Assert.Empty(await db.Notifications.Where(n => n.EmployeeId == revoked.Id).ToListAsync());
     }
 }

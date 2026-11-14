@@ -1,6 +1,5 @@
 ﻿using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
-using HRNexus.Domain.Constants;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +7,6 @@ namespace HRNexus.Application.Staff.Queries;
 
 public record GetStaffListQuery(
     string? Search       = null,
-    bool    ExcludeAdmins = false,
     bool    IncludeHidden = false,
     int     Page         = 1,
     int     PageSize     = 10) : IRequest<PagedResult<StaffDto>>;
@@ -24,13 +22,10 @@ public class GetStaffListQueryHandler(IAppDbContext db)
     {
         var query = db.Staff.AsQueryable();
 
-        // Hidden accounts (e.g. the seeded HRADMIN / HRMANAGER) are kept off the roster by default;
+        // Hidden accounts (e.g. seeded system accounts) are kept off the roster by default;
         // the admin can opt to see them (to unhide, or just to review) via the "show hidden" toggle.
         if (!req.IncludeHidden)
             query = query.Where(e => !e.IsHidden);
-
-        if (req.ExcludeAdmins)
-            query = query.Where(e => !e.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin));
 
         if (!string.IsNullOrWhiteSpace(req.Search))
         {

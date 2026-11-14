@@ -23,6 +23,19 @@ public static class RoleSeed
         return role.Id;
     }
 
+    /// <summary>Ensures the role exists and gives it the permission keys (skipping ones it already has);
+    /// returns the role id. Access is decided by permissions, so a test that needs "someone who can
+    /// approve leave" grants <c>leave.approve</c> to a role instead of relying on a role NAME.</summary>
+    public static async Task<Guid> GrantAsync(TestDbContext db, string roleName, params string[] keys)
+    {
+        var id = await EnsureRoleAsync(db, roleName);
+        foreach (var key in keys)
+            if (!await db.RolePermissions.AnyAsync(rp => rp.RoleId == id && rp.PermissionKey == key))
+                db.RolePermissions.Add(E.RolePermission.Create(id, key));
+        await db.SaveChangesAsync();
+        return id;
+    }
+
     /// <summary>Ensures each named role exists and returns a name→id map (uppercase keys).</summary>
     public static async Task<Dictionary<string, Guid>> EnsureRolesAsync(TestDbContext db, params string[] names)
     {
@@ -52,7 +65,7 @@ public static class RoleSeed
     }
 
     /// <summary>Builds a detached Staff whose RoleEntries have their Role navigation populated — for
-    /// pure-domain tests (no DbContext) that read <c>PermissionLevel</c>/<c>Roles</c> off the nav.</summary>
+    /// pure-domain tests (no DbContext) that read <c>Roles</c> off the nav.</summary>
     public static E.Staff MakeStaffWithRoles(string staffId, string firstName, string? lastName,
         string? email, string passwordHash, params string[] roleNames)
     {
@@ -61,7 +74,7 @@ public static class RoleSeed
             .ToList();
         var staff = E.Staff.Create(staffId, firstName, lastName, email, passwordHash,
             roles.Select(r => r.Id).ToList());
-        // Attach the Role nav on each entry so Staff.Roles / PermissionLevel resolve without a DB load.
+        // Attach the Role nav on each entry so Staff.Roles resolves without a DB load.
         foreach (var entry in staff.RoleEntries)
             entry.Role = roles.First(r => r.Id == entry.RoleId);
         return staff;

@@ -1,5 +1,6 @@
 ﻿using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Leave;
+using HRNexus.Application.Permissions;
 using HRNexus.Application.Policy;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
@@ -159,7 +160,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                         var (title, message) = isSick
                             ? ("Sick Leave Reported",   $"{who} has reported sick leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).")
                             : ("Emergency Leave Taken", $"{who} has taken emergency leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).");
-                        await NotifyManagersAsync(leave.Id.ToString(), title, message, ct);
+                        await NotifyApproversAsync(leave.Id.ToString(), req.EmployeeId, req.ActingUserId, title, message, ct);
                     }
                     else if (resolvedStatus.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
                     {
@@ -167,7 +168,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                         var who = emp?.FullName ?? "An employee";
                         var message = $"{who} applied for {req.LeaveType} leave " +
                                       $"({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).";
-                        await NotifyManagersAsync(leave.Id.ToString(), "New Leave Request", message, ct);
+                        await NotifyApproversAsync(leave.Id.ToString(), req.EmployeeId, req.ActingUserId, "New Leave Request", message, ct);
                     }
 
                     return leave.Id;
@@ -328,21 +329,24 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 "A leave request already exists overlapping the selected date range.");
     }
 
-    /// <summary>Persists and pushes a "pending"-type notification to every active manager/admin.</summary>
-    private async Task NotifyManagersAsync(string leaveId, string title, string message, CancellationToken ct)
+    /// <summary>
+    /// Persists and pushes a "pending"-type notification to everyone who can approve leave
+    /// (<c>leave.approve</c>), except the leave's owner and the admin who recorded it: nobody is told
+    /// about their own request, which they are not allowed to approve anyway.
+    /// </summary>
+    private async Task NotifyApproversAsync(string leaveId, Guid ownerId, Guid? actingUserId,
+        string title, string message, CancellationToken ct)
     {
-        var managers = await db.Staff
-            .Where(e => e.IsActive &&
-                (e.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager) ||
-                 e.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin)))
-            .ToListAsync(ct);
+        var approvers = (await PermissionHolders.GetIdsAsync(db, AppConstants.Permissions.LeaveApprove, ct))
+            .Where(id => id != ownerId && id != actingUserId)
+            .ToList();
 
-        foreach (var mgr in managers)
+        foreach (var approverId in approvers)
         {
-            var notif = Notification.Create(mgr.Id, title, message,
+            var notif = Notification.Create(approverId, title, message,
                 AppConstants.NotificationType.LeavePending, leaveId);
             db.Notifications.Add(notif);
-            await notifHub.SendToUserAsync(mgr.Id, ToPayload(notif), ct);
+            await notifHub.SendToUserAsync(approverId, ToPayload(notif), ct);
         }
         await db.SaveChangesAsync(ct);
     }

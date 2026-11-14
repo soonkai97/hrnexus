@@ -71,6 +71,5 @@ public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfigur
         b.Ignore(e => e.RoleIds);
         b.Ignore(e => e.FullName);
         b.Ignore(e => e.Age);
-        b.Ignore(e => e.PermissionLevel);
     }
 }

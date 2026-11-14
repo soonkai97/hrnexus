@@ -129,6 +129,12 @@
 
 ---
 
+## Decisions made while building 7o-a
+
+- **Holders lookup is a static helper, not a resolver method:** `PermissionHolders.GetIdsAsync(db, key, ct)` in the Application layer (like `RolesManageInvariant`), so no handler constructor or test stub changed. It follows the resolver's rule exactly (role grants, plus per-user grants, minus per-user revokes, active and not-deleted only).
+- **The default-password account is created only in an empty database** (counting deleted accounts too), instead of "when no active holder of the bootstrap role exists". This closes the whole backdoor class (delete, deactivate, role removal, rename) with a simpler rule, so the separate "last bootstrap member cannot be deleted" rule was dropped. The last-`roles.manage`-holder rule on delete and deactivate remains and is what prevents a lock-out.
+- Integration tests seed the shared test database while it is empty (a first start does the same), and the seed and the migration are tested on throwaway databases, including the existing-`ADMINISTRATOR` fold and `Down`.
+
 ## Review Notes
 
 Plan review by the opus reviewer (14 Nov 2026), all CONFIRMED against the code:

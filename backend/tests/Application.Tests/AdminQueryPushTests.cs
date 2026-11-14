@@ -424,12 +424,12 @@ public class AdminQueryPushTests
     [Fact]
     public async Task GetAllLeaveBalances_IncludesAllActiveStaff_RegardlessOfRole()
     {
-        // Superadmins are treated as normal staff — they appear in the leave overview like anyone else.
+        // Owners are treated as normal staff — they appear in the leave overview like anyone else.
         await using var db = CreateDb();
         db.Staff.Add(await MakeStaffAsync(db, "S001"));   // BARTENDER
-        var superadmin = await RoleSeed.EnsureRoleAsync(db, "SUPERADMIN");
+        var owner = await RoleSeed.EnsureRoleAsync(db, "OWNER");
         db.Staff.Add(E.Staff.Create("ADMIN1", "Super", "Admin", "admin1@test.com", "hash",
-            new List<Guid> { superadmin }));
+            new List<Guid> { owner }));
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
 

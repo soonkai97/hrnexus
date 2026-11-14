@@ -17,20 +17,6 @@ public class StaffController(IMediator mediator) : ControllerBase
 {
     private Guid   CallerId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    /// <summary>
-    /// Whether the caller is a "restricted" manager. Managers now have the SAME power as admins,
-    /// so this is always false — no staff-management action (viewing/editing/deleting admin
-    /// accounts, etc.) is withheld from managers.
-    /// </summary>
-    private static bool IsManagerCaller => false;
-
-    /// <summary>Returns true if the staff member with the given ID has the admin role.</summary>
-    private static async Task<bool> IsAdminAsync(Guid id, IAppDbContext db, CancellationToken ct)
-    {
-        return await db.StaffRoles
-            .AnyAsync(r => r.EmployeeId == id && r.Role.Name == AppConstants.Roles.Admin, ct);
-    }
-
     [HttpGet]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffView)]
     public async Task<IActionResult> List(
@@ -41,17 +27,14 @@ public class StaffController(IMediator mediator) : ControllerBase
         CancellationToken   ct       = default)
     {
         var result = await mediator.Send(
-            new GetStaffListQuery(search, ExcludeAdmins: IsManagerCaller, IncludeHidden: includeHidden, Page: page, PageSize: pageSize), ct);
+            new GetStaffListQuery(search, IncludeHidden: includeHidden, Page: page, PageSize: pageSize), ct);
         return Ok(result);
     }
 
     [HttpGet("{id:guid}")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffView)]
-    public async Task<IActionResult> GetById(Guid id,
-        [FromServices] IAppDbContext db, CancellationToken ct)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        if (IsManagerCaller && await IsAdminAsync(id, db, ct))
-            return Forbid();
         try
         {
             var result = await mediator.Send(new GetStaffByIdQuery(id), ct);
@@ -81,25 +64,8 @@ public class StaffController(IMediator mediator) : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStaffBody body,
-        [FromServices] IAppDbContext db, CancellationToken ct)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStaffBody body, CancellationToken ct)
     {
-        if (IsManagerCaller)
-        {
-            // Load the current role ids once — used for both the admin check and role preservation
-            var currentRoles = await db.StaffRoles
-                .Where(r => r.EmployeeId == id)
-                .Select(r => new { r.RoleId, RoleName = r.Role.Name })
-                .ToListAsync(ct);
-
-            // Managers can't edit admin staff profiles
-            if (currentRoles.Any(r => r.RoleName == AppConstants.Roles.Admin))
-                return Forbid();
-
-            // Managers can't change role assignments — preserve current role ids silently
-            body = body with { Roles = currentRoles.Select(r => r.RoleId).ToList() };
-        }
-
         try
         {
             await mediator.Send(new UpdateStaffCommand(id, body.StaffId, body.FirstName, body.LastName, body.Email,
@@ -120,13 +86,10 @@ public class StaffController(IMediator mediator) : ControllerBase
 
     [HttpPatch("{id}/activate")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
-    public async Task<IActionResult> Activate(Guid id,
-        [FromServices] IAppDbContext db, CancellationToken ct)
+    public async Task<IActionResult> Activate(Guid id, CancellationToken ct)
     {
         if (id == CallerId)
             return BadRequest(new { error = "You cannot change your own active status." });
-        if (IsManagerCaller && await IsAdminAsync(id, db, ct))
-            return Forbid();
         try
         {
             await mediator.Send(new ActivateStaffCommand(id), ct);
@@ -137,13 +100,10 @@ public class StaffController(IMediator mediator) : ControllerBase
 
     [HttpPatch("{id}/deactivate")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
-    public async Task<IActionResult> Deactivate(Guid id,
-        [FromServices] IAppDbContext db, CancellationToken ct)
+    public async Task<IActionResult> Deactivate(Guid id, CancellationToken ct)
     {
         if (id == CallerId)
             return BadRequest(new { error = "You cannot deactivate your own account." });
-        if (IsManagerCaller && await IsAdminAsync(id, db, ct))
-            return Forbid();
         try
         {
             await mediator.Send(new DeactivateStaffCommand(id), ct);
@@ -154,12 +114,8 @@ public class StaffController(IMediator mediator) : ControllerBase
 
     [HttpPatch("{id:guid}/hidden")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
-    public async Task<IActionResult> SetHidden(Guid id, [FromBody] SetHiddenBody body,
-        [FromServices] IAppDbContext db, CancellationToken ct)
+    public async Task<IActionResult> SetHidden(Guid id, [FromBody] SetHiddenBody body, CancellationToken ct)
     {
-        // A manager can't touch an admin account (same guard as activate/deactivate).
-        if (IsManagerCaller && await IsAdminAsync(id, db, ct))
-            return Forbid();
         try
         {
             await mediator.Send(new SetStaffHiddenCommand(id, body.Hidden), ct);
@@ -170,13 +126,10 @@ public class StaffController(IMediator mediator) : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
-    public async Task<IActionResult> Delete(Guid id,
-        [FromServices] IAppDbContext db, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         if (id == CallerId)
             return BadRequest(new { error = "You cannot delete your own account." });
-        if (await IsAdminAsync(id, db, ct))
-            return BadRequest(new { error = "Admin accounts cannot be deleted." });
         try
         {
             await mediator.Send(new DeleteStaffCommand(id), ct);
@@ -188,12 +141,8 @@ public class StaffController(IMediator mediator) : ControllerBase
 
     [HttpPost("{id:guid}/reset-password")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
-    public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetPasswordBody body,
-        [FromServices] IAppDbContext db, CancellationToken ct)
+    public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetPasswordBody body, CancellationToken ct)
     {
-        if (IsManagerCaller && await IsAdminAsync(id, db, ct))
-            return Forbid();
-
         try
         {
             await mediator.Send(new AdminResetPasswordCommand(id, body.NewPassword), ct);
@@ -261,10 +210,6 @@ public class StaffController(IMediator mediator) : ControllerBase
     {
         var role = await db.Roles.FirstOrDefaultAsync(r => r.Id == id, ct);
         if (role is null) return NotFound(new { error = "Role not found." });
-        // System roles (SUPERADMIN/MANAGER/EMPLOYEE) keep their name locked: it is the key that
-        // authorization matches on, so renaming would break access control.
-        if (role.IsSystem)
-            return BadRequest(new { error = "System jobs keep their name — it's used for access control." });
         var newName = (body.Name ?? "").Trim().ToUpperInvariant();
         if (newName.Length == 0)
             return BadRequest(new { error = "Role name cannot be empty." });

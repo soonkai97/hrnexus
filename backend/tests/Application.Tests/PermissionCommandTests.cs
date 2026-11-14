@@ -34,13 +34,13 @@ public class PermissionCommandTests
     public async Task SetRolePermissions_ReplacesAll_AndInvalidatesAll()
     {
         await using var db = CreateDb();
-        var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
+        var managerId = await RoleSeed.EnsureRoleAsync(db, "ACCESS OWNER");
         db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.PayrollView)); // stale
         await db.SaveChangesAsync();
         var spy = new SpyResolver();
 
         await new SetRolePermissionsHandler(db, spy).Handle(
-            new SetRolePermissionsCommand("manager",
+            new SetRolePermissionsCommand("access owner",
                 [AppConstants.Permissions.RolesManage, AppConstants.Permissions.StaffView]),
             CancellationToken.None);
 
@@ -56,12 +56,33 @@ public class PermissionCommandTests
     public async Task SetRolePermissions_ThrowsArgument_OnUnknownKey()
     {
         await using var db = CreateDb();
-        db.Roles.Add(E.Role.Create("MANAGER", isSystem: true));
+        db.Roles.Add(E.Role.Create("ACCESS OWNER"));
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             new SetRolePermissionsHandler(db, new SpyResolver()).Handle(
-                new SetRolePermissionsCommand("MANAGER", ["bogus.key"]), CancellationToken.None));
+                new SetRolePermissionsCommand("ACCESS OWNER", ["bogus.key"]), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task SetRolePermissions_Refuses_TheFirstAdministratorJob_SoItAlwaysHoldsEveryPermission()
+    {
+        // The bootstrap job (IsSystem) is how a fresh install gets someone who can set everything up, and the
+        // seed re-grants it every new permission. Editing it would only be silently undone at the next start.
+        await using var db = CreateDb();
+        var bootstrapId = await RoleSeed.EnsureRoleAsync(db, "ADMINISTRATOR", isSystem: true);
+        foreach (var key in AppConstants.Permissions.All)
+            db.RolePermissions.Add(E.RolePermission.Create(bootstrapId, key));
+        await db.SaveChangesAsync();
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            new SetRolePermissionsHandler(db, new SpyResolver()).Handle(
+                new SetRolePermissionsCommand("ADMINISTRATOR", [AppConstants.Permissions.StaffView]),
+                CancellationToken.None));
+
+        Assert.Contains("every permission", ex.Message);
+        Assert.Equal(AppConstants.Permissions.All.Count,
+            await db.RolePermissions.CountAsync(rp => rp.RoleId == bootstrapId));
     }
 
     [Fact]
@@ -120,7 +141,7 @@ public class PermissionCommandTests
     public async Task SetRolePermissions_Throws_WhenStrippingAdminFromTheOnlyAdminRole()
     {
         await using var db = CreateDb();
-        var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
+        var managerId = await RoleSeed.EnsureRoleAsync(db, "ACCESS OWNER");
         db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
         // A live admin who derives portal access solely from this role.
         db.Staff.Add(E.Staff.Create("S001", "Al", "Wong", "al@test.com", "hash", new List<Guid> { managerId }));
@@ -128,7 +149,7 @@ public class PermissionCommandTests
 
         var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
             new SetRolePermissionsHandler(db, new SpyResolver()).Handle(
-                new SetRolePermissionsCommand("MANAGER", [AppConstants.Permissions.StaffView]),
+                new SetRolePermissionsCommand("ACCESS OWNER", [AppConstants.Permissions.StaffView]),
                 CancellationToken.None));
         Assert.Contains("role-management access", ex.Message);
 
@@ -141,25 +162,25 @@ public class PermissionCommandTests
     public async Task SetRolePermissions_Allows_StrippingAdmin_WhenAnotherAdminRoleRemains()
     {
         await using var db = CreateDb();
-        var roles = await RoleSeed.EnsureRolesAsync(db, "MANAGER", "SUPERADMIN");
-        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.RolesManage));
-        db.RolePermissions.Add(E.RolePermission.Create(roles["SUPERADMIN"], AppConstants.Permissions.RolesManage));
-        db.Staff.Add(E.Staff.Create("S002", "Su", "Boss", "su@test.com", "hash", new List<Guid> { roles["SUPERADMIN"] }));
+        var roles = await RoleSeed.EnsureRolesAsync(db, "ACCESS OWNER", "SECOND OWNER");
+        db.RolePermissions.Add(E.RolePermission.Create(roles["ACCESS OWNER"], AppConstants.Permissions.RolesManage));
+        db.RolePermissions.Add(E.RolePermission.Create(roles["SECOND OWNER"], AppConstants.Permissions.RolesManage));
+        db.Staff.Add(E.Staff.Create("S002", "Su", "Boss", "su@test.com", "hash", new List<Guid> { roles["SECOND OWNER"] }));
         await db.SaveChangesAsync();
 
         await new SetRolePermissionsHandler(db, new SpyResolver()).Handle(
-            new SetRolePermissionsCommand("MANAGER", [AppConstants.Permissions.StaffView]),
+            new SetRolePermissionsCommand("ACCESS OWNER", [AppConstants.Permissions.StaffView]),
             CancellationToken.None);
 
         Assert.False(await db.RolePermissions.AnyAsync(rp =>
-            rp.RoleId == roles["MANAGER"] && rp.PermissionKey == AppConstants.Permissions.RolesManage));
+            rp.RoleId == roles["ACCESS OWNER"] && rp.PermissionKey == AppConstants.Permissions.RolesManage));
     }
 
     [Fact]
     public async Task SetRolePermissions_Allows_StrippingAdmin_WhenAUserGrantOverrideRemains()
     {
         await using var db = CreateDb();
-        var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
+        var managerId = await RoleSeed.EnsureRoleAsync(db, "ACCESS OWNER");
         db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
         // An individual EMPLOYEE granted role-management access directly keeps the system reachable.
         var emp = E.Staff.Create("S003", "Ed", "Lim", "ed@test.com", "hash", new List<Guid>());
@@ -169,7 +190,7 @@ public class PermissionCommandTests
         await db.SaveChangesAsync();
 
         await new SetRolePermissionsHandler(db, new SpyResolver()).Handle(
-            new SetRolePermissionsCommand("MANAGER", [AppConstants.Permissions.StaffView]),
+            new SetRolePermissionsCommand("ACCESS OWNER", [AppConstants.Permissions.StaffView]),
             CancellationToken.None);
 
         Assert.False(await db.RolePermissions.AnyAsync(rp =>
@@ -180,7 +201,7 @@ public class PermissionCommandTests
     public async Task SetStaffOverrides_Throws_WhenRevokingAdminFromTheLastAdmin()
     {
         await using var db = CreateDb();
-        var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
+        var managerId = await RoleSeed.EnsureRoleAsync(db, "ACCESS OWNER");
         db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
         var al = E.Staff.Create("S001", "Al", "Wong", "al@test.com", "hash", new List<Guid> { managerId });
         db.Staff.Add(al);
@@ -201,7 +222,7 @@ public class PermissionCommandTests
     public async Task SetStaffOverrides_Allows_RevokingAdmin_WhenAnotherActiveAdminRemains()
     {
         await using var db = CreateDb();
-        var managerId = await RoleSeed.EnsureRoleAsync(db, "MANAGER", isSystem: true);
+        var managerId = await RoleSeed.EnsureRoleAsync(db, "ACCESS OWNER");
         db.RolePermissions.Add(E.RolePermission.Create(managerId, AppConstants.Permissions.RolesManage));
         var al = E.Staff.Create("S001", "Al", "Wong", "al@test.com", "hash", new List<Guid> { managerId });
         var bo = E.Staff.Create("S002", "Bo", "Tan", "bo@test.com", "hash", new List<Guid> { managerId });

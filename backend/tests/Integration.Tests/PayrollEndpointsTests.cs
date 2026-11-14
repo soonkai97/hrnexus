@@ -73,9 +73,17 @@ public class PayrollEndpointsTests(PostgresFixture fx) : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Conflict, (await client.PatchAsJsonAsync($"/api/staff/roles/{id}", new { name = other })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PatchAsJsonAsync($"/api/staff/roles/{id}", new { name = " " })).StatusCode);
 
-        var system = (await FindRoleAsync(client, "SUPERADMIN"))!.Value;
+        // The first administrator job may be renamed (nothing looks it up by name), and renamed back.
+        var system = (await FindRoleAsync(client, "ADMINISTRATOR"))!.Value;
         Assert.True(system.GetProperty("isSystem").GetBoolean());
+        var systemId = system.GetProperty("id").GetGuid();
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PatchAsJsonAsync($"/api/staff/roles/{systemId}", new { name = "CHIEF ADMINISTRATOR" })).StatusCode);
+        Assert.NotNull(await FindRoleAsync(client, "CHIEF ADMINISTRATOR"));
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PatchAsJsonAsync($"/api/staff/roles/{systemId}", new { name = "ADMINISTRATOR" })).StatusCode);
+
+        // But its permissions cannot be edited (it always holds every permission) and it cannot be deleted.
         Assert.Equal(HttpStatusCode.BadRequest,
-            (await client.PatchAsJsonAsync($"/api/staff/roles/{system.GetProperty("id").GetGuid()}", new { name = "HACKED" })).StatusCode);
+            (await client.PutAsJsonAsync("/api/permissions/roles/ADMINISTRATOR", new { permissions = new[] { "staff.view" } })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await client.DeleteAsync($"/api/staff/roles/{systemId}")).StatusCode);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Permissions;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using MediatR;
@@ -34,25 +35,23 @@ public class ForgotPasswordCommandHandler(
         if (recentRequest)
             throw new InvalidOperationException("A password reset was already requested recently. Please wait a few minutes before trying again.");
 
-        // Filter managers/admins directly in SQL via the normalised StaffRoles table.
-        var adminsAndManagers = await db.Staff
-            .Where(e => e.IsActive &&
-                (e.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Admin) ||
-                 e.RoleEntries.Any(r => r.Role.Name == AppConstants.Roles.Manager)))
-            .ToListAsync(ct);
+        // Tell everyone who can reset passwords (staff.manage), never the person asking.
+        var resetters = (await PermissionHolders.GetIdsAsync(db, AppConstants.Permissions.StaffManage, ct))
+            .Where(id => id != emp.Id)
+            .ToList();
 
         var title   = "🔐 Password Reset Request";
         var message = $"{emp.FullName} ({emp.StaffId}) has requested a password reset. " +
                       $"Please go to Staff → Reset Password to set a new password, then inform them verbally.";
 
-        foreach (var admin in adminsAndManagers)
+        foreach (var resetterId in resetters)
         {
             var notification = Notification.Create(
-                admin.Id, title, message, "password_reset", emp.Id.ToString());
+                resetterId, title, message, "password_reset", emp.Id.ToString());
             db.Notifications.Add(notification);
 
             // Push real-time notification via SignalR
-            await notificationHub.SendToUserAsync(admin.Id,
+            await notificationHub.SendToUserAsync(resetterId,
                 new NotificationPayload(
                     notification.Id.ToString(),
                     title,

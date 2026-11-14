@@ -12,7 +12,7 @@ public class StaffDomainTests
 {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    // Builds a Staff with its Role navigation populated (no DbContext) so PermissionLevel/Roles resolve.
+    // Builds a Staff with its Role navigation populated (no DbContext) so Roles resolves.
     private static E.Staff MakeStaff(params string[] roles) =>
         RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "alice@test.com", "hash",
             roles.Length > 0 ? roles : new[] { "BARTENDER" });
@@ -119,52 +119,10 @@ public class StaffDomainTests
     {
         // Roles are uppercase-normalised so permission checks are always case-insensitive.
         var staff = RoleSeed.MakeStaffWithRoles("NC001", "Alice", "Tan", "alice@test.com", "hash",
-            "superadmin", "bartender");
+            "owner", "bartender");
 
         // re.Role is now the Role navigation; its Name is already uppercase-normalised by Role.Create.
         Assert.All(staff.RoleEntries, re => Assert.Equal(re.Role.Name, re.Role.Name.ToUpperInvariant()));
-    }
-
-    // ── PermissionLevel ───────────────────────────────────────────────────────
-
-    [Fact]
-    public void PermissionLevel_AdminRole_IsNotEmployee()
-    {
-        // Admin staff must receive elevated access — never the plain "Employee" tier.
-        var staff = MakeStaff("superadmin");
-
-        Assert.NotEqual("Employee", staff.PermissionLevel);
-    }
-
-    [Fact]
-    public void PermissionLevel_ManagerRole_IsNotEmployee()
-    {
-        // Manager staff must receive elevated access — never the plain "Employee" tier.
-        var staff = MakeStaff("manager");
-
-        Assert.NotEqual("Employee", staff.PermissionLevel);
-    }
-
-    [Fact]
-    public void PermissionLevel_NoAdminOrManager_IsEmployee()
-    {
-        // Staff with no privileged roles must land on the default "Employee" tier.
-        var staff = MakeStaff("bartender");
-
-        Assert.Equal("Employee", staff.PermissionLevel);
-    }
-
-    [Fact]
-    public void PermissionLevel_AdminTakesPrecedenceOverManager()
-    {
-        // When a staff member holds both roles, admin-level access must win.
-        // The admin claim and manager claim are different strings — they must not be equal.
-        var admin   = MakeStaff("superadmin");
-        var manager = MakeStaff("manager");
-        var both    = MakeStaff("superadmin", "manager");
-
-        Assert.Equal(admin.PermissionLevel, both.PermissionLevel);
-        Assert.NotEqual(manager.PermissionLevel, both.PermissionLevel);
     }
 
     // ── Activate / Deactivate ─────────────────────────────────────────────────

@@ -3,6 +3,7 @@ using HRNexus.Application.Admin.Queries;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Leave.Commands;
 using HRNexus.Application.Tests.Infrastructure;
+using HRNexus.Domain.Constants;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using E = HRNexus.Domain.Entities;
@@ -765,14 +766,14 @@ public class LeaveCommandTests
     }
 
     [Fact]
-    public async Task UpsertLeave_Sick_NotifiesManagers_WhenAutoApproved()
+    public async Task UpsertLeave_Sick_NotifiesLeaveApprovers_WhenAutoApproved()
     {
-        // When sick leave is auto-approved, managers should receive a notification
+        // When sick leave is auto-approved, everyone who can approve leave is told
         await using var db = CreateDb();
         var staff   = await MakeStaff(db, "S001");
-        // Seed the MANAGER role row so NotifyManagersAsync (which filters on Role.Name == MANAGER via
-        // the AutoInclude nav) can find this manager under the InMemory provider.
-        var manager = await RoleSeed.AddStaffWithRolesAsync(db, "M001", "Bob", "Manager", "bob@test.com", "hash", "MANAGER");
+        // The recipient is whoever holds leave.approve (here through a role), not whoever has a role NAME.
+        var manager = await RoleSeed.AddStaffWithRolesAsync(db, "M001", "Bob", "Manager", "bob@test.com", "hash", "LEAVE APPROVER");
+        await RoleSeed.GrantAsync(db, "LEAVE APPROVER", AppConstants.Permissions.LeaveApprove);
         var today = Weekday(DateTime.UtcNow);
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 40m);
         db.Staff.Add(staff);
@@ -789,7 +790,7 @@ public class LeaveCommandTests
 
         await handler.Handle(cmd, CancellationToken.None);
 
-        // Manager should have received a sick-leave notification
+        // The approver should have received a sick-leave notification
         var mgNotif = await db.Notifications
             .FirstOrDefaultAsync(n => n.EmployeeId == manager.Id);
         Assert.NotNull(mgNotif);
@@ -828,14 +829,14 @@ public class LeaveCommandTests
     // ── Item 2: Manager notified for emergency leave ──────────────────────────
 
     [Fact]
-    public async Task UpsertLeave_Emergency_NotifiesManagers_WhenAutoApproved()
+    public async Task UpsertLeave_Emergency_NotifiesLeaveApprovers_WhenAutoApproved()
     {
-        // Emergency leave submitted as pending → auto-approve AND notify managers
+        // Emergency leave submitted as pending → auto-approve AND tell everyone who can approve leave
         await using var db = CreateDb();
         var staff   = await MakeStaff(db, "S001");
-        // Seed the MANAGER role row so NotifyManagersAsync (which filters on Role.Name == MANAGER via
-        // the AutoInclude nav) can find this manager under the InMemory provider.
-        var manager = await RoleSeed.AddStaffWithRolesAsync(db, "M001", "Carol", "Manager", "carol@test.com", "hash", "MANAGER");
+        // The recipient is whoever holds leave.approve (here through a role), not whoever has a role NAME.
+        var manager = await RoleSeed.AddStaffWithRolesAsync(db, "M001", "Carol", "Manager", "carol@test.com", "hash", "LEAVE APPROVER");
+        await RoleSeed.GrantAsync(db, "LEAVE APPROVER", AppConstants.Permissions.LeaveApprove);
         var today = Weekday(DateTime.UtcNow);
         var ent = E.LeaveEntitlement.Create(staff.Id, today.Year, annualHours: 40m, sickHours: 14m);
         db.Staff.Add(staff);
@@ -852,7 +853,7 @@ public class LeaveCommandTests
 
         await handler.Handle(cmd, CancellationToken.None);
 
-        // Manager should have received an emergency-leave notification
+        // The approver should have received an emergency-leave notification
         var mgNotif = await db.Notifications
             .FirstOrDefaultAsync(n => n.EmployeeId == manager.Id);
         Assert.NotNull(mgNotif);

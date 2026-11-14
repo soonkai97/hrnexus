@@ -633,7 +633,7 @@ public class StaffCommandTests
     {
         // Deactivating the only user who can reach the role management would lock everyone out.
         await using var db = CreateDb();
-        var managerRoleId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
+        var managerRoleId = await RoleSeed.EnsureRoleAsync(db, "FRONT DESK");
         db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.RolesManage));
         var admin = MakeAdmin("MGR1", "meg@test.com", managerRoleId);
         db.Staff.Add(admin);
@@ -651,7 +651,7 @@ public class StaffCommandTests
     public async Task Deactivate_Allows_WhenAnotherActiveAdminRemains()
     {
         await using var db = CreateDb();
-        var managerRoleId = await RoleSeed.EnsureRoleAsync(db, "MANAGER");
+        var managerRoleId = await RoleSeed.EnsureRoleAsync(db, "FRONT DESK");
         db.RolePermissions.Add(E.RolePermission.Create(managerRoleId, AppConstants.Permissions.RolesManage));
         var a = MakeAdmin("MGR1", "meg@test.com", managerRoleId);
         var b = MakeAdmin("MGR2", "moe@test.com", managerRoleId);
@@ -669,9 +669,9 @@ public class StaffCommandTests
     {
         // Re-roling the only admin to a non-admin role would lock everyone out.
         await using var db = CreateDb();
-        var roles = await RoleSeed.EnsureRolesAsync(db, "MANAGER", "BARTENDER");
-        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.RolesManage));
-        var admin = MakeAdmin("MGR1", "meg@test.com", roles["MANAGER"]);
+        var roles = await RoleSeed.EnsureRolesAsync(db, "FRONT DESK", "BARTENDER");
+        db.RolePermissions.Add(E.RolePermission.Create(roles["FRONT DESK"], AppConstants.Permissions.RolesManage));
+        var admin = MakeAdmin("MGR1", "meg@test.com", roles["FRONT DESK"]);
         db.Staff.Add(admin);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -688,10 +688,10 @@ public class StaffCommandTests
     public async Task Update_Allows_RemovingAdminRole_WhenAnotherAdminRemains()
     {
         await using var db = CreateDb();
-        var roles = await RoleSeed.EnsureRolesAsync(db, "MANAGER", "BARTENDER");
-        db.RolePermissions.Add(E.RolePermission.Create(roles["MANAGER"], AppConstants.Permissions.RolesManage));
-        var a = MakeAdmin("MGR1", "meg@test.com", roles["MANAGER"]);
-        var b = MakeAdmin("MGR2", "moe@test.com", roles["MANAGER"]);
+        var roles = await RoleSeed.EnsureRolesAsync(db, "FRONT DESK", "BARTENDER");
+        db.RolePermissions.Add(E.RolePermission.Create(roles["FRONT DESK"], AppConstants.Permissions.RolesManage));
+        var a = MakeAdmin("MGR1", "meg@test.com", roles["FRONT DESK"]);
+        var b = MakeAdmin("MGR2", "moe@test.com", roles["FRONT DESK"]);
         db.Staff.AddRange(a, b);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();

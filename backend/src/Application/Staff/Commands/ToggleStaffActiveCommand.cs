@@ -1,8 +1,6 @@
 ﻿using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Permissions.Commands;
-using HRNexus.Domain.Constants;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Application.Staff.Commands;
 
@@ -29,16 +27,7 @@ public class DeactivateStaffCommandHandler(IAppDbContext db) : IRequestHandler<D
 
         // Lockout guard: if this person is the last active user with role-management access, refuse to
         // deactivate them — otherwise nobody could sign in to reactivate anyone.
-        if (await RolesManageInvariant.UserHasAdminAsync(db, req.Id, ct))
-        {
-            var adminRoles = await db.RolePermissions
-                .Where(rp => rp.PermissionKey == AppConstants.Permissions.RolesManage)
-                .Select(rp => rp.RoleId).Distinct().ToListAsync(ct);
-            if (await RolesManageInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.Id, ct) == 0)
-                throw new ArgumentException(
-                    "This is the last active user with role-management access — deactivating them would " +
-                    "lock everyone out. Grant role-management access to another user or role first.");
-        }
+        await RolesManageInvariant.EnsureNotTheLastAsync(db, req.Id, "deactivating", ct);
 
         emp.Deactivate();
         await db.SaveChangesAsync(ct);

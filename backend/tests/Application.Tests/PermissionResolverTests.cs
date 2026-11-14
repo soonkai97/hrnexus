@@ -55,8 +55,8 @@ public class PermissionResolverTests
     public async Task Effective_IsUnionOfRoleDefaults()
     {
         await using var db = CreateDb();
-        var id = await SeedUser(db, ["MANAGER", "BARTENDER"],
-            rolePerms: new() { ["MANAGER"] = ["roles.manage", "staff.view"], ["BARTENDER"] = ["reports.view"] });
+        var id = await SeedUser(db, ["FRONT DESK", "BARTENDER"],
+            rolePerms: new() { ["FRONT DESK"] = ["roles.manage", "staff.view"], ["BARTENDER"] = ["reports.view"] });
 
         var perms = await MakeResolver(db).GetEffectivePermissionsAsync(id);
 
@@ -79,8 +79,8 @@ public class PermissionResolverTests
     public async Task Revoke_WinsOverRoleDefault()
     {
         await using var db = CreateDb();
-        var id = await SeedUser(db, ["MANAGER"],
-            rolePerms: new() { ["MANAGER"] = ["roles.manage", "staff.manage"] },
+        var id = await SeedUser(db, ["FRONT DESK"],
+            rolePerms: new() { ["FRONT DESK"] = ["roles.manage", "staff.manage"] },
             overrides: [("staff.manage", false)]);   // revoke just this one
 
         var perms = await MakeResolver(db).GetEffectivePermissionsAsync(id);
@@ -93,8 +93,8 @@ public class PermissionResolverTests
     public async Task DeactivatedUser_HasNoPermissions()
     {
         await using var db = CreateDb();
-        var id = await SeedUser(db, ["MANAGER"],
-            rolePerms: new() { ["MANAGER"] = ["roles.manage"] }, active: false);
+        var id = await SeedUser(db, ["FRONT DESK"],
+            rolePerms: new() { ["FRONT DESK"] = ["roles.manage"] }, active: false);
 
         Assert.Empty(await MakeResolver(db).GetEffectivePermissionsAsync(id));
     }

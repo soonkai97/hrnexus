@@ -53,7 +53,7 @@
               @else            { <p-tag value="Inactive" severity="secondary" /> }
             </div>
           </div>
-          <div><label for="sd-view-roles" style="font-size:.75rem;color:var(--p-text-muted-color)">Jobs</label>
+          <div><label for="sd-view-roles" style="font-size:.75rem;color:var(--p-text-muted-color)">Roles</label>
             <div class="d-flex flex-wrap gap-1">
               @for (r of s.roles; track r) { <p-tag [value]="r" severity="info" styleClass="mr-1" /> }
             </div>
@@ -117,14 +117,14 @@
           <!-- Roles — admins only; managers can't change role assignments -->
           @if (!isManager()) {
             <div class="field col-12">
-              <label for="sd-roles">Jobs</label>
+              <label for="sd-roles">Roles</label>
               <p-multiselect
                 inputId="sd-roles"
                 [(ngModel)]="editForm.roles"
                 [options]="roleOptions()"
                 optionLabel="label"
                 optionValue="value"
-                placeholder="Select job(s)…"
+                placeholder="Select role(s)…"
                 [filter]="true"
                 display="chip"
                 [maxSelectedLabels]="50"
@@ -304,9 +304,9 @@
       <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
         <div>
           <h3 class="m-0">Permission overrides</h3>
-          <p style="color:var(--p-text-muted-color);font-size:.85rem;margin:.35rem 0 0">Grant or revoke specific permissions for this person, on top of their jobs.</p>
+          <p style="color:var(--p-text-muted-color);font-size:.85rem;margin:.35rem 0 0">Grant or revoke specific permissions for this person, on top of their roles.</p>
           <p style="color:var(--p-text-muted-color);font-size:.78rem;margin:.4rem 0 0;line-height:1.45;max-width:60ch">
-            <i class="pi pi-info-circle" style="margin-right:.35rem"></i>How it works: a person gets the combined permissions of all their jobs. On their profile, an override can grant an extra permission or revoke one — revoke always wins. Changes take effect immediately.</p>
+            <i class="pi pi-info-circle" style="margin-right:.35rem"></i>How it works: a person gets the combined permissions of all their roles. On their profile, an override can grant an extra permission or revoke one — revoke always wins. Changes take effect immediately.</p>
         </div>
         @if (!permLoading() && !permEditMode()) {
           <p-button label="Edit" icon="pi pi-pencil" severity="primary"
@@ -326,7 +326,7 @@
       } @else if (!permEditMode()) {
         <!-- View mode: only the active overrides, colour-coded; role defaults are implied. -->
         @if (activeOverrides().length === 0) {
-          <p style="color:var(--p-text-muted-color);font-size:.9rem;margin:0">No overrides — this person inherits all permissions from their jobs.</p>
+          <p style="color:var(--p-text-muted-color);font-size:.9rem;margin:0">No overrides — this person inherits all permissions from their roles.</p>
         } @else {
           <div class="perm-list">
             @for (key of activeOverrides(); track key) {

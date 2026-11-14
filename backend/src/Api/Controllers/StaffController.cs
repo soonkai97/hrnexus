@@ -214,7 +214,7 @@ public class StaffController(IMediator mediator) : ControllerBase
         if (newName.Length == 0)
             return BadRequest(new { error = "Role name cannot be empty." });
         if (newName != role.Name && await db.Roles.AnyAsync(r => r.Id != id && r.Name == newName, ct))
-            return Conflict(new { error = $"A job named '{newName}' already exists." });
+            return Conflict(new { error = $"A role named '{newName}' already exists." });
         role.SetName(newName);
         await db.SaveChangesAsync(ct);
         return NoContent();

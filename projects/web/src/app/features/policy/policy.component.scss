@@ -1,0 +1,143 @@
+@use 'styles/theme' as *;
+
+.page {
+  padding: 1rem;
+  max-width: 860px;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+}
+.page-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: $text-muted;
+  font-size: 0.85rem;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0.25rem;
+}
+
+.section {
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid $border-subtle;
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0.5rem;
+  }
+}
+.section-title {
+  margin: 0 0 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  .grid & {
+    margin-bottom: 0;
+  }
+  &.narrow {
+    max-width: 260px;
+  }
+
+  label,
+  .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $text-muted;
+  }
+  .req {
+    color: $neon-pink;
+    margin-right: 0.15rem;
+  }
+  .hint {
+    font-size: 0.75rem;
+    color: $text-muted;
+  }
+}
+
+.day-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.day-toggle {
+  min-width: 3.1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-sm;
+  background: $bg-surface;
+  color: $text-secondary;
+  font-weight: 600;
+  transition: all $transition-fast;
+
+  &:hover {
+    border-color: $neon-purple;
+  }
+  &.on {
+    background: $neon-purple;
+    border-color: $neon-purple;
+    color: #fff;
+  }
+}
+
+.example {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.75rem 0.9rem;
+  border-radius: $radius-md;
+  background: $bg-raised;
+  color: $text-secondary;
+  font-size: 0.85rem;
+  .pi {
+    margin-top: 0.15rem;
+    color: $neon-purple;
+  }
+}
+
+:host :deep(.form-error) {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 0.75rem;
+  }
+  .field.narrow {
+    max-width: none;
+  }
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  .form-actions :deep(.p-button) {
+    width: 100%;
+  }
+}

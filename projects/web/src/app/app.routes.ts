@@ -54,6 +54,13 @@ export const routes: Routes = [
           import('./features/roles/roles.component').then((m) => m.RolesComponent),
       },
       {
+        path: 'policy',
+        canActivate: [permissionGuard('policy.manage', '/home')],
+        canDeactivate: [unsavedChangesGuard],
+        loadComponent: () =>
+          import('./features/policy/policy.component').then((m) => m.PolicyComponent),
+      },
+      {
         path: 'leave',
         canActivate: [permissionGuard('leave.approve', '/home')],
         canDeactivate: [unsavedChangesGuard],

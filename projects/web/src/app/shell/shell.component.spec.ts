@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ShellComponent } from './shell.component';
-import { AuthService, SignalRService, NotificationService, AppUpdateService, PermissionService, LeaveService, ToastService } from 'shared-lib';
+import { AuthService, SignalRService, NotificationService, AppUpdateService, PermissionService, CompanyPolicyService, LeaveService, ToastService } from 'shared-lib';
 
 /**
  * ShellComponent: the one layout for every signed-in user.
@@ -26,6 +26,7 @@ describe('ShellComponent', () => {
   let mockLeave:      { getMine: ReturnType<typeof vi.fn> };
   let mockToast:      { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let held: string[];
+  let mockPolicyLoad: ReturnType<typeof vi.fn>;
 
   function createComponent() {
     mockAuth.user.mockReturnValue({ fullName: 'Jane Doe', roles: ['EMPLOYEE'] });
@@ -40,6 +41,7 @@ describe('ShellComponent', () => {
     mockLeave     = { getMine: vi.fn().mockReturnValue(of([])) };
     mockToast     = { success: vi.fn(), error: vi.fn() };
     held          = [];
+    mockPolicyLoad = vi.fn().mockReturnValue(of(undefined));
     localStorage.clear();
 
     await TestBed.configureTestingModule({
@@ -52,6 +54,7 @@ describe('ShellComponent', () => {
         { provide: NotificationService, useValue: mockNotifSvc },
         { provide: AppUpdateService,    useValue: mockAppUpdate },
         { provide: PermissionService,   useValue: { has: (k: string) => held.includes(k), load: () => of(undefined) } },
+        { provide: CompanyPolicyService, useValue: { load: mockPolicyLoad } },
         { provide: LeaveService,        useValue: mockLeave },
         { provide: ToastService,        useValue: mockToast },
         MessageService,
@@ -106,9 +109,15 @@ describe('ShellComponent', () => {
     });
 
     it('shows every management page to a person holding every permission', () => {
-      held = ['reports.view', 'staff.view', 'leave.approve', 'cashadvance.manage', 'payroll.lock', 'roles.manage'];
+      held = ['reports.view', 'staff.view', 'leave.approve', 'cashadvance.manage', 'payroll.lock', 'roles.manage', 'policy.manage'];
       const c = createComponent();
-      expect(paths(c)).toEqual(expect.arrayContaining(['/dashboard', '/staff', '/leave', '/cash-advances', '/payroll-locks', '/roles']));
+      expect(paths(c)).toEqual(expect.arrayContaining(['/dashboard', '/staff', '/leave', '/cash-advances', '/payroll-locks', '/roles', '/policy']));
+    });
+
+    it('shows Company Policy only to a person holding policy.manage', () => {
+      expect(paths(createComponent())).not.toContain('/policy');
+      held = ['policy.manage'];
+      expect(paths(createComponent())).toContain('/policy');
     });
 
     it('puts "My work" first and drops groups the person cannot use', () => {
@@ -213,6 +222,11 @@ describe('ShellComponent', () => {
     it('starts the SignalR connection on construction', () => {
       createComponent();
       expect(mockSignalR.startConnection).toHaveBeenCalled();
+    });
+
+    it('loads the company policy so leave previews use the working week from the first page', () => {
+      createComponent();
+      expect(mockPolicyLoad).toHaveBeenCalled();
     });
   });
 });

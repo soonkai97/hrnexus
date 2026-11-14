@@ -109,24 +109,18 @@ jobs:
       - name: "Lint (ESLint: zero warnings)"
         run: npm run lint -- --max-warnings 0
 
-      # shared-lib must be built first: the apps compile against dist/shared-lib.
+      # shared-lib must be built first: the app compiles against dist/shared-lib.
       - name: Build shared-lib
         run: npx ng build shared-lib --configuration production
 
-      - name: Build admin-app
-        run: npx ng build admin-app --configuration production
-
-      - name: Build staff-app
-        run: npx ng build staff-app --configuration production
+      - name: Build web
+        run: npx ng build web --configuration production
 
       - name: Unit tests (shared-lib)
         run: npx ng test shared-lib --no-watch
 
-      - name: Unit tests (admin-app)
-        run: npx ng test admin-app --no-watch
-
-      - name: Unit tests (staff-app)
-        run: npx ng test staff-app --no-watch
+      - name: Unit tests (web)
+        run: npx ng test web --no-watch
 
       # Prettier ratchet on the files this PR changes: new files must be formatted, files that were already formatted must stay so,
       # legacy unformatted files are skipped (see scripts/format-check.mjs).

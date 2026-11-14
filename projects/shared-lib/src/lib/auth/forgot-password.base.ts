@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 
 /**
  * Shared logic for the forgot-password page.
- * Both admin-app and staff-app extend this class; each supplies its own template and SCSS.
+ * The web app's forgot-password page extends this class and supplies its own template and SCSS.
  */
 export abstract class ForgotPasswordBase {
   protected readonly auth = inject(AuthService);

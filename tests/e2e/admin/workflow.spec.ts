@@ -17,11 +17,11 @@ import { ensureRole, futureWeekday } from '../shared/api';
  */
 
 const ADMIN = { staffId: 'HRADMIN', password: 'Admin@1234' };
-const API   = 'http://localhost:8080';   // both portals proxy /api to the same backend
+const API   = 'http://localhost:8080';   // one app, one backend
 
 
 test.describe('Full workflow — hire → leave → approve', () => {
-  test('the end-to-end path holds across both portals', async () => {
+  test('the end-to-end path holds across the administrator and employee accounts', async () => {
     test.slow();   // long chain — give it 3× the timeout
 
     const uid       = Date.now().toString().slice(-7);

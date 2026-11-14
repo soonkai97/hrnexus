@@ -61,7 +61,7 @@ test('master is the protected branch and branch names follow <type>/<name>', () 
 test('forbidden paths: secrets, keys, backups and build output, but not .env.example', () => {
   for (const f of ['.env', '.env.production', 'certs/site.pem', 'db/dump.bak', 'backend/src/Api/bin/x.dll', 'dist/main.js', 'logs/app.log', 'coverage/lcov.info'])
     assert.equal(forbiddenPath(f), true, f);
-  for (const f of ['.env.example', 'projects/admin-app/src/app/app.ts', 'backend/src/Api/appsettings.json'])
+  for (const f of ['.env.example', 'projects/web/src/app/app.ts', 'backend/src/Api/appsettings.json'])
     assert.equal(forbiddenPath(f), false, f);
 });
 

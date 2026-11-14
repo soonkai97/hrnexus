@@ -7,8 +7,8 @@ import { defineConfig, devices } from '@playwright/test';
  *   npm run test:e2e
  *
  * Or against ng serve (dev):
- *   ng serve admin-app &
- *   BASE_URL_ADMIN=http://localhost:4200 npm run test:e2e:admin
+ *   ng serve web &
+ *   BASE_URL=http://localhost:4200 npm run test:e2e
  *
  * PW_CHANNEL=msedge (or chrome) runs the installed browser instead of Playwright's bundled
  * Chromium: use it where the bundled headless shell cannot start (for example a locked-down Windows sandbox).
@@ -31,21 +31,15 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 
+  // One web app, one project. The admin/ and staff/ folders group scenarios by the account that runs them
+  // (an administrator or a plain employee); both run against the same URL.
   projects: [
     {
-      name: 'admin',
-      testMatch: '**/admin/**/*.spec.ts',
+      name: 'web',
+      testMatch: '**/{admin,staff}/**/*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env['BASE_URL_ADMIN'] ?? 'http://localhost:8080',
-      },
-    },
-    {
-      name: 'staff',
-      testMatch: '**/staff/**/*.spec.ts',
-      use: {
-        ...devices['Mobile Chrome'],
-        baseURL: process.env['BASE_URL_STAFF'] ?? 'http://localhost:8081',
+        baseURL: process.env['BASE_URL'] ?? 'http://localhost:8080',
       },
     },
   ],

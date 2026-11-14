@@ -20,7 +20,7 @@ import { ADMIN, STAFF } from '../shared/helpers';
  * TESTSTAFF01's overrides so the staff specs still see a plain EMPLOYEE.
  */
 
-const ADMIN_BASE = process.env['BASE_URL_ADMIN'] ?? 'http://localhost:8080';
+const ADMIN_BASE = process.env['BASE_URL'] ?? 'http://localhost:8080';
 
 const login = (ctx: APIRequestContext, staffId: string, password: string) =>
   ctx.post('/api/auth/login', { data: { staffId, password } });

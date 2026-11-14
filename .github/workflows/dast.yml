@@ -23,7 +23,7 @@ env:
 
 jobs:
   zap-baseline:
-    name: ZAP baseline scan (admin and staff portals)
+    name: ZAP baseline scan (web app)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -42,34 +42,23 @@ jobs:
           # The ZAP container runs as an unprivileged user and must write its reports here.
           chmod -R a+rwX zap-wrk
 
-      - name: ZAP baseline (admin portal, :8080)
+      - name: ZAP baseline (web app, :8080)
         run: |
           set +e
           docker run --rm --network host -v "$PWD/zap-wrk:/zap/wrk:rw" "$ZAP_IMAGE" \
             zap-baseline.py -t http://localhost:8080 -c rules.tsv -I -T 20 \
-            -r admin.html -J admin.json
+            -r web.html -J web.json
           code=$?
-          echo "zap-baseline (admin) exit code: $code"
+          echo "zap-baseline exit code: $code"
           # 0 = clean, 1 = a rule set to FAIL (none), 2 = warnings (ignored here, -I). Anything else means ZAP itself failed.
           if [ "$code" -ge 3 ]; then exit 1; fi
-          test -s zap-wrk/admin.json
-
-      - name: ZAP baseline (staff portal, :8081)
-        run: |
-          set +e
-          docker run --rm --network host -v "$PWD/zap-wrk:/zap/wrk:rw" "$ZAP_IMAGE" \
-            zap-baseline.py -t http://localhost:8081 -c rules.tsv -I -T 20 \
-            -r staff.html -J staff.json
-          code=$?
-          echo "zap-baseline (staff) exit code: $code"
-          if [ "$code" -ge 3 ]; then exit 1; fi
-          test -s zap-wrk/staff.json
+          test -s zap-wrk/web.json
 
       - name: Fail on high-risk alerts
         run: |
           # Accepted findings are the rules set to IGNORE in .github/zap/rules.tsv; they never fail the run.
           accepted=$(awk -F'\t' '$1 !~ /^#/ && $2 == "IGNORE" { print $1 }' .github/zap/rules.tsv | jq -R . | jq -s .)
-          for portal in admin staff; do
+          for portal in web; do
             echo "---- $portal ----"
             jq -r --argjson accepted "$accepted" '
               [.site[]?.alerts[]? | select(.riskcode == "3") | select(.pluginid as $id | $accepted | index($id) | not)]
@@ -88,10 +77,8 @@ jobs:
         with:
           name: zap-baseline
           path: |
-            zap-wrk/admin.html
-            zap-wrk/admin.json
-            zap-wrk/staff.html
-            zap-wrk/staff.json
+            zap-wrk/web.html
+            zap-wrk/web.json
           if-no-files-found: ignore
           retention-days: 30
 

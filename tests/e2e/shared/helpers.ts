@@ -73,7 +73,7 @@ async function setAuthState(
 }
 
 /**
- * Login to the admin app (project baseURL = http://localhost:8080).
+ * Sign in as the administrator (project baseURL = http://localhost:8080).
  * Uses the direct-API approach so the reactive form cannot interfere.
  */
 export async function loginAdmin(page: Page): Promise<void> {
@@ -83,7 +83,7 @@ export async function loginAdmin(page: Page): Promise<void> {
 }
 
 /**
- * Login to the staff app (project baseURL = http://localhost:8081).
+ * Sign in as a plain employee (same app, project baseURL = http://localhost:8080).
  * Uses TESTSTAFF01 (EMPLOYEE role) so the staff specs see a plain employee's data.
  * The account is created by global-setup before any tests run.
  */

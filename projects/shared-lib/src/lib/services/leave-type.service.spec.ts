@@ -78,7 +78,10 @@ describe('LeaveTypeService', () => {
     http.expectOne('/api/leave-types').flush({
       version: 2,
       isSaved: true,
-      types: [type({ key: 'b', label: 'B', sortOrder: 20 }), type({ key: 'a', label: 'A', sortOrder: 10 })],
+      types: [
+        type({ key: 'b', label: 'B', sortOrder: 20 }),
+        type({ key: 'a', label: 'A', sortOrder: 10 }),
+      ],
     } satisfies LeaveTypeCatalogue);
 
     expect(service.types().map((t) => t.key)).toEqual(['a', 'b']);
@@ -139,7 +142,10 @@ describe('LeaveTypeService', () => {
   it('a calendar-day type counts every day of the week at the company hours per day', () => {
     const company = { days: [1, 2, 3, 4, 5], hours: 7.5 };
 
-    expect(service.scheduleFor('maternity', company)).toEqual({ days: [1, 2, 3, 4, 5, 6, 7], hours: 7.5 });
+    expect(service.scheduleFor('maternity', company)).toEqual({
+      days: [1, 2, 3, 4, 5, 6, 7],
+      hours: 7.5,
+    });
     expect(service.scheduleFor('annual', company)).toBe(company);
     expect(service.scheduleFor('mystery', company)).toBe(company);
   });
@@ -164,7 +170,9 @@ describe('LeaveTypeService', () => {
   it('loadAll() returns every type with which already have leave, and the version to save against', () => {
     let got: LeaveTypeCatalogue | undefined;
     service.loadAll().subscribe((c) => (got = c));
-    http.expectOne('/api/leave-types/all').flush({ version: 3, isSaved: true, types: [type({ hasLeave: true })] });
+    http
+      .expectOne('/api/leave-types/all')
+      .flush({ version: 3, isSaved: true, types: [type({ hasLeave: true })] });
 
     expect(got?.version).toBe(3);
     expect(got?.types[0]?.hasLeave).toBe(true);
@@ -190,7 +198,9 @@ describe('LeaveTypeService', () => {
   it('save() lets a stale-version refusal reach the caller', () => {
     let status: number | undefined;
     service.save(1, [type({})]).subscribe({ error: (e) => (status = e.status) });
-    http.expectOne('/api/leave-types').flush({ error: 'someone else' }, { status: 409, statusText: 'Conflict' });
+    http
+      .expectOne('/api/leave-types')
+      .flush({ error: 'someone else' }, { status: 409, statusText: 'Conflict' });
 
     expect(status).toBe(409);
   });

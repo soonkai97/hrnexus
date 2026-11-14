@@ -58,7 +58,10 @@ test.describe.serial('Leave types', () => {
     adminApi = await playwright.request.newContext({ baseURL: BASE });
     expect((await login(adminApi, ADMIN.staffId, ADMIN.password)).ok(), 'admin login').toBeTruthy();
     employeeApi = await playwright.request.newContext({ baseURL: BASE });
-    expect((await login(employeeApi, STAFF.staffId, STAFF.password)).ok(), 'employee login').toBeTruthy();
+    expect(
+      (await login(employeeApi, STAFF.staffId, STAFF.password)).ok(),
+      'employee login',
+    ).toBeTruthy();
     original = await getAll(adminApi);
   });
 
@@ -73,7 +76,14 @@ test.describe.serial('Leave types', () => {
     const read = await employeeApi.get('/api/leave-types');
     expect(read.ok(), 'an employee reads the catalogue').toBeTruthy();
     const keys = ((await read.json()) as CatalogueDto).types.map((t) => t.key);
-    for (const key of ['annual', 'sick', 'hospitalisation', 'maternity', 'paternity', 'compassionate'])
+    for (const key of [
+      'annual',
+      'sick',
+      'hospitalisation',
+      'maternity',
+      'paternity',
+      'compassionate',
+    ])
       expect(keys, `the owner's type '${key}'`).toContain(key);
 
     expect((await employeeApi.get('/api/leave-types/all')).status()).toBe(403);
@@ -136,15 +146,22 @@ test.describe.serial('Leave types', () => {
 
     // The catalogue is the only source of what staff are offered.
     expect(
-      ((await (await employeeApi.get('/api/leave-types')).json()) as CatalogueDto).types.map((t) => t.key),
+      ((await (await employeeApi.get('/api/leave-types')).json()) as CatalogueDto).types.map(
+        (t) => t.key,
+      ),
     ).toContain(key);
 
     // Switch it off on the page: it stops taking new requests (and no leave row is created).
-    await page.locator('.type-row', { hasText: 'Exam leave' }).getByRole('button', { name: 'Turn off' }).click();
+    await page
+      .locator('.type-row', { hasText: 'Exam leave' })
+      .getByRole('button', { name: 'Turn off' })
+      .click();
     await save.click();
     await expect(page.locator('.type-row.inactive', { hasText: 'Exam leave' })).toBeVisible();
     const day = futureMonday(200 + Math.floor(Math.random() * 100));
-    const off = await employeeApi.post('/api/leave', { data: { leaveType: key, startDate: day, endDate: day } });
+    const off = await employeeApi.post('/api/leave', {
+      data: { leaveType: key, startDate: day, endDate: day },
+    });
     expect(off.status(), 'a deactivated type takes no new requests').toBe(400);
   });
 
@@ -162,6 +179,8 @@ test.describe.serial('Leave types', () => {
     expect(withoutSick.status()).toBe(400);
     expect(((await withoutSick.json()) as { error: string }).error).toMatch(/system type/i);
 
-    expect((await getAll(adminApi)).version, 'neither refused save changed anything').toBe(current.version);
+    expect((await getAll(adminApi)).version, 'neither refused save changed anything').toBe(
+      current.version,
+    );
   });
 });

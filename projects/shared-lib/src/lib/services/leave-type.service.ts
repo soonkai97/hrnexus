@@ -137,8 +137,8 @@ export class LeaveTypeService {
    * @returns the new version
    */
   save(version: number, types: LeaveTypeDefinition[]): Observable<number> {
-    return this.http.put<{ version: number }>('/api/leave-types', { version, types }).pipe(
-      switchMap((res) => this.load().pipe(map(() => res.version))),
-    );
+    return this.http
+      .put<{ version: number }>('/api/leave-types', { version, types })
+      .pipe(switchMap((res) => this.load().pipe(map(() => res.version))));
   }
 }

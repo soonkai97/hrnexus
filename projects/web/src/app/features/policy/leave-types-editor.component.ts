@@ -57,7 +57,19 @@ const KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 @Component({
   selector: 'app-leave-types-editor',
   standalone: true,
-  imports: [FormsModule, Button, Card, Checkbox, Dialog, InputText, Message, PrimeTemplate, Select, Skeleton, Tag],
+  imports: [
+    FormsModule,
+    Button,
+    Card,
+    Checkbox,
+    Dialog,
+    InputText,
+    Message,
+    PrimeTemplate,
+    Select,
+    Skeleton,
+    Tag,
+  ],
   templateUrl: './leave-types-editor.component.html',
   styleUrl: './leave-types-editor.component.scss',
 })
@@ -186,7 +198,11 @@ export class LeaveTypesEditorComponent implements OnInit, CanComponentDeactivate
       allowanceDays: t.allowanceDays,
       maxDaysPerRequest: t.maxDaysPerRequest,
       autoApprove: t.autoApprove,
-      noticeMode: t.advanceNoticeFromPolicy ? 'policy' : t.advanceNoticeDays !== null ? 'days' : 'none',
+      noticeMode: t.advanceNoticeFromPolicy
+        ? 'policy'
+        : t.advanceNoticeDays !== null
+          ? 'days'
+          : 'none',
       noticeDays: t.advanceNoticeDays,
       deductsPay: t.deductsPay,
       adminOnly: t.adminOnly,
@@ -213,21 +229,35 @@ export class LeaveTypesEditorComponent implements OnInit, CanComponentDeactivate
       const key = d.key.trim();
       if (key.length === 0 || key.length > 20 || !KEY_PATTERN.test(key))
         return 'The key is 1 to 20 lower-case letters, digits or hyphens (for example study-leave).';
-      if (this.rows().some((r) => r.key === key)) return `A leave type with the key '${key}' already exists.`;
+      if (this.rows().some((r) => r.key === key))
+        return `A leave type with the key '${key}' already exists.`;
     }
     const label = d.label.trim();
-    if (label.length === 0 || label.length > 40) return 'Give the type a name of up to 40 characters.';
-    if (d.sortOrder === null || !Number.isFinite(d.sortOrder) || d.sortOrder < 0 || d.sortOrder > 1000)
+    if (label.length === 0 || label.length > 40)
+      return 'Give the type a name of up to 40 characters.';
+    if (
+      d.sortOrder === null ||
+      !Number.isFinite(d.sortOrder) ||
+      d.sortOrder < 0 ||
+      d.sortOrder > 1000
+    )
       return 'The order must be between 0 and 1000.';
-    if (d.pool === 'own' && !(d.allowanceDays !== null && d.allowanceDays > 0 && d.allowanceDays <= 366))
+    if (
+      d.pool === 'own' &&
+      !(d.allowanceDays !== null && d.allowanceDays > 0 && d.allowanceDays <= 366)
+    )
       return 'Enter the yearly allowance, between 0.5 and 366 days.';
     if (d.maxDaysPerRequest !== null && !(d.maxDaysPerRequest >= 0.5 && d.maxDaysPerRequest <= 366))
       return 'The longest single request must be between 0.5 and 366 days.';
-    if (d.noticeMode === 'days' && !(d.noticeDays !== null && d.noticeDays >= 0 && d.noticeDays <= 60))
+    if (
+      d.noticeMode === 'days' &&
+      !(d.noticeDays !== null && d.noticeDays >= 0 && d.noticeDays <= 60)
+    )
       return 'Notice must be between 0 and 60 days.';
     if (d.autoApprove && d.pool === 'none')
       return 'A type with no balance cannot approve itself: a long absence needs a manager.';
-    if (d.autoApprove && d.adminOnly) return 'A type recorded by an administrator cannot also approve itself.';
+    if (d.autoApprove && d.adminOnly)
+      return 'A type recorded by an administrator cannot also approve itself.';
     return '';
   }
 
@@ -292,7 +322,8 @@ export class LeaveTypesEditorComponent implements OnInit, CanComponentDeactivate
   /** What is wrong with the catalogue as a whole, in words. */
   catalogueError(): string {
     const rows = this.rows();
-    if (!rows.some((r) => r.active && !r.adminOnly)) return 'At least one active leave type must be open to staff.';
+    if (!rows.some((r) => r.active && !r.adminOnly))
+      return 'At least one active leave type must be open to staff.';
     return '';
   }
 

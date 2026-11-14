@@ -7,8 +7,8 @@ namespace HRNexus.Infrastructure.Persistence;
 public static class SeedData
 {
     /// <summary>
-    /// The name given to the first administrator role when a database has none. It is only a name: nothing
-    /// looks the role up by it afterwards (the role is found by its <c>IsSystem</c> flag), so it can be renamed.
+    /// The name given to the first administrator job when a database has none. It is only a name: nothing
+    /// looks the job up by it afterwards (the job is found by its <c>IsSystem</c> flag), so it can be renamed.
     /// </summary>
     public const string BootstrapRoleName = "ADMINISTRATOR";
 
@@ -21,9 +21,9 @@ public static class SeedData
     public static async Task SeedDemoUsersAsync(AppDbContext db,
         HRNexus.Application.Common.Interfaces.IPasswordHasher hasher)
     {
-        // The first administrator role: the one role flagged IsSystem. If a database has several (older data),
-        // the oldest wins. If none is flagged, an existing role already called ADMINISTRATOR is flagged
-        // (never inserted twice: the name is unique), otherwise the role is created.
+        // The first administrator job: the one job flagged IsSystem. If a database has several (older data),
+        // the oldest wins. If none is flagged, an existing job already called ADMINISTRATOR is flagged
+        // (never inserted twice: the name is unique), otherwise the job is created.
         var bootstrap = await db.Roles.Where(r => r.IsSystem)
             .OrderBy(r => r.CreatedAt).ThenBy(r => r.Name).FirstOrDefaultAsync();
         if (bootstrap is null)
@@ -39,7 +39,7 @@ public static class SeedData
                 bootstrap.MarkSystem();
             }
         }
-        // Save so a newly created role has its id before permissions and the account reference it.
+        // Save so a newly created job has its id before permissions and the account reference it.
         await db.SaveChangesAsync();
 
         // It always holds EVERY permission (the roles page does not let anyone edit it), and a permission added

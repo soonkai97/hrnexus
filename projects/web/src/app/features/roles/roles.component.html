@@ -1,17 +1,17 @@
 ﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
-    <h1 class="page-title">Roles</h1>
+    <h1 class="page-title">Jobs</h1>
     <div class="d-flex gap-2">
-      <p-button icon="pi pi-plus" label="Add New Role" severity="primary" (click)="openAdd()" />
+      <p-button icon="pi pi-plus" label="Add New Job" severity="primary" (click)="openAdd()" />
     </div>
   </div>
 
   <!-- Add new role dialog -->
   <p-dialog [visible]="showForm()" (visibleChange)="!$event && cancel()"
-            header="Add New Role" [modal]="true"
+            header="Add New Job" [modal]="true"
             [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     <div class="field">
-      <label for="rl-role-name"><span class="req">*</span> Role Name</label>
+      <label for="rl-role-name"><span class="req">*</span> Job Name</label>
       <input id="rl-role-name" pInputText type="text" [ngModel]="newRoleName" (ngModelChange)="newRoleName = $event.toUpperCase()"
              placeholder="e.g. SUPERVISOR" maxlength="50" (keydown.enter)="addRole()"
              (blur)="markTouched('name')" [class.input-invalid]="!!fieldError('name')" styleClass="w-full" />
@@ -24,12 +24,12 @@
     </ng-template>
   </p-dialog>
 
-  <!-- Rename role dialog — custom roles only (a system role's name is its authorization key). -->
+  <!-- Rename job dialog — custom jobs only (a system job's name is its authorization key). -->
   <p-dialog [visible]="editingId() !== null" (visibleChange)="!$event && cancelEdit()"
-            header="Edit Role" [modal]="true"
+            header="Edit Job" [modal]="true"
             [style]="{'width':'min(460px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
     <div class="field">
-      <label for="rl-edit-name"><span class="req">*</span> Role Name</label>
+      <label for="rl-edit-name"><span class="req">*</span> Job Name</label>
       <input id="rl-edit-name" pInputText type="text" [ngModel]="editingName()"
              (ngModelChange)="editingName.set($event.toUpperCase())"
              maxlength="50" styleClass="w-full" (keydown.enter)="saveEdit()" />
@@ -46,7 +46,7 @@
     <p-card styleClass="empty-state">
       <div class="empty-inner d-flex flex-column align-items-center gap-2">
         <span><i class="pi pi-id-card"></i></span>
-        <p>No roles found.</p>
+        <p>No jobs found.</p>
       </div>
     </p-card>
   } @else {
@@ -56,7 +56,7 @@
       [paginator]="roles().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]">
       <ng-template pTemplate="header">
         <tr>
-          <th scope="col" pSortableColumn="name">Role Name <p-sortIcon field="name" /></th>
+          <th scope="col" pSortableColumn="name">Job Name <p-sortIcon field="name" /></th>
           <th scope="col" pSortableColumn="isSystem">Type <p-sortIcon field="isSystem" /></th>
           <th scope="col" class="td-actions"></th>
         </tr>
@@ -64,7 +64,7 @@
       <ng-template pTemplate="body" let-role>
         <tr>
           <td>
-            <span class="p-column-title">Role Name</span>
+            <span class="p-column-title">Job Name</span>
             <p-tag [value]="role.name" severity="info" />
           </td>
           <td>
@@ -94,18 +94,18 @@
 <p-dialog
   [visible]="!!permRole()"
   (visibleChange)="!$event && closePermissions()"
-  [header]="'Role permissions' + (permRole() ? ' — ' + permRole() : '')"
+  [header]="'Job permissions' + (permRole() ? ' — ' + permRole() : '')"
   [modal]="true"
   [style]="{'width':'min(480px, 92vw)'}"
   [draggable]="false" [closable]="true" appendTo="body">
 
-  <p class="modal-desc">Default permissions granted to everyone with this role.</p>
+  <p class="modal-desc">Default permissions granted to everyone with this job.</p>
   @if (permReadOnly()) {
     <p class="modal-desc" style="font-size:.78rem;line-height:1.45">
-      <i class="pi pi-lock" style="margin-right:.35rem"></i>This is the first administrator role. It always holds every permission, so these can't be changed. You can still rename it.</p>
+      <i class="pi pi-lock" style="margin-right:.35rem"></i>This is the first administrator job. It always holds every permission, so these can't be changed. You can still rename it.</p>
   }
   <p class="modal-desc" style="font-size:.78rem;line-height:1.45">
-    <i class="pi pi-info-circle" style="margin-right:.35rem"></i>How it works: a person gets the combined permissions of all their roles. On their profile, an override can grant an extra permission or revoke one — revoke always wins. Changes take effect immediately.</p>
+    <i class="pi pi-info-circle" style="margin-right:.35rem"></i>How it works: a person gets the combined permissions of all their jobs. On their profile, an override can grant an extra permission or revoke one — revoke always wins. Changes take effect immediately.</p>
 
   <div class="perm-list">
     @for (group of visiblePermGroups(); track group.label) {

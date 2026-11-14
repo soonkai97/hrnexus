@@ -555,7 +555,7 @@ public class StaffCommandTests
     public async Task Delete_RemovesRelatedNotifications()
     {
         // Notifications must be cleaned up alongside the deleted staff (they're independent rows the
-        // soft-delete would otherwise orphan). Assigned roles removal is proven over real
+        // soft-delete would otherwise orphan). Assigned jobs removal is proven over real
         // Postgres in Integration.Tests (the join tables don't model reliably on EF InMemory).
         await using var db = CreateDb();
         var staff = MakeStaff();

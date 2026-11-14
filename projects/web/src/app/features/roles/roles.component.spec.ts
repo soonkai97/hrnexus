@@ -7,14 +7,14 @@ import { RolesComponent } from './roles.component';
 import { StaffStore, ToastService, ConfirmService, PermissionAdminService } from 'shared-lib';
 
 /**
- * RolesComponent — role-role CRUD (add, rename custom roles, delete, permissions).
+ * RolesComponent — job-role CRUD (add, rename custom jobs, delete, permissions).
  *
  * WHY these tests matter:
  *  - addRole() must trim and guard empty names — a blank role name breaks the
  *    role dropdown in every staff form and can cause FK constraint errors.
  *  - saveEdit() must close the dialog after success — leaving it open would
  *    allow accidental double-saves.
- *  - System roles cannot be renamed — their name is the authorization key.
+ *  - System jobs cannot be renamed — their name is the authorization key.
  *  - deleteRole() confirm flow ensures managers don't accidentally remove a role
  *    that is still assigned to staff members.
  */
@@ -96,7 +96,7 @@ describe('RolesComponent', () => {
       expect(mockStaffStore.createRole).not.toHaveBeenCalled();
     });
 
-    it('calls createRole with the trimmed uppercased name only — roles carry no pay data', () => {
+    it('calls createRole with the trimmed uppercased name only — jobs carry no pay data', () => {
       component.newRoleName = '  bartender  ';
       component.addRole();
       expect(mockStaffStore.createRole).toHaveBeenCalledWith('BARTENDER');
@@ -105,7 +105,7 @@ describe('RolesComponent', () => {
     it('shows success toast after creating a role', () => {
       component.newRoleName = 'host';
       component.addRole();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Role created.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Job created.');
     });
 
     it('hides the form after successfully creating a role', () => {
@@ -147,7 +147,7 @@ describe('RolesComponent', () => {
       expect(component.editingName()).toBe('MIXOLOGIST');
     });
 
-    it('opens for the first administrator role too: nothing looks a role up by its name', () => {
+    it('opens for the first administrator job too: nothing looks a job up by its name', () => {
       component.startEdit({ id: 'role-admin-id', name: 'ADMINISTRATOR', isSystem: true });
       expect(component.editingId()).toBe('role-admin-id');
       expect(component.editingName()).toBe('ADMINISTRATOR');
@@ -169,29 +169,29 @@ describe('RolesComponent', () => {
       return component.roleMenuItems().map(i => i.label);
     };
 
-    it('offers Edit, permissions and Delete for a custom role', () => {
-      expect(open(bartender)).toEqual(['Edit', 'Role permissions', undefined, 'Delete']);
+    it('offers Edit, permissions and Delete for a custom job', () => {
+      expect(open(bartender)).toEqual(['Edit', 'Job permissions', undefined, 'Delete']);
     });
 
-    it('offers Edit and permissions, but not Delete, for the first administrator role', () => {
-      expect(open({ id: 'role-admin-id', name: 'ADMINISTRATOR', isSystem: true })).toEqual(['Edit', 'Role permissions']);
+    it('offers Edit and permissions, but not Delete, for the first administrator job', () => {
+      expect(open({ id: 'role-admin-id', name: 'ADMINISTRATOR', isSystem: true })).toEqual(['Edit', 'Job permissions']);
     });
   });
 
-  // ── permissions dialog: the first administrator role is read-only ─────────────
+  // ── permissions dialog: the first administrator job is read-only ─────────────
 
   describe('openPermissions() / savePermissions()', () => {
-    it('a custom role opens editable', () => {
+    it('a custom job opens editable', () => {
       component.openPermissions('BARTENDER');
       expect(component.permReadOnly()).toBe(false);
     });
 
-    it('the first administrator role opens read-only', () => {
+    it('the first administrator job opens read-only', () => {
       component.openPermissions('ADMINISTRATOR', true);
       expect(component.permReadOnly()).toBe(true);
     });
 
-    it('never sends a save for a read-only role (the server would refuse it anyway)', () => {
+    it('never sends a save for a read-only job (the server would refuse it anyway)', () => {
       const setSpy = vi.spyOn((component as unknown as { permSvc: { setRolePermissions: () => void } }).permSvc, 'setRolePermissions');
       component.openPermissions('ADMINISTRATOR', true);
       component.savePermissions();
@@ -225,7 +225,7 @@ describe('RolesComponent', () => {
 
     it('shows success toast after renaming', () => {
       component.saveEdit();
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Role updated.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Job updated.');
     });
 
     it('clears savingEdit flag after success', () => {
@@ -246,7 +246,7 @@ describe('RolesComponent', () => {
       expect(component.savingEdit()).toBe(false);
     });
 
-    it('does nothing when no role is being edited', () => {
+    it('does nothing when no job is being edited', () => {
       component.cancelEdit();
       component.saveEdit();
       expect(mockStaffStore.renameRole).not.toHaveBeenCalled();
@@ -268,7 +268,7 @@ describe('RolesComponent', () => {
 
     it('shows success toast after deletion', () => {
       component.deleteRole('role-bartender-id');
-      expect(mockToastSvc.success).toHaveBeenCalledWith('Role deleted.');
+      expect(mockToastSvc.success).toHaveBeenCalledWith('Job deleted.');
     });
 
     it('does NOT delete when confirmation is cancelled', () => {

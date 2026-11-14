@@ -15,7 +15,7 @@ import { ADMIN, STAFF } from '../shared/helpers';
  * cookie is auto-sent on every subsequent request from it. This keeps the admin operator and the
  * employee subject cleanly separated without juggling tokens.
  *
- * Uses the seeded HRADMIN (holds every permission through the first administrator role) as the operator and TESTSTAFF01
+ * Uses the seeded HRADMIN (holds every permission through the first administrator job) as the operator and TESTSTAFF01
  * (EMPLOYEE, created by global-setup, no permissions by default) as the subject. afterAll resets
  * TESTSTAFF01's overrides so the staff specs still see a plain EMPLOYEE.
  */

@@ -9,7 +9,7 @@ namespace HRNexus.Application.Tests;
 
 /// <summary>
 /// WHY these tests matter: deleting an account is the one way to take someone out that the lock-out
-/// guard on deactivate did not cover. If the LAST person who can manage roles and permissions could be
+/// guard on deactivate did not cover. If the LAST person who can manage jobs and permissions could be
 /// deleted by anyone with <c>staff.manage</c>, nobody could sign in to repair access. And because the
 /// protection is by permission (not by an "admin" role name), it must hold for any role that grants
 /// <c>roles.manage</c>.

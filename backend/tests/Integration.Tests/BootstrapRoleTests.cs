@@ -10,7 +10,7 @@ using E = HRNexus.Domain.Entities;
 namespace HRNexus.Integration.Tests;
 
 /// <summary>
-/// Phase 7o: no role is special because of its NAME. The first administrator role is found by its flag, it
+/// Phase 7o: no job is special because of its NAME. The first administrator job is found by its flag, it
 /// always holds every permission, and the documented first-run account exists only in an empty database.
 ///
 /// WHY these tests matter: the seed runs at every start, and the migration moves real data on existing
@@ -169,7 +169,7 @@ public class BootstrapRoleTests(PostgresFixture fx)
         Assert.Contains(await db.StaffRoles.Where(sr => sr.EmployeeId == lead.Id).Select(sr => sr.RoleId).ToListAsync(), id => id == mgr.Id);
         Assert.True(await db.RolePermissions.AnyAsync(rp => rp.RoleId == mgr.Id && rp.PermissionKey == AppConstants.Permissions.StaffView));
 
-        // The next start does not create a second administrator role or the default-password account.
+        // The next start does not create a second administrator job or the default-password account.
         await SeedAsync(db);
         Assert.Equal(1, await db.Roles.CountAsync(r => r.IsSystem));
         Assert.False(await db.Staff.AnyAsync(s => s.StaffId == "HRADMIN"));
@@ -180,7 +180,7 @@ public class BootstrapRoleTests(PostgresFixture fx)
     {
         await using var db = await DbBeforeThisPhaseAsync();
         var superadmin = E.Role.Create("SUPERADMIN", isSystem: true);
-        var custom = E.Role.Create("ADMINISTRATOR");   // the name is taken by a custom role
+        var custom = E.Role.Create("ADMINISTRATOR");   // the name is taken by a custom job
         db.Roles.AddRange(superadmin, custom);
         await db.SaveChangesAsync();
         db.RolePermissions.Add(E.RolePermission.Create(superadmin.Id, AppConstants.Permissions.RolesManage));

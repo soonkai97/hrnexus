@@ -339,7 +339,7 @@ describe('StaffComponent', () => {
         phoneNumber: '', icNo: null, passportNo: null, dateOfBirth: null,
       };
       component.saveStaff();
-      expect(component.error()).toBe('Please select at least one role.');
+      expect(component.error()).toBe('Please select at least one job.');
     });
   });
 

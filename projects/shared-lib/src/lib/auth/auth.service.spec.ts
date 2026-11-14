@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 import { AuthUser } from '../models';
 
 function fakeUser(roles: string[]): AuthUser {
-  // `roles` are role NAMES, for display only.
+  // `roles` are job NAMES, for display only.
   return {
     id: 'u1', staffId: 'NC001', fullName: 'Test User', email: 't@test.com', roles,
   };

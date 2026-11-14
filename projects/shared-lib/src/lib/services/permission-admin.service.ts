@@ -34,7 +34,7 @@ export const PERMISSION_LABELS: Readonly<Record<string, string>> = {
   'payroll.view': 'View payroll',
   'payroll.manage': 'Manage payroll',
   'payroll.lock': 'Lock payroll periods',
-  'roles.manage': 'Manage roles & permissions',
+  'roles.manage': 'Manage jobs & permissions',
 };
 
 export const PERMISSION_DESCRIPTIONS: Readonly<Record<string, string>> = {
@@ -48,7 +48,7 @@ export const PERMISSION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   'payroll.view': "See a staff member's salary and pay history.",
   'payroll.manage': "Record a raise and set a staff member's employment details.",
   'payroll.lock': 'Lock or reopen a payroll month.',
-  'roles.manage': 'Create, rename and delete roles, and assign these permissions.',
+  'roles.manage': 'Create, rename and delete jobs, and assign these permissions.',
 };
 
 /** Falls back to the raw key so an unlisted permission is never shown blank. */

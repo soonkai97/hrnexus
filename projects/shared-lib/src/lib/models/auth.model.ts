@@ -18,7 +18,7 @@ export interface AuthUser {
   staffId: string;
   fullName: string;
   email: string;
-  /** Assigned role NAMES, for display (the profile card). What a person may open or do is decided by permissions, never by a role's name. */
+  /** Assigned job NAMES, for display (the profile card). What a person may open or do is decided by permissions, never by a job's name. */
   roles: string[];
 }
 

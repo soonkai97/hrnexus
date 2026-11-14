@@ -107,7 +107,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
   }
 
-  // Every defined role is assignable; what a role allows is decided by its permissions.
+  // Every defined job is assignable; what a job allows is decided by its permissions.
   availableRoles = computed(() => this.roles());
 
   // Picker options; the value is the role GUID id (register/update expect role IDS).
@@ -222,7 +222,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
 
     if (!this.newStaff.roles.length) {
       const defaultRole = this.availableRoles()[0]?.id;
-      if (!defaultRole) { this.error.set('Please select at least one role.'); return; }
+      if (!defaultRole) { this.error.set('Please select at least one job.'); return; }
       this.newStaff.roles = [defaultRole];
     }
     this.saving.set(true);
@@ -369,7 +369,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
       next: (r) => {
         this.bulkSaving.set(false);
         this.showBulkRoles.set(false);
-        this.toast.success(`Roles assigned to ${r.count} staff.`);
+        this.toast.success(`Jobs assigned to ${r.count} staff.`);
         this.afterBulk();
       },
       error: (e) => {

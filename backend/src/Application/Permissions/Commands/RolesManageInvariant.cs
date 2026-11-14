@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HRNexus.Application.Permissions.Commands;
 
 /// <summary>
-/// Protects the invariant: there must always be at least one ACTIVE user who can manage roles and
+/// Protects the invariant: there must always be at least one ACTIVE user who can manage jobs and
 /// permissions (i.e. effectively holds <c>roles.manage</c>). A permission edit that would drop that count to
 /// zero is rejected — otherwise nobody could log in to undo it, an irrecoverable lockout. The guard runs
 /// only when an edit actually REMOVES admin access, so it never blocks unrelated edits, and it computes

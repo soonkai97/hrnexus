@@ -52,13 +52,13 @@ test.describe('Admin — staff list', () => {
 
   // ── Bulk actions ─────────────────────────────────────────────────────────────
   // Entering bulk mode reveals a selection column + an action bar; opening the
-  // "Assign roles" action shows its dialog. Non-destructive — no action is applied.
-  test('bulk mode reveals the action bar and the assign-roles dialog', async ({ page }) => {
+  // "Assign jobs" action shows its dialog. Non-destructive — no action is applied.
+  test('bulk mode reveals the action bar and the assign-jobs dialog', async ({ page }) => {
     await page.waitForSelector('tbody tr', { timeout: 8_000 });
     await page.getByRole('button', { name: /bulk select/i }).first().click();
     // Select-all header checkbox appears in bulk mode, then the action buttons enable.
     await page.locator('thead .p-checkbox, thead p-checkbox').first().click();
-    const assignRoles = page.getByRole('button', { name: /assign roles/i });
+    const assignRoles = page.getByRole('button', { name: /assign jobs/i });
     await expect(assignRoles).toBeVisible({ timeout: 5_000 });
     await assignRoles.click();
     await expect(page.locator('label[for="bulk-roles"]')).toBeVisible({ timeout: 5_000 });

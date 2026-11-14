@@ -960,17 +960,17 @@ public class MyFeatureTests
 | `StubTokenService` | `ITokenService` — always returns a fixed token/refresh pair |
 | `StubDateTimeProvider` | `IDateTimeProvider` — exposes a mutable `DateTime _now` field |
 
-### Access is decided by permissions, never by a role's name (Phase 7o)
+### Access is decided by permissions, never by a job's name (Phase 7o)
 
-No code compares `Role.Name` to a constant, and there is no `SUPERADMIN` or `MANAGER`. A role is a name plus a set of
+No code compares `Role.Name` to a constant, and there is no `SUPERADMIN` or `MANAGER`. A job is a name plus a set of
 permissions. What replaces the names:
 
 - **Who is notified** is a permission lookup: `PermissionHolders.GetIdsAsync(db, key, ct)` returns the active
-  accounts that effectively hold a key (role grants, plus per-user grants, minus per-user revokes). Pending and
+  accounts that effectively hold a key (job grants, plus per-user grants, minus per-user revokes). Pending and
   withdrawn leave go to `leave.approve` holders; password-reset requests go to `staff.manage` holders. The person
   the notice is about (the leave's owner, the admin who recorded it, the person asking for a reset) is never told.
-  A test that needs "someone who can approve leave" grants `leave.approve` to a role (`RoleSeed.GrantAsync`).
-- **The first administrator role** is the one role flagged `IsSystem`. The seed finds it by the flag (creating
+  A test that needs "someone who can approve leave" grants `leave.approve` to a job (`RoleSeed.GrantAsync`).
+- **The first administrator job** is the one job flagged `IsSystem`. The seed finds it by the flag (creating
   `ADMINISTRATOR` on an empty install), grants it every catalog permission at every start, and `SetRolePermissions`
   refuses to edit it. It can be renamed, never deleted. Do not look it up by name.
 - **Lock-out protection** is by permission: `RolesManageInvariant.EnsureNotTheLastAsync` stops the last active
@@ -1229,7 +1229,7 @@ E2E tests live in `tests/e2e/{admin,staff}/` and use Playwright. There is **one*
 `admin/` signs in as the administrator, `staff/` as a plain employee.
 Run against the Docker deployment (`BASE_URL`, default `http://localhost:8080`).
 
-**Seeded test credentials (administrator):** staffId=`HRADMIN`, password=`Admin@1234` (holds the first administrator role, so every permission)  
+**Seeded test credentials (administrator):** staffId=`HRADMIN`, password=`Admin@1234` (holds the first administrator job, so every permission)  
 **E2E employee account (created by global-setup):** staffId=`TESTSTAFF01`, password=`Test@1234` (EMPLOYEE role, no management permissions)
 
 **Run commands:**

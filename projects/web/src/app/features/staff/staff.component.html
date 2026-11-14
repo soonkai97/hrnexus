@@ -40,14 +40,14 @@
           @if (fieldError('email'); as err) { <small class="field-err">{{ err }}</small> }
         </div>
         <div class="col-12 col-md-6 field">
-          <label for="st-roles">Roles <span style="color:var(--p-text-muted-color);font-weight:400">(select all that apply)</span></label>
+          <label for="st-roles">Jobs <span style="color:var(--p-text-muted-color);font-weight:400">(select all that apply)</span></label>
           <p-multiselect
             inputId="st-roles"
             [(ngModel)]="newStaff.roles"
             [options]="roleOptions()"
             optionLabel="label"
             optionValue="value"
-            placeholder="Select role(s)…"
+            placeholder="Select job(s)…"
             [filter]="true"
             display="chip"
             [maxSelectedLabels]="50"
@@ -115,7 +115,7 @@
   <div class="search-wrap">
     <p-iconfield>
       <p-inputicon styleClass="pi pi-search" />
-      <input pInputText type="text" placeholder="Search by name, role or staff ID…"
+      <input pInputText type="text" placeholder="Search by name, job or staff ID…"
              [value]="search()" (input)="onSearch($any($event.target).value)" />
       @if (search()) {
         <p-inputicon styleClass="pi pi-times search-clear" style="cursor:pointer;pointer-events:all" (click)="onSearch('')" />
@@ -130,7 +130,7 @@
               [text]="true" severity="secondary" size="small" (onClick)="toggleBulkMode()" />
     @if (bulkSelecting()) {
       <span class="bulk-count">{{ selectedCount() }} selected</span>
-      <p-button label="Assign roles" icon="pi pi-id-card"
+      <p-button label="Assign jobs" icon="pi pi-id-card"
                 size="small" severity="secondary" [outlined]="true"
                 [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="openBulkRoles()" />
       <p-button label="Deactivate" icon="pi pi-power-off"
@@ -262,14 +262,14 @@
 
 <!-- ── Bulk: Assign Roles Dialog ───────────────────────────────────────────── -->
 <p-dialog [visible]="showBulkRoles()" (visibleChange)="!$event && showBulkRoles.set(false)"
-          header="Assign roles" [modal]="true"
+          header="Assign jobs" [modal]="true"
           [style]="{'width':'min(480px, 92vw)'}" [draggable]="false" [closable]="true" appendTo="body">
-  <p class="modal-desc">Add the chosen role(s) to {{ selectedCount() }} selected staff. Existing roles are kept.</p>
+  <p class="modal-desc">Add the chosen job(s) to {{ selectedCount() }} selected staff. Existing jobs are kept.</p>
   <div class="field">
-    <label for="bulk-roles">Role(s)</label>
+    <label for="bulk-roles">Job(s)</label>
     <p-multiselect inputId="bulk-roles" [(ngModel)]="bulkRoles" [options]="roleOptions()"
                    optionLabel="label" optionValue="value" [filter]="true" display="chip"
-                   placeholder="Select role(s)…" appendTo="body" styleClass="w-full" />
+                   placeholder="Select job(s)…" appendTo="body" styleClass="w-full" />
   </div>
   <ng-template pTemplate="footer">
     <p-button label="Cancel" [text]="true" severity="secondary" (click)="showBulkRoles.set(false)" />

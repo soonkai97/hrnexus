@@ -1,7 +1,10 @@
 <div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">Cash Advances</h1>
-    <p-button icon="pi pi-plus" label="Record Advance" severity="primary" (click)="openAdd()" />
+    <div class="d-flex gap-2 align-items-center">
+      <nc-view-toggle viewKey="cash-advances" />
+      <p-button icon="pi pi-plus" label="Record Advance" severity="primary" (click)="openAdd()" />
+    </div>
   </div>
 
   <p class="page-hint"><i class="pi pi-info-circle"></i> Record a salary advance given to a staff member. This only records it (to deduct from the next salary) — it does not move money.</p>
@@ -56,6 +59,44 @@
         <p style="color:var(--p-text-muted-color)">No cash advances recorded yet.</p>
       </div>
     </p-card>
+  } @else if (viewMode() === 'cards') {
+    <ul class="nc-card-grid">
+      @for (a of pagedAdvances(); track a.id) {
+        <li class="nc-card">
+          <div class="nc-card-head">
+            <span class="nc-avatar" aria-hidden="true">{{ initials(a.staffName) }}</span>
+            <div class="ca-card-id">
+              <span class="nc-card-title">{{ a.staffName }}</span>
+              <div class="nc-card-sub mono">{{ a.staffId }}</div>
+            </div>
+          </div>
+          <dl class="nc-card-meta">
+            <div><dt>Amount</dt><dd><strong>RM {{ a.amount | number:'1.2-2' }}</strong></dd></div>
+            <div><dt>Date</dt><dd>{{ a.advanceDate }}</dd></div>
+          </dl>
+          <div class="nc-card-sub" [title]="a.reason || ''">{{ a.reason || 'No reason given' }}</div>
+          <div class="nc-card-foot">
+            @if (a.status === 'settled') {
+              <p-tag value="Settled" severity="success" />
+            } @else {
+              <p-tag value="Outstanding" severity="warn" />
+            }
+            <span class="ca-card-actions">
+              <p-button [label]="(a.status === 'settled' ? 'Reopen' : 'Mark settled')"
+                        [text]="true" size="small" [severity]="a.status === 'settled' ? 'secondary' : 'success'"
+                        [loading]="busyId() === a.id" [disabled]="!!busyId()" (onClick)="toggleSettled(a)" />
+              <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" rounded
+                        [ariaLabel]="'Delete advance for ' + a.staffName"
+                        [disabled]="!!busyId()" (onClick)="remove(a)" />
+            </span>
+          </div>
+        </li>
+      }
+    </ul>
+    @if (advances().length > cardRows) {
+      <p-paginator [first]="cardFirst()" [rows]="cardRows" [totalRecords]="advances().length"
+                   (onPageChange)="cardFirst.set($event.first ?? 0)" />
+    }
   } @else {
     <p-card styleClass="table-card p-0">
       <p-table [value]="advances()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px"

@@ -10,12 +10,13 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import {
   PayrollLockService, PayrollLockDto, ToastService, ConfirmService, apiErrorMessage,
+  ViewModeService, ViewToggleComponent,
 } from 'shared-lib';
 
 @Component({
   selector: 'app-payroll-locks',
   standalone: true,
-  imports: [DatePipe, FormsModule, Card, Button, TableModule, Tag, InputText, Select, Skeleton],
+  imports: [DatePipe, FormsModule, Card, Button, TableModule, Tag, InputText, Select, Skeleton, ViewToggleComponent],
   templateUrl: './payroll-locks.component.html',
   styleUrl: './payroll-locks.component.scss',
 })
@@ -23,6 +24,10 @@ export class PayrollLocksComponent implements OnInit {
   private readonly svc       = inject(PayrollLockService);
   private readonly toast     = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
+
+  private readonly views = inject(ViewModeService);
+  /** Cards (default) or Table, remembered on this device. */
+  readonly viewMode = this.views.mode('payroll-locks');
 
   readonly locks   = signal<PayrollLockDto[]>([]);
   readonly loading = signal(false);

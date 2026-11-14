@@ -28,7 +28,30 @@
     </div>
   </p-card>
 
+  <div class="nc-view-bar"><nc-view-toggle viewKey="payroll-locks" /></div>
+
   <!-- Locked periods -->
+  @if (viewMode() === 'cards' && !loading() && locks().length > 0) {
+    <ul class="nc-card-grid">
+      @for (l of locks(); track l.year * 100 + l.month) {
+        <li class="nc-card">
+          <div class="nc-card-head">
+            <p-tag [value]="period(l)" severity="warn" icon="pi pi-lock" />
+          </div>
+          <dl class="nc-card-meta">
+            <div><dt>Locked by</dt><dd>{{ l.lockedBy }}</dd></div>
+            <div><dt>Locked at</dt><dd>{{ l.lockedAt | date:'dd/MM/yyyy HH:mm':'+0800' }}</dd></div>
+          </dl>
+          <div class="nc-card-sub">{{ l.note || 'No note' }}</div>
+          <div class="nc-card-foot">
+            <span></span>
+            <p-button label="Reopen" icon="pi pi-lock-open" [text]="true"
+                      severity="secondary" size="small" (onClick)="reopen(l)" />
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
   <p-card styleClass="table-card">
     @if (loading()) {
       @for (i of [1,2,3]; track i) {
@@ -63,4 +86,5 @@
       </p-table>
     }
   </p-card>
+  }
 </div>

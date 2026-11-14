@@ -14,126 +14,221 @@
     />
   }
 
-  <p-card styleClass="table-card">
-    @if (loading()) {
-      @for (i of [1, 2, 3, 4]; track i) {
-        <div class="skeleton-row">
-          <p-skeleton width="25%" height="0.7rem" /><p-skeleton width="50%" height="0.7rem" />
-        </div>
-      }
-    } @else if (rates().length === 0) {
-      <div class="empty-state">No rate rows.</div>
-    } @else {
-      <p-table [value]="rates()" [tableStyle]="{ 'min-width': '100%' }">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Scheme</th>
-            <th>Class</th>
-            <th>In force from</th>
-            <th>Rates</th>
-            <th>Status</th>
-            @if (canVerify) {
-              <th></th>
+  <div class="nc-view-bar"><nc-view-toggle viewKey="payroll-rates" /></div>
+
+  @if (viewMode() === 'cards' && !loading() && rates().length > 0) {
+    <ul class="nc-card-grid">
+      @for (r of rates(); track r.id) {
+        <li class="nc-card" [class.rate-open]="r.kind === 'band-table' && isExpanded(r.id)">
+          <div class="nc-card-head rate-head">
+            <span class="nc-card-title" [title]="schemeLabel(r)">{{ schemeLabel(r) }}</span>
+            <span class="tags">
+              @if (r.verified) {
+                <p-tag value="Verified" severity="success" [pTooltip]="verifiedTitle(r)" />
+              } @else {
+                <p-tag value="Unverified" severity="warn" />
+              }
+              @if (isHrd(r)) {
+                <p-tag
+                  [value]="r.active ? 'On' : 'Off'"
+                  [severity]="r.active ? 'info' : 'secondary'"
+                />
+              }
+            </span>
+          </div>
+          <dl class="nc-card-meta">
+            <div>
+              <dt>Class</dt>
+              <dd>{{ classLabel(r) }}</dd>
+            </div>
+            <div>
+              <dt>In force from</dt>
+              <dd>{{ r.effectiveFrom | date: 'dd/MM/yyyy' }}</dd>
+            </div>
+          </dl>
+          <div class="nc-card-sub rates-text">{{ ratesSummary(r) }}</div>
+          @if (r.kind === 'band-table') {
+            <p-button
+              [label]="isExpanded(r.id) ? 'Hide bands' : 'Show bands'"
+              [icon]="isExpanded(r.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              class="rate-bands-btn"
+              (onClick)="toggleBands(r.id)"
+            />
+            @if (isExpanded(r.id)) {
+              <table class="bands">
+                <thead>
+                  <tr>
+                    <th>From (RM)</th>
+                    <th>To (RM)</th>
+                    <th>Employee</th>
+                    <th>Employer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (b of r.bands; track b.wageFrom) {
+                    <tr>
+                      <td>{{ money(b.wageFrom) }}</td>
+                      <td>{{ money(b.wageTo) }}</td>
+                      <td>{{ money(b.employeeAmount) }}</td>
+                      <td>{{ money(b.employerAmount) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
             }
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-r>
-          <tr>
-            <td>
-              <span class="p-column-title">Scheme</span>
-              <strong>{{ schemeLabel(r) }}</strong>
-            </td>
-            <td>
-              <span class="p-column-title">Class</span>
-              {{ classLabel(r) }}
-            </td>
-            <td class="td-muted">
-              <span class="p-column-title">In force from</span>
-              {{ r.effectiveFrom | date: 'dd/MM/yyyy' }}
-            </td>
-            <td>
-              <span class="p-column-title">Rates</span>
-              <span class="rates-text">{{ ratesSummary(r) }}</span>
-              @if (r.kind === 'band-table') {
+          }
+          @if (canVerify) {
+            <div class="nc-card-foot">
+              @if (!r.verified) {
                 <p-button
-                  [label]="isExpanded(r.id) ? 'Hide bands' : 'Show bands'"
-                  [icon]="isExpanded(r.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                  label="Mark verified"
+                  icon="pi pi-check"
+                  [text]="true"
+                  size="small"
+                  (onClick)="openVerify(r)"
+                />
+              } @else {
+                <span></span>
+              }
+              @if (isHrd(r)) {
+                <p-button
+                  [label]="r.active ? 'Switch off' : 'Switch on'"
                   [text]="true"
                   severity="secondary"
                   size="small"
-                  (onClick)="toggleBands(r.id)"
+                  (onClick)="toggleActive(r)"
                 />
               }
-            </td>
-            <td>
-              <span class="p-column-title">Status</span>
-              <span class="tags">
-                @if (r.verified) {
-                  <p-tag value="Verified" severity="success" [pTooltip]="verifiedTitle(r)" />
-                } @else {
-                  <p-tag value="Unverified" severity="warn" />
-                }
-                @if (isHrd(r)) {
-                  <p-tag
-                    [value]="r.active ? 'On' : 'Off'"
-                    [severity]="r.active ? 'info' : 'secondary'"
-                  />
-                }
-              </span>
-            </td>
-            @if (canVerify) {
-              <td class="td-action">
-                @if (!r.verified) {
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <p-card styleClass="table-card">
+      @if (loading()) {
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="skeleton-row">
+            <p-skeleton width="25%" height="0.7rem" /><p-skeleton width="50%" height="0.7rem" />
+          </div>
+        }
+      } @else if (rates().length === 0) {
+        <div class="empty-state">No rate rows.</div>
+      } @else {
+        <p-table [value]="rates()" [tableStyle]="{ 'min-width': '100%' }">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Scheme</th>
+              <th>Class</th>
+              <th>In force from</th>
+              <th>Rates</th>
+              <th>Status</th>
+              @if (canVerify) {
+                <th></th>
+              }
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-r>
+            <tr>
+              <td>
+                <span class="p-column-title">Scheme</span>
+                <strong>{{ schemeLabel(r) }}</strong>
+              </td>
+              <td>
+                <span class="p-column-title">Class</span>
+                {{ classLabel(r) }}
+              </td>
+              <td class="td-muted">
+                <span class="p-column-title">In force from</span>
+                {{ r.effectiveFrom | date: 'dd/MM/yyyy' }}
+              </td>
+              <td>
+                <span class="p-column-title">Rates</span>
+                <span class="rates-text">{{ ratesSummary(r) }}</span>
+                @if (r.kind === 'band-table') {
                   <p-button
-                    label="Mark verified"
-                    icon="pi pi-check"
-                    [text]="true"
-                    size="small"
-                    (onClick)="openVerify(r)"
-                  />
-                }
-                @if (isHrd(r)) {
-                  <p-button
-                    [label]="r.active ? 'Switch off' : 'Switch on'"
+                    [label]="isExpanded(r.id) ? 'Hide bands' : 'Show bands'"
+                    [icon]="isExpanded(r.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                     [text]="true"
                     severity="secondary"
                     size="small"
-                    (onClick)="toggleActive(r)"
+                    (onClick)="toggleBands(r.id)"
                   />
                 }
               </td>
-            }
-          </tr>
-          @if (r.kind === 'band-table' && isExpanded(r.id)) {
-            <tr class="bands-row">
-              <td [attr.colspan]="canVerify ? 6 : 5">
-                <table class="bands">
-                  <thead>
-                    <tr>
-                      <th>Wage from (RM)</th>
-                      <th>Wage to (RM)</th>
-                      <th>Employee (RM)</th>
-                      <th>Employer (RM)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (b of r.bands; track b.wageFrom) {
-                      <tr>
-                        <td>{{ money(b.wageFrom) }}</td>
-                        <td>{{ money(b.wageTo) }}</td>
-                        <td>{{ money(b.employeeAmount) }}</td>
-                        <td>{{ money(b.employerAmount) }}</td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
+              <td>
+                <span class="p-column-title">Status</span>
+                <span class="tags">
+                  @if (r.verified) {
+                    <p-tag value="Verified" severity="success" [pTooltip]="verifiedTitle(r)" />
+                  } @else {
+                    <p-tag value="Unverified" severity="warn" />
+                  }
+                  @if (isHrd(r)) {
+                    <p-tag
+                      [value]="r.active ? 'On' : 'Off'"
+                      [severity]="r.active ? 'info' : 'secondary'"
+                    />
+                  }
+                </span>
               </td>
+              @if (canVerify) {
+                <td class="td-action">
+                  @if (!r.verified) {
+                    <p-button
+                      label="Mark verified"
+                      icon="pi pi-check"
+                      [text]="true"
+                      size="small"
+                      (onClick)="openVerify(r)"
+                    />
+                  }
+                  @if (isHrd(r)) {
+                    <p-button
+                      [label]="r.active ? 'Switch off' : 'Switch on'"
+                      [text]="true"
+                      severity="secondary"
+                      size="small"
+                      (onClick)="toggleActive(r)"
+                    />
+                  }
+                </td>
+              }
             </tr>
-          }
-        </ng-template>
-      </p-table>
-    }
-  </p-card>
+            @if (r.kind === 'band-table' && isExpanded(r.id)) {
+              <tr class="bands-row">
+                <td [attr.colspan]="canVerify ? 6 : 5">
+                  <table class="bands">
+                    <thead>
+                      <tr>
+                        <th>Wage from (RM)</th>
+                        <th>Wage to (RM)</th>
+                        <th>Employee (RM)</th>
+                        <th>Employer (RM)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (b of r.bands; track b.wageFrom) {
+                        <tr>
+                          <td>{{ money(b.wageFrom) }}</td>
+                          <td>{{ money(b.wageTo) }}</td>
+                          <td>{{ money(b.employeeAmount) }}</td>
+                          <td>{{ money(b.employerAmount) }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            }
+          </ng-template>
+        </p-table>
+      }
+    </p-card>
+  }
 
   <!-- Verify dialog -->
   <p-dialog

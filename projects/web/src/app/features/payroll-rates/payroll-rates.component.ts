@@ -19,6 +19,8 @@ import {
   ToastService,
   ConfirmService,
   apiErrorMessage,
+  ViewModeService,
+  ViewToggleComponent,
 } from 'shared-lib';
 
 const SCHEME_LABELS: Record<RateScheme, string> = {
@@ -52,6 +54,7 @@ const ROUNDING_TEXT: Record<RateRounding, string> = {
   selector: 'app-payroll-rates',
   standalone: true,
   imports: [
+    ViewToggleComponent,
     DatePipe,
     FormsModule,
     Button,
@@ -72,6 +75,10 @@ export class PayrollRatesComponent implements OnInit {
   private readonly perms = inject(PermissionService);
   private readonly toast = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
+
+  private readonly views = inject(ViewModeService);
+  /** Cards (default) or Table, remembered on this device. */
+  readonly viewMode = this.views.mode('payroll-rates');
 
   readonly rates = signal<StatutoryRate[]>([]);
   readonly loading = signal(false);

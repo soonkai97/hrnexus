@@ -24,24 +24,24 @@ describe('ViewModeService', () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it('starts every screen on cards', () => {
-    expect(service.mode('staff')()).toBe('cards');
+  it('starts every screen on the list (table) view', () => {
+    expect(service.mode('staff')()).toBe('table');
   });
 
   it('remembers the choice per screen and keeps the screens independent', () => {
-    service.set('staff', 'table');
+    service.set('staff', 'cards');
 
-    expect(service.mode('staff')()).toBe('table');
-    expect(service.mode('roles')()).toBe('cards');
-    expect(store.get('view-mode:staff')).toBe('table');
+    expect(service.mode('staff')()).toBe('cards');
+    expect(service.mode('roles')()).toBe('table');
+    expect(store.get('view-mode:staff')).toBe('cards');
   });
 
   it('restores a saved choice the next time the app opens', () => {
-    store.set('view-mode:roles', 'table');
+    store.set('view-mode:roles', 'cards');
 
     const fresh = TestBed.runInInjectionContext(() => new ViewModeService());
 
-    expect(fresh.mode('roles')()).toBe('table');
+    expect(fresh.mode('roles')()).toBe('cards');
   });
 
   it('ignores a stored value that is not a view, so a screen can never be left on a view that does not exist', () => {
@@ -49,14 +49,14 @@ describe('ViewModeService', () => {
 
     const fresh = TestBed.runInInjectionContext(() => new ViewModeService());
 
-    expect(fresh.mode('staff')()).toBe('cards');
+    expect(fresh.mode('staff')()).toBe('table');
   });
 
   it('returns the same signal for the same screen, so every part of a screen sees one choice', () => {
     expect(service.mode('staff')).toBe(service.mode('staff'));
   });
 
-  it('works when storage is blocked: reads fall back to cards and writes do not throw', () => {
+  it('works when storage is blocked: reads fall back to the table and writes do not throw', () => {
     const blocked = {
       getItem: () => {
         throw new Error('blocked');
@@ -68,8 +68,8 @@ describe('ViewModeService', () => {
     vi.stubGlobal('localStorage', blocked);
     const fresh = TestBed.runInInjectionContext(() => new ViewModeService());
 
-    expect(fresh.mode('staff')()).toBe('cards');
-    expect(() => fresh.set('staff', 'table')).not.toThrow();
-    expect(fresh.mode('staff')()).toBe('table'); // still works for this visit
+    expect(fresh.mode('staff')()).toBe('table');
+    expect(() => fresh.set('staff', 'cards')).not.toThrow();
+    expect(fresh.mode('staff')()).toBe('cards'); // still works for this visit
   });
 });

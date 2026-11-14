@@ -139,8 +139,8 @@ describe('CashAdvancesComponent', () => {
       amount: 100, advanceDate: '2026-07-' + String(n).padStart(2, '0'), reason: null, status: 'outstanding',
     }) as never;
 
-    it('starts on cards', () => {
-      expect(make().viewMode()).toBe('cards');
+    it('starts on the list (table) view', () => {
+      expect(make().viewMode()).toBe('table');
     });
 
     it('shows the same advances as the table, newest first, a page at a time', () => {

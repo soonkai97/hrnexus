@@ -25,18 +25,20 @@ test.describe('Admin — Roles', () => {
 
   test('shows the Add New Role button', async ({ page }) => {
     await expect(
-      page.getByRole('button', { name: /add.*(role|role)|new.*(role|role)/i })
+      page.getByRole('button', { name: /add.*(role|role)|new.*(role|role)/i }),
     ).toBeVisible({ timeout: 8_000 });
   });
 
-  test('shows the roles as cards with at least one role, and as a table when chosen', async ({ page }) => {
+  test('shows the roles as a table with at least one role, and as cards when chosen', async ({
+    page,
+  }) => {
     // System roles (admin, manager, employee) are always present
-    await page.waitForSelector('.nc-card', { timeout: 10_000 });
-    expect(await page.locator('.nc-card').count()).toBeGreaterThanOrEqual(1);
-
-    await page.getByRole('button', { name: 'Table view' }).click();
     await page.waitForSelector('.p-datatable-tbody tr', { timeout: 10_000 });
     expect(await page.locator('.p-datatable-tbody tr').count()).toBeGreaterThanOrEqual(1);
+
+    await page.getByRole('button', { name: 'Card view' }).click();
+    await page.waitForSelector('.nc-card', { timeout: 10_000 });
+    expect(await page.locator('.nc-card').count()).toBeGreaterThanOrEqual(1);
   });
 
   test('opens the add role dialog when button is clicked', async ({ page }) => {

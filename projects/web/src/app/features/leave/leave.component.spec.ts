@@ -1262,8 +1262,8 @@ describe('LeaveComponent', () => {
       annualUsed: 0, sickUsed: 0, emergencyUsed: 0, unpaidUsed: 0, noShowUsed: 0, totalUsed: 0, types,
     }) as never;
 
-    it('starts on cards', () => {
-      expect(component.summaryView()).toBe('cards');
+    it('starts on the list (table) view', () => {
+      expect(component.summaryView()).toBe('table');
     });
 
     it('shows one chip for each leave type the person used, and none for unused types', () => {

@@ -650,8 +650,8 @@ describe('StaffDetailComponent', () => {
 
   // ── Phase 7r: card view ─────────────────────────────────────────────────────
 
-  it('shows the salary history as cards until the table is chosen', () => {
-    expect(component.salaryView()).toBe('cards');
+  it('shows the salary history as a table until cards are chosen', () => {
+    expect(component.salaryView()).toBe('table');
   });
 
 });

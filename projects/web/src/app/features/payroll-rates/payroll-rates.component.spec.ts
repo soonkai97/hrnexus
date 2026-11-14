@@ -332,7 +332,7 @@ describe('PayrollRatesComponent', () => {
 
   // ── Phase 7r: card view ─────────────────────────────────────────────────────
 
-  it('starts on cards, and the table is one click away', () => {
-    expect(component.viewMode()).toBe('cards');
+  it('starts on the list (table) view, and cards are one click away', () => {
+    expect(component.viewMode()).toBe('table');
   });
 });

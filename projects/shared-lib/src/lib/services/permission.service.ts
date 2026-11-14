@@ -11,7 +11,7 @@ export type PermissionKey =
   | 'staff.view'   | 'staff.manage'
   | 'leave.approve' | 'leave.manage' | 'policy.manage'
   | 'reports.view'
-  | 'payroll.view' | 'payroll.manage' | 'payroll.lock'
+  | 'payroll.view' | 'payroll.manage' | 'payroll.lock' | 'payroll.rates.verify'
   | 'roles.manage'
   | 'cashadvance.manage';
 

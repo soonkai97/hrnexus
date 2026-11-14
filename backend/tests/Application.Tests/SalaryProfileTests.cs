@@ -24,6 +24,12 @@ public class SalaryProfileTests
         }
     }
 
+    private sealed class StubUser(string? name) : ICurrentUserService
+    {
+        public Guid? UserId => null;
+        public string? UserName => name;
+    }
+
     private sealed class Clock(DateTime now) : IDateTimeProvider
     {
         public DateTime UtcNow => now;
@@ -51,12 +57,24 @@ public class SalaryProfileTests
     // ── Adding a profile ──────────────────────────────────────────────────────
 
     [Fact]
+    public async Task Add_RecordsWhoAddedTheSalary_SoPreparerAndApproverCanBeToldApart()
+    {
+        // Phase 8c refuses an approval by the person who prepared the run, which needs a recorded creator.
+        await using var db = CreateDb();
+        var staff = await AddStaff(db);
+
+        await new AddSalaryProfileCommandHandler(db, new CapturingAudit(), new StubUser("hr.admin")).Handle(Add(staff.Id), CancellationToken.None);
+
+        Assert.Equal("hr.admin", (await db.SalaryProfiles.SingleAsync()).CreatedBy);
+    }
+
+    [Fact]
     public async Task Add_StoresTheProfile_WithItsBankDetails()
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db);
 
-        await new AddSalaryProfileCommandHandler(db, new CapturingAudit()).Handle(Add(staff.Id), CancellationToken.None);
+        await new AddSalaryProfileCommandHandler(db, new CapturingAudit(), new StubUser("hr.admin")).Handle(Add(staff.Id), CancellationToken.None);
 
         var saved = await db.SalaryProfiles.SingleAsync();
         Assert.Equal(3500m, saved.BasicSalary);
@@ -71,7 +89,7 @@ public class SalaryProfileTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db);
-        var handler = new AddSalaryProfileCommandHandler(db, new CapturingAudit());
+        var handler = new AddSalaryProfileCommandHandler(db, new CapturingAudit(), new StubUser("hr.admin"));
         await handler.Handle(Add(staff.Id, 3500m, "2026-01-01"), CancellationToken.None);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -92,7 +110,7 @@ public class SalaryProfileTests
         var staff = await AddStaff(db);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            new AddSalaryProfileCommandHandler(db, new CapturingAudit())
+            new AddSalaryProfileCommandHandler(db, new CapturingAudit(), new StubUser("hr.admin"))
                 .Handle(Add(staff.Id, salary, frequency: frequency), CancellationToken.None));
     }
 
@@ -102,7 +120,7 @@ public class SalaryProfileTests
         await using var db = CreateDb();
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            new AddSalaryProfileCommandHandler(db, new CapturingAudit()).Handle(Add(Guid.NewGuid()), CancellationToken.None));
+            new AddSalaryProfileCommandHandler(db, new CapturingAudit(), new StubUser("hr.admin")).Handle(Add(Guid.NewGuid()), CancellationToken.None));
     }
 
     [Fact]
@@ -112,7 +130,7 @@ public class SalaryProfileTests
         var staff = await AddStaff(db);
         var audit = new CapturingAudit();
 
-        await new AddSalaryProfileCommandHandler(db, audit).Handle(Add(staff.Id, 4321m), CancellationToken.None);
+        await new AddSalaryProfileCommandHandler(db, audit, new StubUser("hr.admin")).Handle(Add(staff.Id, 4321m), CancellationToken.None);
 
         var row = Assert.Single(audit.Changes);
         Assert.DoesNotContain("4321", row);
@@ -126,7 +144,7 @@ public class SalaryProfileTests
     {
         await using var db = CreateDb();
         var staff = await AddStaff(db);
-        var add = new AddSalaryProfileCommandHandler(db, new CapturingAudit());
+        var add = new AddSalaryProfileCommandHandler(db, new CapturingAudit(), new StubUser("hr.admin"));
         await add.Handle(Add(staff.Id, 3000m, "2025-01-01"), CancellationToken.None);
         await add.Handle(Add(staff.Id, 3500m, "2026-01-01"), CancellationToken.None);
         await add.Handle(Add(staff.Id, 4000m, "2027-01-01"), CancellationToken.None);   // future-dated

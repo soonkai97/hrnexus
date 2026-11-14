@@ -29,7 +29,7 @@ test.describe('Employee — authentication', () => {
 
   test('an employee is sent back to /home from every management page', async ({ page }) => {
     await loginStaff(page);
-    for (const path of ['/dashboard', '/staff', '/leave', '/roles', '/policy', '/payroll-locks', '/cash-advances']) {
+    for (const path of ['/dashboard', '/staff', '/leave', '/roles', '/policy', '/payroll-locks', '/payroll-rates', '/cash-advances']) {
       await page.goto(path);
       await expect(page, `${path} must bounce an employee`).toHaveURL(/\/home/, { timeout: 10_000 });
     }

@@ -1,5 +1,6 @@
 ﻿using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
+using HRNexus.Domain.Payroll;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Infrastructure.Persistence;
@@ -57,6 +58,13 @@ public static class SeedData
                 hasher.Hash("Admin@1234"),
                 new List<Guid> { bootstrap.Id },
                 null, null, null, null));
+
+        // Statutory rate rows (PRD 6.2), unverified. Insert-if-missing, never HasData: a row's Verified flag is
+        // flipped at runtime and must not drift from the model snapshot, and a verified row is never overwritten.
+        foreach (var row in StatutoryRateSeed.Rows())
+            if (!await db.StatutoryRateTables.AnyAsync(t => t.Scheme == row.Scheme && t.CitizenshipClass == row.CitizenshipClass
+                                                          && t.AgeFrom == row.AgeFrom && t.EffectiveFrom == row.EffectiveFrom))
+                db.StatutoryRateTables.Add(row);
 
         await db.SaveChangesAsync();
     }

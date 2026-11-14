@@ -24,6 +24,7 @@ public static class AppConstants
         public const string PayrollView        = "payroll.view";        // view payroll
         public const string PayrollManage      = "payroll.manage";      // run/export payroll
         public const string PayrollLock        = "payroll.lock";        // lock/reopen payroll periods
+        public const string PayrollRatesVerify = "payroll.rates.verify"; // confirm statutory rate rows (separate from preparing payroll)
         public const string RolesManage        = "roles.manage";        // roles + rates + permissions
         public const string CashAdvanceManage  = "cashadvance.manage";  // record/settle staff cash advances
 
@@ -31,7 +32,7 @@ public static class AppConstants
         public static readonly IReadOnlyList<string> All = new[]
         {
             StaffView, StaffManage, LeaveApprove, LeaveManage, PolicyManage,
-            ReportsView, PayrollView, PayrollManage, PayrollLock,
+            ReportsView, PayrollView, PayrollManage, PayrollLock, PayrollRatesVerify,
             RolesManage, CashAdvanceManage,
         };
 

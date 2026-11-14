@@ -586,6 +586,140 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("StaffRoles", (string)null);
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.StatutoryRateBand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("EmployeeAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("EmployerAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<Guid>("RateTableId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("WageFrom")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("WageTo")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RateTableId", "WageFrom")
+                        .IsUnique();
+
+                    b.ToTable("StatutoryRateBands", (string)null);
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.StatutoryRateTable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("AgeFrom")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("AgeTo")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("CitizenshipClass")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("EmployeeRate")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<decimal>("EmployerRate")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<decimal?>("EmployerRateAbove")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<string>("EmployerRateMode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<decimal?>("EmployerRateThreshold")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Rounding")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Scheme")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("VerificationNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("Verified")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VerifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal?>("WageCeiling")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Scheme", "CitizenshipClass", "AgeFrom", "EffectiveFrom")
+                        .IsUnique();
+
+                    b.ToTable("StatutoryRateTables", (string)null);
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.CashAdvance", b =>
                 {
                     b.HasOne("HRNexus.Domain.Entities.Staff", "Employee")
@@ -665,9 +799,23 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.StatutoryRateBand", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.StatutoryRateTable", null)
+                        .WithMany("Bands")
+                        .HasForeignKey("RateTableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>
                 {
                     b.Navigation("RoleEntries");
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.StatutoryRateTable", b =>
+                {
+                    b.Navigation("Bands");
                 });
 #pragma warning restore 612, 618
         }

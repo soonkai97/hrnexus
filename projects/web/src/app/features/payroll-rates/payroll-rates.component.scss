@@ -1,0 +1,142 @@
+@use 'styles/theme' as *;
+
+.page {
+  padding: 1rem;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+}
+.page-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: $text-muted;
+  font-size: 0.85rem;
+}
+
+:host :deep(.rates-banner) {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0.25rem;
+}
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: $text-muted;
+}
+.td-muted {
+  color: $text-muted;
+}
+.td-action {
+  text-align: right;
+  white-space: nowrap;
+}
+.tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.dialog-intro {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: $text-muted;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $text-muted;
+  }
+  .req {
+    color: $neon-pink;
+    margin-right: 0.15rem;
+  }
+  textarea {
+    width: 100%;
+  }
+}
+
+.bands {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+
+  th,
+  td {
+    padding: 0.3rem 0.6rem;
+    text-align: right;
+    border-bottom: 1px solid $border-subtle;
+  }
+  th {
+    color: $text-muted;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+@media (max-width: 640px) {
+  :host :deep(.p-datatable-table) {
+    display: block;
+  }
+  :host :deep(.p-datatable-thead) {
+    display: none;
+  }
+
+  :host :deep(.p-datatable-tbody > tr) {
+    display: block;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    margin: 0.5rem 0.75rem;
+    padding: 0.25rem 0;
+    background: $bg-surface;
+  }
+
+  :host :deep(.p-datatable-tbody > tr > td) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0.45rem 0.85rem;
+    border: none;
+    border-bottom: 1px solid $border-subtle;
+    font-size: 0.85rem;
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .p-column-title {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: $text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      min-width: 70px;
+      flex-shrink: 0;
+    }
+  }
+
+  // The expanded band table is a full-width detail row, not a labelled field.
+  :host :deep(.p-datatable-tbody > tr.bands-row > td) {
+    display: block;
+    overflow-x: auto;
+  }
+}

@@ -732,11 +732,11 @@ rules the product shipped with: Mon-Fri, 8h, 3 days' notice, 30-day cap, capped 
 
 ## Card view for list screens (Phase 7r)
 
-Every list screen shows its records as **cards in a responsive grid** by default, with a **Table** view one click away
+Every list screen shows its records as a **table (the list view)** by default, with a **card grid** one click away
 (`docs/process/phase-07r-card-view.md`). The look and the code are shared; a screen only decides what goes in its cards.
 
 - **Toggle:** `<nc-view-toggle viewKey="staff" />` (shared-lib) in the page toolbar; the screen reads the same key with
-  `ViewModeService.mode('staff')()` (`'cards' | 'table'`, cards by default). The choice is remembered per screen in
+  `ViewModeService.mode('staff')()` (`'cards' | 'table'`, **table by default**, the owner's choice). The choice is remembered per screen in
   `localStorage['view-mode:<key>']`, wrapped in try/catch so blocked storage still works for the visit.
 - **Styles** (global, `styles.scss`): `.nc-card-grid` (equal-width cards, `repeat(auto-fill, minmax(250px, 1fr))`), `.nc-card`
   with `.nc-card-head`, `.nc-card-title`, `.nc-card-sub`, `.nc-card-meta` (a `dl`), `.nc-card-chips` / `.nc-chip`,

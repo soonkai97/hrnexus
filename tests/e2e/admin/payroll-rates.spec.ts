@@ -16,7 +16,7 @@ test.describe('Admin: Statutory Rates', () => {
     await page.waitForURL(/\/payroll-rates/);
   });
 
-  test('shows the heading and every rate as a card, and as a table when chosen', async ({
+  test('shows the heading and every rate as a table, and as cards when chosen', async ({
     page,
   }) => {
     await expect(page.getByRole('heading', { name: 'Statutory Rates' })).toBeVisible({
@@ -24,17 +24,17 @@ test.describe('Admin: Statutory Rates', () => {
     });
     // Six schemes for two citizenship classes.
     await expect
-      .poll(async () => page.locator('.nc-card').count(), { timeout: 8_000 })
+      .poll(async () => page.locator('p-table tbody tr').count(), { timeout: 8_000 })
       .toBeGreaterThanOrEqual(12);
 
-    await page.getByRole('button', { name: 'Table view' }).click();
+    await page.getByRole('button', { name: 'Card view' }).click();
     await expect
-      .poll(async () => page.locator('p-table tbody tr').count(), { timeout: 8_000 })
+      .poll(async () => page.locator('.nc-card').count(), { timeout: 8_000 })
       .toBeGreaterThanOrEqual(12);
   });
 
   test('shows the placeholder banner exactly while a row is unverified', async ({ page }) => {
-    await expect(page.locator('.nc-card').first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.locator('p-table tbody tr').first()).toBeVisible({ timeout: 8_000 });
     const unverified = await page.getByText('Unverified', { exact: true }).count();
     const banner = page.getByText(/placeholders until your accountant verifies them/i);
     if (unverified > 0) {

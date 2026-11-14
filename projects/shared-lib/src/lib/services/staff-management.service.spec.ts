@@ -160,7 +160,7 @@ describe('StaffManagementService', () => {
   // ── createRole() ──────────────────────────────────────────────────────────
 
   describe('createRole()', () => {
-    it('calls POST /api/staff/roles with the name only — jobs carry no pay data', () => {
+    it('calls POST /api/staff/roles with the name only — roles carry no pay data', () => {
       service.createRole('BARTENDER').subscribe();
       const req = http.expectOne('/api/staff/roles');
       expect(req.request.method).toBe('POST');

@@ -55,7 +55,7 @@ public class SetStaffOverridesHandler(IAppDbContext db, IPermissionResolver reso
             if (await RolesManageInvariant.CountActiveAdminsAsync(db, adminRoles, exclude: req.EmployeeId, ct) == 0)
                 throw new ArgumentException(
                     "This change would remove role-management access from the last administrator. " +
-                    "Grant 'Manage jobs & permissions' to another user or role first.");
+                    "Grant 'Manage roles & permissions' to another user or role first.");
         }
 
         var existing = await db.StaffPermissionOverrides

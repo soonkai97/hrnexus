@@ -53,7 +53,7 @@ public class BulkDeactivateStaffCommandHandler(IAppDbContext db, IAuditService a
         var staff = await db.Staff.Where(s => req.StaffIds.Contains(s.Id) && s.IsActive).ToListAsync(ct);
         if (staff.Count == 0) return 0;
 
-        // Whole-selection last-admin guard: if EVERY active user who can manage jobs and permissions is in this batch,
+        // Whole-selection last-admin guard: if EVERY active user who can manage roles and permissions is in this batch,
         // deactivating them all would lock everyone out. The per-row guard can't see this — it would
         // pass each one because the others are still committed-active until the single SaveChanges.
         var adminRoles = await db.RolePermissions

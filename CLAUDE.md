@@ -79,8 +79,7 @@ projects/
     ├── pipes/                    # HmPipe (24-hour time)
     ├── directives/               # TrimInputDirective
     ├── utils/                    # date and password helpers
-    └── components/               # ToastComponent, ConfirmDialogComponent, NotificationBellComponent,
-                                  # ThemeToggleComponent
+    └── components/               # ToastComponent, ConfirmDialogComponent, NotificationBellComponent
 ```
 
 Feature files follow the pattern: `{name}.component.ts`, `.html`, `.scss` (and `.routes.ts` for sub-routes).
@@ -109,7 +108,7 @@ provideAppInitializer(async () => {
       await new Promise<never>(() => {});
   }
 })
-providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '[data-theme="dark"]' } } })
+providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: false } } })   // one light theme; no dark mode
 MessageService, ConfirmationService
 provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStrategy: 'registerWhenStable:30000' })
 ```
@@ -211,7 +210,6 @@ updateProfile(phoneNumber: string | null): Observable<void>
 | `SignalRService` | WebSocket connection to `/hubs/shift` (the notifications hub; rename planned) |
 | `ToastService` | `success/error/warning/info(msg)` |
 | `ConfirmService` | `confirm(opts) → Observable<boolean>` |
-| `ThemeService` | Dark/light toggle |
 | `AppUpdateService` | Service-worker update check (`init()` is called from the root `App`) |
 | `VersionService` | Build version info |
 
@@ -221,7 +219,6 @@ updateProfile(phoneNumber: string | null): Observable<void>
 - `ToastComponent` (`<nc-toast />`) — mount once in the app shell
 - `ConfirmDialogComponent` (`<nc-confirm-dialog />`) — mount once in the app shell
 - `NotificationBellComponent` — topbar bell with popover; takes no `portal` input and shows every notification the server sent
-- `ThemeToggleComponent` — dark/light button
 
 **Base classes:**
 - `ForgotPasswordBase` — logic for forgot-password pages (the web app's forgot-password page extends this)
@@ -451,7 +448,7 @@ Every component SCSS starts with:
 | Transitions | `$transition-fast` (0.15s), `$transition-base` (0.25s) |
 | Glows | `$glow-purple`, `$glow-green`, `$glow-sm` |
 
-Tokens resolve to CSS custom properties (`var(--nc-bg-surface)` etc.). Dark mode is `:root` default; light mode overrides live under `[data-theme="light"]` in `styles.scss`.
+Tokens resolve to CSS custom properties (`var(--nc-bg-surface)` etc.). The app has **one light theme** (no dark mode, no toggle; Phase 7p): the palette is defined once on `:root` in `styles.scss`, and the element colour rules under the second `:root { ... }` block keep their specificity by staying scoped to `:root`. Do not add `[data-theme]`, `prefers-color-scheme` or a theme service.
 
 ### Critical SCSS gotcha — `:host :deep()` vs `.[class] :deep()`
 

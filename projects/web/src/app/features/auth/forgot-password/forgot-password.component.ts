@@ -4,12 +4,12 @@ import { RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { ThemeToggleComponent, ForgotPasswordBase } from 'shared-lib';
+import { ForgotPasswordBase } from 'shared-lib';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [FormsModule, RouterLink, ThemeToggleComponent, Button, InputText, Message],
+  imports: [FormsModule, RouterLink, Button, InputText, Message],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.scss',
 })

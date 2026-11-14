@@ -33,18 +33,6 @@
   bottom: -80px; right: -60px;
 }
 
-// ── Top-right controls (theme toggle + lang) ──────────────────────────────────
-
-.login-controls {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 // ── Card ──────────────────────────────────────────────────────────────────────
 
 .login-card {

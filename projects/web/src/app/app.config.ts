@@ -54,7 +54,7 @@ export const appConfig: ApplicationConfig = {
     providePrimeNG({
       theme: {
         preset: HRNexusTheme,
-        options: { darkModeSelector: '[data-theme="dark"]' },
+        options: { darkModeSelector: false },
       },
     }),
     MessageService,

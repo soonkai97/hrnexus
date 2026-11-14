@@ -4,12 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
-import { AuthService, ThemeToggleComponent } from 'shared-lib';
+import { AuthService } from 'shared-lib';
 
 @Component({
   selector: 'app-admin-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ThemeToggleComponent, Button, InputText, Message],
+  imports: [ReactiveFormsModule, RouterLink, Button, InputText, Message],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })

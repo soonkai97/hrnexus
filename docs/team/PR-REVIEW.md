@@ -90,7 +90,7 @@ Then append one entry to `docs/team/HANDOFFS.md` (see `PROTOCOL.md`).
 
 **ui-ux-designer** - Flow works at phone width (self-service pages) and at desktop width (management pages) in the one web app; empty, loading (skeleton) and error states; English copy; confirmation only where it protects data.
 
-**fe-designer** - Uses design tokens (`$neon-*`, `$bg-*`, CSS custom properties), no hard-coded colours or spacing, contrast AA, 44px targets, dark and light mode, responsive table stack pattern where tables exist.
+**fe-designer** - Uses design tokens (`$neon-*`, `$bg-*`, CSS custom properties), no hard-coded colours or spacing, contrast AA, 44px targets, light theme only, responsive table stack pattern where tables exist.
 
 **fe-architect** - Standalone components, signals, no new `BehaviorSubject`/`Subject`, state in stores or signals, lazy routes, guards (`authGuard`, `permissionGuard`) on every new route, `ngModel` form pattern unless reactive is justified, PrimeNG overlays use `appendTo="body"`, `:host :deep()` instead of `.class :deep()`, no full-page spinner, no `environment.ts`.
 

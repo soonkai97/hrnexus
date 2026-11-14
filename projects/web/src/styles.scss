@@ -1,23 +1,25 @@
 @use 'styles/theme' as *;
 @use 'styles/animations';
 
-// ── Dark-mode defaults for CSS custom properties ──────────────────────────────
-// Overridden by [data-theme="light"] below. All SCSS theme variables reference
-// these custom properties so every component reacts to theme changes automatically.
+// ── Colour palette as CSS custom properties ───────────────────────────────────
+// The app has one (light) theme. All SCSS colour variables reference these custom
+// properties, which pierce every component's encapsulated styles.
 :root {
-  --nc-bg-void:        #07070d;
-  --nc-bg-base:        #0d0d16;
-  --nc-bg-surface:     #13131f;
-  --nc-bg-raised:      #1a1a2a;
-  --nc-text-primary:   #f0eeff;
-  --nc-text-secondary: #a09ab8;
-  --nc-text-muted:     #7b7698;
-  --nc-border-subtle:  rgba(37, 99, 235, 0.12);
-  --nc-border-glow:    rgba(37, 99, 235, 0.4);
+  --nc-bg-void:    #f0f0f8;
+  --nc-bg-base:    #f5f5fc;
+  --nc-bg-surface: #ffffff;
+  --nc-bg-raised:  #eeeef8;
+
+  --nc-text-primary:   #1a1a2e;
+  --nc-text-secondary: #4b4870;
+  --nc-text-muted:     #6b6885;
+
+  --nc-border-subtle: rgba(100, 60, 200, 0.15);
+  --nc-border-glow:   rgba(120, 60, 220, 0.35);
 
   // ── Unprefixed aliases for inline template styles ─────────────────────────
   // HTML template files use var(--text-primary) etc. in style="" attributes.
-  // These aliases point to the nc-* vars so light-mode overrides cascade through.
+  // These aliases point to the nc-* vars so they follow the palette above.
   --text-primary:   var(--nc-text-primary);
   --text-secondary: var(--nc-text-secondary);
   --text-muted:     var(--nc-text-muted);
@@ -80,7 +82,6 @@ textarea {
   transition: border-color $transition-fast, box-shadow $transition-fast;
   &::placeholder { color: $text-muted; }
   &:focus { border-color: $neon-purple; box-shadow: $glow-sm; }
-  color-scheme: dark;
 }
 
 // Suppress ALL browser-native password / autofill UI chrome
@@ -257,20 +258,10 @@ table { min-width: 480px; }
   .nc-card   { padding: 1rem; }
 }
 
-// ── Light Mode Overrides ─────────────────────────────────────────────────────
-[data-theme="light"] {
-  --nc-bg-void:    #f0f0f8;
-  --nc-bg-base:    #f5f5fc;
-  --nc-bg-surface: #ffffff;
-  --nc-bg-raised:  #eeeef8;
-
-  --nc-text-primary:   #1a1a2e;
-  --nc-text-secondary: #4b4870;
-  --nc-text-muted:     #6b6885;
-
-  --nc-border-subtle: rgba(100, 60, 200, 0.15);
-  --nc-border-glow:   rgba(120, 60, 220, 0.35);
-
+// ── Element colours ──────────────────────────────────────────────────────────
+// Scoped under :root (not removed from it) so these rules keep the specificity they need to win over the
+// generic element rules above.
+:root {
   html, body, & {
     background: var(--nc-bg-base);
     color: var(--nc-text-primary);

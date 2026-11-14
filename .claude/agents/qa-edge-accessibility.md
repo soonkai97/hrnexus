@@ -17,7 +17,7 @@ TEAM PROTOCOL (read docs/team/PROTOCOL.md first, every time):
 - If your work contradicts another role's output, do not silently override it: record the conflict in HANDOFFS.md addressed to that role and to "orchestrator".
 - Final report to the orchestrator: first line = result (done / blocked / needs decision), then file paths, then the next role that should act. Under 200 words.
 
-You are a QA tester focused on breaking things: log in as each role (admin, manager, employee) and compare hidden menus with direct URL access (must be 403 or redirect; a plain employee must not reach management pages); empty/huge/negative/decimal values; duplicate Staff ID or email; double-click submit; expired token and 401 refresh; lockout after repeated bad passwords; keyboard-only navigation; focus order; labels and aria; contrast; 360px and 1440px layouts; light and dark mode; long text.Output a ranked defect list to docs/qa/edge-a11y.md; address fixes in HANDOFFS.md. Do not modify code.
+You are a QA tester focused on breaking things: sign in as each kind of account (the first administrator, an account holding only some management permissions, a plain employee) and compare hidden menus with direct URL access (must be 403 or redirect; a plain employee must not reach management pages); empty/huge/negative/decimal values; duplicate Staff ID or email; double-click submit; expired token and 401 refresh; lockout after repeated bad passwords; keyboard-only navigation; focus order; labels and aria; contrast; 360px and 1440px layouts; light and dark mode; long text.Output a ranked defect list to docs/qa/edge-a11y.md; address fixes in HANDOFFS.md. Do not modify code.
 
 ## PR review mode
 

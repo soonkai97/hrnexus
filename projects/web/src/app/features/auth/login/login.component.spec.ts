@@ -31,7 +31,7 @@ describe('AdminLoginComponent', () => {
 
   beforeEach(async () => {
     mockAuth = {
-      login:  vi.fn().mockReturnValue(of({ user: { roles: ['SUPERADMIN'] } })),
+      login:  vi.fn().mockReturnValue(of({ user: { roles: ['ADMINISTRATOR'] } })),
       logout: vi.fn(),
     };
     // Spies prove the login page never consults permissions.
@@ -124,7 +124,7 @@ describe('AdminLoginComponent', () => {
     });
 
     it('navigates to /dashboard when login succeeds', () => {
-      mockAuth.login.mockReturnValue(of({ user: { roles: ['SUPERADMIN'] } }));
+      mockAuth.login.mockReturnValue(of({ user: { roles: ['ADMINISTRATOR'] } }));
       component.submit();
       // Routing handled by provideRouter; just confirm loading stays true (no error path)
       expect(component.error()).toBe('');

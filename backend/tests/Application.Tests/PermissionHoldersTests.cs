@@ -52,7 +52,7 @@ public class PermissionHoldersTests
     {
         await using var db = CreateDb();
         var named = await RoleWithAsync(db, "MANAGER", AppConstants.Permissions.StaffView);
-        var named2 = await RoleWithAsync(db, "SUPERADMIN");
+        var named2 = await RoleWithAsync(db, "BOSS");
         await AddStaffAsync(db, "M1", named);
         await AddStaffAsync(db, "M2", named2);
 

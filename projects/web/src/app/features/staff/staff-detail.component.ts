@@ -51,7 +51,7 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   /** Managers now have the same power as admins, so role editing is never hidden. */
   readonly isManager = computed(() => false);
 
-  // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
+  // Every defined job is assignable; what a job allows is decided by its permissions.
   availableRoles = computed(() => this.staffStore.roles());
 
   // Pickers use the GUID id (the edit-staff DTO submits role IDS).

@@ -7,10 +7,10 @@ learned → Last session (resume pointer).
 
 ## Verified facts
 
-- `HRADMIN` is real seed data (`SeedData.cs`) — the system's default admin login. `HRMANAGER`
-  is **not** seeded anywhere in code; it's a real manager account created later. Both are now
-  hidden from the roster via `Staff.IsHidden`, but neither should ever be treated as safe to
-  delete outright.
+- `HRADMIN` is real seed data (`SeedData.cs`) — the first-run administrator login, created only in an
+  empty database, holding the first administrator job (the job flagged `IsSystem`; `ADMINISTRATOR` on a
+  new install). `HRMANAGER` is **not** seeded anywhere in code; it's a real account created later. Both
+  are hidden from the roster via `Staff.IsHidden`. No job is special because of its name (Phase 7o).
 - **Clock-in/out (WorkLog), per-job `MaxShiftDays` and shift-derived pay were removed in Phase 7**
   (`docs/process/phase-07-remove-shift-log.md`). Earlier facts about shift overlap, the 30/100-day caps
   and `WorkLog.RoleName` snapshots are obsolete. `Role.HourlyRate`/`PayType` remain until Phase 8.

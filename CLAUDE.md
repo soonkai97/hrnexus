@@ -74,7 +74,7 @@ projects/
     ├── models/                   # DTOs and interfaces
     ├── services/                 # HTTP services + ToastService + ConfirmService
     ├── stores/                   # signal-based state (StaffStore)
-    ├── guards/                   # authGuard, roleGuard, permissionGuard, unsavedChangesGuard
+    ├── guards/                   # authGuard, permissionGuard, unsavedChangesGuard
     ├── auth/                     # AuthService, jwt/error/maintenance interceptors, ForgotPasswordBase
     ├── pipes/                    # HmPipe (24-hour time)
     ├── directives/               # TrimInputDirective
@@ -142,7 +142,6 @@ field and no `portal.admin` permission.
 **Guards:**
 - `authGuard` — passes when `auth.isAuthenticated()` (a user session is known locally). The access token is an httpOnly cookie JS cannot read, so the server is the real enforcer: an expired cookie 401s and `jwtInterceptor` refreshes or logs out.
 - `permissionGuard(key, fallback)` — checks the current user holds `key`; redirects to `fallback` otherwise
-- `roleGuard(...roles)` — role-tier check, redirects to `/unauthorized` (permissions are preferred for new routes)
 - `unsavedChangesGuard` — `canDeactivate` prompt for forms; skipped while `auth.loggingOut()`
 
 ---
@@ -173,7 +172,6 @@ this.http.delete<void>(`/api/staff/${id}`)
 // Signals
 user = signal<AuthUser | null>(...)      // non-sensitive profile, restored from localStorage['auth_user']
 isAuthenticated = computed(...)          // user() !== null
-userRole = computed(...)                 // 'admin' | 'manager' | 'employee' | null (from role names)
 loggingOut = signal(false)               // true while an explicit sign-out navigates away
 
 // Methods
@@ -182,7 +180,6 @@ logout(): void                           // POST /api/auth/logout, clears the pr
 refreshToken(): Observable<AuthResponse>
 forgotPassword(staffId: string): Observable<ForgotPasswordResponse>
 updateProfile(phoneNumber: string | null): Observable<void>
-hasRole(...roles: UserRole[]): boolean
 ```
 
 **Session storage:** tokens live in **httpOnly cookies** (`hrnexus_at`, `hrnexus_rt`) set by the server; JavaScript never sees them. Only the non-sensitive `AuthUser` JSON is kept in `localStorage['auth_user']`. Legacy `access_token` / `refresh_token` keys are purged on service init.
@@ -218,7 +215,7 @@ hasRole(...roles: UserRole[]): boolean
 | `AppUpdateService` | Service-worker update check (`init()` is called from the root `App`) |
 | `VersionService` | Build version info |
 
-**Guards:** `authGuard`, `roleGuard`, `permissionGuard`, `unsavedChangesGuard`
+**Guards:** `authGuard`, `permissionGuard`, `unsavedChangesGuard`
 
 **Components:**
 - `ToastComponent` (`<nc-toast />`) — mount once in the app shell
@@ -745,7 +742,7 @@ Rules the leave handlers enforce; each has a test in `LeaveFixesTests` (`docs/pr
   (for example a weekend) can still be approved, rejected or marked no-show.
 - **No-show** (`BulkMarkLeaveNoShowCommand`) frees the annual hours a leave used, so it follows the self-approval
   rule too (own leave in the selection throws) and skips rejected/cancelled leave.
-- **Withdrawal**: staff cancelling an **approved** leave notifies every other active manager/admin
+- **Withdrawal**: staff cancelling an **approved** leave notifies every other active holder of `leave.approve`
   ("Leave Withdrawn", `leave_pending` type so the bell links to `/leave`); cancelling a pending one is silent.
 
 ---
@@ -919,8 +916,7 @@ dotnet test                                         # run everything
 > token), Serializable balance-overrun
 > arbitration, and the HTTP pipeline (rate limiter + exception→status mapping via
 > `WebApplicationFactory<Program>`). If Docker isn't available these tests fail to start — run
-> the Application suite instead. `scripts/seed-and-demo-hardening.ps1` seeds sample data and
-> demonstrates lockout against the running local stack.
+> the Application suite instead.
 >
 > `LoadConcurrencyTests` drives **50 concurrent** leave approvals vs a 10h cap (never
 > overdraws, and reported successes EXACTLY equal committed rows). The last assertion guards a
@@ -966,6 +962,26 @@ public class MyFeatureTests
 | `StubHasher` | `IPasswordHasher` — `Hash(p)` returns `"hash:"+p`; `Verify(p,h)` returns `h == "hash:"+p` |
 | `StubTokenService` | `ITokenService` — always returns a fixed token/refresh pair |
 | `StubDateTimeProvider` | `IDateTimeProvider` — exposes a mutable `DateTime _now` field |
+
+### Access is decided by permissions, never by a job's name (Phase 7o)
+
+No code compares `Role.Name` to a constant, and there is no `SUPERADMIN` or `MANAGER`. A job is a name plus a set of
+permissions. What replaces the names:
+
+- **Who is notified** is a permission lookup: `PermissionHolders.GetIdsAsync(db, key, ct)` returns the active
+  accounts that effectively hold a key (job grants, plus per-user grants, minus per-user revokes). Pending and
+  withdrawn leave go to `leave.approve` holders; password-reset requests go to `staff.manage` holders. The person
+  the notice is about (the leave's owner, the admin who recorded it, the person asking for a reset) is never told.
+  A test that needs "someone who can approve leave" grants `leave.approve` to a job (`RoleSeed.GrantAsync`).
+- **The first administrator job** is the one job flagged `IsSystem`. The seed finds it by the flag (creating
+  `ADMINISTRATOR` on an empty install), grants it every catalog permission at every start, and `SetRolePermissions`
+  refuses to edit it. It can be renamed, never deleted. Do not look it up by name.
+- **Lock-out protection** is by permission: `RolesManageInvariant.EnsureNotTheLastAsync` stops the last active
+  `roles.manage` holder from being deactivated or deleted.
+- **`HRADMIN`** (documented first-run password) is created **only in an empty database**, counting deleted accounts,
+  so deleting or renaming it can never bring the default password back.
+- The access token carries no role claim and the frontend has no role tier: use `permissionGuard` and the
+  permission service.
 
 ### Role.Name primary key casing — canonical form is UPPERCASE
 `Role.Create(name)` stores `Name = name.Trim().ToUpperInvariant()`. All handlers query roles using `.ToUpperInvariant()` to match. In tests, `E.Role.Create("bartender")` already produces `Name = "BARTENDER"` — no reflection workaround needed:
@@ -1066,12 +1082,12 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 29 | 296 | ✅ |
-| web components | 14 | 485 | ✅ |
-| backend Application.Tests | — | 362 | ✅ |
-| backend Integration.Tests (Testcontainers) | — | 23 | ✅ |
+| shared-lib (services + stores + guards + auth) | 29 | 279 | ✅ |
+| web components | 14 | 488 | ✅ |
+| backend Application.Tests | — | 412 | ✅ |
+| backend Integration.Tests (Testcontainers) | — | 35 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 13 | 63 | ✅ |
+| E2E (Playwright) | 14 | 65 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1180,12 +1196,12 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 296 tests
-npx ng test web        --no-watch   # 485 tests
+npx ng test shared-lib --no-watch   # 279 tests
+npx ng test web        --no-watch   # 488 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 395 tests (362 Application + 23 Integration + 10 Infrastructure)
+dotnet test                          # 457 tests (412 Application + 35 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```
@@ -1216,7 +1232,7 @@ E2E tests live in `tests/e2e/{admin,staff}/` and use Playwright. There is **one*
 `admin/` signs in as the administrator, `staff/` as a plain employee.
 Run against the Docker deployment (`BASE_URL`, default `http://localhost:8080`).
 
-**Seeded test credentials (administrator):** staffId=`HRADMIN`, password=`Admin@1234`  
+**Seeded test credentials (administrator):** staffId=`HRADMIN`, password=`Admin@1234` (holds the first administrator job, so every permission)  
 **E2E employee account (created by global-setup):** staffId=`TESTSTAFF01`, password=`Test@1234` (EMPLOYEE role, no management permissions)
 
 **Run commands:**

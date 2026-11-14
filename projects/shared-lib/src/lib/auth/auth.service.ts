@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
-import { AuthResponse, AuthUser, ForgotPasswordResponse, LoginRequest, UserRole } from '../models';
+import { AuthResponse, AuthUser, ForgotPasswordResponse, LoginRequest } from '../models';
 import { PermissionService } from '../services/permission.service';
 
 // Tokens now live in httpOnly cookies set by the server (the browser sends them automatically with
@@ -22,14 +22,6 @@ export class AuthService {
    *  skip their prompts so logout is never blocked or deadlocked behind a confirm dialog. */
   private readonly _loggingOut = signal(false);
   readonly loggingOut = this._loggingOut.asReadonly();
-  /** Highest-privilege permission level derived from roles */
-  readonly userRole = computed((): UserRole | null => {
-    const roles = (this._user()?.roles ?? []).map(r => r.toUpperCase());
-    if (roles.includes('SUPERADMIN')) return 'admin';
-    if (roles.includes('MANAGER')) return 'manager';
-    if (roles.length)              return 'employee';
-    return null;
-  });
 
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
@@ -89,11 +81,6 @@ export class AuthService {
     this.router.navigate(['/auth/login'])
       .catch(() => false)   // never let a navigation rejection leak; we still reset below
       .finally(() => this._loggingOut.set(false));
-  }
-
-  hasRole(...checkRoles: UserRole[]): boolean {
-    const permissionLevel = this.userRole();
-    return permissionLevel ? checkRoles.includes(permissionLevel) : false;
   }
 
   private storeSession(res: AuthResponse): void {

@@ -119,7 +119,7 @@ describe('StaffManagementService', () => {
 
   describe('update()', () => {
     it('calls PUT /api/staff/{id} with the update body', () => {
-      const req: any = { firstName: 'Bob', roles: ['MANAGER'] };
+      const req: any = { firstName: 'Bob', roles: ['ROTA LEAD'] };
       service.update('emp-3', req).subscribe();
       const httpReq = http.expectOne('/api/staff/emp-3');
       expect(httpReq.request.method).toBe('PUT');

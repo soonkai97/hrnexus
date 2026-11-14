@@ -100,6 +100,10 @@
   [draggable]="false" [closable]="true" appendTo="body">
 
   <p class="modal-desc">Default permissions granted to everyone with this job.</p>
+  @if (permReadOnly()) {
+    <p class="modal-desc" style="font-size:.78rem;line-height:1.45">
+      <i class="pi pi-lock" style="margin-right:.35rem"></i>This is the first administrator job. It always holds every permission, so these can't be changed. You can still rename it.</p>
+  }
   <p class="modal-desc" style="font-size:.78rem;line-height:1.45">
     <i class="pi pi-info-circle" style="margin-right:.35rem"></i>How it works: a person gets the combined permissions of all their jobs. On their profile, an override can grant an extra permission or revoke one — revoke always wins. Changes take effect immediately.</p>
 
@@ -112,7 +116,7 @@
             <p-checkbox [inputId]="'perm-' + key" [binary]="true"
                         [ngModel]="permSelected().includes(key)"
                         (ngModelChange)="togglePermission(key, $event)"
-                        [disabled]="permLoading()" />
+                        [disabled]="permLoading() || permReadOnly()" />
             <label [for]="'perm-' + key" class="perm-label-block">
               <span class="perm-label-text">{{ permLabel(key) }}</span>
               <small class="perm-desc">{{ permDesc(key) }}</small>
@@ -124,9 +128,11 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <p-button label="Cancel" [text]="true" severity="secondary"
+    <p-button [label]="permReadOnly() ? 'Close' : 'Cancel'" [text]="true" severity="secondary"
               (click)="closePermissions()" />
-    <p-button label="Save permissions" severity="primary"
-              (click)="savePermissions()" [disabled]="permLoading() || permSaving()" [loading]="permSaving()" />
+    @if (!permReadOnly()) {
+      <p-button label="Save permissions" severity="primary"
+                (click)="savePermissions()" [disabled]="permLoading() || permSaving()" [loading]="permSaving()" />
+    }
   </ng-template>
 </p-dialog>

@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.Admin.Queries;
+using HRNexus.Application.Leave;
 using HRNexus.Application.Leave.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -29,8 +30,9 @@ public class LeaveController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Apply([FromBody] ApplyLeaveBody body, CancellationToken ct)
     {
-        // Employees cannot create 'no-show' records — that is admin-only
-        if (body.LeaveType.Equals("no-show", StringComparison.OrdinalIgnoreCase))
+        // Employees cannot record admin-only types (no-show by default): the catalogue says which
+        var types = await mediator.Send(new GetLeaveTypesQuery(IncludeInactive: true), ct);
+        if (types.Types.FirstOrDefault(t => t.Key.Equals(body.LeaveType, StringComparison.OrdinalIgnoreCase))?.AdminOnly == true)
             return Forbid();
 
         try

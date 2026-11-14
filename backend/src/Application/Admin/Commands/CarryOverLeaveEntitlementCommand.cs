@@ -3,6 +3,7 @@ using HRNexus.Application.Leave;
 using HRNexus.Application.Policy;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
+using HRNexus.Domain.Leave;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +31,10 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
         if (policy.CarryOverMode == AppConstants.Policy.CarryOverNone) return 0;   // unused leave lapses
         var cap = policy.CarryOverMode == AppConstants.Policy.CarryOverUnlimited ? decimal.MaxValue : policy.CarryOverMaxHours;
 
+        // The annual pool is every type charged to it (annual and emergency by default), counted by its own schedule.
+        var catalog = await LeaveCatalogReader.GetAsync(db, ct);
+        var annualKeys = catalog.Types.Where(t => t.Pool == LeavePools.Annual).Select(t => t.Key).ToList();
+
         var activeStaffIds = await db.Staff
             .Where(s => s.IsActive)
             .Select(s => s.Id)
@@ -51,18 +56,18 @@ public class CarryOverLeaveEntitlementCommandHandler(IAppDbContext db)
 
             var fromYearLeaves = await db.LeaveRequests
                 .Where(l => activeStaffIds.Contains(l.EmployeeId)
-                         && (l.LeaveType == "annual" || l.LeaveType == "emergency")
+                         && annualKeys.Contains(l.LeaveType)
                          && l.StartDate <= fromYearEnd
                          && l.EndDate   >= fromYearStart
                          && l.Status != "rejected"
                          && l.Status != "cancelled")
-                .Select(l => new { l.EmployeeId, l.StartDate, l.EndDate, l.Hours })
+                .Select(l => new { l.EmployeeId, l.LeaveType, l.StartDate, l.EndDate, l.Hours })
                 .ToListAsync(ct);
             // Only the working days that fall in the closing year count as used in it.
             var usedByEmployee = fromYearLeaves
                 .GroupBy(l => l.EmployeeId)
                 .Select(g => new { EmployeeId = g.Key,
-                    Used = g.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, req.FromYear, policy.Schedule)) })
+                    Used = g.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, req.FromYear, catalog.ScheduleFor(l.LeaveType, policy.Schedule))) })
                 .ToList();
 
             var usedMap = usedByEmployee.ToDictionary(u => u.EmployeeId, u => u.Used);

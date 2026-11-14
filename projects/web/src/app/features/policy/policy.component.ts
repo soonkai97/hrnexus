@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -6,6 +6,7 @@ import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
+import { LeaveTypesEditorComponent } from './leave-types-editor.component';
 import {
   CanComponentDeactivate,
   CarryOverMode,
@@ -37,7 +38,16 @@ const inRange = (v: number | null, min: number, max: number): v is number =>
 @Component({
   selector: 'app-policy',
   standalone: true,
-  imports: [FormsModule, Button, Card, InputText, Message, Select, Skeleton],
+  imports: [
+    FormsModule,
+    Button,
+    Card,
+    InputText,
+    Message,
+    Select,
+    Skeleton,
+    LeaveTypesEditorComponent,
+  ],
   templateUrl: './policy.component.html',
   styleUrl: './policy.component.scss',
 })
@@ -137,8 +147,14 @@ export class PolicyComponent implements OnInit, CanComponentDeactivate {
 
   // ── Saving ───────────────────────────────────────────────────────────────────
 
+  /** The leave-types section below keeps its own edits; leaving the page must warn about those too. */
+  private readonly typesEditor = viewChild(LeaveTypesEditorComponent);
+
   hasUnsavedChanges(): boolean {
-    return JSON.stringify(this.form) !== this.savedJson;
+    return (
+      JSON.stringify(this.form) !== this.savedJson ||
+      (this.typesEditor()?.hasUnsavedChanges() ?? false)
+    );
   }
 
   save(): void {

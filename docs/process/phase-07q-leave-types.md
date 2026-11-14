@@ -1,6 +1,6 @@
 # Phase 7q: Leave types as company data (annual, sick, hospitalisation, maternity, paternity, compassionate)
 
-> **Status:** `Draft`
+> **Status:** `Implemented` (7q-a0, a1, b and c in one PR; the colours of the original five types keep today's tag colours)
 > **Created:** 2026-11-14 | **Updated:** 2026-11-14
 > **Depends on:** Phases 7l and 7m merged (leave rules, company policy). Independent of Phase 8 apart from one rule: **payroll deducts pay only for leave whose type says `DeductsPay`** (see "Payroll"), so this phase should land before 8c.
 > **Why:** the owner asked (14 Nov 2026) for more leave types: **annual, sick, hospitalisation, maternity, paternity and compassionate**. Today the product has five hard-coded types (`annual`, `sick`, `emergency`, `unpaid`, `no-show`) and every rule that differs between them (balances, auto-approval, advance notice, which pool is charged) is a `==` comparison in about 15 places. Adding four more the same way would copy that again, and the next company will want different ones. Phase 7m's rule applies: rules that differ between companies are settings, not constants.

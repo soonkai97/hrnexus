@@ -1,6 +1,7 @@
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
+using HRNexus.Domain.Leave;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,10 +34,10 @@ public class BulkMarkLeaveNoShowCommandHandler(IAppDbContext db, IAuditService a
         foreach (var leave in leaves)
         {
             if (IsClosed(leave)) continue;   // rejected and cancelled leave is final
-            if (leave.LeaveType.Equals(AppConstants.Leave.NoShow, StringComparison.OrdinalIgnoreCase))
+            if (leave.LeaveType.Equals(LeaveTypeDefaults.NoShowKey, StringComparison.OrdinalIgnoreCase))
                 continue; // already a no-show
 
-            leave.Update(AppConstants.Leave.NoShow, leave.StartDate, leave.EndDate,
+            leave.Update(LeaveTypeDefaults.NoShowKey, leave.StartDate, leave.EndDate,
                 leave.StartTime, leave.EndTime, leave.Hours, leave.Notes, leave.Status, null);
             await audit.LogAsync("LeaveRequest", leave.Id.ToString(), "BulkMarkNoShow",
                 null, "Admin", "Type → no-show", ct);

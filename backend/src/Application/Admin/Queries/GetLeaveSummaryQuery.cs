@@ -8,6 +8,10 @@ namespace HRNexus.Application.Admin.Queries;
 
 public record GetLeaveSummaryQuery(int? Year) : IRequest<List<LeaveSummaryDto>>;
 
+/// <summary>
+/// Hours of leave per person for a year. The fixed fields are kept for existing callers;
+/// <see cref="Types"/> carries one line per leave type of the company's catalogue (Phase 7q).
+/// </summary>
 public record LeaveSummaryDto(
     Guid    EmployeeId,
     string  StaffId,
@@ -18,7 +22,8 @@ public record LeaveSummaryDto(
     decimal EmergencyUsed,
     decimal UnpaidUsed,
     decimal NoShowUsed,
-    decimal TotalUsed);
+    decimal TotalUsed,
+    IReadOnlyList<LeaveTypeBalanceDto>? Types = null);
 
 public class GetLeaveSummaryQueryHandler(IAppDbContext db, IDateTimeProvider dt)
     : IRequestHandler<GetLeaveSummaryQuery, List<LeaveSummaryDto>>
@@ -40,37 +45,29 @@ public class GetLeaveSummaryQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var staffIds = staff.Select(s => s.Id).ToList();
 
         var policy = await CompanyPolicyReader.GetAsync(db, ct);
+        var catalog = await LeaveCatalogReader.GetAsync(db, ct);
         var leaves = await db.LeaveRequests
             .Where(l => staffIds.Contains(l.EmployeeId)
                      && l.Status != "rejected"
                      && l.Status != "cancelled"
                      && l.StartDate <= endOfYear
                      && l.EndDate   >= startOfYear)
-            .Select(l => new { l.EmployeeId, l.LeaveType, l.StartDate, l.EndDate, l.Hours })
+            .Select(l => new { l.EmployeeId, Row = new LeaveRow(l.LeaveType, l.StartDate, l.EndDate, l.Hours) })
             .ToListAsync(ct);
-        // A leave across New Year is charged to each year by the working days that fall in it.
-        leaves = leaves
-            .Select(l => new { l.EmployeeId, l.LeaveType, l.StartDate, l.EndDate,
-                Hours = (decimal?)LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, startOfYear.Year, policy.Schedule) })
-            .ToList();
 
         var byEmployee = leaves
             .GroupBy(l => l.EmployeeId)
-            .ToDictionary(g => g.Key, g => g.ToList());
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Row).ToList());
 
         return staff.Select(s =>
         {
-            var emp          = byEmployee.GetValueOrDefault(s.Id);
-            var annualUsed   = emp?.Where(l => l.LeaveType == "annual"   ).Sum(l => l.Hours ?? 0m) ?? 0m;
-            var sickUsed     = emp?.Where(l => l.LeaveType == "sick"     ).Sum(l => l.Hours ?? 0m) ?? 0m;
-            var emergencyUsed= emp?.Where(l => l.LeaveType == "emergency").Sum(l => l.Hours ?? 0m) ?? 0m;
-            var unpaidUsed   = emp?.Where(l => l.LeaveType == "unpaid"   ).Sum(l => l.Hours ?? 0m) ?? 0m;
-            var noShowUsed   = emp?.Where(l => l.LeaveType == "no-show"  ).Sum(l => l.Hours ?? 0m) ?? 0m;
-            var total        = annualUsed + sickUsed + emergencyUsed + unpaidUsed + noShowUsed;
+            // The summary carries no entitlements, so only what was used is shown (own-pool types still show their allowance).
+            var b = LeaveBalanceCalculator.Compute(catalog, policy.Schedule,
+                byEmployee.GetValueOrDefault(s.Id) ?? [], year, annualEntitlement: null, sickEntitlement: null);
 
             return new LeaveSummaryDto(
                 s.Id, s.StaffId, $"{s.FirstName} {s.LastName}",
-                year, annualUsed, sickUsed, emergencyUsed, unpaidUsed, noShowUsed, total);
+                year, b.AnnualUsed, b.SickUsed, b.EmergencyUsed, b.UnpaidUsed, b.NoShowUsed, b.TotalUsed, b.Types);
         }).ToList();
     }
 }

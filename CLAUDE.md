@@ -730,6 +730,39 @@ rules the product shipped with: Mon-Fri, 8h, 3 days' notice, 30-day cap, capped 
 - **Carry-over** (`CarryOverLeaveEntitlementCommand(FromYear, ToYear)`) follows the policy; it takes no cap argument.
 - Tests that book a single day must use a day that is a working day under the schedule they set up.
 
+## Leave types (Phase 7q)
+
+Which kinds of leave exist, and how each behaves, is **company data** (`docs/process/phase-07q-leave-types.md`,
+`docs/architecture/adr-leave-types-as-data.md`). **No handler compares a leave type's name**: it finds the type's
+definition and asks it (a guard test in `LeaveTypesBehaviourTests` fails if one does).
+
+- **Catalogue:** `LeaveTypeDefinition` (one row per type; the key is the value stored on every `LeaveRequest`, at most 20
+  characters, never changes). `LeaveCatalogReader.GetAsync(db, ct)` returns the saved rows, or the **code defaults**
+  (`LeaveTypeDefaults`, nine types) until an administrator saves, exactly like `CompanyPolicyReader`; so a test that seeds
+  no catalogue gets today's behaviour.
+- **What a type says:** `Pool` (`annual` and `sick` use the person's `LeaveEntitlement`; `own` has a company-wide yearly
+  `AllowanceDays`; `none` has no balance), `MaxDaysPerRequest` (calendar days; **replaces** the policy cap for that type),
+  `AutoApprove` (only with a pool), notice (`AdvanceNoticeFromPolicy` or `AdvanceNoticeDays`), `DeductsPay`, `AdminOnly`,
+  `CountsCalendarDays`, `Sensitive`. `sick` and `no-show` are locked **system types** (behaviour fixed, never deactivated).
+  `Pool` and `CountsCalendarDays` are locked once a type has leave; a type with leave is deactivated, never removed.
+- **Hours:** every place that turns dates into hours (apply, the three balance queries, carry-over, the frontend preview)
+  uses `type.ScheduleFor(company)` (all seven days for a calendar-day type). Calendar-day vectors are in
+  `tests/fixtures/leave-hours.json` and asserted by both stacks (98 days = 784h).
+- **Privacy:** a `Sensitive` type is never named in a notification, push body, withdrawal or auto-reject message
+  (`LeaveCatalog.Phrase(key)` says "leave"). The new health and family types are sensitive by default.
+- **API:** `GET /api/leave-types` (everyone signed in, all types with an `active` flag), `GET /api/leave-types/all`
+  (`policy.manage`, adds which types already have leave and the version), `PUT /api/leave-types` (`policy.manage`) replaces
+  the whole catalogue under one version token (stale = 409; the first save materialises the defaults). Balance and summary
+  DTOs keep their old fields and gain `types[]`.
+- **Frontend:** `LeaveTypeService` (shared-lib) loads the catalogue once per session (the shell does it); the leave pages
+  build their type lists, tag colours, hints and notice rules from it. The editor is the "Leave types" section of the
+  **Company Policy** page (`LeaveTypesEditorComponent`).
+- **Payroll (8c):** pay is deducted for leave whose type has `DeductsPay` (unpaid and no-show by default), never by name.
+  Maternity and paternity are paid by default; the product does not model eligibility, so a manager records the leave as
+  `unpaid` for someone who is not eligible.
+- The statutory figures on the new types (hospitalisation 60 days a year, maternity 98 days, paternity 7 days, compassionate
+  3 days per event) are **assumed** and marked as such; counsel confirms them and the company changes them on the policy page.
+
 ## Leave rules (Phase 7l)
 
 Rules the leave handlers enforce; each has a test in `LeaveFixesTests` (`docs/process/phase-07l-leave-fixes.md`).
@@ -1101,12 +1134,12 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 29 | 274 | ✅ |
-| web components | 15 | 517 | ✅ |
-| backend Application.Tests | — | 529 | ✅ |
-| backend Integration.Tests (Testcontainers) | — | 48 | ✅ |
+| shared-lib (services + stores + guards + auth) | 30 | 296 | ✅ |
+| web components | 16 | 555 | ✅ |
+| backend Application.Tests | — | 604 | ✅ |
+| backend Integration.Tests (Testcontainers) | — | 53 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 15 | 67 | ✅ |
+| E2E (Playwright) | 16 | 71 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1215,12 +1248,12 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 274 tests
-npx ng test web        --no-watch   # 517 tests
+npx ng test shared-lib --no-watch   # 296 tests
+npx ng test web        --no-watch   # 555 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 587 tests (529 Application + 48 Integration + 10 Infrastructure)
+dotnet test                          # 667 tests (604 Application + 53 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```
@@ -1269,6 +1302,7 @@ PW_CHANNEL=msedge npm run test:e2e   # use the installed Edge/Chrome when Playwr
 | `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation, bulk mode |
 | `tests/e2e/admin/roles.spec.ts` | Roles page renders, role table, Add role dialog |
 | `tests/e2e/admin/leave.spec.ts` | Leave page, filters, Record Leave dialog, summary pills |
+| `tests/e2e/admin/leave-types.spec.ts` | Leave types: employee reads but cannot change, admin-only type refused to staff, 98-day maternity accepted (784h) and 99 refused, add and switch off a type on the policy page, stale save 409 |
 | `tests/e2e/admin/policy.spec.ts` | Company policy: employee reads but cannot save, invalid and stale saves refused, Mon-Sat switch on the page makes Saturday leave valid (then restored) |
 | `tests/e2e/admin/permissions.spec.ts` | Permission-gated pages, per-user grant/revoke override, 403 vs 200 on a protected endpoint |
 | `tests/e2e/admin/negative.spec.ts` | API guards reject cleanly: overlap, bad dates, hours cap, blocked deletes, duplicate Staff ID, 401s |

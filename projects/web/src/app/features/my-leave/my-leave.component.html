@@ -41,6 +41,22 @@
         </div>
         <div class="bal-used">h used this year</div>
       </div>
+      <!-- Types with their own allowance (hospitalisation) or other leave already taken -->
+      @for (e of extraBalances(); track e.key) {
+        <div class="bal-card extra" [class]="'bal-card extra bal-' + e.colour">
+          <div class="bal-label">{{ e.label }}</div>
+          <div class="bal-nums">
+            @if (e.remaining !== null) {
+              <span class="bal-remaining">{{ e.remaining }}</span>
+              <span class="bal-sep">/</span>
+              <span class="bal-total">{{ e.entitlement }}h</span>
+            } @else {
+              <span class="bal-remaining">{{ e.used }}</span>
+            }
+          </div>
+          <div class="bal-used">{{ e.remaining !== null ? e.used + 'h used' : 'h used this year' }}</div>
+        </div>
+      }
     </div>
   }
 
@@ -66,11 +82,8 @@
             optionLabel="label"
             optionValue="value"
             styleClass="w-full" />
-          @if (form.leaveType === 'emergency') {
-            <p-message severity="info" text="Emergency leave is auto-approved. Use this for urgent same-day or short-notice requests." styleClass="mt-2" />
-          }
-          @if (form.leaveType === 'annual') {
-            <small style="color:var(--p-text-muted-color)">Annual leave must be applied at least 3 days in advance.</small>
+          @for (h of typeHints; track h) {
+            <small class="type-hint" style="display:block;color:var(--p-text-muted-color)">{{ h }}</small>
           }
         </div>
         <div class="field">
@@ -167,7 +180,7 @@
             [label]="p.label"
             size="small"
             [outlined]="filterLeaveType() !== p.value"
-            [severity]="p.value === 'sick' ? 'danger' : p.value === 'annual' ? 'success' : p.value === 'unpaid' ? 'secondary' : 'primary'"
+            [severity]="p.value ? typeSeverity(p.value) : 'primary'"
             (click)="setLeaveFilter(p.value)" />
         }
       </div>
@@ -232,7 +245,7 @@
                 @if (day.leaves.length > 0) {
                   <div class="staff-cal-dots">
                     @for (r of day.leaves.slice(0, 3); track r.id) {
-                      <span class="staff-cal-dot" [class]="'staff-cal-dot-' + r.leaveType"></span>
+                      <span class="staff-cal-dot" [class]="'staff-cal-dot-' + typeSeverity(r.leaveType)"></span>
                     }
                   </div>
                 }
@@ -242,9 +255,9 @@
 
           <!-- Legend -->
           <div class="staff-cal-legend">
-            @for (t of leaveTypes; track t) {
+            @for (t of leaveTypes(); track t) {
               <span class="staff-cal-legend-item">
-                <span class="staff-cal-dot" [class]="'staff-cal-dot-' + t"></span>
+                <span class="staff-cal-dot" [class]="'staff-cal-dot-' + typeSeverity(t)"></span>
                 {{ leaveTypeLabel(t) }}
               </span>
             }
@@ -264,7 +277,7 @@
                   @for (r of selectedCalDayLeaves(); track r.id) {
                     <div class="staff-cal-day-row">
                       <p-tag [value]="leaveTypeLabel(r.leaveType)"
-                        [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'emergency' ? 'warn' : 'secondary'" />
+                        [severity]="typeSeverity(r.leaveType)" />
                       <p-tag [value]="statusLabel(r.status)"
                         [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : r.status === 'cancelled' ? 'secondary' : 'danger'" />
                       <span class="staff-cal-day-hours">{{ r.hours }}h</span>
@@ -309,7 +322,7 @@
           @for (r of pagedRecords(); track r.id) {
             <p-card styleClass="leave-card">
               <div class="leave-top">
-                <p-tag [value]="leaveTypeLabel(r.leaveType)" [severity]="r.leaveType === 'annual' ? 'success' : r.leaveType === 'sick' ? 'danger' : r.leaveType === 'emergency' ? 'warn' : 'secondary'" />
+                <p-tag [value]="leaveTypeLabel(r.leaveType)" [severity]="typeSeverity(r.leaveType)" />
                 <!-- Item 10: use correct severity for cancelled -->
                 <p-tag [value]="statusLabel(r.status)"
                   [severity]="r.status === 'approved' ? 'success' : r.status === 'pending' ? 'warn' : r.status === 'cancelled' ? 'secondary' : 'danger'" />

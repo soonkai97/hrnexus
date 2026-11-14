@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, ToastService, ConfirmService, toLocalDateString, nowRoundedToHalfHour, leaveHours, HmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, CompanyPolicyService } from 'shared-lib';
+import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, LeaveTypeBalance, ToastService, ConfirmService, toLocalDateString, nowRoundedToHalfHour, leaveHours, HmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, CompanyPolicyService, LeaveTypeService } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -12,9 +12,6 @@ import { Skeleton } from 'primeng/skeleton';
 import { DatePicker } from 'primeng/datepicker';
 import { SelectButton } from 'primeng/selectbutton';
 import { Paginator } from 'primeng/paginator';
-
-const LEAVE_TYPES = ['annual', 'sick', 'unpaid', 'emergency'] as const;
-type StaffLeaveType = typeof LEAVE_TYPES[number];
 
 @Component({
   selector: 'app-my-leave',
@@ -27,6 +24,7 @@ type StaffLeaveType = typeof LEAVE_TYPES[number];
 export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   private readonly leaveSvc  = inject(LeaveService);
   private readonly policySvc = inject(CompanyPolicyService);
+  protected readonly typeSvc = inject(LeaveTypeService);
   private readonly toast     = inject(ToastService);
   private readonly confirm   = inject(ConfirmService);
 
@@ -39,21 +37,40 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     ];
   }
 
-  readonly leaveTypes = LEAVE_TYPES;
-  private static readonly TYPE_LABELS: Record<string, string> = {
-    annual: 'Annual Leave', sick: 'Sick Leave', unpaid: 'Unpaid Leave', emergency: 'Emergency Leave', 'no-show': 'No-Show',
-  };
+  /** The types staff can apply for (active, not recorded by an administrator): from the company's catalogue. */
+  readonly leaveTypes = computed(() => this.typeSvc.applicable().map(t => t.key));
   private static readonly STATUS_LABELS: Record<string, string> = {
     pending: 'Pending', approved: 'Approved', rejected: 'Rejected', cancelled: 'Cancelled',
   };
-  leaveTypeLabel(t: string): string { return MyLeaveComponent.TYPE_LABELS[t] ?? t; }
+  leaveTypeLabel(t: string): string { return this.typeSvc.label(t); }
   statusLabel(s: string): string { return MyLeaveComponent.STATUS_LABELS[s] ?? s; }
   get leaveTypeOptions() {
-    return LEAVE_TYPES.map(t => ({
-      label: this.leaveTypeLabel(t),
-      value: t,
-    }));
+    return this.typeSvc.applicable().map(t => ({ label: t.label, value: t.key }));
   }
+
+  /** The chosen type's definition: its notice, limit, day counting and approval rule drive the form. */
+  get selectedType() { return this.typeSvc.find(this.form.leaveType); }
+
+  /** What the form tells the person about the chosen type, from its rules (never from its name). */
+  get typeHints(): string[] {
+    const t = this.selectedType;
+    if (!t) return [];
+    const hints: string[] = [];
+    const notice = this.typeSvc.noticeDays(t, this.policySvc.policy().annualLeaveAdvanceDays);
+    if (notice !== null && notice > 0) hints.push(`${t.label} leave must be applied at least ${notice} days in advance.`);
+    if (t.autoApprove) hints.push(`${t.label} leave is approved straight away. Use it for urgent or short-notice requests.`);
+    else if (t.maxDaysPerRequest !== null) hints.push(`The longest single request is ${t.maxDaysPerRequest} ${t.countsCalendarDays ? 'calendar ' : ''}days; a manager approves it.`);
+    if (t.countsCalendarDays) hints.push('Every day counts, weekends included.');
+    return hints;
+  }
+
+  /** Balances for types that have no fixed card: an own allowance (hospitalisation) or other leave already taken. */
+  readonly extraBalances = computed<LeaveTypeBalance[]>(() =>
+    (this.balance()?.types ?? []).filter(t =>
+      (t.pool === 'own' && (t.active || t.used > 0)) || (t.pool === 'none' && !this.isPayDeducting(t.key) && t.used > 0)));
+  private isPayDeducting(key: string): boolean { return this.typeSvc.find(key)?.deductsPay ?? false; }
+  /** The tag severity for a type, from its catalogue colour. */
+  typeSeverity(key: string) { return this.typeSvc.severity(key); }
   readonly todayLocal = toLocalDateString(new Date());
   readonly todayIso   = toLocalDateString(new Date());
   /** Rounded "now" used as the time-picker default so the panel opens on a clean :00/:30. */
@@ -73,14 +90,21 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   private _minStartCache?: { key: string; date: Date };
   private _minEndCache?: { key: string; date: Date };
 
-  /** Minimum selectable start date. Annual needs 3 days advance; others allow today. */
+  /** Days of notice the chosen type needs (null = none), from the type's rules and the company policy. */
+  private get noticeDays(): number | null {
+    const t = this.selectedType;
+    return t ? this.typeSvc.noticeDays(t, this.policySvc.policy().annualLeaveAdvanceDays) : null;
+  }
+
+  /** Minimum selectable start date: today plus the chosen type's notice (none for most types). */
   get minStartDate(): Date {
     const todayStr = new Date().toISOString().slice(0, 10);
-    const key = `${todayStr}:${this.form.leaveType === 'annual' ? 'annual' : 'std'}`;
+    const notice = this.noticeDays;
+    const key = `${todayStr}:${notice ?? 'std'}`;
     if (this._minStartCache?.key !== key) {
       const d = new Date();
       d.setHours(0, 0, 0, 0);
-      if (this.form.leaveType === 'annual') d.setDate(d.getDate() + 3);
+      if (notice) d.setDate(d.getDate() + notice);
       this._minStartCache = { key, date: d };
     }
     return this._minStartCache.date;
@@ -89,7 +113,7 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   /** Minimum end date — the chosen start date (or the min start date if none yet). */
   get minEndDate(): Date {
     const key = this.form.startDate
-      || `min:${this.form.leaveType === 'annual' ? 'annual' : 'std'}`;
+      || `min:${this.noticeDays ?? 'std'}`;
     if (this._minEndCache?.key !== key) {
       let date: Date;
       if (this.form.startDate) {
@@ -132,17 +156,18 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
     this.leaveFirst.set(0);
   }
 
+  /** The history filter chips: the types staff can use, plus any type that already has a record. */
   get presetTypes() {
+    const used = new Set(this.records().map(r => r.leaveType));
     return [
-      { label: 'All',     value: '' },
-      { label: 'Annual Leave',   value: 'annual' },
-      { label: 'Sick Leave',     value: 'sick' },
-      { label: 'Unpaid Leave',   value: 'unpaid' },
-      { label: 'Emergency Leave',value: 'emergency' },
+      { label: 'All', value: '' },
+      ...this.typeSvc.types()
+        .filter(t => (t.active && !t.adminOnly) || used.has(t.key))
+        .map(t => ({ label: t.label, value: t.key })),
     ];
   }
 
-  form: { leaveType: StaffLeaveType; startDate: string; endDate: string; startTime: Date | null; endTime: Date | null; notes: string } = {
+  form: { leaveType: string; startDate: string; endDate: string; startTime: Date | null; endTime: Date | null; notes: string } = {
     leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '',
   };
 
@@ -215,7 +240,8 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   private get previewHours(): number | null {
     const { startDate, endDate, startTime, endTime } = this.form;
     if (!startDate || !startTime || !endDate || !endTime) return null;
-    return leaveHours(startDate, endDate, this.toTimeStr(startTime), this.toTimeStr(endTime), this.policySvc.schedule());
+    return leaveHours(startDate, endDate, this.toTimeStr(startTime), this.toTimeStr(endTime),
+      this.typeSvc.scheduleFor(this.form.leaveType, this.policySvc.schedule()));
   }
 
   /** Live preview of the leave hours. Returns 0 if any field is missing or the request is invalid. */
@@ -230,6 +256,9 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
   }
 
   ngOnInit(): void {
+    // The catalogue may have turned the default type off: start on a type staff can still apply for.
+    const first = this.leaveTypes()[0];
+    if (first && !this.leaveTypes().includes(this.form.leaveType)) this.form.leaveType = first;
     this.load();
     this.leaveSvc.getMyBalance().subscribe({ next: b => this.balance.set(b), error: () => {} });
   }
@@ -276,7 +305,7 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
       next: () => {
         this.saving.set(false);
         this.formError.set('');
-        this.form = { leaveType: 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '' };
+        this.form = { leaveType: this.leaveTypes()[0] ?? 'annual', startDate: '', endDate: '', startTime: null, endTime: null, notes: '' };
         this.load();
         this.leaveSvc.getMyBalance().subscribe({ next: b => this.balance.set(b), error: () => {} });
         this.toast.success('Leave request submitted.');

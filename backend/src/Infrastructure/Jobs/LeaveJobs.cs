@@ -1,5 +1,6 @@
 ﻿using Hangfire;
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Leave;
 using HRNexus.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -78,6 +79,7 @@ public class LeaveJobs(
         }
 
         var stamp = $"Auto-rejected {today:yyyy-MM-dd}: leave ended without admin review.";
+        var catalog = await LeaveCatalogReader.GetAsync(db, ct);
         int autoRejected = 0;
 
         foreach (var leave in overdue)
@@ -111,7 +113,7 @@ public class LeaveJobs(
                 await pushSvc.SendAsync(
                     leave.EmployeeId,
                     "Leave Request Auto-Rejected",
-                    $"Your {leave.LeaveType} leave " +
+                    $"Your {catalog.Phrase(leave.LeaveType)} " +
                     $"({leave.StartDate:MMM d}–{leave.EndDate:MMM d}) was auto-rejected " +
                     "as it wasn't reviewed before it ended. Contact your manager to correct this.",
                     "/leave", ct);

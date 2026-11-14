@@ -8,6 +8,10 @@ namespace HRNexus.Application.Admin.Queries;
 
 public record GetLeaveBalanceQuery(Guid EmployeeId, int? Year) : IRequest<LeaveBalanceDto>;
 
+/// <summary>
+/// One person's balances for a year. The fixed annual/sick/emergency/unpaid fields are kept for existing
+/// callers; <see cref="Types"/> carries one line per leave type of the company's catalogue (Phase 7q).
+/// </summary>
 public record LeaveBalanceDto(
     int     Year,
     decimal AnnualEntitlement,
@@ -18,7 +22,8 @@ public record LeaveBalanceDto(
     decimal SickEntitlement,
     decimal SickUsed,
     decimal SickRemaining,
-    decimal UnpaidUsed);
+    decimal UnpaidUsed,
+    IReadOnlyList<LeaveTypeBalanceDto>? Types = null);
 
 public class GetLeaveBalanceQueryHandler(IAppDbContext db, IDateTimeProvider dt)
     : IRequestHandler<GetLeaveBalanceQuery, LeaveBalanceDto>
@@ -38,30 +43,24 @@ public class GetLeaveBalanceQueryHandler(IAppDbContext db, IDateTimeProvider dt)
         var endOfYear   = new DateTime(year, 12, 31, 0, 0, 0, DateTimeKind.Utc);
 
         var policy = await CompanyPolicyReader.GetAsync(db, ct);
+        var catalog = await LeaveCatalogReader.GetAsync(db, ct);
         var countedLeaves = await db.LeaveRequests
             .Where(l => l.EmployeeId == req.EmployeeId
                      && l.Status != "rejected"
                      && l.Status != "cancelled"
                      && l.StartDate <= endOfYear
                      && l.EndDate   >= startOfYear)
-            .Select(l => new { l.LeaveType, l.StartDate, l.EndDate, l.Hours })
+            .Select(l => new LeaveRow(l.LeaveType, l.StartDate, l.EndDate, l.Hours))
             .ToListAsync(ct);
-        // A leave across New Year is charged to each year by the working days that fall in it.
-        var inYear = countedLeaves
-            .Select(l => new { l.LeaveType, Hours = LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year, policy.Schedule) })
-            .ToList();
-
-        // Annual + emergency both count against the annual pool
-        var annualUsed    = inYear.Where(l => l.LeaveType == "annual" || l.LeaveType == "emergency").Sum(l => l.Hours);
-        var emergencyUsed = inYear.Where(l => l.LeaveType == "emergency").Sum(l => l.Hours);
-        var sickUsed      = inYear.Where(l => l.LeaveType == "sick"  ).Sum(l => l.Hours);
-        var unpaidUsed    = inYear.Where(l => l.LeaveType == "unpaid" ).Sum(l => l.Hours);
+        // A leave across New Year is charged to each year by the days that fall in it (counted by the type's schedule).
+        var b = LeaveBalanceCalculator.Compute(catalog, policy.Schedule, countedLeaves, year, annualEnt, sickEnt);
 
         return new LeaveBalanceDto(
             year,
-            annualEnt, annualUsed, Math.Max(0, annualEnt - annualUsed),
-            emergencyUsed, carryOver,
-            sickEnt,   sickUsed,   Math.Max(0, sickEnt   - sickUsed),
-            unpaidUsed);
+            annualEnt, b.AnnualPoolUsed, Math.Max(0, annualEnt - b.AnnualPoolUsed),
+            b.EmergencyUsed, carryOver,
+            sickEnt,   b.SickPoolUsed,   Math.Max(0, sickEnt - b.SickPoolUsed),
+            b.UnpaidUsed,
+            b.Types);
     }
 }

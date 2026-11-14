@@ -26,7 +26,9 @@ test.describe('Staff — My Leave', () => {
   test('shows leave balance cards (annual, sick, unpaid)', async ({ page }) => {
     await page.waitForSelector('.bal-card', { timeout: 10_000 });
     const cards = page.locator('.bal-card');
-    expect(await cards.count()).toBe(3); // annual, sick, unpaid
+    // annual, sick and unpaid are always there; a type with its own allowance (hospitalisation) adds a card
+    expect(await cards.count()).toBeGreaterThanOrEqual(3);
+    await expect(page.locator('.bal-card', { hasText: 'Hospitalisation' })).toBeVisible();
   });
 
   test('shows the Apply / History tab selector', async ({ page }) => {

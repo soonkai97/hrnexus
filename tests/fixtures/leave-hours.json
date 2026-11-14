@@ -161,7 +161,7 @@
       "hours": 4
     }
   ],
-  "_comment_scheduled": "Company-policy variants (Phase 7m). schedule.days are ISO weekdays (1=Mon .. 7=Sun); schedule.hours is the length of a working day. Asserted by the backend now; the frontend asserts them in 7m-b.",
+  "_comment_scheduled": "Company-policy variants (Phase 7m). schedule.days are ISO weekdays (1=Mon .. 7=Sun); schedule.hours is the length of a working day. Asserted by the backend now; the frontend asserts them in 7m-b. Calendar-day vectors (every weekday 1-7) are what a calendar-day leave type such as maternity counts by.",
   "scheduled": [
     {
       "name": "Mon-Sat: a Saturday alone is a full day",
@@ -258,6 +258,54 @@
       "startTime": null,
       "endTime": null,
       "hours": 32
+    },
+    {
+      "name": "Calendar days: a Saturday and a Sunday are two full days",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "hours": 8
+      },
+      "start": "2026-06-06",
+      "end": "2026-06-07",
+      "startTime": null,
+      "endTime": null,
+      "hours": 16
+    },
+    {
+      "name": "Calendar days: 98 days of maternity across weekends and New Year",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "hours": 8
+      },
+      "start": "2026-12-14",
+      "end": "2027-03-21",
+      "startTime": null,
+      "endTime": null,
+      "hours": 784
+    },
+    {
+      "name": "Calendar days: a Sunday morning is part of a day",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "hours": 8
+      },
+      "start": "2026-06-07",
+      "end": "2026-06-07",
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "hours": 4
+    },
+    {
+      "name": "Calendar days: 7 days of paternity at 7.5 hours a day",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "hours": 7.5
+      },
+      "start": "2026-12-05",
+      "end": "2026-12-11",
+      "startTime": null,
+      "endTime": null,
+      "hours": 52.5
     }
   ],
   "scheduledInYear": [
@@ -282,6 +330,50 @@
       "end": "2027-01-02",
       "year": 2027,
       "hours": 16
+    },
+    {
+      "name": "Calendar days: 98-day maternity, old year share",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "hours": 8
+      },
+      "start": "2026-12-14",
+      "end": "2027-03-21",
+      "year": 2026,
+      "hours": 144
+    },
+    {
+      "name": "Calendar days: 98-day maternity, new year share",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "hours": 8
+      },
+      "start": "2026-12-14",
+      "end": "2027-03-21",
+      "year": 2027,
+      "hours": 640
+    },
+    {
+      "name": "Calendar days across New Year, old year share",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "hours": 8
+      },
+      "start": "2026-12-28",
+      "end": "2027-01-03",
+      "year": 2026,
+      "hours": 32
+    },
+    {
+      "name": "Calendar days across New Year, new year share",
+      "schedule": {
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "hours": 8
+      },
+      "start": "2026-12-28",
+      "end": "2027-01-03",
+      "year": 2027,
+      "hours": 24
     }
   ]
 }

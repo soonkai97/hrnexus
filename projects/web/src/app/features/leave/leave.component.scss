@@ -272,10 +272,13 @@
   font-size: 0.58rem; font-weight: 600; border-radius: 3px;
   padding: 1px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.cal-leave-annual  { background: rgba(22, 163, 74,0.18);  color: $neon-green; }
-.cal-leave-sick    { background: rgba(239,68,68,0.15);   color: $danger; }
-.cal-leave-unpaid  { background: rgba(37, 99, 235,0.15);  color: $neon-purple; }
-.cal-leave-no-show { background: rgba(251,191,36,0.15);  color: $neon-amber; }
+// A leave's chip colour is its type's catalogue colour.
+.cal-leave-info      { background: rgba(14, 165, 233,0.15); color: $neon-blue; }
+.cal-leave-success   { background: rgba(22, 163, 74,0.18);  color: $neon-green; }
+.cal-leave-warn      { background: rgba(251,191,36,0.15);   color: $neon-amber; }
+.cal-leave-danger    { background: rgba(239,68,68,0.15);    color: $danger; }
+.cal-leave-secondary { background: rgba(37, 99, 235,0.15);  color: $neon-purple; }
+.cal-leave-contrast  { background: rgba(100,116,139,0.18);  color: $text-primary; }
 .cal-leave-overdue { outline: 1px solid rgba(251,191,36,0.7); animation: overdue-pulse 2.5s ease-in-out infinite; }
 .cal-leave-more { font-size: 0.56rem; color: $text-muted; }
 
@@ -498,9 +501,6 @@ p.text-center { color: $text-muted; }
 }
 .section-title.d-flex { margin-bottom: 1rem; }
 
-// ── Emergency leave calendar chip ─────────────────────────────────────────────
-.cal-leave-emergency { background: rgba(251,191,36,0.15); color: $neon-amber; }
-
 // ── Item 3: Bulk select action bar ────────────────────────────────────────────
 .bulk-action-bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -620,7 +620,7 @@ p.text-center { color: $text-muted; }
   // minmax(0, 1fr) (not bare 1fr) so the data columns are EQUAL shares independent of content.
   // Bare 1fr = minmax(auto, 1fr): the header grid sizes columns to long words like "EMERGENCY"
   // while data rows size to "—", so the two separate grids' columns drift out of alignment.
-  grid-template-columns: minmax(140px, 1.8fr) repeat(6, minmax(0, 1fr));
+  grid-template-columns: minmax(140px, 1.8fr) repeat(7, minmax(0, 1fr));
   min-width: 480px; // force scroll on narrow screens instead of squishing columns
   gap: 0.25rem;
   align-items: center;

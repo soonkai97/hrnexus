@@ -6,10 +6,10 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   LeaveRecord, UpsertLeaveRequest, LeaveBalance, StaffLeaveBalance,
-  LeaveSummary, LeavePatternWarning,
+  LeaveSummary, LeavePatternWarning, LeaveTypeBalance, LeaveColour,
   AuthService, LeaveService, StaffStore, ToastService, ConfirmService, toLocalDateString,
   TrimInputDirective, CanComponentDeactivate,
-  apiErrorMessage, nowRoundedToHalfHour, leaveHours, CompanyPolicyService,
+  apiErrorMessage, nowRoundedToHalfHour, leaveHours, CompanyPolicyService, LeaveTypeService,
 } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
@@ -28,7 +28,6 @@ import { Checkbox } from 'primeng/checkbox';
 import { Dialog } from 'primeng/dialog';
 import { PrimeTemplate } from 'primeng/api';   // provides the pTemplate="footer" directive for the dialogs
 
-const LEAVE_TYPES = ['sick', 'annual', 'unpaid', 'no-show', 'emergency'] as const;
 const STATUSES    = ['approved', 'pending', 'rejected', 'cancelled'] as const;
 
 @Component({
@@ -45,6 +44,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   private readonly auth       = inject(AuthService);
   private readonly leaveSvc   = inject(LeaveService);
   private readonly policySvc  = inject(CompanyPolicyService);
+  protected readonly typeSvc  = inject(LeaveTypeService);
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
   private readonly destroyRef = inject(DestroyRef);
@@ -107,14 +107,14 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   filterStatus     = '';
   filterLeaveType  = '';
 
+  /** The type filter chips: every active type of the company's catalogue, plus any type that already has a record. */
   get presetTypes() {
+    const used = new Set(this.records().map(r => r.leaveType));
     return [
-      { label: 'All',       value: '' },
-      { label: 'Sick Leave',       value: 'sick' },
-      { label: 'Annual Leave',     value: 'annual' },
-      { label: 'Unpaid Leave',     value: 'unpaid' },
-      { label: 'Emergency', value: 'emergency' },
-      { label: 'No-Show',          value: 'no-show' },   // item 4
+      { label: 'All', value: '' },
+      ...this.typeSvc.types()
+        .filter(t => t.active || used.has(t.key))
+        .map(t => ({ label: t.label, value: t.key })),
     ];
   }
 
@@ -344,16 +344,34 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   }
 
   readonly currentYear = new Date().getFullYear();
-  readonly leaveTypes: string[] = [...LEAVE_TYPES];
-  private readonly leaveTypeLabels: Record<string, string> = {
-    sick: 'Sick Leave', annual: 'Annual Leave', unpaid: 'Unpaid Leave',
-    'no-show': 'No-Show', emergency: 'Emergency',
-  };
+  /** The types an administrator can record: every active type (admin-only ones included), plus the type of a leave being edited. */
   get leaveTypeOptions() {
-    return LEAVE_TYPES.map(t => ({
-      label: (this.leaveTypeLabels[t] ?? ''),
-      value: t,
-    }));
+    return this.typeSvc.types()
+      .filter(t => t.active || t.key === this.form.leaveType)
+      .map(t => ({ label: t.label, value: t.key }));
+  }
+  /** The types shown in the calendar legend. */
+  get leaveTypes(): string[] { return this.typeSvc.active().map(t => t.key); }
+
+  /** The chosen type's own balance (an own allowance such as hospitalisation), for the form hint. */
+  get formTypeBalance(): LeaveTypeBalance | undefined {
+    const line = this.formBalance()?.types?.find(t => t.key === this.form.leaveType);
+    return line && line.pool === 'own' && line.remaining !== null ? line : undefined;
+  }
+
+  /** Balances for types that have no fixed chip: an own allowance, or other leave already taken. */
+  extraBalances(b: { types?: LeaveTypeBalance[] }): LeaveTypeBalance[] {
+    return (b.types ?? []).filter(t =>
+      (t.pool === 'own' && t.used > 0) || (t.pool === 'none' && !(this.typeSvc.find(t.key)?.deductsPay ?? false) && t.used > 0));
+  }
+
+  /** Hours of leave in the summary that the fixed columns do not show (the types added by the company). */
+  otherUsed(s: LeaveSummary): number {
+    return Math.max(0, s.totalUsed - s.annualUsed - s.sickUsed - s.emergencyUsed - s.unpaidUsed - s.noShowUsed);
+  }
+  otherTooltip(s: LeaveSummary): string {
+    const fixed = new Set(['annual', 'sick', 'emergency', 'unpaid', 'no-show']);
+    return (s.types ?? []).filter(t => !fixed.has(t.key) && t.used > 0).map(t => `${t.label} ${t.used}h`).join(', ');
   }
   readonly calDayLabels  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
@@ -461,7 +479,7 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
   };
 
   /** i18n keys for leave-type / status enums, for the translate pipe in badges, chips and tooltips. */
-  leaveTypeLabel(t: string): string { return this.leaveTypeLabels[t] ?? t; }
+  leaveTypeLabel(t: string): string { return this.typeSvc.label(t); }
   statusLabel(s: string): string { return this.statusLabels[s] ?? s; }
   get statusOptions() {
     return STATUSES.map(s => ({
@@ -504,7 +522,8 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     const st = this.startTimeDate;
     const et = this.endTimeDate;
     if (!startDate || !st || !endDate || !et) return null;
-    return leaveHours(startDate, endDate, this.toTimeStr(st), this.toTimeStr(et), this.policySvc.schedule());
+    return leaveHours(startDate, endDate, this.toTimeStr(st), this.toTimeStr(et),
+      this.typeSvc.scheduleFor(this.form.leaveType, this.policySvc.schedule()));
   }
 
   /** Live preview of the leave hours. Returns 0 if any field is missing or the request is invalid. */
@@ -735,15 +754,9 @@ export class LeaveComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  leaveTypeSeverity(type: string): 'success' | 'danger' | 'secondary' | 'warn' {
-    const map: Record<string, 'success' | 'danger' | 'secondary' | 'warn'> = {
-      annual:    'success',
-      sick:      'danger',
-      unpaid:    'secondary',
-      'no-show': 'warn',
-      emergency: 'warn',
-    };
-    return map[type] ?? 'secondary';
+  /** The tag severity (and calendar colour) of a leave type: the colour chosen for it in the catalogue. */
+  leaveTypeSeverity(type: string): LeaveColour {
+    return this.typeSvc.severity(type);
   }
 
   /** Item 10: cancelled maps to 'secondary', not 'danger' */

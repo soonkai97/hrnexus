@@ -89,7 +89,7 @@ describe('MyLeaveComponent', () => {
         { provide: LeaveService,   useValue: mockLeaveSvc },
         { provide: ToastService,   useValue: mockToastSvc },
         { provide: ConfirmService, useValue: mockConfirmSvc },
-        { provide: CompanyPolicyService, useValue: { schedule } },
+        { provide: CompanyPolicyService, useValue: { schedule, policy: () => ({ annualLeaveAdvanceDays: 3 }) } },
         MessageService,
         ConfirmationService,
       ],
@@ -459,6 +459,85 @@ describe('MyLeaveComponent', () => {
       component.form.leaveType = 'unpaid';
       const min = component.minStartDate;
       expect(min.getDate()).toBe(23);
+    });
+  });
+
+  // ── Phase 7q: the form follows the company's leave types ───────────────────────
+
+  describe('leave types from the catalogue', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('offers staff only active types that an administrator does not record', () => {
+      const keys = component.leaveTypeOptions.map(o => o.value);
+      expect(keys).toContain('maternity');
+      expect(keys).toContain('annual');
+      expect(keys).not.toContain('no-show');   // admin-only
+    });
+
+    it('a type with notice asks for it, and the earliest start date moves out by that many days', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 4, 23, 12, 0, 0));
+      component.form.leaveType = 'annual';
+      expect(component.typeHints.some(h => h.includes('at least 3 days in advance'))).toBe(true);
+      expect(component.minStartDate.getDate()).toBe(26);
+    });
+
+    it('a type with no notice shows no notice hint and allows today', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 4, 23, 12, 0, 0));
+      component.form.leaveType = 'maternity';
+      expect(component.typeHints.some(h => h.includes('in advance'))).toBe(false);
+      expect(component.minStartDate.getDate()).toBe(23);
+    });
+
+    it('maternity says it counts every day, weekends included, up to its own limit', () => {
+      component.form.leaveType = 'maternity';
+      expect(component.typeHints).toContain('Every day counts, weekends included.');
+      expect(component.typeHints.some(h => h.includes('98 calendar days'))).toBe(true);
+    });
+
+    it('a type that approves itself says so', () => {
+      component.form.leaveType = 'sick';
+      expect(component.typeHints.some(h => h.includes('approved straight away'))).toBe(true);
+    });
+
+    it('the hours preview counts every calendar day for a calendar-day type and working days for the rest', () => {
+      // Saturday 6 June to Sunday 7 June 2026.
+      component.form.startDate = '2026-06-06';
+      component.form.endDate = '2026-06-07';
+      component.form.startTime = new Date(2026, 5, 6, 9, 0);
+      component.form.endTime = new Date(2026, 5, 7, 17, 0);
+
+      component.form.leaveType = 'maternity';
+      expect(component.calcHours).toBe(16);   // two calendar days
+      component.form.leaveType = 'annual';
+      expect(component.calcHours).toBe(0);    // a weekend has no working day: refused
+    });
+
+    it('shows a tag colour from the type and a neutral one for an unknown type', () => {
+      expect(component.typeSeverity('sick')).toBe('danger');
+      expect(component.typeSeverity('mystery')).toBe('secondary');
+    });
+
+    it('the history filter chips come from the catalogue', () => {
+      const values = component.presetTypes.map(p => p.value);
+      expect(values[0]).toBe('');
+      expect(values).toContain('hospitalisation');
+    });
+
+    it('balance cards appear for an own allowance and for other leave taken, never for pay-deducting leave', () => {
+      component.balance.set({
+        year: 2026, annualEntitlement: 80, annualUsed: 0, annualRemaining: 80, emergencyUsed: 0, carryOverHours: 0,
+        sickEntitlement: 14, sickUsed: 0, sickRemaining: 14, unpaidUsed: 8,
+        types: [
+          { key: 'hospitalisation', label: 'Hospitalisation', colour: 'danger', pool: 'own', active: true, used: 16, entitlement: 480, poolUsed: 16, remaining: 464 },
+          { key: 'paternity', label: 'Paternity', colour: 'info', pool: 'none', active: true, used: 56, entitlement: null, poolUsed: null, remaining: null },
+          { key: 'compassionate', label: 'Compassionate', colour: 'contrast', pool: 'none', active: true, used: 0, entitlement: null, poolUsed: null, remaining: null },
+          { key: 'unpaid', label: 'Unpaid', colour: 'secondary', pool: 'none', active: true, used: 8, entitlement: null, poolUsed: null, remaining: null },
+        ],
+      });
+
+      expect(component.extraBalances().map(b => b.key)).toEqual(['hospitalisation', 'paternity']);
     });
   });
 

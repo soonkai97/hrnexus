@@ -38,3 +38,4 @@ export * from './lib/utils/password.utils';
 export * from './lib/utils/leave-hours';
 export * from './lib/services/app-update.service';
 export * from './lib/services/version.service';
+export * from './lib/services/leave-type.service';

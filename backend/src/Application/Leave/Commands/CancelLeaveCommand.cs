@@ -77,7 +77,9 @@ public class CancelLeaveCommandHandler(IAppDbContext db, IDateTimeProvider dt, I
             .ToList();
         if (approvers.Count == 0) return [];
 
-        var message = $"{who} withdrew approved {leave.LeaveType} leave " +
+        // A sensitive type is never named in a message other people receive.
+        var catalog = await LeaveCatalogReader.GetAsync(db, ct);
+        var message = $"{who} withdrew approved {catalog.Phrase(leave.LeaveType)} " +
                       $"({leave.StartDate:dd/MM} – {leave.EndDate:dd/MM}).";
         var notes = approvers
             .Select(id => Notification.Create(id, "Leave Withdrawn", message,

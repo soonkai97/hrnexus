@@ -14,6 +14,13 @@
   &.annual { border-top: 3px solid $neon-green; }
   &.sick   { border-top: 3px solid $danger; }
   &.unpaid { border-top: 3px solid $neon-purple; }
+  // Types added by the company: the colour comes from the catalogue.
+  &.bal-info      { border-top: 3px solid $neon-blue; }
+  &.bal-success   { border-top: 3px solid $neon-green; }
+  &.bal-warn      { border-top: 3px solid $neon-amber; }
+  &.bal-danger    { border-top: 3px solid $danger; }
+  &.bal-secondary { border-top: 3px solid $neon-purple; }
+  &.bal-contrast  { border-top: 3px solid $text-primary; }
 }
 .bal-label     { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: $text-muted; margin-bottom: 0.4rem; }
 .bal-nums      { display: flex; align-items: baseline; gap: 0.2rem; margin-bottom: 0.5rem; }
@@ -189,10 +196,13 @@
 }
 .staff-cal-dot {
   width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-  &.staff-cal-dot-annual    { background: $neon-green; }
-  &.staff-cal-dot-sick      { background: $danger; }
-  &.staff-cal-dot-unpaid    { background: $neon-purple; }
-  &.staff-cal-dot-emergency { background: $neon-amber; }
+  // The dot colour is the leave type's catalogue colour.
+  &.staff-cal-dot-info      { background: $neon-blue; }
+  &.staff-cal-dot-success   { background: $neon-green; }
+  &.staff-cal-dot-warn      { background: $neon-amber; }
+  &.staff-cal-dot-danger    { background: $danger; }
+  &.staff-cal-dot-secondary { background: $neon-purple; }
+  &.staff-cal-dot-contrast  { background: $text-primary; }
 }
 
 .staff-cal-legend {

@@ -22,14 +22,14 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 
 ## What exists today (verified on `master` at `e77ed4f`)
 
-| Area                                                                         | State                                                                                                                                                   |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Role.HourlyRate`, `Role.PayType`, `RoleRate` (rate history)                 | Left from the shift-log era; **no consumer**. Hourly pay is a non-goal, so they are removed in 8a                                                       |
-| `PayrollLock` (+ `PayrollLockGuard`, controller, admin page, `payroll.lock`) | Month locks with no payroll behind them; folded into the run in 8f                                                                                      |
-| `CashAdvance` (+ commands, admin page, `cashadvance.manage`)                 | Records and settles advances; becomes a deduction source in 8c                                                                                          |
-| Leave                                                                        | Stored in **hours** (Mon-Fri, 8h/day, Phase 7l); `unpaid` and `no-show` leave types exist. The PRD stores days: payroll converts `hours / WorkdayHours` |
-| Permissions                                                                  | `payroll.view`, `payroll.manage`, `payroll.lock`, `cashadvance.manage` exist as catalog keys; no payroll behaviour behind them                          |
-| Encryption                                                                   | `IFieldEncryptor` (AES-256-GCM) protects Staff PII; salary and bank details join the encrypted set                                                      |
+| Area                                                                         | State                                                                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Role.HourlyRate`, `Role.PayType`, `RoleRate` (rate history)                 | Left from the shift-log era; **no consumer**. Hourly pay is a non-goal, so they are removed in 8a                                                                                                                                                               |
+| `PayrollLock` (+ `PayrollLockGuard`, controller, admin page, `payroll.lock`) | Month locks with no payroll behind them; folded into the run in 8f                                                                                                                                                                                              |
+| `CashAdvance` (+ commands, admin page, `cashadvance.manage`)                 | Records and settles advances; becomes a deduction source in 8c                                                                                                                                                                                                  |
+| Leave                                                                        | Stored in **hours** (Mon-Fri, 8h/day, Phase 7l); leave whose type is flagged `DeductsPay` in the company's leave-type catalogue (Phase 7q; `unpaid` and `no-show` by default) is what reduces pay. The PRD stores days: payroll converts `hours / WorkdayHours` |
+| Permissions                                                                  | `payroll.view`, `payroll.manage`, `payroll.lock`, `cashadvance.manage` exist as catalog keys; no payroll behaviour behind them                                                                                                                                  |
+| Encryption                                                                   | `IFieldEncryptor` (AES-256-GCM) protects Staff PII; salary and bank details join the encrypted set                                                                                                                                                              |
 
 ---
 
@@ -70,7 +70,7 @@ This phase is too large for one pass (Rule 13). It is delivered as **six sub-pha
 
 - `PayrollRun` (month, state, version token, preparer, approver, single-person flag, export status) and `PayrollRunLine` (one per person, with typed lines: basic, allowance, overtime, unpaid-leave deduction, EPF/SOCSO/EIS/PCB employee and employer, cash-advance repayment, adjustment).
 - Allowances and deductions (PAY-02) as `PayItem` rows (fixed or one-off, per person), including cash-advance repayment schedule; manual overtime/other pay and the hand-entered PCB, each with a reason.
-- Leave inputs (LEV-11): approved `unpaid` and `no-show` leave in the month, converted from hours to days; a change touching a locked month creates an **adjustment line** in the next open run.
+- Leave inputs (LEV-11): approved leave of every type flagged `DeductsPay` in the leave-type catalogue (Phase 7q: `unpaid` and `no-show` by default; payroll never names a type) in the month, converted from hours to days. Leave counted in calendar days (maternity, paternity) converts with the same hours-per-day; a change touching a locked month creates an **adjustment line** in the next open run.
 - Lifecycle commands with guards and audit rows; "no negative net pay" check on submit; people without a bank account carry a payment method on the run.
 - Tests: every row of the lifecycle table (allowed and refused), stale version token, preparer cannot approve, Serializable arbitration for two people editing one run.
 

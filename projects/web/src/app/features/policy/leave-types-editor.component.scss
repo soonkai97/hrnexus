@@ -1,0 +1,136 @@
+@use 'styles/theme' as *;
+
+:host {
+  display: block;
+  margin-top: 1rem;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0.25rem;
+}
+
+.types-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.section-title {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.types-sub {
+  margin: 0;
+  color: $text-muted;
+  font-size: 0.82rem;
+  max-width: 560px;
+}
+
+.type-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.type-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(0, 2fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0.25rem;
+  border-bottom: 1px solid $border-subtle;
+  &:last-child {
+    border-bottom: none;
+  }
+  &.inactive {
+    opacity: 0.6;
+  }
+}
+.type-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.type-key {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: $text-muted;
+}
+.type-off,
+.type-system {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-muted;
+}
+.type-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  color: $text-secondary;
+}
+.type-flag {
+  font-size: 0.72rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  color: $text-muted;
+}
+.type-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1rem;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  &.wide {
+    grid-column: 1 / -1;
+  }
+}
+.hint {
+  font-size: 0.72rem;
+  color: $text-muted;
+}
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 1rem 0 0.5rem;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .type-row {
+    grid-template-columns: 1fr;
+  }
+  .dialog-grid {
+    grid-template-columns: 1fr;
+  }
+}

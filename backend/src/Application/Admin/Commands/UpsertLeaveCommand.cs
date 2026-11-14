@@ -4,6 +4,7 @@ using HRNexus.Application.Permissions;
 using HRNexus.Application.Policy;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
+using HRNexus.Domain.Leave;
 using HRNexus.Domain.Policy;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,9 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     public async Task<Guid> Handle(UpsertLeaveCommand req, CancellationToken ct)
     {
         var policy = await CompanyPolicyReader.GetAsync(db, ct);
-        ValidateRequest(req, policy);
+        var catalog = await LeaveCatalogReader.GetAsync(db, ct);
+        var def = ValidateRequest(req, policy, catalog);
+        var schedule = def.ScheduleFor(policy.Schedule);
 
         // Stable Id for the create path so a retried attempt can recognise its own committed row.
         // EnableRetryOnFailure re-runs the whole delegate on a transient; without this, an attempt
@@ -51,9 +54,6 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
 
             var isRejectedOrCancelled = req.Status.Equals(AppConstants.Leave.Rejected,  StringComparison.OrdinalIgnoreCase)
                                      || req.Status.Equals(AppConstants.Leave.Cancelled, StringComparison.OrdinalIgnoreCase);
-            var isEmergency         = req.LeaveType.Equals(AppConstants.Leave.Emergency, StringComparison.OrdinalIgnoreCase);
-            var isAnnualOrEmergency = req.LeaveType.Equals(AppConstants.Leave.Annual,    StringComparison.OrdinalIgnoreCase) || isEmergency;
-            var isSick              = req.LeaveType.Equals(AppConstants.Leave.Sick,      StringComparison.OrdinalIgnoreCase);
 
             // Serializable (not RepeatableRead): two concurrent approvals insert DIFFERENT leave
             // rows, which snapshot isolation can't serialize — both could pass the balance check
@@ -83,6 +83,10 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                         throw new ArgumentException("This leave request belongs to a different employee.");
                     EnsureNotOwnDecision(req.ActingUserId, existing.EmployeeId, req.Status);
                     EnsureEditableAfterTheFact(existing, req);
+                    // Retyping needs a type people can still use; editing the status of leave whose type was
+                    // deactivated later (approve, reject, cancel) is always allowed.
+                    if (!existing.LeaveType.Equals(def.Key, StringComparison.OrdinalIgnoreCase) && !def.Active)
+                        throw new ArgumentException($"{def.Label} leave is not available.");
                 }
 
                 // The server owns the hours: working days (Mon-Fri, 8h), never the client's number. A
@@ -92,11 +96,11 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                     || existing.StartDate.Date != req.StartDate.Date || existing.EndDate.Date != req.EndDate.Date
                     || existing.StartTime != req.StartTime || existing.EndTime != req.EndTime;
                 var hours = datesOrTimesChanged || existing?.Hours is null
-                    ? LeaveHoursCalculator.Calculate(req.StartDate, req.EndDate, req.StartTime, req.EndTime, policy.Schedule)
+                    ? LeaveHoursCalculator.Calculate(req.StartDate, req.EndDate, req.StartTime, req.EndTime, schedule)
                     : existing.Hours.Value;
 
-                if (!isRejectedOrCancelled && (isAnnualOrEmergency || isSick))
-                    await EnsureSufficientBalanceAsync(req, hours, isAnnualOrEmergency, policy.Schedule, ct);
+                if (!isRejectedOrCancelled && def.Pool != LeavePools.None)
+                    await EnsureSufficientBalanceAsync(req, def, hours, catalog, policy.Schedule, ct);
 
                 await EnsureNoOverlapAsync(req, ct);
 
@@ -115,7 +119,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                             || req.Status.Equals(AppConstants.Leave.Rejected, StringComparison.OrdinalIgnoreCase)))
                     {
                         await CreateAndSendNotification(existing.EmployeeId, existing.Id,
-                            req.Status.ToLower(), req.LeaveType, req.StartDate, req.EndDate, ct);
+                            req.Status.ToLower(), catalog.Phrase(def.Key), req.StartDate, req.EndDate, ct);
                     }
 
                     await audit.LogAsync("LeaveRequest", existing.Id.ToString(), "Updated",
@@ -125,7 +129,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 }
                 else
                 {
-                    var wasPendingAutoApproved = (isSick || isEmergency)
+                    var wasPendingAutoApproved = def.AutoApprove
                         && req.Status.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase);
                     var resolvedStatus = wasPendingAutoApproved
                         ? AppConstants.Leave.Approved
@@ -148,25 +152,25 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                     // caller (the admin who recorded it, or the staff member for self-service) rather
                     // than always crediting the leave's subject employee.
                     await audit.LogAsync("LeaveRequest", leave.Id.ToString(), "Created",
-                        null, "Staff", $"{req.LeaveType} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({hours:0.##}h)", ct);
+                        null, "Staff", $"{def.Key} {req.StartDate:yyyy-MM-dd}–{req.EndDate:yyyy-MM-dd} ({hours:0.##}h)", ct);
 
                     if (wasPendingAutoApproved)
                     {
                         await CreateAndSendNotification(req.EmployeeId, leave.Id,
-                            AppConstants.Leave.Approved, req.LeaveType, req.StartDate, req.EndDate, ct);
+                            AppConstants.Leave.Approved, catalog.Phrase(def.Key), req.StartDate, req.EndDate, ct);
 
                         var emp = await db.Staff.FindAsync([req.EmployeeId], ct);
                         var who = emp?.FullName ?? "An employee";
-                        var (title, message) = isSick
-                            ? ("Sick Leave Reported",   $"{who} has reported sick leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).")
-                            : ("Emergency Leave Taken", $"{who} has taken emergency leave ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).");
+                        // A sensitive type is never named: the approver sees it on the approval screen itself.
+                        var title = def.Sensitive ? "Leave Reported" : $"{def.Label} Leave Reported";
+                        var message = $"{who} has reported {catalog.Phrase(def.Key)} ({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).";
                         await NotifyApproversAsync(leave.Id.ToString(), req.EmployeeId, req.ActingUserId, title, message, ct);
                     }
                     else if (resolvedStatus.Equals(AppConstants.Leave.Pending, StringComparison.OrdinalIgnoreCase))
                     {
                         var emp = await db.Staff.FindAsync([req.EmployeeId], ct);
                         var who = emp?.FullName ?? "An employee";
-                        var message = $"{who} applied for {req.LeaveType} leave " +
+                        var message = $"{who} applied for {catalog.Phrase(def.Key)} " +
                                       $"({req.StartDate:dd/MM} – {req.EndDate:dd/MM}, {hours:0.##}h).";
                         await NotifyApproversAsync(leave.Id.ToString(), req.EmployeeId, req.ActingUserId, "New Leave Request", message, ct);
                     }
@@ -195,38 +199,41 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     }
 
     /// <summary>Stateless input validation — runs once, outside the retryable transaction scope.</summary>
-    private void ValidateRequest(UpsertLeaveCommand req, CompanyPolicy policy)
+    private LeaveTypeDefinition ValidateRequest(UpsertLeaveCommand req, CompanyPolicy policy, LeaveCatalog catalog)
     {
         if (!req.Id.HasValue)
             EnsureNotOwnDecision(req.ActingUserId, req.EmployeeId, req.Status);
 
-        string[] validTypes =
-        [
-            AppConstants.Leave.Sick, AppConstants.Leave.Annual,
-            AppConstants.Leave.Unpaid, AppConstants.Leave.NoShow,
-            AppConstants.Leave.Emergency,
-        ];
-        if (!validTypes.Contains(req.LeaveType, StringComparer.OrdinalIgnoreCase))
-            throw new ArgumentException($"Invalid leave type '{req.LeaveType}'.");
+        var def = catalog.Find(req.LeaveType)
+            ?? throw new ArgumentException($"Invalid leave type '{req.LeaveType}'.");
+        // A new request needs a type people can still use (an update is checked against the stored type later).
+        if (!req.Id.HasValue && !def.Active)
+            throw new ArgumentException($"{def.Label} leave is not available.");
 
         if (req.StartDate > req.EndDate)
             throw new ArgumentException("StartDate must be on or before EndDate.");
 
         if (!req.SkipAdvanceNotice
             && !req.Id.HasValue
-            && req.LeaveType.Equals(AppConstants.Leave.Annual, StringComparison.OrdinalIgnoreCase)
-            && req.StartDate.Date < dt.LocalNow.Date.AddDays(policy.AnnualLeaveAdvanceDays))
+            && def.NoticeDays(policy) is { } noticeDays
+            && req.StartDate.Date < dt.LocalNow.Date.AddDays(noticeDays))
         {
+            // Point people at the type that exists for urgent cases (one that approves itself from the same balance).
+            var urgent = catalog.Types.FirstOrDefault(t => t.Active && !t.AdminOnly && t.AutoApprove && t.Pool == def.Pool && t.Key != def.Key);
             throw new ArgumentException(
-                $"Annual leave must be applied at least {policy.AnnualLeaveAdvanceDays} days in advance. " +
-                "For urgent or same-day requests, please select Emergency Leave instead.");
+                $"{def.Label} leave must be applied at least {noticeDays} days in advance." +
+                (urgent is null ? "" : $" For urgent or same-day requests, please select {urgent.Label} Leave instead."));
         }
 
-        if ((req.EndDate.Date - req.StartDate.Date).Days + 1 > policy.MaxLeaveDays)
-            throw new ArgumentException($"Leave duration cannot exceed {policy.MaxLeaveDays} days in a single request.");
+        // A type's own limit replaces the company-wide cap for that type (maternity is longer than 30 days).
+        var maxDays = def.MaxDaysPerRequest ?? policy.MaxLeaveDays;
+        if ((req.EndDate.Date - req.StartDate.Date).Days + 1 > maxDays)
+            throw new ArgumentException($"Leave duration cannot exceed {maxDays:0.##} days in a single request.");
 
         if (req.StartDate.Date > dt.LocalNow.Date.AddYears(1))
             throw new ArgumentException("Leave cannot be requested more than 1 year in advance.");
+
+        return def;
     }
 
     /// <summary>
@@ -241,7 +248,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         var datesOrTimesChanged = existing.StartDate.Date != req.StartDate.Date || existing.EndDate.Date != req.EndDate.Date
                                || existing.StartTime != req.StartTime || existing.EndTime != req.EndTime;
         var retyped = !existing.LeaveType.Equals(req.LeaveType, StringComparison.OrdinalIgnoreCase);
-        var becomesNoShow = req.LeaveType.Equals(AppConstants.Leave.NoShow, StringComparison.OrdinalIgnoreCase);
+        var becomesNoShow = req.LeaveType.Equals(LeaveTypeDefaults.NoShowKey, StringComparison.OrdinalIgnoreCase);
         if (datesOrTimesChanged || (retyped && !becomesNoShow))
             throw new InvalidOperationException(
                 "Leave that has already ended can only have its status changed or be marked as a no-show.");
@@ -261,25 +268,33 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 "You cannot approve or reject your own leave request. Ask another approver.");
     }
 
-    /// <summary>Throws if the request would exceed the employee's annual (incl. emergency) or sick
-    /// balance. A request that crosses 31 Dec / 1 Jan is checked per year, by the working days that
-    /// fall in each year. Runs inside the Serializable transaction so the read can't race a
-    /// concurrent insert.</summary>
-    private async Task EnsureSufficientBalanceAsync(UpsertLeaveCommand req, decimal hours, bool isAnnualOrEmergency, WorkSchedule schedule, CancellationToken ct)
+    /// <summary>Throws if the request would exceed the balance the type is charged to: the person's annual
+    /// (incl. emergency) or sick entitlement, or the type's own company-wide allowance. A request that crosses
+    /// 31 Dec / 1 Jan is checked per year, by the days that fall in each year (counted by the type's schedule).
+    /// Runs inside the Serializable transaction so the read can't race a concurrent insert.</summary>
+    private async Task EnsureSufficientBalanceAsync(UpsertLeaveCommand req, LeaveTypeDefinition def, decimal hours,
+        LeaveCatalog catalog, WorkSchedule company, CancellationToken ct)
     {
-        var poolName = isAnnualOrEmergency ? "annual" : "sick";
+        var poolName = def.Pool == LeavePools.Own ? def.Label.ToLowerInvariant() : def.Pool;
+        var poolKeys = catalog.PoolKeys(def);
+        var schedule = def.ScheduleFor(company);
 
         for (var year = req.StartDate.Year; year <= req.EndDate.Year; year++)
         {
             var requested = LeaveHoursCalculator.HoursInYear(req.StartDate, req.EndDate, hours, year, schedule);
             if (requested <= 0) continue;
 
-            var entitlement = await db.LeaveEntitlements
-                .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
-
-            decimal entitlementHours = isAnnualOrEmergency
-                ? (entitlement?.TotalAnnualHours ?? 0m)
-                : (entitlement?.SickHours   ?? 0m);
+            decimal entitlementHours;
+            if (def.Pool == LeavePools.Own)
+                entitlementHours = (def.AllowanceDays ?? 0m) * company.WorkdayHours;   // a company-wide allowance, in days
+            else
+            {
+                var entitlement = await db.LeaveEntitlements
+                    .FirstOrDefaultAsync(e => e.EmployeeId == req.EmployeeId && e.Year == year, ct);
+                entitlementHours = def.Pool == LeavePools.Annual
+                    ? (entitlement?.TotalAnnualHours ?? 0m)
+                    : (entitlement?.SickHours ?? 0m);
+            }
 
             if (entitlementHours <= 0)
                 throw new InvalidOperationException(
@@ -289,16 +304,14 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             var yearEnd   = new DateTime(year, 12, 31, 0, 0, 0, DateTimeKind.Utc);
             var others = await db.LeaveRequests
                 .Where(l => l.EmployeeId == req.EmployeeId
-                         && (isAnnualOrEmergency
-                             ? (l.LeaveType == AppConstants.Leave.Annual || l.LeaveType == AppConstants.Leave.Emergency)
-                             : l.LeaveType == AppConstants.Leave.Sick)
+                         && poolKeys.Contains(l.LeaveType)
                          && l.StartDate <= yearEnd && l.EndDate >= yearStart
                          && l.Status != AppConstants.Leave.Rejected
                          && l.Status != AppConstants.Leave.Cancelled
                          && l.Id != (req.Id ?? Guid.Empty))
-                .Select(l => new { l.StartDate, l.EndDate, l.Hours })
+                .Select(l => new { l.LeaveType, l.StartDate, l.EndDate, l.Hours })
                 .ToListAsync(ct);
-            var usedHours = others.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year, schedule));
+            var usedHours = others.Sum(l => LeaveHoursCalculator.HoursInYear(l.StartDate, l.EndDate, l.Hours, year, catalog.ScheduleFor(l.LeaveType, company)));
 
             if (usedHours + requested > entitlementHours)
             {
@@ -352,13 +365,13 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
     }
 
     private async Task CreateAndSendNotification(Guid employeeId, Guid leaveId,
-        string status, string leaveType, DateTime start, DateTime end, CancellationToken ct)
+        string status, string phrase, DateTime start, DateTime end, CancellationToken ct)
     {
         var approved = status == "approved";
         var notif = Notification.Create(
             employeeId,
             approved ? "Leave Approved ✓" : "Leave Rejected",
-            $"Your {leaveType} leave ({start:MMM d} – {end:MMM d}) has been {status}.",
+            $"Your {phrase} ({start:MMM d} – {end:MMM d}) has been {status}.",
             approved ? AppConstants.NotificationType.LeaveApproved : AppConstants.NotificationType.LeaveRejected,
             leaveId.ToString());
 
@@ -370,7 +383,7 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
         await pushSvc.SendAsync(
             employeeId,
             approved ? "Leave Approved ✓" : "Leave Rejected",
-            $"Your {leaveType} leave ({start:MMM d} – {end:MMM d}) has been {status}.",
+            $"Your {phrase} ({start:MMM d} – {end:MMM d}) has been {status}.",
             "/my-leave", ct);
     }
 

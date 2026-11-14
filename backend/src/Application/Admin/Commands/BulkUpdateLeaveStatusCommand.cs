@@ -1,4 +1,5 @@
 ﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Leave;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using MediatR;
@@ -51,6 +52,7 @@ public class BulkUpdateLeaveStatusCommandHandler(
         // approvals would persist. The in-app Notification rows below are saved transactionally,
         // so employees still see the result in the bell even if live delivery fails.
         var toDispatch = new List<(Guid EmployeeId, Notification Notif)>();
+        var catalog = await LeaveCatalogReader.GetAsync(db, ct);
         foreach (var leave in leaves)
         {
             var prevStatus = leave.Status;
@@ -70,7 +72,7 @@ public class BulkUpdateLeaveStatusCommandHandler(
             var notif = Notification.Create(
                 leave.EmployeeId,
                 approved ? "Leave Approved ✓" : "Leave Rejected",
-                $"Your {leave.LeaveType} leave ({leave.StartDate:MMM d} – {leave.EndDate:MMM d}) has been {req.Status.ToLower()}.",
+                $"Your {catalog.Phrase(leave.LeaveType)} ({leave.StartDate:MMM d} – {leave.EndDate:MMM d}) has been {req.Status.ToLower()}.",
                 approved ? AppConstants.NotificationType.LeaveApproved : AppConstants.NotificationType.LeaveRejected,
                 leave.Id.ToString());
             db.Notifications.Add(notif);

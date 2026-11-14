@@ -114,7 +114,7 @@ describe('AuthService — refreshToken()', () => {
   });
 
   it('stores the refreshed user profile on success', async () => {
-    const res = makeAuthResponse(['manager']);
+    const res = makeAuthResponse(['rota lead']);
     const promise = firstValueFrom(service.refreshToken());
     http.expectOne('/api/auth/refresh').flush(res);
     await promise;

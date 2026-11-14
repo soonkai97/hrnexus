@@ -1,5 +1,3 @@
-export type UserRole = 'employee' | 'manager' | 'admin';
-
 export interface LoginRequest {
   staffId: string;
   password: string;
@@ -20,7 +18,7 @@ export interface AuthUser {
   staffId: string;
   fullName: string;
   email: string;
-  /** Assigned role NAMES (e.g. ["SUPERADMIN", "MANAGER"]) — drives the FE auth-tier logic. */
+  /** Assigned job NAMES, for display (the profile card). What a person may open or do is decided by permissions, never by a job's name. */
   roles: string[];
 }
 

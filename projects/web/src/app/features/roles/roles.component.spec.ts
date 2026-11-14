@@ -147,9 +147,10 @@ describe('RolesComponent', () => {
       expect(component.editingName()).toBe('MIXOLOGIST');
     });
 
-    it('does not open for a system job — its name is the authorization key', () => {
-      component.startEdit({ id: 'role-admin-id', name: 'SUPERADMIN', isSystem: true });
-      expect(component.editingId()).toBeNull();
+    it('opens for the first administrator job too: nothing looks a job up by its name', () => {
+      component.startEdit({ id: 'role-admin-id', name: 'ADMINISTRATOR', isSystem: true });
+      expect(component.editingId()).toBe('role-admin-id');
+      expect(component.editingName()).toBe('ADMINISTRATOR');
     });
 
     it('cancelEdit clears editingId', () => {
@@ -172,8 +173,29 @@ describe('RolesComponent', () => {
       expect(open(bartender)).toEqual(['Edit', 'Job permissions', undefined, 'Delete']);
     });
 
-    it('offers only permissions for a system job — it cannot be edited or deleted', () => {
-      expect(open({ id: 'role-admin-id', name: 'SUPERADMIN', isSystem: true })).toEqual(['Job permissions']);
+    it('offers Edit and permissions, but not Delete, for the first administrator job', () => {
+      expect(open({ id: 'role-admin-id', name: 'ADMINISTRATOR', isSystem: true })).toEqual(['Edit', 'Job permissions']);
+    });
+  });
+
+  // ── permissions dialog: the first administrator job is read-only ─────────────
+
+  describe('openPermissions() / savePermissions()', () => {
+    it('a custom job opens editable', () => {
+      component.openPermissions('BARTENDER');
+      expect(component.permReadOnly()).toBe(false);
+    });
+
+    it('the first administrator job opens read-only', () => {
+      component.openPermissions('ADMINISTRATOR', true);
+      expect(component.permReadOnly()).toBe(true);
+    });
+
+    it('never sends a save for a read-only job (the server would refuse it anyway)', () => {
+      const setSpy = vi.spyOn((component as unknown as { permSvc: { setRolePermissions: () => void } }).permSvc, 'setRolePermissions');
+      component.openPermissions('ADMINISTRATOR', true);
+      component.savePermissions();
+      expect(setSpy).not.toHaveBeenCalled();
     });
   });
 

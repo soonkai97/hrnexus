@@ -46,6 +46,8 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   // Role-permissions editor state
   permRole        = signal<string | null>(null);   // role whose permissions dialog is open
+  /** The first administrator job always holds every permission, so its dialog is read-only. */
+  permReadOnly    = signal(false);
   permCatalog     = signal<string[]>([]);          // all assignable permission keys
   permSelected    = signal<string[]>([]);          // currently checked keys
   permLoading     = signal(false);
@@ -88,9 +90,8 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     });
   }
 
-  /** Open the rename modal, prefilled from the row. System jobs cannot be edited. */
+  /** Open the rename modal, prefilled from the row. Every job can be renamed: nothing looks a job up by its name. */
   startEdit(role: { id: string; name: string; isSystem: boolean }): void {
-    if (role.isSystem) return;
     this.editingId.set(role.id);
     this.editingName.set(role.name);
   }
@@ -137,16 +138,16 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   // ── Role permissions editor ────────────────────────────────────────────────
 
-  /** Per-row actions via the ellipsis menu (Edit and Delete only for custom roles). */
+  /** Per-row actions via the ellipsis menu (every job can be renamed; only custom jobs can be deleted). */
   openRoleMenu(role: { id: string; name: string; isSystem: boolean }, event: Event): void {
     const items: MenuItem[] = [
+      { label: 'Edit', icon: 'pi pi-pencil',
+        command: () => this.startEdit(role) },
       { label: 'Job permissions', icon: 'pi pi-shield',
         // Permissions API is keyed by role NAME on the backend — pass the name here, not the id.
-        command: () => this.openPermissions(role.name) },
+        command: () => this.openPermissions(role.name, role.isSystem) },
     ];
     if (!role.isSystem) {
-      items.unshift({ label: 'Edit', icon: 'pi pi-pencil',
-        command: () => this.startEdit(role) });
       items.push({ separator: true });
       items.push({ label: 'Delete', icon: 'pi pi-trash',
         styleClass: 'nc-danger-item', command: () => this.deleteRole(role.id) });
@@ -155,8 +156,9 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
     this.roleMenu.toggle(event);
   }
 
-  openPermissions(name: string): void {
+  openPermissions(name: string, readOnly = false): void {
     this.permRole.set(name);
+    this.permReadOnly.set(readOnly);
     this.permSelected.set([]);
     this.permLoading.set(true);
     // Catalog is fetched once and cached on the component.
@@ -184,7 +186,7 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
 
   savePermissions(): void {
     const role = this.permRole();
-    if (!role || this.permSaving()) return;
+    if (!role || this.permSaving() || this.permReadOnly()) return;
     this.permSaving.set(true);
     this.permSvc.setRolePermissions(role, this.permSelected()).subscribe({
       next: () => {

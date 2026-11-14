@@ -5,7 +5,7 @@ import { ADMIN, STAFF } from '../shared/helpers';
  * Permission-framework E2E — exercised through the real HTTP API (the backend is the actual
  * enforcement boundary; the FE guards are defence-in-depth on top). One web app serves every
  * role, so access is decided by permissions, not by which app you sign in to. Proves:
- *  - any active account can sign in (SUPERADMIN and a plain EMPLOYEE alike),
+ *  - any active account can sign in (an administrator and a plain employee alike),
  *  - management endpoints return 403 without the permission (roles.manage, staff.view) and 200 with it,
  *  - per-user GRANT/REVOKE overrides take effect IMMEDIATELY (DB-resolved, not baked into the JWT),
  *  - the effective-permissions endpoint reflects the override.
@@ -15,7 +15,7 @@ import { ADMIN, STAFF } from '../shared/helpers';
  * cookie is auto-sent on every subsequent request from it. This keeps the admin operator and the
  * employee subject cleanly separated without juggling tokens.
  *
- * Uses the seeded HRADMIN (SUPERADMIN, has every permission) as the operator and TESTSTAFF01
+ * Uses the seeded HRADMIN (holds every permission through the first administrator job) as the operator and TESTSTAFF01
  * (EMPLOYEE, created by global-setup, no permissions by default) as the subject. afterAll resets
  * TESTSTAFF01's overrides so the staff specs still see a plain EMPLOYEE.
  */
@@ -58,7 +58,7 @@ test.describe('Admin — permission framework', () => {
     await setOverrides(request, id, []);
   });
 
-  test('any active account can sign in: SUPERADMIN and a plain EMPLOYEE', async ({ playwright }) => {
+  test('any active account can sign in: an administrator and a plain employee', async ({ playwright }) => {
     const adminCtx = await playwright.request.newContext({ baseURL: ADMIN_BASE });
     expect((await login(adminCtx, ADMIN.staffId, ADMIN.password)).ok()).toBeTruthy();
     await adminCtx.dispose();

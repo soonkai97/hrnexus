@@ -52,7 +52,7 @@ describe('StaffDetailComponent', () => {
     update:   ReturnType<typeof vi.fn>;
   };
   let mockStaffSvc:  { getById: ReturnType<typeof vi.fn> };
-  let mockAuth:      { hasRole: ReturnType<typeof vi.fn> };
+  let mockAuth:      Record<string, never>;
   let mockToast:     { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockPerm:      { has: ReturnType<typeof vi.fn> };
   let mockPayroll:   { getSalary: ReturnType<typeof vi.fn>; addSalary: ReturnType<typeof vi.fn>; setEmployment: ReturnType<typeof vi.fn> };
@@ -67,7 +67,7 @@ describe('StaffDetailComponent', () => {
     mockStaffSvc = {
       getById: vi.fn().mockReturnValue(of(makeStaffDetail())),
     };
-    mockAuth = { hasRole: vi.fn().mockReturnValue(false) };
+    mockAuth = {};
     mockToast = { success: vi.fn(), error: vi.fn() };
     mockPermSvc = {
       catalog:          vi.fn().mockReturnValue(of([])),
@@ -634,16 +634,16 @@ describe('StaffDetailComponent', () => {
   // ── availableRoles computed ───────────────────────────────────────────────────
 
   describe('availableRoles computed', () => {
-    it('exposes every defined role as selectable, including SUPERADMIN', () => {
+    it('exposes every defined job as selectable, including the first administrator job', () => {
       mockStaffStore.roles.mockReturnValue([
-        { name: 'SUPERADMIN', isSystem: true },
-        { name: 'MANAGER', isSystem: true },
+        { name: 'ADMINISTRATOR', isSystem: true },
+        { name: 'FRONT DESK', isSystem: false },
         { name: 'EMPLOYEE', isSystem: false },
       ]);
       const c2 = TestBed.createComponent(StaffDetailComponent).componentInstance;
       const names = c2.availableRoles().map((r: any) => r.name);
-      expect(names).toContain('SUPERADMIN');
-      expect(names).toContain('MANAGER');
+      expect(names).toContain('ADMINISTRATOR');
+      expect(names).toContain('FRONT DESK');
       expect(names).toContain('EMPLOYEE');
     });
   });

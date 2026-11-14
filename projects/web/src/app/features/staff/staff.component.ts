@@ -107,7 +107,7 @@ export class StaffComponent implements OnInit, OnDestroy, CanComponentDeactivate
     }
   }
 
-  // Every defined role is assignable (incl. SUPERADMIN); managers and admins have equal power.
+  // Every defined job is assignable; what a job allows is decided by its permissions.
   availableRoles = computed(() => this.roles());
 
   // Picker options; the value is the role GUID id (register/update expect role IDS).

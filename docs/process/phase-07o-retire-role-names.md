@@ -1,6 +1,6 @@
 # Phase 7o: Retire the SUPERADMIN and MANAGER role names (access is decided by permissions only)
 
-> **Status:** `Draft` (plan reviewed by the opus reviewer on 14 Nov 2026; findings folded in below)
+> **Status:** `Implemented` (7o-a #115, 7o-b in the next PR); review and sign-off pending
 > **Created:** 2026-11-14 | **Updated:** 2026-11-14
 > **Depends on:** Phase 7n merged (one app, `portal.admin` retired). Independent of 7m-b and Phase 8, but **comes before Phase 8c** so payroll never inherits a role-name rule.
 > **Why:** the owner asked (14 Nov 2026) to remove SUPERADMIN entirely. Permissions already decide every endpoint and every page, so the two seeded role names are now leftovers, and they cause one real defect: the notifications that tell someone about a pending leave request, a withdrawn leave or a password-reset request go to people **named** MANAGER or SUPERADMIN, not to people who hold `leave.approve` or `staff.manage`. A custom role with `leave.approve` never hears about pending leave.

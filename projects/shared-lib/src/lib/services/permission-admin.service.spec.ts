@@ -38,8 +38,8 @@ describe('PermissionAdminService', () => {
   });
 
   it('setRolePermissions() PUTs the permissions array in a { permissions } body', () => {
-    service.setRolePermissions('MANAGER', ['staff.view', 'reports.view']).subscribe();
-    const req = http.expectOne('/api/permissions/roles/MANAGER');
+    service.setRolePermissions('FRONTDESK', ['staff.view', 'reports.view']).subscribe();
+    const req = http.expectOne('/api/permissions/roles/FRONTDESK');
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual({ permissions: ['staff.view', 'reports.view'] });
     req.flush(null);

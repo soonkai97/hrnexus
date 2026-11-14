@@ -59,7 +59,7 @@ describe('StaffComponent', () => {
     bulkAssignRoles:     ReturnType<typeof vi.fn>;
     bulkDeactivate:      ReturnType<typeof vi.fn>;
   };
-  let mockAuth:       { user: () => any; hasRole: ReturnType<typeof vi.fn> };
+  let mockAuth:       { user: () => any };
   let mockToastSvc:   { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let mockConfirmSvc: { confirm: ReturnType<typeof vi.fn> };
 
@@ -79,7 +79,7 @@ describe('StaffComponent', () => {
       bulkAssignRoles:     vi.fn().mockReturnValue(of({ count: 2 })),
       bulkDeactivate:      vi.fn().mockReturnValue(of({ count: 2 })),
     };
-    mockAuth       = { user: () => null, hasRole: vi.fn().mockReturnValue(false) };
+    mockAuth       = { user: () => null };
     mockToastSvc   = { success: vi.fn(), error: vi.fn() };
     mockConfirmSvc = { confirm: vi.fn().mockReturnValue(of(true)) };
 

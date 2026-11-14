@@ -6,7 +6,7 @@ import { ensureRole } from './api';
  *
  * Creates the TESTSTAFF01 employee account that the employee E2E scenarios need.
  * The staff specs assert a plain employee's view, so they need a dedicated
- * EMPLOYEE-role account rather than the HRADMIN superadmin.
+ * EMPLOYEE-role account rather than the HRADMIN administrator.
  *
  * Safe to run repeatedly: a 409 Conflict response means the account already
  * exists and is silently skipped.

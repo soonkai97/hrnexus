@@ -1,6 +1,6 @@
 # Phase 8: Payroll rebuild (monthly salary, statutory deductions, payslips)
 
-> **Status:** `8a merged (#103); 8b detailed plan below; 8c to 8f still summaries`
+> **Status:** `8a merged (#103); 8b implemented (calculator, rate tables, verification, rates page); 8c to 8f still summaries`
 > **Created:** 2026-11-13 | **Updated:** 2026-11-14
 > **Depends on:** Phases 7, 7j, 7i, 7l merged (all done). **All payroll screens (including the staff payslip page) are built in the single web app of Phase 7n**, not in separate admin and staff apps. **8b onward also depends on Phase 7m (company policy)** (`phase-07m-company-policy.md`): the working week, hours per day and the unpaid-leave divisor are company settings, not constants. 8a does not. Source of requirements: `HRNexus PRD v1.0`, section 5.4 (PAY-01 to PAY-10), section 6.2 (calculation order and run lifecycle), LEV-11, STF-05.
 > **Environment note (13 Nov 2026):** no production deployment and no real data, so drop migrations and rate-table seeding need no backup yet. **Payroll go-live (not this phase's merge) is gated** by an accountant sign-off and a 3-month parallel run (PRD).

@@ -74,6 +74,12 @@ public class LeaveTypeDefinitionTests
     public void Day_limits_and_notice_have_sane_bounds()
     {
         Assert.Throws<ArgumentException>(() => LeaveTypeDefinition.Create(Spec(maxDays: 0.4m)));
+        // A request always spans at least one day, so a limit under one day would refuse everything.
+        Assert.Throws<ArgumentException>(() => LeaveTypeDefinition.Create(Spec(maxDays: 0.5m)));
+        // Days are stored to one decimal place: only whole or half days, so what is saved is what was entered.
+        Assert.Throws<ArgumentException>(() => LeaveTypeDefinition.Create(Spec(maxDays: 5.25m)));
+        Assert.Throws<ArgumentException>(() => LeaveTypeDefinition.Create(Spec(pool: "own", allowance: 10.25m)));
+        Assert.Equal(10.5m, LeaveTypeDefinition.Create(Spec(pool: "own", allowance: 10.5m)).AllowanceDays);
         Assert.Throws<ArgumentException>(() => LeaveTypeDefinition.Create(Spec(maxDays: 367m)));
         Assert.Throws<ArgumentException>(() => LeaveTypeDefinition.Create(Spec(notice: -1)));
         Assert.Throws<ArgumentException>(() => LeaveTypeDefinition.Create(Spec(notice: 61)));

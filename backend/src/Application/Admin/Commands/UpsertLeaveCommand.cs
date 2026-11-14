@@ -63,6 +63,12 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
             IDbContextTransaction? tx = await db.BeginSerializableAsync(ct);
             try
             {
+                // Read the catalogue INSIDE the transaction: a concurrent catalogue save that changes how this
+                // type is charged then conflicts with this leave instead of both committing (history rewrite).
+                catalog = await LeaveCatalogReader.GetAsync(db, ct);
+                def = catalog.Find(req.LeaveType) ?? throw new ArgumentException($"Invalid leave type '{req.LeaveType}'.");
+                schedule = def.ScheduleFor(policy.Schedule);
+
                 // Idempotency guard: if a prior (committed) attempt of this create already inserted
                 // the row, the execution strategy is retrying us — return that row rather than
                 // re-running the balance check (which would now see a full balance and falsely fail).
@@ -95,7 +101,13 @@ public class UpsertLeaveCommandHandler(IAppDbContext db, INotificationHub notifH
                 var datesOrTimesChanged = existing is null
                     || existing.StartDate.Date != req.StartDate.Date || existing.EndDate.Date != req.EndDate.Date
                     || existing.StartTime != req.StartTime || existing.EndTime != req.EndTime;
-                var hours = datesOrTimesChanged || existing?.Hours is null
+                // A type change between a working-day and a calendar-day type also changes the hours (the
+                // balance views and the balance check count a leave by its CURRENT type's schedule). Leave that
+                // has already ended keeps its stored hours: it can only become a no-show, which keeps its record.
+                var countsDaysDifferently = existing is not null
+                    && existing.EndDate.Date >= dt.LocalNow.Date
+                    && catalog.ScheduleFor(existing.LeaveType, policy.Schedule) != schedule;
+                var hours = datesOrTimesChanged || countsDaysDifferently || existing?.Hours is null
                     ? LeaveHoursCalculator.Calculate(req.StartDate, req.EndDate, req.StartTime, req.EndTime, schedule)
                     : existing.Hours.Value;
 

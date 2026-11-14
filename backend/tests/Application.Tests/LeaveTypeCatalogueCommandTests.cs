@@ -156,6 +156,20 @@ public class LeaveTypeCatalogueCommandTests
     }
 
     [Fact]
+    public async Task The_first_save_can_drop_a_default_type_nobody_has_used()
+    {
+        // Until a catalogue is saved the types are the code defaults, which are not in the database yet:
+        // dropping one on the very first save must simply leave it out, not fail as a "stale" save.
+        await using var db = CreateDb();
+
+        await Saver(db).Handle(new SaveLeaveTypesCommand(0, Defaults().Where(s => s.Key != "paternity").ToList()), CancellationToken.None);
+
+        var catalog = await LeaveCatalogReader.GetAsync(db, CancellationToken.None);
+        Assert.Null(catalog.Find("paternity"));
+        Assert.Equal(8, catalog.Types.Count);
+    }
+
+    [Fact]
     public async Task Where_a_type_is_charged_cannot_change_once_it_has_leave()
     {
         await using var db = CreateDb();

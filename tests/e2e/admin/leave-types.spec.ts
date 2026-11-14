@@ -137,7 +137,10 @@ test.describe.serial('Leave types', () => {
     // Add a type through the dialog and save: the Save button settles once the server has it.
     const save = page.getByRole('button', { name: 'Save leave types' });
     await page.getByRole('button', { name: 'Add type' }).click();
+    // Inputs start readonly (anti-autofill): a click makes them editable before typing.
+    await page.locator('#lt-label').click();
     await page.locator('#lt-label').fill('Exam leave');
+    await page.locator('#lt-key').click();
     await page.locator('#lt-key').fill(key);
     await page.getByRole('button', { name: 'Done' }).click();
     await expect(page.locator('.type-row', { hasText: 'Exam leave' })).toBeVisible();

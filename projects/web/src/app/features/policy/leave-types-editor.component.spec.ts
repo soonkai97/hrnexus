@@ -226,6 +226,10 @@ describe('LeaveTypesEditorComponent', () => {
     component.draft.label = 'Lim';
     component.draft.maxDaysPerRequest = 400;
     expect(component.draftError()).toContain('longest single request');
+    component.draft.maxDaysPerRequest = 0.5; // a request spans at least one day, so this would refuse everything
+    expect(component.draftError()).toContain('longest single request');
+    component.draft.maxDaysPerRequest = 5.25; // not stored as entered
+    expect(component.draftError()).toContain('longest single request');
     component.draft.maxDaysPerRequest = 98;
     component.draft.noticeMode = 'days';
     component.draft.noticeDays = 90;

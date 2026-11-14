@@ -208,6 +208,55 @@ public class LeaveTypesBehaviourTests
         Assert.Equal(440m, line.Remaining);
     }
 
+    // ── changing a leave's type changes how its days are counted ─────────────────
+
+    [Fact]
+    public async Task Retyping_a_weekend_calendar_leave_to_a_working_day_type_is_refused_because_it_has_no_working_day()
+    {
+        await using var db = CreateDb();
+        var staff = await AddStaff(db, "A1");
+        var admin = await AddStaff(db, "M1");
+        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m));
+        await db.SaveChangesAsync();
+        // Paternity Sat 7 - Sun 8 Nov 2026: 16h counted by calendar days.
+        var id = await Handler(db).Handle(Apply(staff.Id, "paternity", D(2026, 11, 7), D(2026, 11, 8)), CancellationToken.None);
+        Assert.Equal(16m, await StoredHours(db, id));
+
+        // As annual leave (working days) it has no working day: the same rule as a new request.
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            Handler(db).Handle(Apply(staff.Id, "annual", D(2026, 11, 7), D(2026, 11, 8), "pending", id, acting: admin.Id), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Retyping_between_day_counting_rules_recounts_the_hours_so_the_balance_check_sees_the_real_figure()
+    {
+        await using var db = CreateDb();
+        var staff = await AddStaff(db, "A1");
+        var admin = await AddStaff(db, "M1");
+        db.LeaveEntitlements.Add(E.LeaveEntitlement.Create(staff.Id, 2026, annualHours: 80m, sickHours: 14m));
+        await db.SaveChangesAsync();
+        // Annual Fri 6 - Mon 9 Nov: two working days = 16h.
+        var id = await Handler(db).Handle(Apply(staff.Id, "annual", D(2026, 11, 6), D(2026, 11, 9)), CancellationToken.None);
+        Assert.Equal(16m, await StoredHours(db, id));
+
+        await Handler(db).Handle(Apply(staff.Id, "paternity", D(2026, 11, 6), D(2026, 11, 9), "pending", id, acting: admin.Id), CancellationToken.None);
+
+        Assert.Equal(32m, await StoredHours(db, id));   // four calendar days
+    }
+
+    [Fact]
+    public async Task A_status_only_edit_keeps_the_stored_hours()
+    {
+        await using var db = CreateDb();
+        var staff = await AddStaff(db, "A1");
+        var admin = await AddStaff(db, "M1");
+        var id = await Handler(db).Handle(Apply(staff.Id, "paternity", D(2026, 12, 5), D(2026, 12, 11)), CancellationToken.None);
+
+        await Handler(db).Handle(Apply(staff.Id, "paternity", D(2026, 12, 5), D(2026, 12, 11), "approved", id, acting: admin.Id), CancellationToken.None);
+
+        Assert.Equal(56m, await StoredHours(db, id));
+    }
+
     // ── flags ─────────────────────────────────────────────────────────────────────
 
     [Fact]

@@ -72,7 +72,8 @@ public class SaveLeaveTypesCommandHandler(IAppDbContext db, IAuditService audit,
                 foreach (var t in final) t.SetCatalogVersion(version);
 
                 db.LeaveTypes.AddRange(final.Where(t => !rows.Contains(t)));
-                db.LeaveTypes.RemoveRange(dropped);
+                // A default that was never saved has no row to delete (the first save writes the whole catalogue).
+                db.LeaveTypes.RemoveRange(dropped.Where(rows.Contains));
                 await db.SaveChangesAsync(ct);
 
                 // The audit row says THAT the catalogue changed and which types it holds, never their limits.

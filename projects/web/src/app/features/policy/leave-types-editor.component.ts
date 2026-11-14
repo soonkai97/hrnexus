@@ -46,6 +46,9 @@ export interface TypeDraft {
   sensitive: boolean;
 }
 
+/** Days are stored to one decimal place: only whole or half days, so what is saved is what was entered. */
+const wholeOrHalf = (days: number): boolean => Number.isInteger(days * 2);
+
 const KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
@@ -244,11 +247,19 @@ export class LeaveTypesEditorComponent implements OnInit, CanComponentDeactivate
       return 'The order must be between 0 and 1000.';
     if (
       d.pool === 'own' &&
-      !(d.allowanceDays !== null && d.allowanceDays > 0 && d.allowanceDays <= 366)
+      !(
+        d.allowanceDays !== null &&
+        d.allowanceDays > 0 &&
+        d.allowanceDays <= 366 &&
+        wholeOrHalf(d.allowanceDays)
+      )
     )
-      return 'Enter the yearly allowance, between 0.5 and 366 days.';
-    if (d.maxDaysPerRequest !== null && !(d.maxDaysPerRequest >= 0.5 && d.maxDaysPerRequest <= 366))
-      return 'The longest single request must be between 0.5 and 366 days.';
+      return 'Enter the yearly allowance in whole or half days, from 0.5 to 366.';
+    if (
+      d.maxDaysPerRequest !== null &&
+      !(d.maxDaysPerRequest >= 1 && d.maxDaysPerRequest <= 366 && wholeOrHalf(d.maxDaysPerRequest))
+    )
+      return 'The longest single request must be whole or half days, from 1 to 366.';
     if (
       d.noticeMode === 'days' &&
       !(d.noticeDays !== null && d.noticeDays >= 0 && d.noticeDays <= 60)

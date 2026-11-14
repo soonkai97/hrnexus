@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, effect, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaveService, ApplyLeaveRequest, LeaveRecord, LeaveBalance, LeaveTypeBalance, ToastService, ConfirmService, toLocalDateString, nowRoundedToHalfHour, leaveHours, HmPipe, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, CompanyPolicyService, LeaveTypeService } from 'shared-lib';
@@ -255,10 +255,16 @@ export class MyLeaveComponent implements OnInit, CanComponentDeactivate {
         && !!this.form.endDate   && !!this.form.endTime;
   }
 
+  constructor() {
+    // The catalogue may load after the page opens, or turn the chosen type off: always stay on a type staff can apply for.
+    effect(() => {
+      const keys = this.leaveTypes();
+      const first = keys[0];
+      if (first && !keys.includes(this.form.leaveType)) this.form.leaveType = first;
+    });
+  }
+
   ngOnInit(): void {
-    // The catalogue may have turned the default type off: start on a type staff can still apply for.
-    const first = this.leaveTypes()[0];
-    if (first && !this.leaveTypes().includes(this.form.leaveType)) this.form.leaveType = first;
     this.load();
     this.leaveSvc.getMyBalance().subscribe({ next: b => this.balance.set(b), error: () => {} });
   }

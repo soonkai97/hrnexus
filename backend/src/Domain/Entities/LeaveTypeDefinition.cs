@@ -119,14 +119,15 @@ public class LeaveTypeDefinition
 
         if (s.Pool == LeavePools.Own)
         {
-            if (s.AllowanceDays is null or <= 0 or > 366)
-                throw new ArgumentException($"'{label}' has its own yearly allowance: enter between 0.5 and 366 days.");
+            if (s.AllowanceDays is null or <= 0 or > 366 || !IsWholeOrHalf(s.AllowanceDays.Value))
+                throw new ArgumentException($"'{label}' has its own yearly allowance: enter whole or half days, from 0.5 to 366.");
         }
         else if (s.AllowanceDays is not null)
             throw new ArgumentException($"'{label}' does not have its own allowance; only a type with its own pool does.");
 
-        if (s.MaxDaysPerRequest is not null && (s.MaxDaysPerRequest < 0.5m || s.MaxDaysPerRequest > 366m))
-            throw new ArgumentException("The longest single request must be between 0.5 and 366 days.");
+        // A request always spans at least one day, and days are stored to one decimal place.
+        if (s.MaxDaysPerRequest is not null && (s.MaxDaysPerRequest < 1m || s.MaxDaysPerRequest > 366m || !IsWholeOrHalf(s.MaxDaysPerRequest.Value)))
+            throw new ArgumentException("The longest single request must be whole or half days, from 1 to 366.");
         if (s.AdvanceNoticeDays is < 0 or > 60)
             throw new ArgumentException("Notice must be between 0 and 60 days.");
         if (s.AdvanceNoticeFromPolicy && s.AdvanceNoticeDays is not null)
@@ -140,6 +141,8 @@ public class LeaveTypeDefinition
 
         return s with { Key = key, Label = label };
     }
+
+    private static bool IsWholeOrHalf(decimal days) => days * 2 == decimal.Truncate(days * 2);
 
     private void Apply(LeaveTypeSpec s)
     {

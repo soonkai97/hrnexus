@@ -52,7 +52,12 @@ public sealed class LeaveCatalog
     /// reaches another person or a lock screen, so health and family facts are not broadcast.
     /// A key that is no longer in the catalogue is shown as stored.
     /// </summary>
-    public string Phrase(string key) => Find(key) is { Sensitive: true } ? "leave" : $"{key} leave";
+    public string Phrase(string key) => Find(key) switch
+    {
+        { Sensitive: true } => "leave",
+        { } t => t.Label.EndsWith("leave", StringComparison.OrdinalIgnoreCase) ? t.Label.ToLowerInvariant() : $"{t.Label.ToLowerInvariant()} leave",
+        _ => $"{key} leave",
+    };
 }
 
 /// <summary>

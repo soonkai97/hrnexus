@@ -99,6 +99,22 @@ public class LeaveCatalogTests
         Assert.Equal("leave", catalog.Phrase("maternity"));         // health and family facts are not broadcast
         Assert.Equal("leave", catalog.Phrase("hospitalisation"));
         Assert.Equal("old-type leave", catalog.Phrase("old-type")); // a key no longer in the catalogue is shown as stored
+        Assert.Equal("no-show leave", catalog.Phrase("no-show"));
+    }
+
+    [Fact]
+    public async Task Wording_uses_the_types_name_not_its_key_and_does_not_say_leave_twice()
+    {
+        await using var db = CreateDb();
+        var all = LeaveTypeDefaults.All().ToList();
+        db.LeaveTypes.AddRange(all);
+        db.LeaveTypes.Add(LeaveTypeDefinition.Create(new LeaveTypeSpec("study-leave", "Study", "info", 100, true, "none", null, null, false, null, false, false, false, false, false)));
+        db.LeaveTypes.Add(LeaveTypeDefinition.Create(new LeaveTypeSpec("exam", "Exam leave", "info", 101, true, "none", null, null, false, null, false, false, false, false, false)));
+        await db.SaveChangesAsync();
+        var catalog = await LeaveCatalogReader.GetAsync(db, CancellationToken.None);
+
+        Assert.Equal("study leave", catalog.Phrase("study-leave"));   // not "study-leave leave"
+        Assert.Equal("exam leave", catalog.Phrase("exam"));           // not "exam leave leave"
     }
 
     [Fact]

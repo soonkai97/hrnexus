@@ -9,8 +9,8 @@
 
 ## Objectives
 
-1. Every list screen shows its records as **cards in a responsive grid** by default, with the same data and the same actions as the table.
-2. Every list screen keeps a **Table** view for people who prefer it (bulk work, sorting), chosen with one toggle; the choice is remembered per screen on that device.
+1. Every list screen shows its records as a **table (the list view)** by default and as a **responsive card grid** on request, with the same data and the same actions in both.
+2. Every list screen offers the other view with one toggle (cards for a roomier layout, the table for bulk work and sorting); the choice is remembered per screen on that device.
 3. One shared look and one shared piece of code: the card, the grid and the toggle are defined once and used by every screen, so a screen cannot drift.
 4. Nothing is lost: search, filters, sorting, pagination, bulk select and every row action work in both views; no API change.
 5. Checked by looking at it: each converted screen is screenshotted at desktop and phone width before it is called done.
@@ -36,7 +36,7 @@
 
 ## Design
 
-- **Default is Cards**, Table is the alternative. The toggle sits in the page toolbar next to the existing search and filters (two icon buttons with accessible names, `aria-pressed`).
+- **Default is the list (Table)**, Cards are the alternative (the owner chose this after seeing the first version, which defaulted to Cards). The toggle sits in the page toolbar next to the existing search and filters (two icon buttons with accessible names, `aria-pressed`).
 - **Card anatomy** (the Leave types card is the model): a head (the main identifier and a status tag), one or two meta lines, optional chips, and a footer with the actions, pinned to the bottom so buttons line up across a row of cards. Equal-width cards in a `repeat(auto-fill, minmax(250px, 1fr))` grid; one column on a phone.
 - **No content-dependent columns:** a card never sizes from its text, which is what made the Leave types rows misalign.
 - **Persistence:** `ViewModeService.mode(key)` returns a signal; the value is stored under `view-mode:<key>`; every read and write is wrapped in try/catch and the screen works without storage.
@@ -71,7 +71,7 @@
 
 ## Validation criteria
 
-- [ ] Every screen in scope shows cards by default and a Table on request; the choice survives a reload
+- [ ] Every screen in scope shows the table by default and cards on request; the choice survives a reload
 - [ ] The same rows appear in both views; search, filters, sorting, paging, bulk select and all row actions work in both
 - [ ] No screen has columns that shift with content; cards in a row have equal width and their actions line up
 - [ ] Screenshots at 1280 px and 390 px reviewed for each converted screen
@@ -89,7 +89,7 @@
 
 ## Questions for the owner
 
-1. **Default view:** Cards for everyone (assumed), or Table on desktop and Cards on phone?
+1. **Default view:** ANSWERED (owner, 14 Nov 2026): the list (table) view by default.
 2. **Bulk work:** is Table the better view for bulk select on Staff and Leave Requests, so those two should default to Table?
 
 ---

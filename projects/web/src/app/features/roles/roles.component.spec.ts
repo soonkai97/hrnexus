@@ -365,8 +365,8 @@ describe('RolesComponent', () => {
       return TestBed.createComponent(RolesComponent).componentInstance;
     }
 
-    it('starts on cards', () => {
-      expect(component.viewMode()).toBe('cards');
+    it('starts on the list (table) view', () => {
+      expect(component.viewMode()).toBe('table');
     });
 
     it('lists the roles by name, a page at a time', () => {

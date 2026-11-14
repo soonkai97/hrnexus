@@ -674,8 +674,8 @@ describe('StaffComponent', () => {
       makeStaff({ id: '3', staffId: 'C03', firstName: 'Anh', lastName: 'Nguyen', fullName: 'Anh Nguyen', isActive: true }),
     ];
 
-    it('starts on cards, so a first visit shows the card grid', () => {
-      expect(component.viewMode()).toBe('cards');
+    it('starts on the list (table) view', () => {
+      expect(component.viewMode()).toBe('table');
     });
 
     it('shows every person of the table, by name until another order is chosen', () => {

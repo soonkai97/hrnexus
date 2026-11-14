@@ -16,7 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "hooks:install": "node scripts/setup-git-hooks.mjs",
-    "guard:test": "node --test scripts/guard/lib.test.mjs scripts/format-check.test.mjs",
+    "guard:test": "node --test scripts/guard/lib.test.mjs scripts/format-check.test.mjs scripts/payroll-worked-examples.test.mjs",
     "format:check": "node scripts/format-check.mjs"
   },
   "private": true,

@@ -1,0 +1,711 @@
+{
+  "_comment": "Hand-worked payroll examples for PayrollCalculator (Phase 8b). EVERY expected figure below was worked out by hand with the formula in 'working', NOT produced by running the calculator, so the calculator is checked against an independent calculation. The rate rows are the UNVERIFIED seed rows from PRD 6.2; whether they match the law is the accountant's question (docs/process/payroll-accountant-questions.md). Money is exact decimal ringgit. June 2026 has 30 days, July 2026 has 31, February 2028 has 29.",
+  "rates": [
+    {
+      "key": "epf",
+      "scheme": "epf",
+      "class": "citizen",
+      "kind": "percentage",
+      "employeeRate": 0.11,
+      "employerRate": 0.13,
+      "employerRateMode": "whole-wage-by-threshold",
+      "employerRateThreshold": 5000,
+      "employerRateAbove": 0.12,
+      "rounding": "up-to-next-ringgit",
+      "note": "EPF: 11% employee; employer 13% if the wage base is up to RM5,000 else 12% on the WHOLE base; rounded up to the next ringgit (ASSUMED)."
+    },
+    {
+      "key": "socso",
+      "scheme": "socso",
+      "class": "citizen",
+      "kind": "percentage",
+      "wageCeiling": 6000,
+      "employeeRate": 0.005,
+      "employerRate": 0.0175,
+      "employerRateMode": "flat",
+      "rounding": "nearest-5-sen",
+      "note": "SOCSO category 1: 0.5% / 1.75% on wages up to RM6,000; nearest 5 sen (ASSUMED)."
+    },
+    {
+      "key": "eis",
+      "scheme": "eis",
+      "class": "citizen",
+      "kind": "percentage",
+      "wageCeiling": 6000,
+      "employeeRate": 0.002,
+      "employerRate": 0.002,
+      "employerRateMode": "flat",
+      "rounding": "nearest-5-sen",
+      "note": "EIS: 0.2% / 0.2% on wages up to RM6,000; nearest 5 sen (ASSUMED)."
+    },
+    {
+      "key": "hrd",
+      "scheme": "hrd-compulsory",
+      "class": "citizen",
+      "kind": "percentage",
+      "employeeRate": 0,
+      "employerRate": 0.01,
+      "employerRateMode": "flat",
+      "rounding": "nearest-cent",
+      "note": "HRD Corp levy: 1% of wages, employer only (company has 10 or more Malaysian employees)."
+    }
+  ],
+  "vectors": [
+    {
+      "name": "full month, RM3,000 basic, nothing else, no PCB entered",
+      "input": { "year": 2026, "month": 6, "basic": 3000, "pcb": null },
+      "working": [
+        "prorated basic = 3000.00 (full month)",
+        "EPF employee 11% x 3000 = 330.00 -> up to next ringgit 330; employer 13% x 3000 = 390.00 -> 390",
+        "SOCSO employee 0.5% x 3000 = 15.00; employer 1.75% x 3000 = 52.50 (a multiple of 5 sen)",
+        "EIS 0.2% x 3000 = 6.00 each",
+        "HRD levy 1% x 3000 = 30.00",
+        "net = 3000 - 330 - 15 - 6 = 2649.00; employer cost = 3000 + 390 + 52.50 + 6 + 30 = 3478.50"
+      ],
+      "expected": {
+        "proratedBasic": 3000.0,
+        "unpaidLeave": 0,
+        "gross": 3000.0,
+        "net": 2649.0,
+        "employerCost": 3478.5,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 330,
+          "epf-employer": 390,
+          "socso-employee": 15.0,
+          "socso-employer": 52.5,
+          "eis-employee": 6.0,
+          "eis-employer": 6.0,
+          "hrd-levy": 30.0,
+          "pcb": 0
+        },
+        "warnings": ["no-pcb-entered"]
+      }
+    },
+    {
+      "name": "odd sen: RM2,345.67 exercises every rounding rule",
+      "input": { "year": 2026, "month": 6, "basic": 2345.67 },
+      "working": [
+        "EPF employee 11% x 2345.67 = 258.0237 -> up to 259; employer 13% = 304.9371 -> 305",
+        "SOCSO employee 0.5% = 11.72835 -> x20 = 234.567 -> 235 -> 11.75; employer 1.75% = 41.049225 -> x20 = 820.9845 -> 821 -> 41.05",
+        "EIS 0.2% = 4.69134 -> x20 = 93.8268 -> 94 -> 4.70 each",
+        "HRD 1% = 23.4567 -> 23.46",
+        "net = 2345.67 - 259 - 11.75 - 4.70 = 2070.22; employer cost = 2345.67 + 305 + 41.05 + 4.70 + 23.46 = 2719.88"
+      ],
+      "expected": {
+        "proratedBasic": 2345.67,
+        "unpaidLeave": 0,
+        "gross": 2345.67,
+        "net": 2070.22,
+        "employerCost": 2719.88,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 259,
+          "epf-employer": 305,
+          "socso-employee": 11.75,
+          "socso-employer": 41.05,
+          "eis-employee": 4.7,
+          "eis-employer": 4.7,
+          "hrd-levy": 23.46
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "EPF at exactly RM5,000.00: employer rate is 13%",
+      "input": { "year": 2026, "month": 6, "basic": 5000.0 },
+      "working": [
+        "EPF employee 11% x 5000 = 550.00 -> 550; employer: wage base 5000 is NOT above the 5000 threshold -> 13% x 5000 = 650.00 -> 650",
+        "SOCSO employee 25.00; employer 1.75% x 5000 = 87.50; EIS 10.00 each; HRD 50.00",
+        "net = 5000 - 550 - 25 - 10 = 4415.00; employer cost = 5000 + 650 + 87.50 + 10 + 50 = 5797.50"
+      ],
+      "expected": {
+        "proratedBasic": 5000.0,
+        "unpaidLeave": 0,
+        "gross": 5000.0,
+        "net": 4415.0,
+        "employerCost": 5797.5,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 550,
+          "epf-employer": 650,
+          "socso-employee": 25.0,
+          "socso-employer": 87.5,
+          "eis-employee": 10.0,
+          "eis-employer": 10.0,
+          "hrd-levy": 50.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "EPF at RM5,000.01: employer rate drops to 12% on the WHOLE wage",
+      "input": { "year": 2026, "month": 6, "basic": 5000.01 },
+      "working": [
+        "EPF employee 11% x 5000.01 = 550.0011 -> up to 551; employer: base is above 5000 -> 12% x 5000.01 = 600.0012 -> 601 (the whole base, not marginal)",
+        "SOCSO employee 0.5% = 25.00005 -> x20 = 500.001 -> 500 -> 25.00; employer 1.75% = 87.500175 -> x20 = 1750.0035 -> 1750 -> 87.50",
+        "EIS 0.2% = 10.00002 -> x20 = 200.0004 -> 200 -> 10.00 each; HRD 1% = 50.0001 -> 50.00",
+        "net = 5000.01 - 551 - 25.00 - 10.00 = 4414.01; employer cost = 5000.01 + 601 + 87.50 + 10.00 + 50.00 = 5748.51"
+      ],
+      "expected": {
+        "proratedBasic": 5000.01,
+        "unpaidLeave": 0,
+        "gross": 5000.01,
+        "net": 4414.01,
+        "employerCost": 5748.51,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 551,
+          "epf-employer": 601,
+          "socso-employee": 25.0,
+          "socso-employer": 87.5,
+          "eis-employee": 10.0,
+          "eis-employer": 10.0,
+          "hrd-levy": 50.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "above the RM6,000 ceiling: SOCSO and EIS stop at 6000, EPF does not",
+      "input": { "year": 2026, "month": 6, "basic": 8000 },
+      "working": [
+        "EPF employee 11% x 8000 = 880; employer 12% x 8000 = 960 (no ceiling)",
+        "SOCSO base capped at 6000: employee 0.5% = 30.00; employer 1.75% = 105.00; EIS 0.2% x 6000 = 12.00 each",
+        "HRD 1% x 8000 = 80.00",
+        "net = 8000 - 880 - 30 - 12 = 7078.00; employer cost = 8000 + 960 + 105 + 12 + 80 = 9157.00"
+      ],
+      "expected": {
+        "proratedBasic": 8000.0,
+        "unpaidLeave": 0,
+        "gross": 8000.0,
+        "net": 7078.0,
+        "employerCost": 9157.0,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 880,
+          "epf-employer": 960,
+          "socso-employee": 30.0,
+          "socso-employer": 105.0,
+          "eis-employee": 12.0,
+          "eis-employer": 12.0,
+          "hrd-levy": 80.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "joiner on 11 June: 20 of 30 days",
+      "input": { "year": 2026, "month": 6, "basic": 3000, "employmentStart": "2026-06-11" },
+      "working": [
+        "employed 11..30 June = 20 days; prorated basic = 3000 x 20 / 30 = 2000.00",
+        "EPF 11% x 2000 = 220; employer 13% = 260; SOCSO 10.00 / 35.00; EIS 4.00 each; HRD 20.00",
+        "net = 2000 - 220 - 10 - 4 = 1766.00; employer cost = 2000 + 260 + 35 + 4 + 20 = 2319.00"
+      ],
+      "expected": {
+        "proratedBasic": 2000.0,
+        "unpaidLeave": 0,
+        "gross": 2000.0,
+        "net": 1766.0,
+        "employerCost": 2319.0,
+        "unapplied": 0,
+        "employedDays": 20,
+        "lines": {
+          "epf-employee": 220,
+          "epf-employer": 260,
+          "socso-employee": 10.0,
+          "socso-employer": 35.0,
+          "eis-employee": 4.0,
+          "eis-employer": 4.0,
+          "hrd-levy": 20.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "leaver on 20 June: 20 of 30 days",
+      "input": { "year": 2026, "month": 6, "basic": 3000, "employmentEnd": "2026-06-20" },
+      "working": [
+        "employed 1..20 June = 20 days; prorated basic = 3000 x 20 / 30 = 2000.00; everything else as the 11 June joiner"
+      ],
+      "expected": {
+        "proratedBasic": 2000.0,
+        "unpaidLeave": 0,
+        "gross": 2000.0,
+        "net": 1766.0,
+        "employerCost": 2319.0,
+        "unapplied": 0,
+        "employedDays": 20,
+        "lines": {
+          "epf-employee": 220,
+          "epf-employer": 260,
+          "socso-employee": 10.0,
+          "socso-employer": 35.0,
+          "eis-employee": 4.0,
+          "eis-employer": 4.0,
+          "hrd-levy": 20.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "joined and left in the same month: 11 to 20 June, 10 days",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "basic": 3000,
+        "employmentStart": "2026-06-11",
+        "employmentEnd": "2026-06-20"
+      },
+      "working": [
+        "employed 11..20 June = 10 days; prorated basic = 3000 x 10 / 30 = 1000.00",
+        "EPF 11% x 1000 = 110; employer 13% = 130; SOCSO 5.00 / 17.50; EIS 2.00 each; HRD 10.00",
+        "net = 1000 - 110 - 5 - 2 = 883.00; employer cost = 1000 + 130 + 17.50 + 2 + 10 = 1159.50"
+      ],
+      "expected": {
+        "proratedBasic": 1000.0,
+        "unpaidLeave": 0,
+        "gross": 1000.0,
+        "net": 883.0,
+        "employerCost": 1159.5,
+        "unapplied": 0,
+        "employedDays": 10,
+        "lines": {
+          "epf-employee": 110,
+          "epf-employer": 130,
+          "socso-employee": 5.0,
+          "socso-employer": 17.5,
+          "eis-employee": 2.0,
+          "eis-employer": 2.0,
+          "hrd-levy": 10.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "mid-month raise: RM3,000 to 14 June, RM4,000 from 15 June",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "segments": [
+          { "from": "2026-06-01", "to": "2026-06-14", "basic": 3000 },
+          { "from": "2026-06-15", "to": "2026-06-30", "basic": 4000 }
+        ]
+      },
+      "working": [
+        "3000 x 14 / 30 = 1400.00; 4000 x 16 / 30 = 2133.3333...; sum 3533.3333... rounded once to the cent = 3533.33",
+        "EPF employee 11% x 3533.33 = 388.6663 -> 389; employer 13% = 459.3329 -> 460",
+        "SOCSO employee 0.5% = 17.66665 -> x20 = 353.333 -> 353 -> 17.65; employer 1.75% = 61.833275 -> x20 = 1236.6655 -> 1237 -> 61.85",
+        "EIS 0.2% = 7.06666 -> x20 = 141.3332 -> 141 -> 7.05 each; HRD 1% = 35.3333 -> 35.33",
+        "net = 3533.33 - 389 - 17.65 - 7.05 = 3119.63; employer cost = 3533.33 + 460 + 61.85 + 7.05 + 35.33 = 4097.56"
+      ],
+      "expected": {
+        "proratedBasic": 3533.33,
+        "unpaidLeave": 0,
+        "gross": 3533.33,
+        "net": 3119.63,
+        "employerCost": 4097.56,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 389,
+          "epf-employer": 460,
+          "socso-employee": 17.65,
+          "socso-employer": 61.85,
+          "eis-employee": 7.05,
+          "eis-employer": 7.05,
+          "hrd-levy": 35.33
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "two unpaid days: RM2,600 / 26 x 2 = RM200",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "basic": 2600,
+        "divisor": 26,
+        "unpaidLeave": [
+          { "date": "2026-06-10", "days": 1 },
+          { "date": "2026-06-11", "days": 1 }
+        ]
+      },
+      "working": [
+        "unpaid-leave deduction = 2600 / 26 x 2 = 200.00; gross = 2600 - 200 = 2400.00 (statutory is on 2400)",
+        "EPF 11% x 2400 = 264; employer 13% = 312; SOCSO 12.00 / 42.00; EIS 4.80 each; HRD 24.00",
+        "net = 2400 - 264 - 12 - 4.80 = 2119.20; employer cost = 2400 + 312 + 42 + 4.80 + 24 = 2782.80"
+      ],
+      "expected": {
+        "proratedBasic": 2600.0,
+        "unpaidLeave": 200.0,
+        "gross": 2400.0,
+        "net": 2119.2,
+        "employerCost": 2782.8,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "unpaid-leave": 200.0,
+          "epf-employee": 264,
+          "epf-employer": 312,
+          "socso-employee": 12.0,
+          "socso-employer": 42.0,
+          "eis-employee": 4.8,
+          "eis-employer": 4.8,
+          "hrd-levy": 24.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "half an unpaid day (4 hours of 8)",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "basic": 2600,
+        "divisor": 26,
+        "unpaidLeave": [{ "date": "2026-06-10", "days": 0.5 }]
+      },
+      "working": [
+        "unpaid-leave deduction = 2600 / 26 x 0.5 = 50.00; gross = 2550.00",
+        "EPF 11% x 2550 = 280.50 -> 281; employer 13% = 331.50 -> 332",
+        "SOCSO employee 0.5% = 12.75; employer 1.75% = 44.625 -> x20 = 892.5 -> 893 -> 44.65 (a half goes up)",
+        "EIS 0.2% = 5.10 each; HRD 1% = 25.50",
+        "net = 2550 - 281 - 12.75 - 5.10 = 2251.15; employer cost = 2550 + 332 + 44.65 + 5.10 + 25.50 = 2957.25"
+      ],
+      "expected": {
+        "proratedBasic": 2600.0,
+        "unpaidLeave": 50.0,
+        "gross": 2550.0,
+        "net": 2251.15,
+        "employerCost": 2957.25,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "unpaid-leave": 50.0,
+          "epf-employee": 281,
+          "epf-employer": 332,
+          "socso-employee": 12.75,
+          "socso-employer": 44.65,
+          "eis-employee": 5.1,
+          "eis-employer": 5.1,
+          "hrd-levy": 25.5
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "unpaid leave can never exceed the prorated basic",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "basic": 1000,
+        "divisor": 26,
+        "unpaidLeave": [{ "date": "2026-06-02", "days": 30 }]
+      },
+      "working": [
+        "1000 / 26 x 30 = 1153.846...; capped at the prorated basic 1000.00, so gross = 0 and every wage-based amount is 0",
+        "net = 0.00; employer cost = 0.00"
+      ],
+      "expected": {
+        "proratedBasic": 1000.0,
+        "unpaidLeave": 1000.0,
+        "gross": 0,
+        "net": 0,
+        "employerCost": 0,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "unpaid-leave": 1000.0,
+          "epf-employee": 0,
+          "epf-employer": 0,
+          "socso-employee": 0,
+          "socso-employer": 0,
+          "eis-employee": 0,
+          "eis-employer": 0,
+          "hrd-levy": 0
+        },
+        "warnings": ["unpaid-leave-capped"]
+      }
+    },
+    {
+      "name": "an unpaid day after the raise uses the basic of the segment it falls in",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "divisor": 26,
+        "segments": [
+          { "from": "2026-06-01", "to": "2026-06-14", "basic": 3000 },
+          { "from": "2026-06-15", "to": "2026-06-30", "basic": 4000 }
+        ],
+        "unpaidLeave": [{ "date": "2026-06-20", "days": 1 }]
+      },
+      "working": [
+        "prorated basic = 3533.33 (as the raise example); unpaid day 20 June is in the RM4,000 segment: 4000 / 26 = 153.846153... -> 153.85",
+        "gross = 3533.33 - 153.85 = 3379.48",
+        "EPF employee 11% = 371.7428 -> 372; employer 13% = 439.3324 -> 440",
+        "SOCSO employee 0.5% = 16.8974 -> x20 = 337.948 -> 338 -> 16.90; employer 1.75% = 59.1409 -> x20 = 1182.818 -> 1183 -> 59.15",
+        "EIS 0.2% = 6.75896 -> x20 = 135.1792 -> 135 -> 6.75 each; HRD 1% = 33.7948 -> 33.79",
+        "net = 3379.48 - 372 - 16.90 - 6.75 = 2983.83; employer cost = 3379.48 + 440 + 59.15 + 6.75 + 33.79 = 3919.17"
+      ],
+      "expected": {
+        "proratedBasic": 3533.33,
+        "unpaidLeave": 153.85,
+        "gross": 3379.48,
+        "net": 2983.83,
+        "employerCost": 3919.17,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "unpaid-leave": 153.85,
+          "epf-employee": 372,
+          "epf-employer": 440,
+          "socso-employee": 16.9,
+          "socso-employer": 59.15,
+          "eis-employee": 6.75,
+          "eis-employer": 6.75,
+          "hrd-levy": 33.79
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "wage base flags: overtime counts for SOCSO and EIS but not EPF",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "basic": 3000,
+        "earnings": [
+          {
+            "type": "overtime",
+            "reason": "June weekend work",
+            "amount": 500,
+            "countsForEpf": false,
+            "countsForSocsoEis": true
+          },
+          {
+            "type": "allowance",
+            "reason": "Transport",
+            "amount": 200,
+            "countsForEpf": true,
+            "countsForSocsoEis": true
+          }
+        ]
+      },
+      "working": [
+        "gross = 3000 + 500 + 200 = 3700.00; EPF base = 3000 + 200 = 3200 (overtime excluded); SOCSO and EIS base = 3700",
+        "EPF employee 11% x 3200 = 352; employer 13% = 416",
+        "SOCSO employee 0.5% x 3700 = 18.50; employer 1.75% x 3700 = 64.75; EIS 0.2% x 3700 = 7.40 each",
+        "HRD levy 1% on the EPF base 3200 = 32.00 (assumed same base as EPF)",
+        "net = 3700 - 352 - 18.50 - 7.40 = 3322.10; employer cost = 3700 + 416 + 64.75 + 7.40 + 32 = 4220.15"
+      ],
+      "expected": {
+        "proratedBasic": 3000.0,
+        "unpaidLeave": 0,
+        "gross": 3700.0,
+        "net": 3322.1,
+        "employerCost": 4220.15,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 352,
+          "epf-employer": 416,
+          "socso-employee": 18.5,
+          "socso-employer": 64.75,
+          "eis-employee": 7.4,
+          "eis-employer": 7.4,
+          "hrd-levy": 32.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "other deductions: priority order, 50% cap, the rest is unapplied",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "basic": 2000,
+        "deductionCapRate": 0.5,
+        "deductions": [
+          { "reason": "Cash advance repayment", "amount": 600, "priority": 1 },
+          { "reason": "Agreed loan repayment", "amount": 500, "priority": 2 }
+        ]
+      },
+      "working": [
+        "gross 2000.00; EPF 220; SOCSO 10.00; EIS 4.00; net before other deductions = 2000 - 220 - 10 - 4 = 1766.00",
+        "cap = 50% x gross 2000 = 1000.00; priority 1 takes 600 (400 of the cap left); priority 2 asks 500 but only 400 of the cap is left -> 400 applied, 100 unapplied",
+        "net = 1766.00 - 600 - 400 = 766.00; unapplied = 100.00; employer cost = 2000 + 260 + 35 + 4 + 20 = 2319.00"
+      ],
+      "expected": {
+        "proratedBasic": 2000.0,
+        "unpaidLeave": 0,
+        "gross": 2000.0,
+        "net": 766.0,
+        "employerCost": 2319.0,
+        "unapplied": 100.0,
+        "employedDays": 30,
+        "deductionsApplied": [600.0, 400.0],
+        "lines": {
+          "epf-employee": 220,
+          "epf-employer": 260,
+          "socso-employee": 10.0,
+          "socso-employer": 35.0,
+          "eis-employee": 4.0,
+          "eis-employer": 4.0,
+          "hrd-levy": 20.0
+        },
+        "warnings": ["deductions-unapplied"]
+      }
+    },
+    {
+      "name": "other deductions can never push net pay below zero",
+      "input": {
+        "year": 2026,
+        "month": 6,
+        "basic": 1000,
+        "deductionCapRate": 1.0,
+        "deductions": [{ "reason": "Large advance", "amount": 2000, "priority": 1 }]
+      },
+      "working": [
+        "gross 1000.00; EPF 110; SOCSO 5.00; EIS 2.00; net before other deductions = 1000 - 110 - 5 - 2 = 883.00",
+        "cap = 100% x 1000 = 1000, but only 883.00 of net pay exists -> 883.00 applied, 1117.00 unapplied; net = 0.00",
+        "employer cost = 1000 + 130 + 17.50 + 2 + 10 = 1159.50"
+      ],
+      "expected": {
+        "proratedBasic": 1000.0,
+        "unpaidLeave": 0,
+        "gross": 1000.0,
+        "net": 0,
+        "employerCost": 1159.5,
+        "unapplied": 1117.0,
+        "employedDays": 30,
+        "deductionsApplied": [883.0],
+        "lines": {
+          "epf-employee": 110,
+          "epf-employer": 130,
+          "socso-employee": 5.0,
+          "socso-employer": 17.5,
+          "eis-employee": 2.0,
+          "eis-employer": 2.0,
+          "hrd-levy": 10.0
+        },
+        "warnings": ["deductions-unapplied"]
+      }
+    },
+    {
+      "name": "PCB entered by hand is applied as given",
+      "input": { "year": 2026, "month": 6, "basic": 3000, "pcb": 50 },
+      "working": [
+        "as the RM3,000 full month, plus PCB 50.00 typed in by the preparer",
+        "net = 3000 - 330 - 15 - 6 - 50 = 2599.00; employer cost unchanged 3478.50"
+      ],
+      "expected": {
+        "proratedBasic": 3000.0,
+        "unpaidLeave": 0,
+        "gross": 3000.0,
+        "net": 2599.0,
+        "employerCost": 3478.5,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 330,
+          "epf-employer": 390,
+          "socso-employee": 15.0,
+          "socso-employer": 52.5,
+          "eis-employee": 6.0,
+          "eis-employer": 6.0,
+          "hrd-levy": 30.0,
+          "pcb": 50.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "HRD levy switched off adds no employer cost",
+      "input": { "year": 2026, "month": 6, "basic": 3000, "hrdActive": false },
+      "working": [
+        "as the RM3,000 full month without the 1% levy: employer cost = 3000 + 390 + 52.50 + 6 = 3448.50"
+      ],
+      "expected": {
+        "proratedBasic": 3000.0,
+        "unpaidLeave": 0,
+        "gross": 3000.0,
+        "net": 2649.0,
+        "employerCost": 3448.5,
+        "unapplied": 0,
+        "employedDays": 30,
+        "lines": {
+          "epf-employee": 330,
+          "epf-employer": 390,
+          "socso-employee": 15.0,
+          "socso-employer": 52.5,
+          "eis-employee": 6.0,
+          "eis-employer": 6.0,
+          "hrd-levy": 0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "leap-year February 2028 (29 days): joiner on the 15th, 15 days",
+      "input": { "year": 2028, "month": 2, "basic": 2900, "employmentStart": "2028-02-15" },
+      "working": [
+        "employed 15..29 February = 15 days; prorated basic = 2900 x 15 / 29 = 1500.00",
+        "EPF 11% x 1500 = 165; employer 13% = 195; SOCSO 7.50 / 26.25; EIS 3.00 each; HRD 15.00",
+        "net = 1500 - 165 - 7.50 - 3 = 1324.50; employer cost = 1500 + 195 + 26.25 + 3 + 15 = 1739.25"
+      ],
+      "expected": {
+        "proratedBasic": 1500.0,
+        "unpaidLeave": 0,
+        "gross": 1500.0,
+        "net": 1324.5,
+        "employerCost": 1739.25,
+        "unapplied": 0,
+        "employedDays": 15,
+        "lines": {
+          "epf-employee": 165,
+          "epf-employer": 195,
+          "socso-employee": 7.5,
+          "socso-employer": 26.25,
+          "eis-employee": 3.0,
+          "eis-employer": 3.0,
+          "hrd-levy": 15.0
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "31-day month: July 2026 joiner on the 16th, 16 days",
+      "input": { "year": 2026, "month": 7, "basic": 3100, "employmentStart": "2026-07-16" },
+      "working": [
+        "employed 16..31 July = 16 days; prorated basic = 3100 x 16 / 31 = 1600.00",
+        "EPF 11% x 1600 = 176; employer 13% = 208; SOCSO 8.00 / 28.00; EIS 3.20 each; HRD 16.00",
+        "net = 1600 - 176 - 8 - 3.20 = 1412.80; employer cost = 1600 + 208 + 28 + 3.20 + 16 = 1855.20"
+      ],
+      "expected": {
+        "proratedBasic": 1600.0,
+        "unpaidLeave": 0,
+        "gross": 1600.0,
+        "net": 1412.8,
+        "employerCost": 1855.2,
+        "unapplied": 0,
+        "employedDays": 16,
+        "lines": {
+          "epf-employee": 176,
+          "epf-employer": 208,
+          "socso-employee": 8.0,
+          "socso-employer": 28.0,
+          "eis-employee": 3.2,
+          "eis-employer": 3.2,
+          "hrd-levy": 16.0
+        },
+        "warnings": []
+      }
+    }
+  ]
+}

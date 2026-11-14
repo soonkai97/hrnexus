@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { PermissionAdminService, groupedPermissions } from './permission-admin.service';
+import { PermissionAdminService, groupedPermissions, permissionLabel } from './permission-admin.service';
 
 /**
  * PermissionAdminService — admin CRUD for the permission framework (catalog, role defaults,
@@ -88,5 +88,11 @@ describe('groupedPermissions', () => {
 
   it('returns an empty array when nothing is visible', () => {
     expect(groupedPermissions([])).toEqual([]);
+  });
+
+  it('lists payroll.rates.verify under Finance with a label, so admins can grant it on its own', () => {
+    const finance = groupedPermissions(['payroll.rates.verify']).find(g => g.label === 'Finance');
+    expect(finance?.keys).toEqual(['payroll.rates.verify']);
+    expect(permissionLabel('payroll.rates.verify')).toBe('Verify payroll rates');
   });
 });

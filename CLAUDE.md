@@ -684,6 +684,28 @@ or hourly pay without a new phase document.
 > The `StaffEntry`/`StaffExpense`/`StaffLoan`/`StaffWorkType`/`StaffSettlement`/… tables were dropped
 > (migration `DropStaffLedgerTables`). Don't reintroduce the `ledger.manage`/`config.manage` permissions.
 
+### Statutory rates and the payroll calculator (Phase 8b)
+
+Payroll maths is a **pure domain service**; the rates it uses are **data an accountant must verify**. Keep the two apart.
+
+- **Calculator:** `Domain/Payroll/PayrollCalculator.Calculate(PayrollInput)` applies the order of PRD 6.2 (prorated basic per salary segment,
+  unpaid-leave deduction capped at the prorated basic, gross, EPF/SOCSO/EIS each on its own wage base, hand-entered PCB, other
+  deductions capped and never below zero net, net, employer cost). No database, no clock, no floating point; same input, same output.
+  Rounding happens only where a rate row declares it (`MoneyRounding`). It returns lines, warnings (each `blocking` or not) and
+  everything needed to reproduce the figures (rate row ids, segments, divisor, calculator version).
+- **Rate rows:** `StatutoryRateTable` is an aggregate that is **immutable after creation** except `Verify` and the HRD `Active` switch;
+  a new rate is a **new row** with a later `EffectiveFrom` (the row in force is the latest on or before the first of the month; a newer
+  row starting inside the month raises `rate-change-in-month`). Seeded insert-if-missing from `StatutoryRateSeed`, all **unverified**; the
+  percentage rows are placeholders for the official band tables, and the rounding rules are assumptions.
+- **Verification:** `payroll.rates.verify` (separate from `payroll.manage`, so the preparer cannot verify the rates that gate their own
+  approval) via `POST /api/payroll/rates/{id}/verify`; `StatutoryRates.UnverifiedAsync` lists the rows a month would use that are not
+  verified, and 8c refuses to approve a run while it is non-empty. The audit row names the rate and carries no figures.
+- **Tests:** `tests/fixtures/payroll-calculator.json` holds **hand-worked** examples; never change an expected figure to make a test pass,
+  and never generate it by running the calculator. After editing the fixture run `node scripts/render-payroll-worked-examples.mjs`
+  (the accountant review pack in `docs/process/payroll-worked-examples.md`; `npm run guard:test` fails when it is stale). The
+  questions for the accountant are in `docs/process/payroll-accountant-questions.md`.
+- Money crosses the API as a JSON number with at most two decimals (rates four); the frontend only displays it.
+
 ---
 
 ## Company policy (Phase 7m)
@@ -1079,12 +1101,12 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 28 | 270 | ✅ |
-| web components | 14 | 488 | ✅ |
-| backend Application.Tests | — | 412 | ✅ |
-| backend Integration.Tests (Testcontainers) | — | 35 | ✅ |
+| shared-lib (services + stores + guards + auth) | 29 | 274 | ✅ |
+| web components | 15 | 517 | ✅ |
+| backend Application.Tests | — | 529 | ✅ |
+| backend Integration.Tests (Testcontainers) | — | 48 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
-| E2E (Playwright) | 14 | 65 | ✅ |
+| E2E (Playwright) | 15 | 67 | ✅ |
 
 **Mandate**: Before marking any feature "done", confirm the scan returns 0 gaps and all tests pass. Surface any skipped tests explicitly — do NOT mark complete with silent gaps.
 
@@ -1193,12 +1215,12 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 270 tests
-npx ng test web        --no-watch   # 488 tests
+npx ng test shared-lib --no-watch   # 274 tests
+npx ng test web        --no-watch   # 517 tests
 
 # Backend
 Set-Location backend
-dotnet test                          # 457 tests (412 Application + 35 Integration + 10 Infrastructure)
+dotnet test                          # 587 tests (529 Application + 48 Integration + 10 Infrastructure)
 dotnet test tests/Application.Tests/
 dotnet test tests/Infrastructure.Tests/
 ```

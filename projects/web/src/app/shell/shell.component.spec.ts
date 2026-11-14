@@ -109,15 +109,21 @@ describe('ShellComponent', () => {
     });
 
     it('shows every management page to a person holding every permission', () => {
-      held = ['reports.view', 'staff.view', 'leave.approve', 'cashadvance.manage', 'payroll.lock', 'roles.manage', 'policy.manage'];
+      held = ['reports.view', 'staff.view', 'leave.approve', 'cashadvance.manage', 'payroll.lock', 'payroll.view', 'roles.manage', 'policy.manage'];
       const c = createComponent();
-      expect(paths(c)).toEqual(expect.arrayContaining(['/dashboard', '/staff', '/leave', '/cash-advances', '/payroll-locks', '/roles', '/policy']));
+      expect(paths(c)).toEqual(expect.arrayContaining(['/dashboard', '/staff', '/leave', '/cash-advances', '/payroll-locks', '/payroll-rates', '/roles', '/policy']));
     });
 
     it('shows Company Policy only to a person holding policy.manage', () => {
       expect(paths(createComponent())).not.toContain('/policy');
       held = ['policy.manage'];
       expect(paths(createComponent())).toContain('/policy');
+    });
+
+    it('shows Payroll Rates only to a person holding payroll.view', () => {
+      expect(paths(createComponent())).not.toContain('/payroll-rates');
+      held = ['payroll.view'];
+      expect(paths(createComponent())).toContain('/payroll-rates');
     });
 
     it('puts "My work" first and drops groups the person cannot use', () => {

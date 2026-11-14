@@ -18,6 +18,7 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.Role>             Roles             => Set<E.Role>();
     public DbSet<E.SalaryProfile>    SalaryProfiles    => Set<E.SalaryProfile>();
     public DbSet<E.CompanyPolicy>    CompanyPolicies   => Set<E.CompanyPolicy>();
+    public DbSet<E.StatutoryRateTable> StatutoryRateTables => Set<E.StatutoryRateTable>();
     public DbSet<E.RolePermission>          RolePermissions          => Set<E.RolePermission>();
     public DbSet<E.StaffPermissionOverride> StaffPermissionOverrides => Set<E.StaffPermissionOverride>();
     public DbSet<E.LeaveRequest>     LeaveRequests     => Set<E.LeaveRequest>();
@@ -43,6 +44,13 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
+        // The rate table owns its bands through a backing field (no public setter), like production.
+        mb.Entity<E.StatutoryRateTable>(b =>
+        {
+            b.HasMany(t => t.Bands).WithOne().HasForeignKey(x => x.RateTableId);
+            b.Navigation(t => t.Bands).UsePropertyAccessMode(PropertyAccessMode.Field).AutoInclude();
+        });
+
         // Role: GUID PK on "Id" (Name is now a normal unique display column).
         mb.Entity<E.Role>()
             .HasKey(r => r.Id);

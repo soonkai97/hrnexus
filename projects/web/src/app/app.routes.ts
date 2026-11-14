@@ -76,6 +76,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'payroll-rates',
+        canActivate: [permissionGuard('payroll.view', '/home')],
+        loadComponent: () =>
+          import('./features/payroll-rates/payroll-rates.component').then(
+            (m) => m.PayrollRatesComponent,
+          ),
+      },
+      {
         path: 'cash-advances',
         canActivate: [permissionGuard('cashadvance.manage', '/home')],
         canDeactivate: [unsavedChangesGuard],

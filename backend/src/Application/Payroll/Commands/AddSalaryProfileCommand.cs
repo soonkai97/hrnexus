@@ -16,7 +16,7 @@ public record AddSalaryProfileCommand(
     string?  BankAccount,
     string?  BankHolder) : IRequest<Guid>;
 
-public class AddSalaryProfileCommandHandler(IAppDbContext db, IAuditService audit)
+public class AddSalaryProfileCommandHandler(IAppDbContext db, IAuditService audit, ICurrentUserService currentUser)
     : IRequestHandler<AddSalaryProfileCommand, Guid>
 {
     public async Task<Guid> Handle(AddSalaryProfileCommand req, CancellationToken ct)
@@ -39,7 +39,7 @@ public class AddSalaryProfileCommandHandler(IAppDbContext db, IAuditService audi
                 $"A salary effective {req.EffectiveFrom:yyyy-MM-dd} already exists. History is never rewritten: add a later effective date instead.");
 
         var profile = SalaryProfile.Create(req.EmployeeId, req.EffectiveFrom, req.BasicSalary,
-            AppConstants.Payroll.Monthly, bankName, bankAccount, bankHolder);
+            AppConstants.Payroll.Monthly, bankName, bankAccount, bankHolder, createdBy: currentUser.UserName);
         db.SalaryProfiles.Add(profile);
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException)

@@ -4,14 +4,14 @@ import { ensureRole } from './api';
 /**
  * Global setup — runs once before all Playwright tests.
  *
- * Creates the TESTSTAFF01 employee account that staff-app E2E tests need.
+ * Creates the TESTSTAFF01 employee account that the employee E2E scenarios need.
  * The staff specs assert a plain employee's view, so they need a dedicated
  * EMPLOYEE-role account rather than the HRADMIN superadmin.
  *
  * Safe to run repeatedly: a 409 Conflict response means the account already
  * exists and is silently skipped.
  */
-const ADMIN_BASE = process.env['BASE_URL_ADMIN'] ?? 'http://localhost:8080';
+const ADMIN_BASE = process.env['BASE_URL'] ?? 'http://localhost:8080';
 
 export const STAFF_CREDS = {
   staffId:  'TESTSTAFF01',

@@ -7,32 +7,39 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "staff-app": {
+    "web": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"
         }
       },
-      "root": "projects/staff-app",
-      "sourceRoot": "projects/staff-app/src",
+      "root": "projects/web",
+      "sourceRoot": "projects/web/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "browser": "projects/staff-app/src/main.ts",
-            "tsConfig": "projects/staff-app/tsconfig.app.json",
+            "browser": "projects/web/src/main.ts",
+            "tsConfig": "projects/web/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/staff-app/public"
+                "input": "projects/web/public"
               }
             ],
-            "styles": ["primeicons/primeicons.css", "node_modules/bootstrap/dist/css/bootstrap-grid.min.css", "node_modules/bootstrap/dist/css/bootstrap-utilities.min.css", "projects/staff-app/src/styles.scss"],
+            "styles": [
+              "primeicons/primeicons.css",
+              "node_modules/bootstrap/dist/css/bootstrap-grid.min.css",
+              "node_modules/bootstrap/dist/css/bootstrap-utilities.min.css",
+              "projects/web/src/styles.scss"
+            ],
             "stylePreprocessorOptions": {
-              "includePaths": ["projects/staff-app/src"]
+              "includePaths": [
+                "projects/web/src"
+              ]
             }
           },
           "configurations": {
@@ -50,91 +57,16 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "projects/staff-app/ngsw-config.json",
+              "serviceWorker": "projects/web/ngsw-config.json",
               "optimization": {
                 "scripts": true,
-                "styles": { "minify": true, "inlineCritical": false },
-                "fonts": { "inline": false }
-              }
-            },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "serve": {
-          "builder": "@angular/build:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "staff-app:build:production"
-            },
-            "development": {
-              "buildTarget": "staff-app:build:development",
-              "proxyConfig": "projects/staff-app/proxy.conf.json"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
-        "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "projects/staff-app/tsconfig.spec.json",
-            "include": ["projects/staff-app/src/**/*.spec.ts"]
-          }
-        }
-      }
-    },
-    "admin-app": {
-      "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "projects/admin-app",
-      "sourceRoot": "projects/admin-app/src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:application",
-          "options": {
-            "browser": "projects/admin-app/src/main.ts",
-            "tsConfig": "projects/admin-app/tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "projects/admin-app/public"
-              }
-            ],
-            "styles": ["primeicons/primeicons.css", "node_modules/bootstrap/dist/css/bootstrap-grid.min.css", "node_modules/bootstrap/dist/css/bootstrap-utilities.min.css", "projects/admin-app/src/styles.scss"],
-            "stylePreprocessorOptions": {
-              "includePaths": ["projects/admin-app/src"]
-            }
-          },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "1.5MB",
-                  "maximumError": "2MB"
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
                 },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "24kB",
-                  "maximumError": "32kB"
+                "fonts": {
+                  "inline": false
                 }
-              ],
-              "outputHashing": "all",
-              "serviceWorker": "projects/admin-app/ngsw-config.json",
-              "optimization": {
-                "scripts": true,
-                "styles": { "minify": true, "inlineCritical": false },
-                "fonts": { "inline": false }
               }
             },
             "development": {
@@ -149,11 +81,11 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "admin-app:build:production"
+              "buildTarget": "web:build:production"
             },
             "development": {
-              "buildTarget": "admin-app:build:development",
-              "proxyConfig": "projects/admin-app/proxy.conf.json"
+              "buildTarget": "web:build:development",
+              "proxyConfig": "projects/web/proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
@@ -161,8 +93,10 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "tsConfig": "projects/admin-app/tsconfig.spec.json",
-            "include": ["projects/admin-app/src/**/*.spec.ts"]
+            "tsConfig": "projects/web/tsconfig.spec.json",
+            "include": [
+              "projects/web/src/**/*.spec.ts"
+            ]
           }
         }
       }

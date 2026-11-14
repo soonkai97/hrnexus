@@ -5,13 +5,13 @@
     icon="pi pi-bell"
     [text]="true"
     severity="secondary"
-    [class.has-unread]="visibleUnread() > 0"
+    [class.has-unread]="svc.unreadCount() > 0"
     pTooltip="Notifications"
     tooltipPosition="bottom"
     aria-label="Notifications"
     (onClick)="toggle()" />
-  @if (visibleUnread() > 0) {
-    <span class="bell-badge">{{ visibleUnread() > 9 ? '9+' : visibleUnread() }}</span>
+  @if (svc.unreadCount() > 0) {
+    <span class="bell-badge">{{ svc.unreadCount() > 9 ? '9+' : svc.unreadCount() }}</span>
   }
 
   @if (panelOpen()) {
@@ -23,7 +23,7 @@
       <div class="panel-header">
         <span class="panel-title">Notifications</span>
         <div class="header-actions">
-          @if (visibleUnread() > 0) {
+          @if (svc.unreadCount() > 0) {
             <p-button label="Mark all read" [text]="true" size="small" severity="secondary" (onClick)="markAll()" />
           }
           <p-button icon="pi pi-times" [text]="true" severity="secondary" aria-label="Close" (onClick)="close()" />
@@ -31,13 +31,13 @@
       </div>
 
       <div class="panel-list">
-        @if (visible().length === 0) {
+        @if (svc.notifications().length === 0) {
           <div class="empty-notif">
             <span class="empty-icon">🔔</span>
             <span>No notifications yet.</span>
           </div>
         }
-        @for (n of visible(); track n.id) {
+        @for (n of svc.notifications(); track n.id) {
           <div class="notif-item"
                [class.unread]="!n.isRead"
                [class.clickable]="!!routeFor(n)"

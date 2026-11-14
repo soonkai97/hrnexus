@@ -1,6 +1,6 @@
 # Phase 7n: One web app, controlled by role and access right
 
-> **Status:** `Draft`
+> **Status:** `In progress` (7n-a merged in #108; 7n-b and the infrastructure part of 7n-c ship together; the cleanup list is still open)
 > **Created:** 2026-11-14 | **Updated:** 2026-11-14
 > **Depends on:** Phases 7l and 7m-a merged. **Comes before** 7m-b (policy page) and every Phase 8 screen: all new frontend work targets the single app.
 > **Why:** the HRM does not need two web apps (owner, 13 Nov 2026: "focus on one and control by role and access right"). Two apps duplicate the shell, login, PWA and tests, forced the two-hostname cookie workaround, and do not fit a product that serves companies with different roles. The permission system (roles, per-user overrides, guards) already decides what each person may do, so one app can show each person only what they are allowed to see.
@@ -119,6 +119,13 @@
 3. Should a role be able to hide self-service pages (for example no leave self-service for contractors)? (Assumed no; every account gets the self-service pages.)
 
 ---
+
+## Decisions made while building
+
+- The dashboard stays its own menu item and page, gated by `reports.view` (the server endpoint needs it), instead of cards on `/home`. Revisit if managers want one landing page.
+- The notification bell no longer filters by portal; it shows every notification the server sent to the person.
+- The Prettier ratchet judges a renamed file by the file it came from, so moving `admin-app` to `web` did not force reformatting about 100 files.
+- Playwright runs one `web` project on Desktop Chrome. A phone-width project can be added later if phone-only layout bugs appear.
 
 ## Review Notes
 

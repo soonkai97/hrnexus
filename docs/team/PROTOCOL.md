@@ -58,13 +58,13 @@ Append one entry per finished piece of work to `docs/team/HANDOFFS.md` (newest a
 
 ## Definition of done (any role)
 1. Output is in a file, not only in chat.
-2. Anything buildable was built (`dotnet build`, `npx ng build admin-app|staff-app`) and the tests for what changed were run; the result is stated plainly.
+2. Anything buildable was built (`dotnet build`, `npx ng build web`) and the tests for what changed were run; the result is stated plainly.
 3. A HANDOFFS.md entry exists naming the next role.
 4. CLAUDE.md Process rules were followed (surgical changes, TDD, feature branch + PR, no temp files on drive C:).
 
 ## Test runs
 Run only the tests for the code you changed, plus the build. Before a PR is opened, the author runs the full Rule 18 suite
-(`npx ng test shared-lib|admin-app|staff-app --no-watch`, `dotnet test`). `backend/tests/Integration.Tests` needs Docker
+(`npx ng test shared-lib|web --no-watch`, `dotnet test`). `backend/tests/Integration.Tests` needs Docker
 (Testcontainers). Never merge on a red check; a failure is fixed by the author and re-checked, not waved through.
 
 ## Orchestrator rules

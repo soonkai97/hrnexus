@@ -2,15 +2,15 @@
 import { loginAs, loginAdmin, ADMIN } from '../shared/helpers';
 
 /**
- * Admin auth flow E2E.
- * These tests guard the login → dashboard path and the authGuard redirect.
- * A regression here means no one can access the admin portal.
+ * Administrator auth flow E2E.
+ * These tests guard the login → home path and the authGuard redirect.
+ * A regression here means no one can sign in to the app.
  */
-test.describe('Admin — authentication', () => {
+test.describe('Administrator — authentication', () => {
 
-  test('successful login lands on /dashboard', async ({ page }) => {
+  test('successful login lands on /home', async ({ page }) => {
     await loginAs(page, ADMIN.staffId, ADMIN.password);
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10_000 });
+    await expect(page).toHaveURL(/\/home/, { timeout: 10_000 });
     await expect(page.locator('.sidebar')).toBeVisible();
   });
 
@@ -33,8 +33,8 @@ test.describe('Admin — authentication', () => {
 
   test('logout navigates back to login page', async ({ page }) => {
     await loginAdmin(page);
-    // Logout button lives on /account page
-    await page.goto('/account');
+    // The Sign out button lives on the profile page
+    await page.goto('/profile');
     await page.getByRole('button', { name: /sign out/i }).click();
     await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5_000 });
   });

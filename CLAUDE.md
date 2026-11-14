@@ -6,13 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Angular 21 + PrimeNG 21 monorepo. Two frontend apps share one backend and one library:
+Angular 21 + PrimeNG 21 monorepo. One frontend app shares one backend and one library:
 
 | Project | Path | Audience | Notes |
 |---|---|---|---|
-| `admin-app` | `projects/admin-app` | Venue managers | Desktop-first PWA (service worker) |
-| `staff-app` | `projects/staff-app` | Venue staff | Mobile-first PWA (service worker) |
-| `shared-lib` | `projects/shared-lib` | Both apps | Models, services, stores, guards, pipes, base components |
+| `web` | `projects/web` | Everyone (managers and staff) | Responsive PWA (service worker) |
+| `shared-lib` | `projects/shared-lib` | The web app | Models, services, stores, guards, pipes, base components |
 | `backend` | `backend/` | Backend | ASP.NET Core 10 API (Clean Architecture); `/api/` proxied by nginx |
 
 ---
@@ -30,33 +29,15 @@ docker compose build web && docker compose up -d web
 
 # ── Local dev (no Docker) ────────────────────────────────────────────────────
 # proxy.conf.json routes /api/ to localhost API
-npx ng serve admin-app    # → localhost:4200
-npx ng serve staff-app    # → localhost:4201
+npx ng serve web          # → localhost:4200
+
+# ── Build / test ─────────────────────────────────────────────────────────────
+npx ng build web --configuration production
+npx ng test shared-lib --no-watch
+npx ng test web --no-watch
 ```
 
 After every deploy, hard-refresh the browser (**Ctrl+Shift+R**) — nginx caches `index.html` without a content hash.
-
-### ⚠️ Access the two portals on DIFFERENT hostnames (auth-cookie isolation)
-
-Auth lives in a **host-only** cookie (`hrnexus_at`, `path=/`, **no `Domain`**). Cookies are
-**not** scoped by port — only by hostname. The admin and staff portals share a host (`localhost`
-locally, or one domain in prod), so logging into one portal **overwrites the other's auth
-cookie** (last login wins). The other portal then silently runs as the *wrong* user — e.g. the
-staff leave page loads the admin's data (or a 403) because the request is actually
-authenticated as the admin. The on-screen name still looks right because that comes from
-`localStorage` (which *is* per-port), but API calls use the shared cookie.
-
-**Local — use distinct sub-hostnames** (`*.localhost` auto-resolves to 127.0.0.1 in
-Chrome/Edge/Firefox; no hosts-file edit needed):
-- Admin → `http://admin.localhost:8080`
-- Staff → `http://staff.localhost:8081`
-
-These are different hosts → independent cookie jars → no collision. Bare `localhost:8080`/`:8081`
-still work for single-portal use and the E2E suite (each test uses one portal), but do **not**
-open both bare-`localhost` portals in one browser — they will collide.
-
-Any future deployment should serve each portal on its own hostname (for example `admin.<domain>` and
-`staff.<domain>`) for the same reason: host-only cookies are per exact host, so separate hosts never collide.
 
 **Deploying:** there is currently no production deployment. On a host that has the Docker stack, `./deploy.sh`
 rebuilds and restarts `web` and `./deploy.sh all` also restarts `api`; it enables maintenance mode first and
@@ -71,28 +52,22 @@ removes it after the containers are healthy (`--wait`).
 
 ```
 projects/
-├── admin-app/src/app/
+├── web/src/app/
 │   ├── app.ts                    # root component (<router-outlet />)
 │   ├── app.config.ts             # providers (HttpClient, PrimeNG, guards)
 │   ├── app.routes.ts             # all routes
-│   ├── shell/                    # layout shell (sidebar, topbar, nav)
+│   ├── shell/                    # layout shell (sidebar, topbar, nav filtered by permission)
 │   └── features/                 # one folder per route page
 │       ├── auth/                 # login, forgot-password
-│       ├── dashboard/
+│       ├── home/                 # self-service: any signed-in account
+│       ├── my-leave/
+│       ├── profile/
+│       ├── dashboard/            # management pages: permission-gated
 │       ├── staff/                # staff list + staff-detail
 │       ├── leave/
 │       ├── roles/
 │       ├── payroll-locks/
-│       ├── cash-advances/
-│       └── account/
-│
-├── staff-app/src/app/
-│   ├── (same shell + app structure)
-│   └── features/
-│       ├── auth/                 # login, forgot-password
-│       ├── home/
-│       ├── my-leave/
-│       └── profile/
+│       └── cash-advances/
 │
 └── shared-lib/src/lib/
     ├── models/                   # DTOs and interfaces
@@ -144,23 +119,23 @@ provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStra
 
 All routes in `app.routes.ts`. Pattern: lazy load + guards.
 
-**Admin routes** (everything below `/auth` sits in the shell behind `authGuard` + `permissionGuard('portal.admin')`):
+One app, one sign-in URL for everyone. Everything below `/auth` sits in the shell behind `authGuard`;
+management pages add a `permissionGuard`. The landing redirect is `/home` for everyone and the
+`permissionGuard` fallback is `/home`. The shell menu is filtered by permission, with a "My work" group
+(Home, My Leave, Profile) always shown.
 ```
-/dashboard             any admin-portal user
+/home, /my-leave, /profile   authGuard only (any signed-in active account)
+/dashboard             permissionGuard('reports.view')
 /staff, /staff/:id     permissionGuard('staff.view')
 /leave                 permissionGuard('leave.approve')
 /roles                 permissionGuard('roles.manage')
 /payroll-locks         permissionGuard('payroll.lock')
 /cash-advances         permissionGuard('cashadvance.manage')
-/account               own profile, push notifications
 /auth/**               login, forgot-password (public)
 ```
 
-**Staff routes:**
-```
-/home, /my-leave, /profile   authGuard (any signed-in active account)
-/auth/**                     login, forgot-password (public)
-```
+`/account` was removed; own profile and push notifications live on `/profile`. There is no `portal` login
+field and no `portal.admin` permission.
 
 **Guards:**
 - `authGuard` — passes when `auth.isAuthenticated()` (a user session is known locally). The access token is an httpOnly cookie JS cannot read, so the server is the real enforcer: an expired cookie 401s and `jwtInterceptor` refreshes or logs out.
@@ -210,7 +185,7 @@ hasRole(...roles: UserRole[]): boolean
 
 **Session storage:** tokens live in **httpOnly cookies** (`hrnexus_at`, `hrnexus_rt`) set by the server; JavaScript never sees them. Only the non-sensitive `AuthUser` JSON is kept in `localStorage['auth_user']`. Legacy `access_token` / `refresh_token` keys are purged on service init.
 
-**Interceptors** (registered in each `app.config.ts` as `[maintenanceInterceptor, errorInterceptor, jwtInterceptor]`):
+**Interceptors** (registered in `app.config.ts` as `[maintenanceInterceptor, errorInterceptor, jwtInterceptor]`):
 - `jwtInterceptor` — clones every request with `withCredentials: true` (no Bearer header). On a 401 from a non-`/api/auth/` URL it refreshes once (concurrent requests wait on the same refresh) and replays; on refresh failure `refreshToken()` has already logged out.
 - `errorInterceptor` — logs failures other than 401/503 and rethrows unchanged.
 - `maintenanceInterceptor` — redirects to `/maintenance.html` on HTTP 503.
@@ -244,13 +219,13 @@ hasRole(...roles: UserRole[]): boolean
 **Guards:** `authGuard`, `roleGuard`, `permissionGuard`, `unsavedChangesGuard`
 
 **Components:**
-- `ToastComponent` (`<nc-toast />`) — mount once in each app shell
-- `ConfirmDialogComponent` (`<nc-confirm-dialog />`) — mount once in each app shell
-- `NotificationBellComponent` — topbar bell with popover
+- `ToastComponent` (`<nc-toast />`) — mount once in the app shell
+- `ConfirmDialogComponent` (`<nc-confirm-dialog />`) — mount once in the app shell
+- `NotificationBellComponent` — topbar bell with popover; takes no `portal` input and shows every notification the server sent
 - `ThemeToggleComponent` — dark/light button
 
 **Base classes:**
-- `ForgotPasswordBase` — logic for forgot-password pages (both apps extend this)
+- `ForgotPasswordBase` — logic for forgot-password pages (the web app's forgot-password page extends this)
 
 **Pipes:** `HmPipe` (`| hm`) — 24-hour time display: `"8:30"` → `"08:30"`, `null` → `"—"` (was `AmPmPipe`; the app shows 24-hour time)
 **Directives:** `HasPermissionDirective` — hides an element without a permission; `PickerOnlyDirective` — disables keyboard on date inputs on mobile; `TrimInputDirective`
@@ -351,13 +326,13 @@ this.confirmSvc.confirm({
 });
 ```
 
-Both components (`<nc-toast />` and `<nc-confirm-dialog />`) must be in each app's shell template. They are already there — do not add them again.
+Both components (`<nc-toast />` and `<nc-confirm-dialog />`) must be in the app's shell template. They are already there — do not add them again.
 
 ---
 
 ## Form pattern
 
-**Template-driven (`ngModel`) is the default — most forms are a plain object + template bindings.** The exceptions are the auth forms: both apps' `LoginComponent` use **reactive forms** (`FormBuilder`/`FormGroup`/`Validators`) because they need synchronous, field-level validation state. New feature forms should follow the `ngModel` pattern below unless they have the same need.
+**Template-driven (`ngModel`) is the default — most forms are a plain object + template bindings.** The exceptions are the auth forms: the web app's `LoginComponent` uses **reactive forms** (`FormBuilder`/`FormGroup`/`Validators`) because they need synchronous, field-level validation state. New feature forms should follow the `ngModel` pattern below unless they have the same need.
 
 ```typescript
 // Form state as a plain object
@@ -550,8 +525,8 @@ Any `<p-menu>`, `<p-select>`, `<p-multiselect>`, or `<p-datepicker>` inside a ca
 **docker-compose.yml services:** `web` (nginx), `api` (.NET 10), `postgres` (PostgreSQL 17).
 
 **Build stages (Dockerfile for `web`):**
-1. Node 22 builder: `npm ci` → build `shared-lib` → build `admin-app` → build `staff-app`
-2. nginx alpine: copies both `dist/` outputs, serves the admin app on container port 80 (published as 8080) and the staff app on 8081
+1. Node 22 builder: `npm ci` → build `shared-lib` → build `web`
+2. nginx alpine: copies the single `web` dist to `/usr/share/nginx/web`, one server on container port 80 (compose publishes `8080:80` only)
 
 **nginx behaviour:**
 - `try_files $uri $uri/ /index.html` — SPA client-side routing
@@ -785,7 +760,7 @@ Current bulk commands:
 - **Staff** (`Application/Staff/Commands/BulkStaffCommands.cs`, `StaffController` `POST bulk/roles`,
   `bulk/deactivate`, gated `staff.manage`): `BulkAssignRolesCommand` is **additive** — it calls the
   **`Staff.AddRoles`** union helper (NOT `SetRoles`, which replaces). `BulkDeactivateStaffCommand` applies a
-  **whole-selection** last-admin guard (counts active admins, refuses if the batch is all of them) —
+  **whole-selection** last-administrator guard (`RolesManageInvariant` on `roles.manage`: refuses if the batch would leave no active holder) —
   the per-row `DeactivateStaffCommand` guard can't catch that because un-saved in-memory changes still
   read as committed-active. Roles are validated against the `Roles` table (the admin dropdown source).
 - **Leave** (`Application/Admin/Commands/BulkMarkLeaveNoShowCommand.cs`, `AdminController`
@@ -875,8 +850,7 @@ After any session that modifies source files, spec files, config, or migrations:
 ```powershell
 # Step 1 — verify tests
 npx ng test shared-lib --no-watch
-npx ng test admin-app  --no-watch
-npx ng test staff-app  --no-watch
+npx ng test web        --no-watch
 Set-Location backend; dotnet test; Set-Location ..
 
 # Step 2 — feature branch → commit → PR → squash-merge
@@ -1052,8 +1026,7 @@ $roots = @(
   "projects/shared-lib/src/lib/stores",
   "projects/shared-lib/src/lib/guards",
   "projects/shared-lib/src/lib/auth",
-  "projects/admin-app/src/app",
-  "projects/staff-app/src/app"
+  "projects/web/src/app"
 )
 $gaps = @()
 foreach ($root in $roots) {
@@ -1076,21 +1049,19 @@ else { $gaps | ForEach-Object { Write-Host $_ -ForegroundColor Red } }
 ```powershell
 # From repo root
 npx ng test shared-lib --no-watch
-npx ng test admin-app  --no-watch
-npx ng test staff-app  --no-watch
+npx ng test web        --no-watch
 
 # Backend
 Set-Location backend
 dotnet test
 ```
 
-### Baseline — as of 2026-11-13 (0 gaps, all green)
+### Baseline — as of 2026-11-14 (0 gaps, all green)
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 29 | 281 | ✅ |
-| admin-app components | 11 | 373 | ✅ |
-| staff-app components | 6 | 138 | ✅ |
+| shared-lib (services + stores + guards + auth) | 28 | 278 | ✅ |
+| web components | 13 | 458 | ✅ |
 | backend Application.Tests | — | 362 | ✅ |
 | backend Integration.Tests (Testcontainers) | — | 23 | ✅ |
 | backend Infrastructure.Tests | — | 10 | ✅ |
@@ -1144,7 +1115,6 @@ import { Component } from '@angular/core';
 
 // In providers:
 provideRouter([
-  { path: 'dashboard',        component: StubComponent },
   { path: 'auth/set-password', component: StubComponent },
   { path: 'home',              component: StubComponent },
 ])
@@ -1153,8 +1123,7 @@ provideRouter([
 Known components that navigate and require stub routes:
 | Component | Routes needed |
 |---|---|
-| admin-app `LoginComponent` | `dashboard` |
-| staff-app `LoginComponent` | `home` |
+| web `LoginComponent` | `home` |
 
 ---
 
@@ -1205,9 +1174,8 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 281 tests
-npx ng test admin-app  --no-watch   # 373 tests
-npx ng test staff-app  --no-watch   # 138 tests
+npx ng test shared-lib --no-watch   # 278 tests
+npx ng test web        --no-watch   # 458 tests
 
 # Backend
 Set-Location backend
@@ -1237,17 +1205,17 @@ The final phase of any project must include E2E validation that covers:
 - At least one edge case per major feature
 - Auth flow (login → guarded route) for any route changes
 
-E2E tests live in `tests/e2e/{admin,staff}/` and use Playwright.
-Run against the Docker deployment (`http://localhost:8080` for admin, `http://localhost:8081` for staff).
+E2E tests live in `tests/e2e/{admin,staff}/` and use Playwright. There is **one** Playwright project, `web`
+(Desktop Chrome); both folders run in it. The folders only group scenarios by the account that runs them:
+`admin/` signs in as the administrator, `staff/` as a plain employee.
+Run against the Docker deployment (`BASE_URL`, default `http://localhost:8080`).
 
-**Seeded test credentials (admin):** staffId=`HRADMIN`, password=`Admin@1234`  
-**E2E staff account (created by global-setup):** staffId=`TESTSTAFF01`, password=`Test@1234` (EMPLOYEE role — HRADMIN is blocked from the staff portal)
+**Seeded test credentials (administrator):** staffId=`HRADMIN`, password=`Admin@1234`  
+**E2E employee account (created by global-setup):** staffId=`TESTSTAFF01`, password=`Test@1234` (EMPLOYEE role, no management permissions)
 
 **Run commands:**
 ```bash
-npm run test:e2e          # all tests (admin + staff)
-npm run test:e2e:admin    # admin project only
-npm run test:e2e:staff    # staff project only
+npm run test:e2e          # all tests (both folders, one `web` project)
 npm run test:e2e:ui       # interactive Playwright UI
 PW_CHANNEL=msedge npm run test:e2e   # use the installed Edge/Chrome when Playwright's bundled Chromium cannot start (PowerShell: $env:PW_CHANNEL='msedge')
 ```
@@ -1260,7 +1228,7 @@ PW_CHANNEL=msedge npm run test:e2e   # use the installed Edge/Chrome when Playwr
 | `tests/e2e/admin/staff.spec.ts` | Staff list renders, search, detail navigation, bulk mode |
 | `tests/e2e/admin/roles.spec.ts` | Roles page renders, role table, Add role dialog |
 | `tests/e2e/admin/leave.spec.ts` | Leave page, filters, Record Leave dialog, summary pills |
-| `tests/e2e/admin/permissions.spec.ts` | Portal gate, per-user grant/revoke override, 403 vs 200 on a protected endpoint |
+| `tests/e2e/admin/permissions.spec.ts` | Permission-gated pages, per-user grant/revoke override, 403 vs 200 on a protected endpoint |
 | `tests/e2e/admin/negative.spec.ts` | API guards reject cleanly: overlap, bad dates, hours cap, blocked deletes, duplicate Staff ID, 401s |
 | `tests/e2e/admin/workflow.spec.ts` | Hire staff, staff applies for leave, admin approves, read models reflect it |
 | `tests/e2e/staff/auth.spec.ts` | Login → /home, wrong password, authGuard, logout |

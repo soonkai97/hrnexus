@@ -1,7 +1,8 @@
 // Prettier ratchet for pull requests: checks only the files a PR changes, so the repo is never mass-reformatted.
 //   - a NEW file must be formatted;
 //   - a MODIFIED file that was already formatted at the base must stay formatted;
-//   - a MODIFIED file that was not formatted at the base is legacy and is skipped (reported, not enforced).
+//   - a MODIFIED or RENAMED file that was not formatted at the base is legacy and is skipped (reported, not enforced);
+//     a rename is judged by the file it came from, so moving a folder does not force reformatting it.
 // Usage: BASE_SHA=<base commit or ref> node scripts/format-check.mjs   (HEAD is the working tree)
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -12,7 +13,7 @@ const SKIPPED = /(^|\/)(package-lock\.json|dist|node_modules|coverage)(\/|$)|\/M
 
 export function decide(status, baseFormatted, headFormatted) {
   if (headFormatted) return 'ok';
-  if (status === 'A' || status === 'R' || status === 'C') return 'fail';
+  if (status === 'A' || status === 'C') return 'fail';
   return baseFormatted ? 'fail' : 'legacy';
 }
 
@@ -39,18 +40,18 @@ async function main() {
     .filter(Boolean)
     .map((line) => {
       const parts = line.split('\t');
-      return { status: parts[0][0], file: parts[parts.length - 1] };
+      return { status: parts[0][0], file: parts[parts.length - 1], from: parts[1] };
     })
     .filter(({ file }) => CHECKED.test(file) && !SKIPPED.test(file) && fs.existsSync(file));
 
   const failures = [];
   const legacy = [];
-  for (const { status, file } of changed) {
+  for (const { status, file, from } of changed) {
     const headOk = await isFormatted(fs.readFileSync(file, 'utf8'), file);
     let baseOk = false;
-    if (!headOk && status === 'M') {
+    if (!headOk && (status === 'M' || status === 'R')) {
       try {
-        baseOk = await isFormatted(git('show', `${base}:${file}`), file);
+        baseOk = await isFormatted(git('show', `${base}:${from}`), file);
       } catch {
         baseOk = false;
       }

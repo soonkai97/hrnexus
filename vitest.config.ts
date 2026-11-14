@@ -10,11 +10,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
       reportsDirectory: './coverage',
-      include: [
-        'projects/shared-lib/src/**/*.ts',
-        'projects/admin-app/src/**/*.ts',
-        'projects/staff-app/src/**/*.ts',
-      ],
+      include: ['projects/shared-lib/src/**/*.ts', 'projects/web/src/**/*.ts'],
       exclude: [
         '**/*.spec.ts',
         '**/main.ts',

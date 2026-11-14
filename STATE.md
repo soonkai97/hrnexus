@@ -37,14 +37,14 @@ learned → Last session (resume pointer).
   window. Reserve maintenance-window treatment for destructive/type-changing migrations (e.g. the
   earlier DOB `timestamptz → text` PII migration).
 - After any shared-lib model/service edit, run `npx ng build shared-lib` **before** testing or
-  building the consuming apps (admin-app/staff-app) — otherwise they compile against a stale
+  building the consuming app (web) — otherwise it compiles against a stale
   `dist/shared-lib` and produce misleading type errors.
 - For an ambiguous or potentially sensitive term (slang, unclear customer request), ask what it
   actually refers to in real-world terms before implementing/translating it — don't assume the
   worst case, but don't build it on a literal translation either. (Case: "1炮1小时" turned out to
   be a fake-gun shooting-game attraction, not what the characters could otherwise imply.)
 - Roles/Jobs are runtime **data**, not schema — adding one doesn't need a migration, PR, or
-  deploy. It's a POST from the Admin Portal's Jobs page (or `CreateRoleCommand` directly).
+  deploy. It's a POST from the web app's roles page (or `CreateRoleCommand` directly).
 
 ## Open failures
 

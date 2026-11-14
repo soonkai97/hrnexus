@@ -2,7 +2,7 @@ name: E2E (Playwright)
 
 # Browser end-to-end tests are slow and touch every layer, so they never run on pull requests: start them by hand
 # (Actions tab -> E2E (Playwright) -> Run workflow) or wait for the weekly run. They run against the real docker compose
-# stack (docker-compose.yml only, no UAT overlay): admin portal :8080, staff portal :8081.
+# stack (docker-compose.yml only, no UAT overlay): web app :8080.
 # The stack uses the compose file's throw-away development defaults (database password, JWT secret) and the seeded
 # HRADMIN account; the runner and everything on it are gone when the job ends. Nothing here is a real secret.
 
@@ -42,11 +42,8 @@ jobs:
         run: docker compose up -d --build --wait
         timeout-minutes: 20
 
-      - name: Run the admin scenarios
-        run: npm run test:e2e:admin
-
-      - name: Run the staff scenarios
-        run: npm run test:e2e:staff
+      - name: Run the E2E scenarios
+        run: npm run test:e2e
 
       - name: Docker logs
         if: failure()

@@ -78,7 +78,7 @@ Then append one entry to `docs/team/HANDOFFS.md` (see `PROTOCOL.md`).
 
 **integration-test-engineer** - New endpoints have status-code, permission and validation tests on real PostgreSQL (Testcontainers); concurrency-sensitive paths have a parallel test.
 
-**behavior-test-engineer** - Phase validation criteria are covered by named scenarios; the golden path plus one edge case per feature and the auth flow are covered (Rule 16); the two portals use different hostnames.
+**behavior-test-engineer** - Phase validation criteria are covered by named scenarios; the golden path plus one edge case per feature and the auth flow are covered (Rule 16); permission-gated pages are tested with and without the permission.
 
 **data-flow-analyst** - Trace each new or changed field UI to API to entity to report/export; flag places where values can diverge, double count, or expose PII in logs, audit or exports.
 
@@ -88,7 +88,7 @@ Then append one entry to `docs/team/HANDOFFS.md` (see `PROTOCOL.md`).
 
 **project-manager** - PR links a phase step, description says what/why/how tested, STATE.md and the phase doc status are updated, size is reviewable (split if large), risks and follow-ups recorded.
 
-**ui-ux-designer** - Flow is phone-first for staff-app and desktop-first for admin-app; empty, loading (skeleton) and error states; English copy; confirmation only where it protects data.
+**ui-ux-designer** - Flow works at phone width (self-service pages) and at desktop width (management pages) in the one web app; empty, loading (skeleton) and error states; English copy; confirmation only where it protects data.
 
 **fe-designer** - Uses design tokens (`$neon-*`, `$bg-*`, CSS custom properties), no hard-coded colours or spacing, contrast AA, 44px targets, dark and light mode, responsive table stack pattern where tables exist.
 

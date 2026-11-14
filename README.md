@@ -1,7 +1,8 @@
 # HRNexus: HR Management System
 
 Internal HR management for venue staff and managers: staff records, roles and permissions, leave, and
-notifications. Two Angular PWAs (a desktop-first admin app and a mobile-first staff app) on one ASP.NET Core API.
+notifications. One responsive Angular PWA for managers and staff, on one ASP.NET Core API. What a person sees and
+can do depends on their permissions.
 
 **Stack:** Angular 21 (standalone components, signals) · PrimeNG 21 · ASP.NET Core 10 · Entity Framework Core · SignalR · PostgreSQL 17 · Docker + nginx
 
@@ -18,9 +19,8 @@ Direction: clock-in/out was removed (Phase 7); the product is being built out in
 | `backend/src/Infrastructure` | EF Core + migrations, SignalR hub, background jobs, auth, services |
 | `backend/src/Api` | REST controllers, middleware, composition root |
 | `backend/tests` | Application (EF InMemory), Infrastructure and Integration (Testcontainers) tests |
-| `projects/admin-app` | Manager and admin PWA (desktop-first) |
-| `projects/staff-app` | Staff PWA (mobile-first) |
-| `projects/shared-lib` | Angular library shared by both apps: models, services, stores, guards, components |
+| `projects/web` | The web app (PWA) for managers and staff; access is controlled by role and permission |
+| `projects/shared-lib` | Angular library used by the web app: models, services, stores, guards, components |
 | `tests/e2e` | Playwright end-to-end tests |
 | `nginx/` | Reverse proxy configuration (Docker) |
 | `docs/` | Process phases, team protocol, deployment guide |
@@ -29,19 +29,20 @@ Development patterns and conventions: [CLAUDE.md](CLAUDE.md). Current state and 
 
 ## Features
 
-### Admin app
+Everyone signs in at the same URL and lands on `/home`. Pages are shown by permission.
+
+### Management pages
 
 | Route | Feature | Gate |
 |---|---|---|
-| `/dashboard` | Total-staff KPI with live SignalR connection status | `portal.admin` |
+| `/dashboard` | Total-staff KPI with live SignalR connection status | `reports.view` |
 | `/staff`, `/staff/:id` | Staff list, register, edit, deactivate, reset password, roles, per-user permission overrides, bulk actions | `staff.view` |
 | `/leave` | Leave requests: approve, reject, create, edit, balances, bulk actions | `leave.approve` |
 | `/roles` | Role management and per-role default permissions | `roles.manage` |
 | `/payroll-locks` | Payroll month locks (no enforcement yet; redefined in the payroll rebuild) | `payroll.lock` |
 | `/cash-advances` | Salary advance records | `cashadvance.manage` |
-| `/account` | Own profile, change password, push notifications | none |
 
-### Staff app
+### Self-service pages (every signed-in account)
 
 | Route | Feature |
 |---|---|
@@ -65,18 +66,14 @@ docker compose build --no-cache && docker compose up -d
 
 | App | URL |
 |---|---|
-| Admin app | http://localhost:8080 |
-| Staff app | http://localhost:8081 |
+| Web app | http://localhost:8080 |
 
-Use different hostnames for the two apps in one browser (`admin.localhost:8080`, `staff.localhost:8081`),
-because the auth cookie is host-only and a login on one app would replace the other's. After any deploy,
-hard-refresh the browser (**Ctrl+Shift+R**).
+After any deploy, hard-refresh the browser (**Ctrl+Shift+R**).
 
 ```bash
 # Without Docker (API running separately; proxy.conf.json routes /api to it)
 npx ng build shared-lib           # build the shared library first
-npx ng serve admin-app            # http://localhost:4200
-npx ng serve staff-app            # http://localhost:4201
+npx ng serve web                  # http://localhost:4200
 ```
 
 Seeded development accounts are created by `SeedData` on first start. They exist for local databases only:
@@ -86,8 +83,7 @@ change or remove them before exposing any instance.
 
 ```bash
 npx ng test shared-lib --no-watch
-npx ng test admin-app  --no-watch
-npx ng test staff-app  --no-watch
+npx ng test web        --no-watch
 
 cd backend
 dotnet test tests/Application.Tests/         # fast, EF InMemory
@@ -115,15 +111,16 @@ deploy are in [docs/process/git-workflow.md](docs/process/git-workflow.md).
 
 ## Auth and permissions
 
-| Role | Portals | Notes |
+| Role | Sees | Notes |
 |---|---|---|
-| `admin` (SuperAdmin) | Both | Full permissions by default |
-| `manager` | Both | Full permissions by default |
-| `employee` | Staff only | Own data only |
+| `admin` (SuperAdmin) | Self-service and management pages | Full permissions by default |
+| `manager` | Self-service and management pages | Full permissions by default |
+| `employee` | Self-service pages only | Own data only |
 
-Access is controlled by a permission framework, not by roles directly. Each role carries default permissions and
-each user can have per-user overrides (grant or revoke). Admin-portal access requires `portal.admin`. Permissions
-are resolved server-side per request (cached, invalidated on change), so a revocation takes effect immediately.
+Access is controlled by a permission framework, not by roles directly. Any active account can sign in at the same
+URL; each role carries default permissions and each user can have per-user overrides (grant or revoke), and those
+decide which management pages and actions a person gets. Permissions are resolved server-side per request
+(cached, invalidated on change), so a revocation takes effect immediately.
 
 - **Sessions:** httpOnly cookies (`SameSite=Strict`, `Secure` over HTTPS). Tokens are never exposed to JavaScript.
 - **Login hardening:** an account locks for 15 minutes after 5 consecutive failed logins, plus a per-client-IP rate limiter on `/api/auth/*`.

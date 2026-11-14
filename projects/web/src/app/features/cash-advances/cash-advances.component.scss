@@ -1,5 +1,9 @@
 @use 'styles/theme' as *;
 
+// Card view: the name column takes what the avatar leaves; the actions stay on one line.
+.ca-card-id { min-width: 0; display: flex; flex-direction: column; }
+.ca-card-actions { display: inline-flex; align-items: center; }
+
 .page-hint {
   color: $text-muted;
   font-size: 0.85rem;

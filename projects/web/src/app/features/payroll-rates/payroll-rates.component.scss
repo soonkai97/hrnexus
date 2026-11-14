@@ -1,5 +1,16 @@
 @use 'styles/theme' as *;
 
+// Card view: the scheme name and its status tags share the head; the bands button stays left.
+.rate-head {
+  justify-content: space-between;
+  .tags {
+    flex-shrink: 0;
+  }
+}
+.rate-bands-btn {
+  align-self: flex-start;
+}
+
 .page {
   padding: 1rem;
 }

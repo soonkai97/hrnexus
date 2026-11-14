@@ -83,4 +83,11 @@ describe('PayrollLocksComponent', () => {
   it('formats the period as YYYY-MM', () => {
     expect(component.period(fakeLocks[0])).toBe('2026-05');
   });
+
+  // ── Phase 7r: card view ─────────────────────────────────────────────────────
+
+  it('starts on cards, and the table is one click away', () => {
+    expect(component.viewMode()).toBe('cards');
+  });
+
 });

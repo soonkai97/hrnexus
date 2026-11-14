@@ -130,4 +130,35 @@ describe('CashAdvancesComponent', () => {
     c.load();
     expect(mockToast.error).toHaveBeenCalled();
   });
+
+  // ── Phase 7r: card view ─────────────────────────────────────────────────────
+
+  describe('card view', () => {
+    const advance = (n: number) => ({
+      id: 'a' + n, employeeId: 'e' + n, staffId: 'S' + n, staffName: 'Person ' + n,
+      amount: 100, advanceDate: '2026-07-' + String(n).padStart(2, '0'), reason: null, status: 'outstanding',
+    }) as never;
+
+    it('starts on cards', () => {
+      expect(make().viewMode()).toBe('cards');
+    });
+
+    it('shows the same advances as the table, newest first, a page at a time', () => {
+      const c = make();
+      c.advances.set(Array.from({ length: 15 }, (_, i) => advance(i + 1)));
+
+      expect(c.pagedAdvances().map(a => a.id)).toEqual(
+        Array.from({ length: 12 }, (_, i) => 'a' + (15 - i)));
+      c.cardFirst.set(12);
+      expect(c.pagedAdvances().map(a => a.id)).toEqual(['a3', 'a2', 'a1']);
+    });
+
+    it('goes back to the first page when the list shrinks below the current page', () => {
+      const c = make();
+      c.advances.set([advance(1), advance(2)]);
+      c.cardFirst.set(24);
+      expect(c.pagedAdvances().length).toBe(2);
+    });
+  });
+
 });

@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CashAdvanceService, CashAdvanceDto, StaffStore, ToastService, ConfirmService,
-         CanComponentDeactivate, apiErrorMessage } from 'shared-lib';
+         CanComponentDeactivate, apiErrorMessage, ViewModeService, ViewToggleComponent, initials } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
@@ -15,6 +15,7 @@ import { Dialog } from 'primeng/dialog';
 import { SelectButton } from 'primeng/selectbutton';
 import { TooltipModule } from 'primeng/tooltip';
 import { PrimeTemplate } from 'primeng/api';
+import { Paginator } from 'primeng/paginator';
 
 type Filter = 'all' | 'outstanding' | 'settled';
 
@@ -22,7 +23,7 @@ type Filter = 'all' | 'outstanding' | 'settled';
   selector: 'app-cash-advances',
   standalone: true,
   imports: [DecimalPipe, FormsModule, Button, InputNumber, InputText, Select,
-    DatePicker, TableModule, Tag, Card, Dialog, SelectButton, TooltipModule, PrimeTemplate],
+    DatePicker, TableModule, Tag, Card, Dialog, SelectButton, TooltipModule, PrimeTemplate, Paginator, ViewToggleComponent],
   templateUrl: './cash-advances.component.html',
   styleUrl: './cash-advances.component.scss',
 })
@@ -32,7 +33,21 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
   private readonly toast      = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
 
+  private readonly views = inject(ViewModeService);
+  /** Cards (default) or Table, remembered on this device. */
+  readonly viewMode = this.views.mode('cash-advances');
+  readonly initials = initials;
+
   advances = signal<CashAdvanceDto[]>([]);
+
+  // Card view paging: the same advances as the table, newest first, a page at a time.
+  readonly cardRows = 12;
+  readonly cardFirst = signal(0);
+  readonly pagedAdvances = computed(() => {
+    const sorted = [...this.advances()].sort((a, b) => b.advanceDate.localeCompare(a.advanceDate));
+    const first = this.cardFirst() >= sorted.length ? 0 : this.cardFirst();
+    return sorted.slice(first, first + this.cardRows);
+  });
   loading  = signal(false);
   filter   = signal<Filter>('all');
   busyId   = signal<string | null>(null);

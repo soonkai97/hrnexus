@@ -329,4 +329,10 @@ describe('PayrollRatesComponent', () => {
       expect(toast.error).toHaveBeenCalledWith('Another HRD Corp row is already on.');
     });
   });
+
+  // ── Phase 7r: card view ─────────────────────────────────────────────────────
+
+  it('starts on cards, and the table is one click away', () => {
+    expect(component.viewMode()).toBe('cards');
+  });
 });

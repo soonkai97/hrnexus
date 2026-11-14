@@ -179,9 +179,28 @@
 
         <!-- Salary history -->
         <p-card styleClass="nc-card table-card" class="mb-4">
-          <h3 class="m-0 mb-3">Salary history</h3>
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+            <h3 class="m-0">Salary history</h3>
+            @if (p.history.length > 0) { <nc-view-toggle viewKey="salary-history" /> }
+          </div>
           @if (p.history.length === 0) {
             <p class="pay-empty">No salary history.</p>
+          } @else if (salaryView() === 'cards') {
+            <ul class="nc-card-grid">
+              @for (h of p.history; track h.effectiveFrom) {
+                <li class="nc-card">
+                  <div class="nc-card-head">
+                    <span class="nc-card-title">From {{ h.effectiveFrom }}</span>
+                    @if (isScheduled(h.effectiveFrom)) { <p-tag value="Scheduled" severity="info" /> }
+                  </div>
+                  <dl class="nc-card-meta">
+                    <div><dt>Basic salary</dt><dd><strong>RM {{ h.basicSalary | number:'1.2-2' }}</strong> monthly</dd></div>
+                    <div><dt>Bank</dt><dd>{{ h.bankName ?? '—' }}</dd></div>
+                  </dl>
+                  <div class="nc-card-sub mono">{{ maskAccount(h.bankAccount) }}</div>
+                </li>
+              }
+            </ul>
           } @else {
             <p-table [value]="p.history" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px">
               <ng-template pTemplate="header">

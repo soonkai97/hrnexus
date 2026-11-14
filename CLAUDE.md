@@ -1079,7 +1079,7 @@ dotnet test
 
 | Layer | Test files | Tests | Status |
 |---|---|---|---|
-| shared-lib (services + stores + guards + auth) | 29 | 279 | ✅ |
+| shared-lib (services + stores + guards + auth) | 28 | 270 | ✅ |
 | web components | 14 | 488 | ✅ |
 | backend Application.Tests | — | 412 | ✅ |
 | backend Integration.Tests (Testcontainers) | — | 35 | ✅ |
@@ -1193,7 +1193,7 @@ The check must return 0 gaps and all test counts must be ≥ baseline.
 **Test commands:**
 ```powershell
 # Frontend (from repo root)
-npx ng test shared-lib --no-watch   # 279 tests
+npx ng test shared-lib --no-watch   # 270 tests
 npx ng test web        --no-watch   # 488 tests
 
 # Backend

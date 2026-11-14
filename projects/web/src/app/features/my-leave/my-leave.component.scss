@@ -1,37 +1,84 @@
 @use 'styles/theme' as *;
 
-
 .balance-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  // As many cards per row as fit, stretched to fill it: the company's own-allowance types add cards.
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 0.75rem;
   margin-bottom: 1.25rem;
 }
 .bal-card {
   background: $bg-raised;
   border: 1px solid $border-subtle;
-  border-radius: $radius-md; padding: 1rem;
-  &.annual { border-top: 3px solid $neon-green; }
-  &.sick   { border-top: 3px solid $danger; }
-  &.unpaid { border-top: 3px solid $neon-purple; }
+  border-radius: $radius-md;
+  padding: 1rem;
+  &.annual {
+    border-top: 3px solid $neon-green;
+  }
+  &.sick {
+    border-top: 3px solid $danger;
+  }
+  &.unpaid {
+    border-top: 3px solid $neon-purple;
+  }
   // Types added by the company: the colour comes from the catalogue.
-  &.bal-info      { border-top: 3px solid $neon-blue; }
-  &.bal-success   { border-top: 3px solid $neon-green; }
-  &.bal-warn      { border-top: 3px solid $neon-amber; }
-  &.bal-danger    { border-top: 3px solid $danger; }
-  &.bal-secondary { border-top: 3px solid $neon-purple; }
-  &.bal-contrast  { border-top: 3px solid $text-primary; }
+  &.bal-info {
+    border-top: 3px solid $neon-blue;
+  }
+  &.bal-success {
+    border-top: 3px solid $neon-green;
+  }
+  &.bal-warn {
+    border-top: 3px solid $neon-amber;
+  }
+  &.bal-danger {
+    border-top: 3px solid $danger;
+  }
+  &.bal-secondary {
+    border-top: 3px solid $neon-purple;
+  }
+  &.bal-contrast {
+    border-top: 3px solid $text-primary;
+  }
 }
-.bal-label     { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: $text-muted; margin-bottom: 0.4rem; }
-.bal-nums      { display: flex; align-items: baseline; gap: 0.2rem; margin-bottom: 0.5rem; }
-.bal-remaining { font-size: 1.75rem; font-weight: 800; color: $text-primary; line-height: 1; }
-.bal-sep       { color: $text-muted; font-size: 1rem; }
-.bal-total     { color: $text-muted; font-size: 0.85rem; }
-.bal-used      { font-size: 0.72rem; color: $text-muted; }
-.bal-emergency { font-size: 0.65rem; color: #d97706; }
+.bal-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-muted;
+  margin-bottom: 0.4rem;
+}
+.bal-nums {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  margin-bottom: 0.5rem;
+}
+.bal-remaining {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: $text-primary;
+  line-height: 1;
+}
+.bal-sep {
+  color: $text-muted;
+  font-size: 1rem;
+}
+.bal-total {
+  color: $text-muted;
+  font-size: 0.85rem;
+}
+.bal-used {
+  font-size: 0.72rem;
+  color: $text-muted;
+}
+.bal-emergency {
+  font-size: 0.65rem;
+  color: #d97706;
+}
 
 .tab-count {
-  background: rgba(37, 99, 235,0.25);
+  background: rgba(37, 99, 235, 0.25);
   color: $neon-purple;
   font-size: 0.7rem;
   font-weight: 700;
@@ -41,211 +88,485 @@
   text-align: center;
 }
 
-.form-card { padding: 1.5rem; margin-bottom: 1.25rem; }
-.form-title { font-size: 0.95rem; font-weight: 700; color: $text-primary; margin-bottom: 1rem; }
-.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 1rem; }
-.full-span  { grid-column: 1 / -1; }
-.opt        { font-size: 0.72rem; color: $text-muted; font-weight: 400; }
+.form-card {
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.form-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin-bottom: 1rem;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 1rem;
+}
+.full-span {
+  grid-column: 1 / -1;
+}
+.opt {
+  font-size: 0.72rem;
+  color: $text-muted;
+  font-weight: 400;
+}
 
 .hours-preview {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  font-size: 0.85rem; font-weight: 600; color: $neon-purple;
-  background: rgba(37, 99, 235,0.1); border: 1px solid rgba(37, 99, 235,0.25);
-  border-radius: $radius-pill; padding: 0.3rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $neon-purple;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: $radius-pill;
+  padding: 0.3rem 0.8rem;
   margin-top: 0.25rem;
 }
 
 .period-btns {
-  display: flex; gap: 0.4rem;
+  display: flex;
+  gap: 0.4rem;
   .period-btn {
-    flex: 1; padding: 0.4rem 0.6rem; font-size: 0.8rem; font-weight: 600;
-    background: rgba(37, 99, 235,0.07); border: 1px solid rgba(37, 99, 235,0.18);
-    border-radius: $radius-pill; color: $text-secondary; cursor: pointer;
-    transition: background $transition-fast, color $transition-fast, border-color $transition-fast;
-    &.active { background: rgba(37, 99, 235,0.25); border-color: rgba(37, 99, 235,0.5); color: $neon-purple; }
-    &:hover:not(.active) { background: rgba(37, 99, 235,0.12); color: $text-primary; }
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(37, 99, 235, 0.07);
+    border: 1px solid rgba(37, 99, 235, 0.18);
+    border-radius: $radius-pill;
+    color: $text-secondary;
+    cursor: pointer;
+    transition:
+      background $transition-fast,
+      color $transition-fast,
+      border-color $transition-fast;
+    &.active {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: rgba(37, 99, 235, 0.5);
+      color: $neon-purple;
+    }
+    &:hover:not(.active) {
+      background: rgba(37, 99, 235, 0.12);
+      color: $text-primary;
+    }
   }
 }
 
 .sick-note {
-  background: rgba(37, 99, 235,0.07); border: 1px solid rgba(37, 99, 235,0.2);
-  border-radius: $radius-sm; padding: 0.6rem 0.9rem; margin: 0.75rem 0;
-  font-size: 0.82rem; color: $neon-purple; display: flex; gap: 0.5rem; align-items: center;
+  background: rgba(37, 99, 235, 0.07);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: $radius-sm;
+  padding: 0.6rem 0.9rem;
+  margin: 0.75rem 0;
+  font-size: 0.82rem;
+  color: $neon-purple;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .err-box {
-  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
-  border-radius: $radius-sm; padding: 0.6rem 0.9rem;
-  color: $danger; font-size: 0.82rem; display: flex; align-items: center; gap: 0.5rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: $radius-sm;
+  padding: 0.6rem 0.9rem;
+  color: $danger;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .success-box {
-  background: rgba(22, 163, 74,0.08); border: 1px solid rgba(22, 163, 74,0.25);
-  border-radius: $radius-sm; padding: 0.6rem 0.9rem;
-  color: $neon-green; font-size: 0.82rem;
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  border-radius: $radius-sm;
+  padding: 0.6rem 0.9rem;
+  color: $neon-green;
+  font-size: 0.82rem;
 }
 
-.cert-card   { padding: 1.25rem; margin-bottom: 1.25rem; }
-.cert-header { display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 0.75rem; }
-.cert-icon   { font-size: 1.5rem; }
-.cert-title  { font-weight: 600; color: $text-primary; font-size: 0.9rem; }
-.cert-sub    { font-size: 0.78rem; color: $text-muted; margin-top: 0.2rem; }
-.cert-row    { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-.file-input  { font-size: 0.82rem; color: $text-secondary; }
-.cert-filename { font-size: 0.82rem; color: $neon-purple; font-weight: 500; }
+.cert-card {
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.cert-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+.cert-icon {
+  font-size: 1.5rem;
+}
+.cert-title {
+  font-weight: 600;
+  color: $text-primary;
+  font-size: 0.9rem;
+}
+.cert-sub {
+  font-size: 0.78rem;
+  color: $text-muted;
+  margin-top: 0.2rem;
+}
+.cert-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.file-input {
+  font-size: 0.82rem;
+  color: $text-secondary;
+}
+.cert-filename {
+  font-size: 0.82rem;
+  color: $neon-purple;
+  font-weight: 500;
+}
 
-.center-spinner { text-align: center; padding: 3rem; }
-.empty-state { padding: 3rem; text-align: center; color: $text-muted; }
+.center-spinner {
+  text-align: center;
+  padding: 3rem;
+}
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: $text-muted;
+}
 .empty-inner {
-  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-  span { font-size: 2.5rem; }
-  p { font-size: 0.9rem; }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  span {
+    font-size: 2.5rem;
+  }
+  p {
+    font-size: 0.9rem;
+  }
 }
 
-.leave-list { display: flex; flex-direction: column; gap: 0.75rem; }
-.leave-card { padding: 1rem 1.25rem; }
-.leave-top  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.leave-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.leave-card {
+  padding: 1rem 1.25rem;
+}
+.leave-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
 
-.leave-dates { font-size: 0.85rem; color: $text-secondary; display: flex; align-items: center; gap: 0.5rem; }
-.leave-days  {
-  font-weight: 600; color: $text-muted; font-size: 0.82rem;
+.leave-dates {
+  font-size: 0.85rem;
+  color: $text-secondary;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.leave-days {
+  font-weight: 600;
+  color: $text-muted;
+  font-size: 0.82rem;
 }
 .period-tag {
-  font-size: 0.72rem; font-weight: 700; color: #d97706;
-  background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25);
-  border-radius: $radius-pill; padding: 0.1rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #d97706;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: $radius-pill;
+  padding: 0.1rem 0.45rem;
 }
-.leave-notes { font-size: 0.8rem; color: $text-muted; margin-top: 0.3rem; }
-.leave-meta  { font-size: 0.72rem; color: $text-muted; margin-top: 0.5rem; }
+.leave-notes {
+  font-size: 0.8rem;
+  color: $text-muted;
+  margin-top: 0.3rem;
+}
+.leave-meta {
+  font-size: 0.72rem;
+  color: $text-muted;
+  margin-top: 0.5rem;
+}
 
-.cert-row-display { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; flex-wrap: wrap; }
-.cert-link    { font-size: 0.8rem; color: $neon-purple; text-decoration: none; &:hover { text-decoration: underline; } }
-.cert-missing { font-size: 0.78rem; color: #d97706; }
+.cert-row-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  flex-wrap: wrap;
+}
+.cert-link {
+  font-size: 0.8rem;
+  color: $neon-purple;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+.cert-missing {
+  font-size: 0.78rem;
+  color: #d97706;
+}
 
 .btn-xs {
-  font-size: 0.75rem; padding: 0.2rem 0.6rem;
-  background: rgba(37, 99, 235,0.1); border: 1px solid rgba(37, 99, 235,0.25);
-  border-radius: $radius-sm; color: $neon-purple; cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: $radius-sm;
+  color: $neon-purple;
+  cursor: pointer;
   transition: background $transition-fast;
-  &:hover { background: rgba(37, 99, 235,0.25); }
+  &:hover {
+    background: rgba(37, 99, 235, 0.25);
+  }
 }
 
 .btn-danger-xs {
-  margin-top: 0.75rem; font-size: 0.78rem; padding: 0.3rem 0.75rem;
-  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25);
-  border-radius: $radius-sm; color: $danger; cursor: pointer;
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.75rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: $radius-sm;
+  color: $danger;
+  cursor: pointer;
   transition: background $transition-fast;
-  &:hover { background: rgba(239,68,68,0.2); }
+  &:hover {
+    background: rgba(239, 68, 68, 0.2);
+  }
 }
 
 // ── Item 9: Carry-over note ────────────────────────────────────────────────
 .bal-carryover {
-  font-size: 0.65rem; color: $neon-purple;
+  font-size: 0.65rem;
+  color: $neon-purple;
 }
 
 // ── Item 1: Rejection reason in leave card ─────────────────────────────────
 .leave-rejection-reason {
-  font-size: 0.78rem; color: $danger;
-  background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.18);
-  border-radius: $radius-sm; padding: 0.3rem 0.6rem; margin-top: 0.35rem;
-  display: flex; align-items: center; gap: 0.35rem;
-  i { font-size: 0.72rem; flex-shrink: 0; }
+  font-size: 0.78rem;
+  color: $danger;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  border-radius: $radius-sm;
+  padding: 0.3rem 0.6rem;
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  i {
+    font-size: 0.72rem;
+    flex-shrink: 0;
+  }
 }
 
 // ── Item 8: History toolbar ─────────────────────────────────────────────────
-.history-toolbar { flex-wrap: wrap; }
+.history-toolbar {
+  flex-wrap: wrap;
+}
 
 // ── Item 8: Staff calendar ─────────────────────────────────────────────────
 .staff-cal-nav {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 0.75rem;
 }
 .staff-cal-month {
-  font-size: 0.95rem; font-weight: 700; color: $text-primary;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $text-primary;
 }
 
-.staff-cal-skeleton, .staff-cal-grid {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+.staff-cal-skeleton,
+.staff-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
 }
-.staff-cal-skeleton { gap: 0.2rem; }
+.staff-cal-skeleton {
+  gap: 0.2rem;
+}
 
 .staff-cal-dow {
-  text-align: center; font-size: 0.6rem; text-transform: uppercase;
-  letter-spacing: 0.07em; color: $text-muted; padding: 0.25rem 0; font-weight: 700;
+  text-align: center;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: $text-muted;
+  padding: 0.25rem 0;
+  font-weight: 700;
 }
 
 .staff-cal-cell {
-  min-height: 52px; padding: 0.25rem;
-  border: 1px solid $border-subtle; border-radius: 5px;
-  cursor: pointer; transition: background $transition-fast;
-  display: flex; flex-direction: column; align-items: flex-start;
-  &:hover         { background: rgba(37, 99, 235,0.06); }
-  &.staff-cal-blank   { border-color: transparent; cursor: default; &:hover { background: transparent; } }
-  &.staff-cal-nonworking { background: rgba(37, 99, 235,0.02); }
-  &.staff-cal-today   { border-color: $neon-purple !important; box-shadow: inset 0 0 0 1px $neon-purple; }
-  &.staff-cal-selected { background: rgba(37, 99, 235,0.12) !important; border-color: rgba(37, 99, 235,0.4) !important; }
-  &.staff-cal-has-leave { background: rgba(22, 163, 74,0.04); }
+  min-height: 52px;
+  padding: 0.25rem;
+  border: 1px solid $border-subtle;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background $transition-fast;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  &:hover {
+    background: rgba(37, 99, 235, 0.06);
+  }
+  &.staff-cal-blank {
+    border-color: transparent;
+    cursor: default;
+    &:hover {
+      background: transparent;
+    }
+  }
+  &.staff-cal-nonworking {
+    background: rgba(37, 99, 235, 0.02);
+  }
+  &.staff-cal-today {
+    border-color: $neon-purple !important;
+    box-shadow: inset 0 0 0 1px $neon-purple;
+  }
+  &.staff-cal-selected {
+    background: rgba(37, 99, 235, 0.12) !important;
+    border-color: rgba(37, 99, 235, 0.4) !important;
+  }
+  &.staff-cal-has-leave {
+    background: rgba(22, 163, 74, 0.04);
+  }
 }
 
 .staff-cal-day-num {
-  font-size: 0.7rem; font-weight: 700; color: $text-secondary;
-  .staff-cal-today & { color: $neon-purple; }
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: $text-secondary;
+  .staff-cal-today & {
+    color: $neon-purple;
+  }
 }
 
 .staff-cal-dots {
-  display: flex; gap: 2px; flex-wrap: wrap; margin-top: 2px;
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  margin-top: 2px;
 }
 .staff-cal-dot {
-  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
   // The dot colour is the leave type's catalogue colour.
-  &.staff-cal-dot-info      { background: $neon-blue; }
-  &.staff-cal-dot-success   { background: $neon-green; }
-  &.staff-cal-dot-warn      { background: $neon-amber; }
-  &.staff-cal-dot-danger    { background: $danger; }
-  &.staff-cal-dot-secondary { background: $neon-purple; }
-  &.staff-cal-dot-contrast  { background: $text-primary; }
+  &.staff-cal-dot-info {
+    background: $neon-blue;
+  }
+  &.staff-cal-dot-success {
+    background: $neon-green;
+  }
+  &.staff-cal-dot-warn {
+    background: $neon-amber;
+  }
+  &.staff-cal-dot-danger {
+    background: $danger;
+  }
+  &.staff-cal-dot-secondary {
+    background: $neon-purple;
+  }
+  &.staff-cal-dot-contrast {
+    background: $text-primary;
+  }
 }
 
 .staff-cal-legend {
-  display: flex; gap: 0.75rem; flex-wrap: wrap;
-  margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px solid $border-subtle;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid $border-subtle;
 }
 .staff-cal-legend-item {
-  display: inline-flex; align-items: center; gap: 0.35rem;
-  font-size: 0.72rem; color: $text-secondary;
-  .staff-cal-dot { width: 8px; height: 8px; }
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: $text-secondary;
+  .staff-cal-dot {
+    width: 8px;
+    height: 8px;
+  }
 }
 
 .staff-cal-detail {
-  margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid $border-subtle;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid $border-subtle;
   animation: slideDown 0.15s ease;
 }
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .staff-cal-detail-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 0.5rem;
-  span { font-size: 0.85rem; font-weight: 600; color: $text-primary; }
+  span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
 }
 .staff-cal-empty {
-  font-size: 0.82rem; color: $text-muted; text-align: center; padding: 0.5rem 0;
+  font-size: 0.82rem;
+  color: $text-muted;
+  text-align: center;
+  padding: 0.5rem 0;
 }
-.staff-cal-day-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.staff-cal-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 .staff-cal-day-row {
-  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
   padding: 0.45rem 0.65rem;
-  background: $bg-raised; border: 1px solid $border-subtle;
+  background: $bg-raised;
+  border: 1px solid $border-subtle;
   border-radius: $radius-sm;
 }
 .staff-cal-day-hours {
-  font-size: 0.78rem; font-weight: 700; color: $neon-purple;
-  background: rgba(37, 99, 235,0.1); border-radius: $radius-pill;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: $neon-purple;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: $radius-pill;
   padding: 0.1rem 0.45rem;
 }
 .staff-cal-rejection {
-  font-size: 0.72rem; color: $danger; font-style: italic;
-  display: block; width: 100%; margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: $danger;
+  font-style: italic;
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
 }
 
 @media (max-width: 600px) {
@@ -253,14 +574,29 @@
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  .bal-card   { padding: 0.75rem; }
-  .bal-remaining { font-size: 1.4rem; }
+  .bal-card {
+    padding: 0.75rem;
+  }
+  .bal-remaining {
+    font-size: 1.4rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .form-grid  { grid-template-columns: 1fr; }
-  .form-card  { padding: 1rem; }
-  .leave-dates { flex-wrap: wrap; }
-  .cert-row  { flex-direction: column; align-items: flex-start; }
-  .staff-cal-cell { min-height: 40px; }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-card {
+    padding: 1rem;
+  }
+  .leave-dates {
+    flex-wrap: wrap;
+  }
+  .cert-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .staff-cal-cell {
+    min-height: 40px;
+  }
 }

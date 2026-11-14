@@ -35,7 +35,7 @@ public static class LeaveTypeDefaults
         Make(HospitalisationKey, "Hospitalisation", "danger", 40, LeavePools.Own, allowanceDays: 60m, sensitive: true),
         Make(MaternityKey, "Maternity", "info", 50, LeavePools.None, maxDays: 98m, calendarDays: true, sensitive: true),
         Make(PaternityKey, "Paternity", "info", 60, LeavePools.None, maxDays: 7m, calendarDays: true, sensitive: true),
-        Make(CompassionateKey, "Compassionate", "contrast", 70, LeavePools.None, maxDays: 3m, sensitive: true),
+        Make(CompassionateKey, "Compassionate", "secondary", 70, LeavePools.None, maxDays: 3m, sensitive: true),
         Make(UnpaidKey, "Unpaid", "secondary", 80, LeavePools.None, deductsPay: true),
         Make(NoShowKey, "No-show", "warn", 90, LeavePools.None, deductsPay: true, adminOnly: true, isSystem: true),
     ];

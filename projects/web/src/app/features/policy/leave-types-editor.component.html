@@ -24,26 +24,32 @@
       </div>
     }
   } @else {
-    <ul class="type-list">
+    <ul class="type-grid">
       @for (t of rows(); track t.key) {
         <li class="type-row" [class.inactive]="!t.active">
-          <div class="type-main">
+          <div class="type-head">
             <p-tag [value]="t.label" [severity]="t.colour" />
-            <span class="type-key">{{ t.key }}</span>
             @if (!t.active) {
-              <span class="type-off">Off</span>
+              <span class="type-badge off">Off</span>
             }
             @if (t.isSystem) {
-              <span
-                class="type-system"
-                title="Fixed behaviour: it can be renamed but not turned off"
+              <span class="type-badge" title="Fixed behaviour: it can be renamed but not turned off"
                 >System</span
               >
             }
           </div>
-          <div class="type-facts">
-            <span>{{ balanceText(t) }}</span>
-            <span>{{ limitText(t) }}</span>
+          <span class="type-key">{{ t.key }}</span>
+          <dl class="type-facts">
+            <div>
+              <dt>Balance</dt>
+              <dd>{{ balanceText(t) }}</dd>
+            </div>
+            <div>
+              <dt>Longest request</dt>
+              <dd>{{ limitText(t) }}</dd>
+            </div>
+          </dl>
+          <div class="type-flags">
             @for (f of flags(t); track f) {
               <span class="type-flag">{{ f }}</span>
             }
@@ -57,24 +63,26 @@
               [disabled]="!canToggle(t)"
               (onClick)="toggleActive(t)"
             />
-            <p-button
-              icon="pi pi-pencil"
-              [text]="true"
-              severity="secondary"
-              size="small"
-              [attr.aria-label]="'Edit ' + t.label"
-              (onClick)="startEdit(t)"
-            />
-            @if (canRemove(t)) {
+            <span class="type-icons">
               <p-button
-                icon="pi pi-trash"
+                icon="pi pi-pencil"
                 [text]="true"
-                severity="danger"
+                severity="secondary"
                 size="small"
-                [attr.aria-label]="'Remove ' + t.label"
-                (onClick)="remove(t)"
+                [ariaLabel]="'Edit ' + t.label"
+                (onClick)="startEdit(t)"
               />
-            }
+              @if (canRemove(t)) {
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  severity="danger"
+                  size="small"
+                  [ariaLabel]="'Remove ' + t.label"
+                  (onClick)="remove(t)"
+                />
+              }
+            </span>
           </div>
         </li>
       }
@@ -189,7 +197,7 @@
       </div>
     }
     <div class="field">
-      <label for="lt-max">Longest single request (calendar days)</label>
+      <label for="lt-max">Longest request (days)</label>
       <input
         id="lt-max"
         type="number"
@@ -199,7 +207,7 @@
         pInputText
         [(ngModel)]="draft.maxDaysPerRequest"
       />
-      <span class="hint">Leave empty to use the company limit.</span>
+      <span class="hint">Calendar days. Leave empty to use the company limit.</span>
     </div>
     <div class="field">
       <label for="lt-notice">Advance notice</label>

@@ -137,10 +137,17 @@
                 size="small" severity="danger" [outlined]="true"
                 [disabled]="selectedCount() === 0 || bulkSaving()" (onClick)="bulkDeactivateSelected()" />
     }
+    @if (viewMode() === 'cards') {
+      <p-select [options]="cardSortOptions" optionLabel="label" optionValue="value"
+                [ngModel]="cardSort()" (ngModelChange)="cardSort.set($event)"
+                size="small" appendTo="body" ariaLabel="Sort by" class="ms-md-auto" />
+    }
     <p-button [label]="(showHidden() ? 'Hide hidden' : 'Show hidden')"
               [icon]="showHidden() ? 'pi pi-eye-slash' : 'pi pi-eye'"
-              [text]="true" severity="secondary" size="small" class="ms-md-auto"
+              [text]="true" severity="secondary" size="small"
+              [class.ms-md-auto]="viewMode() === 'table'"
               (onClick)="toggleShowHidden()" />
+    <nc-view-toggle viewKey="staff" />
   </div>
 
   <!-- Table -->
@@ -167,6 +174,40 @@
         <p>No staff found.</p>
       </div>
     </p-card>
+  } @else if (viewMode() === 'cards') {
+  <ul class="nc-card-grid">
+    @for (s of cardStaff(); track s.id) {
+      <li class="nc-card" [class.is-muted]="!s.isActive" [class.is-selected]="bulkSelecting() && selectedIds().has(s.id)">
+        <div class="nc-card-head">
+          @if (bulkSelecting()) {
+            <p-checkbox [binary]="true" [ngModel]="selectedIds().has(s.id)" (onChange)="toggleSelect(s.id)"
+                        [attr.aria-label]="'Select ' + s.fullName" />
+          }
+          <span class="nc-avatar" aria-hidden="true">{{ initials(s.fullName) }}</span>
+          <div class="staff-card-id">
+            <a [routerLink]="['/staff', s.id]" class="nc-card-title">{{ s.fullName }}</a>
+            <div class="nc-card-sub mono">{{ s.staffId }}</div>
+          </div>
+        </div>
+        <div class="nc-card-chips">
+          @for (r of s.roles; track r) {
+            <span class="nc-chip">{{ r }}</span>
+          }
+        </div>
+        <div class="nc-card-foot">
+          <span class="staff-card-status">
+            <p-tag [value]="s.isActive ? 'Active' : 'Inactive'" [severity]="s.isActive ? 'success' : 'secondary'" />
+            @if (s.isHidden) {
+              <p-tag value="Hidden" severity="warn" />
+            }
+          </span>
+          <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small" rounded
+                    [attr.aria-label]="('Actions for ' + (s.fullName))"
+                    (click)="openStaffMenu(s, $event)" />
+        </div>
+      </li>
+    }
+  </ul>
   } @else {
   <p-card styleClass="table-card p-0">
     <p-table [value]="staff()" [tableStyle]="{'min-width':'100%'}" responsiveLayout="stack" breakpoint="640px"

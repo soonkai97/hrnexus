@@ -1,7 +1,8 @@
 ﻿<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <h1 class="page-title">Roles</h1>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 align-items-center">
+      <nc-view-toggle viewKey="roles" />
       <p-button icon="pi pi-plus" label="Add New Role" severity="primary" (click)="openAdd()" />
     </div>
   </div>
@@ -49,6 +50,31 @@
         <p>No roles found.</p>
       </div>
     </p-card>
+  } @else if (viewMode() === 'cards') {
+  <ul class="nc-card-grid">
+    @for (role of pagedRoles(); track role.id) {
+      <li class="nc-card">
+        <div class="nc-card-head">
+          <span class="nc-avatar" aria-hidden="true"><i class="pi pi-id-card"></i></span>
+          <span class="nc-card-title" [title]="role.name">{{ role.name }}</span>
+        </div>
+        <div class="nc-card-foot">
+          @if (role.isSystem) {
+            <p-tag value="System" severity="success" />
+          } @else {
+            <p-tag value="Custom" severity="info" />
+          }
+          <p-button icon="pi pi-ellipsis-v" [text]="true" severity="secondary" size="small" rounded
+                    [attr.aria-label]="'Actions' + ' — ' + role.name"
+                    (click)="openRoleMenu(role, $event)" />
+        </div>
+      </li>
+    }
+  </ul>
+  @if (roles().length > cardRows) {
+    <p-paginator [first]="cardFirst()" [rows]="cardRows" [totalRecords]="roles().length"
+                 (onPageChange)="cardFirst.set($event.first ?? 0)" />
+  }
   } @else {
   <p-card styleClass="table-card p-0">
     <p-table [value]="roles()" [tableStyle]="{'min-width':'100%'}"

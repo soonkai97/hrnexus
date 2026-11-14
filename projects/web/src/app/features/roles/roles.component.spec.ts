@@ -356,4 +356,34 @@ describe('RolesComponent', () => {
       expect(mockPermSvc.setRolePermissions).not.toHaveBeenCalled();
     });
   });
+
+  // ── Phase 7r: card view ─────────────────────────────────────────────────────
+
+  describe('card view', () => {
+    function withRoles(names: string[]): RolesComponent {
+      mockStaffStore.roles.mockReturnValue(names.map(n => ({ id: n + '-id', name: n, isSystem: false })));
+      return TestBed.createComponent(RolesComponent).componentInstance;
+    }
+
+    it('starts on cards', () => {
+      expect(component.viewMode()).toBe('cards');
+    });
+
+    it('lists the roles by name, a page at a time', () => {
+      const names = Array.from({ length: 15 }, (_, i) => 'ROLE' + String(15 - i).padStart(2, '0'));
+      const c = withRoles(names);
+
+      expect(c.pagedRoles().map(r => r.name)).toEqual(
+        Array.from({ length: 12 }, (_, i) => 'ROLE' + String(i + 1).padStart(2, '0')));
+      c.cardFirst.set(12);
+      expect(c.pagedRoles().map(r => r.name)).toEqual(['ROLE13', 'ROLE14', 'ROLE15']);
+    });
+
+    it('goes back to the first page when the roles shrink below the current page', () => {
+      const c = withRoles(['A', 'B']);
+      c.cardFirst.set(24);
+      expect(c.pagedRoles().map(r => r.name)).toEqual(['A', 'B']);
+    });
+  });
+
 });

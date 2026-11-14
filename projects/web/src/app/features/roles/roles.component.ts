@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { StaffStore, ConfirmService, ToastService, TrimInputDirective, CanComponentDeactivate,
-         PermissionAdminService, groupedPermissions, permissionLabel, permissionDescription } from 'shared-lib';
+         PermissionAdminService, groupedPermissions, permissionLabel, permissionDescription, ViewModeService, ViewToggleComponent } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
@@ -11,13 +11,14 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Dialog } from 'primeng/dialog';
 import { Checkbox } from 'primeng/checkbox';
 import { Menu } from 'primeng/menu';
+import { Paginator } from 'primeng/paginator';
 import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-roles',
   standalone: true,
   imports: [FormsModule, TrimInputDirective,
-    Button, InputText, TableModule, Tag, Card, TooltipModule, Dialog, Checkbox, Menu],
+    Button, InputText, TableModule, Tag, Card, TooltipModule, Dialog, Checkbox, Menu, Paginator, ViewToggleComponent],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss',
 })
@@ -30,7 +31,20 @@ export class RolesComponent implements OnInit, CanComponentDeactivate {
   @ViewChild('roleMenu') private roleMenu!: Menu;
   roleMenuItems = signal<MenuItem[]>([]);
 
+  private readonly views = inject(ViewModeService);
+  /** Cards (default) or Table, remembered on this device. */
+  readonly viewMode = this.views.mode('roles');
+
   readonly roles   = this.store.roles;
+
+  // Card view paging: the same roles as the table, by name, a page at a time.
+  readonly cardRows = 12;
+  readonly cardFirst = signal(0);
+  readonly pagedRoles = computed(() => {
+    const sorted = [...this.roles()].sort((a, b) => a.name.localeCompare(b.name));
+    const first = this.cardFirst() >= sorted.length ? 0 : this.cardFirst();
+    return sorted.slice(first, first + this.cardRows);
+  });
   readonly loading = this.store.loading;
 
   showForm       = signal(false);

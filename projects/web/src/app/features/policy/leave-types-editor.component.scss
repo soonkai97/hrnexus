@@ -31,50 +31,71 @@
   max-width: 560px;
 }
 
-.type-list {
+// One card per leave type, in a responsive grid: cards share a width, so nothing depends on content length.
+.type-grid {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.75rem;
 }
 .type-row {
-  display: grid;
-  grid-template-columns: minmax(180px, 1.2fr) minmax(0, 2fr) auto;
-  gap: 0.75rem;
-  align-items: center;
-  padding: 0.6rem 0.25rem;
-  border-bottom: 1px solid $border-subtle;
-  &:last-child {
-    border-bottom: none;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 0.9rem;
+  background: $bg-raised;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
   &.inactive {
     opacity: 0.6;
   }
 }
-.type-main {
+.type-head {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+.type-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-muted;
+  &.off {
+    color: $danger;
+  }
 }
 .type-key {
   font-family: monospace;
   font-size: 0.75rem;
   color: $text-muted;
 }
-.type-off,
-.type-system {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: $text-muted;
-}
 .type-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.15rem 0 0;
+  dt {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $text-muted;
+  }
+  dd {
+    margin: 0.1rem 0 0;
+    font-size: 0.82rem;
+    color: $text-secondary;
+  }
+}
+.type-flags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 0.75rem;
-  font-size: 0.8rem;
-  color: $text-secondary;
+  gap: 0.3rem;
+  min-height: 1.4rem;
 }
 .type-flag {
   font-size: 0.72rem;
@@ -83,10 +104,18 @@
   border-radius: $radius-pill;
   color: $text-muted;
 }
+// Actions sit at the bottom of every card, so the buttons line up across a row of cards.
 .type-actions {
   display: flex;
   align-items: center;
-  gap: 0.15rem;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.4rem;
+  border-top: 1px solid $border-subtle;
+}
+.type-icons {
+  display: flex;
+  align-items: center;
 }
 
 .form-actions {
@@ -100,6 +129,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem 1rem;
+  align-items: start;
 }
 .field {
   display: flex;
@@ -127,9 +157,6 @@
 }
 
 @media (max-width: 640px) {
-  .type-row {
-    grid-template-columns: 1fr;
-  }
   .dialog-grid {
     grid-template-columns: 1fr;
   }

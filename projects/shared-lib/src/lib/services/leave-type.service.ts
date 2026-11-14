@@ -58,7 +58,10 @@ export const DEFAULT_LEAVE_TYPES: readonly LeaveTypeDefinition[] = [
     countsCalendarDays: true,
     sensitive: true,
   }),
-  base('compassionate', 'Compassionate', 'contrast', 70, { maxDaysPerRequest: 3, sensitive: true }),
+  base('compassionate', 'Compassionate', 'secondary', 70, {
+    maxDaysPerRequest: 3,
+    sensitive: true,
+  }),
   base('unpaid', 'Unpaid', 'secondary', 80, { deductsPay: true }),
   base('no-show', 'No-show', 'warn', 90, { deductsPay: true, adminOnly: true, isSystem: true }),
 ];

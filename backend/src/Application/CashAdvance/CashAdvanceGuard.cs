@@ -16,7 +16,7 @@ public static class CashAdvanceGuard
             throw new InvalidOperationException("Payroll has already deducted repayments for this cash advance, so it can no longer be changed here.");
 
         var inOpenRun = await db.PayrollRuns.Where(r => r.State != PayrollRunState.Draft)
-            .SelectMany(r => r.Lines).SelectMany(l => l.Items)
+            .SelectMany(r => r.Lines).Where(l => !l.Excluded).SelectMany(l => l.Items)
             .AnyAsync(i => i.SourceId == advanceId, ct);
         if (inOpenRun)
             throw new InvalidOperationException("This cash advance is part of a payroll run that is already submitted, so it cannot be changed here.");

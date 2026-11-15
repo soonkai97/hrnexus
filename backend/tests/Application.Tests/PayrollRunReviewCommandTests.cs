@@ -58,11 +58,11 @@ public class PayrollRunReviewCommandTests
     private static Task<long> Submit(Scene s, long? version = null) =>
         new SubmitPayrollRunCommandHandler(s.Kit.Db, s.Kit.Audit, s.Kit.Clock).Handle(new SubmitPayrollRunCommand(s.RunId, version ?? s.Version, s.P), CancellationToken.None);
 
-    private static Task<long> SignOff(Scene s, E.Staff by, E.Staff person) =>
-        new SignOffPayrollLineCommandHandler(s.Kit.Db, s.Kit.Audit, s.Kit.Clock).Handle(new SignOffPayrollLineCommand(s.RunId, person.Id, PayrollRunKit.Act(by)), CancellationToken.None);
+    private static Task<long> SignOff(Scene s, E.Staff by, E.Staff person, long? version = null) =>
+        new SignOffPayrollLineCommandHandler(s.Kit.Db, s.Kit.Audit, s.Kit.Clock).Handle(new SignOffPayrollLineCommand(s.RunId, person.Id, version ?? s.Version, PayrollRunKit.Act(by)), CancellationToken.None);
 
-    private static Task<int> SignOffAll(Scene s, E.Staff by) =>
-        new SignOffAllPayrollLinesCommandHandler(s.Kit.Db, s.Kit.Audit, s.Kit.Clock).Handle(new SignOffAllPayrollLinesCommand(s.RunId, PayrollRunKit.Act(by)), CancellationToken.None);
+    private static Task<int> SignOffAll(Scene s, E.Staff by, long? version = null) =>
+        new SignOffAllPayrollLinesCommandHandler(s.Kit.Db, s.Kit.Audit, s.Kit.Clock).Handle(new SignOffAllPayrollLinesCommand(s.RunId, version ?? s.Version, PayrollRunKit.Act(by)), CancellationToken.None);
 
     private static Task<long> Approve(Scene s, E.Staff by, long? version = null) =>
         new ApprovePayrollRunCommandHandler(s.Kit.Db, s.Kit.Audit, s.Kit.Clock).Handle(new ApprovePayrollRunCommand(s.RunId, version ?? s.Version, PayrollRunKit.Act(by)), CancellationToken.None);
@@ -280,6 +280,45 @@ public class PayrollRunReviewCommandTests
         var s = await SubmittedAsync();
 
         await Assert.ThrowsAsync<ForbiddenException>(() => SignOffAll(s, s.Mgr));
+    }
+
+    /// <summary>WHY: the manager opened the line, the run was returned and changed; signing must not confirm figures they never saw.</summary>
+    [Fact]
+    public async Task A_sign_off_from_a_stale_copy_is_refused()
+    {
+        var s = await SubmittedAsync();
+        var seen = s.Version;
+        await Return(s, s.Hohr);
+        await Submit(s);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => SignOff(s, s.Mgr, s.Alice, version: seen));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => SignOffAll(s, s.Hohr, version: seen));
+        Assert.All((await Load(s)).Lines, l => Assert.False(l.IsSignedOff));
+    }
+
+    [Fact]
+    public async Task Signing_off_all_on_a_run_that_is_not_submitted_is_refused_not_a_silent_zero()
+    {
+        var s = await DraftAsync();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => SignOffAll(s, s.Hohr));
+    }
+
+    // ── permission checked inside the commands ────────────────────────────────────
+
+    /// <summary>WHY: the commands re-check the permission themselves, so a command can never be driven around the API's policy.</summary>
+    [Fact]
+    public async Task Preparing_payroll_needs_the_prepare_permission_inside_the_command_itself()
+    {
+        var s = await DraftAsync();
+        var stranger = await s.Kit.PersonAsync("STRANGER", salary: false);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => new SubmitPayrollRunCommandHandler(s.Kit.Db, s.Kit.Audit, s.Kit.Clock)
+            .Handle(new SubmitPayrollRunCommand(s.RunId, s.Version, PayrollRunKit.Act(stranger)), CancellationToken.None));
+        await Assert.ThrowsAsync<ForbiddenException>(() => new StartPayrollRunCommandHandler(s.Kit.Db, s.Kit.Audit, s.Kit.Clock)
+            .Handle(new StartPayrollRunCommand(2026, 11, PayrollRunKit.Act(stranger)), CancellationToken.None));
+        await Assert.ThrowsAsync<ForbiddenException>(() => new DeletePayrollRunCommandHandler(s.Kit.Db, s.Kit.Audit)
+            .Handle(new DeletePayrollRunCommand(s.RunId, PayrollRunKit.Act(stranger)), CancellationToken.None));
     }
 
     // ── approve ───────────────────────────────────────────────────────────────────

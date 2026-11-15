@@ -56,6 +56,8 @@ public class PayrollRunLineItemConfiguration(IFieldEncryptor encryptor) : IEntit
         b.Property(i => i.Description).HasMaxLength(300).IsRequired();
         b.Property(i => i.Amount).HasConversion(enc.Money).HasColumnType("text");
         b.HasIndex(i => i.LineId);
+        // The cash advance guard asks "does any payslip line name this advance?" on every settle or delete.
+        b.HasIndex(i => i.SourceId);
     }
 }
 

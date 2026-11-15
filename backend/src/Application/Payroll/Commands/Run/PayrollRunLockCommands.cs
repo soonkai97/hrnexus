@@ -1,4 +1,5 @@
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using HRNexus.Domain.Payroll;
 using MediatR;
@@ -20,6 +21,7 @@ public class LockPayrollRunCommandHandler(IAppDbContext db, IAuditService audit,
     public async Task Handle(LockPayrollRunCommand req, CancellationToken ct) =>
         await PayrollRunWork.InTransactionAsync(db, async c =>
         {
+            await PayrollRunWork.RequireHolderAsync(db, AppConstants.Permissions.PayrollLock, req.By, "You are not allowed to lock payroll.", c);
             var now = clock.UtcNow;
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
             run.Lock(req.By.Id, now);
@@ -34,10 +36,24 @@ public class LockPayrollRunCommandHandler(IAppDbContext db, IAuditService audit,
             // Repayment amounts are encrypted, so they are summed here and not in SQL.
             var earlier = (await db.CashAdvanceRepayments.Where(r => ids.Contains(r.CashAdvanceId)).ToListAsync(c))
                 .GroupBy(r => r.CashAdvanceId).ToDictionary(g => g.Key, g => g.Sum(r => r.Amount));
+
+            // Every id a payslip deduction names must still be something real: an advance that is still outstanding, or a
+            // pay item. Anything else was deleted or settled by hand after the run was submitted, and locking would then
+            // record a deduction against nothing.
+            var otherIds = ids.Except(advances.Select(a => a.Id)).ToList();
+            if (otherIds.Count > 0 && await db.PayItems.CountAsync(i => otherIds.Contains(i.Id), c) != otherIds.Count)
+                throw new InvalidOperationException("A deduction in this run names a cash advance or pay item that no longer exists. Return the run and recalculate it.");
+            if (advances.Any(a => a.Status != E.CashAdvance.Outstanding))
+                throw new InvalidOperationException("A cash advance in this run was settled outside it. Return the run and recalculate it.");
+
             foreach (var advance in advances)
             {
+                // Never record more than was lent: two runs could otherwise both deduct the same advance.
+                var total = earlier.GetValueOrDefault(advance.Id) + applied[advance.Id];
+                if (total > advance.Amount)
+                    throw new InvalidOperationException("Locking would repay a cash advance more than was lent. Return the run and recalculate it.");
                 db.CashAdvanceRepayments.Add(CashAdvanceRepayment.Create(advance.Id, run.Id, applied[advance.Id], now));
-                if (earlier.GetValueOrDefault(advance.Id) + applied[advance.Id] >= advance.Amount) advance.MarkSettled();
+                if (total >= advance.Amount) advance.MarkSettled();
             }
 
             if (!await db.PayrollLocks.AnyAsync(l => l.Year == run.Year && l.Month == run.Month, c))
@@ -62,10 +78,12 @@ public class ReopenPayrollRunCommandHandler(IAppDbContext db, IAuditService audi
     public async Task Handle(ReopenPayrollRunCommand req, CancellationToken ct) =>
         await PayrollRunWork.InTransactionAsync(db, async c =>
         {
+            await PayrollRunWork.RequireHolderAsync(db, AppConstants.Permissions.PayrollReopen, req.By, "You are not allowed to reopen payroll.", c);
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
             var index = run.Year * 12 + run.Month;
-            if (await db.PayrollRuns.AnyAsync(r => r.Year * 12 + r.Month > index && r.State != PayrollRunState.Draft, c))
-                throw new InvalidOperationException("A later month's payroll run has already moved past draft, so this month cannot be reopened.");
+            // A later run (in any state) was calculated on top of this month's repayments; reopening this one would let both deduct the same advance.
+            if (await db.PayrollRuns.AnyAsync(r => r.Year * 12 + r.Month > index, c))
+                throw new InvalidOperationException("A later month's payroll run exists, so this month cannot be reopened.");
             run.Reopen(req.By.Id, clock.UtcNow);
 
             var lockRow = await db.PayrollLocks.FirstOrDefaultAsync(l => l.Year == run.Year && l.Month == run.Month, c);

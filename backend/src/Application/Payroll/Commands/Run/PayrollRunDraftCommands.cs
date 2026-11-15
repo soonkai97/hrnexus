@@ -23,12 +23,13 @@ public class StartPayrollRunCommandHandler(IAppDbContext db, IAuditService audit
 
         return await PayrollRunWork.InTransactionAsync(db, async c =>
         {
+            await PayrollRunWork.RequirePreparerAsync(db, req.By, c);
             var now = clock.UtcNow;
             if (await db.PayrollRuns.AnyAsync(r => r.Year == req.Year && r.Month == req.Month, c))
                 throw new InvalidOperationException($"A payroll run for {req.Year}-{req.Month:D2} already exists.");
 
-            // At most one run is open at a time, so two runs can never deduct the same cash advance.
-            var open = await db.PayrollRuns.Where(r => r.Year * 12 + r.Month < index && r.State != PayrollRunState.Locked)
+            // At most one run is open at a time, whatever its month, so two runs can never deduct the same cash advance.
+            var open = await db.PayrollRuns.Where(r => r.State != PayrollRunState.Locked)
                 .OrderBy(r => r.Year).ThenBy(r => r.Month).Select(r => new { r.Year, r.Month }).FirstOrDefaultAsync(c);
             if (open is not null)
                 throw new InvalidOperationException(
@@ -45,12 +46,9 @@ public class StartPayrollRunCommandHandler(IAppDbContext db, IAuditService audit
                 run.ApplyResult(person.EmployeeId, PayrollRunCalculator.Calculate(person, loaded.Month), req.By.Id, now);
             }
             db.PayrollRuns.Add(run);
-            try { await db.SaveChangesAsync(c); }
-            catch (DbUpdateException)
-            {
-                // The unique (year, month) index fired: a concurrent start slipped past the check above.
-                throw new InvalidOperationException($"A payroll run for {req.Year}-{req.Month:D2} already exists.");
-            }
+            // A concurrent start of the same month conflicts under Serializable and is retried by the strategy, which
+            // then finds the run above; any other database error is not disguised as "already exists".
+            await db.SaveChangesAsync(c);
             await PayrollRunWork.AuditAsync(audit, run, "Started", req.By, c);
             return run.Id;
         }, ct);
@@ -71,6 +69,7 @@ public class UpdatePayrollRunLineCommandHandler(IAppDbContext db, IAuditService 
 
         return await PayrollRunWork.InTransactionAsync(db, async c =>
         {
+            await PayrollRunWork.RequirePreparerAsync(db, req.By, c);
             var now = clock.UtcNow;
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
             PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);
@@ -101,6 +100,7 @@ public class RecalculatePayrollRunCommandHandler(IAppDbContext db, IAuditService
     public async Task<long> Handle(RecalculatePayrollRunCommand req, CancellationToken ct) =>
         await PayrollRunWork.InTransactionAsync(db, async c =>
         {
+            await PayrollRunWork.RequirePreparerAsync(db, req.By, c);
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
             PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);
             await PayrollRunWork.RecalculateAsync(db, run, req.By, clock.UtcNow, addNewPeople: true, c);
@@ -118,6 +118,7 @@ public class DeletePayrollRunCommandHandler(IAppDbContext db, IAuditService audi
     public async Task Handle(DeletePayrollRunCommand req, CancellationToken ct) =>
         await PayrollRunWork.InTransactionAsync(db, async c =>
         {
+            await PayrollRunWork.RequirePreparerAsync(db, req.By, c);
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
             run.EnsureCanDelete();
             db.PayrollRuns.Remove(run);

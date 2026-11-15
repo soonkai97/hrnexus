@@ -57,6 +57,9 @@ public class PayrollRunCommandsPostgresTests(PostgresFixture fx)
         await db.SaveChangesAsync();
         db.RolePermissions.Add(RolePermission.Create(clerk.Id, AppConstants.Permissions.PayrollManage));
         db.RolePermissions.Add(RolePermission.Create(head.Id, AppConstants.Permissions.PayrollApprove));
+        db.RolePermissions.Add(RolePermission.Create(head.Id, AppConstants.Permissions.PayrollLock));
+        db.RolePermissions.Add(RolePermission.Create(head.Id, AppConstants.Permissions.PayrollReopen));
+        db.RolePermissions.Add(RolePermission.Create(head.Id, AppConstants.Permissions.PayrollManage));   // so the race tests can have two preparers
         var prep = Staff.Create("PREP", "Pre", "Parer", null, "hash", [clerk.Id]);
         var hohr = Staff.Create("HOHR", "Head", "Hr", null, "hash", [head.Id]);
         var alice = Staff.Create("ALICE", "Alice", "Tan", null, "hash", [], dateOfBirth: new DateTime(1990, 3, 4));
@@ -86,7 +89,7 @@ public class PayrollRunCommandsPostgresTests(PostgresFixture fx)
 
         var id = await new StartPayrollRunCommandHandler(db, audit, clock).Handle(new StartPayrollRunCommand(2026, 10, prep), CancellationToken.None);
         await new SubmitPayrollRunCommandHandler(db, audit, clock).Handle(new SubmitPayrollRunCommand(id, await VersionAsync(db, id), prep), CancellationToken.None);
-        Assert.Equal(1, await new SignOffAllPayrollLinesCommandHandler(db, audit, clock).Handle(new SignOffAllPayrollLinesCommand(id, hohr), CancellationToken.None));
+        Assert.Equal(1, await new SignOffAllPayrollLinesCommandHandler(db, audit, clock).Handle(new SignOffAllPayrollLinesCommand(id, await VersionAsync(db, id), hohr), CancellationToken.None));
         await new ApprovePayrollRunCommandHandler(db, audit, clock).Handle(new ApprovePayrollRunCommand(id, await VersionAsync(db, id), hohr), CancellationToken.None);
         await new LockPayrollRunCommandHandler(db, audit, clock).Handle(new LockPayrollRunCommand(id, hohr), CancellationToken.None);
 
@@ -154,7 +157,7 @@ public class PayrollRunCommandsPostgresTests(PostgresFixture fx)
         var hohr = Act(p.Hohr, "Head Hr");
         var id = await new StartPayrollRunCommandHandler(db, audit, clock).Handle(new StartPayrollRunCommand(2026, 10, prep), CancellationToken.None);
         await new SubmitPayrollRunCommandHandler(db, audit, clock).Handle(new SubmitPayrollRunCommand(id, await VersionAsync(db, id), prep), CancellationToken.None);
-        await new SignOffAllPayrollLinesCommandHandler(db, audit, clock).Handle(new SignOffAllPayrollLinesCommand(id, hohr), CancellationToken.None);
+        await new SignOffAllPayrollLinesCommandHandler(db, audit, clock).Handle(new SignOffAllPayrollLinesCommand(id, await VersionAsync(db, id), hohr), CancellationToken.None);
 
         var version = await VersionAsync(db, id);
 

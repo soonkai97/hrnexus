@@ -1,8 +1,10 @@
 using HRNexus.Application.Admin.Commands;
 using HRNexus.Application.CashAdvance.Commands;
+using HRNexus.Application.Common;
 using HRNexus.Application.Payroll.Commands.Run;
 using HRNexus.Application.Staff.Commands;
 using HRNexus.Application.Tests.Infrastructure;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -59,7 +61,7 @@ public class PayrollRunLockCommandTests
 
         c.RunId = await new StartPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new StartPayrollRunCommand(year, month, c.P), CancellationToken.None);
         await new SubmitPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new SubmitPayrollRunCommand(c.RunId, c.Version, c.P), CancellationToken.None);
-        await new SignOffAllPayrollLinesCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new SignOffAllPayrollLinesCommand(c.RunId, c.H), CancellationToken.None);
+        await new SignOffAllPayrollLinesCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new SignOffAllPayrollLinesCommand(c.RunId, c.Version, c.H), CancellationToken.None);
         await new ApprovePayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new ApprovePayrollRunCommand(c.RunId, c.Version, c.H), CancellationToken.None);
         return (c, adv);
     }
@@ -213,7 +215,7 @@ public class PayrollRunLockCommandTests
     }
 
     [Fact]
-    public async Task Reopening_keeps_an_advance_settled_that_is_still_covered_by_other_months_repayments()
+    public async Task Reopening_a_month_keeps_the_other_months_repayments_and_leaves_the_advance_outstanding_for_the_rest()
     {
         var (c, advance) = await ApprovedAsync(1000m, advance: 900m);
         await Lock(c);                                   // October: 500
@@ -227,6 +229,20 @@ public class PayrollRunLockCommandTests
         Assert.Equal(E.CashAdvance.Outstanding, await StatusOf(c, advance!.Id));
         Assert.Equal([500m], await Repayments(c, advance.Id));
         Assert.NotEqual(Guid.Empty, november);
+    }
+
+    /// <summary>WHY: when other repayments alone already cover the advance, reopening this month must not put it back to outstanding.</summary>
+    [Fact]
+    public async Task Reopening_keeps_an_advance_settled_when_other_repayments_alone_cover_it()
+    {
+        var (c, advance) = await ApprovedAsync(3000m, advance: 100m);
+        await Lock(c);
+        c.Kit.Db.CashAdvanceRepayments.Add(E.CashAdvanceRepayment.Create(advance!.Id, Guid.NewGuid(), 100m, DateTime.UtcNow));   // covered elsewhere
+        await c.Kit.Db.SaveChangesAsync();
+
+        await Reopen(c);
+
+        Assert.Equal(E.CashAdvance.Settled, await StatusOf(c, advance.Id));
     }
 
     /// <summary>WHY: once payslips or a bank file have gone out, the figures are history; reopening would rewrite them.</summary>
@@ -258,6 +274,75 @@ public class PayrollRunLockCommandTests
         Assert.Contains("later month", ex.Message);
     }
 
+    /// <summary>
+    /// WHY: with November still a draft it has already scheduled the same advances. Reopening October would let October
+    /// and November each deduct them again, so even a draft later run blocks the reopen.
+    /// </summary>
+    [Fact]
+    public async Task An_earlier_month_cannot_be_reopened_while_a_later_run_exists_even_as_a_draft()
+    {
+        var (c, _) = await ApprovedAsync();
+        await Lock(c);
+        var october = c.RunId;
+        c.Kit.Clock = new FixedClock(new DateTime(2026, 11, 20, 9, 0, 0, DateTimeKind.Utc));
+        var november = await new StartPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new StartPayrollRunCommand(2026, 11, c.P), CancellationToken.None);
+        c.RunId = october;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Reopen(c));
+        Assert.Equal(PayrollRunState.Locked, (await Load(c)).State);
+        Assert.NotEqual(Guid.Empty, november);
+    }
+
+    [Fact]
+    public async Task Locking_and_reopening_need_their_own_permissions_inside_the_command()
+    {
+        var (c, _) = await ApprovedAsync();
+        var clerk = await c.Kit.PersonAsync("CLERK2", role: "CLERK2", keys: [AppConstants.Permissions.PayrollManage], salary: false);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => new LockPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock)
+            .Handle(new LockPayrollRunCommand(c.RunId, PayrollRunKit.Act(clerk)), CancellationToken.None));
+        await Lock(c);
+        await Assert.ThrowsAsync<ForbiddenException>(() => new ReopenPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock)
+            .Handle(new ReopenPayrollRunCommand(c.RunId, PayrollRunKit.Act(clerk)), CancellationToken.None));
+    }
+
+    // ── lock refuses a run whose deductions no longer line up ─────────────────────
+
+    /// <summary>WHY: two runs could each have scheduled the same advance; the second lock would repay more than was lent.</summary>
+    [Fact]
+    public async Task Locking_refuses_to_repay_a_cash_advance_more_than_was_lent()
+    {
+        var (c, advance) = await ApprovedAsync(3000m, advance: 500m);
+        c.Kit.Db.CashAdvanceRepayments.Add(E.CashAdvanceRepayment.Create(advance!.Id, Guid.NewGuid(), 200m, DateTime.UtcNow));   // another run already took 200
+        await c.Kit.Db.SaveChangesAsync();
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => Lock(c));
+
+        Assert.Contains("more than was lent", ex.Message);
+        Assert.Equal(PayrollRunState.Approved, (await Load(c)).State);
+    }
+
+    [Fact]
+    public async Task Locking_refuses_when_a_deducted_advance_was_deleted_after_the_run_was_submitted()
+    {
+        var (c, advance) = await ApprovedAsync(3000m, advance: 500m);
+        c.Kit.Db.CashAdvances.Remove(await c.Kit.Db.CashAdvances.SingleAsync(a => a.Id == advance!.Id));   // straight through the database, past the guard
+        await c.Kit.Db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Lock(c));
+        Assert.Empty(await c.Kit.Db.PayrollLocks.ToListAsync());
+    }
+
+    [Fact]
+    public async Task Locking_refuses_when_a_deducted_advance_was_settled_by_hand_after_the_run_was_submitted()
+    {
+        var (c, advance) = await ApprovedAsync(3000m, advance: 500m);
+        (await c.Kit.Db.CashAdvances.SingleAsync(a => a.Id == advance!.Id)).MarkSettled();
+        await c.Kit.Db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Lock(c));
+    }
+
     // ── guards on the older actions ───────────────────────────────────────────────
 
     [Fact]
@@ -272,6 +357,45 @@ public class PayrollRunLockCommandTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             new DeleteCashAdvanceCommandHandler(c.Kit.Db).Handle(new DeleteCashAdvanceCommand(advanceId), CancellationToken.None));
         Assert.True(await c.Kit.Db.CashAdvances.AnyAsync(a => a.Id == advanceId));
+    }
+
+    /// <summary>The repayment clause on its own: no run is involved, so only the repayment can be what refuses.</summary>
+    [Fact]
+    public async Task A_cash_advance_that_has_a_repayment_cannot_be_settled_reopened_or_deleted_even_with_no_run_around()
+    {
+        var k = new PayrollRunKit();
+        var alice = await k.PersonAsync("ALICE");
+        var advance = E.CashAdvance.Create(alice.Id, 500m, new DateOnly(2026, 9, 2), null, "admin");
+        k.Db.CashAdvances.Add(advance);
+        k.Db.CashAdvanceRepayments.Add(E.CashAdvanceRepayment.Create(advance.Id, Guid.NewGuid(), 100m, DateTime.UtcNow));
+        await k.Db.SaveChangesAsync();
+        var id = advance.Id;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => new SetCashAdvanceSettledCommandHandler(k.Db).Handle(new SetCashAdvanceSettledCommand(id, true), CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => new SetCashAdvanceSettledCommandHandler(k.Db).Handle(new SetCashAdvanceSettledCommand(id, false), CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => new DeleteCashAdvanceCommandHandler(k.Db).Handle(new DeleteCashAdvanceCommand(id), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task An_advance_for_someone_who_was_left_out_of_a_submitted_run_can_still_be_deleted()
+    {
+        var k = new PayrollRunKit();
+        await k.SeedAndVerifyRatesAsync(true);
+        var prep = await k.PreparerAsync();
+        var alice = await k.PersonAsync("ALICE");
+        await k.PersonAsync("BOB");
+        var advance = E.CashAdvance.Create(alice.Id, 500m, new DateOnly(2026, 9, 2), null, "admin");
+        k.Db.CashAdvances.Add(advance);
+        await k.Db.SaveChangesAsync();
+        var id = await new StartPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new StartPayrollRunCommand(2026, 10, PayrollRunKit.Act(prep)), CancellationToken.None);
+        var version = (await PayrollRunWorkForTests.LoadAsync(k.Db, id)).Version;
+        version = await new UpdatePayrollRunLineCommandHandler(k.Db, k.Audit, k.Clock).Handle(
+            new UpdatePayrollRunLineCommand(id, alice.Id, null, true, "Paid separately", version, PayrollRunKit.Act(prep)), CancellationToken.None);
+        await new SubmitPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new SubmitPayrollRunCommand(id, version, PayrollRunKit.Act(prep)), CancellationToken.None);
+
+        await new DeleteCashAdvanceCommandHandler(k.Db).Handle(new DeleteCashAdvanceCommand(advance.Id), CancellationToken.None);
+
+        Assert.False(await k.Db.CashAdvances.AnyAsync());
     }
 
     [Fact]

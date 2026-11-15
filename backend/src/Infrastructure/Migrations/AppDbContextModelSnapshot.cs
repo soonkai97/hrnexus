@@ -689,6 +689,8 @@ namespace HRNexus.Infrastructure.Migrations
 
                     b.HasIndex("LineId");
 
+                    b.HasIndex("SourceId");
+
                     b.ToTable("PayrollRunLineItems", (string)null);
                 });
 

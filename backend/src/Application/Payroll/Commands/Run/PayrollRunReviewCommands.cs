@@ -2,6 +2,7 @@ using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Permissions;
 using HRNexus.Domain.Constants;
+using HRNexus.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ public class SubmitPayrollRunCommandHandler(IAppDbContext db, IAuditService audi
     public async Task<long> Handle(SubmitPayrollRunCommand req, CancellationToken ct) =>
         await PayrollRunWork.InTransactionAsync(db, async c =>
         {
+            await PayrollRunWork.RequirePreparerAsync(db, req.By, c);
             var now = clock.UtcNow;
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
             PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);
@@ -55,7 +57,7 @@ public class ReturnPayrollRunCommandHandler(IAppDbContext db, IAuditService audi
 /// Signs off one person's line. Allowed for that person's reporting manager (who holds payroll.signoff) or for a head
 /// of HR (payroll.approve); nobody signs their own line and nobody who prepared the run signs (the run refuses both).
 /// </summary>
-public record SignOffPayrollLineCommand(Guid RunId, Guid EmployeeId, PayrollActor By) : IRequest<long>;
+public record SignOffPayrollLineCommand(Guid RunId, Guid EmployeeId, long ExpectedVersion, PayrollActor By) : IRequest<long>;
 
 public class SignOffPayrollLineCommandHandler(IAppDbContext db, IAuditService audit, IDateTimeProvider clock)
     : IRequestHandler<SignOffPayrollLineCommand, long>
@@ -64,6 +66,7 @@ public class SignOffPayrollLineCommandHandler(IAppDbContext db, IAuditService au
         await PayrollRunWork.InTransactionAsync(db, async c =>
         {
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
+            PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);   // nobody signs figures that changed since they looked
             var line = run.LineFor(req.EmployeeId);
 
             var approvers = await PermissionHolders.GetIdsAsync(db, AppConstants.Permissions.PayrollApprove, c);
@@ -83,7 +86,7 @@ public class SignOffPayrollLineCommandHandler(IAppDbContext db, IAuditService au
 }
 
 /// <summary>A head of HR signs off every line still waiting, except their own. Returns how many were signed.</summary>
-public record SignOffAllPayrollLinesCommand(Guid RunId, PayrollActor By) : IRequest<int>;
+public record SignOffAllPayrollLinesCommand(Guid RunId, long ExpectedVersion, PayrollActor By) : IRequest<int>;
 
 public class SignOffAllPayrollLinesCommandHandler(IAppDbContext db, IAuditService audit, IDateTimeProvider clock)
     : IRequestHandler<SignOffAllPayrollLinesCommand, int>
@@ -93,6 +96,9 @@ public class SignOffAllPayrollLinesCommandHandler(IAppDbContext db, IAuditServic
         {
             await PayrollRunWork.RequireApproverAsync(db, req.By, c);
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
+            PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);
+            if (run.State != PayrollRunState.Submitted)
+                throw new InvalidOperationException("Only a submitted run can be signed off.");
             var waiting = run.Lines.Where(l => !l.Excluded && !l.IsSignedOff && l.EmployeeId != req.By.Id).Select(l => l.EmployeeId).ToList();
             var now = clock.UtcNow;
             foreach (var id in waiting) run.SignOff(id, req.By.Id, now);

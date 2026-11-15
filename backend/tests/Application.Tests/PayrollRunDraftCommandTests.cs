@@ -91,6 +91,21 @@ public class PayrollRunDraftCommandTests
         Assert.Contains("not locked", ex.Message);
     }
 
+    /// <summary>WHY: the open-run rule is about any open run, not only earlier ones: a later draft already scheduled the same advances.</summary>
+    [Fact]
+    public async Task An_earlier_month_cannot_be_started_while_a_later_run_is_still_open()
+    {
+        var k = new PayrollRunKit();
+        await k.SeedAndVerifyRatesAsync(false);
+        var prep = await k.PreparerAsync();
+        await k.PersonAsync("ALICE");
+        await Start(k, prep, 2026, 11);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => Start(k, prep, 2026, 10));
+
+        Assert.Contains("2026-11", ex.Message);
+    }
+
     [Fact]
     public async Task The_first_run_ever_may_start_in_any_month_because_nothing_earlier_is_open()
     {
@@ -406,6 +421,20 @@ public class PayrollRunDraftCommandTests
 
         Assert.False(await k.Db.PayrollRuns.AnyAsync());
         Assert.Contains(k.Audit.Entries, e => e.Action == "Deleted");
+    }
+
+    /// <summary>WHY: a run that was returned or reopened has history, and may have been paid; deleting it would erase that.</summary>
+    [Fact]
+    public async Task A_run_that_was_returned_or_reopened_cannot_be_deleted()
+    {
+        var run = PayrollRun.Start(2026, 10, Guid.NewGuid(), new PayrollRunBasis("1", 26m, 8m, 0.5m, 0), DateTime.UtcNow);
+        run.AddLine(PayrollRunLine.Create(Guid.NewGuid(), "A", "A"), Guid.NewGuid(), DateTime.UtcNow);
+        run.ApplyResult(run.Lines[0].EmployeeId, new PayrollLineResult(3000m, 2500m, 3300m, 0m, [], [], []), Guid.NewGuid(), DateTime.UtcNow);
+        run.Submit(Guid.NewGuid(), DateTime.UtcNow);
+        run.Return(Guid.NewGuid(), "again", DateTime.UtcNow);
+
+        Assert.Throws<InvalidOperationException>(run.EnsureCanDelete);
+        await Task.CompletedTask;
     }
 
     [Fact]

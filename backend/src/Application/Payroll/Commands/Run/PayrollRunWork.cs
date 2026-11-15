@@ -5,7 +5,6 @@ using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using HRNexus.Domain.Payroll;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HRNexus.Application.Payroll.Commands.Run;
 
@@ -20,25 +19,7 @@ internal static class PayrollRunWork
     /// write (someone changed the run since it was read) surfaces as a clear conflict instead of overwriting it.
     /// </summary>
     public static Task<T> InTransactionAsync<T>(IAppDbContext db, Func<CancellationToken, Task<T>> work, CancellationToken ct) =>
-        db.ExecuteInStrategyAsync(async c =>
-        {
-            db.ClearChangeTracker();
-            IDbContextTransaction? tx = await db.BeginSerializableAsync(c);
-            try
-            {
-                var result = await work(c);
-                if (tx != null) await tx.CommitAsync(c);
-                return result;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                throw new InvalidOperationException("The payroll run was changed by someone else. Refresh and try again.");
-            }
-            finally
-            {
-                tx?.Dispose();   // an uncommitted transaction rolls back here
-            }
-        }, ct);
+        SerializableWork.RunAsync(db, work, ct);
 
     /// <summary>
     /// A run with everything it owns, tracked. Loaded as separate queries (the run and its lines and history, then each
@@ -95,12 +76,22 @@ internal static class PayrollRunWork
         return missing;
     }
 
-    /// <summary>The caller holds payroll.approve now (the head of HR's key). Checked here as well as at the API, so a command can never be driven around the policy.</summary>
-    public static async Task RequireApproverAsync(IAppDbContext db, PayrollActor by, CancellationToken ct)
+    /// <summary>
+    /// The caller holds the permission now (active account, role grant plus per-user grant minus per-user revoke).
+    /// Checked here as well as at the API, so a command can never be driven around the policy. The API must build the
+    /// <see cref="PayrollActor"/> from the signed-in user only, never from a request body.
+    /// </summary>
+    public static async Task RequireHolderAsync(IAppDbContext db, string permissionKey, PayrollActor by, string message, CancellationToken ct)
     {
-        var holders = await PermissionHolders.GetIdsAsync(db, AppConstants.Permissions.PayrollApprove, ct);
-        if (!holders.Contains(by.Id)) throw new ForbiddenException("Only the head of HR can do this.");
+        var holders = await PermissionHolders.GetIdsAsync(db, permissionKey, ct);
+        if (!holders.Contains(by.Id)) throw new ForbiddenException(message);
     }
+
+    public static Task RequireApproverAsync(IAppDbContext db, PayrollActor by, CancellationToken ct) =>
+        RequireHolderAsync(db, AppConstants.Permissions.PayrollApprove, by, "Only the head of HR can do this.", ct);
+
+    public static Task RequirePreparerAsync(IAppDbContext db, PayrollActor by, CancellationToken ct) =>
+        RequireHolderAsync(db, AppConstants.Permissions.PayrollManage, by, "You are not allowed to prepare payroll.", ct);
 
     /// <summary>The audit row says THAT a step happened, which month and who: never an amount, a reason or a message.</summary>
     public static Task AuditAsync(IAuditService audit, PayrollRun run, string action, PayrollActor by, CancellationToken ct, string? detail = null) =>

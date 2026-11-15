@@ -150,10 +150,13 @@ public class PayrollRun
         Version++;
     }
 
+    /// <summary>Only a draft that was never reviewed can be deleted: a run that was returned or reopened has history (and may have been paid) that must stay.</summary>
     public void EnsureCanDelete()
     {
         if (State != PayrollRunState.Draft)
             throw new InvalidOperationException("Only a draft payroll run can be deleted.");
+        if (Cycle > 0)
+            throw new InvalidOperationException("This payroll run was returned or reopened, so its history must stay and it cannot be deleted.");
     }
 
     // ── the lifecycle ────────────────────────────────────────────────────────────

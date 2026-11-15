@@ -1,14 +1,22 @@
-import { Component, Input, OnChanges, computed, inject, signal } from '@angular/core';
+import { Component, Input, OnChanges, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { EMPTY, Subject, catchError, debounceTime, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
-import { StaffManagementService, StaffStore, ToastService, apiErrorMessage } from 'shared-lib';
+import { StaffManagementService, ToastService, apiErrorMessage } from 'shared-lib';
+
+interface ManagerOption {
+  label: string;
+  value: string;
+}
 
 /**
  * Who this person reports to. It decides whose payroll line a manager may read and sign off, so only staff.manage can change it
- * (the server enforces that, refuses a loop, and refuses a change while the person's pay is in a run being reviewed). Everyone
- * who can open the staff page sees it.
+ * (the server enforces that, refuses a loop, and refuses a change while the person's pay is in a run under review). Everyone
+ * who can open the staff page sees it. The manager is chosen by searching the staff list on the server, so it works however
+ * many people there are.
  */
 @Component({
   selector: 'app-reports-to',
@@ -29,22 +37,47 @@ import { StaffManagementService, StaffStore, ToastService, apiErrorMessage } fro
             optionValue="value"
             placeholder="Nobody"
             [showClear]="true"
+            [filter]="true"
+            filterPlaceholder="Search by name or Staff ID"
+            (onFilter)="search($any($event).filter)"
             appendTo="body"
             styleClass="rt-select"
             ariaLabel="Reports to"
           />
-          <p-button label="Save" severity="primary" [disabled]="!changed || saving()" [loading]="saving()" (onClick)="save()" />
+          <p-button
+            label="Save"
+            severity="primary"
+            [disabled]="!changed || saving()"
+            [loading]="saving()"
+            (onClick)="save()"
+          />
         </div>
-        <small class="rt-hint">Their reporting manager can read and sign off their pay each month.</small>
+        <small class="rt-hint"
+          >Their reporting manager can read and sign off their pay each month.</small
+        >
       }
     </p-card>
   `,
   styles: [
     `
-      .rt-text { margin: 0.5rem 0 0; }
-      .rt-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-top: 0.6rem; }
-      :host ::ng-deep .rt-select { min-width: min(320px, 100%); }
-      .rt-hint { display: block; margin-top: 0.5rem; color: var(--nc-text-muted, #6b7280); }
+      .rt-text {
+        margin: 0.5rem 0 0;
+      }
+      .rt-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        align-items: center;
+        margin-top: 0.6rem;
+      }
+      :host ::ng-deep .rt-select {
+        min-width: min(320px, 100%);
+      }
+      .rt-hint {
+        display: block;
+        margin-top: 0.5rem;
+        color: var(--nc-text-muted, #6b7280);
+      }
     `,
   ],
 })
@@ -58,22 +91,56 @@ export class ReportsToComponent implements OnChanges {
   @Input() canManage = false;
 
   private readonly staffSvc = inject(StaffManagementService);
-  private readonly store = inject(StaffStore);
   private readonly toast = inject(ToastService);
 
   managerId: string | null = null;
   readonly saving = signal(false);
+  /** The current manager plus whoever the last search found (active people other than this one). */
+  readonly options = signal<ManagerOption[]>([]);
 
-  /** Active people other than this one (the server also refuses an inactive manager and a loop). */
-  readonly options = computed(() =>
-    this.store
-      .staff()
-      .filter((s) => s.isActive && s.id !== this.staffId)
-      .map((s) => ({ label: `${s.staffId} — ${s.fullName}`, value: s.id })),
-  );
+  private readonly searches = new Subject<string>();
+
+  constructor() {
+    this.searches
+      .pipe(
+        debounceTime(250),
+        switchMap((q) =>
+          this.staffSvc.getAll(q, 1, 20).pipe(
+            // A failed search must not end the stream: the next keystroke searches again.
+            catchError(() => {
+              this.toast.error('Failed to search the staff list.');
+              return EMPTY;
+            }),
+          ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((page) => this.setOptions(page.items));
+  }
 
   ngOnChanges(): void {
     this.managerId = this.currentId;
+    this.options.set(
+      this.currentId ? [{ label: this.currentName ?? this.currentId, value: this.currentId }] : [],
+    );
+    if (this.canManage && this.staffId) this.search('');
+  }
+
+  search(q: string): void {
+    this.searches.next((q ?? '').trim());
+  }
+
+  private setOptions(
+    people: Array<{ id: string; staffId: string; fullName: string; isActive: boolean }>,
+  ): void {
+    const found = people
+      .filter((s) => s.isActive && s.id !== this.staffId)
+      .map((s) => ({ label: `${s.staffId} — ${s.fullName}`, value: s.id }));
+    const keep =
+      this.currentId && !found.some((o) => o.value === this.currentId)
+        ? [{ label: this.currentName ?? this.currentId, value: this.currentId }]
+        : [];
+    this.options.set([...keep, ...found]);
   }
 
   get changed(): boolean {

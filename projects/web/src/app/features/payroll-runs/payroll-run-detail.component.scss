@@ -1,6 +1,8 @@
 @use 'styles/theme' as *;
 
-.page { padding: 1rem; }
+.page {
+  padding: 1rem;
+}
 
 .back-link {
   display: inline-flex;
@@ -10,7 +12,9 @@
   color: $text-muted;
   font-size: 0.85rem;
   text-decoration: none;
-  &:hover { color: $text-primary; }
+  &:hover {
+    color: $text-primary;
+  }
 }
 
 .page-header {
@@ -20,10 +24,21 @@
   gap: 1rem;
   margin-bottom: 0.75rem;
 }
-.page-title { margin: 0; font-size: 1.4rem; font-weight: 700; }
-.page-subtitle { margin: 0.25rem 0 0; color: $text-muted; font-size: 0.85rem; }
+.page-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: $text-muted;
+  font-size: 0.85rem;
+}
 
-.banner { display: block; margin-bottom: 0.75rem; }
+.banner {
+  display: block;
+  margin-bottom: 0.75rem;
+}
 
 .totals {
   display: grid;
@@ -36,10 +51,22 @@
     border-radius: $radius-md;
     padding: 0.6rem 0.8rem;
   }
-  dt { font-size: 0.7rem; font-weight: 700; color: $text-muted; text-transform: uppercase; letter-spacing: 0.05em; }
-  dd { margin: 0.15rem 0 0; font-size: 1rem; font-weight: 600; }
+  dt {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  dd {
+    margin: 0.15rem 0 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
 }
-.dialog-totals { margin-bottom: 0.5rem; }
+.dialog-totals {
+  margin-bottom: 0.5rem;
+}
 
 .actions {
   display: flex;
@@ -48,10 +75,21 @@
   margin-bottom: 1rem;
 }
 
-.muted { color: $text-muted; font-weight: 400; }
-.num { text-align: right; white-space: nowrap; }
-.td-action { text-align: right; white-space: nowrap; }
-.is-left-out { opacity: 0.7; }
+.muted {
+  color: $text-muted;
+  font-weight: 400;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+.td-action {
+  text-align: right;
+  white-space: nowrap;
+}
+.is-left-out {
+  opacity: 0.7;
+}
 
 .link-btn {
   background: none;
@@ -61,47 +99,112 @@
   color: inherit;
   cursor: pointer;
   text-align: left;
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 }
-.line-who { display: flex; flex-direction: column; min-width: 0; }
+.line-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 
-.side-card { display: block; margin-top: 1rem; }
-.side-title { margin: 0 0 0.4rem; font-size: 1rem; }
-.side-note { margin: 0 0 0.6rem; color: $text-muted; font-size: 0.85rem; }
+.side-card {
+  display: block;
+  margin-top: 1rem;
+}
+.side-title {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+.side-note {
+  margin: 0 0 0.6rem;
+  color: $text-muted;
+  font-size: 0.85rem;
+}
 .plain-list {
+  .muted {
+    margin-left: 0.35rem;
+  }
   margin: 0;
   padding-left: 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   font-size: 0.88rem;
-  li.blocking { color: #b91c1c; }
+  li.blocking {
+    color: #b91c1c;
+  }
 }
-.step-reason { color: $text-muted; font-style: italic; }
+.not-in-run {
+  max-height: 14rem;
+  overflow-y: auto;
+}
+.step-reason {
+  color: $text-muted;
+  font-style: italic;
+}
 
-.group-title { margin: 1rem 0 0.35rem; font-size: 0.78rem; font-weight: 700; color: $text-muted; text-transform: uppercase; letter-spacing: 0.05em; }
+.group-title {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 .payslip {
   width: 100%;
+  min-width: 0; // the global table rule forces 480px, which overflows a phone-width dialog
   border-collapse: collapse;
   font-size: 0.88rem;
-  td { padding: 0.3rem 0; border-bottom: 1px solid $border-subtle; }
+  td {
+    padding: 0.3rem 0;
+    border-bottom: 1px solid $border-subtle;
+  }
 }
 
-.skeleton-row { display: flex; gap: 1rem; padding: 0.6rem 0.25rem; }
-.dialog-intro { margin: 0 0 1rem; color: $text-muted; font-size: 0.85rem; }
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0.25rem;
+}
+.dialog-intro {
+  margin: 0 0 1rem;
+  color: $text-muted;
+  font-size: 0.85rem;
+}
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   margin-bottom: 0.9rem;
-  label { font-size: 0.8rem; font-weight: 600; }
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
 }
-.req { color: #dc2626; }
+.req {
+  color: #dc2626;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+  label {
+    font-size: 0.85rem;
+  }
+}
 
 @media (max-width: 640px) {
-  :host :deep(.p-datatable-table) { display: block; }
-  :host :deep(.p-datatable-thead) { display: none; }
+  :host :deep(.p-datatable-table) {
+    display: block;
+  }
+  :host :deep(.p-datatable-thead) {
+    display: none;
+  }
   :host :deep(.p-datatable-tbody > tr) {
     display: block;
     border: 1px solid $border-subtle;
@@ -118,7 +221,9 @@
     border: none;
     border-bottom: 1px solid $border-subtle;
     font-size: 0.85rem;
-    &:last-child { border-bottom: none; }
+    &:last-child {
+      border-bottom: none;
+    }
     .p-column-title {
       display: block;
       font-size: 0.68rem;
@@ -130,5 +235,8 @@
       flex-shrink: 0;
     }
   }
-  .num, .td-action { text-align: left; }
+  :host :deep(.p-datatable-tbody > tr > td.num),
+  :host :deep(.p-datatable-tbody > tr > td.td-action) {
+    text-align: left;
+  }
 }

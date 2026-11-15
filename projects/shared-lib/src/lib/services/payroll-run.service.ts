@@ -38,10 +38,16 @@ export class PayrollRunService {
   }
 
   recalculate(id: string, expectedVersion: number): Observable<{ version: number }> {
-    return this.http.post<{ version: number }>(`${this.base}/${id}/recalculate`, { expectedVersion });
+    return this.http.post<{ version: number }>(`${this.base}/${id}/recalculate`, {
+      expectedVersion,
+    });
   }
 
-  updateLine(id: string, employeeId: string, body: UpdateRunLineRequest): Observable<{ version: number }> {
+  updateLine(
+    id: string,
+    employeeId: string,
+    body: UpdateRunLineRequest,
+  ): Observable<{ version: number }> {
     return this.http.put<{ version: number }>(`${this.base}/${id}/lines/${employeeId}`, body);
   }
 
@@ -49,16 +55,27 @@ export class PayrollRunService {
     return this.http.post<{ version: number }>(`${this.base}/${id}/submit`, { expectedVersion });
   }
 
-  signOff(id: string, employeeId: string, expectedVersion: number): Observable<{ version: number }> {
-    return this.http.post<{ version: number }>(`${this.base}/${id}/lines/${employeeId}/signoff`, { expectedVersion });
+  signOff(
+    id: string,
+    employeeId: string,
+    expectedVersion: number,
+  ): Observable<{ version: number }> {
+    return this.http.post<{ version: number }>(`${this.base}/${id}/lines/${employeeId}/signoff`, {
+      expectedVersion,
+    });
   }
 
   signOffAll(id: string, expectedVersion: number): Observable<{ signed: number }> {
-    return this.http.post<{ signed: number }>(`${this.base}/${id}/signoff-all`, { expectedVersion });
+    return this.http.post<{ signed: number }>(`${this.base}/${id}/signoff-all`, {
+      expectedVersion,
+    });
   }
 
   returnRun(id: string, reason: string, expectedVersion: number): Observable<{ version: number }> {
-    return this.http.post<{ version: number }>(`${this.base}/${id}/return`, { reason, expectedVersion });
+    return this.http.post<{ version: number }>(`${this.base}/${id}/return`, {
+      reason,
+      expectedVersion,
+    });
   }
 
   approve(id: string, expectedVersion: number): Observable<{ version: number }> {

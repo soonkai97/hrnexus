@@ -24,7 +24,14 @@ interface ItemGroup {
   items: PayrollItemLine[];
 }
 
-const SECTION_ORDER = ['Earning', 'GrossDeduction', 'EmployeeStatutory', 'Tax', 'OtherDeduction', 'EmployerContribution'];
+const SECTION_ORDER = [
+  'Earning',
+  'GrossDeduction',
+  'EmployeeStatutory',
+  'Tax',
+  'OtherDeduction',
+  'EmployerContribution',
+];
 
 /**
  * A manager's view of payroll: only the pay of the people who report to them, once a run has been submitted, with a button to

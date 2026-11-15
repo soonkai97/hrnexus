@@ -1,6 +1,8 @@
 @use 'styles/theme' as *;
 
-.page { padding: 1rem; }
+.page {
+  padding: 1rem;
+}
 
 .page-header {
   display: flex;
@@ -10,30 +12,69 @@
   flex-wrap: wrap;
   margin-bottom: 1rem;
 }
-.page-title { margin: 0; font-size: 1.4rem; font-weight: 700; }
-.page-subtitle { margin: 0.25rem 0 0; color: $text-muted; font-size: 0.85rem; }
+.page-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: $text-muted;
+  font-size: 0.85rem;
+}
 
-.run-card { cursor: pointer; }
-.run-head { justify-content: space-between; gap: 0.5rem; }
-.muted { color: $text-muted; }
-.num { text-align: right; white-space: nowrap; }
-.run-row { cursor: pointer; }
+.run-card {
+  cursor: pointer;
+}
+.run-head {
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.muted {
+  color: $text-muted;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+.run-row {
+  cursor: pointer;
+}
 
-.skeleton-row { display: flex; gap: 1rem; padding: 0.6rem 0.25rem; }
-.empty-state { text-align: center; padding: 2rem; color: $text-muted; }
-.dialog-intro { margin: 0 0 1rem; color: $text-muted; font-size: 0.85rem; }
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0.25rem;
+}
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: $text-muted;
+}
+.dialog-intro {
+  margin: 0 0 1rem;
+  color: $text-muted;
+  font-size: 0.85rem;
+}
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   margin-bottom: 0.9rem;
-  label { font-size: 0.8rem; font-weight: 600; }
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
 }
 
 @media (max-width: 640px) {
-  :host :deep(.p-datatable-table) { display: block; }
-  :host :deep(.p-datatable-thead) { display: none; }
+  :host :deep(.p-datatable-table) {
+    display: block;
+  }
+  :host :deep(.p-datatable-thead) {
+    display: none;
+  }
   :host :deep(.p-datatable-tbody > tr) {
     display: block;
     border: 1px solid $border-subtle;
@@ -50,7 +91,9 @@
     border: none;
     border-bottom: 1px solid $border-subtle;
     font-size: 0.85rem;
-    &:last-child { border-bottom: none; }
+    &:last-child {
+      border-bottom: none;
+    }
     .p-column-title {
       display: block;
       font-size: 0.68rem;
@@ -62,5 +105,7 @@
       flex-shrink: 0;
     }
   }
-  .num { text-align: left; }
+  .num {
+    text-align: left;
+  }
 }

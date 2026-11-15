@@ -21,13 +21,28 @@ describe('PayrollRunsComponent', () => {
   let manage = false;
 
   const run = (over: Partial<PayrollRunSummary> = {}): PayrollRunSummary => ({
-    id: 'r1', year: 2026, month: 10, state: 'draft', version: 1, people: 4, leftOut: 0, signedOff: 0,
-    totalGross: 1, totalNet: 1, totalEmployerCost: 1, createdAt: 'x', exportedAt: null, ...over,
+    id: 'r1',
+    year: 2026,
+    month: 10,
+    state: 'draft',
+    version: 1,
+    people: 4,
+    leftOut: 0,
+    signedOff: 0,
+    totalGross: 1,
+    totalNet: 1,
+    totalEmployerCost: 1,
+    createdAt: 'x',
+    exportedAt: null,
+    ...over,
   });
 
   beforeEach(async () => {
     manage = false;
-    svc = { list: vi.fn().mockReturnValue(of([run()])), start: vi.fn().mockReturnValue(of({ id: 'new' })) };
+    svc = {
+      list: vi.fn().mockReturnValue(of([run()])),
+      start: vi.fn().mockReturnValue(of({ id: 'new' })),
+    };
     toast = { error: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [PayrollRunsComponent],
@@ -35,7 +50,10 @@ describe('PayrollRunsComponent', () => {
         provideHttpClient(),
         provideRouter([]),
         { provide: PayrollRunService, useValue: svc },
-        { provide: PermissionService, useValue: { has: (k: string) => manage && k === 'payroll.manage' } },
+        {
+          provide: PermissionService,
+          useValue: { has: (k: string) => manage && k === 'payroll.manage' },
+        },
         { provide: ToastService, useValue: toast },
         MessageService,
         ConfirmationService,
@@ -61,7 +79,9 @@ describe('PayrollRunsComponent', () => {
   });
 
   it('shows the server reason when the list cannot be loaded', () => {
-    svc.list.mockReturnValue(throwError(() => ({ error: { error: 'You are not allowed to see this.' } })));
+    svc.list.mockReturnValue(
+      throwError(() => ({ error: { error: 'You are not allowed to see this.' } })),
+    );
 
     component.ngOnInit();
 
@@ -76,12 +96,14 @@ describe('PayrollRunsComponent', () => {
 
   it('reads the sign-off progress, and shows nothing for a draft', () => {
     expect(component.progress(run({ state: 'draft' }))).toBe('—');
-    expect(component.progress(run({ state: 'submitted', people: 4, signedOff: 3 }))).toBe('3 of 4 signed');
+    expect(component.progress(run({ state: 'submitted', people: 4, signedOff: 3 }))).toBe(
+      '3 of 4 signed',
+    );
   });
 
   it('opens the start dialog on last month', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 10, 14));   // 14 November 2026
+    vi.setSystemTime(new Date(2026, 10, 14)); // 14 November 2026
     component.openStart();
     vi.useRealTimers();
 
@@ -112,7 +134,9 @@ describe('PayrollRunsComponent', () => {
   });
 
   it('a refused start shows the reason and keeps the dialog open', () => {
-    svc.start.mockReturnValue(throwError(() => ({ error: { error: 'The 2026-09 payroll run is not locked yet.' } })));
+    svc.start.mockReturnValue(
+      throwError(() => ({ error: { error: 'The 2026-09 payroll run is not locked yet.' } })),
+    );
     component.showStart.set(true);
 
     component.start();

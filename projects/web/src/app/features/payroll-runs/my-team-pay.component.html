@@ -7,13 +7,25 @@
   @if (runsLoading()) {
     <div class="skeleton-row"><p-skeleton width="30%" height="0.8rem" /></div>
   } @else if (runs().length === 0) {
-    <p-message severity="info" text="Nothing is waiting for you. When a payroll run is submitted, your team's pay appears here." />
+    <p-message
+      severity="info"
+      text="Nothing is waiting for you. When a payroll run is submitted, your team's pay appears here."
+    />
   } @else {
     <div class="run-tabs" role="tablist">
       @for (r of runs(); track r.runId) {
-        <button type="button" role="tab" class="run-tab" [class.is-active]="r.runId === selectedId()" [attr.aria-selected]="r.runId === selectedId()" (click)="select(r.runId)">
+        <button
+          type="button"
+          role="tab"
+          class="run-tab"
+          [class.is-active]="r.runId === selectedId()"
+          [attr.aria-selected]="r.runId === selectedId()"
+          (click)="select(r.runId)"
+        >
           {{ monthLabel(r.year, r.month) }}
-          @if (r.toSign > 0) { <span class="badge">{{ r.toSign }}</span> }
+          @if (r.toSign > 0) {
+            <span class="badge">{{ r.toSign }}</span>
+          }
         </button>
       }
     </div>
@@ -37,15 +49,24 @@
               </div>
             </div>
             <dl class="nc-card-meta">
-              <div><dt>Gross</dt><dd>{{ rm(l.gross) }}</dd></div>
-              <div><dt>Net</dt><dd>{{ rm(l.net) }}</dd></div>
+              <div>
+                <dt>Gross</dt>
+                <dd>{{ rm(l.gross) }}</dd>
+              </div>
+              <div>
+                <dt>Net</dt>
+                <dd>{{ rm(l.net) }}</dd>
+              </div>
             </dl>
             @for (g of groups(l); track g.section) {
               <h4 class="group-title">{{ g.label }}</h4>
               <table class="payslip">
                 <tbody>
                   @for (i of g.items; track $index) {
-                    <tr><td>{{ i.description }}</td><td class="num">{{ rm(i.amount) }}</td></tr>
+                    <tr>
+                      <td>{{ i.description }}</td>
+                      <td class="num">{{ rm(i.amount) }}</td>
+                    </tr>
                   }
                 </tbody>
               </table>
@@ -53,14 +74,23 @@
             @if (l.warnings.length > 0) {
               <h4 class="group-title">Notes</h4>
               <ul class="plain-list">
-                @for (w of l.warnings; track $index) { <li>{{ w.message }}</li> }
+                @for (w of l.warnings; track $index) {
+                  <li>{{ w.message }}</li>
+                }
               </ul>
             }
             <div class="nc-card-foot">
               @if (l.signedOffBy) {
                 <p-tag severity="success" [value]="'Signed: ' + l.signedOffByName" />
               } @else if (canSign()) {
-                <p-button label="Sign off" icon="pi pi-check" size="small" [disabled]="busy()" [loading]="busy()" (onClick)="signOff(l)" />
+                <p-button
+                  label="Sign off"
+                  icon="pi pi-check"
+                  size="small"
+                  [disabled]="busy()"
+                  [loading]="busy()"
+                  (onClick)="signOff(l)"
+                />
               } @else {
                 <span class="muted">Not open for sign-off</span>
               }

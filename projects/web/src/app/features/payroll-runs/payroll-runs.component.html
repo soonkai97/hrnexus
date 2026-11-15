@@ -2,10 +2,17 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Payroll Runs</h1>
-      <p class="page-subtitle">One run a month: prepare it, have each person's pay signed off, approve it, then lock it.</p>
+      <p class="page-subtitle">
+        One run a month: prepare it, have each person's pay signed off, approve it, then lock it.
+      </p>
     </div>
     @if (canStart) {
-      <p-button label="Start a month" icon="pi pi-plus" severity="primary" (onClick)="openStart()" />
+      <p-button
+        label="Start a month"
+        icon="pi pi-plus"
+        severity="primary"
+        (onClick)="openStart()"
+      />
     }
   </div>
 
@@ -14,7 +21,9 @@
   @if (loading()) {
     <p-card styleClass="table-card">
       @for (i of [1, 2, 3]; track i) {
-        <div class="skeleton-row"><p-skeleton width="25%" height="0.7rem" /><p-skeleton width="50%" height="0.7rem" /></div>
+        <div class="skeleton-row">
+          <p-skeleton width="25%" height="0.7rem" /><p-skeleton width="50%" height="0.7rem" />
+        </div>
       }
     </p-card>
   } @else if (empty()) {
@@ -24,23 +33,52 @@
   } @else if (viewMode() === 'cards') {
     <ul class="nc-card-grid">
       @for (r of runs(); track r.id) {
-        <li class="nc-card run-card" (click)="open(r)" (keydown.enter)="open(r)" tabindex="0" role="link" [attr.aria-label]="monthLabel(r.year, r.month)">
+        <li
+          class="nc-card run-card"
+          (click)="open(r)"
+          (keydown.enter)="open(r)"
+          tabindex="0"
+          role="link"
+          [attr.aria-label]="monthLabel(r.year, r.month)"
+        >
           <div class="nc-card-head run-head">
             <span class="nc-card-title">{{ monthLabel(r.year, r.month) }}</span>
             <p-tag [value]="tag(r.state).label" [severity]="tag(r.state).severity" />
           </div>
           <dl class="nc-card-meta">
-            <div><dt>People</dt><dd>{{ r.people }}@if (r.leftOut > 0) { <span class="muted"> (+{{ r.leftOut }} left out)</span> }</dd></div>
-            <div><dt>Sign-off</dt><dd>{{ progress(r) }}</dd></div>
-            <div><dt>Gross</dt><dd>{{ rm(r.totalGross) }}</dd></div>
-            <div><dt>Net</dt><dd>{{ rm(r.totalNet) }}</dd></div>
+            <div>
+              <dt>People</dt>
+              <dd>
+                {{ r.people }}
+                @if (r.leftOut > 0) {
+                  <span class="muted"> (+{{ r.leftOut }} left out)</span>
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>Sign-off</dt>
+              <dd>{{ progress(r) }}</dd>
+            </div>
+            <div>
+              <dt>Gross</dt>
+              <dd>{{ rm(r.totalGross) }}</dd>
+            </div>
+            <div>
+              <dt>Net</dt>
+              <dd>{{ rm(r.totalNet) }}</dd>
+            </div>
           </dl>
         </li>
       }
     </ul>
   } @else {
     <p-card styleClass="table-card">
-      <p-table [value]="runs()" [tableStyle]="{ 'min-width': '100%' }" selectionMode="single" (onRowSelect)="open($any($event).data)">
+      <p-table
+        [value]="runs()"
+        [tableStyle]="{ 'min-width': '100%' }"
+        selectionMode="single"
+        (onRowSelect)="open($any($event).data)"
+      >
         <ng-template pTemplate="header">
           <tr>
             <th>Month</th>
@@ -53,9 +91,20 @@
         </ng-template>
         <ng-template pTemplate="body" let-r>
           <tr [pSelectableRow]="r" class="run-row">
-            <td><span class="p-column-title">Month</span><strong>{{ monthLabel(r.year, r.month) }}</strong></td>
-            <td><span class="p-column-title">State</span><p-tag [value]="tag(r.state).label" [severity]="tag(r.state).severity" /></td>
-            <td><span class="p-column-title">People</span>{{ r.people }}@if (r.leftOut > 0) { <span class="muted"> (+{{ r.leftOut }} left out)</span> }</td>
+            <td>
+              <span class="p-column-title">Month</span
+              ><strong>{{ monthLabel(r.year, r.month) }}</strong>
+            </td>
+            <td>
+              <span class="p-column-title">State</span
+              ><p-tag [value]="tag(r.state).label" [severity]="tag(r.state).severity" />
+            </td>
+            <td>
+              <span class="p-column-title">People</span>{{ r.people }}
+              @if (r.leftOut > 0) {
+                <span class="muted"> (+{{ r.leftOut }} left out)</span>
+              }
+            </td>
             <td><span class="p-column-title">Sign-off</span>{{ progress(r) }}</td>
             <td class="num"><span class="p-column-title">Gross</span>{{ rm(r.totalGross) }}</td>
             <td class="num"><span class="p-column-title">Net</span>{{ rm(r.totalNet) }}</td>
@@ -74,18 +123,46 @@
     [draggable]="false"
     appendTo="body"
   >
-    <p class="dialog-intro">Everyone who works in the month and has a salary is calculated for you. You can change their inputs before submitting.</p>
+    <p class="dialog-intro">
+      Everyone who works in the month and has a salary is calculated for you. You can change their
+      inputs before submitting.
+    </p>
     <div class="field">
       <label for="pr-month">Month</label>
-      <p-select inputId="pr-month" [options]="monthOptions" [(ngModel)]="startMonth" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full" />
+      <p-select
+        inputId="pr-month"
+        [options]="monthOptions"
+        [(ngModel)]="startMonth"
+        optionLabel="label"
+        optionValue="value"
+        appendTo="body"
+        styleClass="w-full"
+      />
     </div>
     <div class="field">
       <label for="pr-year">Year</label>
-      <p-inputnumber inputId="pr-year" [(ngModel)]="startYear" [useGrouping]="false" [min]="2000" [max]="2200" />
+      <p-inputnumber
+        inputId="pr-year"
+        [(ngModel)]="startYear"
+        [useGrouping]="false"
+        [min]="2000"
+        [max]="2200"
+      />
     </div>
     <ng-template pTemplate="footer">
-      <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="showStart.set(false)" />
-      <p-button label="Start" severity="primary" [disabled]="!isStartValid || starting()" [loading]="starting()" (onClick)="start()" />
+      <p-button
+        label="Cancel"
+        [text]="true"
+        severity="secondary"
+        (onClick)="showStart.set(false)"
+      />
+      <p-button
+        label="Start"
+        severity="primary"
+        [disabled]="!isStartValid || starting()"
+        [loading]="starting()"
+        (onClick)="start()"
+      />
     </ng-template>
   </p-dialog>
 </div>

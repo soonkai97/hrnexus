@@ -24,8 +24,18 @@ import {
 } from 'shared-lib';
 
 const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 /**
@@ -36,7 +46,19 @@ const MONTH_NAMES = [
 @Component({
   selector: 'app-payroll-runs',
   standalone: true,
-  imports: [FormsModule, Button, Card, Dialog, InputNumber, PrimeTemplate, Select, Skeleton, TableModule, Tag, ViewToggleComponent],
+  imports: [
+    FormsModule,
+    Button,
+    Card,
+    Dialog,
+    InputNumber,
+    PrimeTemplate,
+    Select,
+    Skeleton,
+    TableModule,
+    Tag,
+    ViewToggleComponent,
+  ],
   templateUrl: './payroll-runs.component.html',
   styleUrl: './payroll-runs.component.scss',
 })
@@ -106,7 +128,12 @@ export class PayrollRunsComponent implements OnInit {
   }
 
   get isStartValid(): boolean {
-    return this.startYear >= 2000 && this.startYear <= 2200 && this.startMonth >= 1 && this.startMonth <= 12;
+    return (
+      this.startYear >= 2000 &&
+      this.startYear <= 2200 &&
+      this.startMonth >= 1 &&
+      this.startMonth <= 12
+    );
   }
 
   start(): void {

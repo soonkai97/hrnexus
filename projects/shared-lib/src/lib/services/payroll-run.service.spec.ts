@@ -34,7 +34,9 @@ describe('PayrollRunService', () => {
     http.expectOne((r) => r.url === '/api/payroll/runs/r1' && !r.params.has('notInRun')).flush({});
 
     service.get('r1', true).subscribe();
-    const req = http.expectOne((r) => r.url === '/api/payroll/runs/r1' && r.params.get('notInRun') === 'true');
+    const req = http.expectOne(
+      (r) => r.url === '/api/payroll/runs/r1' && r.params.get('notInRun') === 'true',
+    );
     expect(req.request.method).toBe('GET');
     req.flush({});
   });
@@ -55,10 +57,22 @@ describe('PayrollRunService', () => {
   });
 
   it('updateLine() PUTs the inputs with the version the page read', () => {
-    service.updateLine('r1', 'e1', { pcb: 120, excluded: false, excludedReason: null, expectedVersion: 7 }).subscribe();
+    service
+      .updateLine('r1', 'e1', {
+        pcb: 120,
+        excluded: false,
+        excludedReason: null,
+        expectedVersion: 7,
+      })
+      .subscribe();
     const req = http.expectOne('/api/payroll/runs/r1/lines/e1');
     expect(req.request.method).toBe('PUT');
-    expect(req.request.body).toEqual({ pcb: 120, excluded: false, excludedReason: null, expectedVersion: 7 });
+    expect(req.request.body).toEqual({
+      pcb: 120,
+      excluded: false,
+      excludedReason: null,
+      expectedVersion: 7,
+    });
     req.flush({ version: 8 });
   });
 

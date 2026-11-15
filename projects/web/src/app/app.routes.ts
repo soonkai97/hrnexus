@@ -79,13 +79,17 @@ export const routes: Routes = [
         path: 'payroll-runs',
         canActivate: [permissionGuard('payroll.view', '/home')],
         loadComponent: () =>
-          import('./features/payroll-runs/payroll-runs.component').then((m) => m.PayrollRunsComponent),
+          import('./features/payroll-runs/payroll-runs.component').then(
+            (m) => m.PayrollRunsComponent,
+          ),
       },
       {
         path: 'payroll-runs/:id',
         canActivate: [permissionGuard('payroll.view', '/home')],
         loadComponent: () =>
-          import('./features/payroll-runs/payroll-run-detail.component').then((m) => m.PayrollRunDetailComponent),
+          import('./features/payroll-runs/payroll-run-detail.component').then(
+            (m) => m.PayrollRunDetailComponent,
+          ),
       },
       {
         path: 'my-team-pay',

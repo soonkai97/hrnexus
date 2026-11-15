@@ -36,7 +36,9 @@ export class PayrollService {
 
   /** Sets the last day the item applies (how an item a payroll run has used stops). */
   endPayItem(staffId: string, itemId: string, to: string): Observable<void> {
-    return this.http.put<void>(this.url(staffId, `pay-items/${encodeURIComponent(itemId)}/end`), { to });
+    return this.http.put<void>(this.url(staffId, `pay-items/${encodeURIComponent(itemId)}/end`), {
+      to,
+    });
   }
 
   deletePayItem(staffId: string, itemId: string): Observable<void> {

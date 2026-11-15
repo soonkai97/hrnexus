@@ -40,7 +40,14 @@ interface ItemGroup {
   items: PayrollItemLine[];
 }
 
-const SECTION_ORDER = ['Earning', 'GrossDeduction', 'EmployeeStatutory', 'Tax', 'OtherDeduction', 'EmployerContribution'];
+const SECTION_ORDER = [
+  'Earning',
+  'GrossDeduction',
+  'EmployeeStatutory',
+  'Tax',
+  'OtherDeduction',
+  'EmployerContribution',
+];
 
 /**
  * One month's payroll run in full: its state and what to do next, every person's figures, and the steps taken so far. Each
@@ -52,7 +59,23 @@ const SECTION_ORDER = ['Earning', 'GrossDeduction', 'EmployeeStatutory', 'Tax', 
 @Component({
   selector: 'app-payroll-run-detail',
   standalone: true,
-  imports: [DatePipe, RouterLink, FormsModule, Button, Card, Checkbox, Dialog, InputNumber, Message, PrimeTemplate, Skeleton, TableModule, Tag, Textarea, ViewToggleComponent],
+  imports: [
+    DatePipe,
+    RouterLink,
+    FormsModule,
+    Button,
+    Card,
+    Checkbox,
+    Dialog,
+    InputNumber,
+    Message,
+    PrimeTemplate,
+    Skeleton,
+    TableModule,
+    Tag,
+    Textarea,
+    ViewToggleComponent,
+  ],
   templateUrl: './payroll-run-detail.component.html',
   styleUrl: './payroll-run-detail.component.scss',
 })
@@ -89,17 +112,28 @@ export class PayrollRunDetailComponent implements OnInit {
   readonly unverified = computed(() => this.detail()?.unverifiedRates ?? []);
   /** A run that was returned or reopened has history that must stay, so it cannot be deleted. */
   readonly canDeleteRun = computed(
-    () => !(this.detail()?.steps ?? []).some((s) => s.action === 'returned' || s.action === 'reopened'),
+    () =>
+      !(this.detail()?.steps ?? []).some((s) => s.action === 'returned' || s.action === 'reopened'),
   );
 
   private get me(): string | undefined {
     return this.auth.user()?.id;
   }
-  get canManage(): boolean { return this.perms.has('payroll.manage'); }
-  get canApprove(): boolean { return this.perms.has('payroll.approve'); }
-  get canSignoff(): boolean { return this.perms.has('payroll.signoff'); }
-  get canLock(): boolean { return this.perms.has('payroll.lock'); }
-  get canReopen(): boolean { return this.perms.has('payroll.reopen'); }
+  get canManage(): boolean {
+    return this.perms.has('payroll.manage');
+  }
+  get canApprove(): boolean {
+    return this.perms.has('payroll.approve');
+  }
+  get canSignoff(): boolean {
+    return this.perms.has('payroll.signoff');
+  }
+  get canLock(): boolean {
+    return this.perms.has('payroll.lock');
+  }
+  get canReopen(): boolean {
+    return this.perms.has('payroll.reopen');
+  }
 
   ngOnInit(): void {
     this.load();
@@ -149,9 +183,15 @@ export class PayrollRunDetailComponent implements OnInit {
     if (!s) return { severity: 'info', text: '' };
     switch (s.state) {
       case 'draft':
-        return { severity: 'info', text: 'Draft. Check each person, add their PCB where it applies, then submit the run for sign-off.' };
+        return {
+          severity: 'info',
+          text: 'Draft. Check each person, add their PCB where it applies, then submit the run for sign-off.',
+        };
       case 'submitted':
-        return { severity: 'info', text: `${s.signedOff} of ${s.people} signed off. The head of HR approves once every line is signed.` };
+        return {
+          severity: 'info',
+          text: `${s.signedOff} of ${s.people} signed off. The head of HR approves once every line is signed.`,
+        };
       case 'approved':
         return { severity: 'warn', text: 'Approved. Lock it once the month has been paid.' };
       case 'locked':
@@ -159,12 +199,20 @@ export class PayrollRunDetailComponent implements OnInit {
     }
   }
 
+  /**
+   * A warning that stops the run being submitted. An unverified rate is blocking in the calculator but does not stop a submit
+   * (the accountant verifies it before approval, and the page says so above), so it is shown as a note, not as "to fix".
+   */
+  mustFix(w: { code: string; blocking: boolean }): boolean {
+    return w.blocking && w.code !== 'unverified-rate';
+  }
+
   blockingCount(l: PayrollRunLine): number {
-    return l.warnings.filter((w) => w.blocking).length;
+    return l.warnings.filter((w) => this.mustFix(w)).length;
   }
 
   noteCount(l: PayrollRunLine): number {
-    return l.warnings.filter((w) => !w.blocking).length;
+    return l.warnings.filter((w) => !this.mustFix(w)).length;
   }
 
   groups(l: PayrollRunLine): ItemGroup[] {
@@ -176,7 +224,13 @@ export class PayrollRunDetailComponent implements OnInit {
   }
 
   canSignLine(l: PayrollRunLine): boolean {
-    return this.state() === 'submitted' && !l.excluded && !l.signedOffBy && (this.canApprove || this.canSignoff) && l.employeeId !== this.me;
+    return (
+      this.state() === 'submitted' &&
+      !l.excluded &&
+      !l.signedOffBy &&
+      (this.canApprove || this.canSignoff) &&
+      l.employeeId !== this.me
+    );
   }
 
   // ── Draft: recalculate, submit, delete ───────────────────────────────────────
@@ -190,16 +244,29 @@ export class PayrollRunDetailComponent implements OnInit {
   }
 
   deleteRun(): void {
-    this.confirmSvc.confirm({ message: 'Delete this draft run? Nothing has been approved or deducted yet.', danger: true }).subscribe((ok) => {
-      if (!ok) return;
-      this.act(this.svc.delete(this.id), 'Draft run deleted.', () => void this.router.navigate(['/payroll-runs']));
-    });
+    this.confirmSvc
+      .confirm({
+        title: 'Delete payroll run',
+        message: 'Delete this draft run? Nothing has been approved or deducted yet.',
+        confirmLabel: 'Delete',
+        danger: true,
+      })
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.act(
+          this.svc.delete(this.id),
+          'Draft run deleted.',
+          () => void this.router.navigate(['/payroll-runs']),
+        );
+      });
   }
 
   // ── Review: sign off, approve, return ────────────────────────────────────────
 
   signOff(l: PayrollRunLine): void {
-    this.act(this.svc.signOff(this.id, l.employeeId, this.version), `Signed off ${l.name}.`, () => this.selected.set(null));
+    this.act(this.svc.signOff(this.id, l.employeeId, this.version), `Signed off ${l.name}.`, () =>
+      this.selected.set(null),
+    );
   }
 
   signOffAll(): void {
@@ -207,9 +274,13 @@ export class PayrollRunDetailComponent implements OnInit {
   }
 
   approve(): void {
-    this.confirmSvc.confirm({ message: `Approve ${monthLabel(this.summary()!.year, this.summary()!.month)}? Every line is signed off.` }).subscribe((ok) => {
-      if (ok) this.act(this.svc.approve(this.id, this.version), 'Approved.');
-    });
+    this.confirmSvc
+      .confirm({
+        message: `Approve ${monthLabel(this.summary()!.year, this.summary()!.month)}? Every line is signed off.`,
+      })
+      .subscribe((ok) => {
+        if (ok) this.act(this.svc.approve(this.id, this.version), 'Approved.');
+      });
   }
 
   readonly showReturn = signal(false);
@@ -222,21 +293,36 @@ export class PayrollRunDetailComponent implements OnInit {
 
   confirmReturn(): void {
     if (!this.returnReason.trim()) return;
-    this.act(this.svc.returnRun(this.id, this.returnReason.trim(), this.version), 'Returned for changes.', () => this.showReturn.set(false));
+    this.act(
+      this.svc.returnRun(this.id, this.returnReason.trim(), this.version),
+      'Returned for changes.',
+      () => this.showReturn.set(false),
+    );
   }
 
   // ── Lock and reopen ──────────────────────────────────────────────────────────
 
   lock(): void {
-    this.confirmSvc.confirm({ message: 'Lock this month? It marks the month as paid and records the cash advance repayments that were taken.' }).subscribe((ok) => {
-      if (ok) this.act(this.svc.lock(this.id), 'Locked.');
-    });
+    this.confirmSvc
+      .confirm({
+        message:
+          'Lock this month? It marks the month as paid and records the cash advance repayments that were taken.',
+      })
+      .subscribe((ok) => {
+        if (ok) this.act(this.svc.lock(this.id), 'Locked.');
+      });
   }
 
   reopen(): void {
-    this.confirmSvc.confirm({ message: 'Reopen this month for correction? The lock and this run\'s cash advance repayments are undone.', danger: true }).subscribe((ok) => {
-      if (ok) this.act(this.svc.reopen(this.id), 'Reopened as a draft.');
-    });
+    this.confirmSvc
+      .confirm({
+        message:
+          "Reopen this month for correction? The lock and this run's cash advance repayments are undone.",
+        danger: true,
+      })
+      .subscribe((ok) => {
+        if (ok) this.act(this.svc.reopen(this.id), 'Reopened as a draft.');
+      });
   }
 
   // ── One person ───────────────────────────────────────────────────────────────
@@ -258,7 +344,10 @@ export class PayrollRunDetailComponent implements OnInit {
   }
 
   get isLineValid(): boolean {
-    return (this.editPcb === null || this.editPcb >= 0) && (!this.editExcluded || this.editReason.trim().length > 0);
+    return (
+      (this.editPcb === null || this.editPcb >= 0) &&
+      (!this.editExcluded || this.editReason.trim().length > 0)
+    );
   }
 
   saveLine(): void {

@@ -20,8 +20,18 @@ describe('PayItemsComponent', () => {
   let confirmSvc: { confirm: ReturnType<typeof vi.fn> };
 
   const item = (over: Partial<PayItem> = {}): PayItem => ({
-    id: 'i1', kind: 'allowance', reason: 'Transport', amount: 150, countsForEpf: true, countsForSocsoEis: false, priority: 0,
-    from: '2026-01-01', to: null, createdAt: 'x', inUse: false, ...over,
+    id: 'i1',
+    kind: 'allowance',
+    reason: 'Transport',
+    amount: 150,
+    countsForEpf: true,
+    countsForSocsoEis: false,
+    priority: 0,
+    from: '2026-01-01',
+    to: null,
+    createdAt: 'x',
+    inUse: false,
+    ...over,
   });
 
   beforeEach(async () => {
@@ -50,16 +60,29 @@ describe('PayItemsComponent', () => {
   });
 
   it('loads the items of the person when the id arrives', () => {
-    component.ngOnChanges({ staffId: { currentValue: 's1', previousValue: '', firstChange: true, isFirstChange: () => true } });
+    component.ngOnChanges({
+      staffId: {
+        currentValue: 's1',
+        previousValue: '',
+        firstChange: true,
+        isFirstChange: () => true,
+      },
+    });
 
     expect(svc['getPayItems']).toHaveBeenCalledWith('s1');
     expect(component.items()).toHaveLength(1);
   });
 
   it('explains what an allowance counts towards', () => {
-    expect(component.countsText(item({ countsForEpf: true, countsForSocsoEis: true }))).toBe('EPF and SOCSO and EIS');
-    expect(component.countsText(item({ countsForEpf: true, countsForSocsoEis: false }))).toBe('EPF');
-    expect(component.countsText(item({ countsForEpf: false, countsForSocsoEis: false }))).toBe('neither EPF nor SOCSO');
+    expect(component.countsText(item({ countsForEpf: true, countsForSocsoEis: true }))).toBe(
+      'EPF and SOCSO and EIS',
+    );
+    expect(component.countsText(item({ countsForEpf: true, countsForSocsoEis: false }))).toBe(
+      'EPF',
+    );
+    expect(component.countsText(item({ countsForEpf: false, countsForSocsoEis: false }))).toBe(
+      'neither EPF nor SOCSO',
+    );
   });
 
   it('knows an item with a past end date has ended', () => {
@@ -99,7 +122,14 @@ describe('PayItemsComponent', () => {
     component.add();
 
     expect(svc['addPayItem']).toHaveBeenCalledWith('s1', {
-      kind: 'allowance', reason: 'Transport', amount: 150, countsForEpf: true, countsForSocsoEis: true, priority: 0, from: '2026-01-01', to: null,
+      kind: 'allowance',
+      reason: 'Transport',
+      amount: 150,
+      countsForEpf: true,
+      countsForSocsoEis: true,
+      priority: 0,
+      from: '2026-01-01',
+      to: null,
     });
     expect(component.showAdd()).toBe(false);
   });
@@ -115,11 +145,21 @@ describe('PayItemsComponent', () => {
 
     component.add();
 
-    expect(svc['addPayItem']).toHaveBeenCalledWith('s1', expect.objectContaining({ kind: 'deduction', priority: 3, to: '2026-12-31' }));
+    expect(svc['addPayItem']).toHaveBeenCalledWith(
+      's1',
+      expect.objectContaining({ kind: 'deduction', priority: 3, to: '2026-12-31' }),
+    );
   });
 
   it('shows the server reason when an item is refused, and keeps the dialog open', () => {
-    svc['addPayItem'].mockReturnValue(throwError(() => ({ error: { error: 'A payroll run that is already submitted or locked covers that month for this person, so the item cannot start then.' } })));
+    svc['addPayItem'].mockReturnValue(
+      throwError(() => ({
+        error: {
+          error:
+            'A payroll run that is already submitted or locked covers that month for this person, so the item cannot start then.',
+        },
+      })),
+    );
     component.openAdd();
     component.form.reason = 'Transport';
     component.form.amount = 150;
@@ -151,7 +191,14 @@ describe('PayItemsComponent', () => {
   });
 
   it('a delete the server refuses (a locked month used the item) shows why', () => {
-    svc['deletePayItem'].mockReturnValue(throwError(() => ({ error: { error: 'A payroll run that is already submitted or locked used this item, so it cannot be deleted. End it instead.' } })));
+    svc['deletePayItem'].mockReturnValue(
+      throwError(() => ({
+        error: {
+          error:
+            'A payroll run that is already submitted or locked used this item, so it cannot be deleted. End it instead.',
+        },
+      })),
+    );
 
     component.remove(item());
 

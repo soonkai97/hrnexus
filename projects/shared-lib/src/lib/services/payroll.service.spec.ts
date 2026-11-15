@@ -72,7 +72,16 @@ describe('PayrollService', () => {
   });
 
   it('addPayItem() POSTs the item', () => {
-    const body = { kind: 'allowance' as const, reason: 'Transport', amount: 150, countsForEpf: true, countsForSocsoEis: true, priority: 0, from: '2026-01-01', to: null };
+    const body = {
+      kind: 'allowance' as const,
+      reason: 'Transport',
+      amount: 150,
+      countsForEpf: true,
+      countsForSocsoEis: true,
+      priority: 0,
+      from: '2026-01-01',
+      to: null,
+    };
     service.addPayItem('s1', body).subscribe();
     const req = http.expectOne('/api/staff/s1/pay-items');
     expect(req.request.method).toBe('POST');

@@ -4,7 +4,15 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Router } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AuthService, ConfirmService, PayrollRunDetail, PayrollRunLine, PayrollRunService, PermissionService, ToastService } from 'shared-lib';
+import {
+  AuthService,
+  ConfirmService,
+  PayrollRunDetail,
+  PayrollRunLine,
+  PayrollRunService,
+  PermissionService,
+  ToastService,
+} from 'shared-lib';
 import { PayrollRunDetailComponent } from './payroll-run-detail.component';
 
 /**
@@ -24,20 +32,57 @@ describe('PayrollRunDetailComponent', () => {
   const me = 'me-id';
 
   const line = (over: Partial<PayrollRunLine> = {}): PayrollRunLine => ({
-    employeeId: 'e1', staffId: 'ALICE', name: 'Alice Tan', excluded: false, excludedReason: null, pcb: null, calculated: true,
-    gross: 3000, net: 2500, employerCost: 3300, unappliedDeductions: 0, warnings: [], items: [], unpaidDays: [],
-    signedOffBy: null, signedOffByName: null, signedOffAt: null, ...over,
+    employeeId: 'e1',
+    staffId: 'ALICE',
+    name: 'Alice Tan',
+    excluded: false,
+    excludedReason: null,
+    pcb: null,
+    calculated: true,
+    gross: 3000,
+    net: 2500,
+    employerCost: 3300,
+    unappliedDeductions: 0,
+    warnings: [],
+    items: [],
+    unpaidDays: [],
+    signedOffBy: null,
+    signedOffByName: null,
+    signedOffAt: null,
+    ...over,
   });
 
-  const detail = (state: PayrollRunDetail['summary']['state'], lines: PayrollRunLine[] = [line()], over: Partial<PayrollRunDetail> = {}): PayrollRunDetail => ({
+  const detail = (
+    state: PayrollRunDetail['summary']['state'],
+    lines: PayrollRunLine[] = [line()],
+    over: Partial<PayrollRunDetail> = {},
+  ): PayrollRunDetail => ({
     summary: {
-      id: 'r1', year: 2026, month: 10, state, version: 7, people: lines.filter((l) => !l.excluded).length, leftOut: 0,
-      signedOff: lines.filter((l) => l.signedOffBy).length, totalGross: 3000, totalNet: 2500, totalEmployerCost: 3300,
-      createdAt: '2026-11-01T00:00:00Z', exportedAt: null,
+      id: 'r1',
+      year: 2026,
+      month: 10,
+      state,
+      version: 7,
+      people: lines.filter((l) => !l.excluded).length,
+      leftOut: 0,
+      signedOff: lines.filter((l) => l.signedOffBy).length,
+      totalGross: 3000,
+      totalNet: 2500,
+      totalEmployerCost: 3300,
+      createdAt: '2026-11-01T00:00:00Z',
+      exportedAt: null,
     },
-    calculatorVersion: '1', divisor: 26, hoursPerWorkingDay: 8, deductionCapRate: 0.5,
-    lines, steps: [{ action: 'started', staffId: 'p', name: 'Prep', at: '2026-11-01T00:00:00Z', reason: null }],
-    unverifiedRates: [], notInRun: [], ...over,
+    calculatorVersion: '1',
+    divisor: 26,
+    hoursPerWorkingDay: 8,
+    deductionCapRate: 0.5,
+    lines,
+    steps: [
+      { action: 'started', staffId: 'p', name: 'Prep', at: '2026-11-01T00:00:00Z', reason: null },
+    ],
+    unverifiedRates: [],
+    notInRun: [],
+    ...over,
   });
 
   function load(d: PayrollRunDetail): void {
@@ -128,10 +173,20 @@ describe('PayrollRunDetailComponent', () => {
   });
 
   it('Approve waits until every included line is signed; a line that is left out needs no signature', () => {
-    load(detail('submitted', [line({ signedOffBy: 'm', signedOffByName: 'M' }), line({ employeeId: 'x', excluded: true, excludedReason: 'away' })]));
+    load(
+      detail('submitted', [
+        line({ signedOffBy: 'm', signedOffByName: 'M' }),
+        line({ employeeId: 'x', excluded: true, excludedReason: 'away' }),
+      ]),
+    );
     expect(component.allSigned()).toBe(true);
 
-    load(detail('submitted', [line({ signedOffBy: 'm', signedOffByName: 'M' }), line({ employeeId: 'y' })]));
+    load(
+      detail('submitted', [
+        line({ signedOffBy: 'm', signedOffByName: 'M' }),
+        line({ employeeId: 'y' }),
+      ]),
+    );
     expect(component.allSigned()).toBe(false);
     expect(component.waiting()).toHaveLength(1);
   });
@@ -148,7 +203,11 @@ describe('PayrollRunDetailComponent', () => {
   it('a run that was returned or reopened cannot be deleted from the page', () => {
     load(detail('draft'));
     expect(component.canDeleteRun()).toBe(true);
-    load(detail('draft', [line()], { steps: [{ action: 'returned', staffId: 'a', name: 'A', at: 'x', reason: 'r' }] }));
+    load(
+      detail('draft', [line()], {
+        steps: [{ action: 'returned', staffId: 'a', name: 'A', at: 'x', reason: 'r' }],
+      }),
+    );
     expect(component.canDeleteRun()).toBe(false);
   });
 
@@ -186,12 +245,18 @@ describe('PayrollRunDetailComponent', () => {
 
   it('a refused action shows the server reason and reloads so the page is current again', () => {
     load(detail('draft'));
-    svc['submit'].mockReturnValue(throwError(() => ({ error: { error: 'The payroll run was changed by someone else. Refresh and try again.' } })));
+    svc['submit'].mockReturnValue(
+      throwError(() => ({
+        error: { error: 'The payroll run was changed by someone else. Refresh and try again.' },
+      })),
+    );
     svc['get'].mockClear();
 
     component.submit();
 
-    expect(toast.error).toHaveBeenCalledWith('The payroll run was changed by someone else. Refresh and try again.');
+    expect(toast.error).toHaveBeenCalledWith(
+      'The payroll run was changed by someone else. Refresh and try again.',
+    );
     expect(svc['get']).toHaveBeenCalled();
     expect(component.busy()).toBe(false);
   });
@@ -199,7 +264,7 @@ describe('PayrollRunDetailComponent', () => {
   it('only one action runs at a time', () => {
     load(detail('draft'));
     const sent = vi.fn();
-    svc['submit'].mockReturnValue(new Observable(() => sent()));   // a request only goes out when it is subscribed to
+    svc['submit'].mockReturnValue(new Observable(() => sent())); // a request only goes out when it is subscribed to
     component.busy.set(true);
 
     component.submit();
@@ -276,18 +341,45 @@ describe('PayrollRunDetailComponent', () => {
 
     component.saveLine();
 
-    expect(svc['updateLine']).toHaveBeenCalledWith('r1', 'e1', { pcb: 120, excluded: false, excludedReason: null, expectedVersion: 7 });
+    expect(svc['updateLine']).toHaveBeenCalledWith('r1', 'e1', {
+      pcb: 120,
+      excluded: false,
+      excludedReason: null,
+      expectedVersion: 7,
+    });
   });
 
-  it('groups a person\'s payslip lines by section in payslip order and drops empty sections', () => {
+  it("groups a person's payslip lines by section in payslip order and drops empty sections", () => {
     const l = line({
       items: [
-        { type: 'epf-employee', section: 'EmployeeStatutory', description: 'EPF employee', amount: 330 },
+        {
+          type: 'epf-employee',
+          section: 'EmployeeStatutory',
+          description: 'EPF employee',
+          amount: 330,
+        },
         { type: 'basic', section: 'Earning', description: 'Basic salary', amount: 3000 },
       ],
     });
 
     expect(component.groups(l).map((g) => g.label)).toEqual(['Earnings', 'Statutory (employee)']);
+  });
+
+  it('an unverified rate is a note, not something to fix before submitting', () => {
+    const l = line({
+      warnings: [
+        {
+          code: 'unverified-rate',
+          message: 'The EPF rate row used has not been verified.',
+          blocking: true,
+        },
+        { code: 'no-date-of-birth', message: 'No date of birth.', blocking: true },
+      ],
+    });
+
+    expect(component.mustFix(l.warnings[0]!)).toBe(false);
+    expect(component.mustFix(l.warnings[1]!)).toBe(true);
+    expect([component.blockingCount(l), component.noteCount(l)]).toEqual([1, 1]);
   });
 
   it('counts warnings that must be fixed apart from notes', () => {

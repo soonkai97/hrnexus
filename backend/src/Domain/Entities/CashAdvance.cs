@@ -18,6 +18,8 @@ public class CashAdvance
     public string?   Reason      { get; private set; }
     public string    Status      { get; private set; } = default!;
     public DateTime? SettledAt   { get; private set; }
+    /// <summary>How much a payroll run deducts each month; null means everything still owed, in the next run.</summary>
+    public decimal?  RepaymentPerMonth { get; private set; }
     public DateTime  CreatedAt   { get; private set; }
     public string    CreatedBy   { get; private set; } = string.Empty;  // admin who recorded it
 
@@ -39,6 +41,14 @@ public class CashAdvance
             CreatedAt   = DateTime.UtcNow,
             CreatedBy   = createdBy,
         };
+    }
+
+    /// <summary>Sets or clears the monthly repayment (null = everything still owed). It cannot exceed the advance.</summary>
+    public void SetRepaymentPerMonth(decimal? perMonth)
+    {
+        if (perMonth is { } v && (v <= 0m || v > Amount))
+            throw new ArgumentException("The monthly repayment must be more than zero and no more than the advance.");
+        RepaymentPerMonth = perMonth;
     }
 
     /// <summary>Mark the advance as deducted from salary (settled).</summary>

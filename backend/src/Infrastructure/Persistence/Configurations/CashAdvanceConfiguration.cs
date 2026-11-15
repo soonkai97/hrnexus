@@ -10,6 +10,7 @@ public class CashAdvanceConfiguration : IEntityTypeConfiguration<CashAdvance>
     {
         b.HasKey(c => c.Id);
         b.Property(c => c.Amount).HasPrecision(10, 2);
+        b.Property(c => c.RepaymentPerMonth).HasPrecision(10, 2);
         b.Property(c => c.Status).HasMaxLength(20).IsRequired();
         b.Property(c => c.Reason).HasMaxLength(500);
         b.Property(c => c.CreatedBy).HasMaxLength(100);

@@ -28,6 +28,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
     public DbSet<PushSubscription>     PushSubscriptions   => Set<PushSubscription>();
     public DbSet<PayrollLock>          PayrollLocks           => Set<PayrollLock>();
     public DbSet<CashAdvance>          CashAdvances           => Set<CashAdvance>();
+    public DbSet<PayrollRun>           PayrollRuns            => Set<PayrollRun>();
+    public DbSet<PayItem>              PayItems               => Set<PayItem>();
+    public DbSet<CashAdvanceRepayment> CashAdvanceRepayments  => Set<CashAdvanceRepayment>();
 
     /// <summary>
     /// Begins a RepeatableRead transaction for leave-balance TOCTOU protection.
@@ -70,6 +73,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new PushSubscriptionConfiguration());
         mb.ApplyConfiguration(new PayrollLockConfiguration());
         mb.ApplyConfiguration(new CashAdvanceConfiguration());
+        mb.ApplyConfiguration(new PayrollRunConfiguration());
+        mb.ApplyConfiguration(new PayrollRunActorConfiguration());
+        mb.ApplyConfiguration(new PayrollRunLineConfiguration(encryptor));
+        mb.ApplyConfiguration(new PayrollRunLineItemConfiguration(encryptor));
+        mb.ApplyConfiguration(new PayrollRunUnpaidDayConfiguration(encryptor));
+        mb.ApplyConfiguration(new PayrollRunWarningConfiguration(encryptor));
+        mb.ApplyConfiguration(new PayItemConfiguration(encryptor));
+        mb.ApplyConfiguration(new CashAdvanceRepaymentConfiguration());
         SeedData.Seed(mb);
     }
 

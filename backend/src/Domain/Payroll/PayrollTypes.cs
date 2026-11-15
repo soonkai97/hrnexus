@@ -8,10 +8,10 @@ public sealed record SalarySegment(DateOnly From, DateOnly To, decimal Basic, Gu
 public sealed record UnpaidLeaveDay(DateOnly Date, decimal Days);
 
 /// <summary>An allowance, overtime or other earning, entered by hand with a reason.</summary>
-public sealed record EarningInput(string Type, string Reason, decimal Amount, bool CountsForEpf = true, bool CountsForSocsoEis = true);
+public sealed record EarningInput(string Type, string Reason, decimal Amount, bool CountsForEpf = true, bool CountsForSocsoEis = true, Guid? SourceId = null);
 
 /// <summary>A deduction other than statutory contributions and tax (for example a cash-advance repayment).</summary>
-public sealed record DeductionInput(string Reason, decimal Amount, int Priority);
+public sealed record DeductionInput(string Reason, decimal Amount, int Priority, Guid? SourceId = null);
 
 public sealed record RateBandRule(decimal WageFrom, decimal WageTo, decimal EmployeeAmount, decimal EmployerAmount);
 
@@ -64,7 +64,8 @@ public enum LineSection
 }
 
 /// <summary>One line of a payslip. <see cref="Amount"/> is never negative; the section says which way it counts.</summary>
-public sealed record PayLine(string Type, LineSection Section, string Description, decimal Amount, Guid? RateRuleId = null);
+/// <summary><see cref="SourceId"/> names the pay item or cash advance a line came from (null for lines the system computes).</summary>
+public sealed record PayLine(string Type, LineSection Section, string Description, decimal Amount, Guid? RateRuleId = null, Guid? SourceId = null);
 
 public sealed record PayrollWarning(string Code, string Message, bool Blocking);
 

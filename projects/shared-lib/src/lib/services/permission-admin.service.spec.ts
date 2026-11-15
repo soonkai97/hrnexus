@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { PermissionAdminService, groupedPermissions, permissionLabel } from './permission-admin.service';
+import { PermissionAdminService, groupedPermissions, permissionDescription, permissionLabel } from './permission-admin.service';
 
 /**
  * PermissionAdminService — admin CRUD for the permission framework (catalog, role defaults,
@@ -94,5 +94,21 @@ describe('groupedPermissions', () => {
     const finance = groupedPermissions(['payroll.rates.verify']).find(g => g.label === 'Finance');
     expect(finance?.keys).toEqual(['payroll.rates.verify']);
     expect(permissionLabel('payroll.rates.verify')).toBe('Verify payroll rates');
+  });
+
+  /**
+   * WHY: who may sign off pay is decided by these keys, so an administrator must be able to find each one,
+   * with a name and an explanation, and grant it on its own (head of HR: approve; manager: sign off).
+   */
+  it('lists the payroll approval keys under Finance, each with a label and a description', () => {
+    const keys = ['payroll.approve', 'payroll.signoff', 'payroll.reopen'];
+    const finance = groupedPermissions(keys).find(g => g.label === 'Finance');
+
+    expect(finance?.keys).toEqual(keys);
+    for (const k of keys) {
+      expect(permissionLabel(k), k).not.toBe(k);
+      expect(permissionDescription(k), k).not.toBe('');
+    }
+    expect(permissionDescription('payroll.signoff')).toContain('direct reports');
   });
 });

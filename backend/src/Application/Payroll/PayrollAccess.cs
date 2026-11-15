@@ -11,9 +11,10 @@ namespace HRNexus.Application.Payroll;
 /// </summary>
 public static class PayrollAccess
 {
-    public static async Task RequireAsync(IAppDbContext db, string permissionKey, Guid userId, CancellationToken ct)
+    public static async Task RequireAsync(IAppDbContext db, string permissionKey, Guid userId, CancellationToken ct,
+        string message = "You are not allowed to see this.")
     {
         var holders = await PermissionHolders.GetIdsAsync(db, permissionKey, ct);
-        if (!holders.Contains(userId)) throw new ForbiddenException("You are not allowed to see this.");
+        if (!holders.Contains(userId)) throw new ForbiddenException(message);
     }
 }

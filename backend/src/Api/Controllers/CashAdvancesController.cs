@@ -50,6 +50,15 @@ public class CashAdvancesController(IMediator mediator) : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
     }
 
+    /// <summary>How much payroll takes back each month (null = everything still owed in the next run).</summary>
+    [HttpPut("{id:guid}/repayment")]
+    [Authorize(Policy = ManagePolicy)]
+    public async Task<IActionResult> SetRepayment(Guid id, [FromBody] SetRepaymentBody body, CancellationToken ct)
+    {
+        await mediator.Send(new SetCashAdvanceRepaymentCommand(id, body.PerMonth, CallerId, CallerName), ct);
+        return NoContent();
+    }
+
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = ManagePolicy)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
@@ -65,3 +74,4 @@ public class CashAdvancesController(IMediator mediator) : ControllerBase
 
 public record CreateCashAdvanceBody(Guid EmployeeId, decimal Amount, DateOnly AdvanceDate, string? Reason);
 public record SetSettledBody(bool Settled);
+public record SetRepaymentBody(decimal? PerMonth);

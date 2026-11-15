@@ -1,4 +1,4 @@
-﻿using HRNexus.Application.Common;
+using HRNexus.Application.Common;
 using HRNexus.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,8 @@ public record GetStaffListQuery(
 
 public record StaffDto(Guid Id, string StaffId, string FirstName, string LastName, string FullName, string? Email, List<string> Roles,
     bool IsActive, string? PhoneNumber,
-    string? IcNo, string? PassportNo, string? DateOfBirth, int? Age, bool IsHidden);
+    string? IcNo, string? PassportNo, string? DateOfBirth, int? Age, bool IsHidden,
+    Guid? ReportsToId = null, string? ReportsToName = null);
 
 public class GetStaffListQueryHandler(IAppDbContext db)
     : IRequestHandler<GetStaffListQuery, PagedResult<StaffDto>>
@@ -48,12 +49,19 @@ public class GetStaffListQueryHandler(IAppDbContext db)
             .Take(pageSize)
             .ToListAsync(ct);
 
+        // Who each person reports to (one extra query for the managers on this page).
+        var managerIds = employees.Where(e => e.ReportsToId != null).Select(e => e.ReportsToId!.Value).Distinct().ToList();
+        var managerNames = (await db.Staff.AsNoTracking().IgnoreAutoIncludes().Where(m => managerIds.Contains(m.Id))
+                .Select(m => new { m.Id, m.FirstName, m.LastName }).ToListAsync(ct))
+            .ToDictionary(m => m.Id, m => $"{m.FirstName} {m.LastName}".Trim());
+
         var items = employees.Select(e => new StaffDto(
             e.Id, e.StaffId, e.FirstName, e.LastName, e.FullName, e.Email,
             e.Roles.ToList(),
             e.IsActive, e.PhoneNumber,
             e.IcNo, e.PassportNo,
-            e.DateOfBirth?.ToString("yyyy-MM-dd"), e.Age, e.IsHidden)).ToList();
+            e.DateOfBirth?.ToString("yyyy-MM-dd"), e.Age, e.IsHidden,
+            e.ReportsToId, e.ReportsToId is { } m ? managerNames.GetValueOrDefault(m) : null)).ToList();
 
         return new PagedResult<StaffDto>(items, total);
     }

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Staff.Commands;
 using HRNexus.Application.Staff.Queries;
@@ -139,6 +139,15 @@ public class StaffController(IMediator mediator) : ControllerBase
         catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
     }
 
+    /// <summary>Who this person reports to (null = nobody). It decides whose payroll line a manager may read and sign off, so it is staff.manage and audited.</summary>
+    [HttpPut("{id:guid}/reports-to")]
+    [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
+    public async Task<IActionResult> SetReportsTo(Guid id, [FromBody] SetReportsToBody body, CancellationToken ct)
+    {
+        await mediator.Send(new SetReportsToCommand(id, body.ManagerId, CallerId, User.FindFirstValue("fullName") ?? "Unknown"), ct);
+        return NoContent();
+    }
+
     [HttpPost("{id:guid}/reset-password")]
     [Authorize(Policy = AppConstants.Permissions.PolicyPrefix + AppConstants.Permissions.StaffManage)]
     public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetPasswordBody body, CancellationToken ct)
@@ -238,6 +247,7 @@ public record CreateRoleBody(string Name);
 public record RenameRoleBody(string? Name);
 public record UpdateStaffBody(string StaffId, string FirstName, string? LastName, string? Email, List<Guid> Roles, string? PhoneNumber, string? IcNo, string? PassportNo, DateTime? DateOfBirth);
 public record ResetPasswordBody(string NewPassword);
+public record SetReportsToBody(Guid? ManagerId);
 public record BulkAssignRolesBody(List<Guid> StaffIds, List<Guid> Roles);
 public record BulkDeactivateBody(List<Guid> StaffIds);
 public record SetHiddenBody(bool Hidden);

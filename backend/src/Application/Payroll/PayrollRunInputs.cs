@@ -3,8 +3,8 @@ using HRNexus.Application.Leave;
 using HRNexus.Application.Policy;
 using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
-using E = HRNexus.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using E = HRNexus.Domain.Entities;
 
 namespace HRNexus.Application.Payroll;
 

@@ -137,6 +137,19 @@ public class PayrollRun
         Version++;
     }
 
+    /// <summary>Records the settings the figures were last calculated with (the company policy can change while a run is a draft).</summary>
+    public void UpdateBasis(PayrollRunBasis basis)
+    {
+        EnsureState(PayrollRunState.Draft, "Only a draft run can be changed.");
+        if (basis == new PayrollRunBasis(CalculatorVersion, Divisor, HoursPerWorkingDay, DeductionCapRate, PolicyVersion)) return;
+        CalculatorVersion  = basis.CalculatorVersion;
+        Divisor            = basis.Divisor;
+        HoursPerWorkingDay = basis.HoursPerWorkingDay;
+        DeductionCapRate   = basis.DeductionCapRate;
+        PolicyVersion      = basis.PolicyVersion;
+        Version++;
+    }
+
     public void EnsureCanDelete()
     {
         if (State != PayrollRunState.Draft)

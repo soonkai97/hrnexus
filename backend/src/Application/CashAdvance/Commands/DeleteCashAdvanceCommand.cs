@@ -13,6 +13,7 @@ public class DeleteCashAdvanceCommandHandler(IAppDbContext db) : IRequestHandler
     {
         var advance = await db.CashAdvances.FirstOrDefaultAsync(c => c.Id == req.Id, ct)
             ?? throw new KeyNotFoundException("Cash advance not found.");
+        await CashAdvanceGuard.EnsureNotInPayrollAsync(db, req.Id, ct);
 
         db.CashAdvances.Remove(advance);
         await db.SaveChangesAsync(ct);

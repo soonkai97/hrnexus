@@ -12,6 +12,8 @@ public class ReopenPayrollPeriodCommandHandler(IAppDbContext db, IAuditService a
 {
     public async Task Handle(ReopenPayrollPeriodCommand req, CancellationToken ct)
     {
+        if (await db.PayrollRuns.AnyAsync(r => r.Year == req.Year && r.Month == req.Month, ct))
+            throw new InvalidOperationException("This month has a payroll run: reopen it from the run, not here.");
         var lockRow = await db.PayrollLocks
             .FirstOrDefaultAsync(p => p.Year == req.Year && p.Month == req.Month, ct)
             ?? throw new KeyNotFoundException("This payroll period is not locked.");

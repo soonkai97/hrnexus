@@ -752,6 +752,38 @@ public class PayrollRunTests
         Assert.Equal(versions.OrderBy(v => v), versions);
     }
 
+    // ── basis ─────────────────────────────────────────────────────────────────────
+
+    /// <summary>WHY: the basis is what reproduces the figures months later. If the company changed the divisor while the run was a draft, the figures were calculated with the new one and the run must say so.</summary>
+    [Fact]
+    public void A_draft_records_the_settings_its_figures_were_last_calculated_with()
+    {
+        var run = NewRun();
+        var before = run.Version;
+
+        run.UpdateBasis(new PayrollRunBasis("1", 30m, 7m, 0.4m, 9));
+
+        Assert.Equal((30m, 7m, 0.4m, 9), (run.Divisor, run.HoursPerWorkingDay, run.DeductionCapRate, run.PolicyVersion));
+        Assert.True(run.Version > before);
+    }
+
+    [Fact]
+    public void Recording_the_same_basis_again_changes_nothing()
+    {
+        var run = NewRun();
+        var before = run.Version;
+
+        run.UpdateBasis(Basis);
+
+        Assert.Equal(before, run.Version);
+    }
+
+    [Fact]
+    public void Only_a_draft_can_have_its_basis_changed()
+    {
+        Assert.Throws<InvalidOperationException>(() => Submitted().UpdateBasis(new PayrollRunBasis("1", 30m, 8m, 0.5m, 1)));
+    }
+
     // ── totals ────────────────────────────────────────────────────────────────────
 
     [Fact]

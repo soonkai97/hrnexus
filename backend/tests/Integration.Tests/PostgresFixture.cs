@@ -65,6 +65,16 @@ public sealed class PostgresFixture : IAsyncLifetime
         return new AppDbContext(opts, new TestCurrentUser(), Encryptor);
     }
 
+    /// <summary>Like <see cref="NewDbOn"/> but with retry-on-failure, as in production: a Serializable conflict is retried by the execution strategy.</summary>
+    public AppDbContext NewRetryingDbOn(string database)
+    {
+        var cs = ConnectionString.Replace("Database=hrnexus_test", $"Database={database}");
+        var opts = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(cs, npgsql => npgsql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null))
+            .Options;
+        return new AppDbContext(opts, new TestCurrentUser(), Encryptor);
+    }
+
     private sealed class TestCurrentUser : ICurrentUserService
     {
         public Guid?   UserId   => null;

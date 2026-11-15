@@ -13,6 +13,7 @@ public class SetCashAdvanceSettledCommandHandler(IAppDbContext db) : IRequestHan
     {
         var advance = await db.CashAdvances.FirstOrDefaultAsync(c => c.Id == req.Id, ct)
             ?? throw new KeyNotFoundException("Cash advance not found.");
+        await CashAdvanceGuard.EnsureNotInPayrollAsync(db, req.Id, ct);
 
         if (req.Settled) advance.MarkSettled();
         else             advance.Reopen();

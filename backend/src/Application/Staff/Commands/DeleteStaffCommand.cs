@@ -1,4 +1,4 @@
-﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Permissions.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +14,11 @@ public class DeleteStaffCommandHandler(IAppDbContext db)
     {
         var staff = await db.Staff.FindAsync([req.Id], ct)
             ?? throw new KeyNotFoundException($"Staff {req.Id} not found.");
+
+        // Pay history is a payroll record kept for the retention period; deleting would also remove their leave and cash
+        // advances, which a run and its repayments depend on. Deactivate them instead.
+        if (await db.PayrollRuns.AnyAsync(r => r.Lines.Any(l => l.EmployeeId == req.Id), ct))
+            throw new InvalidOperationException("This person appears in a payroll run, so they cannot be deleted. Deactivate them instead.");
 
         // Lockout guard: deleting is as final as deactivating. The last active person who can manage roles
         // and permissions cannot be deleted (protection is by permission, whatever the role is called).

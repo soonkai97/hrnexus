@@ -248,4 +248,16 @@ describe('StaffManagementService', () => {
     });
   });
 
+  it('setReportsTo() PUTs the manager, and null clears it', () => {
+    service.setReportsTo('s1', 'm1').subscribe();
+    const set = http.expectOne('/api/staff/s1/reports-to');
+    expect(set.request.method).toBe('PUT');
+    expect(set.request.body).toEqual({ managerId: 'm1' });
+    set.flush(null);
+
+    service.setReportsTo('s1', null).subscribe();
+    const clear = http.expectOne('/api/staff/s1/reports-to');
+    expect(clear.request.body).toEqual({ managerId: null });
+    clear.flush(null);
+  });
 });

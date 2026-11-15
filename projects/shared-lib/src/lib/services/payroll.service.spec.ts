@@ -63,4 +63,33 @@ describe('PayrollService', () => {
     service.getSalary('a/b').subscribe();
     http.expectOne('/api/staff/a%2Fb/salary').flush({});
   });
+
+  it('getPayItems() GETs the items of that person', () => {
+    service.getPayItems('s1').subscribe();
+    const req = http.expectOne('/api/staff/s1/pay-items');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
+
+  it('addPayItem() POSTs the item', () => {
+    const body = { kind: 'allowance' as const, reason: 'Transport', amount: 150, countsForEpf: true, countsForSocsoEis: true, priority: 0, from: '2026-01-01', to: null };
+    service.addPayItem('s1', body).subscribe();
+    const req = http.expectOne('/api/staff/s1/pay-items');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(body);
+    req.flush({ id: 'i1' });
+  });
+
+  it('endPayItem() PUTs the end date and deletePayItem() DELETEs the item', () => {
+    service.endPayItem('s1', 'i1', '2026-12-31').subscribe();
+    const end = http.expectOne('/api/staff/s1/pay-items/i1/end');
+    expect(end.request.method).toBe('PUT');
+    expect(end.request.body).toEqual({ to: '2026-12-31' });
+    end.flush(null);
+
+    service.deletePayItem('s1', 'i1').subscribe();
+    const del = http.expectOne('/api/staff/s1/pay-items/i1');
+    expect(del.request.method).toBe('DELETE');
+    del.flush(null);
+  });
 });

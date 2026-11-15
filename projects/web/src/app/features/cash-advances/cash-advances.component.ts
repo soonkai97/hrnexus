@@ -50,6 +50,11 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
   });
   loading  = signal(false);
   filter   = signal<Filter>('all');
+
+  // Monthly repayment schedule
+  scheduleTarget = signal<CashAdvanceDto | null>(null);
+  scheduleSaving = signal(false);
+  scheduleAmount: number | null = null;
   busyId   = signal<string | null>(null);
 
   get filterOptions() {
@@ -117,6 +122,28 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
     }).subscribe({
       next:  () => { this.saving.set(false); this.showForm.set(false); this.toast.success('Cash advance recorded.'); this.load(); },
       error: (e) => { this.saving.set(false); this.toast.error(apiErrorMessage(e) ?? 'Failed to save.'); },
+    });
+  }
+
+  /** What payroll does with this advance each month, in words (display only). */
+  repaymentText(a: CashAdvanceDto): string {
+    if (a.status === 'settled') return 'Repaid';
+    const plan = a.repaymentPerMonth ? `RM ${a.repaymentPerMonth.toFixed(2)} a month` : 'All in the next run';
+    return `${plan} · RM ${a.remaining.toFixed(2)} left`;
+  }
+
+  openSchedule(a: CashAdvanceDto): void {
+    this.scheduleAmount = a.repaymentPerMonth;
+    this.scheduleTarget.set(a);
+  }
+
+  saveSchedule(): void {
+    const a = this.scheduleTarget();
+    if (!a || this.scheduleSaving()) return;
+    this.scheduleSaving.set(true);
+    this.svc.setRepayment(a.id, this.scheduleAmount && this.scheduleAmount > 0 ? this.scheduleAmount : null).subscribe({
+      next:  () => { this.scheduleSaving.set(false); this.scheduleTarget.set(null); this.toast.success('Repayment saved.'); this.load(); },
+      error: (e) => { this.scheduleSaving.set(false); this.toast.error(apiErrorMessage(e) ?? 'Failed to save.'); },
     });
   }
 

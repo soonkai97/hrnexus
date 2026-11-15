@@ -248,6 +248,33 @@ public class PayrollRunQueryTests
         Assert.Empty(team.Lines);
     }
 
+    // ── which runs wait for a manager ─────────────────────────────────────────────
+
+    [Fact]
+    public async Task A_manager_finds_the_submitted_runs_that_have_their_reports_and_how_many_lines_still_need_their_signature()
+    {
+        var s = await DraftAsync();
+        Assert.Empty(await new GetPayrollTeamRunsQueryHandler(Fresh(s)).Handle(new GetPayrollTeamRunsQuery(s.Mgr.Id), CancellationToken.None));   // a draft is not shown
+
+        await SubmitAsync(s);
+        var runs = await new GetPayrollTeamRunsQueryHandler(Fresh(s)).Handle(new GetPayrollTeamRunsQuery(s.Mgr.Id), CancellationToken.None);
+
+        var run = Assert.Single(runs);
+        Assert.Equal((s.RunId, 2026, 10, "submitted", 1, 1), (run.RunId, run.Year, run.Month, run.State, run.Lines, run.ToSign));
+    }
+
+    [Fact]
+    public async Task A_manager_with_no_reports_in_any_run_finds_none_and_a_stranger_is_refused()
+    {
+        var s = await DraftAsync();
+        await SubmitAsync(s);
+        var lonely = await s.K.ManagerAsync("LONELY", salary: false);
+        var stranger = await s.K.PersonAsync("STRANGER", salary: false);
+
+        Assert.Empty(await new GetPayrollTeamRunsQueryHandler(Fresh(s)).Handle(new GetPayrollTeamRunsQuery(lonely.Id), CancellationToken.None));
+        await Assert.ThrowsAsync<ForbiddenException>(() => new GetPayrollTeamRunsQueryHandler(Fresh(s)).Handle(new GetPayrollTeamRunsQuery(stranger.Id), CancellationToken.None));
+    }
+
     [Fact]
     public async Task The_team_view_of_a_run_that_does_not_exist_is_not_found()
     {

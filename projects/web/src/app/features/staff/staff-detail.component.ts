@@ -2,6 +2,8 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { PayItemsComponent } from './pay-items.component';
+import { ReportsToComponent } from './reports-to.component';
 import { StaffDetail, UpdateStaffRequest, StaffStore, StaffManagementService, ToastService, ConfirmService, TrimInputDirective, CanComponentDeactivate, apiErrorMessage, PermissionAdminService, PermissionService, PayrollService, SalaryOverview, CitizenshipStatus, StaffOverride, groupedPermissions, permissionLabel, permissionDescription, todayLocalString, ViewModeService, ViewToggleComponent } from 'shared-lib';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -28,7 +30,7 @@ type DetailTab = 'profile' | 'permissions' | 'pay';
   standalone: true,
   imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TrimInputDirective,
     Button, InputText, Tag, Card, Skeleton, DatePicker, MultiSelect, SelectButton, Tabs, TabList, Tab,
-    TableModule, Dialog, InputNumber, Select, PrimeTemplate, ViewToggleComponent],
+    TableModule, Dialog, InputNumber, Select, PrimeTemplate, ViewToggleComponent, PayItemsComponent, ReportsToComponent],
   templateUrl: './staff-detail.component.html',
   styleUrl: './staff-detail.component.scss',
 })
@@ -206,6 +208,10 @@ export class StaffDetailComponent implements OnInit, CanComponentDeactivate {
   }
 
   // ── Pay (payroll.view to see, payroll.manage to change) ─────────────────────
+
+  /** The staff member's id as the API knows it (the route id), for the child components. */
+  get staffGuid(): string { return this.staffId; }
+  get canManageStaff(): boolean { return this.perms.has('staff.manage'); }
 
   get canViewPay():   boolean { return this.perms.has('payroll.view'); }
   get canManagePay(): boolean { return this.canViewPay && this.perms.has('payroll.manage'); }

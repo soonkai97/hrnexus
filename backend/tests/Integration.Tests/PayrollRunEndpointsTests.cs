@@ -133,6 +133,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         [
             (HttpMethod.Get, "/api/payroll/runs", [P.PayrollView]),
             (HttpMethod.Get, $"/api/payroll/runs/{run}", [P.PayrollView]),
+            (HttpMethod.Get, "/api/payroll/runs/team", [P.PayrollSignoff]),
             (HttpMethod.Get, $"/api/payroll/runs/{run}/team", [P.PayrollSignoff]),
             (HttpMethod.Post, "/api/payroll/runs", [P.PayrollManage]),
             (HttpMethod.Delete, $"/api/payroll/runs/{run}", [P.PayrollManage]),
@@ -229,6 +230,10 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         var other = await LoginAsync(env, "OTHERMGR");
         var id = await StartAsync(prep);
         await prep.PostAsJsonAsync($"/api/payroll/runs/{id}/submit", new { expectedVersion = await VersionOfAsync(prep, id) });
+
+        var waiting = await JsonAsync(await mgr.GetAsync("/api/payroll/runs/team"));
+        var waitingRun = Assert.Single(waiting.EnumerateArray().ToList());
+        Assert.Equal((id, 1, 1), (waitingRun.GetProperty("runId").GetGuid(), waitingRun.GetProperty("lines").GetInt32(), waitingRun.GetProperty("toSign").GetInt32()));
 
         var mine = await JsonAsync(await mgr.GetAsync($"/api/payroll/runs/{id}/team"));
         var theirs = await JsonAsync(await other.GetAsync($"/api/payroll/runs/{id}/team"));

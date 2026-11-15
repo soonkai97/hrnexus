@@ -53,6 +53,11 @@ export class StaffManagementService {
     return this.http.delete<void>(`/api/staff/roles/${encodeURIComponent(id)}`);
   }
 
+  /** Who this person reports to (null = nobody). It decides whose payroll line a manager may read and sign off. */
+  setReportsTo(id: string, managerId: string | null): Observable<void> {
+    return this.http.put<void>(`/api/staff/${id}/reports-to`, { managerId });
+  }
+
   resetPassword(id: string, newPassword: string): Observable<void> {
     return this.http.post<void>(`/api/staff/${id}/reset-password`, { newPassword });
   }

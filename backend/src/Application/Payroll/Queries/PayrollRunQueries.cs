@@ -142,3 +142,28 @@ public class GetPayrollTeamQueryHandler(IAppDbContext db) : IRequestHandler<GetP
             run.Lines.Where(l => mine.Contains(l.Id)).OrderBy(l => l.StaffId).Select(l => PayrollRunMapping.Line(l, names)).ToList());
     }
 }
+
+/// <summary>A submitted-or-later run that has lines of the caller's direct reports (so a manager can find what is waiting for them).</summary>
+public record PayrollTeamRunDto(Guid RunId, int Year, int Month, string State, int Lines, int ToSign);
+
+/// <summary>The runs, newest month first, that include people who report to the signed-in user. Needs only payroll.signoff; shows no money.</summary>
+public record GetPayrollTeamRunsQuery(Guid ManagerId) : IRequest<List<PayrollTeamRunDto>>;
+
+public class GetPayrollTeamRunsQueryHandler(IAppDbContext db) : IRequestHandler<GetPayrollTeamRunsQuery, List<PayrollTeamRunDto>>
+{
+    public async Task<List<PayrollTeamRunDto>> Handle(GetPayrollTeamRunsQuery req, CancellationToken ct)
+    {
+        await PayrollAccess.RequireAsync(db, AppConstants.Permissions.PayrollSignoff, req.ManagerId, ct);
+        var reports = await db.Staff.AsNoTracking().IgnoreAutoIncludes().Where(s => s.ReportsToId == req.ManagerId).Select(s => s.Id).ToListAsync(ct);
+        if (reports.Count == 0) return [];
+
+        var runs = await db.PayrollRuns.AsNoTracking().Include(r => r.Lines).Where(r => r.State != PayrollRunState.Draft).ToListAsync(ct);
+        return runs
+            .Select(r => new { Run = r, Mine = r.Lines.Where(l => !l.Excluded && reports.Contains(l.EmployeeId)).ToList() })
+            .Where(x => x.Mine.Count > 0)
+            .OrderByDescending(x => x.Run.Year).ThenByDescending(x => x.Run.Month)
+            .Take(12)
+            .Select(x => new PayrollTeamRunDto(x.Run.Id, x.Run.Year, x.Run.Month, x.Run.State, x.Mine.Count, x.Mine.Count(l => !l.IsSignedOff)))
+            .ToList();
+    }
+}

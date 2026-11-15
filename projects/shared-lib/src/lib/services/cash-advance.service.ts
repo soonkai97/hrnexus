@@ -13,6 +13,12 @@ export interface CashAdvanceDto {
   status:      string;        // 'outstanding' | 'settled'
   settledAt:   string | null;
   createdAt:   string;
+  /** The monthly amount payroll schedules; null = everything still owed, in the next run. */
+  repaymentPerMonth: number | null;
+  /** What locked payroll runs have already taken back. */
+  repaid:      number;
+  /** What is still owed. */
+  remaining:   number;
 }
 
 export interface CreateCashAdvanceRequest {
@@ -41,6 +47,11 @@ export class CashAdvanceService {
 
   setSettled(id: string, settled: boolean): Observable<void> {
     return this.http.patch<void>(`/api/cash-advances/${id}/settled`, { settled });
+  }
+
+  /** How much payroll takes back each month (null = everything still owed, in the next run). */
+  setRepayment(id: string, perMonth: number | null): Observable<void> {
+    return this.http.put<void>(`/api/cash-advances/${id}/repayment`, { perMonth });
   }
 
   delete(id: string): Observable<void> {

@@ -45,6 +45,12 @@ public class PayrollRunsController(IMediator mediator, ICurrentUserService curre
     public async Task<IActionResult> Get(Guid id, [FromQuery] bool notInRun, CancellationToken ct) =>
         Ok(await mediator.Send(new GetPayrollRunQuery(id, Actor().Id, notInRun), ct));
 
+    /// <summary>The submitted-or-later runs that include the signed-in manager's direct reports (no money), newest first.</summary>
+    [HttpGet("team")]
+    [Authorize(Policy = Signoff)]
+    public async Task<IActionResult> TeamRuns(CancellationToken ct) =>
+        Ok(await mediator.Send(new GetPayrollTeamRunsQuery(Actor().Id), ct));
+
     /// <summary>The lines of the people who report to the signed-in user (only theirs, only once the run is submitted).</summary>
     [HttpGet("{id:guid}/team")]
     [Authorize(Policy = Signoff)]

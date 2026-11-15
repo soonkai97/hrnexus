@@ -51,4 +51,17 @@ describe('CashAdvanceService', () => {
     expect(req.request.method).toBe('DELETE');
     req.flush(null);
   });
+
+  it('setRepayment() PUTs the monthly amount, and null clears it', () => {
+    service.setRepayment('a1', 200).subscribe();
+    const set = http.expectOne('/api/cash-advances/a1/repayment');
+    expect(set.request.method).toBe('PUT');
+    expect(set.request.body).toEqual({ perMonth: 200 });
+    set.flush(null);
+
+    service.setRepayment('a1', null).subscribe();
+    const clear = http.expectOne('/api/cash-advances/a1/repayment');
+    expect(clear.request.body).toEqual({ perMonth: null });
+    clear.flush(null);
+  });
 });

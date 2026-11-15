@@ -22,6 +22,7 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             var (status, message) = ex switch
             {
                 UnauthorizedAccessException => (401, ex.Message),
+                ForbiddenException          => (403, ex.Message),
                 TooManyRequestsException    => (429, ex.Message),
                 ArgumentException           => (400, ex.Message),
                 KeyNotFoundException        => (404, ex.Message),

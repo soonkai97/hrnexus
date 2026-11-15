@@ -137,10 +137,26 @@ public class PayrollRun
         Version++;
     }
 
+    /// <summary>Records the settings the figures were last calculated with (the company policy can change while a run is a draft).</summary>
+    public void UpdateBasis(PayrollRunBasis basis)
+    {
+        EnsureState(PayrollRunState.Draft, "Only a draft run can be changed.");
+        if (basis == new PayrollRunBasis(CalculatorVersion, Divisor, HoursPerWorkingDay, DeductionCapRate, PolicyVersion)) return;
+        CalculatorVersion  = basis.CalculatorVersion;
+        Divisor            = basis.Divisor;
+        HoursPerWorkingDay = basis.HoursPerWorkingDay;
+        DeductionCapRate   = basis.DeductionCapRate;
+        PolicyVersion      = basis.PolicyVersion;
+        Version++;
+    }
+
+    /// <summary>Only a draft that was never reviewed can be deleted: a run that was returned or reopened has history (and may have been paid) that must stay.</summary>
     public void EnsureCanDelete()
     {
         if (State != PayrollRunState.Draft)
             throw new InvalidOperationException("Only a draft payroll run can be deleted.");
+        if (Cycle > 0)
+            throw new InvalidOperationException("This payroll run was returned or reopened, so its history must stay and it cannot be deleted.");
     }
 
     // ── the lifecycle ────────────────────────────────────────────────────────────

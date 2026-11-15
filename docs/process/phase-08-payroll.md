@@ -347,6 +347,24 @@ Built: `PayrollInputBuilder` (one person's calculator input for a month, pure), 
 
 **Must-haves for 8c-3/8c-4:** (1) a calculator or builder warning's message can contain figures (a wage, an amount), so only warning **codes** may appear in a Submit 409 body, a log or an audit row; (2) the pay item endpoints (8c-5) rely on the domain's priority range, not their own; (3) "not in the run" is shown on the run page, and an inactive person with no end date is the usual reason to look at it.
 
+### 8c-3 built (15 Nov 2026) and its opus review
+
+Built: the lifecycle commands (start, edit a line, recalculate, delete, submit, return, sign off, sign off all, approve, lock, reopen) in `Application/Payroll/Commands/Run`, each in a Serializable transaction with a version check and an audit row that names no figures; `ForbiddenException` (403); the guards on settling or deleting a cash advance, deleting a person, and locking or reopening a month by hand. The review found, and 8c-3 fixed:
+
+| Finding                                                                                                                                                            | Severity | Resolution                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start only looked at earlier months, so a later draft and an earlier run could both deduct the same advance                                                        | High     | Start is refused while **any** run is not locked                                                                                                      |
+| Reopen was allowed with a later draft run open, so two runs could again deduct the same advance                                                                    | High     | Reopen is refused while any later run exists; Lock also refuses to repay an advance more than was lent                                                |
+| Sign-off had no version check (a manager could sign figures changed after they looked)                                                                             | Med      | Sign off and sign off all take the expected version                                                                                                   |
+| A locked run could be reopened and then deleted, erasing a paid month                                                                                              | Med      | A run that was returned or reopened cannot be deleted                                                                                                 |
+| Lock, reopen and the prepare commands did not check the permission themselves                                                                                      | Med      | Each re-checks its key (payroll.lock, payroll.reopen, payroll.manage)                                                                                 |
+| Race between a manual advance delete or settle and a submit                                                                                                        | Med      | Guard and write run in one Serializable transaction; Lock refuses an advance that was deleted or settled by hand, or a pay item that no longer exists |
+| Start disguised any database error as "already exists"; sign off all on a non-submitted run returned 0; the advance guard counted left-out people and had no index | Low      | Fixed (retry handles the race, 409 for the wrong state, `!Excluded`, index on `SourceId`)                                                             |
+
+**Accepted:** a retry after a commit whose acknowledgement was lost reports the second attempt as "already exists" or "only an approved run can be locked" although the first succeeded; the message tells the user to refresh.
+
+**Must-haves for 8c-4/8c-5:** (1) the API builds `PayrollActor` only from the signed-in user (`ICurrentUserService`), refuses a missing user id, and never takes it from a request body; (2) the pay item delete (8c-5) must be refused while any run past draft names the item, as the advance delete is; (3) the reporting-manager command (8c-5) runs under Serializable and checks the manager exists and is active.
+
 ---
 
 ## Scope

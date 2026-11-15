@@ -17,6 +17,8 @@ public class LockPayrollPeriodCommandHandler(IAppDbContext db, IAuditService aud
         if (req.Month is < 1 or > 12)
             throw new ArgumentException("Month must be between 1 and 12.");
 
+        if (await db.PayrollRuns.AnyAsync(r => r.Year == req.Year && r.Month == req.Month, ct))
+            throw new InvalidOperationException("This month has a payroll run: lock it from the run, not here.");
         if (await db.PayrollLocks.AnyAsync(p => p.Year == req.Year && p.Month == req.Month, ct))
             throw new InvalidOperationException("This payroll period is already locked.");
 

@@ -67,10 +67,10 @@ public class PayrollRunLockCommandTests
     }
 
     private static Task Lock(Ctx c) =>
-        new LockPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new LockPayrollRunCommand(c.RunId, c.H), CancellationToken.None);
+        new LockPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new LockPayrollRunCommand(c.RunId, c.Version, c.H), CancellationToken.None);
 
     private static Task Reopen(Ctx c) =>
-        new ReopenPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new ReopenPayrollRunCommand(c.RunId, c.H), CancellationToken.None);
+        new ReopenPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock).Handle(new ReopenPayrollRunCommand(c.RunId, c.Version, c.H), CancellationToken.None);
 
     private static async Task<PayrollRun> Load(Ctx c) => await PayrollRunWorkForTests.LoadAsync(c.Kit.Db, c.RunId);
 
@@ -293,6 +293,23 @@ public class PayrollRunLockCommandTests
         Assert.NotEqual(Guid.Empty, november);
     }
 
+    /// <summary>WHY: the page showed figures that were then returned, changed and re-approved; locking from that stale page would pay out figures nobody on it saw.</summary>
+    [Fact]
+    public async Task Locking_or_reopening_from_a_page_that_is_out_of_date_is_refused()
+    {
+        var (c, _) = await ApprovedAsync();
+        var stale = c.Version - 1;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => new LockPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock)
+            .Handle(new LockPayrollRunCommand(c.RunId, stale, c.H), CancellationToken.None));
+        Assert.Equal(PayrollRunState.Approved, (await Load(c)).State);
+
+        await Lock(c);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => new ReopenPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock)
+            .Handle(new ReopenPayrollRunCommand(c.RunId, c.Version - 1, c.H), CancellationToken.None));
+        Assert.Equal(PayrollRunState.Locked, (await Load(c)).State);
+    }
+
     [Fact]
     public async Task Locking_and_reopening_need_their_own_permissions_inside_the_command()
     {
@@ -300,10 +317,10 @@ public class PayrollRunLockCommandTests
         var clerk = await c.Kit.PersonAsync("CLERK2", role: "CLERK2", keys: [AppConstants.Permissions.PayrollManage], salary: false);
 
         await Assert.ThrowsAsync<ForbiddenException>(() => new LockPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock)
-            .Handle(new LockPayrollRunCommand(c.RunId, PayrollRunKit.Act(clerk)), CancellationToken.None));
+            .Handle(new LockPayrollRunCommand(c.RunId, c.Version, PayrollRunKit.Act(clerk)), CancellationToken.None));
         await Lock(c);
         await Assert.ThrowsAsync<ForbiddenException>(() => new ReopenPayrollRunCommandHandler(c.Kit.Db, c.Kit.Audit, c.Kit.Clock)
-            .Handle(new ReopenPayrollRunCommand(c.RunId, PayrollRunKit.Act(clerk)), CancellationToken.None));
+            .Handle(new ReopenPayrollRunCommand(c.RunId, c.Version, PayrollRunKit.Act(clerk)), CancellationToken.None));
     }
 
     // ── lock refuses a run whose deductions no longer line up ─────────────────────

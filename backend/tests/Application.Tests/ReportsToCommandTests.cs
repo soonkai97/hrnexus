@@ -188,4 +188,19 @@ public class ReportsToCommandTests
         Assert.Equal((boss.Id, "First BOSS"), (row.ReportsToId, row.ReportsToName));
         Assert.Null(page.Items.Single(s => s.StaffId == "BOSS").ReportsToId);
     }
+
+    [Fact]
+    public async Task The_staff_detail_shows_who_the_person_reports_to()
+    {
+        var (k, admin) = await SceneAsync();
+        var boss = await k.PersonAsync("BOSS", salary: false);
+        var worker = await k.PersonAsync("WORKER", salary: false);
+        await Set(k, admin, worker, boss.Id);
+
+        var detail = await new GetStaffByIdQueryHandler(k.Db).Handle(new GetStaffByIdQuery(worker.Id), CancellationToken.None);
+        var top = await new GetStaffByIdQueryHandler(k.Db).Handle(new GetStaffByIdQuery(boss.Id), CancellationToken.None);
+
+        Assert.Equal((boss.Id, "First BOSS"), (detail.ReportsToId, detail.ReportsToName));
+        Assert.Null(top.ReportsToId);
+    }
 }

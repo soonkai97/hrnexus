@@ -28,6 +28,7 @@ describe('CashAdvancesComponent', () => {
       create:     vi.fn().mockReturnValue(of({ id: 'a1' })),
       setSettled: vi.fn().mockReturnValue(of(undefined)),
       delete:     vi.fn().mockReturnValue(of(undefined)),
+      setRepayment: vi.fn().mockReturnValue(of(undefined)),
     };
     mockStore   = { staff: vi.fn().mockReturnValue([]), loadStaff: vi.fn() };
     mockToast   = { success: vi.fn(), error: vi.fn() };
@@ -116,11 +117,12 @@ describe('CashAdvancesComponent', () => {
 
   it('totalOutstanding sums only outstanding advances', () => {
     const c = make();
-    c.advances.set([
+    mockSvc.list.mockReturnValue(of([
       { status: 'outstanding', amount: 100 } as any,
       { status: 'settled',     amount: 999 } as any,
       { status: 'outstanding', amount: 50 } as any,
-    ]);
+    ]));
+    c.load();
     expect(c.totalOutstanding()).toBe(150);
   });
 
@@ -145,7 +147,8 @@ describe('CashAdvancesComponent', () => {
 
     it('shows the same advances as the table, newest first, a page at a time', () => {
       const c = make();
-      c.advances.set(Array.from({ length: 15 }, (_, i) => advance(i + 1)));
+      mockSvc.list.mockReturnValue(of(Array.from({ length: 15 }, (_, i) => advance(i + 1))));
+      c.load();
 
       expect(c.pagedAdvances().map(a => a.id)).toEqual(
         Array.from({ length: 12 }, (_, i) => 'a' + (15 - i)));
@@ -155,9 +158,68 @@ describe('CashAdvancesComponent', () => {
 
     it('goes back to the first page when the list shrinks below the current page', () => {
       const c = make();
-      c.advances.set([advance(1), advance(2)]);
+      mockSvc.list.mockReturnValue(of([advance(1), advance(2)]));
+      c.load();
       c.cardFirst.set(24);
       expect(c.pagedAdvances().length).toBe(2);
+    });
+  });
+
+  // ── monthly repayment (Phase 8c) ────────────────────────────────────────────
+  // WHY: the schedule decides how much of someone's pay payroll takes back each month. The page must describe it
+  // truthfully (planned amount, what is left), treat an empty or zero box as "everything still owed", and show the
+  // server's reason when a change is refused (a run under review has the advance in its figures).
+  describe('monthly repayment', () => {
+    const adv = (over: Record<string, unknown> = {}) => ({
+      id: 'a1', employeeId: 'e1', staffId: 'S1', staffName: 'Sam', amount: 500, advanceDate: '2026-09-02', reason: null,
+      status: 'outstanding', settledAt: null, createdAt: 'x', repaymentPerMonth: null, repaid: 0, remaining: 500, ...over,
+    });
+
+    it('describes the plan and what is left, and says repaid once settled', () => {
+      const c = make();
+      expect(c.repaymentText(adv() as never)).toBe('All in the next run · RM 500.00 left');
+      expect(c.repaymentText(adv({ repaymentPerMonth: 200, remaining: 300 }) as never)).toBe('RM 200.00 a month · RM 300.00 left');
+      expect(c.repaymentText(adv({ status: 'settled', remaining: 0 }) as never)).toBe('Repaid');
+    });
+
+    it('opens on the current schedule', () => {
+      const c = make();
+      c.openSchedule(adv({ repaymentPerMonth: 200 }) as never);
+      expect(c.scheduleAmount).toBe(200);
+      expect(c.scheduleTarget()?.id).toBe('a1');
+    });
+
+    it('saves the amount, and an empty or zero box clears the schedule', () => {
+      const c = make();
+      c.openSchedule(adv() as never);
+      c.scheduleAmount = 150;
+      c.saveSchedule();
+      expect(mockSvc.setRepayment).toHaveBeenCalledWith('a1', 150);
+      expect(mockToast.success).toHaveBeenCalledWith('Repayment saved.');
+      expect(c.scheduleTarget()).toBeNull();
+
+      c.openSchedule(adv() as never);
+      c.scheduleAmount = 0;
+      c.saveSchedule();
+      expect(mockSvc.setRepayment).toHaveBeenLastCalledWith('a1', null);
+
+      c.openSchedule(adv() as never);
+      c.scheduleAmount = null;
+      c.saveSchedule();
+      expect(mockSvc.setRepayment).toHaveBeenLastCalledWith('a1', null);
+    });
+
+    it('shows the server reason when the schedule is refused and keeps the dialog open', () => {
+      mockSvc.setRepayment.mockReturnValue(throwError(() => ({ error: { error: 'A payroll run that is being reviewed already has this cash advance in its figures. Return the run first.' } })));
+      const c = make();
+      c.openSchedule(adv() as never);
+      c.scheduleAmount = 100;
+
+      c.saveSchedule();
+
+      expect(mockToast.error).toHaveBeenCalledWith(expect.stringContaining('Return the run first'));
+      expect(c.scheduleTarget()).not.toBeNull();
+      expect(c.scheduleSaving()).toBe(false);
     });
   });
 

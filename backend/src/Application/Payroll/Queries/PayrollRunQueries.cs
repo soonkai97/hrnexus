@@ -15,7 +15,7 @@ public record PayrollLineDto(
     Guid EmployeeId, string StaffId, string Name, bool Excluded, string? ExcludedReason, decimal? Pcb, bool Calculated,
     decimal Gross, decimal Net, decimal EmployerCost, decimal UnappliedDeductions,
     IReadOnlyList<PayrollWarningDto> Warnings, IReadOnlyList<PayrollItemDto> Items, IReadOnlyList<PayrollUnpaidDayDto> UnpaidDays,
-    Guid? SignedOffBy, string? SignedOffByName, DateTime? SignedOffAt);
+    Guid? SignedOffBy, string? SignedOffByName, DateTime? SignedOffAt, bool CanSignOff);
 
 /// <summary>One step in a run's history: who did what and when. The reason is only ever set on a return.</summary>
 public record PayrollRunStepDto(string Action, Guid StaffId, string Name, DateTime At, string? Reason);
@@ -29,11 +29,12 @@ public record NotInRunDto(Guid EmployeeId, string StaffId, string Name, string R
 /// <summary>
 /// One run in full. UnverifiedRates lists the rate rows the figures rest on that the accountant has not verified (approval is
 /// refused while any exist); NotInRun lists people who work this month but cannot be in the run yet, and why (only worked out for a draft).
+/// AllowedActions is what the caller may do with the run right now (see <see cref="PayrollRunActions"/>); the page draws only those buttons.
 /// </summary>
 public record PayrollRunDetailDto(
     PayrollRunSummaryDto Summary, string CalculatorVersion, decimal Divisor, decimal HoursPerWorkingDay, decimal DeductionCapRate,
     IReadOnlyList<PayrollLineDto> Lines, IReadOnlyList<PayrollRunStepDto> Steps,
-    IReadOnlyList<string> UnverifiedRates, IReadOnlyList<NotInRunDto> NotInRun);
+    IReadOnlyList<string> UnverifiedRates, IReadOnlyList<NotInRunDto> NotInRun, IReadOnlyList<string> AllowedActions);
 
 /// <summary>A manager's view of one run: only the lines of the people who report to them.</summary>
 public record PayrollTeamDto(Guid RunId, int Year, int Month, string State, long Version, IReadOnlyList<PayrollLineDto> Lines);
@@ -45,13 +46,13 @@ internal static class PayrollRunMapping
         r.Lines.Count(l => !l.Excluded && l.IsSignedOff), r.TotalGross, r.TotalNet,
         r.Lines.Where(l => !l.Excluded).Sum(l => l.EmployerCost), r.CreatedAt, r.ExportedAt);
 
-    public static PayrollLineDto Line(PayrollRunLine l, IReadOnlyDictionary<Guid, string> names) => new(
+    public static PayrollLineDto Line(PayrollRunLine l, IReadOnlyDictionary<Guid, string> names, bool canSignOff) => new(
         l.EmployeeId, l.StaffId, l.Name, l.Excluded, l.ExcludedReason, l.PcbAmount, l.Calculated,
         l.Gross, l.Net, l.EmployerCost, l.UnappliedDeductions,
         l.Warnings.Select(w => new PayrollWarningDto(w.Code, w.Message, w.Blocking)).ToList(),
         l.Items.OrderBy(i => i.Order).Select(i => new PayrollItemDto(i.Type, i.Section.ToString(), i.Description, i.Amount)).ToList(),
         l.UnpaidDays.OrderBy(d => d.Date).Select(d => new PayrollUnpaidDayDto(d.Date, d.Days, d.DeductionAmount)).ToList(),
-        l.SignedOffBy, l.SignedOffBy is { } by ? names.GetValueOrDefault(by) : null, l.SignedOffAt);
+        l.SignedOffBy, l.SignedOffBy is { } by ? names.GetValueOrDefault(by) : null, l.SignedOffAt, canSignOff);
 
     /// <summary>Display names for people who acted on a run, including people who have since been deleted.</summary>
     public static async Task<Dictionary<Guid, string>> NamesAsync(IAppDbContext db, IEnumerable<Guid> ids, CancellationToken ct)
@@ -106,11 +107,13 @@ public class GetPayrollRunQueryHandler(IAppDbContext db) : IRequestHandler<GetPa
                 .Select(p => new NotInRunDto(p.EmployeeId, p.StaffId, p.Name, "Became eligible after the last calculation; recalculate the run to add them.")));
         }
 
+        var who = await PayrollCaller.LoadAsync(db, req.By, ct);
+        var reports = (await db.Staff.AsNoTracking().IgnoreAutoIncludes().Where(s => s.ReportsToId == req.By).Select(s => s.Id).ToListAsync(ct)).ToHashSet();
         return new PayrollRunDetailDto(
             PayrollRunMapping.Summary(run), run.CalculatorVersion, run.Divisor, run.HoursPerWorkingDay, run.DeductionCapRate,
-            run.Lines.OrderBy(l => l.StaffId).Select(l => PayrollRunMapping.Line(l, names)).ToList(),
+            run.Lines.OrderBy(l => l.StaffId).Select(l => PayrollRunMapping.Line(l, names, PayrollRunActions.CanSignOff(run, l, who, reports))).ToList(),
             run.Actors.OrderBy(a => a.At).Select(a => new PayrollRunStepDto(a.Action, a.StaffId, names.GetValueOrDefault(a.StaffId) ?? "", a.At, a.Reason)).ToList(),
-            await PayrollRunRates.UnverifiedUsedAsync(db, run, ct), notInRun);
+            await PayrollRunRates.UnverifiedUsedAsync(db, run, ct), notInRun, PayrollRunActions.For(run, who));
     }
 }
 
@@ -125,7 +128,7 @@ public class GetPayrollTeamQueryHandler(IAppDbContext db) : IRequestHandler<GetP
     public async Task<PayrollTeamDto> Handle(GetPayrollTeamQuery req, CancellationToken ct)
     {
         await PayrollAccess.RequireAsync(db, AppConstants.Permissions.PayrollSignoff, req.ManagerId, ct);
-        var run = await db.PayrollRuns.Include(r => r.Lines).FirstOrDefaultAsync(r => r.Id == req.RunId, ct)
+        var run = await db.PayrollRuns.Include(r => r.Lines).Include(r => r.Actors).FirstOrDefaultAsync(r => r.Id == req.RunId, ct)
             ?? throw new KeyNotFoundException("Payroll run not found.");
         if (run.State == PayrollRunState.Draft)
             return new PayrollTeamDto(run.Id, run.Year, run.Month, run.State, run.Version, []);   // nothing to sign off yet, and nothing to show
@@ -138,7 +141,40 @@ public class GetPayrollTeamQueryHandler(IAppDbContext db) : IRequestHandler<GetP
         await lines.Include(l => l.Warnings).LoadAsync(ct);
 
         var names = await PayrollRunMapping.NamesAsync(db, run.Lines.Where(l => l.SignedOffBy != null).Select(l => l.SignedOffBy!.Value), ct);
+        var who = await PayrollCaller.LoadAsync(db, req.ManagerId, ct);
+        var reportSet = reports.ToHashSet();
         return new PayrollTeamDto(run.Id, run.Year, run.Month, run.State, run.Version,
-            run.Lines.Where(l => mine.Contains(l.Id)).OrderBy(l => l.StaffId).Select(l => PayrollRunMapping.Line(l, names)).ToList());
+            run.Lines.Where(l => mine.Contains(l.Id)).OrderBy(l => l.StaffId)
+                .Select(l => PayrollRunMapping.Line(l, names, PayrollRunActions.CanSignOff(run, l, who, reportSet))).ToList());
+    }
+}
+
+/// <summary>A submitted-or-later run that has lines of the caller's direct reports (so a manager can find what is waiting for them).</summary>
+public record PayrollTeamRunDto(Guid RunId, int Year, int Month, string State, int Lines, int ToSign);
+
+/// <summary>The runs, newest month first, that include people who report to the signed-in user. Needs only payroll.signoff; shows no money.</summary>
+public record GetPayrollTeamRunsQuery(Guid ManagerId) : IRequest<List<PayrollTeamRunDto>>;
+
+public class GetPayrollTeamRunsQueryHandler(IAppDbContext db) : IRequestHandler<GetPayrollTeamRunsQuery, List<PayrollTeamRunDto>>
+{
+    public async Task<List<PayrollTeamRunDto>> Handle(GetPayrollTeamRunsQuery req, CancellationToken ct)
+    {
+        await PayrollAccess.RequireAsync(db, AppConstants.Permissions.PayrollSignoff, req.ManagerId, ct);
+        var reports = await db.Staff.AsNoTracking().IgnoreAutoIncludes().Where(s => s.ReportsToId == req.ManagerId).Select(s => s.Id).ToListAsync(ct);
+        if (reports.Count == 0) return [];
+
+        // Pick the twelve newest months in SQL first, so lines (and their encrypted figures) are only read for those.
+        var ids = await db.PayrollRuns.AsNoTracking()
+            .Where(r => r.State != PayrollRunState.Draft && r.Lines.Any(l => !l.Excluded && reports.Contains(l.EmployeeId)))
+            .OrderByDescending(r => r.Year).ThenByDescending(r => r.Month)
+            .Select(r => r.Id).Take(12).ToListAsync(ct);
+        var runs = await db.PayrollRuns.AsNoTracking().Include(r => r.Lines).Where(r => ids.Contains(r.Id)).ToListAsync(ct);
+        return runs
+            .Select(r => new { Run = r, Mine = r.Lines.Where(l => !l.Excluded && reports.Contains(l.EmployeeId)).ToList() })
+            .Where(x => x.Mine.Count > 0)
+            .OrderByDescending(x => x.Run.Year).ThenByDescending(x => x.Run.Month)
+            .Take(12)
+            .Select(x => new PayrollTeamRunDto(x.Run.Id, x.Run.Year, x.Run.Month, x.Run.State, x.Mine.Count, x.Mine.Count(l => !l.IsSignedOff)))
+            .ToList();
     }
 }

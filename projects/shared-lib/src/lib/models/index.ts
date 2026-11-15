@@ -5,3 +5,4 @@ export * from './notification.model';
 export * from './paged-result.model';
 export * from './payroll.model';
 export * from './payroll-rates.model';
+export * from './payroll-run.model';

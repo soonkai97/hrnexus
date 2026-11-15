@@ -1,0 +1,484 @@
+<div class="page">
+  <a routerLink="/payroll-runs" class="back-link"
+    ><i class="pi pi-arrow-left"></i> All payroll runs</a
+  >
+
+  @if (loading()) {
+    <p-card styleClass="table-card">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-row">
+          <p-skeleton width="25%" height="0.7rem" /><p-skeleton width="50%" height="0.7rem" />
+        </div>
+      }
+    </p-card>
+  } @else if (summary(); as s) {
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ monthLabel(s.year, s.month) }}</h1>
+        <p class="page-subtitle">Payroll run</p>
+      </div>
+      <p-tag [value]="tag(s.state).label" [severity]="tag(s.state).severity" />
+    </div>
+
+    <p-message class="banner" [severity]="banner().severity" [text]="banner().text" />
+
+    @if (unverified().length > 0) {
+      <p-message class="banner" severity="warn">
+        Approval is blocked until the accountant verifies these rates:
+        <strong>{{ unverified().join(', ') }}</strong>.
+        <a routerLink="/payroll-rates">Open the rates</a>
+      </p-message>
+    }
+
+    <dl class="totals">
+      <div>
+        <dt>People</dt>
+        <dd>
+          {{ s.people }}
+          @if (s.leftOut > 0) {
+            <span class="muted"> (+{{ s.leftOut }} left out)</span>
+          }
+        </dd>
+      </div>
+      <div>
+        <dt>Gross</dt>
+        <dd>{{ rm(s.totalGross) }}</dd>
+      </div>
+      <div>
+        <dt>Net</dt>
+        <dd>{{ rm(s.totalNet) }}</dd>
+      </div>
+      <div>
+        <dt>Employer cost</dt>
+        <dd>{{ rm(s.totalEmployerCost) }}</dd>
+      </div>
+      <div>
+        <dt>Signed off</dt>
+        <dd>{{ s.signedOff }} of {{ s.people }}</dd>
+      </div>
+    </dl>
+
+    <div class="actions">
+      @if (can('recalculate')) {
+        <p-button
+          label="Recalculate"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy()"
+          (onClick)="recalculate()"
+        />
+      }
+      @if (can('submit')) {
+        <p-button
+          label="Submit for sign-off"
+          icon="pi pi-send"
+          severity="primary"
+          [disabled]="busy()"
+          (onClick)="submit()"
+        />
+      }
+      @if (can('delete')) {
+        <p-button
+          label="Delete"
+          icon="pi pi-trash"
+          severity="danger"
+          [text]="true"
+          [disabled]="busy()"
+          (onClick)="deleteRun()"
+        />
+      }
+      @if (can('signoff-all')) {
+        <p-button
+          label="Sign off all"
+          icon="pi pi-check-circle"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy() || allSigned()"
+          (onClick)="signOffAll()"
+        />
+      }
+      @if (can('approve')) {
+        <p-button
+          label="Approve"
+          icon="pi pi-verified"
+          severity="primary"
+          [disabled]="busy() || !allSigned()"
+          (onClick)="approve()"
+        />
+      }
+      @if (can('lock')) {
+        <p-button
+          label="Lock"
+          icon="pi pi-lock"
+          severity="primary"
+          [disabled]="busy()"
+          (onClick)="lock()"
+        />
+      }
+      @if (can('return')) {
+        <p-button
+          label="Return for changes"
+          icon="pi pi-undo"
+          severity="secondary"
+          [text]="true"
+          [disabled]="busy()"
+          (onClick)="openReturn()"
+        />
+      }
+      @if (can('reopen')) {
+        <p-button
+          label="Reopen"
+          icon="pi pi-lock-open"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy()"
+          (onClick)="reopen()"
+        />
+      }
+    </div>
+
+    <div class="nc-view-bar"><nc-view-toggle viewKey="payroll-run-lines" /></div>
+
+    @if (viewMode() === 'cards') {
+      <ul class="nc-card-grid">
+        @for (l of lines(); track l.employeeId) {
+          <li class="nc-card line-card" [class.is-left-out]="l.excluded">
+            <div class="nc-card-head">
+              <span class="nc-avatar">{{ initials(l.name) }}</span>
+              <div class="line-who">
+                <button type="button" class="nc-card-title link-btn" (click)="openLine(l)">
+                  {{ l.name }}
+                </button>
+                <span class="nc-card-sub">{{ l.staffId }}</span>
+              </div>
+            </div>
+            @if (l.excluded) {
+              <div class="nc-card-chips">
+                <span class="nc-chip">Left out: {{ l.excludedReason }}</span>
+              </div>
+            } @else {
+              <dl class="nc-card-meta">
+                <div>
+                  <dt>Gross</dt>
+                  <dd>{{ rm(l.gross) }}</dd>
+                </div>
+                <div>
+                  <dt>Net</dt>
+                  <dd>{{ rm(l.net) }}</dd>
+                </div>
+              </dl>
+              <div class="nc-card-chips">
+                @if (blockingCount(l) > 0) {
+                  <p-tag severity="danger" [value]="blockingCount(l) + ' to fix'" />
+                }
+                @if (noteCount(l) > 0) {
+                  <p-tag severity="secondary" [value]="noteCount(l) + ' notes'" />
+                }
+                @if (l.signedOffBy) {
+                  <p-tag severity="success" [value]="'Signed: ' + l.signedOffByName" />
+                } @else if (s.state === 'submitted') {
+                  <p-tag severity="info" value="Waiting" />
+                }
+              </div>
+            }
+            <div class="nc-card-foot">
+              <p-button
+                label="Open"
+                icon="pi pi-eye"
+                [text]="true"
+                size="small"
+                (onClick)="openLine(l)"
+              />
+              @if (l.canSignOff) {
+                <p-button
+                  label="Sign off"
+                  icon="pi pi-check"
+                  size="small"
+                  [disabled]="busy()"
+                  (onClick)="signOff(l)"
+                />
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p-card styleClass="table-card">
+        <p-table [value]="lines()" [tableStyle]="{ 'min-width': '100%' }">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Person</th>
+              <th class="num">Gross</th>
+              <th class="num">Net</th>
+              <th>Notes</th>
+              <th>Sign-off</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-l>
+            <tr [class.is-left-out]="l.excluded">
+              <td>
+                <span class="p-column-title">Person</span>
+                <button type="button" class="link-btn" (click)="openLine(l)">
+                  <strong>{{ l.name }}</strong>
+                </button>
+                <span class="muted"> {{ l.staffId }}</span>
+              </td>
+              @if (l.excluded) {
+                <td colspan="3">
+                  <span class="muted">Left out: {{ l.excludedReason }}</span>
+                </td>
+                <td></td>
+              } @else {
+                <td class="num"><span class="p-column-title">Gross</span>{{ rm(l.gross) }}</td>
+                <td class="num"><span class="p-column-title">Net</span>{{ rm(l.net) }}</td>
+                <td>
+                  <span class="p-column-title">Notes</span>
+                  @if (blockingCount(l) > 0) {
+                    <p-tag severity="danger" [value]="blockingCount(l) + ' to fix'" />
+                  }
+                  @if (noteCount(l) > 0) {
+                    <p-tag severity="secondary" [value]="noteCount(l) + ' notes'" />
+                  }
+                  @if (blockingCount(l) + noteCount(l) === 0) {
+                    <span class="muted">None</span>
+                  }
+                </td>
+                <td>
+                  <span class="p-column-title">Sign-off</span>
+                  @if (l.signedOffBy) {
+                    <span>{{ l.signedOffByName }}</span>
+                  } @else if (s.state === 'submitted') {
+                    <span class="muted">Waiting</span>
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+              }
+              <td class="td-action">
+                <p-button
+                  label="Open"
+                  icon="pi pi-eye"
+                  [text]="true"
+                  size="small"
+                  (onClick)="openLine(l)"
+                />
+                @if (l.canSignOff) {
+                  <p-button
+                    label="Sign off"
+                    icon="pi pi-check"
+                    size="small"
+                    [disabled]="busy()"
+                    (onClick)="signOff(l)"
+                  />
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    }
+
+    @if (detail()!.notInRun.length > 0) {
+      <p-card styleClass="nc-card side-card">
+        <h3 class="side-title">Not in this run</h3>
+        <p class="side-note">
+          These people work this month but cannot be calculated yet. Fix the reason, then
+          recalculate.
+        </p>
+        <ul class="plain-list not-in-run">
+          @for (n of detail()!.notInRun; track n.employeeId) {
+            <li>
+              <strong>{{ n.name }}</strong> <span class="muted">{{ n.staffId }}</span>:
+              {{ n.reason }}
+            </li>
+          }
+        </ul>
+      </p-card>
+    }
+
+    <p-card styleClass="nc-card side-card">
+      <h3 class="side-title">History</h3>
+      <ul class="plain-list">
+        @for (st of detail()!.steps; track $index) {
+          <li>
+            <strong>{{ st.name || 'Someone' }}</strong> {{ describeStep(st.action).toLowerCase() }}
+            <span class="muted"> {{ st.at | date: 'dd/MM/yyyy HH:mm' }}</span>
+            @if (st.reason) {
+              <div class="step-reason">"{{ st.reason }}"</div>
+            }
+          </li>
+        }
+      </ul>
+    </p-card>
+  }
+
+  <!-- One person's payslip -->
+  <p-dialog
+    [visible]="selected() !== null"
+    (visibleChange)="!$event && closeLine()"
+    [header]="selected()?.name ?? ''"
+    [modal]="true"
+    [style]="{ width: 'min(640px, 94vw)' }"
+    [draggable]="false"
+    appendTo="body"
+  >
+    @if (selected(); as l) {
+      @if (l.excluded) {
+        <p class="dialog-intro">Left out of this run: {{ l.excludedReason }}</p>
+      } @else {
+        <dl class="totals dialog-totals">
+          <div>
+            <dt>Gross</dt>
+            <dd>{{ rm(l.gross) }}</dd>
+          </div>
+          <div>
+            <dt>Net</dt>
+            <dd>{{ rm(l.net) }}</dd>
+          </div>
+          <div>
+            <dt>Employer cost</dt>
+            <dd>{{ rm(l.employerCost) }}</dd>
+          </div>
+        </dl>
+        @for (g of groups(l); track g.section) {
+          <h4 class="group-title">{{ g.label }}</h4>
+          <table class="payslip">
+            <tbody>
+              @for (i of g.items; track $index) {
+                <tr>
+                  <td>{{ i.description }}</td>
+                  <td class="num">{{ rm(i.amount) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        @if (l.unpaidDays.length > 0) {
+          <h4 class="group-title">Unpaid leave days</h4>
+          <table class="payslip">
+            <tbody>
+              @for (d of l.unpaidDays; track d.date) {
+                <tr>
+                  <td>{{ d.date | date: 'dd/MM/yyyy' }} ({{ d.days }} day)</td>
+                  <td class="num">{{ rm(d.amount) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        @if (l.warnings.length > 0) {
+          <h4 class="group-title">Notes</h4>
+          <ul class="plain-list">
+            @for (w of l.warnings; track $index) {
+              <li [class.blocking]="mustFix(w)">
+                {{ w.message }}
+                @if (mustFix(w)) {
+                  <strong> (must be fixed before submitting)</strong>
+                }
+              </li>
+            }
+          </ul>
+        }
+      }
+
+      @if (can('edit-lines')) {
+        <h4 class="group-title">Inputs</h4>
+        <div class="field">
+          <label for="line-pcb">PCB (monthly tax deduction, RM)</label>
+          <p-inputnumber
+            inputId="line-pcb"
+            [(ngModel)]="editPcb"
+            mode="currency"
+            currency="MYR"
+            locale="en-MY"
+            [min]="0"
+            placeholder="Not entered"
+          />
+        </div>
+        <div class="check-row">
+          <p-checkbox inputId="line-excl" [(ngModel)]="editExcluded" [binary]="true" />
+          <label for="line-excl">Leave this person out of the run</label>
+        </div>
+        @if (editExcluded) {
+          <div class="field">
+            <label for="line-reason"><span class="req">*</span> Why?</label>
+            <textarea
+              id="line-reason"
+              pTextarea
+              rows="2"
+              maxlength="500"
+              [(ngModel)]="editReason"
+              placeholder="e.g. final pay is handled separately"
+            ></textarea>
+          </div>
+        }
+      }
+    }
+    <ng-template pTemplate="footer">
+      <p-button label="Close" [text]="true" severity="secondary" (onClick)="closeLine()" />
+      @if (selected(); as l) {
+        @if (l.canSignOff) {
+          <p-button
+            label="Sign off"
+            icon="pi pi-check"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="busy()"
+            (onClick)="signOff(l)"
+          />
+        }
+      }
+      @if (can('edit-lines')) {
+        <p-button
+          label="Save"
+          severity="primary"
+          [disabled]="!isLineValid || busy()"
+          [loading]="busy()"
+          (onClick)="saveLine()"
+        />
+      }
+    </ng-template>
+  </p-dialog>
+
+  <!-- Return for changes -->
+  <p-dialog
+    [visible]="showReturn()"
+    (visibleChange)="!$event && showReturn.set(false)"
+    header="Return for changes"
+    [modal]="true"
+    [style]="{ width: 'min(460px, 92vw)' }"
+    [draggable]="false"
+    appendTo="body"
+  >
+    <p class="dialog-intro">
+      The run goes back to a draft and every sign-off is cleared. Say what needs changing.
+    </p>
+    <div class="field">
+      <label for="return-reason"><span class="req">*</span> Reason</label>
+      <textarea
+        id="return-reason"
+        pTextarea
+        rows="3"
+        maxlength="500"
+        [(ngModel)]="returnReason"
+      ></textarea>
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        [text]="true"
+        severity="secondary"
+        (onClick)="showReturn.set(false)"
+      />
+      <p-button
+        label="Return"
+        severity="primary"
+        [disabled]="!returnReason.trim() || busy()"
+        [loading]="busy()"
+        (onClick)="confirmReturn()"
+      />
+    </ng-template>
+  </p-dialog>
+</div>

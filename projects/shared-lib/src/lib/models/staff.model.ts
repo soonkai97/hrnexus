@@ -16,6 +16,9 @@ export interface Staff {
   /** When true, this account is hidden from the roster by default (seeded system accounts). Optional so
    *  a cached list response from before this field shipped still parses; treated as false when absent. */
   isHidden?: boolean;
+  /** Who this person reports to (null at the top); it decides whose payroll line a manager may read and sign off. */
+  reportsToId?: string | null;
+  reportsToName?: string | null;
 }
 
 export interface RegisterStaffRequest {

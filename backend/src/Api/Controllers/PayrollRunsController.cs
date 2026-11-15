@@ -45,6 +45,12 @@ public class PayrollRunsController(IMediator mediator, ICurrentUserService curre
     public async Task<IActionResult> Get(Guid id, [FromQuery] bool notInRun, CancellationToken ct) =>
         Ok(await mediator.Send(new GetPayrollRunQuery(id, Actor().Id, notInRun), ct));
 
+    /// <summary>The submitted-or-later runs that include the signed-in manager's direct reports (no money), newest first.</summary>
+    [HttpGet("team")]
+    [Authorize(Policy = Signoff)]
+    public async Task<IActionResult> TeamRuns(CancellationToken ct) =>
+        Ok(await mediator.Send(new GetPayrollTeamRunsQuery(Actor().Id), ct));
+
     /// <summary>The lines of the people who report to the signed-in user (only theirs, only once the run is submitted).</summary>
     [HttpGet("{id:guid}/team")]
     [Authorize(Policy = Signoff)]
@@ -110,17 +116,17 @@ public class PayrollRunsController(IMediator mediator, ICurrentUserService curre
 
     [HttpPost("{id:guid}/lock")]
     [Authorize(Policy = Lock)]
-    public async Task<IActionResult> LockRun(Guid id, CancellationToken ct)
+    public async Task<IActionResult> LockRun(Guid id, [FromBody] VersionBody body, CancellationToken ct)
     {
-        await mediator.Send(new LockPayrollRunCommand(id, Actor()), ct);
+        await mediator.Send(new LockPayrollRunCommand(id, body.ExpectedVersion, Actor()), ct);
         return NoContent();
     }
 
     [HttpPost("{id:guid}/reopen")]
     [Authorize(Policy = Reopen)]
-    public async Task<IActionResult> ReopenRun(Guid id, CancellationToken ct)
+    public async Task<IActionResult> ReopenRun(Guid id, [FromBody] VersionBody body, CancellationToken ct)
     {
-        await mediator.Send(new ReopenPayrollRunCommand(id, Actor()), ct);
+        await mediator.Send(new ReopenPayrollRunCommand(id, body.ExpectedVersion, Actor()), ct);
         return NoContent();
     }
 }

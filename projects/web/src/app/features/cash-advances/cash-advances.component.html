@@ -49,6 +49,20 @@
     </ng-template>
   </p-dialog>
 
+  <!-- Monthly repayment -->
+  <p-dialog [visible]="scheduleTarget() !== null" (visibleChange)="!$event && scheduleTarget.set(null)"
+            header="Monthly repayment" [modal]="true" [style]="{width:'min(420px, 92vw)'}" [draggable]="false" appendTo="body">
+    <p class="ca-schedule-note">How much payroll takes back each month. Leave it empty to take everything still owed in the next run. A run never takes more than half of someone's pay.</p>
+    <div class="field">
+      <label for="ca-schedule">Each month (RM)</label>
+      <p-inputnumber inputId="ca-schedule" [(ngModel)]="scheduleAmount" mode="currency" currency="MYR" locale="en-MY" [min]="0" placeholder="Everything still owed" />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" [text]="true" severity="secondary" (click)="scheduleTarget.set(null)" />
+      <p-button label="Save" severity="primary" (click)="saveSchedule()" [disabled]="scheduleSaving()" [loading]="scheduleSaving()" />
+    </ng-template>
+  </p-dialog>
+
   <!-- List -->
   @if (loading()) {
     <p-card styleClass="loading-card">Loading…</p-card>
@@ -75,6 +89,7 @@
             <div><dt>Date</dt><dd>{{ a.advanceDate }}</dd></div>
           </dl>
           <div class="nc-card-sub" [title]="a.reason || ''">{{ a.reason || 'No reason given' }}</div>
+          <div class="nc-card-sub ca-repay">{{ repaymentText(a) }}</div>
           <div class="nc-card-foot">
             @if (a.status === 'settled') {
               <p-tag value="Settled" severity="success" />
@@ -85,6 +100,9 @@
               <p-button [label]="(a.status === 'settled' ? 'Reopen' : 'Mark settled')"
                         [text]="true" size="small" [severity]="a.status === 'settled' ? 'secondary' : 'success'"
                         [loading]="busyId() === a.id" [disabled]="!!busyId()" (onClick)="toggleSettled(a)" />
+              @if (a.status !== 'settled') {
+                <p-button label="Schedule" [text]="true" size="small" severity="secondary" [disabled]="!!busyId()" (onClick)="openSchedule(a)" />
+              }
               <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" rounded
                         [ariaLabel]="'Delete advance for ' + a.staffName"
                         [disabled]="!!busyId()" (onClick)="remove(a)" />
@@ -108,6 +126,7 @@
             <th pSortableColumn="amount">Amount <p-sortIcon field="amount" /></th>
             <th pSortableColumn="advanceDate">Date <p-sortIcon field="advanceDate" /></th>
             <th>Reason</th>
+            <th>Repayment</th>
             <th pSortableColumn="status">Status <p-sortIcon field="status" /></th>
             <th class="td-actions"></th>
           </tr>
@@ -121,6 +140,7 @@
             <td class="td-muted"><span class="p-column-title">Date</span>{{ a.advanceDate }}</td>
             <td class="td-muted td-reason" [pTooltip]="a.reason || ''" tooltipPosition="top">
               <span class="p-column-title">Reason</span>{{ a.reason || '—' }}</td>
+            <td class="td-muted"><span class="p-column-title">Repayment</span>{{ repaymentText(a) }}</td>
             <td><span class="p-column-title">Status</span>
               @if (a.status === 'settled') {
                 <p-tag value="Settled" severity="success" />
@@ -133,6 +153,9 @@
                 <p-button [label]="(a.status === 'settled' ? 'Reopen' : 'Mark settled')"
                           [text]="true" size="small" [severity]="a.status === 'settled' ? 'secondary' : 'success'"
                           [loading]="busyId() === a.id" [disabled]="!!busyId()" (onClick)="toggleSettled(a)" />
+                @if (a.status !== 'settled') {
+                  <p-button label="Schedule" [text]="true" size="small" severity="secondary" [disabled]="!!busyId()" (onClick)="openSchedule(a)" />
+                }
                 <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" rounded
                           aria-label="Delete"
                           [disabled]="!!busyId()" (onClick)="remove(a)" />

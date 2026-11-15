@@ -1,4 +1,4 @@
-﻿<div class="p-3 p-md-4">
+<div class="p-3 p-md-4">
   <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between flex-wrap gap-3">
     <div>
       <a routerLink="/staff" class="back-link">
@@ -139,6 +139,7 @@
         </div>
       }
     </p-card>
+    <app-reports-to [staffId]="staffGuid" [currentId]="s.reportsToId ?? null" [currentName]="s.reportsToName ?? null" [canManage]="canManageStaff" />
     }
 
     <!-- ── Pay (payroll.view; changes need payroll.manage) ───────────── -->
@@ -276,6 +277,9 @@
             </div>
           }
         </p-card>
+
+        <!-- Recurring allowances and deductions -->
+        <app-pay-items [staffId]="staffGuid" [canManage]="canManagePay" />
       }
 
       <!-- Add salary dialog -->

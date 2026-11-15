@@ -1,0 +1,100 @@
+@use 'styles/theme' as *;
+
+.page {
+  padding: 1rem;
+}
+.page-header {
+  margin-bottom: 1rem;
+}
+.page-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: $text-muted;
+  font-size: 0.85rem;
+}
+
+.run-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.run-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  background: $bg-surface;
+  color: $text-primary;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  &.is-active {
+    border-color: $neon-purple;
+    font-weight: 700;
+  }
+  .badge {
+    background: $neon-purple;
+    color: #fff;
+    border-radius: $radius-pill;
+    padding: 0 0.45rem;
+    font-size: 0.72rem;
+  }
+}
+
+.run-state {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.muted {
+  color: $text-muted;
+  font-size: 0.85rem;
+}
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+.line-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.group-title {
+  margin: 0.8rem 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.payslip {
+  width: 100%;
+  min-width: 0; // the global table rule forces 480px, which overflows a card
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  td {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid $border-subtle;
+  }
+}
+.plain-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0.25rem;
+}

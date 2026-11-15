@@ -133,6 +133,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         [
             (HttpMethod.Get, "/api/payroll/runs", [P.PayrollView]),
             (HttpMethod.Get, $"/api/payroll/runs/{run}", [P.PayrollView]),
+            (HttpMethod.Get, "/api/payroll/runs/team", [P.PayrollSignoff]),
             (HttpMethod.Get, $"/api/payroll/runs/{run}/team", [P.PayrollSignoff]),
             (HttpMethod.Post, "/api/payroll/runs", [P.PayrollManage]),
             (HttpMethod.Delete, $"/api/payroll/runs/{run}", [P.PayrollManage]),
@@ -153,7 +154,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
 
         foreach (var (method, url, allowed) in endpoints)
         {
-            HttpRequestMessage Req() => new(method, url) { Content = method == HttpMethod.Get || method == HttpMethod.Delete || url.EndsWith("/lock") || url.EndsWith("/reopen") ? null : JsonContent.Create(body) };
+            HttpRequestMessage Req() => new(method, url) { Content = method == HttpMethod.Get || method == HttpMethod.Delete ? null : JsonContent.Create(body) };
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.SendAsync(Req())).StatusCode);
             foreach (var key in keys)
             {
@@ -195,6 +196,13 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
 
         Assert.Equal(HttpStatusCode.OK, (await prep.PostAsJsonAsync($"/api/payroll/runs/{id}/submit", new { expectedVersion = await VersionOfAsync(prep, id) })).StatusCode);
 
+        // The server says what each person may do: the head of HR can sign and approve, the preparer can do neither.
+        var headView = await JsonAsync(await head.GetAsync($"/api/payroll/runs/{id}"));
+        Assert.Equal(["signoff-all", "approve", "return"], headView.GetProperty("allowedActions").EnumerateArray().Select(x => x.GetString()));
+        Assert.All(headView.GetProperty("lines").EnumerateArray(), l => Assert.True(l.GetProperty("canSignOff").GetBoolean()));
+        var prepView = await JsonAsync(await prep.GetAsync($"/api/payroll/runs/{id}"));
+        Assert.Empty(prepView.GetProperty("allowedActions").EnumerateArray());
+
         // The manager sees only their own report, and can sign it.
         var team = await JsonAsync(await mgr.GetAsync($"/api/payroll/runs/{id}/team"));
         Assert.Equal("ALICE", Assert.Single(team.GetProperty("lines").EnumerateArray().ToList()).GetProperty("staffId").GetString());
@@ -205,7 +213,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         var all = await head.PostAsJsonAsync($"/api/payroll/runs/{id}/signoff-all", new { expectedVersion = await VersionOfAsync(head, id) });
         Assert.Equal(3, (await JsonAsync(all)).GetProperty("signed").GetInt32());   // BOB, MGR, OTHERMGR
         Assert.Equal(HttpStatusCode.OK, (await head.PostAsJsonAsync($"/api/payroll/runs/{id}/approve", new { expectedVersion = await VersionOfAsync(head, id) })).StatusCode);
-        Assert.Equal(HttpStatusCode.NoContent, (await head.PostAsync($"/api/payroll/runs/{id}/lock", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await head.PostAsJsonAsync($"/api/payroll/runs/{id}/lock", new { expectedVersion = await VersionOfAsync(head, id) })).StatusCode);
 
         var list = await JsonAsync(await head.GetAsync("/api/payroll/runs"));
         var summary = Assert.Single(list.EnumerateArray().ToList());
@@ -213,7 +221,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         Assert.Equal(4, summary.GetProperty("people").GetInt32());
         Assert.Equal(3000m + 4000m + 5000m + 5000m, summary.GetProperty("totalGross").GetDecimal());
 
-        Assert.Equal(HttpStatusCode.NoContent, (await head.PostAsync($"/api/payroll/runs/{id}/reopen", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await head.PostAsJsonAsync($"/api/payroll/runs/{id}/reopen", new { expectedVersion = await VersionOfAsync(head, id) })).StatusCode);
         Assert.Equal("draft", (await JsonAsync(await head.GetAsync($"/api/payroll/runs/{id}"))).GetProperty("summary").GetProperty("state").GetString());
     }
 
@@ -229,6 +237,10 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         var other = await LoginAsync(env, "OTHERMGR");
         var id = await StartAsync(prep);
         await prep.PostAsJsonAsync($"/api/payroll/runs/{id}/submit", new { expectedVersion = await VersionOfAsync(prep, id) });
+
+        var waiting = await JsonAsync(await mgr.GetAsync("/api/payroll/runs/team"));
+        var waitingRun = Assert.Single(waiting.EnumerateArray().ToList());
+        Assert.Equal((id, 1, 1), (waitingRun.GetProperty("runId").GetGuid(), waitingRun.GetProperty("lines").GetInt32(), waitingRun.GetProperty("toSign").GetInt32()));
 
         var mine = await JsonAsync(await mgr.GetAsync($"/api/payroll/runs/{id}/team"));
         var theirs = await JsonAsync(await other.GetAsync($"/api/payroll/runs/{id}/team"));

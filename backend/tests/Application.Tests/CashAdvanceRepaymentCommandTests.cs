@@ -141,7 +141,7 @@ public class CashAdvanceRepaymentCommandTests
         await new SubmitPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new SubmitPayrollRunCommand(runId, Version(), PayrollRunKit.Act(prep)), CancellationToken.None);
         await new SignOffAllPayrollLinesCommandHandler(k.Db, k.Audit, k.Clock).Handle(new SignOffAllPayrollLinesCommand(runId, Version(), PayrollRunKit.Act(head)), CancellationToken.None);
         await new ApprovePayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new ApprovePayrollRunCommand(runId, Version(), PayrollRunKit.Act(head)), CancellationToken.None);
-        await new LockPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new LockPayrollRunCommand(runId, PayrollRunKit.Act(head)), CancellationToken.None);
+        await new LockPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new LockPayrollRunCommand(runId, Version(), PayrollRunKit.Act(head)), CancellationToken.None);
 
         await Set(k, admin, advance.Id, 100m);
 

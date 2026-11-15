@@ -50,7 +50,7 @@ public class PayItemCommandTests
         if (!lockIt) return id;
         await new SignOffAllPayrollLinesCommandHandler(k.Db, k.Audit, k.Clock).Handle(new SignOffAllPayrollLinesCommand(id, Version(), PayrollRunKit.Act(head)), CancellationToken.None);
         await new ApprovePayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new ApprovePayrollRunCommand(id, Version(), PayrollRunKit.Act(head)), CancellationToken.None);
-        await new LockPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new LockPayrollRunCommand(id, PayrollRunKit.Act(head)), CancellationToken.None);
+        await new LockPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new LockPayrollRunCommand(id, Version(), PayrollRunKit.Act(head)), CancellationToken.None);
         return id;
     }
 

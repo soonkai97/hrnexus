@@ -13,7 +13,7 @@ namespace HRNexus.Application.Payroll.Commands.Run;
 /// payslip lines really took (never from the schedule), settles an advance exactly when its repayments reach what was
 /// lent, and creates (or adopts) the month's payroll lock row so the older lock guards agree.
 /// </summary>
-public record LockPayrollRunCommand(Guid RunId, PayrollActor By) : IRequest;
+public record LockPayrollRunCommand(Guid RunId, long ExpectedVersion, PayrollActor By) : IRequest;
 
 public class LockPayrollRunCommandHandler(IAppDbContext db, IAuditService audit, IDateTimeProvider clock)
     : IRequestHandler<LockPayrollRunCommand>
@@ -24,6 +24,7 @@ public class LockPayrollRunCommandHandler(IAppDbContext db, IAuditService audit,
             await PayrollRunWork.RequireHolderAsync(db, AppConstants.Permissions.PayrollLock, req.By, "You are not allowed to lock payroll.", c);
             var now = clock.UtcNow;
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
+            PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);   // nobody locks figures that changed since they looked
             run.Lock(req.By.Id, now);
 
             // What each advance was really charged: the applied amount of the lines that name it.
@@ -70,7 +71,7 @@ public class LockPayrollRunCommandHandler(IAppDbContext db, IAuditService audit,
 /// any advance they had settled put back to outstanding. Refused once payslips or a bank file were produced, or when
 /// a later month's run has moved past draft (it already relied on this month).
 /// </summary>
-public record ReopenPayrollRunCommand(Guid RunId, PayrollActor By) : IRequest;
+public record ReopenPayrollRunCommand(Guid RunId, long ExpectedVersion, PayrollActor By) : IRequest;
 
 public class ReopenPayrollRunCommandHandler(IAppDbContext db, IAuditService audit, IDateTimeProvider clock)
     : IRequestHandler<ReopenPayrollRunCommand>
@@ -80,6 +81,7 @@ public class ReopenPayrollRunCommandHandler(IAppDbContext db, IAuditService audi
         {
             await PayrollRunWork.RequireHolderAsync(db, AppConstants.Permissions.PayrollReopen, req.By, "You are not allowed to reopen payroll.", c);
             var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
+            PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);
             var index = run.Year * 12 + run.Month;
             // A later run (in any state) was calculated on top of this month's repayments; reopening this one would let both deduct the same advance.
             if (await db.PayrollRuns.AnyAsync(r => r.Year * 12 + r.Month > index, c))

@@ -1,4 +1,4 @@
-﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,7 +20,9 @@ public record StaffDetailDto(
     string?      PassportNo,
     string?      DateOfBirth,
     int?         Age,
-    DateTime     CreatedAt);
+    DateTime     CreatedAt,
+    Guid?        ReportsToId = null,
+    string?      ReportsToName = null);
 
 public class GetStaffByIdQueryHandler(IAppDbContext db)
     : IRequestHandler<GetStaffByIdQuery, StaffDetailDto>
@@ -32,12 +34,18 @@ public class GetStaffByIdQueryHandler(IAppDbContext db)
             .FirstOrDefaultAsync(ct)
             ?? throw new KeyNotFoundException($"Employee {req.Id} not found.");
 
+        var managerName = emp.ReportsToId is { } managerId
+            ? (await db.Staff.Where(m => m.Id == managerId).Select(m => new { m.FirstName, m.LastName }).FirstOrDefaultAsync(ct)) is { } m
+                ? $"{m.FirstName} {m.LastName}".Trim()
+                : null
+            : null;
+
         return new StaffDetailDto(
             emp.Id, emp.StaffId, emp.FirstName, emp.LastName, emp.FullName, emp.Email,
             emp.Roles.ToList(),
             emp.IsActive, emp.PhoneNumber,
             emp.IcNo, emp.PassportNo,
             emp.DateOfBirth?.ToString("yyyy-MM-dd"), emp.Age,
-            emp.CreatedAt);
+            emp.CreatedAt, emp.ReportsToId, managerName);
     }
 }

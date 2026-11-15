@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HRNexus.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261115025318_PayrollRuns")]
+    [Migration("20261115030538_PayrollRuns")]
     partial class PayrollRuns
     {
         /// <inheritdoc />
@@ -124,9 +124,9 @@ namespace HRNexus.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("CashAdvanceId")
                         .HasColumnType("uuid");

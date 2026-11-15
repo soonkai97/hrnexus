@@ -52,9 +52,13 @@ public class PayrollRunLine
         if (pcb is < 0m) throw new ArgumentException("The PCB cannot be negative.");
         if (excluded && string.IsNullOrWhiteSpace(excludedReason))
             throw new ArgumentException("Leaving a person out of the run needs a reason.");
+        if (excluded && excludedReason!.Trim().Length > 500) throw new ArgumentException("The reason can be at most 500 characters.");
+        var reason = excluded ? excludedReason!.Trim() : null;
+        // The figures were worked out from the old inputs: a change means they must be calculated again before the run can be submitted.
+        if (pcb != PcbAmount || excluded != Excluded) Calculated = false;
         PcbAmount = pcb;
         Excluded = excluded;
-        ExcludedReason = excluded ? excludedReason!.Trim() : null;
+        ExcludedReason = reason;
     }
 
     internal void ApplyResult(PayrollLineResult r)

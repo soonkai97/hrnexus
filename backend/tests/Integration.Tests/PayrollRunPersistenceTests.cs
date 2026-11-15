@@ -57,7 +57,7 @@ public class PayrollRunPersistenceTests(PostgresFixture fx)
         var preparer = Person("PREP1", "Prep");
         db.Staff.AddRange(alice, preparer);
         var run = PayrollRun.Start(2026, 10, preparer.Id, Basis, Now);
-        run.AddLine(PayrollRunLine.Create(alice.Id, alice.StaffId, alice.FullName));
+        run.AddLine(PayrollRunLine.Create(alice.Id, alice.StaffId, alice.FullName), preparer.Id, Now);
         run.SetLineInputs(alice.Id, 111.11m, false, null, preparer.Id, Now);
         run.ApplyResult(alice.Id, Result(4321.50m, 3500.25m, warning, blocking), preparer.Id, Now);
         db.PayrollRuns.Add(run);
@@ -103,6 +103,9 @@ public class PayrollRunPersistenceTests(PostgresFixture fx)
         await using var db = await FreshAsync();
         var (run, alice) = await SeedRunAsync(db);
         db.PayItems.Add(PayItem.Create(alice.Id, PayItemKind.Allowance, "Transport", 150.75m, true, true, 0, new DateOnly(2026, 1, 1), null, "admin"));
+        var advance = CashAdvance.Create(alice.Id, 900m, new DateOnly(2026, 10, 2), "Rent", "admin");
+        db.CashAdvances.Add(advance);
+        db.CashAdvanceRepayments.Add(CashAdvanceRepayment.Create(advance.Id, run.Id, 321.45m, Now));
         await db.SaveChangesAsync();
 
         async Task<string> Raw(string sql) => await db.Database.SqlQueryRaw<string>(sql).SingleAsync();
@@ -118,6 +121,7 @@ public class PayrollRunPersistenceTests(PostgresFixture fx)
             (Table: "PayrollRunUnpaidDays", Column: "DeductionAmount", Plain: "57.69"),
             (Table: "PayrollRunWarnings", Column: "Message", Plain: "4321.00"),
             (Table: "PayItems", Column: "Amount", Plain: "150.75"),
+            (Table: "CashAdvanceRepayments", Column: "Amount", Plain: "321.45"),
         };
         foreach (var c in columns)
         {

@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using HRNexus.Application.Common.Interfaces;
 using HRNexus.Domain.Common;
 using HRNexus.Domain.Entities;
@@ -80,7 +80,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserSe
         mb.ApplyConfiguration(new PayrollRunUnpaidDayConfiguration(encryptor));
         mb.ApplyConfiguration(new PayrollRunWarningConfiguration(encryptor));
         mb.ApplyConfiguration(new PayItemConfiguration(encryptor));
-        mb.ApplyConfiguration(new CashAdvanceRepaymentConfiguration());
+        mb.ApplyConfiguration(new CashAdvanceRepaymentConfiguration(encryptor));
         SeedData.Seed(mb);
     }
 

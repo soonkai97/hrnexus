@@ -22,13 +22,14 @@ public class PayItemConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfig
     }
 }
 
-public class CashAdvanceRepaymentConfiguration : IEntityTypeConfiguration<CashAdvanceRepayment>
+/// <summary>A repayment is what was really deducted after the deduction cap, so when the cap binds it reveals a figure derived from salary: the amount is encrypted like every other payroll figure.</summary>
+public class CashAdvanceRepaymentConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfiguration<CashAdvanceRepayment>
 {
     public void Configure(EntityTypeBuilder<CashAdvanceRepayment> b)
     {
         b.ToTable("CashAdvanceRepayments");
         b.HasKey(r => r.Id);
-        b.Property(r => r.Amount).HasPrecision(10, 2);
+        b.Property(r => r.Amount).HasConversion(new EncryptedColumns(encryptor).Money).HasColumnType("text");
         b.Property(r => r.CreatedAt).HasColumnType("timestamp with time zone");
         // Repayments are history: the advance and the run cannot be removed from under them.
         b.HasOne<CashAdvance>().WithMany().HasForeignKey(r => r.CashAdvanceId).OnDelete(DeleteBehavior.Restrict);

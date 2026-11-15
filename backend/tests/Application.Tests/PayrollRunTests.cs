@@ -35,8 +35,8 @@ public class PayrollRunTests
     private static PayrollRun DraftWithPeople()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
-        run.AddLine(PayrollRunLine.Create(Bob, "BOB", "Bob Lim"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
+        run.AddLine(PayrollRunLine.Create(Bob, "BOB", "Bob Lim"), Preparer, Now);
         run.ApplyResult(Alice, Result(), Preparer, Now);
         run.ApplyResult(Bob, Result(), Preparer, Now);
         return run;
@@ -87,9 +87,9 @@ public class PayrollRunTests
     public void Each_person_appears_once_in_a_run()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
 
-        Assert.Throws<InvalidOperationException>(() => run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan")));
+        Assert.Throws<InvalidOperationException>(() => run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now));
     }
 
     // ── editing a draft ───────────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ public class PayrollRunTests
     {
         var run = NewRun();
         var v0 = run.Version;
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
         var v1 = run.Version;
         run.SetLineInputs(Alice, 120m, false, null, Preparer, Now);
         var v2 = run.Version;
@@ -112,7 +112,7 @@ public class PayrollRunTests
     public void The_inputs_of_a_line_are_the_pcb_and_whether_the_person_is_left_out()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
 
         run.SetLineInputs(Alice, 120m, true, "On unpaid sabbatical", Preparer, Now);
 
@@ -126,7 +126,7 @@ public class PayrollRunTests
     public void Leaving_a_person_out_needs_a_reason_so_nobody_is_silently_skipped()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
 
         Assert.Throws<ArgumentException>(() => run.SetLineInputs(Alice, null, true, "  ", Preparer, Now));
     }
@@ -135,7 +135,7 @@ public class PayrollRunTests
     public void Including_a_person_again_clears_the_reason()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
         run.SetLineInputs(Alice, null, true, "Away", Preparer, Now);
 
         run.SetLineInputs(Alice, null, false, "stale text", Preparer, Now);
@@ -148,7 +148,7 @@ public class PayrollRunTests
     public void A_negative_pcb_is_refused()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
 
         Assert.Throws<ArgumentException>(() => run.SetLineInputs(Alice, -1m, false, null, Preparer, Now));
     }
@@ -166,7 +166,7 @@ public class PayrollRunTests
     public void A_calculation_replaces_the_previous_figures_of_the_line_and_keeps_its_inputs()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
         run.SetLineInputs(Alice, 99m, false, null, Preparer, Now);
         run.ApplyResult(Alice, Result(3000m, 2500m), Preparer, Now);
 
@@ -185,7 +185,7 @@ public class PayrollRunTests
     public void A_calculation_stores_each_warning_with_its_code_and_whether_it_blocks()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
 
         run.ApplyResult(Alice, Result(warnings: [new PayrollWarning("no-pcb", "No PCB entered.", false), new PayrollWarning("band-gap", "Wage 9999.00 is in no band.", true)]), Preparer, Now);
 
@@ -201,7 +201,7 @@ public class PayrollRunTests
 
         Assert.Throws<InvalidOperationException>(() => run.SetLineInputs(Alice, 1m, false, null, Preparer, Now));
         Assert.Throws<InvalidOperationException>(() => run.ApplyResult(Alice, Result(), Preparer, Now));
-        Assert.Throws<InvalidOperationException>(() => run.AddLine(PayrollRunLine.Create(Guid.NewGuid(), "NEW", "New Person")));
+        Assert.Throws<InvalidOperationException>(() => run.AddLine(PayrollRunLine.Create(Guid.NewGuid(), "NEW", "New Person"), Preparer, Now));
     }
 
     [Fact]
@@ -230,7 +230,7 @@ public class PayrollRunTests
         var run = NewRun();
         Assert.Throws<InvalidOperationException>(() => run.Submit(Preparer, Now));
 
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
         run.ApplyResult(Alice, Result(), Preparer, Now);
         run.SetLineInputs(Alice, null, true, "Away", Preparer, Now);
         Assert.Throws<InvalidOperationException>(() => run.Submit(Preparer, Now));   // everyone left out
@@ -240,7 +240,7 @@ public class PayrollRunTests
     public void A_person_who_was_never_calculated_blocks_submit()
     {
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
 
         Assert.Throws<InvalidOperationException>(() => run.Submit(Preparer, Now));
     }
@@ -341,7 +341,7 @@ public class PayrollRunTests
         var run = NewRun();                                    // Preparer started it
         var editor = Guid.NewGuid();
         var submitter = Guid.NewGuid();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
         run.ApplyResult(Alice, Result(), editor, Now);        // editor edited it
         run.Submit(submitter, Now);                           // submitter submitted it
         var signer = how switch { "started" => Preparer, "edited" => editor, _ => submitter };
@@ -433,7 +433,7 @@ public class PayrollRunTests
         var editor = Guid.NewGuid();
         var submitter = Guid.NewGuid();
         var run = NewRun();
-        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"));
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
         run.ApplyResult(Alice, Result(), editor, Now);
         run.Submit(submitter, Now);
         run.SignOff(Alice, Manager, Now);
@@ -587,6 +587,169 @@ public class PayrollRunTests
 
         Assert.Throws<InvalidOperationException>(() => run.Approve(fixer, Now));
         run.Approve(HeadOfHr, Now);
+    }
+
+
+    // ── review findings (opus, 15 Nov 2026) ───────────────────────────────────────
+
+    /// <summary>
+    /// WHY: the owner's rule is that whoever prepared the figures never signs or approves them. A Return does not
+    /// wash that away, because the hand-entered inputs the person typed are still on the lines.
+    /// </summary>
+    [Theory]
+    [InlineData("signoff")]
+    [InlineData("approve")]
+    public void Someone_who_edited_in_an_earlier_round_is_still_refused_after_a_return(string step)
+    {
+        var earlyEditor = Guid.NewGuid();
+        var run = NewRun();
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), Preparer, Now);
+        run.SetLineInputs(Alice, 400m, false, null, earlyEditor, Now);       // typed the PCB in round 0
+        run.ApplyResult(Alice, Result(), earlyEditor, Now);
+        run.Submit(Preparer, Now);
+        run.Return(earlyEditor, "Needs a second look", Now);                // they even returned it themselves
+        run.ApplyResult(Alice, Result(), Preparer, Now);
+        run.Submit(Preparer, Now);                                           // round 1 is submitted by someone else
+        run.SignOff(Alice, Manager, Now);
+
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            if (step == "signoff") run.SignOff(Alice, earlyEditor, Now);
+            else run.Approve(earlyEditor, Now);
+        });
+    }
+
+    [Fact]
+    public void Whoever_started_the_run_stays_refused_in_every_later_round()
+    {
+        var starter = Guid.NewGuid();
+        var run = PayrollRun.Start(2026, 10, starter, Basis, Now);
+        var other = Guid.NewGuid();
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), other, Now);
+        run.ApplyResult(Alice, Result(), other, Now);
+        run.Submit(other, Now);
+        run.Return(HeadOfHr, "Redo", Now);
+        run.ApplyResult(Alice, Result(), other, Now);
+        run.Submit(other, Now);
+        run.SignOff(Alice, Manager, Now);
+
+        Assert.Throws<InvalidOperationException>(() => run.Approve(starter, Now));
+    }
+
+    [Fact]
+    public void Whoever_added_a_person_to_the_run_counts_as_having_prepared_it()
+    {
+        var adder = Guid.NewGuid();
+        var run = NewRun();
+        run.AddLine(PayrollRunLine.Create(Alice, "ALICE", "Alice Tan"), adder, Now);
+        run.ApplyResult(Alice, Result(), Preparer, Now);
+        run.Submit(Preparer, Now);
+        run.SignOff(Alice, Manager, Now);
+
+        Assert.Throws<InvalidOperationException>(() => run.Approve(adder, Now));
+    }
+
+    /// <summary>
+    /// WHY: the net pay was worked out with the old PCB. Submitting after a change would put figures in front of
+    /// the approver that ignore what the preparer just typed.
+    /// </summary>
+    [Fact]
+    public void Changing_the_pcb_after_a_calculation_means_the_person_must_be_calculated_again_before_submit()
+    {
+        var run = DraftWithPeople();
+
+        run.SetLineInputs(Alice, 400m, false, null, Preparer, Now);
+
+        Assert.Throws<InvalidOperationException>(() => run.Submit(Preparer, Now));
+        run.ApplyResult(Alice, Result(), Preparer, Now);
+        run.Submit(Preparer, Now);
+        Assert.Equal(PayrollRunState.Submitted, run.State);
+    }
+
+    [Fact]
+    public void Saving_the_same_inputs_again_does_not_throw_away_a_calculation()
+    {
+        var run = DraftWithPeople();
+        run.SetLineInputs(Alice, 400m, false, null, Preparer, Now);
+        run.ApplyResult(Alice, Result(), Preparer, Now);
+
+        run.SetLineInputs(Alice, 400m, false, null, Preparer, Now);
+
+        run.Submit(Preparer, Now);
+    }
+
+    [Fact]
+    public void Putting_a_left_out_person_back_in_means_they_must_be_calculated_again()
+    {
+        var run = DraftWithPeople();
+        run.SetLineInputs(Bob, null, true, "Away", Preparer, Now);
+        run.SetLineInputs(Bob, null, false, null, Preparer, Now);
+
+        Assert.Throws<InvalidOperationException>(() => run.Submit(Preparer, Now));
+    }
+
+    [Fact]
+    public void Nobody_approves_a_run_that_contains_their_own_pay()
+    {
+        var approver = Guid.NewGuid();
+        var run = NewRun();
+        run.AddLine(PayrollRunLine.Create(approver, "HR1", "Head Hr"), Preparer, Now);
+        run.ApplyResult(approver, Result(), Preparer, Now);
+        run.Submit(Preparer, Now);
+        run.SignOff(approver, Manager, Now);
+
+        Assert.Throws<InvalidOperationException>(() => run.Approve(approver, Now));
+    }
+
+    [Fact]
+    public void An_approver_whose_own_line_is_left_out_may_approve()
+    {
+        var approver = Guid.NewGuid();
+        var run = DraftWithPeople();
+        run.AddLine(PayrollRunLine.Create(approver, "HR1", "Head Hr"), Preparer, Now);
+        run.SetLineInputs(approver, null, true, "Paid separately", Preparer, Now);
+        run.Submit(Preparer, Now);
+        run.SignOff(Alice, Manager, Now);
+        run.SignOff(Bob, Manager, Now);
+
+        run.Approve(approver, Now);
+
+        Assert.Equal(PayrollRunState.Approved, run.State);
+    }
+
+    [Fact]
+    public void A_reason_longer_than_the_database_column_is_refused_cleanly()
+    {
+        var run = DraftWithPeople();
+        var tooLong = new string('x', 501);
+
+        Assert.Throws<ArgumentException>(() => run.SetLineInputs(Alice, null, true, tooLong, Preparer, Now));
+        run.Submit(Preparer, Now);
+        Assert.Throws<ArgumentException>(() => run.Return(HeadOfHr, tooLong, Now));
+    }
+
+    /// <summary>WHY: Version is the concurrency token. A step that forgets to bump it can be saved over a stale copy.</summary>
+    [Fact]
+    public void Every_step_of_the_lifecycle_bumps_the_version()
+    {
+        var run = DraftWithPeople();
+        var versions = new List<long> { run.Version };
+        void Step(Action act) { act(); versions.Add(run.Version); }
+
+        Step(() => run.Submit(Preparer, Now));
+        Step(() => run.SignOff(Alice, Manager, Now));
+        Step(() => run.SignOff(Bob, Manager, Now));
+        Step(() => run.Approve(HeadOfHr, Now));
+        Step(() => run.Return(HeadOfHr, "again", Now));
+        Step(() => run.Submit(Preparer, Now));
+        Step(() => run.SignOff(Alice, Manager, Now));
+        Step(() => run.SignOff(Bob, Manager, Now));
+        Step(() => run.Approve(HeadOfHr, Now));
+        Step(() => run.Lock(HeadOfHr, Now));
+        Step(() => run.Reopen(HeadOfHr, Now));
+
+        Assert.Equal(versions.Distinct().Count(), versions.Count);          // strictly increasing: no step left it unchanged
+        Assert.Equal(versions.OrderBy(v => v), versions);
     }
 
     // ── totals ────────────────────────────────────────────────────────────────────

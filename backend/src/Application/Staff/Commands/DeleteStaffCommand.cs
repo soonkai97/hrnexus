@@ -1,6 +1,7 @@
 ﻿using HRNexus.Application.Common.Interfaces;
 using HRNexus.Application.Permissions.Commands;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRNexus.Application.Staff.Commands;
 
@@ -28,6 +29,12 @@ public class DeleteStaffCommandHandler(IAppDbContext db)
         db.StaffPermissionOverrides.RemoveRange(db.StaffPermissionOverrides.Where(o => o.EmployeeId == req.Id));
         db.Notifications           .RemoveRange(db.Notifications           .Where(n => n.EmployeeId == req.Id));
         db.PushSubscriptions       .RemoveRange(db.PushSubscriptions       .Where(p => p.EmployeeId == req.Id));
+
+        // People who reported to them report to nobody now (their pay is signed off by the head of HR). The row is only
+        // soft-deleted, so the database never clears this link itself, and a deleted manager must not keep, or later
+        // get back, the authority to sign off anyone's pay.
+        foreach (var report in await db.Staff.Where(s => s.ReportsToId == req.Id).ToListAsync(ct))
+            report.SetReportsTo(null);
 
         db.Staff.Remove(staff);
         await db.SaveChangesAsync(ct);

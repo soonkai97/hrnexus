@@ -107,13 +107,14 @@ public class PayrollRun
 
     // ── editing a draft ──────────────────────────────────────────────────────────
 
-    public void AddLine(PayrollRunLine line)
+    public void AddLine(PayrollRunLine line, Guid addedBy, DateTime now)
     {
         EnsureState(PayrollRunState.Draft, "Only a draft run can be changed.");
         if (_lines.Any(l => l.EmployeeId == line.EmployeeId))
             throw new InvalidOperationException("That person is already in this payroll run.");
         line.AttachTo(Id);
         _lines.Add(line);
+        RecordEdit(addedBy, now);
         Version++;
     }
 
@@ -185,6 +186,8 @@ public class PayrollRun
         if (_lines.Any(l => !l.Excluded && !l.IsSignedOff))
             throw new InvalidOperationException("Every person's line must be signed off before the run is approved.");
         EnsureNotPreparer(by, "whoever prepared a run cannot approve it");
+        if (_lines.Any(l => !l.Excluded && l.EmployeeId == by))
+            throw new InvalidOperationException("Not allowed: nobody can approve a run that contains their own pay; another approver is needed.");
         State = PayrollRunState.Approved;
         Record(PayrollRunAction.Approved, by, now);
         Version++;
@@ -196,6 +199,7 @@ public class PayrollRun
         if (State is not (PayrollRunState.Submitted or PayrollRunState.Approved))
             throw new InvalidOperationException("Only a submitted or approved run can be returned.");
         if (string.IsNullOrWhiteSpace(reason)) throw new ArgumentException("Returning a run needs a reason.");
+        if (reason.Trim().Length > 500) throw new ArgumentException("The reason can be at most 500 characters.");
         BackToDraft(PayrollRunAction.Returned, by, now, reason.Trim());
     }
 
@@ -240,25 +244,24 @@ public class PayrollRun
     }
 
     /// <summary>
-    /// A "preparer" started the run, or edited or submitted it in the current round. Starting counts in every
-    /// round (it is preparing too); an edit before the last Return or Reopen does not, because the figures it
-    /// touched were reviewed and sent back.
+    /// A "preparer" started the run, or edited or submitted it, in ANY round. The owner's rule is that whoever
+    /// prepared the figures never signs or approves them; a Return or Reopen does not wash that away, because the
+    /// hand-entered inputs they typed are still on the lines.
     /// </summary>
     private void EnsureNotPreparer(Guid staffId, string message)
     {
         var prepared = _actors.Any(a => a.StaffId == staffId &&
-            (a.Action == PayrollRunAction.Started ||
-             (a.Cycle == Cycle && a.Action is PayrollRunAction.Edited or PayrollRunAction.Submitted)));
+            a.Action is PayrollRunAction.Started or PayrollRunAction.Edited or PayrollRunAction.Submitted);
         if (prepared) throw new InvalidOperationException($"Not allowed: {message}.");
     }
 
     private void Record(string action, Guid staffId, DateTime now, string? reason = null) =>
         _actors.Add(PayrollRunActor.Create(Id, staffId, action, Cycle, now, reason));
 
-    /// <summary>One "edited" row per person per round is enough to know they edited.</summary>
+    /// <summary>One "edited" row per person is enough to know they edited.</summary>
     private void RecordEdit(Guid staffId, DateTime now)
     {
-        if (!_actors.Any(a => a.StaffId == staffId && a.Action == PayrollRunAction.Edited && a.Cycle == Cycle))
+        if (!_actors.Any(a => a.StaffId == staffId && a.Action == PayrollRunAction.Edited))
             Record(PayrollRunAction.Edited, staffId, now);
     }
 }

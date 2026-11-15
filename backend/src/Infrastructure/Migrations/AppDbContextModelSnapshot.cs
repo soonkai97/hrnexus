@@ -121,9 +121,9 @@ namespace HRNexus.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)");
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("CashAdvanceId")
                         .HasColumnType("uuid");

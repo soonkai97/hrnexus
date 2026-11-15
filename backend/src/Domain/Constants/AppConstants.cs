@@ -89,6 +89,9 @@ public static class AppConstants
 
         /// <summary>Sanity ceiling for one person's monthly basic salary (MYR); rejects typos like an extra zero.</summary>
         public const decimal MaxMonthlySalary = 1_000_000m;
+
+        /// <summary>Other deductions (cash advance repayments and the like) may take at most this share of a person's gross pay in a month.</summary>
+        public const decimal DeductionCapRate = 0.5m;
     }
 
     // ── Notification types ─────────────────────────────────────────────────────

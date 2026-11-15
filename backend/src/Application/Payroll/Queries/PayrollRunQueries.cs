@@ -157,7 +157,12 @@ public class GetPayrollTeamRunsQueryHandler(IAppDbContext db) : IRequestHandler<
         var reports = await db.Staff.AsNoTracking().IgnoreAutoIncludes().Where(s => s.ReportsToId == req.ManagerId).Select(s => s.Id).ToListAsync(ct);
         if (reports.Count == 0) return [];
 
-        var runs = await db.PayrollRuns.AsNoTracking().Include(r => r.Lines).Where(r => r.State != PayrollRunState.Draft).ToListAsync(ct);
+        // Pick the twelve newest months in SQL first, so lines (and their encrypted figures) are only read for those.
+        var ids = await db.PayrollRuns.AsNoTracking()
+            .Where(r => r.State != PayrollRunState.Draft && r.Lines.Any(l => !l.Excluded && reports.Contains(l.EmployeeId)))
+            .OrderByDescending(r => r.Year).ThenByDescending(r => r.Month)
+            .Select(r => r.Id).Take(12).ToListAsync(ct);
+        var runs = await db.PayrollRuns.AsNoTracking().Include(r => r.Lines).Where(r => ids.Contains(r.Id)).ToListAsync(ct);
         return runs
             .Select(r => new { Run = r, Mine = r.Lines.Where(l => !l.Excluded && reports.Contains(l.EmployeeId)).ToList() })
             .Where(x => x.Mine.Count > 0)

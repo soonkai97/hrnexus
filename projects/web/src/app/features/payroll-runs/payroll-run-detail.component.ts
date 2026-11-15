@@ -2,7 +2,7 @@ import { Component, Input, OnInit, computed, inject, signal } from '@angular/cor
 import { DatePipe } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Checkbox } from 'primeng/checkbox';
@@ -144,6 +144,9 @@ export class PayrollRunDetailComponent implements OnInit {
     this.svc.get(this.id, true).subscribe({
       next: (d) => {
         this.detail.set(d);
+        // An open person dialog must show the line as it is now (someone may just have signed it).
+        const open = this.selected();
+        if (open) this.selected.set(d.lines.find((l) => l.employeeId === open.employeeId) ?? null);
         this.loading.set(false);
       },
       error: (e: unknown) => {
@@ -154,15 +157,20 @@ export class PayrollRunDetailComponent implements OnInit {
   }
 
   /** Runs one action, then reloads. On a refusal (a stale page, a rule) it says why and reloads so the page is current again. */
-  private act(call: Observable<unknown>, success: string, after?: () => void): void {
+  private act(
+    call: Observable<unknown>,
+    success: string | (() => string),
+    after?: () => void,
+    reload = true,
+  ): void {
     if (this.busy()) return;
     this.busy.set(true);
     call.subscribe({
       next: () => {
-        this.toast.success(success);
+        this.toast.success(typeof success === 'function' ? success() : success);
         this.busy.set(false);
         after?.();
-        this.load();
+        if (reload) this.load();
       },
       error: (e: unknown) => {
         this.toast.error(apiErrorMessage(e) ?? 'That did not work.');
@@ -223,12 +231,35 @@ export class PayrollRunDetailComponent implements OnInit {
     })).filter((g) => g.items.length > 0);
   }
 
+  /**
+   * Whoever prepared the run (started, edited or submitted it, in any round) may not sign or approve it. The server enforces
+   * this; the page only stops offering buttons it would refuse.
+   */
+  readonly isPreparer = computed(() => {
+    const mine = this.auth.user()?.staffId;
+    return (
+      !!mine &&
+      (this.detail()?.steps ?? []).some(
+        (s) =>
+          s.staffId === mine &&
+          (s.action === 'started' || s.action === 'edited' || s.action === 'submitted'),
+      )
+    );
+  });
+  /** An approver whose own pay is in the run cannot approve it (another approver is needed). */
+  readonly hasOwnPay = computed(() => this.included().some((l) => l.employeeId === this.me));
+
+  /**
+   * Here only the head of HR (payroll.approve) signs any line. A reporting manager signs their own people on "My team's pay",
+   * because these lines do not say who reports to whom and the server refuses anyone else's line.
+   */
   canSignLine(l: PayrollRunLine): boolean {
     return (
       this.state() === 'submitted' &&
       !l.excluded &&
       !l.signedOffBy &&
-      (this.canApprove || this.canSignoff) &&
+      this.canApprove &&
+      !this.isPreparer() &&
       l.employeeId !== this.me
     );
   }
@@ -257,6 +288,7 @@ export class PayrollRunDetailComponent implements OnInit {
           this.svc.delete(this.id),
           'Draft run deleted.',
           () => void this.router.navigate(['/payroll-runs']),
+          false, // the run is gone: loading it again would only say "not found"
         );
       });
   }
@@ -270,7 +302,14 @@ export class PayrollRunDetailComponent implements OnInit {
   }
 
   signOffAll(): void {
-    this.act(this.svc.signOffAll(this.id, this.version), 'Every waiting line has been signed off.');
+    let signed = 0;
+    this.act(
+      this.svc.signOffAll(this.id, this.version).pipe(tap((r) => (signed = r.signed))),
+      () =>
+        signed > 0
+          ? `Signed off ${signed} ${signed === 1 ? 'line' : 'lines'}.`
+          : 'Nothing was left for you to sign off.',
+    );
   }
 
   approve(): void {
@@ -309,7 +348,7 @@ export class PayrollRunDetailComponent implements OnInit {
           'Lock this month? It marks the month as paid and records the cash advance repayments that were taken.',
       })
       .subscribe((ok) => {
-        if (ok) this.act(this.svc.lock(this.id), 'Locked.');
+        if (ok) this.act(this.svc.lock(this.id, this.version), 'Locked.');
       });
   }
 
@@ -321,7 +360,7 @@ export class PayrollRunDetailComponent implements OnInit {
         danger: true,
       })
       .subscribe((ok) => {
-        if (ok) this.act(this.svc.reopen(this.id), 'Reopened as a draft.');
+        if (ok) this.act(this.svc.reopen(this.id, this.version), 'Reopened as a draft.');
       });
   }
 

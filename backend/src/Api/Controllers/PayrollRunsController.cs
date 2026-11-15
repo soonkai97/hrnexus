@@ -116,17 +116,17 @@ public class PayrollRunsController(IMediator mediator, ICurrentUserService curre
 
     [HttpPost("{id:guid}/lock")]
     [Authorize(Policy = Lock)]
-    public async Task<IActionResult> LockRun(Guid id, CancellationToken ct)
+    public async Task<IActionResult> LockRun(Guid id, [FromBody] VersionBody body, CancellationToken ct)
     {
-        await mediator.Send(new LockPayrollRunCommand(id, Actor()), ct);
+        await mediator.Send(new LockPayrollRunCommand(id, body.ExpectedVersion, Actor()), ct);
         return NoContent();
     }
 
     [HttpPost("{id:guid}/reopen")]
     [Authorize(Policy = Reopen)]
-    public async Task<IActionResult> ReopenRun(Guid id, CancellationToken ct)
+    public async Task<IActionResult> ReopenRun(Guid id, [FromBody] VersionBody body, CancellationToken ct)
     {
-        await mediator.Send(new ReopenPayrollRunCommand(id, Actor()), ct);
+        await mediator.Send(new ReopenPayrollRunCommand(id, body.ExpectedVersion, Actor()), ct);
         return NoContent();
     }
 }

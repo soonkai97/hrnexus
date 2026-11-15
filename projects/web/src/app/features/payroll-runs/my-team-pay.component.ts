@@ -82,8 +82,14 @@ export class MyTeamPayComponent implements OnInit {
   }
 
   select(runId: string): void {
+    if (runId !== this.selectedId()) this.team.set(null); // never show one month under another month's tab
     this.selectedId.set(runId);
     this.loadTeam();
+  }
+
+  /** The tab badges count what is still waiting, so they follow a sign-off. */
+  private refreshRuns(): void {
+    this.svc.teamRuns().subscribe({ next: (rows) => this.runs.set(rows), error: () => undefined });
   }
 
   private loadTeam(): void {
@@ -92,6 +98,8 @@ export class MyTeamPayComponent implements OnInit {
     this.loading.set(this.team() === null);
     this.svc.team(id).subscribe({
       next: (t) => {
+        // A slower answer for a tab the manager has already left must not replace the one they are looking at.
+        if (t.runId !== this.selectedId()) return;
         this.team.set(t);
         this.loading.set(false);
       },
@@ -119,6 +127,7 @@ export class MyTeamPayComponent implements OnInit {
         this.toast.success(`Signed off ${l.name}.`);
         this.busy.set(false);
         this.loadTeam();
+        this.refreshRuns();
       },
       error: (e: unknown) => {
         // A refusal (the run changed since this page was read, or the rules) says why; reload so the page is current again.

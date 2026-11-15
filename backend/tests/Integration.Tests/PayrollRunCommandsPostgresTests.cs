@@ -91,7 +91,7 @@ public class PayrollRunCommandsPostgresTests(PostgresFixture fx)
         await new SubmitPayrollRunCommandHandler(db, audit, clock).Handle(new SubmitPayrollRunCommand(id, await VersionAsync(db, id), prep), CancellationToken.None);
         Assert.Equal(1, await new SignOffAllPayrollLinesCommandHandler(db, audit, clock).Handle(new SignOffAllPayrollLinesCommand(id, await VersionAsync(db, id), hohr), CancellationToken.None));
         await new ApprovePayrollRunCommandHandler(db, audit, clock).Handle(new ApprovePayrollRunCommand(id, await VersionAsync(db, id), hohr), CancellationToken.None);
-        await new LockPayrollRunCommandHandler(db, audit, clock).Handle(new LockPayrollRunCommand(id, hohr), CancellationToken.None);
+        await new LockPayrollRunCommandHandler(db, audit, clock).Handle(new LockPayrollRunCommand(id, await VersionAsync(db, id), hohr), CancellationToken.None);
 
         Assert.Equal(PayrollRunState.Locked, (await db.PayrollRuns.AsNoTracking().SingleAsync()).State);
         Assert.Equal(CashAdvance.Settled, (await db.CashAdvances.AsNoTracking().SingleAsync()).Status);
@@ -99,7 +99,7 @@ public class PayrollRunCommandsPostgresTests(PostgresFixture fx)
         Assert.StartsWith("enc1:", raw);
         Assert.Equal(["Started", "Submitted", "SignedOffAll", "Approved", "Locked"], audit.Actions.Where(a => a != "LineEdited"));
 
-        await new ReopenPayrollRunCommandHandler(db, audit, clock).Handle(new ReopenPayrollRunCommand(id, hohr), CancellationToken.None);
+        await new ReopenPayrollRunCommandHandler(db, audit, clock).Handle(new ReopenPayrollRunCommand(id, await VersionAsync(db, id), hohr), CancellationToken.None);
 
         Assert.Equal(PayrollRunState.Draft, (await db.PayrollRuns.AsNoTracking().SingleAsync()).State);
         Assert.Equal(CashAdvance.Outstanding, (await db.CashAdvances.AsNoTracking().SingleAsync()).Status);

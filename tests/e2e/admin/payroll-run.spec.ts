@@ -11,11 +11,12 @@ import { loginAdmin, loginAs } from '../shared/helpers';
 /**
  * Payroll run screens (Phase 8c-6).
  *
- * Strategy: arrange through the API, act and assert through the screens. Everything here is left clean: the run is
- * DELETED at the end (only a draft that was never reviewed can be), the pay item and cash advance are removed, and the people
- * are employed in one old year only, so they can never appear in a real payroll run. Submitting, returning and approving are NOT
- * driven here: a run that was returned or reopened cannot be deleted, and it would sit in the shared database as an open run that
- * blocks the next real month. Those steps are covered by the Application and Postgres HTTP tests.
+ * Strategy: arrange through the API, act and assert through the screens. Everything here is left clean: the run is DELETED
+ * at the end (only a draft that was never reviewed can be), the pay item and cash advance are removed, and afterAll removes
+ * every person and role the suite created. The people are employed in one old year only, so they can never appear in a real
+ * payroll run. Submitting, returning and approving are NOT driven here: a run that was returned or reopened cannot be deleted,
+ * and it would sit in the shared database as an open run that blocks the next real month. Those steps are covered by the
+ * Application and Postgres HTTP tests.
  */
 
 const API = 'http://localhost:8080';
@@ -27,6 +28,16 @@ const RUN_MONTH = 6; // June
 interface Person {
   id: string;
   staffId: string;
+}
+
+// Everything the suite creates, so afterAll can remove it again (the accounts have a known password).
+const hired: Person[] = [];
+const madeRoleIds: string[] = [];
+
+async function makeRole(api: APIRequestContext, name: string): Promise<string> {
+  const id = await ensureRole(api, name);
+  madeRoleIds.push(id);
+  return id;
 }
 
 async function adminApi(): Promise<APIRequestContext> {
@@ -74,7 +85,9 @@ async function hire(
     const rt = await api.put(`/api/staff/${id}/reports-to`, { data: { managerId: reportsTo } });
     expect(rt.ok(), `reports-to (${rt.status()})`).toBeTruthy();
   }
-  return { id, staffId };
+  const person = { id, staffId };
+  hired.push(person);
+  return person;
 }
 
 async function openRuns(
@@ -96,6 +109,22 @@ async function chooseOption(page: Page, trigger: string, name: string): Promise<
   await page.locator(trigger).click();
   await page.getByRole('option', { name }).click();
 }
+
+test.afterAll(async () => {
+  const api = await adminApi();
+  try {
+    for (const p of hired) {
+      const r = await api.delete(`/api/staff/${p.id}`);
+      expect(r.ok(), `remove ${p.staffId} (${r.status()})`).toBeTruthy();
+    }
+    for (const id of madeRoleIds) {
+      const r = await api.delete(`/api/staff/roles/${id}`);
+      expect(r.ok(), `remove role (${r.status()})`).toBeTruthy();
+    }
+  } finally {
+    await api.dispose();
+  }
+});
 
 test.describe('Admin: payroll runs', () => {
   test('start a month, edit a person, recalculate, see it as cards, and delete the draft', async ({
@@ -304,7 +333,7 @@ test.describe('Access: who sees the payroll screens', () => {
   test("a manager sees My team's pay and nothing of the payroll lists", async ({ page }) => {
     const api = await adminApi();
     const roleName = `PRMGR${Date.now().toString().slice(-6)}`;
-    const roleId = await ensureRole(api, roleName);
+    const roleId = await makeRole(api, roleName);
     const perms = await api.put(`/api/permissions/roles/${roleName}`, {
       data: { permissions: ['payroll.signoff'] },
     });
@@ -333,7 +362,7 @@ test.describe('Access: who sees the payroll screens', () => {
   test('the payroll endpoints answer 403 to someone with only the manager permission', async () => {
     const api = await adminApi();
     const roleName = `PRMG2${Date.now().toString().slice(-6)}`;
-    const roleId = await ensureRole(api, roleName);
+    const roleId = await makeRole(api, roleName);
     await api.put(`/api/permissions/roles/${roleName}`, {
       data: { permissions: ['payroll.signoff'] },
     });

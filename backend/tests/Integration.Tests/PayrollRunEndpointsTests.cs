@@ -154,7 +154,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
 
         foreach (var (method, url, allowed) in endpoints)
         {
-            HttpRequestMessage Req() => new(method, url) { Content = method == HttpMethod.Get || method == HttpMethod.Delete || url.EndsWith("/lock") || url.EndsWith("/reopen") ? null : JsonContent.Create(body) };
+            HttpRequestMessage Req() => new(method, url) { Content = method == HttpMethod.Get || method == HttpMethod.Delete ? null : JsonContent.Create(body) };
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.SendAsync(Req())).StatusCode);
             foreach (var key in keys)
             {
@@ -206,7 +206,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         var all = await head.PostAsJsonAsync($"/api/payroll/runs/{id}/signoff-all", new { expectedVersion = await VersionOfAsync(head, id) });
         Assert.Equal(3, (await JsonAsync(all)).GetProperty("signed").GetInt32());   // BOB, MGR, OTHERMGR
         Assert.Equal(HttpStatusCode.OK, (await head.PostAsJsonAsync($"/api/payroll/runs/{id}/approve", new { expectedVersion = await VersionOfAsync(head, id) })).StatusCode);
-        Assert.Equal(HttpStatusCode.NoContent, (await head.PostAsync($"/api/payroll/runs/{id}/lock", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await head.PostAsJsonAsync($"/api/payroll/runs/{id}/lock", new { expectedVersion = await VersionOfAsync(head, id) })).StatusCode);
 
         var list = await JsonAsync(await head.GetAsync("/api/payroll/runs"));
         var summary = Assert.Single(list.EnumerateArray().ToList());
@@ -214,7 +214,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         Assert.Equal(4, summary.GetProperty("people").GetInt32());
         Assert.Equal(3000m + 4000m + 5000m + 5000m, summary.GetProperty("totalGross").GetDecimal());
 
-        Assert.Equal(HttpStatusCode.NoContent, (await head.PostAsync($"/api/payroll/runs/{id}/reopen", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await head.PostAsJsonAsync($"/api/payroll/runs/{id}/reopen", new { expectedVersion = await VersionOfAsync(head, id) })).StatusCode);
         Assert.Equal("draft", (await JsonAsync(await head.GetAsync($"/api/payroll/runs/{id}"))).GetProperty("summary").GetProperty("state").GetString());
     }
 

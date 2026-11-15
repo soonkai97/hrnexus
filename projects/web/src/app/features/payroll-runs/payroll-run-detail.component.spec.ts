@@ -115,7 +115,7 @@ describe('PayrollRunDetailComponent', () => {
         provideRouter([]),
         { provide: PayrollRunService, useValue: svc },
         { provide: PermissionService, useValue: { has: (k: string) => held.has(k) } },
-        { provide: AuthService, useValue: { user: () => ({ id: me }) } },
+        { provide: AuthService, useValue: { user: () => ({ id: me, staffId: 'ME' }) } },
         { provide: ToastService, useValue: toast },
         { provide: ConfirmService, useValue: confirmSvc },
         MessageService,
@@ -154,8 +154,8 @@ describe('PayrollRunDetailComponent', () => {
     expect(component.canSignLine(other!)).toBe(true);
   });
 
-  it('sign-off is only offered while the run is submitted, to someone with a signing permission, for a line that is waiting', () => {
-    held.add('payroll.signoff');
+  it('sign-off is only offered while the run is submitted, to the head of HR, for a line that is waiting', () => {
+    held.add('payroll.approve');
     const waiting = line();
     load(detail('submitted', [waiting]));
     expect(component.canSignLine(waiting)).toBe(true);
@@ -170,6 +170,43 @@ describe('PayrollRunDetailComponent', () => {
     held.clear();
     load(detail('submitted', [waiting]));
     expect(component.canSignLine(waiting)).toBe(false);
+  });
+
+  /** WHY: a manager signs their own people on "My team's pay"; these lines do not say who reports to whom, so offering the button here only produces refusals. */
+  it('a reporting manager who only holds payroll.signoff is not offered sign-off on this page', () => {
+    held.add('payroll.signoff');
+    load(detail('submitted', [line()]));
+
+    expect(component.canSignLine(component.lines()[0]!)).toBe(false);
+  });
+
+  /** WHY: whoever prepared a run, in any round, may never sign or approve it; the server refuses, so the page must not offer it. */
+  it('whoever started, edited or submitted the run is not offered sign-off or approve', () => {
+    held.add('payroll.approve');
+    for (const action of ['started', 'edited', 'submitted']) {
+      load(
+        detail('submitted', [line()], {
+          steps: [{ action, staffId: 'ME', name: 'Me', at: 'x', reason: null }],
+        }),
+      );
+      expect(component.isPreparer()).toBe(true);
+      expect(component.canSignLine(component.lines()[0]!)).toBe(false);
+    }
+    load(
+      detail('submitted', [line()], {
+        steps: [{ action: 'approved', staffId: 'ME', name: 'Me', at: 'x', reason: null }],
+      }),
+    );
+    expect(component.isPreparer()).toBe(false);
+  });
+
+  it('an approver whose own pay is in the run is told they cannot approve it', () => {
+    held.add('payroll.approve');
+    load(detail('submitted', [line({ employeeId: me })]));
+    expect(component.hasOwnPay()).toBe(true);
+
+    load(detail('submitted', [line({ employeeId: me, excluded: true, excludedReason: 'x' })]));
+    expect(component.hasOwnPay()).toBe(false);
   });
 
   it('Approve waits until every included line is signed; a line that is left out needs no signature', () => {
@@ -298,11 +335,38 @@ describe('PayrollRunDetailComponent', () => {
   it('lock and reopen ask first', () => {
     load(detail('approved'));
     component.lock();
-    expect(svc['lock']).toHaveBeenCalledWith('r1');
+    expect(svc['lock']).toHaveBeenCalledWith('r1', 7);
 
     confirmSvc.confirm.mockReturnValue(of(false));
     component.reopen();
     expect(svc['reopen']).not.toHaveBeenCalled();
+
+    confirmSvc.confirm.mockReturnValue(of(true));
+    component.reopen();
+    expect(svc['reopen']).toHaveBeenCalledWith('r1', 7);
+  });
+
+  it('sign off all says how many lines it signed, and says so when nothing was left', () => {
+    load(detail('submitted'));
+    component.signOffAll();
+    expect(toast.success).toHaveBeenCalledWith('Signed off 2 lines.');
+
+    svc['signOffAll'].mockReturnValue(of({ signed: 0 }));
+    component.signOffAll();
+    expect(toast.success).toHaveBeenCalledWith('Nothing was left for you to sign off.');
+  });
+
+  it('after a refusal the open person dialog shows the line as it is now', () => {
+    load(detail('submitted', [line()]));
+    component.openLine(component.lines()[0]!);
+    svc['signOff'].mockReturnValue(throwError(() => ({ error: { error: 'Already signed.' } })));
+    svc['get'].mockReturnValue(
+      of(detail('submitted', [line({ signedOffBy: 'm', signedOffByName: 'Manager' })])),
+    );
+
+    component.signOff(component.lines()[0]!);
+
+    expect(component.selected()?.signedOffBy).toBe('m');
   });
 
   it('deleting a draft leaves for the list', async () => {
@@ -314,6 +378,16 @@ describe('PayrollRunDetailComponent', () => {
 
     expect(svc['delete']).toHaveBeenCalledWith('r1');
     expect(navigate).toHaveBeenCalledWith(['/payroll-runs']);
+  });
+
+  it('deleting a draft does not load the run it just deleted (that would only say "not found")', () => {
+    load(detail('draft'));
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    svc['get'].mockClear();
+
+    component.deleteRun();
+
+    expect(svc['get']).not.toHaveBeenCalled();
   });
 
   // ── editing one person ────────────────────────────────────────────────────────

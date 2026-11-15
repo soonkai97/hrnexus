@@ -82,12 +82,12 @@ export class PayrollRunService {
     return this.http.post<{ version: number }>(`${this.base}/${id}/approve`, { expectedVersion });
   }
 
-  lock(id: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/${id}/lock`, {});
+  lock(id: string, expectedVersion: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/${id}/lock`, { expectedVersion });
   }
 
-  reopen(id: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/${id}/reopen`, {});
+  reopen(id: string, expectedVersion: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/${id}/reopen`, { expectedVersion });
   }
 
   /** Runs that have people who report to the signed-in manager (payroll.signoff only; no money). */

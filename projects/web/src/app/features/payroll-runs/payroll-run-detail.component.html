@@ -90,21 +90,23 @@
       }
       @if (s.state === 'submitted') {
         @if (canApprove) {
-          <p-button
-            label="Sign off all"
-            icon="pi pi-check-circle"
-            severity="secondary"
-            [outlined]="true"
-            [disabled]="busy() || allSigned()"
-            (onClick)="signOffAll()"
-          />
-          <p-button
-            label="Approve"
-            icon="pi pi-verified"
-            severity="primary"
-            [disabled]="busy() || !allSigned()"
-            (onClick)="approve()"
-          />
+          @if (!isPreparer()) {
+            <p-button
+              label="Sign off all"
+              icon="pi pi-check-circle"
+              severity="secondary"
+              [outlined]="true"
+              [disabled]="busy() || allSigned()"
+              (onClick)="signOffAll()"
+            />
+            <p-button
+              label="Approve"
+              icon="pi pi-verified"
+              severity="primary"
+              [disabled]="busy() || !allSigned() || hasOwnPay()"
+              (onClick)="approve()"
+            />
+          }
           <p-button
             label="Return for changes"
             icon="pi pi-undo"

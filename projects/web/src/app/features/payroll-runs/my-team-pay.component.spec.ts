@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -145,6 +145,42 @@ describe('MyTeamPayComponent', () => {
 
     expect(component.selectedId()).toBe('other');
     expect(svc.team).toHaveBeenCalledWith('other');
+  });
+
+  /** WHY: sign-off acts on the run on screen; a slow answer for a tab the manager left must never replace the month they are looking at. */
+  it('a slow answer for a run the manager already left is ignored', () => {
+    const october = new Subject<PayrollTeam>();
+    const september = new Subject<PayrollTeam>();
+    svc.team.mockImplementation((id: string) => (id === 'oct' ? october : september));
+    svc.teamRuns.mockReturnValue(of([run({ runId: 'oct' }), run({ runId: 'sep', month: 9 })]));
+    component.ngOnInit(); // opens 'oct'
+
+    component.select('sep');
+    september.next(team({ runId: 'sep', month: 9 }));
+    october.next(team({ runId: 'oct' })); // arrives last
+
+    expect(component.selectedId()).toBe('sep');
+    expect(component.team()?.runId).toBe('sep');
+  });
+
+  it('switching to another run clears the old one so it is never shown under the new tab', () => {
+    component.ngOnInit();
+    svc.team.mockReturnValue(new Subject<PayrollTeam>());
+
+    component.select('other');
+
+    expect(component.team()).toBeNull();
+  });
+
+  it('after a sign-off the tab badges are refreshed', () => {
+    component.ngOnInit();
+    svc.teamRuns.mockClear();
+    svc.teamRuns.mockReturnValue(of([run({ toSign: 1 })]));
+
+    component.signOff(component.lines()[0]!);
+
+    expect(svc.teamRuns).toHaveBeenCalled();
+    expect(component.runs()[0]!.toSign).toBe(1);
   });
 
   it('sign-off sends the person and the version the page read, then reloads', () => {

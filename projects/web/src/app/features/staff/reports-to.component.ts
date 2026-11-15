@@ -121,7 +121,9 @@ export class ReportsToComponent implements OnChanges {
   ngOnChanges(): void {
     this.managerId = this.currentId;
     this.options.set(
-      this.currentId ? [{ label: this.currentName ?? this.currentId, value: this.currentId }] : [],
+      this.currentId
+        ? [{ label: this.currentName ?? 'Unknown person', value: this.currentId }]
+        : [],
     );
     if (this.canManage && this.staffId) this.search('');
   }
@@ -138,7 +140,7 @@ export class ReportsToComponent implements OnChanges {
       .map((s) => ({ label: `${s.staffId} — ${s.fullName}`, value: s.id }));
     const keep =
       this.currentId && !found.some((o) => o.value === this.currentId)
-        ? [{ label: this.currentName ?? this.currentId, value: this.currentId }]
+        ? [{ label: this.currentName ?? 'Unknown person', value: this.currentId }]
         : [];
     this.options.set([...keep, ...found]);
   }

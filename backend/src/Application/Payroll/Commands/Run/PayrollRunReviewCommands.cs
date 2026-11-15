@@ -128,13 +128,9 @@ public class ApprovePayrollRunCommandHandler(IAppDbContext db, IAuditService aud
             PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);
 
             // The rate rows the frozen lines really used (their stored rate ids), not whatever is in force today.
-            var usedRates = run.Lines.Where(l => !l.Excluded).SelectMany(l => l.Items)
-                .Where(i => i.RateRuleId != null).Select(i => i.RateRuleId!.Value).Distinct().ToList();
-            var unverified = await db.StatutoryRateTables.Where(t => usedRates.Contains(t.Id) && !t.Verified)
-                .Select(t => new { t.Scheme, t.CitizenshipClass }).ToListAsync(c);
+            var unverified = await PayrollRunRates.UnverifiedUsedAsync(db, run, c);
             if (unverified.Count > 0)
-                throw new InvalidOperationException("These statutory rates have not been verified by the accountant yet: " +
-                    string.Join(", ", unverified.Select(u => $"{u.Scheme.ToUpperInvariant()} ({u.CitizenshipClass})").Distinct().Order()) + ".");
+                throw new InvalidOperationException("These statutory rates have not been verified by the accountant yet: " + string.Join(", ", unverified) + ".");
 
             run.Approve(req.By.Id, clock.UtcNow);
             await db.SaveChangesAsync(c);

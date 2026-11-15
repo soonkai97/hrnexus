@@ -15,10 +15,12 @@ public sealed class PermissionAuthorizationHandler(IPermissionResolver resolver)
         AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
         var sub = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (Guid.TryParse(sub, out var userId) &&
-            await resolver.HasAsync(userId, requirement.PermissionKey))
-        {
-            context.Succeed(requirement);
-        }
+        if (!Guid.TryParse(sub, out var userId)) return;
+        foreach (var key in requirement.AnyOf)
+            if (await resolver.HasAsync(userId, key))
+            {
+                context.Succeed(requirement);
+                return;
+            }
     }
 }

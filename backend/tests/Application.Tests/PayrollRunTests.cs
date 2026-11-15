@@ -158,8 +158,8 @@ public class PayrollRunTests
     {
         var run = NewRun();
 
-        Assert.Throws<InvalidOperationException>(() => run.SetLineInputs(Alice, 1m, false, null, Preparer, Now));
-        Assert.Throws<InvalidOperationException>(() => run.ApplyResult(Alice, Result(), Preparer, Now));
+        Assert.Throws<KeyNotFoundException>(() => run.SetLineInputs(Alice, 1m, false, null, Preparer, Now));
+        Assert.Throws<KeyNotFoundException>(() => run.ApplyResult(Alice, Result(), Preparer, Now));
     }
 
     [Fact]
@@ -378,7 +378,7 @@ public class PayrollRunTests
     [Fact]
     public void Signing_a_person_who_is_not_in_the_run_is_refused()
     {
-        Assert.Throws<InvalidOperationException>(() => Submitted().SignOff(Guid.NewGuid(), Manager, Now));
+        Assert.Throws<KeyNotFoundException>(() => Submitted().SignOff(Guid.NewGuid(), Manager, Now));
     }
 
     // ── approve ───────────────────────────────────────────────────────────────────

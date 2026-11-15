@@ -65,10 +65,7 @@ public class SignOffPayrollLineCommandHandler(IAppDbContext db, IAuditService au
     public async Task<long> Handle(SignOffPayrollLineCommand req, CancellationToken ct) =>
         await PayrollRunWork.InTransactionAsync(db, async c =>
         {
-            var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
-            PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);   // nobody signs figures that changed since they looked
-            var line = run.LineFor(req.EmployeeId);
-
+            // Who may sign is decided first and from the person alone, so a refusal never tells a caller whether someone is on the payroll.
             var approvers = await PermissionHolders.GetIdsAsync(db, AppConstants.Permissions.PayrollApprove, c);
             if (!approvers.Contains(req.By.Id))
             {
@@ -77,6 +74,10 @@ public class SignOffPayrollLineCommandHandler(IAppDbContext db, IAuditService au
                 if (reportsTo != req.By.Id || !signers.Contains(req.By.Id))
                     throw new ForbiddenException("Only this person's reporting manager or the head of HR can sign off their pay.");
             }
+
+            var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
+            PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);   // nobody signs figures that changed since they looked
+            var line = run.LineFor(req.EmployeeId);
 
             run.SignOff(req.EmployeeId, req.By.Id, clock.UtcNow);
             await db.SaveChangesAsync(c);
@@ -128,13 +129,9 @@ public class ApprovePayrollRunCommandHandler(IAppDbContext db, IAuditService aud
             PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);
 
             // The rate rows the frozen lines really used (their stored rate ids), not whatever is in force today.
-            var usedRates = run.Lines.Where(l => !l.Excluded).SelectMany(l => l.Items)
-                .Where(i => i.RateRuleId != null).Select(i => i.RateRuleId!.Value).Distinct().ToList();
-            var unverified = await db.StatutoryRateTables.Where(t => usedRates.Contains(t.Id) && !t.Verified)
-                .Select(t => new { t.Scheme, t.CitizenshipClass }).ToListAsync(c);
+            var unverified = await PayrollRunRates.UnverifiedUsedAsync(db, run, c);
             if (unverified.Count > 0)
-                throw new InvalidOperationException("These statutory rates have not been verified by the accountant yet: " +
-                    string.Join(", ", unverified.Select(u => $"{u.Scheme.ToUpperInvariant()} ({u.CitizenshipClass})").Distinct().Order()) + ".");
+                throw new InvalidOperationException("These statutory rates have not been verified by the accountant yet: " + string.Join(", ", unverified) + ".");
 
             run.Approve(req.By.Id, clock.UtcNow);
             await db.SaveChangesAsync(c);

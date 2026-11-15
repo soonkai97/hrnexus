@@ -98,7 +98,7 @@ public class PayrollRun
 
     public PayrollRunLine LineFor(Guid employeeId) =>
         _lines.FirstOrDefault(l => l.EmployeeId == employeeId)
-        ?? throw new InvalidOperationException("That person is not in this payroll run.");
+        ?? throw new KeyNotFoundException("That person is not in this payroll run.");
 
     /// <summary>People who are in the run (not left out).</summary>
     public int     IncludedCount => _lines.Count(l => !l.Excluded);

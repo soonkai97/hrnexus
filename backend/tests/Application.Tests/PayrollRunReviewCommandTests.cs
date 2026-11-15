@@ -180,6 +180,19 @@ public class PayrollRunReviewCommandTests
         await SignOff(s, hod, s.Mgr);                                                    // MGR reports to HOD
     }
 
+    /// <summary>WHY: a refusal must not tell a caller whether someone is on the payroll, so who may sign is decided before the run is looked at.</summary>
+    [Fact]
+    public async Task A_manager_gets_the_same_refusal_for_someone_who_is_on_the_payroll_and_someone_who_is_not()
+    {
+        var s = await SubmittedAsync();
+        var outsider = await s.Kit.PersonAsync("OUTSIDER", salary: false);
+
+        var onPayroll = await Assert.ThrowsAsync<ForbiddenException>(() => SignOff(s, s.Mgr, s.Mgr));
+        var notOnPayroll = await Assert.ThrowsAsync<ForbiddenException>(() => SignOff(s, s.Mgr, outsider));
+
+        Assert.Equal(onPayroll.Message, notOnPayroll.Message);
+    }
+
     [Fact]
     public async Task A_manager_without_the_signoff_permission_cannot_sign_even_their_own_reports()
     {

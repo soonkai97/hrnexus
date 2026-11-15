@@ -37,11 +37,13 @@ public class PayrollRunsController(IMediator mediator, ICurrentUserService curre
 
     [HttpGet]
     [Authorize(Policy = View)]
-    public async Task<IActionResult> List(CancellationToken ct) => Ok(await mediator.Send(new GetPayrollRunsQuery(), ct));
+    public async Task<IActionResult> List(CancellationToken ct) => Ok(await mediator.Send(new GetPayrollRunsQuery(Actor().Id), ct));
 
+    /// <summary>One run in full. Add <c>?notInRun=true</c> on a draft to also list who cannot be in it yet (it re-reads the month's inputs).</summary>
     [HttpGet("{id:guid}")]
     [Authorize(Policy = View)]
-    public async Task<IActionResult> Get(Guid id, CancellationToken ct) => Ok(await mediator.Send(new GetPayrollRunQuery(id), ct));
+    public async Task<IActionResult> Get(Guid id, [FromQuery] bool notInRun, CancellationToken ct) =>
+        Ok(await mediator.Send(new GetPayrollRunQuery(id, Actor().Id, notInRun), ct));
 
     /// <summary>The lines of the people who report to the signed-in user (only theirs, only once the run is submitted).</summary>
     [HttpGet("{id:guid}/team")]

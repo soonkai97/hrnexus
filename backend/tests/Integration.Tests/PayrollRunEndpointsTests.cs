@@ -157,9 +157,15 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.SendAsync(Req())).StatusCode);
             foreach (var key in keys)
             {
-                var status = (await clients[key].SendAsync(Req())).StatusCode;
+                var response = await clients[key].SendAsync(Req());
+                var status = response.StatusCode;
                 if (allowed.Contains(key))
-                    Assert.True(status is not HttpStatusCode.Forbidden and not HttpStatusCode.Unauthorized, $"{method} {url} refused a holder of {key}: {status}");
+                {
+                    // A 403 with a JSON error is the command itself refusing (for example a manager signing someone who does not
+                    // report to them); a bare 403 is the policy, which must not happen for a permission the endpoint accepts.
+                    var refusedByPolicy = status == HttpStatusCode.Forbidden && !(await response.Content.ReadAsStringAsync()).Contains("error");
+                    Assert.True(status != HttpStatusCode.Unauthorized && !refusedByPolicy, $"{method} {url} refused a holder of {key}: {status}");
+                }
                 else
                     Assert.True(status == HttpStatusCode.Forbidden, $"{method} {url} let a holder of only {key} through: {status}");
             }
@@ -271,10 +277,21 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         await head.PostAsJsonAsync($"/api/payroll/runs/{id}/signoff-all", new { expectedVersion = await VersionOfAsync(head, id) });
         var unverified = await head.PostAsJsonAsync($"/api/payroll/runs/{id}/approve", new { expectedVersion = await VersionOfAsync(head, id) });   // rates not verified
 
+        // Every figure the run holds (gross, net, employer cost, each payslip line, the totals), not just the basic salaries.
+        var detail = await JsonAsync(await head.GetAsync($"/api/payroll/runs/{id}"));
+        var figures = new HashSet<decimal> { detail.GetProperty("summary").GetProperty("totalGross").GetDecimal(), detail.GetProperty("summary").GetProperty("totalNet").GetDecimal() };
+        foreach (var line in detail.GetProperty("lines").EnumerateArray())
+        {
+            foreach (var name in new[] { "gross", "net", "employerCost" }) figures.Add(line.GetProperty(name).GetDecimal());
+            foreach (var item in line.GetProperty("items").EnumerateArray()) figures.Add(item.GetProperty("amount").GetDecimal());
+        }
+        var wholeFigures = figures.Where(f => f >= 100m).Select(f => ((long)f).ToString()).Distinct().ToList();
+        Assert.True(wholeFigures.Count >= 8, "the run should hold plenty of figures to look for");
         foreach (var response in new[] { stale, started, earlySign, unverified })
         {
             var text = await response.Content.ReadAsStringAsync();
-            Assert.False(Regex.IsMatch(text, @"\b(3000|4000|5000)(\.\d+)?\b"), $"an amount leaked into an error body: {text}");
+            foreach (var figure in wholeFigures)
+                Assert.False(Regex.IsMatch(text, $@"\b{figure}(\.\d+)?\b"), $"the figure {figure} leaked into an error body: {text}");
         }
         Assert.Contains("EPF (citizen)", await unverified.Content.ReadAsStringAsync());
 
@@ -282,7 +299,7 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
         var rows = await db.AuditLogs.AsNoTracking().Where(a => a.EntityType == "PayrollRun").ToListAsync();
         Assert.NotEmpty(rows);
         // Only the month, and at most a staff code or a line count: never an amount, a reason or a name.
-        Assert.All(rows, a => Assert.Matches(@"^\d{4}-\d{2}( [A-Z0-9_]+| \d+ lines)?$", a.Changes ?? ""));
+        Assert.All(rows, a => Assert.Matches(@"^\d{4}-\d{2}( [A-Z][A-Z0-9_]*| \d+ lines)?$", a.Changes ?? ""));
     }
 
     /// <summary>
@@ -303,6 +320,49 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
             var raw = await db.Database.SqlQueryRaw<string>(sql).SingleAsync();
             Assert.StartsWith("enc1:", raw);
         }
+    }
+
+    /// <summary>
+    /// WHY: the API's policy cache can lag a few minutes behind a deactivation. A reader whose access was just withdrawn
+    /// must be refused on their very next request, even though their cookie is still valid.
+    /// </summary>
+    [Fact]
+    public async Task Someone_deactivated_while_signed_in_loses_access_to_payroll_on_their_next_request()
+    {
+        using var env = await NewEnvAsync();
+        var prep = await LoginAsync(env, "PREP");
+        var viewer = await LoginAsync(env, "U_VIEW");
+        var id = await StartAsync(prep);
+        Assert.Equal(HttpStatusCode.OK, (await viewer.GetAsync($"/api/payroll/runs/{id}")).StatusCode);   // warms the permission cache
+
+        await using (var db = fx.NewDbOn(env.Database))
+        {
+            (await db.Staff.SingleAsync(s => s.Id == env.Ids["U_VIEW"])).Deactivate();
+            await db.SaveChangesAsync();
+        }
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await viewer.GetAsync($"/api/payroll/runs/{id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await viewer.GetAsync("/api/payroll/runs")).StatusCode);
+    }
+
+    [Fact]
+    public async Task A_sign_off_for_someone_unknown_is_refused_the_same_way_for_a_manager_and_a_404_for_the_head_of_hr()
+    {
+        using var env = await NewEnvAsync();
+        var prep = await LoginAsync(env, "PREP");
+        var mgr = await LoginAsync(env, "MGR");
+        var head = await LoginAsync(env, "HEAD");
+        var id = await StartAsync(prep);
+        await prep.PostAsJsonAsync($"/api/payroll/runs/{id}/submit", new { expectedVersion = await VersionOfAsync(prep, id) });
+        var version = await VersionOfAsync(head, id);
+
+        var onPayroll = await mgr.PostAsJsonAsync($"/api/payroll/runs/{id}/lines/{env.Ids["BOB"]}/signoff", new { expectedVersion = version });
+        var unknown = await mgr.PostAsJsonAsync($"/api/payroll/runs/{id}/lines/{Guid.NewGuid()}/signoff", new { expectedVersion = version });
+        var unknownToHead = await head.PostAsJsonAsync($"/api/payroll/runs/{id}/lines/{Guid.NewGuid()}/signoff", new { expectedVersion = version });
+
+        Assert.Equal((HttpStatusCode.Forbidden, HttpStatusCode.Forbidden), (onPayroll.StatusCode, unknown.StatusCode));
+        Assert.Equal(await onPayroll.Content.ReadAsStringAsync(), await unknown.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.NotFound, unknownToHead.StatusCode);
     }
 
     [Fact]

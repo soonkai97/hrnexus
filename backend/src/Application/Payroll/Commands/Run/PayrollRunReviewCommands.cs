@@ -65,10 +65,7 @@ public class SignOffPayrollLineCommandHandler(IAppDbContext db, IAuditService au
     public async Task<long> Handle(SignOffPayrollLineCommand req, CancellationToken ct) =>
         await PayrollRunWork.InTransactionAsync(db, async c =>
         {
-            var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
-            PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);   // nobody signs figures that changed since they looked
-            var line = run.LineFor(req.EmployeeId);
-
+            // Who may sign is decided first and from the person alone, so a refusal never tells a caller whether someone is on the payroll.
             var approvers = await PermissionHolders.GetIdsAsync(db, AppConstants.Permissions.PayrollApprove, c);
             if (!approvers.Contains(req.By.Id))
             {
@@ -77,6 +74,10 @@ public class SignOffPayrollLineCommandHandler(IAppDbContext db, IAuditService au
                 if (reportsTo != req.By.Id || !signers.Contains(req.By.Id))
                     throw new ForbiddenException("Only this person's reporting manager or the head of HR can sign off their pay.");
             }
+
+            var run = await PayrollRunWork.LoadAsync(db, req.RunId, c);
+            PayrollRunWork.EnsureVersion(run, req.ExpectedVersion);   // nobody signs figures that changed since they looked
+            var line = run.LineFor(req.EmployeeId);
 
             run.SignOff(req.EmployeeId, req.By.Id, clock.UtcNow);
             await db.SaveChangesAsync(c);

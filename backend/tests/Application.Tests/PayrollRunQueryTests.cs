@@ -1,3 +1,4 @@
+using HRNexus.Application.Common;
 using HRNexus.Application.Payroll.Commands.Run;
 using HRNexus.Application.Payroll.Queries;
 using HRNexus.Application.Tests.Infrastructure;
@@ -47,6 +48,48 @@ public class PayrollRunQueryTests
     private static async Task SubmitAsync(Scene s) =>
         await new SubmitPayrollRunCommandHandler(s.K.Db, s.K.Audit, s.K.Clock).Handle(new SubmitPayrollRunCommand(s.RunId, s.Version, PayrollRunKit.Act(s.Prep)), CancellationToken.None);
 
+    /// <summary>The tracker is cleared before each query so a test cannot pass on entities the commands left loaded: the query must load its own.</summary>
+    private static TestDbContext Fresh(Scene s)
+    {
+        s.K.Db.ChangeTracker.Clear();
+        return s.K.Db;
+    }
+
+    // ── access is re-checked in the database ──────────────────────────────────────
+
+    /// <summary>WHY: the API decides from a permission cache that can lag a few minutes; pay must stop being readable the moment access is withdrawn.</summary>
+    [Fact]
+    public async Task Reading_payroll_needs_the_permission_right_now_not_a_cached_answer()
+    {
+        var s = await DraftAsync();
+        var stranger = await s.K.PersonAsync("STRANGER", salary: false);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => new GetPayrollRunsQueryHandler(Fresh(s)).Handle(new GetPayrollRunsQuery(stranger.Id), CancellationToken.None));
+        await Assert.ThrowsAsync<ForbiddenException>(() => new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, stranger.Id), CancellationToken.None));
+        await Assert.ThrowsAsync<ForbiddenException>(() => new GetPayrollTeamQueryHandler(Fresh(s)).Handle(new GetPayrollTeamQuery(s.RunId, stranger.Id), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Someone_who_has_just_been_deactivated_can_no_longer_read_payroll()
+    {
+        var s = await DraftAsync();
+        (await s.K.Db.Staff.SingleAsync(x => x.Id == s.Head.Id)).Deactivate();
+        await s.K.Db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, s.Head.Id), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task The_detail_leaves_out_who_is_not_in_the_run_unless_asked()
+    {
+        var s = await DraftAsync();
+        await s.K.PersonAsync("NOSAL", salary: false);
+
+        var d = await new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, s.Head.Id), CancellationToken.None);
+
+        Assert.Empty(d.NotInRun);
+    }
+
     // ── list ──────────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -56,7 +99,7 @@ public class PayrollRunQueryTests
         await new UpdatePayrollRunLineCommandHandler(s.K.Db, s.K.Audit, s.K.Clock).Handle(
             new UpdatePayrollRunLineCommand(s.RunId, s.Bob.Id, null, true, "Paid separately", s.Version, PayrollRunKit.Act(s.Prep)), CancellationToken.None);
 
-        var run = Assert.Single(await new GetPayrollRunsQueryHandler(s.K.Db).Handle(new GetPayrollRunsQuery(), CancellationToken.None));
+        var run = Assert.Single(await new GetPayrollRunsQueryHandler(Fresh(s)).Handle(new GetPayrollRunsQuery(s.Head.Id), CancellationToken.None));
 
         Assert.Equal((2026, 10, "draft", 1, 1), (run.Year, run.Month, run.State, run.People, run.LeftOut));
         Assert.Equal(3000m, run.TotalGross);
@@ -69,7 +112,7 @@ public class PayrollRunQueryTests
         s.K.Db.PayrollRuns.Add(E.PayrollRun.Start(2026, 9, s.Prep.Id, new E.PayrollRunBasis("1", 26m, 8m, 0.5m, 0), DateTime.UtcNow));
         await s.K.Db.SaveChangesAsync();
 
-        var runs = await new GetPayrollRunsQueryHandler(s.K.Db).Handle(new GetPayrollRunsQuery(), CancellationToken.None);
+        var runs = await new GetPayrollRunsQueryHandler(Fresh(s)).Handle(new GetPayrollRunsQuery(s.Head.Id), CancellationToken.None);
 
         Assert.Equal([10, 9], runs.Select(r => r.Month));
     }
@@ -81,7 +124,7 @@ public class PayrollRunQueryTests
     {
         var s = await DraftAsync(verified: false);
 
-        var d = await new GetPayrollRunQueryHandler(s.K.Db).Handle(new GetPayrollRunQuery(s.RunId), CancellationToken.None);
+        var d = await new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, s.Head.Id), CancellationToken.None);
 
         Assert.Equal(["ALICE", "BOB"], d.Lines.Select(l => l.StaffId));
         var alice = d.Lines.Single(l => l.StaffId == "ALICE");
@@ -99,7 +142,7 @@ public class PayrollRunQueryTests
     {
         var s = await DraftAsync(verified: true);
 
-        var d = await new GetPayrollRunQueryHandler(s.K.Db).Handle(new GetPayrollRunQuery(s.RunId), CancellationToken.None);
+        var d = await new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, s.Head.Id), CancellationToken.None);
 
         Assert.Empty(d.UnverifiedRates);
     }
@@ -111,7 +154,7 @@ public class PayrollRunQueryTests
         await s.K.PersonAsync("NOSAL", salary: false);
         await s.K.PersonAsync("LATE");
 
-        var d = await new GetPayrollRunQueryHandler(s.K.Db).Handle(new GetPayrollRunQuery(s.RunId), CancellationToken.None);
+        var d = await new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, s.Head.Id, IncludeNotInRun: true), CancellationToken.None);
 
         Assert.Contains(d.NotInRun, n => n.StaffId == "NOSAL" && n.Reason.Contains("salary", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(d.NotInRun, n => n.StaffId == "LATE" && n.Reason.Contains("recalculate", StringComparison.OrdinalIgnoreCase));
@@ -124,7 +167,7 @@ public class PayrollRunQueryTests
         await s.K.PersonAsync("NOSAL", salary: false);
         await SubmitAsync(s);
 
-        var d = await new GetPayrollRunQueryHandler(s.K.Db).Handle(new GetPayrollRunQuery(s.RunId), CancellationToken.None);
+        var d = await new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, s.Head.Id, IncludeNotInRun: true), CancellationToken.None);
 
         Assert.Empty(d.NotInRun);
     }
@@ -137,7 +180,7 @@ public class PayrollRunQueryTests
         await new SignOffPayrollLineCommandHandler(s.K.Db, s.K.Audit, s.K.Clock).Handle(
             new SignOffPayrollLineCommand(s.RunId, s.Alice.Id, s.Version, PayrollRunKit.Act(s.Mgr)), CancellationToken.None);
 
-        var d = await new GetPayrollRunQueryHandler(s.K.Db).Handle(new GetPayrollRunQuery(s.RunId), CancellationToken.None);
+        var d = await new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, s.Head.Id), CancellationToken.None);
 
         var line = d.Lines.Single(l => l.StaffId == "ALICE");
         Assert.Equal((s.Mgr.Id, "First MGR"), (line.SignedOffBy, line.SignedOffByName));
@@ -148,8 +191,9 @@ public class PayrollRunQueryTests
     public async Task A_run_that_does_not_exist_is_not_found()
     {
         var k = new PayrollRunKit();
+        var head = await k.HeadOfHrAsync();
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => new GetPayrollRunQueryHandler(k.Db).Handle(new GetPayrollRunQuery(Guid.NewGuid()), CancellationToken.None));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => new GetPayrollRunQueryHandler(k.Db).Handle(new GetPayrollRunQuery(Guid.NewGuid(), head.Id), CancellationToken.None));
     }
 
     // ── a manager's team ──────────────────────────────────────────────────────────
@@ -161,8 +205,8 @@ public class PayrollRunQueryTests
         var s = await DraftAsync();
         await SubmitAsync(s);
 
-        var mine = await new GetPayrollTeamQueryHandler(s.K.Db).Handle(new GetPayrollTeamQuery(s.RunId, s.Mgr.Id), CancellationToken.None);
-        var theirs = await new GetPayrollTeamQueryHandler(s.K.Db).Handle(new GetPayrollTeamQuery(s.RunId, s.OtherMgr.Id), CancellationToken.None);
+        var mine = await new GetPayrollTeamQueryHandler(Fresh(s)).Handle(new GetPayrollTeamQuery(s.RunId, s.Mgr.Id), CancellationToken.None);
+        var theirs = await new GetPayrollTeamQueryHandler(Fresh(s)).Handle(new GetPayrollTeamQuery(s.RunId, s.OtherMgr.Id), CancellationToken.None);
 
         Assert.Equal("ALICE", Assert.Single(mine.Lines).StaffId);
         Assert.Equal("BOB", Assert.Single(theirs.Lines).StaffId);
@@ -173,8 +217,9 @@ public class PayrollRunQueryTests
     {
         var s = await DraftAsync();
         await SubmitAsync(s);
+        var lonely = await s.K.ManagerAsync("LONELY", salary: false);
 
-        var team = await new GetPayrollTeamQueryHandler(s.K.Db).Handle(new GetPayrollTeamQuery(s.RunId, s.Head.Id), CancellationToken.None);
+        var team = await new GetPayrollTeamQueryHandler(Fresh(s)).Handle(new GetPayrollTeamQuery(s.RunId, lonely.Id), CancellationToken.None);
 
         Assert.Empty(team.Lines);
     }
@@ -184,7 +229,7 @@ public class PayrollRunQueryTests
     {
         var s = await DraftAsync();
 
-        var team = await new GetPayrollTeamQueryHandler(s.K.Db).Handle(new GetPayrollTeamQuery(s.RunId, s.Mgr.Id), CancellationToken.None);
+        var team = await new GetPayrollTeamQueryHandler(Fresh(s)).Handle(new GetPayrollTeamQuery(s.RunId, s.Mgr.Id), CancellationToken.None);
 
         Assert.Empty(team.Lines);
         Assert.Equal("draft", team.State);
@@ -198,7 +243,7 @@ public class PayrollRunQueryTests
             new UpdatePayrollRunLineCommand(s.RunId, s.Alice.Id, null, true, "Paid separately", s.Version, PayrollRunKit.Act(s.Prep)), CancellationToken.None);
         await SubmitAsync(s);
 
-        var team = await new GetPayrollTeamQueryHandler(s.K.Db).Handle(new GetPayrollTeamQuery(s.RunId, s.Mgr.Id), CancellationToken.None);
+        var team = await new GetPayrollTeamQueryHandler(Fresh(s)).Handle(new GetPayrollTeamQuery(s.RunId, s.Mgr.Id), CancellationToken.None);
 
         Assert.Empty(team.Lines);
     }
@@ -207,7 +252,8 @@ public class PayrollRunQueryTests
     public async Task The_team_view_of_a_run_that_does_not_exist_is_not_found()
     {
         var k = new PayrollRunKit();
+        var mgr = await k.ManagerAsync("MGR", salary: false);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => new GetPayrollTeamQueryHandler(k.Db).Handle(new GetPayrollTeamQuery(Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => new GetPayrollTeamQueryHandler(k.Db).Handle(new GetPayrollTeamQuery(Guid.NewGuid(), mgr.Id), CancellationToken.None));
     }
 }

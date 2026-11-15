@@ -1,4 +1,5 @@
 using HRNexus.Application.Common.Interfaces;
+using HRNexus.Domain.Constants;
 using HRNexus.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -63,24 +64,29 @@ internal static class PayrollRunMapping
 }
 
 /// <summary>Every run, newest month first, with its totals. Callers must hold payroll.view (enforced at the endpoint).</summary>
-public record GetPayrollRunsQuery : IRequest<List<PayrollRunSummaryDto>>;
+public record GetPayrollRunsQuery(Guid By) : IRequest<List<PayrollRunSummaryDto>>;
 
 public class GetPayrollRunsQueryHandler(IAppDbContext db) : IRequestHandler<GetPayrollRunsQuery, List<PayrollRunSummaryDto>>
 {
     public async Task<List<PayrollRunSummaryDto>> Handle(GetPayrollRunsQuery req, CancellationToken ct)
     {
+        await PayrollAccess.RequireAsync(db, AppConstants.Permissions.PayrollView, req.By, ct);
         var runs = await db.PayrollRuns.AsNoTracking().Include(r => r.Lines).ToListAsync(ct);   // amounts are encrypted: totals are summed here
         return runs.OrderByDescending(r => r.Year).ThenByDescending(r => r.Month).Select(PayrollRunMapping.Summary).ToList();
     }
 }
 
-/// <summary>One run in full: every line, its history, the rates it rests on and (for a draft) who cannot be in it yet. Callers must hold payroll.view.</summary>
-public record GetPayrollRunQuery(Guid RunId) : IRequest<PayrollRunDetailDto>;
+/// <summary>
+/// One run in full: every line, its history and the rates it rests on. Callers must hold payroll.view. IncludeNotInRun also works
+/// out who cannot be in a draft yet (it re-reads the month's inputs, so it is only done when asked).
+/// </summary>
+public record GetPayrollRunQuery(Guid RunId, Guid By, bool IncludeNotInRun = false) : IRequest<PayrollRunDetailDto>;
 
 public class GetPayrollRunQueryHandler(IAppDbContext db) : IRequestHandler<GetPayrollRunQuery, PayrollRunDetailDto>
 {
     public async Task<PayrollRunDetailDto> Handle(GetPayrollRunQuery req, CancellationToken ct)
     {
+        await PayrollAccess.RequireAsync(db, AppConstants.Permissions.PayrollView, req.By, ct);
         var run = await db.PayrollRuns.Include(r => r.Actors).Include(r => r.Lines).FirstOrDefaultAsync(r => r.Id == req.RunId, ct)
             ?? throw new KeyNotFoundException("Payroll run not found.");
         var lines = db.PayrollRuns.Where(r => r.Id == req.RunId).SelectMany(r => r.Lines);
@@ -90,7 +96,7 @@ public class GetPayrollRunQueryHandler(IAppDbContext db) : IRequestHandler<GetPa
 
         var names = await PayrollRunMapping.NamesAsync(db, run.Actors.Select(a => a.StaffId).Concat(run.Lines.Where(l => l.SignedOffBy != null).Select(l => l.SignedOffBy!.Value)), ct);
         var notInRun = new List<NotInRunDto>();
-        if (run.State == PayrollRunState.Draft)
+        if (req.IncludeNotInRun && run.State == PayrollRunState.Draft)
         {
             var loaded = await PayrollRunInputs.LoadAsync(db, run.Year, run.Month, ct);
             var present = run.Lines.Select(l => l.EmployeeId).ToHashSet();
@@ -118,6 +124,7 @@ public class GetPayrollTeamQueryHandler(IAppDbContext db) : IRequestHandler<GetP
 {
     public async Task<PayrollTeamDto> Handle(GetPayrollTeamQuery req, CancellationToken ct)
     {
+        await PayrollAccess.RequireAsync(db, AppConstants.Permissions.PayrollSignoff, req.ManagerId, ct);
         var run = await db.PayrollRuns.Include(r => r.Lines).FirstOrDefaultAsync(r => r.Id == req.RunId, ct)
             ?? throw new KeyNotFoundException("Payroll run not found.");
         if (run.State == PayrollRunState.Draft)

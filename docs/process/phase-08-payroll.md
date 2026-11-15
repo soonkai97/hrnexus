@@ -365,6 +365,12 @@ Built: the lifecycle commands (start, edit a line, recalculate, delete, submit, 
 
 **Must-haves for 8c-4/8c-5:** (1) the API builds `PayrollActor` only from the signed-in user (`ICurrentUserService`), refuses a missing user id, and never takes it from a request body; (2) the pay item delete (8c-5) must be refused while any run past draft names the item, as the advance delete is; (3) the reporting-manager command (8c-5) runs under Serializable and checks the manager exists and is active.
 
+### 8c-4 built (15 Nov 2026) and its opus review
+
+**Built:** the HTTP surface (`/api/payroll/runs`: list, detail, a manager's team view, and each lifecycle step behind its own permission; sign-off accepts `payroll.signoff` or `payroll.approve`; a policy can name several keys joined by `|`). The review found no high issue; fixed: the three read endpoints re-check the permission in the database (the policy cache can lag a few minutes behind a deactivation or role change); sign-off decides who may sign before it reveals whether the person is on the payroll; an unknown person is a 404; the draft's "not in the run" list is only worked out with `?notInRun=true`; the audit and no-amounts tests are stricter (any figure of the run, not just salaries). **Still open (platform-wide, not payroll-only):** deactivating, deleting or changing the roles of a person does not invalidate their cached permissions for up to five minutes on every other endpoint; the run list is unpaged (it grows by headcount a year, so keep totals on the run when it matters).
+
+**Must-haves for 8c-5 (the reports-to editor):** changing who reports to whom decides who may read and sign whose pay, so it needs `staff.manage`, is written to the audit trail, refuses loops, and a person must not be able to make themselves anyone's manager through it unless they also hold `staff.manage`.
+
 ---
 
 ## Scope

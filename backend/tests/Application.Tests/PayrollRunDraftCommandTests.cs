@@ -279,7 +279,7 @@ public class PayrollRunDraftCommandTests
         await k.PersonAsync("ALICE");
         var id = await Start(k, prep);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => Edit(k, id, prep, Guid.NewGuid(), 10m));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => Edit(k, id, prep, Guid.NewGuid(), 10m));
     }
 
     [Fact]

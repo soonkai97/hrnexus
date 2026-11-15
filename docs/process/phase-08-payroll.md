@@ -392,14 +392,14 @@ Built: the lifecycle commands (start, edit a line, recalculate, delete, submit, 
 
 Opus review of the screens, all fixed:
 
-| Finding | Severity | Resolution |
-| --- | --- | --- |
-| Lock and reopen did not check the run version, so a stale page could lock figures nobody on it saw | Med | Both send `expectedVersion`; a stale page is refused (409) |
-| Deleting a draft showed a false "not found" after "deleted" | Low | The store forgets the run and does not read it again |
-| "My team's pay": a slow answer for a tab already left could show one month under another's tab, and sign-off would act on it; badges stayed stale after a sign-off | Med | Answers for a tab the manager left are dropped; the view is cleared on a switch; badges refresh |
-| The run page offered sign-off and approve to people the server always refuses (a preparer, a manager on someone else's line, an approver with their own pay in the run) | Low-med | The server sends `allowedActions` and `canSignOff`; the page re-decides nothing |
-| The E2E suite left active accounts with a known password and roles behind | Low | Removed in `afterAll` |
-| The team-runs query loaded every non-draft run with all its lines (decrypting money) and kept twelve | Low | The twelve months are chosen in SQL first |
+| Finding                                                                                                                                                                 | Severity | Resolution                                                                                      |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| Lock and reopen did not check the run version, so a stale page could lock figures nobody on it saw                                                                      | Med      | Both send `expectedVersion`; a stale page is refused (409)                                      |
+| Deleting a draft showed a false "not found" after "deleted"                                                                                                             | Low      | The store forgets the run and does not read it again                                            |
+| "My team's pay": a slow answer for a tab already left could show one month under another's tab, and sign-off would act on it; badges stayed stale after a sign-off      | Med      | Answers for a tab the manager left are dropped; the view is cleared on a switch; badges refresh |
+| The run page offered sign-off and approve to people the server always refuses (a preparer, a manager on someone else's line, an approver with their own pay in the run) | Low-med  | The server sends `allowedActions` and `canSignOff`; the page re-decides nothing                 |
+| The E2E suite left active accounts with a known password and roles behind                                                                                               | Low      | Removed in `afterAll`                                                                           |
+| The team-runs query loaded every non-draft run with all its lines (decrypting money) and kept twelve                                                                    | Low      | The twelve months are chosen in SQL first                                                       |
 
 Also fixed from the minor list: "Sign off all" says how many lines it signed, the open person dialog follows the latest read after a refusal, cash advance amounts use `rm()`, a missing manager name no longer shows a GUID.
 

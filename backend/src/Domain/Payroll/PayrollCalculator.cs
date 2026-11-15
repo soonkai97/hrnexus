@@ -154,7 +154,7 @@ public static class PayrollCalculator
             unapplied += d.Amount - applied;
         }
         if (unapplied > 0m)
-            Warn("deductions-unapplied", $"{unapplied:0.00} of other deductions could not be applied this month and carries to the next run.", blocking: false);
+            Warn("deductions-unapplied", $"{unapplied:0.00} of other deductions could not be applied this month.", blocking: false);
 
         // ── 7. Net and employer cost (PRD formulas) ──────────────────────────────
         var net = netBefore - appliedTotal;

@@ -41,6 +41,8 @@ public class PayItem
         if (reason.Trim().Length > 200) throw new ArgumentException("The reason can be at most 200 characters.");
         if (amount <= 0m) throw new ArgumentException("The amount must be more than zero.");
         if (amount > AppConstants.Payroll.MaxMonthlySalary) throw new ArgumentException("The amount is too large.");
+        if (kind == PayItemKind.Deduction && priority is < 0 or > 1000)
+            throw new ArgumentException("A deduction priority must be between 0 and 1000 (the lowest number is applied first).");
         if (to is { } end && end < from) throw new ArgumentException("A pay item cannot end before it starts.");
         var allowance = kind == PayItemKind.Allowance;
         return new PayItem

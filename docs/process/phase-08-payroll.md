@@ -332,6 +332,21 @@ Built: the `PayrollRun` aggregate (state machine, line sign-off, actors, Version
 
 **Must-haves for 8c-3 (the review's open items, not optional):** (1) `DeleteCashAdvanceCommand` and `DeleteStaffCommand` hard-delete cash advances; once Lock writes a repayment the foreign key (Restrict) would make them a 500, so both must refuse with a clean 409 first (the guards already planned in "Cash advances" and "People in a run"); (2) setting a reporting manager runs under a Serializable transaction (two concurrent changes can each pass the loop check) and checks the manager exists and is active; (3) the sign-off command checks that the signer is the person's reporting manager or holds `payroll.approve`.
 
+### 8c-2 built (15 Nov 2026) and its opus review
+
+Built: `PayrollInputBuilder` (one person's calculator input for a month, pure), `PayrollRunCalculator` (input, calculator, warnings and per-day unpaid cost), `PayrollRunInputs` (the loader: who is in the run and what is known about each person), `AppConstants.Payroll.DeductionCapRate`. The review found, and 8c-2 fixed:
+
+| Finding                                                                                                                        | Severity | Resolution                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------ | -------- | ----------------------------------------------------------------------------------------------------------- |
+| A deactivated person with no employment end date was paid a full month in every later run                                      | High     | Listed in "not in the run" (set the end date); an account with no dates and no salary is not listed at all  |
+| A person deleted after working part of the month vanished from the run and the list                                            | Med      | Listed as "deleted" with the reason                                                                         |
+| Equal-priority deductions depended on database row order; a pay item could tie with the advances                               | Med      | Fixed order (advances by date then id, items by priority, date, id); pay item priority limited to 0 to 1000 |
+| Stored per-day unpaid amounts could total more than was deducted (cap case, rounding)                                          | Med      | Days are priced in proportion and add up to the deduction exactly                                           |
+| Legacy half-day with no stored hours charged as a full day; two leaves on one date charged twice; missing start date unflagged | Low      | Hours from the times; one day at most per date with a note; `no-employment-start` note                      |
+| The loader decrypted IC, passport and phone for everyone                                                                       | Low      | Reads only the columns payroll needs                                                                        |
+
+**Must-haves for 8c-3/8c-4:** (1) a calculator or builder warning's message can contain figures (a wage, an amount), so only warning **codes** may appear in a Submit 409 body, a log or an audit row; (2) the pay item endpoints (8c-5) rely on the domain's priority range, not their own; (3) "not in the run" is shown on the run page, and an inactive person with no end date is the usual reason to look at it.
+
 ---
 
 ## Scope

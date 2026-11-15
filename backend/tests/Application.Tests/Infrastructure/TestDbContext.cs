@@ -1,4 +1,4 @@
-﻿using HRNexus.Application.Common.Interfaces;
+using HRNexus.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using E = HRNexus.Domain.Entities;
@@ -29,6 +29,9 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<E.PushSubscription> PushSubscriptions => Set<E.PushSubscription>();
     public DbSet<E.PayrollLock>          PayrollLocks           => Set<E.PayrollLock>();
     public DbSet<E.CashAdvance>          CashAdvances           => Set<E.CashAdvance>();
+    public DbSet<E.PayrollRun>           PayrollRuns            => Set<E.PayrollRun>();
+    public DbSet<E.PayItem>              PayItems               => Set<E.PayItem>();
+    public DbSet<E.CashAdvanceRepayment> CashAdvanceRepayments  => Set<E.CashAdvanceRepayment>();
 
     // InMemory provider does not support transactions — return null so handlers skip tx logic.
     public Task<IDbContextTransaction?> BeginRepeatableReadAsync(CancellationToken ct = default)
@@ -50,6 +53,32 @@ public class TestDbContext(DbContextOptions<TestDbContext> options)
         {
             b.HasMany(t => t.Bands).WithOne().HasForeignKey(x => x.RateTableId);
             b.Navigation(t => t.Bands).UsePropertyAccessMode(PropertyAccessMode.Field).AutoInclude();
+        });
+
+        // The payroll run owns its lines and history through backing fields, like production.
+        // Ids are assigned by the domain (as in production), so a child added to a tracked run is inserted, not updated.
+        mb.Entity<E.PayrollRunActor>().Property(x => x.Id).ValueGeneratedNever();
+        mb.Entity<E.PayrollRunLineItem>().Property(x => x.Id).ValueGeneratedNever();
+        mb.Entity<E.PayrollRunUnpaidDay>().Property(x => x.Id).ValueGeneratedNever();
+        mb.Entity<E.PayrollRunWarning>().Property(x => x.Id).ValueGeneratedNever();
+        mb.Entity<E.PayrollRun>(b =>
+        {
+            b.Property(r => r.Id).ValueGeneratedNever();
+            b.Property(r => r.Version).IsConcurrencyToken();
+            b.HasMany(r => r.Lines).WithOne().HasForeignKey(l => l.RunId);
+            b.Navigation(r => r.Lines).UsePropertyAccessMode(PropertyAccessMode.Field).AutoInclude();
+            b.HasMany(r => r.Actors).WithOne().HasForeignKey(a => a.RunId);
+            b.Navigation(r => r.Actors).UsePropertyAccessMode(PropertyAccessMode.Field).AutoInclude();
+        });
+        mb.Entity<E.PayrollRunLine>(b =>
+        {
+            b.Property(l => l.Id).ValueGeneratedNever();
+            b.HasMany(l => l.Items).WithOne().HasForeignKey(i => i.LineId);
+            b.Navigation(l => l.Items).UsePropertyAccessMode(PropertyAccessMode.Field).AutoInclude();
+            b.HasMany(l => l.UnpaidDays).WithOne().HasForeignKey(d => d.LineId);
+            b.Navigation(l => l.UnpaidDays).UsePropertyAccessMode(PropertyAccessMode.Field).AutoInclude();
+            b.HasMany(l => l.Warnings).WithOne().HasForeignKey(w => w.LineId);
+            b.Navigation(l => l.Warnings).UsePropertyAccessMode(PropertyAccessMode.Field).AutoInclude();
         });
 
         // Leave types are keyed by their slug, like production.

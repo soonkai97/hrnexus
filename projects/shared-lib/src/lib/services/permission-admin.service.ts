@@ -18,7 +18,7 @@ export interface PermissionGroup { label: string; keys: string[]; }
 // Keep this in lockstep with ShellComponent.navGroupOrder + the page→group assignments.
 export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
   { label: 'Operations', keys: ['staff.view', 'staff.manage', 'leave.approve', 'leave.manage', 'reports.view'] },
-  { label: 'Finance',    keys: ['payroll.view', 'payroll.manage', 'payroll.rates.verify'] },
+  { label: 'Finance',    keys: ['payroll.view', 'payroll.manage', 'payroll.approve', 'payroll.signoff', 'payroll.reopen', 'payroll.rates.verify'] },
   { label: 'Setup',      keys: ['roles.manage', 'policy.manage', 'payroll.lock'] },
 ];
 
@@ -34,6 +34,9 @@ export const PERMISSION_LABELS: Readonly<Record<string, string>> = {
   'payroll.view': 'View payroll',
   'payroll.manage': 'Manage payroll',
   'payroll.lock': 'Lock payroll periods',
+  'payroll.approve': 'Approve payroll (head of HR)',
+  'payroll.signoff': 'Sign off pay for my direct reports',
+  'payroll.reopen': 'Reopen locked payroll',
   'payroll.rates.verify': 'Verify payroll rates',
   'roles.manage': 'Manage roles & permissions',
 };
@@ -49,6 +52,9 @@ export const PERMISSION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   'payroll.view': "See a staff member's salary and pay history.",
   'payroll.manage': "Record a raise and set a staff member's employment details.",
   'payroll.lock': 'Lock or reopen a payroll month.',
+  'payroll.approve': 'Sign off any pay line, approve a payroll run and return it for changes. For the head of HR only; nobody who prepared a run can approve it.',
+  'payroll.signoff': 'Sign off the pay lines of your direct reports (the people who report to you). Give this to managers.',
+  'payroll.reopen': 'Reopen a locked payroll run so it can be corrected, until payslips or a bank file have been produced.',
   'payroll.rates.verify': 'Confirm a statutory rate row against the official table, and switch the optional HRD Corp levy on or off. Kept separate from preparing payroll.',
   'roles.manage': 'Create, rename and delete roles, and assign these permissions.',
 };

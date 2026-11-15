@@ -65,7 +65,7 @@ public static class PayrollCalculator
 
         // ── 3. Gross ─────────────────────────────────────────────────────────────
         foreach (var e in input.Earnings)
-            lines.Add(new PayLine(e.Type, LineSection.Earning, e.Reason, e.Amount));
+            lines.Add(new PayLine(e.Type, LineSection.Earning, e.Reason, e.Amount, SourceId: e.SourceId));
         if (unpaid > 0m)
             lines.Add(new PayLine("unpaid-leave", LineSection.GrossDeduction, "Unpaid leave", unpaid));
 
@@ -147,7 +147,7 @@ public static class PayrollCalculator
         {
             var applied = Math.Min(d.Amount, Math.Min(capRemaining, available));
             if (applied > 0m)
-                lines.Add(new PayLine("deduction", LineSection.OtherDeduction, d.Reason, applied));
+                lines.Add(new PayLine("deduction", LineSection.OtherDeduction, d.Reason, applied, SourceId: d.SourceId));
             capRemaining -= applied;
             available -= applied;
             appliedTotal += applied;

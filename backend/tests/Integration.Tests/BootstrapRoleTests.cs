@@ -42,6 +42,24 @@ public class BootstrapRoleTests(PostgresFixture fx)
         return db;
     }
 
+    /// <summary>
+    /// Inserts a person the way an install from before this phase has them. These tests stop the database at
+    /// an old migration, where the current model's newer Staff columns (for example ReportsToId) do not exist
+    /// yet, so a person is written with only the columns that already existed instead of through the model.
+    /// </summary>
+    private static async Task<Guid> InsertLegacyStaffAsync(AppDbContext db, string staffId, string email, Guid roleId)
+    {
+        var id = Guid.NewGuid();
+        await db.Database.ExecuteSqlRawAsync(
+            """
+            INSERT INTO "Staff" ("Id","StaffId","FirstName","LastName","Email","PasswordHash","IsActive","IsHidden",
+                                 "CreatedAt","CreatedBy","IsDeleted","AccessFailedCount")
+            VALUES ({0},{1},'Test','Person',{2},'hash',true,false,now(),'test',false,0)
+            """, id, staffId, email);
+        await db.Database.ExecuteSqlRawAsync("""INSERT INTO "StaffRoles" ("EmployeeId","RoleId") VALUES ({0},{1})""", id, roleId);
+        return id;
+    }
+
     // ── Fresh install ────────────────────────────────────────────────────────────
 
     [Fact]
@@ -149,10 +167,9 @@ public class BootstrapRoleTests(PostgresFixture fx)
         await db.SaveChangesAsync();
         db.RolePermissions.Add(E.RolePermission.Create(superadmin.Id, AppConstants.Permissions.RolesManage));
         db.RolePermissions.Add(E.RolePermission.Create(manager.Id, AppConstants.Permissions.StaffView));
-        var boss = E.Staff.Create("BOSS1", "Bo", "Ss", "boss@t.com", "hash", [superadmin.Id]);
-        var lead = E.Staff.Create("LEAD1", "Le", "Ad", "lead@t.com", "hash", [manager.Id]);
-        db.Staff.AddRange(boss, lead);
         await db.SaveChangesAsync();
+        var boss = new { Id = await InsertLegacyStaffAsync(db, "BOSS1", "boss@t.com", superadmin.Id) };
+        var lead = new { Id = await InsertLegacyStaffAsync(db, "LEAD1", "lead@t.com", manager.Id) };
 
         await db.Database.MigrateAsync();   // this phase's migration
 
@@ -184,9 +201,8 @@ public class BootstrapRoleTests(PostgresFixture fx)
         db.Roles.AddRange(superadmin, custom);
         await db.SaveChangesAsync();
         db.RolePermissions.Add(E.RolePermission.Create(superadmin.Id, AppConstants.Permissions.RolesManage));
-        var boss = E.Staff.Create("BOSS1", "Bo", "Ss", "boss@t.com", "hash", [superadmin.Id]);
-        db.Staff.Add(boss);
         await db.SaveChangesAsync();
+        var boss = new { Id = await InsertLegacyStaffAsync(db, "BOSS1", "boss@t.com", superadmin.Id) };
 
         await db.Database.MigrateAsync();
 

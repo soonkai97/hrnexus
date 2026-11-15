@@ -94,6 +94,10 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<decimal?>("RepaymentPerMonth")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.Property<DateTime?>("SettledAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -109,6 +113,35 @@ namespace HRNexus.Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("CashAdvances");
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.CashAdvanceRepayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CashAdvanceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RunId");
+
+                    b.HasIndex("CashAdvanceId", "RunId")
+                        .IsUnique();
+
+                    b.ToTable("CashAdvanceRepayments", (string)null);
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.CompanyPolicy", b =>
@@ -374,6 +407,58 @@ namespace HRNexus.Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("CountsForEpf")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CountsForSocsoEis")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("From")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateOnly?>("To")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("PayItems", (string)null);
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.PayrollLock", b =>
                 {
                     b.Property<Guid>("Id")
@@ -405,6 +490,262 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasDatabaseName("IX_PayrollLocks_Year_Month");
 
                     b.ToTable("PayrollLocks", (string)null);
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CalculatorVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Cycle")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("DeductionCapRate")
+                        .HasPrecision(10, 4)
+                        .HasColumnType("numeric(10,4)");
+
+                    b.Property<decimal>("Divisor")
+                        .HasPrecision(10, 4)
+                        .HasColumnType("numeric(10,4)");
+
+                    b.Property<DateTime?>("ExportedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("HoursPerWorkingDay")
+                        .HasPrecision(10, 4)
+                        .HasColumnType("numeric(10,4)");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PolicyVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Year", "Month")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PayrollRuns_Year_Month");
+
+                    b.ToTable("PayrollRuns", (string)null);
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunActor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Cycle")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RunId", "StaffId");
+
+                    b.ToTable("PayrollRunActors", (string)null);
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Calculated")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EmployerCost")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Excluded")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ExcludedReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Gross")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Net")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PcbAmount")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("SignedOffAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("SignedOffBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StaffId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("UnappliedDeductions")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("RunId", "EmployeeId")
+                        .IsUnique();
+
+                    b.ToTable("PayrollRunLines", (string)null);
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunLineItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid>("LineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("RateRuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Section")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<Guid?>("SourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LineId");
+
+                    b.ToTable("PayrollRunLineItems", (string)null);
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunUnpaidDay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Days")
+                        .HasPrecision(8, 4)
+                        .HasColumnType("numeric(8,4)");
+
+                    b.Property<string>("DeductionAmount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("LeaveId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LineId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LineId");
+
+                    b.ToTable("PayrollRunUnpaidDays", (string)null);
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunWarning", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Blocking")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<Guid>("LineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LineId");
+
+                    b.ToTable("PayrollRunWarnings", (string)null);
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.PushSubscription", b =>
@@ -616,12 +957,17 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Property<DateTime?>("RefreshTokenExpiry")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("ReportsToId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("StaffId")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ReportsToId");
 
                     b.HasIndex("StaffId")
                         .IsUnique()
@@ -807,6 +1153,21 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.CashAdvanceRepayment", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.CashAdvance", null)
+                        .WithMany()
+                        .HasForeignKey("CashAdvanceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HRNexus.Domain.Entities.PayrollRun", null)
+                        .WithMany()
+                        .HasForeignKey("RunId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.LeaveEntitlement", b =>
                 {
                     b.HasOne("HRNexus.Domain.Entities.Staff", "Employee")
@@ -840,6 +1201,66 @@ namespace HRNexus.Infrastructure.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayItem", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunActor", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.PayrollRun", null)
+                        .WithMany("Actors")
+                        .HasForeignKey("RunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunLine", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HRNexus.Domain.Entities.PayrollRun", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("RunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunLineItem", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.PayrollRunLine", null)
+                        .WithMany("Items")
+                        .HasForeignKey("LineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunUnpaidDay", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.PayrollRunLine", null)
+                        .WithMany("UnpaidDays")
+                        .HasForeignKey("LineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunWarning", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.PayrollRunLine", null)
+                        .WithMany("Warnings")
+                        .HasForeignKey("LineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HRNexus.Domain.Entities.RolePermission", b =>
                 {
                     b.HasOne("HRNexus.Domain.Entities.Role", null)
@@ -856,6 +1277,14 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>
+                {
+                    b.HasOne("HRNexus.Domain.Entities.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("ReportsToId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.StaffRole", b =>
@@ -882,6 +1311,22 @@ namespace HRNexus.Infrastructure.Migrations
                         .HasForeignKey("RateTableId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRun", b =>
+                {
+                    b.Navigation("Actors");
+
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("HRNexus.Domain.Entities.PayrollRunLine", b =>
+                {
+                    b.Navigation("Items");
+
+                    b.Navigation("UnpaidDays");
+
+                    b.Navigation("Warnings");
                 });
 
             modelBuilder.Entity("HRNexus.Domain.Entities.Staff", b =>

@@ -43,6 +43,9 @@ public interface IAppDbContext
     DbSet<PushSubscription>   PushSubscriptions   { get; }
     DbSet<PayrollLock>           PayrollLocks            { get; }
     DbSet<HRNexus.Domain.Entities.CashAdvance> CashAdvances { get; }
+    DbSet<PayrollRun>           PayrollRuns             { get; }
+    DbSet<PayItem>              PayItems                { get; }
+    DbSet<CashAdvanceRepayment> CashAdvanceRepayments   { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 
     /// <summary>

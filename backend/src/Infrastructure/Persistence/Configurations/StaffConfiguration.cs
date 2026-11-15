@@ -66,6 +66,11 @@ public class StaffConfiguration(IFieldEncryptor encryptor) : IEntityTypeConfigur
 
         b.HasQueryFilter(e => !e.IsDeleted);
 
+        // Who this person reports to. Optional; a manager removed for good leaves their reports with no manager
+        // (people are soft-deleted in practice, and the delete command clears the field first).
+        b.HasOne<Staff>().WithMany().HasForeignKey(e => e.ReportsToId).OnDelete(DeleteBehavior.SetNull);
+        b.HasIndex(e => e.ReportsToId);
+
         // Computed properties — not mapped to columns.
         b.Ignore(e => e.Roles);
         b.Ignore(e => e.RoleIds);

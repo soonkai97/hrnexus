@@ -236,6 +236,56 @@ public class PayrollCalculatorTests
         Assert.Throws<ArgumentException>(() => PayrollCalculator.Calculate(Input(segments: segs)));
     }
 
+    // ── traceability (Phase 8c) ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// WHY: locking a run writes a repayment per cash advance from the line that was REALLY applied, and a later
+    /// correction compares what was paid with what is due. Both need the payslip line to name the advance or pay
+    /// item it came from; matching on the description text would break the day someone edits a reason.
+    /// </summary>
+    [Fact]
+    public void A_deduction_line_carries_the_id_of_the_item_it_came_from()
+    {
+        var advance = Guid.NewGuid();
+        var input = Input() with { Deductions = [new DeductionInput("Cash advance", 200m, 1, advance)] };
+
+        var line = Assert.Single(PayrollCalculator.Calculate(input).Lines, l => l.Section == LineSection.OtherDeduction);
+
+        Assert.Equal(advance, line.SourceId);
+    }
+
+    [Fact]
+    public void An_earning_line_carries_the_id_of_the_pay_item_it_came_from()
+    {
+        var item = Guid.NewGuid();
+        var input = Input() with { Earnings = [new EarningInput("allowance", "Transport", 150m, SourceId: item)] };
+
+        var line = Assert.Single(PayrollCalculator.Calculate(input).Lines, l => l.Type == "allowance");
+
+        Assert.Equal(item, line.SourceId);
+    }
+
+    [Fact]
+    public void Lines_the_system_computes_have_no_source()
+    {
+        var lines = PayrollCalculator.Calculate(Input()).Lines;
+
+        Assert.All(lines, l => Assert.Null(l.SourceId));
+    }
+
+    /// <summary>A deduction that is only partly applied still names its advance, so the repayment is what was taken.</summary>
+    [Fact]
+    public void A_partly_applied_deduction_keeps_its_source_and_the_amount_really_applied()
+    {
+        var advance = Guid.NewGuid();
+        // 50% cap on a RM1,000 gross allows RM500 at most, so a RM900 deduction applies RM500.
+        var input = Input(basic: 1000m) with { Deductions = [new DeductionInput("Cash advance", 900m, 1, advance)] };
+
+        var line = Assert.Single(PayrollCalculator.Calculate(input).Lines, l => l.SourceId == advance);
+
+        Assert.Equal(500m, line.Amount);
+    }
+
     [Fact]
     public void A_zero_divisor_is_refused_because_it_would_divide_by_zero()
     {

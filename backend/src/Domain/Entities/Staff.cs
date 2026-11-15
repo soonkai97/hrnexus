@@ -47,6 +47,9 @@ public class Staff : IHasAudit, ISoftDelete
     public DateOnly? EmploymentStartDate { get; private set; }
     public DateOnly? EmploymentEndDate   { get; private set; }
 
+    /// <summary>Who this person reports to (their line manager); null at the top. Decides whose payroll line a manager may sign off.</summary>
+    public Guid? ReportsToId { get; private set; }
+
     public string? RefreshToken    { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
 
@@ -148,6 +151,13 @@ public class Staff : IHasAudit, ISoftDelete
         CitizenshipStatus   = citizenshipStatus;
         EmploymentStartDate = startDate;
         EmploymentEndDate   = endDate;
+    }
+
+    /// <summary>Sets who this person reports to. A person cannot report to themselves; loops across several levels are checked with <c>ReportingLine.WouldLoop</c> by the caller.</summary>
+    public void SetReportsTo(Guid? managerId)
+    {
+        if (managerId == Id) throw new ArgumentException("A person cannot report to themselves.");
+        ReportsToId = managerId;
     }
 
     public void UpdateProfile(string? phoneNumber) => PhoneNumber = phoneNumber;

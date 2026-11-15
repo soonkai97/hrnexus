@@ -11,15 +11,7 @@ import { InputText } from 'primeng/inputtext';
 import { PrimeTemplate } from 'primeng/api';
 import { Select } from 'primeng/select';
 import { Tag } from 'primeng/tag';
-import {
-  ConfirmService,
-  PayItem,
-  PayrollService,
-  ToastService,
-  apiErrorMessage,
-  rm,
-  todayLocalString,
-} from 'shared-lib';
+import { ConfirmService, PayItem, PayItemStore, rm, todayLocalString } from 'shared-lib';
 
 /**
  * A person's recurring allowances and deductions (a transport allowance, a parking fee). Shown to anyone with payroll.view;
@@ -331,13 +323,12 @@ export class PayItemsComponent implements OnChanges {
   /** Whether the signed-in person holds payroll.manage (the server enforces it; this only hides the buttons). */
   @Input() canManage = false;
 
-  private readonly svc = inject(PayrollService);
-  private readonly toast = inject(ToastService);
+  private readonly store = inject(PayItemStore);
   private readonly confirmSvc = inject(ConfirmService);
 
   readonly rm = rm;
-  readonly items = signal<PayItem[]>([]);
-  readonly saving = signal(false);
+  readonly items = this.store.items;
+  readonly saving = this.store.saving;
   readonly showAdd = signal(false);
   readonly endTarget = signal<PayItem | null>(null);
   endDate = '';
@@ -366,11 +357,7 @@ export class PayItemsComponent implements OnChanges {
   }
 
   load(): void {
-    this.svc.getPayItems(this.staffId).subscribe({
-      next: (rows) => this.items.set(rows),
-      error: (e: unknown) =>
-        this.toast.error(apiErrorMessage(e) ?? 'Failed to load allowances and deductions.'),
-    });
+    this.store.load(this.staffId);
   }
 
   isEnded(i: PayItem): boolean {
@@ -397,9 +384,8 @@ export class PayItemsComponent implements OnChanges {
   add(): void {
     if (!this.isFormValid || this.saving()) return;
     const f = this.form;
-    this.saving.set(true);
-    this.svc
-      .addPayItem(this.staffId, {
+    this.store
+      .add(this.staffId, {
         kind: f.kind,
         reason: f.reason.trim(),
         amount: f.amount!,
@@ -409,18 +395,7 @@ export class PayItemsComponent implements OnChanges {
         from: f.from,
         to: f.to ? f.to : null,
       })
-      .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.showAdd.set(false);
-          this.toast.success('Added.');
-          this.load();
-        },
-        error: (e: unknown) => {
-          this.toast.error(apiErrorMessage(e) ?? 'Failed to add it.');
-          this.saving.set(false);
-        },
-      });
+      .subscribe(() => this.showAdd.set(false));
   }
 
   openEnd(i: PayItem): void {
@@ -431,19 +406,7 @@ export class PayItemsComponent implements OnChanges {
   end(): void {
     const i = this.endTarget();
     if (!i || !this.endDate || this.saving()) return;
-    this.saving.set(true);
-    this.svc.endPayItem(this.staffId, i.id, this.endDate).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.endTarget.set(null);
-        this.toast.success('End date saved.');
-        this.load();
-      },
-      error: (e: unknown) => {
-        this.toast.error(apiErrorMessage(e) ?? 'Failed to end it.');
-        this.saving.set(false);
-      },
-    });
+    this.store.end(this.staffId, i.id, this.endDate).subscribe(() => this.endTarget.set(null));
   }
 
   remove(i: PayItem): void {
@@ -455,14 +418,7 @@ export class PayItemsComponent implements OnChanges {
         danger: true,
       })
       .subscribe((ok) => {
-        if (!ok) return;
-        this.svc.deletePayItem(this.staffId, i.id).subscribe({
-          next: () => {
-            this.toast.success('Deleted.');
-            this.load();
-          },
-          error: (e: unknown) => this.toast.error(apiErrorMessage(e) ?? 'Failed to delete it.'),
-        });
+        if (ok) this.store.remove(this.staffId, i.id).subscribe();
       });
   }
 }

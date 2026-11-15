@@ -82,7 +82,7 @@
             <div class="nc-card-foot">
               @if (l.signedOffBy) {
                 <p-tag severity="success" [value]="'Signed: ' + l.signedOffByName" />
-              } @else if (canSign()) {
+              } @else if (l.canSignOff) {
                 <p-button
                   label="Sign off"
                   icon="pi pi-check"

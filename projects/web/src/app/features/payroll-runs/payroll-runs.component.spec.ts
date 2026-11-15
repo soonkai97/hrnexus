@@ -17,7 +17,7 @@ import { PayrollRunsComponent } from './payroll-runs.component';
 describe('PayrollRunsComponent', () => {
   let component: PayrollRunsComponent;
   let svc: { list: ReturnType<typeof vi.fn>; start: ReturnType<typeof vi.fn> };
-  let toast: { error: ReturnType<typeof vi.fn> };
+  let toast: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let manage = false;
 
   const run = (over: Partial<PayrollRunSummary> = {}): PayrollRunSummary => ({
@@ -43,7 +43,7 @@ describe('PayrollRunsComponent', () => {
       list: vi.fn().mockReturnValue(of([run()])),
       start: vi.fn().mockReturnValue(of({ id: 'new' })),
     };
-    toast = { error: vi.fn() };
+    toast = { success: vi.fn(), error: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [PayrollRunsComponent],
       providers: [

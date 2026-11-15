@@ -384,6 +384,27 @@ Built: the lifecycle commands (start, edit a line, recalculate, delete, submit, 
 
 **Accepted:** (1) the cash advance list shows what was repaid and what remains to anyone with `cashadvance.manage`, who can infer from a repayment below the schedule that the 50% cap applied; it is the information a cash advance page needs, and the owner can restrict it to `payroll.view` holders later. (2) A deduction that took nothing (squeezed out by the cap) leaves no payslip line, so it does not count as "used" and could be deleted after the fact; the run's `deductions-unapplied` warning then names an input that is gone. (3) Deleting a person clears their reports' manager without a separate audit row (the deletion is the event).
 
+### 8c-6 built (15 Nov 2026) and its opus review
+
+**Built:** the payroll run screens: **Payroll Runs** (list, start a month), the run page (banner by state, totals, one person's payslip with PCB and "leave out", not-in-run list, history, return dialog), **My team's pay** for a reporting manager, **Pay items** and **Reports to** on the staff Pay and Profile tabs, and the repayment schedule on **Cash Advances**. Table by default, cards one click away; checked by looking at 1280 and 390 px. E2E (`tests/e2e/admin/payroll-run.spec.ts`, 7 tests) is **draft-only**: submit, return and approve would leave an undeletable open run in the shared Docker database and block the next real month, so they are covered by the Application and Postgres HTTP tests. The suite removes the people and roles it creates.
+
+**Frontend follows the IMS pattern** (`docs/architecture/frontend.md` in the IMS repo, section 2): pages never call the API. `PayrollRunStore`, `PayItemStore`, `CashAdvanceStore` and the new `StaffStore.setReportsTo` / `findPeople` hold the signals and run the actions; an action returns an observable that emits once on success and completes empty on a refusal (the reason is already shown). Reads keep the latest answer only. **The server decides who may do what**: the run detail carries `allowedActions` and each line `canSignOff` (`PayrollRunActions`, using the same rules the commands enforce), and the page draws only those buttons. No NgRx. **Gap to IMS:** `QueryLoader` / `ApiCommand` / `createPageState` are not built yet (Phase 7g); the stores here are written so those helpers can replace the hand-written loading and busy signals.
+
+Opus review of the screens, all fixed:
+
+| Finding | Severity | Resolution |
+| --- | --- | --- |
+| Lock and reopen did not check the run version, so a stale page could lock figures nobody on it saw | Med | Both send `expectedVersion`; a stale page is refused (409) |
+| Deleting a draft showed a false "not found" after "deleted" | Low | The store forgets the run and does not read it again |
+| "My team's pay": a slow answer for a tab already left could show one month under another's tab, and sign-off would act on it; badges stayed stale after a sign-off | Med | Answers for a tab the manager left are dropped; the view is cleared on a switch; badges refresh |
+| The run page offered sign-off and approve to people the server always refuses (a preparer, a manager on someone else's line, an approver with their own pay in the run) | Low-med | The server sends `allowedActions` and `canSignOff`; the page re-decides nothing |
+| The E2E suite left active accounts with a known password and roles behind | Low | Removed in `afterAll` |
+| The team-runs query loaded every non-draft run with all its lines (decrypting money) and kept twelve | Low | The twelve months are chosen in SQL first |
+
+Also fixed from the minor list: "Sign off all" says how many lines it signed, the open person dialog follows the latest read after a refusal, cash advance amounts use `rm()`, a missing manager name no longer shows a GUID.
+
+**Accepted:** a head of HR who holds `payroll.approve` without `payroll.view` cannot open the run page (give approvers both when roles are set up); the staff list, shell and other older pages still call services directly (they predate the store rule and move with Phase 7g).
+
 ---
 
 ## Scope

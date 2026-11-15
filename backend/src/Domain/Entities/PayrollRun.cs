@@ -264,11 +264,20 @@ public class PayrollRun
     /// prepared the figures never signs or approves them; a Return or Reopen does not wash that away, because the
     /// hand-entered inputs they typed are still on the lines.
     /// </summary>
+    /// <summary>Whether this person started, edited or submitted the run in any round: they may never sign or approve it.</summary>
+    public bool HasPrepared(Guid staffId) =>
+        _actors.Any(a => a.StaffId == staffId &&
+            a.Action is PayrollRunAction.Started or PayrollRunAction.Edited or PayrollRunAction.Submitted);
+
+    /// <summary>Whether this person's own pay is in the run (left-out people are not paid by it).</summary>
+    public bool ContainsPayOf(Guid staffId) => _lines.Any(l => !l.Excluded && l.EmployeeId == staffId);
+
+    /// <summary>Whether the run could be deleted (the same rule as <see cref="EnsureCanDelete"/>).</summary>
+    public bool CanDelete => State == PayrollRunState.Draft && Cycle == 0;
+
     private void EnsureNotPreparer(Guid staffId, string message)
     {
-        var prepared = _actors.Any(a => a.StaffId == staffId &&
-            a.Action is PayrollRunAction.Started or PayrollRunAction.Edited or PayrollRunAction.Submitted);
-        if (prepared) throw new InvalidOperationException($"Not allowed: {message}.");
+        if (HasPrepared(staffId)) throw new InvalidOperationException($"Not allowed: {message}.");
     }
 
     private void Record(string action, Guid staffId, DateTime now, string? reason = null) =>

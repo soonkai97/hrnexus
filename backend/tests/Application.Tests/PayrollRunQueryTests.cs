@@ -283,4 +283,106 @@ public class PayrollRunQueryTests
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => new GetPayrollTeamQueryHandler(k.Db).Handle(new GetPayrollTeamQuery(Guid.NewGuid(), mgr.Id), CancellationToken.None));
     }
+
+    // ── what the caller may do (the page draws only these buttons) ────────────────
+
+    private static async Task<PayrollRunDetailDto> DetailFor(Scene s, E.Staff who) =>
+        await new GetPayrollRunQueryHandler(Fresh(s)).Handle(new GetPayrollRunQuery(s.RunId, who.Id), CancellationToken.None);
+
+    /// <summary>WHY: the page must never work out who may do what; the server says, using the same rules the commands enforce.</summary>
+    [Fact]
+    public async Task A_draft_offers_the_preparer_the_draft_actions_and_the_head_of_hr_none()
+    {
+        var s = await DraftAsync();
+
+        Assert.Equal(["edit-lines", "recalculate", "submit", "delete"], (await DetailFor(s, s.Prep)).AllowedActions);
+        Assert.Empty((await DetailFor(s, s.Head)).AllowedActions);
+    }
+
+    [Fact]
+    public async Task A_run_that_was_returned_can_no_longer_be_deleted()
+    {
+        var s = await DraftAsync();
+        await SubmitAsync(s);
+        await new ReturnPayrollRunCommandHandler(s.K.Db, s.K.Audit, s.K.Clock).Handle(new ReturnPayrollRunCommand(s.RunId, "PCB missing", s.Version, PayrollRunKit.Act(s.Head)), CancellationToken.None);
+
+        Assert.Equal(["edit-lines", "recalculate", "submit"], (await DetailFor(s, s.Prep)).AllowedActions);
+    }
+
+    [Fact]
+    public async Task A_submitted_run_lets_the_head_of_hr_sign_approve_and_return_but_not_the_person_who_prepared_it()
+    {
+        var s = await DraftAsync();
+        await SubmitAsync(s);
+
+        var head = await DetailFor(s, s.Head);
+        Assert.Equal(["signoff-all", "approve", "return"], head.AllowedActions);
+        Assert.All(head.Lines, l => Assert.True(l.CanSignOff));
+
+        var prep = await DetailFor(s, s.Prep);
+        Assert.Empty(prep.AllowedActions);
+        Assert.All(prep.Lines, l => Assert.False(l.CanSignOff));
+    }
+
+    /// <summary>WHY: an approver who is paid in the run cannot approve it (another approver is needed) and cannot sign their own line.</summary>
+    [Fact]
+    public async Task An_approver_whose_own_pay_is_in_the_run_is_not_offered_approve_or_their_own_line()
+    {
+        var s = await DraftAsync();
+        var k = s.K;
+        var paidHead = await k.HeadOfHrAsync("HOHR2", salary: true);   // an approver who is also paid
+        await new RecalculatePayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new RecalculatePayrollRunCommand(s.RunId, s.Version, PayrollRunKit.Act(s.Prep)), CancellationToken.None);
+        await SubmitAsync(s);
+
+        var detail = await DetailFor(s, paidHead);
+
+        Assert.DoesNotContain("approve", detail.AllowedActions);
+        Assert.Contains("signoff-all", detail.AllowedActions);
+        Assert.False(detail.Lines.Single(l => l.StaffId == "HOHR2").CanSignOff);
+        Assert.True(detail.Lines.Single(l => l.StaffId == "ALICE").CanSignOff);
+    }
+
+    /// <summary>WHY: a manager signs only their own people; the page must not offer a button the server refuses.</summary>
+    [Fact]
+    public async Task A_manager_who_can_also_view_payroll_may_sign_only_their_direct_reports()
+    {
+        var s = await DraftAsync();
+        await SubmitAsync(s);
+        var viewer = await s.K.PersonAsync("VIEWMGR", role: "VIEWMGR", keys: [HRNexus.Domain.Constants.AppConstants.Permissions.PayrollView, HRNexus.Domain.Constants.AppConstants.Permissions.PayrollSignoff], salary: false);
+        (await s.K.Db.Staff.SingleAsync(x => x.Id == s.Alice.Id)).SetReportsTo(viewer.Id);
+        await s.K.Db.SaveChangesAsync();
+
+        var detail = await DetailFor(s, viewer);
+
+        Assert.Empty(detail.AllowedActions);
+        Assert.Equal(["ALICE"], detail.Lines.Where(l => l.CanSignOff).Select(l => l.StaffId));
+    }
+
+    [Fact]
+    public async Task The_managers_team_view_marks_which_of_their_lines_they_can_sign()
+    {
+        var s = await DraftAsync();
+        await SubmitAsync(s);
+
+        var team = await new GetPayrollTeamQueryHandler(Fresh(s)).Handle(new GetPayrollTeamQuery(s.RunId, s.Mgr.Id), CancellationToken.None);
+
+        Assert.True(Assert.Single(team.Lines).CanSignOff);
+    }
+
+    [Fact]
+    public async Task An_approved_run_offers_lock_to_a_locker_and_return_to_the_head_of_hr_and_a_locked_one_offers_reopen()
+    {
+        var s = await DraftAsync(verified: true);
+        await SubmitAsync(s);
+        var k = s.K;
+        await new SignOffAllPayrollLinesCommandHandler(k.Db, k.Audit, k.Clock).Handle(new SignOffAllPayrollLinesCommand(s.RunId, s.Version, PayrollRunKit.Act(s.Head)), CancellationToken.None);
+        await new ApprovePayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new ApprovePayrollRunCommand(s.RunId, s.Version, PayrollRunKit.Act(s.Head)), CancellationToken.None);
+
+        Assert.Equal(["lock", "return"], (await DetailFor(s, s.Head)).AllowedActions);
+
+        await new LockPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new LockPayrollRunCommand(s.RunId, s.Version, PayrollRunKit.Act(s.Head)), CancellationToken.None);
+
+        Assert.Equal(["reopen"], (await DetailFor(s, s.Head)).AllowedActions);
+        Assert.Empty((await DetailFor(s, s.Prep)).AllowedActions);
+    }
 }

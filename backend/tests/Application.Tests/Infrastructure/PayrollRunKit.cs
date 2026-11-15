@@ -58,7 +58,7 @@ public sealed class PayrollRunKit
     }
 
     /// <summary>The preparer: may manage payroll. The head of HR: may approve. A manager: may sign off direct reports.</summary>
-    public Task<E.Staff> PreparerAsync(string id = "PREP") => PersonAsync(id, role: "PAYROLL CLERK", keys: [AppConstants.Permissions.PayrollManage], salary: false);
+    public Task<E.Staff> PreparerAsync(string id = "PREP") => PersonAsync(id, role: "PAYROLL CLERK", keys: [AppConstants.Permissions.PayrollManage, AppConstants.Permissions.PayrollView], salary: false);
     public Task<E.Staff> HeadOfHrAsync(string id = "HOHR", decimal basic = 6000m, bool salary = false) =>
         PersonAsync(id, basic, role: "HEAD OF HR", keys: [AppConstants.Permissions.PayrollApprove, AppConstants.Permissions.PayrollView, AppConstants.Permissions.PayrollLock, AppConstants.Permissions.PayrollReopen], salary: salary);
     public Task<E.Staff> ManagerAsync(string id, Guid? reportsTo = null, bool salary = true) =>

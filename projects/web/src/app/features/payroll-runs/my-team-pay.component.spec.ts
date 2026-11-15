@@ -56,6 +56,7 @@ describe('MyTeamPayComponent', () => {
     signedOffBy: null,
     signedOffByName: null,
     signedOffAt: null,
+    canSignOff: true,
     ...over,
   });
   const team = (over: Partial<PayrollTeam> = {}): PayrollTeam => ({
@@ -120,7 +121,7 @@ describe('MyTeamPayComponent', () => {
     expect(svc.team).not.toHaveBeenCalled();
   });
 
-  it('counts the lines that still need a signature and offers sign-off only while the run is submitted', () => {
+  it('counts the lines that still need a signature', () => {
     svc.team.mockReturnValue(
       of(
         team({
@@ -129,12 +130,15 @@ describe('MyTeamPayComponent', () => {
       ),
     );
     component.ngOnInit();
-    expect(component.waiting()).toBe(1);
-    expect(component.canSign()).toBe(true);
 
-    svc.team.mockReturnValue(of(team({ state: 'approved' })));
-    component.select('r1');
-    expect(component.canSign()).toBe(false);
+    expect(component.waiting()).toBe(1);
+  });
+
+  /** WHY: the server says which lines this manager may sign (a draft, an approved run, someone else's line: none). */
+  it('only a line the server marks canSignOff has its sign-off sent', () => {
+    component.ngOnInit();
+
+    expect(component.lines().map((l) => l.canSignOff)).toEqual([true]);
   });
 
   it('switching runs loads that run', () => {

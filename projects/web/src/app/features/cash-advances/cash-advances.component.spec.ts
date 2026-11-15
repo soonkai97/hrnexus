@@ -117,11 +117,12 @@ describe('CashAdvancesComponent', () => {
 
   it('totalOutstanding sums only outstanding advances', () => {
     const c = make();
-    c.advances.set([
+    mockSvc.list.mockReturnValue(of([
       { status: 'outstanding', amount: 100 } as any,
       { status: 'settled',     amount: 999 } as any,
       { status: 'outstanding', amount: 50 } as any,
-    ]);
+    ]));
+    c.load();
     expect(c.totalOutstanding()).toBe(150);
   });
 
@@ -146,7 +147,8 @@ describe('CashAdvancesComponent', () => {
 
     it('shows the same advances as the table, newest first, a page at a time', () => {
       const c = make();
-      c.advances.set(Array.from({ length: 15 }, (_, i) => advance(i + 1)));
+      mockSvc.list.mockReturnValue(of(Array.from({ length: 15 }, (_, i) => advance(i + 1))));
+      c.load();
 
       expect(c.pagedAdvances().map(a => a.id)).toEqual(
         Array.from({ length: 12 }, (_, i) => 'a' + (15 - i)));
@@ -156,7 +158,8 @@ describe('CashAdvancesComponent', () => {
 
     it('goes back to the first page when the list shrinks below the current page', () => {
       const c = make();
-      c.advances.set([advance(1), advance(2)]);
+      mockSvc.list.mockReturnValue(of([advance(1), advance(2)]));
+      c.load();
       c.cardFirst.set(24);
       expect(c.pagedAdvances().length).toBe(2);
     });

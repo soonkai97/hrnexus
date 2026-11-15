@@ -2,13 +2,11 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  CashAdvanceService,
+  CashAdvanceStore,
   CashAdvanceDto,
   StaffStore,
-  ToastService,
   ConfirmService,
   CanComponentDeactivate,
-  apiErrorMessage,
   ViewModeService,
   ViewToggleComponent,
   initials,
@@ -55,9 +53,8 @@ type Filter = 'all' | 'outstanding' | 'settled';
   styleUrl: './cash-advances.component.scss',
 })
 export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
-  private readonly svc = inject(CashAdvanceService);
+  private readonly store = inject(CashAdvanceStore);
   private readonly staffStore = inject(StaffStore);
-  private readonly toast = inject(ToastService);
   private readonly confirmSvc = inject(ConfirmService);
 
   private readonly views = inject(ViewModeService);
@@ -65,7 +62,7 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
   readonly viewMode = this.views.mode('cash-advances');
   readonly initials = initials;
 
-  advances = signal<CashAdvanceDto[]>([]);
+  readonly advances = this.store.advances;
 
   // Card view paging: the same advances as the table, newest first, a page at a time.
   readonly cardRows = 12;
@@ -75,14 +72,14 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
     const first = this.cardFirst() >= sorted.length ? 0 : this.cardFirst();
     return sorted.slice(first, first + this.cardRows);
   });
-  loading = signal(false);
+  readonly loading = this.store.loading;
   filter = signal<Filter>('all');
 
   // Monthly repayment schedule
   scheduleTarget = signal<CashAdvanceDto | null>(null);
-  scheduleSaving = signal(false);
+  readonly scheduleSaving = this.store.saving;
   scheduleAmount: number | null = null;
-  busyId = signal<string | null>(null);
+  readonly busyId = this.store.busyId;
 
   get filterOptions() {
     return [
@@ -107,7 +104,7 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
 
   // Record form
   showForm = signal(false);
-  saving = signal(false);
+  readonly saving = this.store.saving;
   form: { employeeId: string; amount: number | null; advanceDate: Date; reason: string } = {
     employeeId: '',
     amount: null,
@@ -127,18 +124,8 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
   }
 
   load(): void {
-    this.loading.set(true);
     const f = this.filter();
-    this.svc.list(f === 'all' ? undefined : f).subscribe({
-      next: (list) => {
-        this.advances.set(list);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.toast.error('Failed to load cash advances.');
-        this.loading.set(false);
-      },
-    });
+    this.store.load(f === 'all' ? undefined : f);
   }
 
   setFilter(f: Filter): void {
@@ -165,26 +152,14 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
 
   save(): void {
     if (!this.isFormValid) return;
-    this.saving.set(true);
-    this.svc
+    this.store
       .create({
         employeeId: this.form.employeeId,
         amount: this.form.amount!,
         advanceDate: this.toYmd(this.form.advanceDate),
         reason: this.form.reason.trim() || null,
       })
-      .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.showForm.set(false);
-          this.toast.success('Cash advance recorded.');
-          this.load();
-        },
-        error: (e) => {
-          this.saving.set(false);
-          this.toast.error(apiErrorMessage(e) ?? 'Failed to save.');
-        },
-      });
+      .subscribe(() => this.showForm.set(false));
   }
 
   /** What payroll does with this advance each month, in words (display only). */
@@ -201,25 +176,13 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
 
   saveSchedule(): void {
     const a = this.scheduleTarget();
-    if (!a || this.scheduleSaving()) return;
-    this.scheduleSaving.set(true);
-    this.svc
+    if (!a) return;
+    this.store
       .setRepayment(
         a.id,
         this.scheduleAmount && this.scheduleAmount > 0 ? this.scheduleAmount : null,
       )
-      .subscribe({
-        next: () => {
-          this.scheduleSaving.set(false);
-          this.scheduleTarget.set(null);
-          this.toast.success('Repayment saved.');
-          this.load();
-        },
-        error: (e) => {
-          this.scheduleSaving.set(false);
-          this.toast.error(apiErrorMessage(e) ?? 'Failed to save.');
-        },
-      });
+      .subscribe(() => this.scheduleTarget.set(null));
   }
 
   toggleSettled(a: CashAdvanceDto): void {
@@ -236,19 +199,7 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
         confirmLabel: settled ? 'Mark settled' : 'Reopen',
       })
       .subscribe((ok) => {
-        if (!ok) return;
-        this.busyId.set(a.id);
-        this.svc.setSettled(a.id, settled).subscribe({
-          next: () => {
-            this.busyId.set(null);
-            this.toast.success(settled ? 'Marked as settled.' : 'Reopened.');
-            this.load();
-          },
-          error: (e) => {
-            this.busyId.set(null);
-            this.toast.error(apiErrorMessage(e) ?? 'Failed to save.');
-          },
-        });
+        if (ok) this.store.setSettled(a.id, settled).subscribe();
       });
   }
 
@@ -261,19 +212,7 @@ export class CashAdvancesComponent implements OnInit, CanComponentDeactivate {
         danger: true,
       })
       .subscribe((ok) => {
-        if (!ok) return;
-        this.busyId.set(a.id);
-        this.svc.delete(a.id).subscribe({
-          next: () => {
-            this.busyId.set(null);
-            this.toast.success('Cash advance deleted.');
-            this.load();
-          },
-          error: (e) => {
-            this.busyId.set(null);
-            this.toast.error(apiErrorMessage(e) ?? 'Failed to delete.');
-          },
-        });
+        if (ok) this.store.remove(a.id).subscribe();
       });
   }
 

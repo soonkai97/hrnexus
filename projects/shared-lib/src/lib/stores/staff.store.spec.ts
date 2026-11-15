@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 import { StaffStore } from './staff.store';
 import { Staff } from '../models';
@@ -42,7 +43,7 @@ describe('StaffStore', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService],
     });
     store = TestBed.inject(StaffStore);
     http  = TestBed.inject(HttpTestingController);
@@ -290,5 +291,48 @@ describe('StaffStore', () => {
     const req = http.expectOne(r => r.url.includes('/api/staff/staff-id-2') && r.method === 'DELETE');
     req.flush(null);
     await promise; // resolves without error
+  });
+
+  // ── reporting line ─────────────────────────────────────────────────────────
+
+  it('setReportsTo() PUTs the manager and says it saved', async () => {
+    const promise = firstValueFrom(store.setReportsTo('staff-id-1', 'boss-1'));
+    const req = http.expectOne(r => r.url.includes('/api/staff/staff-id-1/reports-to') && r.method === 'PUT');
+    expect(req.request.body).toEqual({ managerId: 'boss-1' });
+    req.flush(null);
+    await promise;
+  });
+
+  it('setReportsTo() with nobody clears the reporting line', async () => {
+    const promise = firstValueFrom(store.setReportsTo('staff-id-1', null));
+    const req = http.expectOne(r => r.url.includes('/api/staff/staff-id-1/reports-to'));
+    expect(req.request.body).toEqual({ managerId: null });
+    req.flush(null);
+    await promise;
+  });
+
+  it('a refused setReportsTo() completes without emitting, so a caller never needs an error callback', async () => {
+    const seen: unknown[] = [];
+    let done = false;
+    store.setReportsTo('staff-id-1', 'boss-1').subscribe({ next: v => seen.push(v), complete: () => (done = true) });
+    http.expectOne(r => r.url.includes('/reports-to')).flush({ error: 'A loop.' }, { status: 409, statusText: 'Conflict' });
+    expect(seen).toEqual([]);
+    expect(done).toBe(true);
+  });
+
+  it('findPeople() searches the server for a short page of people', async () => {
+    const promise = firstValueFrom(store.findPeople('ali'));
+    const req = http.expectOne(r => r.url.includes('/api/staff'));
+    expect(req.request.urlWithParams).toContain('search=ali');
+    expect(req.request.urlWithParams).toContain('pageSize=20');
+    req.flush({ items: [makeStaff('1')], total: 1 });
+    expect((await promise).map(p => p.id)).toEqual(['1']);
+  });
+
+  it('a failed findPeople() completes empty so a search stream keeps working', () => {
+    let done = false;
+    store.findPeople('x').subscribe({ complete: () => (done = true) });
+    http.expectOne(r => r.url.includes('/api/staff')).flush('x', { status: 500, statusText: 'Boom' });
+    expect(done).toBe(true);
   });
 });

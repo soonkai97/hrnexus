@@ -40,7 +40,20 @@ export interface PayrollRunLine {
   signedOffBy: string | null;
   signedOffByName: string | null;
   signedOffAt: string | null;
+  /** Whether the signed-in person may sign this line now (the server decides; the page never works it out). */
+  canSignOff: boolean;
 }
+
+export type PayrollRunAction =
+  | 'edit-lines'
+  | 'recalculate'
+  | 'submit'
+  | 'delete'
+  | 'signoff-all'
+  | 'approve'
+  | 'return'
+  | 'lock'
+  | 'reopen';
 
 export interface PayrollRunStep {
   action: string;
@@ -85,6 +98,8 @@ export interface PayrollRunDetail {
   /** Rate rows the figures rest on that the accountant has not verified; approval is refused while any exist. */
   unverifiedRates: string[];
   notInRun: NotInRun[];
+  /** What the signed-in person may do with this run right now. The page draws only these buttons. */
+  allowedActions: PayrollRunAction[];
 }
 
 /** A manager's view of one run: only the lines of the people who report to them. */

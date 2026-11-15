@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { Button } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
@@ -6,11 +6,7 @@ import { Tag } from 'primeng/tag';
 import {
   PayrollItemLine,
   PayrollRunLine,
-  PayrollRunService,
-  PayrollTeam,
-  PayrollTeamRun,
-  ToastService,
-  apiErrorMessage,
+  PayrollRunStore,
   initials,
   monthLabel,
   rm,
@@ -36,7 +32,8 @@ const SECTION_ORDER = [
 /**
  * A manager's view of payroll: only the pay of the people who report to them, once a run has been submitted, with a button to
  * sign each person off. It needs only payroll.signoff, so a manager sees nothing of anyone else's pay. The server returns only
- * this manager's direct reports and refuses a sign-off for anyone else.
+ * this manager's direct reports and refuses a sign-off for anyone else; it also says which lines may be signed (`canSignOff`).
+ * The page reads and acts through `PayrollRunStore` and never calls the API.
  */
 @Component({
   selector: 'app-my-team-pay',
@@ -46,68 +43,29 @@ const SECTION_ORDER = [
   styleUrl: './my-team-pay.component.scss',
 })
 export class MyTeamPayComponent implements OnInit {
-  private readonly svc = inject(PayrollRunService);
-  private readonly toast = inject(ToastService);
+  private readonly store = inject(PayrollRunStore);
 
   readonly monthLabel = monthLabel;
   readonly rm = rm;
   readonly tag = runStateTag;
   readonly initials = initials;
 
-  readonly runs = signal<PayrollTeamRun[]>([]);
-  readonly runsLoading = signal(true);
-  readonly selectedId = signal<string | null>(null);
-  readonly team = signal<PayrollTeam | null>(null);
-  readonly loading = signal(false);
-  readonly busy = signal(false);
+  readonly runs = this.store.teamRuns;
+  readonly runsLoading = this.store.teamRunsLoading;
+  readonly selectedId = this.store.teamId;
+  readonly team = this.store.team;
+  readonly loading = this.store.teamLoading;
+  readonly busy = this.store.busy;
 
   readonly lines = computed(() => this.team()?.lines ?? []);
   readonly waiting = computed(() => this.lines().filter((l) => !l.signedOffBy).length);
-  readonly canSign = computed(() => this.team()?.state === 'submitted');
 
   ngOnInit(): void {
-    this.svc.teamRuns().subscribe({
-      next: (rows) => {
-        this.runs.set(rows);
-        this.runsLoading.set(false);
-        // Open what is waiting for this manager first, otherwise the newest run.
-        const first = rows.find((r) => r.toSign > 0) ?? rows[0];
-        if (first) this.select(first.runId);
-      },
-      error: (e: unknown) => {
-        this.toast.error(apiErrorMessage(e) ?? 'Failed to load your team.');
-        this.runsLoading.set(false);
-      },
-    });
+    this.store.loadTeamRuns();
   }
 
   select(runId: string): void {
-    if (runId !== this.selectedId()) this.team.set(null); // never show one month under another month's tab
-    this.selectedId.set(runId);
-    this.loadTeam();
-  }
-
-  /** The tab badges count what is still waiting, so they follow a sign-off. */
-  private refreshRuns(): void {
-    this.svc.teamRuns().subscribe({ next: (rows) => this.runs.set(rows), error: () => undefined });
-  }
-
-  private loadTeam(): void {
-    const id = this.selectedId();
-    if (!id) return;
-    this.loading.set(this.team() === null);
-    this.svc.team(id).subscribe({
-      next: (t) => {
-        // A slower answer for a tab the manager has already left must not replace the one they are looking at.
-        if (t.runId !== this.selectedId()) return;
-        this.team.set(t);
-        this.loading.set(false);
-      },
-      error: (e: unknown) => {
-        this.toast.error(apiErrorMessage(e) ?? 'Failed to load your team.');
-        this.loading.set(false);
-      },
-    });
+    this.store.selectTeamRun(runId);
   }
 
   groups(l: PayrollRunLine): ItemGroup[] {
@@ -119,22 +77,6 @@ export class MyTeamPayComponent implements OnInit {
   }
 
   signOff(l: PayrollRunLine): void {
-    const t = this.team();
-    if (!t || this.busy()) return;
-    this.busy.set(true);
-    this.svc.signOff(t.runId, l.employeeId, t.version).subscribe({
-      next: () => {
-        this.toast.success(`Signed off ${l.name}.`);
-        this.busy.set(false);
-        this.loadTeam();
-        this.refreshRuns();
-      },
-      error: (e: unknown) => {
-        // A refusal (the run changed since this page was read, or the rules) says why; reload so the page is current again.
-        this.toast.error(apiErrorMessage(e) ?? 'That did not work.');
-        this.busy.set(false);
-        this.loadTeam();
-      },
-    });
+    this.store.signOffTeamLine(l).subscribe();
   }
 }

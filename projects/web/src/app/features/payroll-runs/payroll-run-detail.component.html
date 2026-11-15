@@ -59,86 +59,74 @@
     </dl>
 
     <div class="actions">
-      @if (s.state === 'draft') {
-        @if (canManage) {
-          <p-button
-            label="Recalculate"
-            icon="pi pi-refresh"
-            severity="secondary"
-            [outlined]="true"
-            [disabled]="busy()"
-            (onClick)="recalculate()"
-          />
-          <p-button
-            label="Submit for sign-off"
-            icon="pi pi-send"
-            severity="primary"
-            [disabled]="busy()"
-            (onClick)="submit()"
-          />
-          @if (canDeleteRun()) {
-            <p-button
-              label="Delete"
-              icon="pi pi-trash"
-              severity="danger"
-              [text]="true"
-              [disabled]="busy()"
-              (onClick)="deleteRun()"
-            />
-          }
-        }
+      @if (can('recalculate')) {
+        <p-button
+          label="Recalculate"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy()"
+          (onClick)="recalculate()"
+        />
       }
-      @if (s.state === 'submitted') {
-        @if (canApprove) {
-          @if (!isPreparer()) {
-            <p-button
-              label="Sign off all"
-              icon="pi pi-check-circle"
-              severity="secondary"
-              [outlined]="true"
-              [disabled]="busy() || allSigned()"
-              (onClick)="signOffAll()"
-            />
-            <p-button
-              label="Approve"
-              icon="pi pi-verified"
-              severity="primary"
-              [disabled]="busy() || !allSigned() || hasOwnPay()"
-              (onClick)="approve()"
-            />
-          }
-          <p-button
-            label="Return for changes"
-            icon="pi pi-undo"
-            severity="secondary"
-            [text]="true"
-            [disabled]="busy()"
-            (onClick)="openReturn()"
-          />
-        }
+      @if (can('submit')) {
+        <p-button
+          label="Submit for sign-off"
+          icon="pi pi-send"
+          severity="primary"
+          [disabled]="busy()"
+          (onClick)="submit()"
+        />
       }
-      @if (s.state === 'approved') {
-        @if (canLock) {
-          <p-button
-            label="Lock"
-            icon="pi pi-lock"
-            severity="primary"
-            [disabled]="busy()"
-            (onClick)="lock()"
-          />
-        }
-        @if (canApprove) {
-          <p-button
-            label="Return for changes"
-            icon="pi pi-undo"
-            severity="secondary"
-            [text]="true"
-            [disabled]="busy()"
-            (onClick)="openReturn()"
-          />
-        }
+      @if (can('delete')) {
+        <p-button
+          label="Delete"
+          icon="pi pi-trash"
+          severity="danger"
+          [text]="true"
+          [disabled]="busy()"
+          (onClick)="deleteRun()"
+        />
       }
-      @if (s.state === 'locked' && canReopen) {
+      @if (can('signoff-all')) {
+        <p-button
+          label="Sign off all"
+          icon="pi pi-check-circle"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy() || allSigned()"
+          (onClick)="signOffAll()"
+        />
+      }
+      @if (can('approve')) {
+        <p-button
+          label="Approve"
+          icon="pi pi-verified"
+          severity="primary"
+          [disabled]="busy() || !allSigned()"
+          (onClick)="approve()"
+        />
+      }
+      @if (can('lock')) {
+        <p-button
+          label="Lock"
+          icon="pi pi-lock"
+          severity="primary"
+          [disabled]="busy()"
+          (onClick)="lock()"
+        />
+      }
+      @if (can('return')) {
+        <p-button
+          label="Return for changes"
+          icon="pi pi-undo"
+          severity="secondary"
+          [text]="true"
+          [disabled]="busy()"
+          (onClick)="openReturn()"
+        />
+      }
+      @if (can('reopen')) {
         <p-button
           label="Reopen"
           icon="pi pi-lock-open"
@@ -202,7 +190,7 @@
                 size="small"
                 (onClick)="openLine(l)"
               />
-              @if (canSignLine(l)) {
+              @if (l.canSignOff) {
                 <p-button
                   label="Sign off"
                   icon="pi pi-check"
@@ -276,7 +264,7 @@
                   size="small"
                   (onClick)="openLine(l)"
                 />
-                @if (canSignLine(l)) {
+                @if (l.canSignOff) {
                   <p-button
                     label="Sign off"
                     icon="pi pi-check"
@@ -329,7 +317,7 @@
   <!-- One person's payslip -->
   <p-dialog
     [visible]="selected() !== null"
-    (visibleChange)="!$event && selected.set(null)"
+    (visibleChange)="!$event && closeLine()"
     [header]="selected()?.name ?? ''"
     [modal]="true"
     [style]="{ width: 'min(640px, 94vw)' }"
@@ -395,7 +383,7 @@
         }
       }
 
-      @if (canEditLine) {
+      @if (can('edit-lines')) {
         <h4 class="group-title">Inputs</h4>
         <div class="field">
           <label for="line-pcb">PCB (monthly tax deduction, RM)</label>
@@ -429,9 +417,9 @@
       }
     }
     <ng-template pTemplate="footer">
-      <p-button label="Close" [text]="true" severity="secondary" (onClick)="selected.set(null)" />
+      <p-button label="Close" [text]="true" severity="secondary" (onClick)="closeLine()" />
       @if (selected(); as l) {
-        @if (canSignLine(l)) {
+        @if (l.canSignOff) {
           <p-button
             label="Sign off"
             icon="pi pi-check"
@@ -442,7 +430,7 @@
           />
         }
       }
-      @if (canEditLine) {
+      @if (can('edit-lines')) {
         <p-button
           label="Save"
           severity="primary"

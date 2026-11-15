@@ -1,11 +1,11 @@
 import { Component, Input, OnChanges, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { EMPTY, Subject, catchError, debounceTime, switchMap } from 'rxjs';
+import { Subject, debounceTime, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
-import { StaffManagementService, ToastService, apiErrorMessage } from 'shared-lib';
+import { Staff, StaffStore } from 'shared-lib';
 
 interface ManagerOption {
   label: string;
@@ -90,8 +90,7 @@ export class ReportsToComponent implements OnChanges {
   /** Whether the signed-in person holds staff.manage (the server enforces it; this only hides the editor). */
   @Input() canManage = false;
 
-  private readonly staffSvc = inject(StaffManagementService);
-  private readonly toast = inject(ToastService);
+  private readonly store = inject(StaffStore);
 
   managerId: string | null = null;
   readonly saving = signal(false);
@@ -104,18 +103,10 @@ export class ReportsToComponent implements OnChanges {
     this.searches
       .pipe(
         debounceTime(250),
-        switchMap((q) =>
-          this.staffSvc.getAll(q, 1, 20).pipe(
-            // A failed search must not end the stream: the next keystroke searches again.
-            catchError(() => {
-              this.toast.error('Failed to search the staff list.');
-              return EMPTY;
-            }),
-          ),
-        ),
+        switchMap((q) => this.store.findPeople(q)),
         takeUntilDestroyed(),
       )
-      .subscribe((page) => this.setOptions(page.items));
+      .subscribe((people) => this.setOptions(people));
   }
 
   ngOnChanges(): void {
@@ -132,9 +123,7 @@ export class ReportsToComponent implements OnChanges {
     this.searches.next((q ?? '').trim());
   }
 
-  private setOptions(
-    people: Array<{ id: string; staffId: string; fullName: string; isActive: boolean }>,
-  ): void {
+  private setOptions(people: Staff[]): void {
     const found = people
       .filter((s) => s.isActive && s.id !== this.staffId)
       .map((s) => ({ label: `${s.staffId} — ${s.fullName}`, value: s.id }));
@@ -152,17 +141,12 @@ export class ReportsToComponent implements OnChanges {
   save(): void {
     if (!this.changed || this.saving()) return;
     this.saving.set(true);
-    this.staffSvc.setReportsTo(this.staffId, this.managerId ?? null).subscribe({
+    this.store.setReportsTo(this.staffId, this.managerId ?? null).subscribe({
       next: () => {
-        this.saving.set(false);
         this.currentId = this.managerId ?? null;
         this.currentName = this.options().find((o) => o.value === this.managerId)?.label ?? null;
-        this.toast.success('Saved.');
       },
-      error: (e: unknown) => {
-        this.toast.error(apiErrorMessage(e) ?? 'Failed to save.');
-        this.saving.set(false);
-      },
+      complete: () => this.saving.set(false),
     });
   }
 }

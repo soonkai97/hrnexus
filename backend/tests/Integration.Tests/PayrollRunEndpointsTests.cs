@@ -196,6 +196,13 @@ public class PayrollRunEndpointsTests(PostgresFixture fx)
 
         Assert.Equal(HttpStatusCode.OK, (await prep.PostAsJsonAsync($"/api/payroll/runs/{id}/submit", new { expectedVersion = await VersionOfAsync(prep, id) })).StatusCode);
 
+        // The server says what each person may do: the head of HR can sign and approve, the preparer can do neither.
+        var headView = await JsonAsync(await head.GetAsync($"/api/payroll/runs/{id}"));
+        Assert.Equal(["signoff-all", "approve", "return"], headView.GetProperty("allowedActions").EnumerateArray().Select(x => x.GetString()));
+        Assert.All(headView.GetProperty("lines").EnumerateArray(), l => Assert.True(l.GetProperty("canSignOff").GetBoolean()));
+        var prepView = await JsonAsync(await prep.GetAsync($"/api/payroll/runs/{id}"));
+        Assert.Empty(prepView.GetProperty("allowedActions").EnumerateArray());
+
         // The manager sees only their own report, and can sign it.
         var team = await JsonAsync(await mgr.GetAsync($"/api/payroll/runs/{id}/team"));
         Assert.Equal("ALICE", Assert.Single(team.GetProperty("lines").EnumerateArray().ToList()).GetProperty("staffId").GetString());

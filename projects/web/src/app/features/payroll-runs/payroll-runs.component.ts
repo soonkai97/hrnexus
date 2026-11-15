@@ -11,13 +11,11 @@ import { Skeleton } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import {
-  PayrollRunService,
+  PayrollRunStore,
   PayrollRunSummary,
   PermissionService,
-  ToastService,
   ViewModeService,
   ViewToggleComponent,
-  apiErrorMessage,
   monthLabel,
   rm,
   runStateTag,
@@ -63,17 +61,16 @@ const MONTH_NAMES = [
   styleUrl: './payroll-runs.component.scss',
 })
 export class PayrollRunsComponent implements OnInit {
-  private readonly svc = inject(PayrollRunService);
+  private readonly store = inject(PayrollRunStore);
   private readonly perms = inject(PermissionService);
-  private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly views = inject(ViewModeService);
 
   /** The list (table) by default, cards on request; remembered on this device. */
   readonly viewMode = this.views.mode('payroll-runs');
 
-  readonly runs = signal<PayrollRunSummary[]>([]);
-  readonly loading = signal(false);
+  readonly runs = this.store.runs;
+  readonly loading = this.store.runsLoading;
   readonly empty = computed(() => !this.loading() && this.runs().length === 0);
 
   readonly monthLabel = monthLabel;
@@ -97,17 +94,7 @@ export class PayrollRunsComponent implements OnInit {
   }
 
   load(): void {
-    this.loading.set(true);
-    this.svc.list().subscribe({
-      next: (rows) => {
-        this.runs.set(rows);
-        this.loading.set(false);
-      },
-      error: (e: unknown) => {
-        this.toast.error(apiErrorMessage(e) ?? 'Failed to load payroll runs.');
-        this.loading.set(false);
-      },
-    });
+    this.store.loadRuns();
   }
 
   progress(r: PayrollRunSummary): string {
@@ -139,16 +126,12 @@ export class PayrollRunsComponent implements OnInit {
   start(): void {
     if (!this.isStartValid || this.starting()) return;
     this.starting.set(true);
-    this.svc.start(this.startYear, this.startMonth).subscribe({
-      next: ({ id }) => {
-        this.starting.set(false);
+    this.store.start(this.startYear, this.startMonth).subscribe({
+      next: (id) => {
         this.showStart.set(false);
         void this.router.navigate(['/payroll-runs', id]);
       },
-      error: (e: unknown) => {
-        this.toast.error(apiErrorMessage(e) ?? 'Failed to start the payroll run.');
-        this.starting.set(false);
-      },
+      complete: () => this.starting.set(false),
     });
   }
 }

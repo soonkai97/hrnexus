@@ -1,12 +1,15 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Subject, EMPTY } from 'rxjs';
-import { catchError, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, EMPTY } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { StaffManagementService } from '../services/staff-management.service';
+import { ToastService } from '../services/toast.service';
+import { apiErrorMessage } from '../auth/error.interceptor';
 import { Staff, RegisterStaffRequest, UpdateStaffRequest, StaffRole } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class StaffStore {
   private readonly svc = inject(StaffManagementService);
+  private readonly toast = inject(ToastService);
 
   readonly #staff      = signal<Staff[]>([]);
   readonly #roles      = signal<StaffRole[]>([]);
@@ -102,6 +105,28 @@ export class StaffStore {
 
   resetPassword(id: string, newPassword: string) {
     return this.svc.resetPassword(id, newPassword);
+  }
+
+  /** Who a person reports to (null clears it). Decides whose pay a manager may read and sign off. */
+  setReportsTo(id: string, managerId: string | null): Observable<void> {
+    return this.svc.setReportsTo(id, managerId).pipe(
+      tap(() => this.toast.success('Saved.')),
+      catchError((e: unknown) => {
+        this.toast.error(apiErrorMessage(e) ?? 'Failed to save.');
+        return EMPTY; // the reason is shown; the caller only hears about success
+      }),
+    );
+  }
+
+  /** Searches the staff list on the server (a manager picker works however many people there are). */
+  findPeople(search: string, pageSize = 20): Observable<Staff[]> {
+    return this.svc.getAll(search, 1, pageSize).pipe(
+      map((page) => page.items),
+      catchError(() => {
+        this.toast.error('Failed to search the staff list.');
+        return EMPTY; // a failed search must not end a caller's search stream
+      }),
+    );
   }
 
   deleteStaff(id: string) {

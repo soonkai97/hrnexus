@@ -109,9 +109,13 @@ describe('PayrollRunService', () => {
 
   it('lock() and reopen() POST to their own routes', () => {
     service.lock('r1', 4).subscribe();
-    expect(http.expectOne('/api/payroll/runs/r1/lock').request.body).toEqual({ expectedVersion: 4 });
+    expect(http.expectOne('/api/payroll/runs/r1/lock').request.body).toEqual({
+      expectedVersion: 4,
+    });
     service.reopen('r1', 5).subscribe();
-    expect(http.expectOne('/api/payroll/runs/r1/reopen').request.body).toEqual({ expectedVersion: 5 });
+    expect(http.expectOne('/api/payroll/runs/r1/reopen').request.body).toEqual({
+      expectedVersion: 5,
+    });
   });
 
   it('teamRuns() and team() read the manager views', () => {

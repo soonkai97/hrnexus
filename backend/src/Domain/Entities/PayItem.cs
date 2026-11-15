@@ -62,6 +62,13 @@ public class PayItem
         };
     }
 
+    /// <summary>Sets the last day the item applies (an allowance that stops, a deduction that is paid off). It cannot end before it starts.</summary>
+    public void End(DateOnly to)
+    {
+        if (to < From) throw new ArgumentException("A pay item cannot end before it starts.");
+        To = to;
+    }
+
     /// <summary>True when any day of the given month falls inside the item's validity.</summary>
     public bool AppliesInMonth(int year, int month)
     {

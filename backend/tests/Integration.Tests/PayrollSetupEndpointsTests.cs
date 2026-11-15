@@ -195,7 +195,7 @@ public class PayrollSetupEndpointsTests(PostgresFixture fx)
         var rows = await db.AuditLogs.AsNoTracking().Where(a => a.EntityType == "PayItem" || a.EntityType == "CashAdvance" || a.Action == "ReportsToChanged").ToListAsync();
         Assert.True(rows.Count >= 5);
         Assert.All(rows, a => Assert.DoesNotMatch(new Regex(@"4321|123\.45|Secret"), a.Changes ?? ""));
-        Assert.Equal("ALICE -> BOB", rows.Single(a => a.Action == "ReportsToChanged").Changes);
+        Assert.Equal("ALICE: none -> BOB", rows.Single(a => a.Action == "ReportsToChanged").Changes);
     }
 
     // ── the repayment of a cash advance ───────────────────────────────────────────

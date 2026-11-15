@@ -21,6 +21,11 @@ internal static class PayItemUse
         return used.ToHashSet();
     }
 
+    /// <summary>The months (year x 12 + month) in which a submitted, approved or locked run has this person in it.</summary>
+    public static async Task<HashSet<int>> FrozenMonthsAsync(IAppDbContext db, Guid employeeId, CancellationToken ct) =>
+        (await db.PayrollRuns.Where(r => r.State != PayrollRunState.Draft && r.Lines.Any(l => l.EmployeeId == employeeId && !l.Excluded))
+            .Select(r => r.Year * 12 + r.Month).ToListAsync(ct)).ToHashSet();
+
     /// <summary>The latest month (year x 12 + month) a frozen run used the item in, or 0 when none did.</summary>
     public static async Task<int> LatestFrozenMonthAsync(IAppDbContext db, Guid itemId, CancellationToken ct)
     {
@@ -39,18 +44,27 @@ public class AddPayItemCommandHandler(IAppDbContext db, IAuditService audit) : I
 {
     public async Task<Guid> Handle(AddPayItemCommand req, CancellationToken ct)
     {
-        await PayrollRunWork.RequirePreparerAsync(db, req.By, ct);
         if (decimal.Round(req.Amount, 2) != req.Amount)
             throw new ArgumentException("The amount cannot have more than two decimal places.");
         var item = PayItem.Create(req.EmployeeId, req.Kind, req.Reason, req.Amount, req.CountsForEpf, req.CountsForSocsoEis,
             req.Priority, req.From, req.To, req.By.Name);
-        if (!await db.Staff.AnyAsync(s => s.Id == req.EmployeeId, ct))
-            throw new KeyNotFoundException($"Staff {req.EmployeeId} not found.");
 
-        db.PayItems.Add(item);
-        await db.SaveChangesAsync(ct);
-        await audit.LogAsync("PayItem", item.Id.ToString(), "Created", req.By.Id, req.By.Name, $"{item.Kind} from {item.From:yyyy-MM-dd}", ct);
-        return item.Id;
+        // One Serializable transaction with the audit row, and with the check against frozen months: a run submitted while the
+        // item is being added would otherwise freeze without it, and the item would claim to apply to a month it never paid.
+        return await SerializableWork.RunAsync(db, async c =>
+        {
+            await PayrollRunWork.RequirePreparerAsync(db, req.By, c);
+            if (!await db.Staff.AnyAsync(s => s.Id == req.EmployeeId, c))
+                throw new KeyNotFoundException($"Staff {req.EmployeeId} not found.");
+            var frozen = await PayItemUse.FrozenMonthsAsync(db, req.EmployeeId, c);
+            if (frozen.Count > 0 && req.From.Year * 12 + req.From.Month <= frozen.Max())
+                throw new InvalidOperationException("A payroll run that is already submitted or locked covers that month for this person, so the item cannot start then. Start it from the next month, or pay that month as a one-off adjustment.");
+
+            db.PayItems.Add(item);
+            await db.SaveChangesAsync(c);
+            await audit.LogAsync("PayItem", item.Id.ToString(), "Created", req.By.Id, req.By.Name, $"{item.Kind} from {item.From:yyyy-MM-dd}", c);
+            return item.Id;
+        }, ct);
     }
 }
 
@@ -71,6 +85,16 @@ public class EndPayItemCommandHandler(IAppDbContext db, IAuditService audit) : I
             var lastPaid = await PayItemUse.LatestFrozenMonthAsync(db, item.Id, c);
             if (lastPaid > 0 && req.To.Year * 12 + req.To.Month < lastPaid)
                 throw new InvalidOperationException("A payroll run that is already submitted or locked paid this item in a later month, so it cannot end before then.");
+
+            // Pushing the end date later must not claim months that were already paid without it.
+            if (item.To is { } oldEnd && req.To > oldEnd)
+            {
+                var frozen = await PayItemUse.FrozenMonthsAsync(db, item.EmployeeId, c);
+                var from = oldEnd.Year * 12 + oldEnd.Month;
+                var until = req.To.Year * 12 + req.To.Month;
+                if (frozen.Any(m => m > from && m <= until))
+                    throw new InvalidOperationException("A payroll run that is already submitted or locked covers a month in that stretch for this person, so the item cannot be extended over it.");
+            }
 
             item.End(req.To);
             await db.SaveChangesAsync(c);

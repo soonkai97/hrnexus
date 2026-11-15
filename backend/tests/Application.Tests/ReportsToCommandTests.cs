@@ -55,7 +55,7 @@ public class ReportsToCommandTests
         await Set(k, admin, worker, boss.Id);
         await Set(k, admin, worker, null);
 
-        Assert.Equal(["WORKER -> BOSS", "WORKER -> none"], k.Audit.Entries.Where(e => e.Action == "ReportsToChanged").Select(e => e.Changes));
+        Assert.Equal(["WORKER: none -> BOSS", "WORKER: BOSS -> none"], k.Audit.Entries.Where(e => e.Action == "ReportsToChanged").Select(e => e.Changes));
         Assert.All(k.Audit.Entries, e => Assert.Equal(admin.Id, e.By));
     }
 
@@ -118,6 +118,60 @@ public class ReportsToCommandTests
 
         await Assert.ThrowsAsync<ForbiddenException>(() => Set(k, signer, worker, signer.Id));   // making themselves the manager
         Assert.Null(await Boss(k, worker));
+    }
+
+    /// <summary>
+    /// WHY: someone with staff.manage and payroll.signoff could otherwise make themselves everyone's manager and read and sign
+    /// everyone's pay through the team view, which is exactly what payroll.view exists to prevent.
+    /// </summary>
+    [Fact]
+    public async Task Someone_who_is_not_a_head_of_hr_cannot_make_themselves_anyones_manager_or_pick_their_own_manager()
+    {
+        var (k, _) = await SceneAsync();
+        var risky = await k.PersonAsync("RISKY", role: "SIGNER ADMIN", keys: [AppConstants.Permissions.StaffManage, AppConstants.Permissions.PayrollSignoff], salary: false);
+        var worker = await k.PersonAsync("WORKER", salary: false);
+        var friend = await k.PersonAsync("FRIEND", salary: false);
+
+        await Assert.ThrowsAsync<ForbiddenException>(() => Set(k, risky, worker, risky.Id));   // making themselves the manager
+        await Assert.ThrowsAsync<ForbiddenException>(() => Set(k, risky, risky, friend.Id));   // choosing who signs their own pay
+        Assert.Null(await Boss(k, worker));
+        Assert.Null(await Boss(k, risky));
+    }
+
+    [Fact]
+    public async Task A_head_of_hr_who_also_manages_staff_may_place_people_under_themselves()
+    {
+        var (k, _) = await SceneAsync();
+        var head = await k.PersonAsync("HEAD", role: "HR HEAD", keys: [AppConstants.Permissions.StaffManage, AppConstants.Permissions.PayrollApprove], salary: false);
+        var worker = await k.PersonAsync("WORKER", salary: false);
+
+        await Set(k, head, worker, head.Id);
+
+        Assert.Equal(head.Id, await Boss(k, worker));
+    }
+
+    /// <summary>WHY: a manager re-pointed mid-review could read and sign a line that was already waiting for someone else.</summary>
+    [Fact]
+    public async Task Someone_whose_pay_is_in_a_run_being_reviewed_keeps_their_reviewer_until_it_is_returned_or_locked()
+    {
+        var (k, admin) = await SceneAsync();
+        await k.SeedAndVerifyRatesAsync(true);
+        var prep = await k.PreparerAsync();
+        var boss = await k.PersonAsync("BOSS", salary: false);
+        var other = await k.PersonAsync("OTHER", salary: false);
+        var worker = await k.PersonAsync("WORKER", 3000m, reportsTo: boss.Id);
+        var runId = await new HRNexus.Application.Payroll.Commands.Run.StartPayrollRunCommandHandler(k.Db, k.Audit, k.Clock)
+            .Handle(new HRNexus.Application.Payroll.Commands.Run.StartPayrollRunCommand(2026, 10, PayrollRunKit.Act(prep)), CancellationToken.None);
+
+        await Set(k, admin, worker, other.Id);   // a draft run does not freeze the line
+        Assert.Equal(other.Id, await Boss(k, worker));
+
+        var version = k.Db.PayrollRuns.AsNoTracking().Single(r => r.Id == runId).Version;
+        await new HRNexus.Application.Payroll.Commands.Run.SubmitPayrollRunCommandHandler(k.Db, k.Audit, k.Clock)
+            .Handle(new HRNexus.Application.Payroll.Commands.Run.SubmitPayrollRunCommand(runId, version, PayrollRunKit.Act(prep)), CancellationToken.None);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Set(k, admin, worker, boss.Id));
+        Assert.Equal(other.Id, await Boss(k, worker));
     }
 
     [Fact]

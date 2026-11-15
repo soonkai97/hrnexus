@@ -145,6 +145,46 @@ public class PayItemCommandTests
         Assert.Contains(line.Items, i => i.Type == "allowance" && i.Amount == 150m);
     }
 
+    // ── months a run has already frozen ───────────────────────────────────────────
+
+    /// <summary>
+    /// WHY: an item only pays in the months a run calculates after it exists. Dating it into a month that is already frozen would
+    /// leave a record saying it applied in October while October's payslips never included it.
+    /// </summary>
+    [Fact]
+    public async Task An_item_cannot_start_in_or_before_a_month_a_submitted_or_locked_run_already_covers_for_that_person()
+    {
+        var (k, prep, head, alice) = await SceneAsync();
+        await RunPastDraftAsync(k, prep, head, lockIt: true);   // October is locked
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => Add(k, prep, alice.Id, from: new DateOnly(2026, 10, 1)));
+        Assert.Contains("next month", ex.Message);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Add(k, prep, alice.Id, from: new DateOnly(2026, 1, 1)));
+
+        await Add(k, prep, alice.Id, from: new DateOnly(2026, 11, 1));   // next month is fine
+    }
+
+    [Fact]
+    public async Task A_month_that_is_frozen_for_someone_else_does_not_stop_an_item_for_a_person_who_was_not_in_it()
+    {
+        var (k, prep, head, _) = await SceneAsync();
+        await RunPastDraftAsync(k, prep, head, lockIt: true);
+        var newcomer = await k.PersonAsync("NEWCOMER", salary: false);   // not in October's run
+
+        await Add(k, prep, newcomer.Id, from: new DateOnly(2026, 10, 1));
+    }
+
+    [Fact]
+    public async Task An_end_date_cannot_be_pushed_over_a_month_that_was_paid_without_the_item()
+    {
+        var (k, prep, head, alice) = await SceneAsync();
+        var id = await Add(k, prep, alice.Id, from: new DateOnly(2026, 1, 1), to: new DateOnly(2026, 8, 31));
+        await RunPastDraftAsync(k, prep, head, lockIt: true);   // October locked, without the item (it ended in August)
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => End(k, prep, alice.Id, id, new DateOnly(2026, 12, 31)));
+        await End(k, prep, alice.Id, id, new DateOnly(2026, 9, 30));   // September was never frozen: extending to it is fine
+    }
+
     // ── end ───────────────────────────────────────────────────────────────────────
 
     [Fact]

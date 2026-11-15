@@ -50,7 +50,7 @@ public class GetCashAdvancesQueryHandler(IAppDbContext db) : IRequestHandler<Get
             return new CashAdvanceDto(
                 c.Id, c.EmployeeId, c.Employee.StaffId, c.Employee.FullName,
                 c.Amount, c.AdvanceDate, c.Reason, c.Status, c.SettledAt, c.CreatedAt,
-                c.RepaymentPerMonth, taken, Math.Max(0m, c.Amount - taken));
+                c.RepaymentPerMonth, taken, c.Status == Domain.Entities.CashAdvance.Settled ? 0m : Math.Max(0m, c.Amount - taken));
         }).ToList();
     }
 }

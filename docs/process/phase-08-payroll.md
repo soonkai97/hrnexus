@@ -371,6 +371,19 @@ Built: the lifecycle commands (start, edit a line, recalculate, delete, submit, 
 
 **Must-haves for 8c-5 (the reports-to editor):** changing who reports to whom decides who may read and sign whose pay, so it needs `staff.manage`, is written to the audit trail, refuses loops, and a person must not be able to make themselves anyone's manager through it unless they also hold `staff.manage`.
 
+### 8c-5 built (15 Nov 2026) and its opus review
+
+**Built:** recurring pay items per person (`GET/POST /api/staff/{id}/pay-items`, `PUT .../pay-items/{item}/end`, `DELETE`), the monthly repayment of a cash advance (`PUT /api/cash-advances/{id}/repayment`, and the list now shows the schedule, what was repaid and what remains), and the reporting-line editor (`PUT /api/staff/{id}/reports-to`; the staff list shows each person's manager). Each is behind its own permission, re-checked in the command, and audited without amounts or reasons. The review found no high issue; fixed:
+
+| Finding                                                                                                                                      | Severity | Resolution                                                                                                                                                                                                                          |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Someone with `staff.manage` and `payroll.signoff` could make themselves everyone's manager and read and sign their pay through the team view | Med      | Only a head of HR (`payroll.approve`) may place themselves in the line (as manager or by choosing their own manager); a person whose pay is in a submitted or approved run keeps their reviewer until the run is returned or locked |
+| A pay item dated into an already frozen month claimed to apply to a month that never paid it (add, or extending the end date)                | Med      | An item cannot start in or before a month a submitted or locked run covers for that person, nor be extended over such a month; adding is now one Serializable transaction with its audit row                                        |
+| `Remaining` showed the full amount for an advance settled by hand                                                                            | Med-low  | Zero when settled                                                                                                                                                                                                                   |
+| Audit of the reporting line did not say who the previous manager was                                                                         | Low      | `ALICE: OLD -> NEW`                                                                                                                                                                                                                 |
+
+**Accepted:** (1) the cash advance list shows what was repaid and what remains to anyone with `cashadvance.manage`, who can infer from a repayment below the schedule that the 50% cap applied; it is the information a cash advance page needs, and the owner can restrict it to `payroll.view` holders later. (2) A deduction that took nothing (squeezed out by the cap) leaves no payslip line, so it does not count as "used" and could be deleted after the fact; the run's `deductions-unapplied` warning then names an input that is gone. (3) Deleting a person clears their reports' manager without a separate audit row (the deletion is the event).
+
 ---
 
 ## Scope

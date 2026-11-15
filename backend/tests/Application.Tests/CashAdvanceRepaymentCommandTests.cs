@@ -165,6 +165,31 @@ public class CashAdvanceRepaymentCommandTests
     }
 
     [Fact]
+    public async Task An_advance_settled_by_hand_shows_nothing_remaining()
+    {
+        var (k, _, _, _, _, advance) = await SceneAsync(500m);
+        (await k.Db.CashAdvances.SingleAsync(a => a.Id == advance.Id)).MarkSettled();
+        await k.Db.SaveChangesAsync();
+
+        var row = Assert.Single(await new GetCashAdvancesQueryHandler(k.Db).Handle(new GetCashAdvancesQuery(), CancellationToken.None));
+
+        Assert.Equal(("settled", 0m), (row.Status, row.Remaining));
+    }
+
+    [Fact]
+    public async Task The_schedule_cannot_change_while_an_approved_run_has_the_advance_either()
+    {
+        var (k, admin, prep, head, _, advance) = await SceneAsync(500m);
+        var runId = await StartAsync(k, prep);
+        long Version() => k.Db.PayrollRuns.AsNoTracking().Single(r => r.Id == runId).Version;
+        await new SubmitPayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new SubmitPayrollRunCommand(runId, Version(), PayrollRunKit.Act(prep)), CancellationToken.None);
+        await new SignOffAllPayrollLinesCommandHandler(k.Db, k.Audit, k.Clock).Handle(new SignOffAllPayrollLinesCommand(runId, Version(), PayrollRunKit.Act(head)), CancellationToken.None);
+        await new ApprovePayrollRunCommandHandler(k.Db, k.Audit, k.Clock).Handle(new ApprovePayrollRunCommand(runId, Version(), PayrollRunKit.Act(head)), CancellationToken.None);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Set(k, admin, advance.Id, 100m));
+    }
+
+    [Fact]
     public async Task An_advance_nothing_was_taken_from_shows_the_whole_amount_as_remaining()
     {
         var (k, _, _, _, _, _) = await SceneAsync(500m);

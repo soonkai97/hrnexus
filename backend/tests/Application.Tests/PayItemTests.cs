@@ -44,6 +44,14 @@ public class PayItemTests
         Assert.Equal(3, item.Priority);
     }
 
+    /// <summary>WHY: cash advance repayments are applied first by holding the lowest possible priority; no pay item may tie with or beat that.</summary>
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(1001)]
+    [InlineData(int.MinValue)]
+    public void A_deduction_priority_outside_0_to_1000_is_refused(int priority) =>
+        Assert.Throws<ArgumentException>(() => PayItem.Create(Employee, PayItemKind.Deduction, "Parking", 50m, false, false, priority, From, null, "admin"));
+
     [Fact]
     public void An_allowance_has_no_priority()
     {

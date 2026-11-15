@@ -18,8 +18,8 @@ public class PayrollRunCalculatorTests
 {
     private static readonly Guid Employee = Guid.NewGuid();
 
-    private static MonthContext Month() =>
-        new(2026, 6, 26m, WorkSchedule.Default, new LeaveCatalog(LeaveTypeDefaults.All(), false), 0.5m, []);
+    private static MonthContext Month(decimal divisor = 26m) =>
+        new(2026, 6, divisor, WorkSchedule.Default, new LeaveCatalog(LeaveTypeDefaults.All(), false), 0.5m, []);
 
     private static PersonSource Person(IReadOnlyList<SalaryRow>? salaries = null, IReadOnlyList<PayrollLeaveRow>? leave = null,
         IReadOnlyList<AdvanceRow>? advances = null, bool noDob = false, decimal? pcb = 0m) =>
@@ -72,6 +72,36 @@ public class PayrollRunCalculatorTests
         var byDate = r.UnpaidDays.ToDictionary(d => d.Date, d => d.DeductionAmount);
         Assert.Equal(100m, byDate[new DateOnly(2026, 6, 10)]);   // 2600 / 26
         Assert.Equal(200m, byDate[new DateOnly(2026, 6, 22)]);   // 5200 / 26
+    }
+
+    /// <summary>
+    /// WHY: a later correction refunds or recovers per stored day. If the days did not add up to the deduction that
+    /// was really taken, a withdrawn leave would refund money that was never deducted.
+    /// </summary>
+    [Fact]
+    public void The_stored_days_add_up_to_the_unpaid_leave_deduction_to_the_cent()
+    {
+        var rows = new[] { new SalaryRow(Guid.NewGuid(), new DateOnly(2020, 1, 1), 3001m) };
+
+        var r = PayrollRunCalculator.Calculate(Person(rows, [Unpaid("2026-06-01", "2026-06-26")]), Month());   // 20 working days
+
+        var line = Assert.Single(r.Lines, l => l.Type == "unpaid-leave");
+        Assert.Equal(20, r.UnpaidDays.Count);
+        Assert.Equal(line.Amount, r.UnpaidDays.Sum(d => d.DeductionAmount));   // not 20 x 115.42 = 2308.40 against 2308.46
+    }
+
+    [Fact]
+    public void When_the_deduction_is_capped_at_the_prorated_basic_the_stored_days_are_scaled_down_to_what_was_taken()
+    {
+        var rows = new[] { new SalaryRow(Guid.NewGuid(), new DateOnly(2020, 1, 1), 3000m) };
+        var person = Person(rows, [Unpaid("2026-06-22", "2026-06-30")]) with { EmploymentStart = new DateOnly(2026, 6, 21) };
+
+        var r = PayrollRunCalculator.Calculate(person, Month(divisor: 5m));   // each day would cost 600, 7 days = 4200, but only 1000 was earned
+
+        var line = Assert.Single(r.Lines, l => l.Type == "unpaid-leave");
+        Assert.Equal(1000m, line.Amount);
+        Assert.Equal(1000m, r.UnpaidDays.Sum(d => d.DeductionAmount));
+        Assert.Contains(r.Warnings, w => w.Code == "unpaid-leave-capped");
     }
 
     [Fact]

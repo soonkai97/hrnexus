@@ -296,6 +296,45 @@ public class PayrollInputBuilderTests
         Assert.Empty(b.Input.UnpaidLeave);
     }
 
+    /// <summary>
+    /// WHY: leave rules stop two requests covering the same day, but old data or a race could still hold two. One day
+    /// of pay is the most a day can cost, whatever the data says.
+    /// </summary>
+    [Fact]
+    public void Two_leaves_on_the_same_date_charge_that_date_once_and_say_so()
+    {
+        var b = Build(Person(leave: [Leave("unpaid", "2026-06-10"), Leave("unpaid", "2026-06-10")]));
+
+        Assert.Equal(1m, DaysOn(b, "2026-06-10"));
+        Assert.True(Has(b, "unpaid-day-overlap", blocking: false));
+    }
+
+    [Fact]
+    public void A_half_day_and_a_second_half_day_on_the_same_date_add_up_to_one_day_not_more()
+    {
+        var b = Build(Person(leave: [Leave("unpaid", "2026-06-10", hours: 6m), Leave("unpaid", "2026-06-10", hours: 6m)]));
+
+        Assert.Equal(1m, DaysOn(b, "2026-06-10"));
+        Assert.True(Has(b, "unpaid-day-overlap"));
+    }
+
+    /// <summary>WHY: a half day booked before hours were stored must still cost half a day, from its times.</summary>
+    [Fact]
+    public void A_single_day_from_before_hours_were_stored_uses_its_start_and_end_times()
+    {
+        var leave = new PayrollLeaveRow(Guid.NewGuid(), "unpaid", new DateOnly(2026, 6, 10), new DateOnly(2026, 6, 10), null, "approved", "09:00", "13:00");
+
+        Assert.Equal(0.5m, DaysOn(Build(Person(leave: [leave])), "2026-06-10"));
+    }
+
+    [Fact]
+    public void Unreadable_legacy_times_fall_back_to_a_full_day()
+    {
+        var leave = new PayrollLeaveRow(Guid.NewGuid(), "unpaid", new DateOnly(2026, 6, 10), new DateOnly(2026, 6, 10), null, "approved", "9am", "1pm");
+
+        Assert.Equal(1m, DaysOn(Build(Person(leave: [leave])), "2026-06-10"));
+    }
+
     [Fact]
     public void Each_unpaid_day_remembers_which_leave_it_came_from()
     {
@@ -349,10 +388,38 @@ public class PayrollInputBuilderTests
         Assert.Equal(("Item", 50m, 3, (Guid?)item.Id), (d.Reason, d.Amount, d.Priority, d.SourceId));
     }
 
+    // ── employment start ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public void A_person_with_no_employment_start_date_gets_a_note_because_they_are_paid_the_whole_month()
+    {
+        Assert.True(Has(Build(Person(start: null)), "no-employment-start", blocking: false));
+        Assert.False(Has(Build(Person(start: new DateOnly(2024, 1, 1))), "no-employment-start"));
+    }
+
     // ── cash advances ────────────────────────────────────────────────────────────
 
     private static AdvanceRow Advance(decimal amount = 500m, string date = "2026-05-02", decimal? perMonth = null, decimal repaid = 0m) =>
         new(Guid.NewGuid(), amount, DateOnly.Parse(date), perMonth, repaid);
+
+    /// <summary>
+    /// WHY: when pay cannot cover two advances, which one is paid first must not depend on the order the database
+    /// returned its rows in; the preparer reviewed one outcome and Lock must write that one.
+    /// </summary>
+    [Fact]
+    public void Advances_and_items_are_deducted_in_a_fixed_order_whatever_order_they_arrive_in()
+    {
+        var older = Advance(400m, date: "2026-03-01");
+        var newer = Advance(400m, date: "2026-04-01");
+        var low = Item(PayItemKind.Deduction, 10m, priority: 1);
+        var high = Item(PayItemKind.Deduction, 10m, priority: 5);
+
+        var one = Build(Person(items: [high, low], advances: [newer, older])).Input.Deductions.Select(d => d.SourceId).ToList();
+        var two = Build(Person(items: [low, high], advances: [older, newer])).Input.Deductions.Select(d => d.SourceId).ToList();
+
+        Assert.Equal(new Guid?[] { older.Id, newer.Id, low.Id, high.Id }, one);
+        Assert.Equal(one, two);
+    }
 
     [Fact]
     public void An_advance_with_no_schedule_is_deducted_in_full_in_the_next_run()

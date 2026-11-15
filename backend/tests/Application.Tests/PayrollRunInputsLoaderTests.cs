@@ -118,15 +118,48 @@ public class PayrollRunInputsLoaderTests
     }
 
     [Fact]
-    public async Task Someone_with_a_salary_but_no_employment_dates_is_in_the_run_and_flagged_later_by_the_calculator()
+    public async Task Someone_with_a_salary_but_no_employment_dates_is_in_the_run_and_the_builder_flags_it()
     {
         await using var db = CreateDb();
         await AddStaffAsync(db, "NODATES1", klass: null);
+        var loaded = await PayrollRunInputs.LoadAsync(db, 2026, 6, CancellationToken.None);
 
-        var p = Assert.Single((await PayrollRunInputs.LoadAsync(db, 2026, 6, CancellationToken.None)).People);
+        var p = Assert.Single(loaded.People);
 
         Assert.Null(p.EmploymentStart);
         Assert.Null(p.CitizenshipStatus);
+        Assert.Contains(PayrollInputBuilder.Build(p, loaded.Month).Warnings, w => w.Code == "no-employment-start");
+    }
+
+    /// <summary>
+    /// WHY: deactivating a person does not set an end date, and a person with no end date is employed for ever. Left to
+    /// itself they would be paid a full month in every later run with no warning, so they are listed instead.
+    /// </summary>
+    [Fact]
+    public async Task A_deactivated_person_with_no_employment_end_date_is_listed_not_paid()
+    {
+        await using var db = CreateDb();
+        var gone = await AddStaffAsync(db, "GONE1", start: new DateOnly(2024, 1, 1), active: false);
+
+        var loaded = await PayrollRunInputs.LoadAsync(db, 2026, 6, CancellationToken.None);
+
+        Assert.Empty(loaded.People);
+        var n = Assert.Single(loaded.NotInRun);
+        Assert.Equal(gone.Id, n.EmployeeId);
+        Assert.Contains("end date", n.Reason, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>WHY: an account that is not an employee (the seeded admin, an old login) must not fill the list every month, or preparers learn to ignore it.</summary>
+    [Fact]
+    public async Task An_account_with_no_employment_and_no_salary_is_not_listed()
+    {
+        await using var db = CreateDb();
+        await AddStaffAsync(db, "ADMIN1", klass: null, salary: false);
+
+        var loaded = await PayrollRunInputs.LoadAsync(db, 2026, 6, CancellationToken.None);
+
+        Assert.Empty(loaded.People);
+        Assert.Empty(loaded.NotInRun);
     }
 
     [Fact]

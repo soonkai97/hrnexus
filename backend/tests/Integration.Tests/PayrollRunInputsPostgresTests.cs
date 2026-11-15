@@ -89,6 +89,32 @@ public class PayrollRunInputsPostgresTests(PostgresFixture fx)
         Assert.Contains(line.Items, i => i.Type == "basic" && i.Amount == 3000m);
     }
 
+    /// <summary>
+    /// WHY: a person deleted after working part of the month still has final pay. Deleting is a soft delete, so the
+    /// ordinary query no longer sees them; they must be listed as not in the run, never silently dropped.
+    /// </summary>
+    [Fact]
+    public async Task Someone_who_worked_part_of_the_month_and_was_deleted_is_listed_not_dropped()
+    {
+        await using var db = await FreshAsync();
+        var leaver = Staff.Create("LEFT1", "Lee", "Ver", null, "hash", []);
+        leaver.SetEmployment("citizen", new DateOnly(2024, 1, 1), new DateOnly(2026, 6, 10));
+        var longGone = Staff.Create("OLD1", "Old", "Timer", null, "hash", []);
+        longGone.SetEmployment("citizen", new DateOnly(2020, 1, 1), new DateOnly(2026, 2, 28));
+        db.Staff.AddRange(leaver, longGone);
+        await db.SaveChangesAsync();
+        db.Staff.RemoveRange(leaver, longGone);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        var loaded = await PayrollRunInputs.LoadAsync(db, 2026, 6, CancellationToken.None);
+
+        Assert.Empty(loaded.People);
+        var n = Assert.Single(loaded.NotInRun);
+        Assert.Equal("LEFT1", n.StaffId);
+        Assert.Contains("deleted", n.Reason, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public async Task Someone_with_no_salary_is_listed_as_not_in_the_run_on_the_real_database()
     {

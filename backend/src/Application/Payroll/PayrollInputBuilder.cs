@@ -10,8 +10,9 @@ namespace HRNexus.Application.Payroll;
 /// <summary>One row of a person's pay history (the monthly basic from <see cref="EffectiveFrom"/>).</summary>
 public sealed record SalaryRow(Guid Id, DateOnly EffectiveFrom, decimal Basic);
 
-/// <summary>The part of a leave request payroll needs (dates without a time zone, the stored hours, the status).</summary>
-public sealed record PayrollLeaveRow(Guid Id, string Type, DateOnly Start, DateOnly End, decimal? Hours, string Status);
+/// <summary>The part of a leave request payroll needs (dates without a time zone, the stored hours, the status; the times are only used when hours were never stored).</summary>
+public sealed record PayrollLeaveRow(Guid Id, string Type, DateOnly Start, DateOnly End, decimal? Hours, string Status,
+    string? StartTime = null, string? EndTime = null);
 
 /// <summary>An outstanding cash advance: what was lent, the monthly schedule if any, and what earlier runs already took back.</summary>
 public sealed record AdvanceRow(Guid Id, decimal Amount, DateOnly AdvanceDate, decimal? RepaymentPerMonth, decimal Repaid);
@@ -69,24 +70,29 @@ public static class PayrollInputBuilder
         if (age is null)
             warnings.Add(new PayrollWarning("no-date-of-birth", "The person's date of birth is not set, so their age was assumed for the statutory rates.", Blocking: true));
 
+        if (p.EmploymentStart is null)
+            warnings.Add(new PayrollWarning("no-employment-start", "The person has no employment start date, so they are paid for the whole month.", Blocking: false));
+
         var unpaid = UnpaidDays(p, c, warnings);
 
         var earnings = new List<EarningInput>();
         var deductions = new List<DeductionInput>();
-        foreach (var item in p.PayItems.Where(i => i.AppliesInMonth(c.Year, c.Month)))
-        {
-            if (item.Kind == PayItemKind.Allowance)
-                earnings.Add(new EarningInput("allowance", item.Reason, item.Amount, item.CountsForEpf, item.CountsForSocsoEis, item.Id));
-            else
-                deductions.Add(new DeductionInput(item.Reason, item.Amount, item.Priority, item.Id));
-        }
-        foreach (var a in p.Advances)
+        // Cash advance repayments first, in a fixed order, then pay-item deductions by priority: when pay cannot cover
+        // everything the outcome must not depend on the order the database returned its rows in.
+        foreach (var a in p.Advances.OrderBy(a => a.AdvanceDate).ThenBy(a => a.Id))
         {
             var owed = a.Amount - a.Repaid;
             var scheduled = Math.Min(owed, a.RepaymentPerMonth ?? owed);
             if (a.AdvanceDate > c.Last || scheduled <= 0m) continue;
             deductions.Add(new DeductionInput(
                 $"Cash advance repayment ({a.AdvanceDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)})", scheduled, AdvancePriority, a.Id));
+        }
+        foreach (var item in p.PayItems.Where(i => i.AppliesInMonth(c.Year, c.Month)).OrderBy(i => i.Priority).ThenBy(i => i.From).ThenBy(i => i.Id))
+        {
+            if (item.Kind == PayItemKind.Allowance)
+                earnings.Add(new EarningInput("allowance", item.Reason, item.Amount, item.CountsForEpf, item.CountsForSocsoEis, item.Id));
+            else
+                deductions.Add(new DeductionInput(item.Reason, item.Amount, item.Priority, item.Id));
         }
 
         var input = new PayrollInput(
@@ -149,20 +155,57 @@ public static class PayrollInputBuilder
             if (leave.Start == leave.End)
             {
                 if (!schedule.IsWorkingDay(leave.Start.DayOfWeek)) continue;
-                var fraction = FractionOfDay(leave, c.Company.WorkdayHours, warnings);
+                var fraction = FractionOfDay(leave, schedule, warnings);
                 if (fraction > 0m) days.Add(new UnpaidDayDraft(leave.Start, fraction, leave.Id));
                 continue;
             }
             for (var d = leave.Start > c.First ? leave.Start : c.First; d <= leave.End && d <= c.Last; d = d.AddDays(1))
                 if (schedule.IsWorkingDay(d.DayOfWeek)) days.Add(new UnpaidDayDraft(d, 1m, leave.Id));
         }
-        return days;
+        return OneDayAtMost(days, warnings);
+    }
+
+    /// <summary>A date costs one day of pay at most, whatever the data says (two leaves should never cover the same day, but old data or a race could).</summary>
+    private static List<UnpaidDayDraft> OneDayAtMost(List<UnpaidDayDraft> days, List<PayrollWarning> warnings)
+    {
+        var used = new Dictionary<DateOnly, decimal>();
+        var kept = new List<UnpaidDayDraft>();
+        var warned = new HashSet<DateOnly>();
+        foreach (var d in days)
+        {
+            var room = 1m - used.GetValueOrDefault(d.Date);
+            var take = Math.Min(d.Days, room);
+            if (take < d.Days && warned.Add(d.Date))
+                warnings.Add(new PayrollWarning("unpaid-day-overlap",
+                    $"More than one leave covers {d.Date:yyyy-MM-dd}, so it was charged as one day at most.", Blocking: false));
+            if (take <= 0m) continue;
+            used[d.Date] = used.GetValueOrDefault(d.Date) + take;
+            kept.Add(d with { Days = take });
+        }
+        return kept;
+    }
+
+    /// <summary>A day booked before hours were stored: its hours come from its start and end times, by the same rule the leave module uses. Unreadable times count as a full day.</summary>
+    private static decimal? HoursFromTimes(PayrollLeaveRow leave, WorkSchedule schedule)
+    {
+        if (leave.StartTime is null || leave.EndTime is null) return null;
+        try
+        {
+            var day = leave.Start.ToDateTime(TimeOnly.MinValue);
+            return LeaveHoursCalculator.Calculate(day, day, leave.StartTime, leave.EndTime, schedule);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
     }
 
     /// <summary>A single day of leave: the stored hours over the current working day (4 of 8 hours is half a day), never more than a day.</summary>
-    private static decimal FractionOfDay(PayrollLeaveRow leave, decimal workdayHours, List<PayrollWarning> warnings)
+    private static decimal FractionOfDay(PayrollLeaveRow leave, WorkSchedule schedule, List<PayrollWarning> warnings)
     {
-        if (leave.Hours is not { } hours || workdayHours <= 0m) return 1m;
+        var workdayHours = schedule.WorkdayHours;
+        var stored = leave.Hours ?? HoursFromTimes(leave, schedule);
+        if (stored is not { } hours || workdayHours <= 0m) return 1m;
         var fraction = Math.Round(hours / workdayHours, 4);
         if (fraction <= 1m) return fraction;
         warnings.Add(new PayrollWarning("leave-hours-exceed-day",

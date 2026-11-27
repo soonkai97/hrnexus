@@ -38,8 +38,8 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.30",
-    "@angular/cli": "^21.2.30",
+    "@angular/build": "^21.2.31",
+    "@angular/cli": "^21.2.31",
     "@angular/compiler-cli": "^21.2.26",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.0",
